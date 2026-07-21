@@ -161,17 +161,20 @@ export default function ComparisonTable() {
             
             <th style="padding: 16px; border-bottom: 2px solid var(--success); background: rgba(16, 185, 129, 0.1); position: sticky; top: 0; z-index: 15; min-width: 220px; border-top: 2px solid var(--success);">
               <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div>
-                  <div style="font-size: 1.1rem; color: var(--success);">Live Scratchpad</div>
-                  <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">Currently reacting to sliders</div>
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 8px;">
+                  <div style="flex: 1;">
+                    <div style="font-size: 1.1rem; color: var(--success); padding: 2px 4px; font-weight: bold;">Live Scratchpad</div>
+                    <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; padding: 2px 4px;">Currently reacting to sliders</div>
+                  </div>
+                  
+                  <button 
+                    onClick={handleAddScenario}
+                    style="background: transparent; color: var(--success); border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0;"
+                    title="Save as New Scenario"
+                  >
+                    ➕
+                  </button>
                 </div>
-                
-                <button 
-                  onClick={handleAddScenario}
-                  style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%;"
-                >
-                  ➕ Save as New
-                </button>
               </div>
             </th>
 
@@ -203,16 +206,28 @@ export default function ComparisonTable() {
                           title="Click to edit description"
                         />
                       </div>
-                      <button 
-                        onClick={() => deleteScenario(scenario.id)}
-                        style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0;"
-                        title="Delete Scenario"
-                      >
-                        ✖
-                      </button>
+                      
+                      <div style="display: flex; gap: 0px;">
+                        {!isActive && (
+                          <button 
+                            onClick={() => loadScenario(scenario.id)}
+                            style="background: transparent; border: none; font-size: 1.2rem; color: var(--primary); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0;"
+                            title="Load to Scratchpad"
+                          >
+                            📥
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => deleteScenario(scenario.id)}
+                          style="background: transparent; border: none; font-size: 1.2rem; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0;"
+                          title="Delete Scenario"
+                        >
+                          ✖
+                        </button>
+                      </div>
                     </div>
                     
-                    {isActive ? (
+                    {isActive && (
                       <div style="display: flex; gap: 5px;">
                         <button 
                           onClick={() => overwriteScenarioWithCurrent(scenario.id)}
@@ -229,16 +244,6 @@ export default function ComparisonTable() {
                           Cancel
                         </button>
                       </div>
-                    ) : (
-                      <button 
-                        onClick={() => loadScenario(scenario.id)}
-                        style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); font-size: 0.8rem; padding: 6px 12px; border-radius: 4px; cursor: pointer; width: 100%; transition: 0.2s;"
-                        onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
-                        onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                        title="Load this scenario's inputs into the Live Scratchpad"
-                      >
-                        📥 Load to Scratchpad
-                      </button>
                     )}
                   </div>
                 </th>
