@@ -3,9 +3,9 @@ import { useSignal } from '@preact/signals';
 import { 
   grossIncome, taxBracket, hasChurchTax, state, children, workingMonths, salariesPerYear,
   hasPartner, partnerGrossIncome, partnerTaxBracket, partnerHasChurchTax, partnerState, partnerWorkingMonths, partnerSalariesPerYear,
-  deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent, cancelEdit 
+  deductions, savedScenarios, activeScenarioId, scenarioDraft, saveScenario, deleteScenario, loadScenario, editScenario, saveDraft, updateScenarioMetaData, updateScenarioInput, cancelEdit 
 } from '../store/calculatorStore';
-import { PlusIcon, DownloadIcon, XIcon, SaveIcon } from './Icons';
+import { PlusIcon, DownloadIcon, XIcon, SaveIcon, EditIcon } from './Icons';
 
 export default function ComparisonTable() {
   const [mounted, setMounted] = useState(false);
@@ -70,8 +70,9 @@ export default function ComparisonTable() {
     );
 
     savedScenarios.value.forEach(scenario => {
-      const saved = getPaycheckVal(scenario.data);
       const isActive = activeScenarioId.value === scenario.id;
+      const dataToUse = isActive && scenarioDraft.value ? scenarioDraft.value.data : scenario.data;
+      const saved = getPaycheckVal(dataToUse);
       cells.push(
         <td key={scenario.id} style={`padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); min-width: 220px; color: ${isActive ? 'var(--primary)' : '#f8fafc'}; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
           {format(saved.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{saved.hint}</span>
@@ -104,11 +105,12 @@ export default function ComparisonTable() {
     );
 
     savedScenarios.value.forEach(scenario => {
-      const savedVal = isHousehold 
-        ? getHouseholdMetric(scenario.data, metricKey) 
-        : getMetric(scenario.data, personKey, metricKey);
-      
       const isActive = activeScenarioId.value === scenario.id;
+      const dataToUse = isActive && scenarioDraft.value ? scenarioDraft.value.data : scenario.data;
+
+      const savedVal = isHousehold 
+        ? getHouseholdMetric(dataToUse, metricKey) 
+        : getMetric(dataToUse, personKey, metricKey);
         
       cells.push(
         <td key={scenario.id} style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); min-width: 220px; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
@@ -127,7 +129,7 @@ export default function ComparisonTable() {
     );
   };
 
-  const renderInputRow = (label, currentVal, getSavedVal) => {
+  const renderInputRow = (label, currentVal, fieldKey, type, options, formatFn) => {
     const cells = [];
     cells.push(
       <td key="current" style="padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); color: #e2e8f0; font-size: 0.9rem;">
@@ -136,11 +138,50 @@ export default function ComparisonTable() {
     );
 
     savedScenarios.value.forEach(scenario => {
-      const savedVal = getSavedVal(scenario.inputs || {});
       const isActive = activeScenarioId.value === scenario.id;
+      const inputsToUse = isActive && scenarioDraft.value ? scenarioDraft.value.inputs : (scenario.inputs || {});
+      const rawVal = inputsToUse[fieldKey];
+      const savedVal = formatFn(inputsToUse);
+      
+      let content = savedVal;
+      if (isActive) {
+        const inputStyle = "background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: white; padding: 4px; border-radius: 4px; width: 100%; outline: none;";
+        if (type === 'select') {
+          content = (
+            <select 
+              value={rawVal} 
+              onChange={(e) => updateScenarioInput(fieldKey, e.target.value)}
+              style={inputStyle}
+            >
+              {options.map(opt => <option key={opt.value} value={opt.value} style="color: black;">{opt.label}</option>)}
+            </select>
+          );
+        } else if (type === 'checkbox') {
+          content = (
+            <div style="display: flex; align-items: center; justify-content: center;">
+              <input 
+                type="checkbox" 
+                checked={rawVal}
+                onChange={(e) => updateScenarioInput(fieldKey, e.target.checked)}
+                style="transform: scale(1.2); cursor: pointer;"
+              />
+            </div>
+          );
+        } else if (type === 'number') {
+          content = (
+            <input 
+              type="number" 
+              value={rawVal}
+              onChange={(e) => updateScenarioInput(fieldKey, parseFloat(e.target.value) || 0)}
+              style={inputStyle}
+            />
+          );
+        }
+      }
+
       cells.push(
         <td key={scenario.id} style={`padding: 12px 16px; border-bottom: 1px solid var(--card-border); color: #cbd5e1; font-size: 0.9rem; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
-          {savedVal}
+          {content}
         </td>
       );
     });
@@ -224,36 +265,47 @@ export default function ComparisonTable() {
                       <div style="flex: 1;">
                         <input 
                           type="text" 
-                          value={scenario.title} 
-                          onChange={(e) => updateScenarioMetaData(scenario.id, e.target.value, scenario.description)}
-                          style={`background: transparent; border: 1px solid transparent; color: ${isActive ? 'var(--primary)' : 'white'}; font-size: 1.1rem; font-weight: bold; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s;`}
-                          onFocus={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                          onBlur={(e) => e.target.style.background = 'transparent'}
-                          title="Click to edit title"
+                          value={isActive && scenarioDraft.value ? scenarioDraft.value.title : scenario.title} 
+                          onChange={(e) => isActive && updateScenarioMetaData(e.target.value, scenarioDraft.value.description)}
+                          style={`background: transparent; border: 1px solid transparent; color: ${isActive ? 'var(--primary)' : 'white'}; font-size: 1.1rem; font-weight: bold; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s; pointer-events: ${isActive ? 'auto' : 'none'};`}
+                          onFocus={(e) => { if (isActive) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                          onBlur={(e) => { if (isActive) e.target.style.background = 'transparent'; }}
+                          title={isActive ? "Edit title" : scenario.title}
                         />
                         <input 
                           type="text" 
-                          value={scenario.description} 
-                          placeholder="Add description..."
-                          onChange={(e) => updateScenarioMetaData(scenario.id, scenario.title, e.target.value)}
-                          style="background: transparent; border: 1px solid transparent; color: #94a3b8; font-size: 0.8rem; font-weight: normal; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s;"
-                          onFocus={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                          onBlur={(e) => e.target.style.background = 'transparent'}
-                          title="Click to edit description"
+                          value={isActive && scenarioDraft.value ? scenarioDraft.value.description : scenario.description} 
+                          placeholder={isActive ? "Add description..." : ""}
+                          onChange={(e) => isActive && updateScenarioMetaData(scenarioDraft.value.title, e.target.value)}
+                          style={`background: transparent; border: 1px solid transparent; color: #94a3b8; font-size: 0.8rem; font-weight: normal; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s; pointer-events: ${isActive ? 'auto' : 'none'};`}
+                          onFocus={(e) => { if (isActive) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                          onBlur={(e) => { if (isActive) e.target.style.background = 'transparent'; }}
+                          title={isActive ? "Edit description" : scenario.description}
                         />
                       </div>
                       
                       <div style="display: flex; gap: 4px;">
                         {!isActive && (
-                          <button 
-                            onClick={() => loadScenario(scenario.id)}
-                            style="background: transparent; border: none; color: var(--primary); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
-                            onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
-                            onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
-                            title="Load to Scratchpad"
-                          >
-                            <DownloadIcon />
-                          </button>
+                          <>
+                            <button 
+                              onClick={() => loadScenario(scenario.id)}
+                              style="background: transparent; border: none; color: var(--success); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
+                              onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                              onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
+                              title="Load to Scratchpad"
+                            >
+                              <DownloadIcon />
+                            </button>
+                            <button 
+                              onClick={() => editScenario(scenario.id)}
+                              style="background: transparent; border: none; color: var(--primary); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
+                              onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                              onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
+                              title="Edit Scenario In-Place"
+                            >
+                              <EditIcon />
+                            </button>
+                          </>
                         )}
                         <button 
                           onClick={() => deleteScenario(scenario.id)}
@@ -270,9 +322,9 @@ export default function ComparisonTable() {
                     {isActive && (
                       <div style="display: flex; gap: 5px;">
                         <button 
-                          onClick={() => overwriteScenarioWithCurrent(scenario.id)}
+                          onClick={saveDraft}
                           style="background: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; gap: 4px;"
-                          title="Overwrite this scenario with the current Live Scratchpad inputs"
+                          title="Save changes to scenario"
                         >
                           <SaveIcon /> Save
                         </button>
@@ -319,12 +371,30 @@ export default function ComparisonTable() {
               Person 1 Configuration
             </td>
           </tr>
-          {renderInputRow('State', state.value, s => s.state || '-')}
-          {renderInputRow('Tax Bracket', `Class ${taxBracket.value}`, s => s.taxBracket ? `Class ${s.taxBracket}` : '-')}
-          {renderInputRow('Church Tax', hasChurchTax.value ? 'Yes' : 'No', s => s.hasChurchTax ? 'Yes' : 'No')}
-          {renderInputRow('Children', children.value, s => s.children ?? '-')}
-          {renderInputRow('Working Months', `${workingMonths.value} Months`, s => s.workingMonths ? `${s.workingMonths} Months` : '-')}
-          {renderInputRow('Salaries / Year', `${salariesPerYear.value} Salaries`, s => s.salariesPerYear ? `${s.salariesPerYear} Salaries` : '-')}
+          {(() => {
+            const taxBracketOptions = [
+              { value: '1', label: 'Class 1' }, { value: '2', label: 'Class 2' },
+              { value: '3', label: 'Class 3' }, { value: '4', label: 'Class 4' },
+              { value: '5', label: 'Class 5' }, { value: '6', label: 'Class 6' }
+            ];
+            const stateOptions = [
+              'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 
+              'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 
+              'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'
+            ].map(s => ({ value: s, label: s }));
+
+            return (
+              <>
+                {renderInputRow('Gross Income', format(grossIncome.value), 'grossIncome', 'number', null, s => format(s.grossIncome || 0))}
+                {renderInputRow('State', state.value, 'state', 'select', stateOptions, s => s.state || '-')}
+                {renderInputRow('Tax Bracket', `Class ${taxBracket.value}`, 'taxBracket', 'select', taxBracketOptions, s => s.taxBracket ? `Class ${s.taxBracket}` : '-')}
+                {renderInputRow('Church Tax', hasChurchTax.value ? 'Yes' : 'No', 'hasChurchTax', 'checkbox', null, s => s.hasChurchTax ? 'Yes' : 'No')}
+                {renderInputRow('Children', children.value, 'children', 'number', null, s => s.children ?? '-')}
+                {renderInputRow('Working Months', `${workingMonths.value} Months`, 'workingMonths', 'number', null, s => s.workingMonths ? `${s.workingMonths} Months` : '-')}
+                {renderInputRow('Salaries / Year', `${salariesPerYear.value} Salaries`, 'salariesPerYear', 'number', null, s => s.salariesPerYear ? `${s.salariesPerYear} Salaries` : '-')}
+              </>
+            );
+          })()}
           
           {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
             <>
@@ -343,11 +413,29 @@ export default function ComparisonTable() {
                   Partner Configuration
                 </td>
               </tr>
-              {renderInputRow('Partner State', partnerState.value, s => s.partnerState || '-')}
-              {renderInputRow('Partner Bracket', `Class ${partnerTaxBracket.value}`, s => s.partnerTaxBracket ? `Class ${s.partnerTaxBracket}` : '-')}
-              {renderInputRow('Partner Church Tax', partnerHasChurchTax.value ? 'Yes' : 'No', s => s.partnerHasChurchTax ? 'Yes' : 'No')}
-              {renderInputRow('Partner Work Months', `${partnerWorkingMonths.value} Months`, s => s.partnerWorkingMonths ? `${s.partnerWorkingMonths} Months` : '-')}
-              {renderInputRow('Partner Salaries', `${partnerSalariesPerYear.value} Salaries`, s => s.partnerSalariesPerYear ? `${s.partnerSalariesPerYear} Salaries` : '-')}
+              {(() => {
+                const taxBracketOptions = [
+                  { value: '1', label: 'Class 1' }, { value: '2', label: 'Class 2' },
+                  { value: '3', label: 'Class 3' }, { value: '4', label: 'Class 4' },
+                  { value: '5', label: 'Class 5' }, { value: '6', label: 'Class 6' }
+                ];
+                const stateOptions = [
+                  'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 
+                  'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 
+                  'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'
+                ].map(s => ({ value: s, label: s }));
+    
+                return (
+                  <>
+                    {renderInputRow('Partner Gross', format(partnerGrossIncome.value), 'partnerGrossIncome', 'number', null, s => format(s.partnerGrossIncome || 0))}
+                    {renderInputRow('Partner State', partnerState.value, 'partnerState', 'select', stateOptions, s => s.partnerState || '-')}
+                    {renderInputRow('Partner Bracket', `Class ${partnerTaxBracket.value}`, 'partnerTaxBracket', 'select', taxBracketOptions, s => s.partnerTaxBracket ? `Class ${s.partnerTaxBracket}` : '-')}
+                    {renderInputRow('Partner Church Tax', partnerHasChurchTax.value ? 'Yes' : 'No', 'partnerHasChurchTax', 'checkbox', null, s => s.partnerHasChurchTax ? 'Yes' : 'No')}
+                    {renderInputRow('Partner Work Months', `${partnerWorkingMonths.value} Months`, 'partnerWorkingMonths', 'number', null, s => s.partnerWorkingMonths ? `${s.partnerWorkingMonths} Months` : '-')}
+                    {renderInputRow('Partner Salaries', `${partnerSalariesPerYear.value} Salaries`, 'partnerSalariesPerYear', 'number', null, s => s.partnerSalariesPerYear ? `${s.partnerSalariesPerYear} Salaries` : '-')}
+                  </>
+                );
+              })()}
             </>
           )}
 

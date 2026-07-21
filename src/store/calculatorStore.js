@@ -53,6 +53,7 @@ export const partnerSalariesPerYear = persistedSignal('partnerSalariesPerYear', 
 // Saved Scenarios
 export const savedScenarios = persistedSignal('savedScenarios', []);
 export const activeScenarioId = persistedSignal('activeScenarioId', null);
+export const scenarioDraft = signal(null);
 
 function getCurrentInputs() {
   return {
@@ -81,16 +82,16 @@ export function saveScenario(title, description, currentDeductions) {
     description: description || '',
     timestamp: new Date().toISOString(),
     inputs: getCurrentInputs(),
-    data: currentDeductions // snapshot of the computed deductions
+    data: currentDeductions 
   };
   savedScenarios.value = [...savedScenarios.value, newScenario];
-  activeScenarioId.value = newScenario.id;
+  editScenario(newScenario.id);
 }
 
 export function deleteScenario(id) {
   savedScenarios.value = savedScenarios.value.filter(s => s.id !== id);
   if (activeScenarioId.value === id) {
-    activeScenarioId.value = null;
+    cancelEdit();
   }
 }
 
@@ -112,8 +113,6 @@ export function loadScenario(id) {
     partnerState.value = scenario.inputs.partnerState ?? 'Berlin';
     partnerWorkingMonths.value = scenario.inputs.partnerWorkingMonths ?? 12;
     partnerSalariesPerYear.value = scenario.inputs.partnerSalariesPerYear ?? 12;
-    
-    activeScenarioId.value = id;
   }
 }
 
@@ -236,15 +235,15 @@ function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bu
   };
 }
 
-export const deductions = computed(() => {
-  const p1YearlyGross = inputMode.value === 'monthly' ? (grossIncome.value * salariesPerYear.value) : grossIncome.value;
-  const p2YearlyGross = inputMode.value === 'monthly' ? (partnerGrossIncome.value * partnerSalariesPerYear.value) : partnerGrossIncome.value;
+export function calculateScenarioData(inputs) {
+  const p1YearlyGross = inputs.inputMode === 'monthly' ? (inputs.grossIncome * inputs.salariesPerYear) : inputs.grossIncome;
+  const p2YearlyGross = inputs.inputMode === 'monthly' ? (inputs.partnerGrossIncome * inputs.partnerSalariesPerYear) : inputs.partnerGrossIncome;
 
-  const person1 = calculateForPerson(p1YearlyGross, taxBracket.value, hasChurchTax.value, children.value, state.value, workingMonths.value, salariesPerYear.value);
+  const person1 = calculateForPerson(p1YearlyGross, inputs.taxBracket, inputs.hasChurchTax, inputs.children, inputs.state, inputs.workingMonths, inputs.salariesPerYear);
   
   let partner = null;
-  if (hasPartner.value) {
-    partner = calculateForPerson(p2YearlyGross, partnerTaxBracket.value, partnerHasChurchTax.value, children.value, partnerState.value, partnerWorkingMonths.value, partnerSalariesPerYear.value);
+  if (inputs.hasPartner) {
+    partner = calculateForPerson(p2YearlyGross, inputs.partnerTaxBracket, inputs.partnerHasChurchTax, inputs.children, inputs.partnerState, inputs.partnerWorkingMonths, inputs.partnerSalariesPerYear);
   }
 
   const householdGross = person1.grossYearly + (partner ? partner.grossYearly : 0);
@@ -260,20 +259,41 @@ export const deductions = computed(() => {
       totalDeductions: householdTotalDeductions
     }
   };
+}
+
+export const deductions = computed(() => {
+  return calculateScenarioData(getCurrentInputs());
 });
 
-// Removed auto-save effect to allow manual explicit saves instead of sticky editing
-export function updateScenarioMetaData(id, newTitle, newDescription) {
-  const scenarios = savedScenarios.peek();
-  const index = scenarios.findIndex(s => s.id === id);
-  if (index > -1) {
-    const newScenarios = [...scenarios];
-    newScenarios[index] = {
-      ...newScenarios[index],
+export function editScenario(id) {
+  const scenario = savedScenarios.peek().find(s => s.id === id);
+  if (scenario) {
+    scenarioDraft.value = {
+      ...scenario,
+      inputs: { ...scenario.inputs }
+    };
+    activeScenarioId.value = id;
+  }
+}
+
+export function updateScenarioMetaData(newTitle, newDescription) {
+  if (scenarioDraft.value) {
+    scenarioDraft.value = {
+      ...scenarioDraft.value,
       title: newTitle,
       description: newDescription
     };
-    savedScenarios.value = newScenarios;
+  }
+}
+
+export function updateScenarioInput(field, value) {
+  if (scenarioDraft.value) {
+    const newInputs = { ...scenarioDraft.value.inputs, [field]: value };
+    scenarioDraft.value = {
+      ...scenarioDraft.value,
+      inputs: newInputs,
+      data: calculateScenarioData(newInputs)
+    };
   }
 }
 
@@ -290,10 +310,24 @@ export function overwriteScenarioWithCurrent(id) {
     savedScenarios.value = newScenarios;
   }
   if (activeScenarioId.peek() === id) {
-    activeScenarioId.value = null; // Exit edit mode after saving
+    cancelEdit();
+  }
+}
+
+export function saveDraft() {
+  if (scenarioDraft.value && activeScenarioId.value) {
+    const scenarios = savedScenarios.peek();
+    const index = scenarios.findIndex(s => s.id === activeScenarioId.value);
+    if (index > -1) {
+      const newScenarios = [...scenarios];
+      newScenarios[index] = scenarioDraft.value;
+      savedScenarios.value = newScenarios;
+    }
+    cancelEdit();
   }
 }
 
 export function cancelEdit() {
   activeScenarioId.value = null;
+  scenarioDraft.value = null;
 }
