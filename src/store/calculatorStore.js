@@ -289,4 +289,11 @@ export function overwriteScenarioWithCurrent(id) {
     };
     savedScenarios.value = newScenarios;
   }
+  if (activeScenarioId.peek() === id) {
+    activeScenarioId.value = null; // Exit edit mode after saving
+  }
+}
+
+export function cancelEdit() {
+  activeScenarioId.value = null;
 }

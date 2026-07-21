@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent } from '../store/calculatorStore';
+import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent, cancelEdit } from '../store/calculatorStore';
 
 export default function ComparisonTable() {
   const [mounted, setMounted] = useState(false);
@@ -213,13 +213,22 @@ export default function ComparisonTable() {
                     </div>
                     
                     {isActive ? (
-                      <button 
-                        onClick={() => overwriteScenarioWithCurrent(scenario.id)}
-                        style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);"
-                        title="Overwrite this scenario with the current Live Scratchpad inputs"
-                      >
-                        💾 Update Scenario
-                      </button>
+                      <div style="display: flex; gap: 5px;">
+                        <button 
+                          onClick={() => overwriteScenarioWithCurrent(scenario.id)}
+                          style="background: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);"
+                          title="Overwrite this scenario with the current Live Scratchpad inputs"
+                        >
+                          💾 Save
+                        </button>
+                        <button 
+                          onClick={cancelEdit}
+                          style="background: transparent; color: #cbd5e1; border: 1px solid var(--card-border); padding: 6px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1;"
+                          title="Cancel editing without saving"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     ) : (
                       <button 
                         onClick={() => loadScenario(scenario.id)}
