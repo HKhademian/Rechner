@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, inputMode } from '../store/calculatorStore';
+import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent } from '../store/calculatorStore';
 
 export default function ComparisonTable() {
   const [mounted, setMounted] = useState(false);
@@ -10,9 +10,6 @@ export default function ComparisonTable() {
     // Initialize first scenario if none exist
     if (savedScenarios.peek().length === 0) {
       saveScenario('My First Scenario', 'Default starting point', deductions.peek());
-    } else if (!activeScenarioId.peek()) {
-      // Auto-select first if none is active
-      activeScenarioId.value = savedScenarios.peek()[0].id;
     }
   }, []);
 
@@ -59,11 +56,19 @@ export default function ComparisonTable() {
       }
     };
 
+    // Current Story
+    const current = getPaycheckVal(deductions.value);
+    cells.push(
+      <td key="current" style="padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 220px; color: var(--success);">
+        {format(current.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{current.hint}</span>
+      </td>
+    );
+
     savedScenarios.value.forEach(scenario => {
       const saved = getPaycheckVal(scenario.data);
       const isActive = activeScenarioId.value === scenario.id;
       cells.push(
-        <td key={scenario.id} style={`padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); min-width: 220px; color: ${isActive ? 'var(--success)' : '#f8fafc'}; background: ${isActive ? 'rgba(16, 185, 129, 0.05)' : 'transparent'};`}>
+        <td key={scenario.id} style={`padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); min-width: 220px; color: ${isActive ? 'var(--primary)' : '#f8fafc'}; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
           {format(saved.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{saved.hint}</span>
         </td>
       );
@@ -82,6 +87,17 @@ export default function ComparisonTable() {
   const renderRow = (label, personKey, metricKey, isHousehold = false, isHeader = false) => {
     const cells = [];
     
+    // Current Story
+    const currentVal = isHousehold 
+      ? getHouseholdMetric(deductions.value, metricKey) 
+      : getMetric(deductions.value, personKey, metricKey);
+      
+    cells.push(
+      <td key="current" style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 220px;`}>
+        {format(currentVal)}
+      </td>
+    );
+
     savedScenarios.value.forEach(scenario => {
       const savedVal = isHousehold 
         ? getHouseholdMetric(scenario.data, metricKey) 
@@ -90,7 +106,7 @@ export default function ComparisonTable() {
       const isActive = activeScenarioId.value === scenario.id;
         
       cells.push(
-        <td key={scenario.id} style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); min-width: 220px; background: ${isActive ? 'rgba(16, 185, 129, 0.05)' : 'transparent'};`}>
+        <td key={scenario.id} style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); min-width: 220px; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
           {format(savedVal)}
         </td>
       );
@@ -117,7 +133,7 @@ export default function ComparisonTable() {
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
           <h2 style="margin: 0;">Scenario Manager</h2>
-          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">Click "Edit" on a scenario to live-edit it using the form below.</p>
+          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">Compare your Live Scratchpad against your explicitly saved scenarios.</p>
         </div>
         
         <div style="display: flex; gap: 15px; align-items: center;">
@@ -135,13 +151,6 @@ export default function ComparisonTable() {
               Yearly
             </button>
           </div>
-          
-          <button 
-            onClick={handleAddScenario}
-            style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;"
-          >
-            ➕ Add Scenario
-          </button>
         </div>
       </div>
 
@@ -150,40 +159,76 @@ export default function ComparisonTable() {
           <tr>
             <th style="padding: 16px; border-bottom: 2px solid var(--card-border); width: 220px; position: sticky; left: 0; top: 0; background: #1e293b; z-index: 20; border-right: 2px solid var(--card-border);"></th>
             
+            <th style="padding: 16px; border-bottom: 2px solid var(--success); background: rgba(16, 185, 129, 0.1); position: sticky; top: 0; z-index: 15; min-width: 220px; border-top: 2px solid var(--success);">
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div>
+                  <div style="font-size: 1.1rem; color: var(--success);">Live Scratchpad</div>
+                  <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">Currently reacting to sliders</div>
+                </div>
+                
+                <button 
+                  onClick={handleAddScenario}
+                  style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%;"
+                >
+                  ➕ Save as New
+                </button>
+              </div>
+            </th>
+
             {savedScenarios.value.map(scenario => {
               const isActive = activeScenarioId.value === scenario.id;
               
               return (
-                <th key={scenario.id} style={`padding: 16px; border-bottom: 2px solid ${isActive ? 'var(--success)' : 'var(--card-border)'}; position: sticky; top: 0; background: ${isActive ? 'rgba(16, 185, 129, 0.1)' : '#1e293b'}; z-index: 15; min-width: 220px; border-top: ${isActive ? '2px solid var(--success)' : 'none'};`}>
+                <th key={scenario.id} style={`padding: 16px; border-bottom: 2px solid ${isActive ? 'var(--primary)' : 'var(--card-border)'}; position: sticky; top: 0; background: ${isActive ? 'rgba(56, 189, 248, 0.1)' : '#1e293b'}; z-index: 15; min-width: 220px; border-top: ${isActive ? '2px solid var(--primary)' : 'none'};`}>
                   <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                      <div>
-                        <div style="font-size: 1.1rem; color: ${isActive ? 'var(--success)' : 'white'};">{scenario.title}</div>
-                        {scenario.description && <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">{scenario.description}</div>}
+                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 8px;">
+                      <div style="flex: 1;">
+                        <input 
+                          type="text" 
+                          value={scenario.title} 
+                          onChange={(e) => updateScenarioMetaData(scenario.id, e.target.value, scenario.description)}
+                          style={`background: transparent; border: 1px solid transparent; color: ${isActive ? 'var(--primary)' : 'white'}; font-size: 1.1rem; font-weight: bold; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s;`}
+                          onFocus={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                          onBlur={(e) => e.target.style.background = 'transparent'}
+                          title="Click to edit title"
+                        />
+                        <input 
+                          type="text" 
+                          value={scenario.description} 
+                          placeholder="Add description..."
+                          onChange={(e) => updateScenarioMetaData(scenario.id, scenario.title, e.target.value)}
+                          style="background: transparent; border: 1px solid transparent; color: #94a3b8; font-size: 0.8rem; font-weight: normal; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s;"
+                          onFocus={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                          onBlur={(e) => e.target.style.background = 'transparent'}
+                          title="Click to edit description"
+                        />
                       </div>
-                      {savedScenarios.value.length > 1 && (
-                        <button 
-                          onClick={() => deleteScenario(scenario.id)}
-                          style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px;"
-                          title="Delete Scenario"
-                        >
-                          ✖
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => deleteScenario(scenario.id)}
+                        style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0;"
+                        title="Delete Scenario"
+                      >
+                        ✖
+                      </button>
                     </div>
                     
                     {isActive ? (
-                      <div style="background: var(--success); color: #000; font-size: 0.75rem; text-align: center; padding: 4px; border-radius: 4px; font-weight: bold;">
-                        CURRENTLY EDITING
-                      </div>
+                      <button 
+                        onClick={() => overwriteScenarioWithCurrent(scenario.id)}
+                        style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);"
+                        title="Overwrite this scenario with the current Live Scratchpad inputs"
+                      >
+                        💾 Update Scenario
+                      </button>
                     ) : (
                       <button 
                         onClick={() => loadScenario(scenario.id)}
-                        style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); font-size: 0.75rem; padding: 4px; border-radius: 4px; cursor: pointer; width: 100%; transition: 0.2s;"
+                        style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); font-size: 0.8rem; padding: 6px 12px; border-radius: 4px; cursor: pointer; width: 100%; transition: 0.2s;"
                         onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
                         onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                        title="Load this scenario's inputs into the Live Scratchpad"
                       >
-                        ✏️ Edit Scenario
+                        📥 Load to Scratchpad
                       </button>
                     )}
                   </div>
@@ -194,7 +239,7 @@ export default function ComparisonTable() {
         </thead>
         <tbody>
           <tr>
-            <td colSpan={savedScenarios.value.length + 1} style="padding: 20px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
+            <td colSpan={savedScenarios.value.length + 2} style="padding: 20px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Household Totals
             </td>
           </tr>
@@ -204,7 +249,7 @@ export default function ComparisonTable() {
           {renderRow(isMonthly ? 'Household Avg Deductions' : 'Total Deductions', null, 'totalDeductions', true)}
           
           <tr>
-            <td colSpan={savedScenarios.value.length + 1} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
+            <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Person 1 Details
             </td>
           </tr>
@@ -215,10 +260,10 @@ export default function ComparisonTable() {
           {renderRow(isMonthly ? 'Avg Health Care' : 'Health Care', 'person1', 'healthCare')}
           {renderRow(isMonthly ? 'Avg Pension' : 'Pension', 'person1', 'pension')}
           
-          {(savedScenarios.value.some(s => s.data.partner)) && (
+          {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
             <>
               <tr>
-                <td colSpan={savedScenarios.value.length + 1} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
+                <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
                   Partner Details
                 </td>
               </tr>

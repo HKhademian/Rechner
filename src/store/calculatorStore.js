@@ -262,25 +262,31 @@ export const deductions = computed(() => {
   };
 });
 
-// Auto-save effect: if an active scenario is set, live-update it when deductions change
-if (typeof window !== 'undefined') {
-  effect(() => {
-    const data = deductions.value; // Track changes to deductions
-    const id = activeScenarioId.peek(); // Do not track changes to activeScenarioId itself
-    if (id) {
-      const scenarios = savedScenarios.peek();
-      const index = scenarios.findIndex(s => s.id === id);
-      if (index > -1) {
-        // Deep clone to avoid mutating the signal value directly in place without triggering updates
-        const newScenarios = [...scenarios];
-        newScenarios[index] = { 
-          ...newScenarios[index], 
-          inputs: getCurrentInputs(),
-          data 
-        };
-        // Update the persisted array (this will save to localStorage)
-        savedScenarios.value = newScenarios;
-      }
-    }
-  });
+// Removed auto-save effect to allow manual explicit saves instead of sticky editing
+export function updateScenarioMetaData(id, newTitle, newDescription) {
+  const scenarios = savedScenarios.peek();
+  const index = scenarios.findIndex(s => s.id === id);
+  if (index > -1) {
+    const newScenarios = [...scenarios];
+    newScenarios[index] = {
+      ...newScenarios[index],
+      title: newTitle,
+      description: newDescription
+    };
+    savedScenarios.value = newScenarios;
+  }
+}
+
+export function overwriteScenarioWithCurrent(id) {
+  const scenarios = savedScenarios.peek();
+  const index = scenarios.findIndex(s => s.id === id);
+  if (index > -1) {
+    const newScenarios = [...scenarios];
+    newScenarios[index] = {
+      ...newScenarios[index],
+      inputs: getCurrentInputs(),
+      data: deductions.peek()
+    };
+    savedScenarios.value = newScenarios;
+  }
 }
