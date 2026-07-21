@@ -155,12 +155,12 @@ export default function ComparisonTable() {
         </div>
       </div>
 
-      <table style="width: 100%; min-width: 800px; border-collapse: separate; border-spacing: 0; text-align: left;">
+      <table style="table-layout: fixed; width: max-content; border-collapse: separate; border-spacing: 0; text-align: left;">
         <thead>
           <tr>
-            <th style="padding: 16px; border-bottom: 2px solid var(--card-border); width: 220px; position: sticky; left: 0; top: 0; background: #1e293b; z-index: 20; border-right: 2px solid var(--card-border);"></th>
+            <th style="padding: 16px; border-bottom: 2px solid var(--card-border); width: 250px; position: sticky; left: 0; top: 0; background: #1e293b; z-index: 20; border-right: 2px solid var(--card-border);"></th>
             
-            <th style="padding: 16px; border-bottom: 2px solid var(--success); background: rgba(16, 185, 129, 0.1); position: sticky; top: 0; z-index: 15; min-width: 220px; border-top: 2px solid var(--success);">
+            <th style="padding: 16px; border-bottom: 2px solid var(--success); background: rgba(16, 185, 129, 0.1); position: sticky; top: 0; z-index: 15; width: 300px; border-top: 2px solid var(--success);">
               <div style="display: flex; flex-direction: column; gap: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: start; gap: 8px;">
                   <div style="flex: 1;">
@@ -185,7 +185,7 @@ export default function ComparisonTable() {
               const isActive = activeScenarioId.value === scenario.id;
               
               return (
-                <th key={scenario.id} style={`padding: 16px; border-bottom: 2px solid ${isActive ? 'var(--primary)' : 'var(--card-border)'}; position: sticky; top: 0; background: ${isActive ? 'rgba(56, 189, 248, 0.1)' : '#1e293b'}; z-index: 15; min-width: 220px; border-top: ${isActive ? '2px solid var(--primary)' : 'none'};`}>
+                <th key={scenario.id} style={`padding: 16px; border-bottom: 2px solid ${isActive ? 'var(--primary)' : 'var(--card-border)'}; position: sticky; top: 0; background: ${isActive ? 'rgba(56, 189, 248, 0.1)' : '#1e293b'}; z-index: 15; width: 300px; border-top: ${isActive ? '2px solid var(--primary)' : 'none'};`}>
                   <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: start; gap: 8px;">
                       <div style="flex: 1;">
