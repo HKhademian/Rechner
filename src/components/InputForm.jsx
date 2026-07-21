@@ -6,6 +6,7 @@ import {
 } from '../store/calculatorStore';
 import { useState, useEffect } from 'preact/hooks';
 import TaxSettings from './TaxSettings';
+import { SettingsIcon } from './Icons';
 
 const germanStates = [
   'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen',
@@ -236,7 +237,9 @@ export default function InputForm() {
       
       <details style="cursor: pointer; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px;">
         <summary style="font-weight: 600; color: #f8fafc; outline: none; display: flex; justify-content: space-between; align-items: center; padding: 5px;">
-          ⚙️ Advanced Tax Configuration (2026)
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <SettingsIcon size={16} /> Advanced Tax Configuration (2026)
+          </div>
           <span style="font-size: 0.8rem; color: #94a3b8;">Click to expand</span>
         </summary>
         <TaxSettings />
