@@ -17,7 +17,7 @@ export default function Calculator() {
     <ComparisonTable />
 
     <div class="container">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
         <InputForm />
         <ResultsDisplay />
       </div>
