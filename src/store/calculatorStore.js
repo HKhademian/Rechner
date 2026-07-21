@@ -59,6 +59,23 @@ export function saveScenario(title, description, currentDeductions) {
     title: title || 'Untitled Scenario',
     description: description || '',
     timestamp: new Date().toISOString(),
+    inputs: {
+      inputMode: inputMode.value,
+      grossIncome: grossIncome.value,
+      taxBracket: taxBracket.value,
+      hasChurchTax: hasChurchTax.value,
+      state: state.value,
+      children: children.value,
+      workingMonths: workingMonths.value,
+      salariesPerYear: salariesPerYear.value,
+      hasPartner: hasPartner.value,
+      partnerGrossIncome: partnerGrossIncome.value,
+      partnerTaxBracket: partnerTaxBracket.value,
+      partnerHasChurchTax: partnerHasChurchTax.value,
+      partnerState: partnerState.value,
+      partnerWorkingMonths: partnerWorkingMonths.value,
+      partnerSalariesPerYear: partnerSalariesPerYear.value
+    },
     data: currentDeductions // snapshot of the computed deductions
   };
   savedScenarios.value = [...savedScenarios.value, newScenario];
