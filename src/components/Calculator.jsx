@@ -4,6 +4,7 @@ import ComparisonTable from './ComparisonTable';
 
 export default function Calculator() {
   return (
+    <>
     <div class="container">
       <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
         <h1 style="font-size: 3rem; background: -webkit-linear-gradient(45deg, var(--primary), #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
@@ -18,8 +19,9 @@ export default function Calculator() {
         <InputForm />
         <ResultsDisplay />
       </div>
-
-      <ComparisonTable />
     </div>
+    
+    <ComparisonTable />
+    </>
   );
 }

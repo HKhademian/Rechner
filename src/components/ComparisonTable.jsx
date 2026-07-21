@@ -49,7 +49,7 @@ export default function ComparisonTable() {
       : getMetric(deductions.value, personKey, metricKey);
       
     cells.push(
-      <td key="current" style={`padding: 12px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.05);`}>
+      <td key="current" style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 200px;`}>
         {format(currentVal)}
       </td>
     );
@@ -61,15 +61,15 @@ export default function ComparisonTable() {
         : getMetric(scenario.data, personKey, metricKey);
         
       cells.push(
-        <td key={scenario.id} style={`padding: 12px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border);`}>
+        <td key={scenario.id} style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); min-width: 200px;`}>
           {format(savedVal)}
         </td>
       );
     });
 
     return (
-      <tr>
-        <td style="padding: 12px; font-weight: 500; border-bottom: 1px solid var(--card-border); color: #cbd5e1; position: sticky; left: 0; background: #1e293b;">
+      <tr class="comparison-row">
+        <td style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--card-border); color: #e2e8f0; position: sticky; left: 0; background: #1e293b; z-index: 10; border-right: 2px solid var(--card-border);">
           {label}
         </td>
         {cells}
@@ -78,7 +78,7 @@ export default function ComparisonTable() {
   };
 
   return (
-    <div class="glass-panel fade-in" style="margin-top: 40px; padding: 25px; overflow-x: auto;">
+    <div class="glass-panel fade-in" style="max-width: 95vw; margin: 40px auto 40px auto; padding: 25px; overflow-x: auto; position: relative;">
       
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
@@ -102,17 +102,17 @@ export default function ComparisonTable() {
         </div>
       </div>
 
-      <table style="width: 100%; min-width: 600px; border-collapse: collapse; text-align: left;">
+      <table style="width: 100%; min-width: 800px; border-collapse: separate; border-spacing: 0; text-align: left;">
         <thead>
           <tr>
-            <th style="padding: 12px; border-bottom: 2px solid var(--card-border); width: 200px; position: sticky; left: 0; background: #1e293b;"></th>
-            <th style="padding: 12px; border-bottom: 2px solid var(--primary); color: var(--primary); background: rgba(16, 185, 129, 0.05);">
-              <div style="font-size: 1.1rem;">Current Story</div>
+            <th style="padding: 16px; border-bottom: 2px solid var(--card-border); width: 220px; position: sticky; left: 0; top: 0; background: #1e293b; z-index: 20; border-right: 2px solid var(--card-border);"></th>
+            <th style="padding: 16px; border-bottom: 2px solid var(--primary); color: var(--success); background: rgba(16, 185, 129, 0.1); position: sticky; top: 0; z-index: 15; min-width: 200px;">
+              <div style="font-size: 1.1rem; font-weight: 700;">Current Story</div>
               <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">(Live inputs)</div>
             </th>
             
             {savedScenarios.value.map(scenario => (
-              <th key={scenario.id} style="padding: 12px; border-bottom: 2px solid var(--card-border);">
+              <th key={scenario.id} style="padding: 16px; border-bottom: 2px solid var(--card-border); position: sticky; top: 0; background: #1e293b; z-index: 15; min-width: 200px;">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                   <div>
                     <div style="font-size: 1.1rem;">{scenario.title}</div>
@@ -132,7 +132,7 @@ export default function ComparisonTable() {
         </thead>
         <tbody>
           <tr>
-            <td colSpan={savedScenarios.value.length + 2} style="padding: 15px 12px 5px 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: bold; background: rgba(0,0,0,0.1);">
+            <td colSpan={savedScenarios.value.length + 2} style="padding: 20px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Household Totals
             </td>
           </tr>
@@ -141,7 +141,7 @@ export default function ComparisonTable() {
           {renderRow('Total Deductions', null, 'totalDeductions', true)}
           
           <tr>
-            <td colSpan={savedScenarios.value.length + 2} style="padding: 15px 12px 5px 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: bold; background: rgba(0,0,0,0.1);">
+            <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Person 1 Details
             </td>
           </tr>
@@ -155,7 +155,7 @@ export default function ComparisonTable() {
           {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
             <>
               <tr>
-                <td colSpan={savedScenarios.value.length + 2} style="padding: 15px 12px 5px 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: bold; background: rgba(0,0,0,0.1);">
+                <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
                   Partner Details
                 </td>
               </tr>
