@@ -1,5 +1,6 @@
 import InputForm from './InputForm';
 import ResultsDisplay from './ResultsDisplay';
+import ComparisonTable from './ComparisonTable';
 
 export default function Calculator() {
   return (
@@ -17,6 +18,8 @@ export default function Calculator() {
         <InputForm />
         <ResultsDisplay />
       </div>
+
+      <ComparisonTable />
     </div>
   );
 }
