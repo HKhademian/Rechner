@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent, cancelEdit } from '../store/calculatorStore';
+import { PlusIcon, DownloadIcon, XIcon, SaveIcon } from './Icons';
 
 export default function ComparisonTable() {
   const [mounted, setMounted] = useState(false);
@@ -174,7 +175,7 @@ export default function ComparisonTable() {
                     onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
                     title="Save as New Scenario"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <PlusIcon />
                   </button>
                 </div>
               </div>
@@ -218,7 +219,7 @@ export default function ComparisonTable() {
                             onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
                             title="Load to Scratchpad"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <DownloadIcon />
                           </button>
                         )}
                         <button 
@@ -228,7 +229,7 @@ export default function ComparisonTable() {
                           onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
                           title="Delete Scenario"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          <XIcon />
                         </button>
                       </div>
                     </div>
@@ -240,7 +241,7 @@ export default function ComparisonTable() {
                           style="background: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; gap: 4px;"
                           title="Overwrite this scenario with the current Live Scratchpad inputs"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Save
+                          <SaveIcon /> Save
                         </button>
                         <button 
                           onClick={cancelEdit}
