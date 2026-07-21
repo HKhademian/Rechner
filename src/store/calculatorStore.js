@@ -99,7 +99,7 @@ function getBaseTax(zve, basicAllowance) {
   return Math.floor(0.45 * zve - 18787.97);
 }
 
-function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bundesland, monthsWorked) {
+function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bundesland, monthsWorked, salariesReceived = 12) {
   if (grossYearly <= 0) {
     return { grossYearly, healthCare: 0, pension: 0, unemployment: 0, care: 0, tax: 0, churchTax: 0, totalSocialSecurity: 0, totalDeductions: 0, netIncome: 0, monthsWorked };
   }
@@ -182,7 +182,8 @@ function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bu
     totalSocialSecurity,
     totalDeductions,
     netIncome: grossYearly - totalDeductions,
-    monthsWorked
+    monthsWorked,
+    salariesReceived
   };
 }
 
@@ -190,11 +191,11 @@ export const deductions = computed(() => {
   const p1YearlyGross = inputMode.value === 'monthly' ? (grossIncome.value * salariesPerYear.value) : grossIncome.value;
   const p2YearlyGross = inputMode.value === 'monthly' ? (partnerGrossIncome.value * partnerSalariesPerYear.value) : partnerGrossIncome.value;
 
-  const person1 = calculateForPerson(p1YearlyGross, taxBracket.value, hasChurchTax.value, children.value, state.value, workingMonths.value);
+  const person1 = calculateForPerson(p1YearlyGross, taxBracket.value, hasChurchTax.value, children.value, state.value, workingMonths.value, salariesPerYear.value);
   
   let partner = null;
   if (hasPartner.value) {
-    partner = calculateForPerson(p2YearlyGross, partnerTaxBracket.value, partnerHasChurchTax.value, children.value, partnerState.value, partnerWorkingMonths.value);
+    partner = calculateForPerson(p2YearlyGross, partnerTaxBracket.value, partnerHasChurchTax.value, children.value, partnerState.value, partnerWorkingMonths.value, partnerSalariesPerYear.value);
   }
 
   const householdGross = person1.grossYearly + (partner ? partner.grossYearly : 0);

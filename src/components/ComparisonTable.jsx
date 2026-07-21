@@ -40,6 +40,54 @@ export default function ComparisonTable() {
     return p1Monthly + p2Monthly;
   };
 
+  const renderPerPaycheckRow = (personKey, isHousehold = false) => {
+    if (!isMonthly) return null; // Only show per-paycheck in monthly view
+
+    const cells = [];
+
+    const getPaycheckVal = (snapshot) => {
+      if (isHousehold) {
+        const p1 = snapshot.person1;
+        const p2 = snapshot.partner;
+        const p1Val = p1 ? p1.netIncome / (p1.salariesReceived || 12) : 0;
+        const p2Val = p2 ? p2.netIncome / (p2.salariesReceived || 12) : 0;
+        return { val: p1Val + p2Val, hint: '' };
+      } else {
+        const p = snapshot[personKey];
+        if (!p) return { val: 0, hint: '' };
+        const salaries = p.salariesReceived || 12;
+        return { val: p.netIncome / salaries, hint: `(x${salaries})` };
+      }
+    };
+
+    // Current Story (Live)
+    const current = getPaycheckVal(deductions.value);
+    cells.push(
+      <td key="current" style="padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 200px; color: var(--success);">
+        {format(current.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{current.hint}</span>
+      </td>
+    );
+
+    // Saved Scenarios
+    savedScenarios.value.forEach(scenario => {
+      const saved = getPaycheckVal(scenario.data);
+      cells.push(
+        <td key={scenario.id} style="padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); min-width: 200px; color: #f8fafc;">
+          {format(saved.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{saved.hint}</span>
+        </td>
+      );
+    });
+
+    return (
+      <tr class="comparison-row">
+        <td style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--card-border); color: #cbd5e1; position: sticky; left: 0; background: #2a3b52; z-index: 10; border-right: 2px solid var(--card-border);">
+          Net Per Paycheck
+        </td>
+        {cells}
+      </tr>
+    );
+  };
+
   const renderRow = (label, personKey, metricKey, isHousehold = false, isHeader = false) => {
     const cells = [];
     
@@ -136,20 +184,22 @@ export default function ComparisonTable() {
               Household Totals
             </td>
           </tr>
-          {renderRow('Household Gross', null, 'grossYearly', true, true)}
-          {renderRow('Household Net', null, 'netIncome', true, true)}
-          {renderRow('Total Deductions', null, 'totalDeductions', true)}
+          {renderRow(isMonthly ? 'Household Avg Gross' : 'Household Gross', null, 'grossYearly', true, true)}
+          {renderRow(isMonthly ? 'Household Avg Net' : 'Household Net', null, 'netIncome', true, true)}
+          {renderPerPaycheckRow(null, true)}
+          {renderRow(isMonthly ? 'Household Avg Deductions' : 'Total Deductions', null, 'totalDeductions', true)}
           
           <tr>
             <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Person 1 Details
             </td>
           </tr>
-          {renderRow('Gross Income', 'person1', 'grossYearly', false, true)}
-          {renderRow('Net Income', 'person1', 'netIncome', false, true)}
-          {renderRow('Wage Tax', 'person1', 'tax')}
-          {renderRow('Health Care', 'person1', 'healthCare')}
-          {renderRow('Pension', 'person1', 'pension')}
+          {renderRow(isMonthly ? 'Avg Gross' : 'Gross Income', 'person1', 'grossYearly', false, true)}
+          {renderRow(isMonthly ? 'Avg Net' : 'Net Income', 'person1', 'netIncome', false, true)}
+          {renderPerPaycheckRow('person1', false)}
+          {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax', 'person1', 'tax')}
+          {renderRow(isMonthly ? 'Avg Health Care' : 'Health Care', 'person1', 'healthCare')}
+          {renderRow(isMonthly ? 'Avg Pension' : 'Pension', 'person1', 'pension')}
           
           {/* We only render Partner Details if at least one scenario has a partner */}
           {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
@@ -159,9 +209,10 @@ export default function ComparisonTable() {
                   Partner Details
                 </td>
               </tr>
-              {renderRow('Gross Income', 'partner', 'grossYearly', false, true)}
-              {renderRow('Net Income', 'partner', 'netIncome', false, true)}
-              {renderRow('Wage Tax', 'partner', 'tax')}
+              {renderRow(isMonthly ? 'Avg Gross' : 'Gross Income', 'partner', 'grossYearly', false, true)}
+              {renderRow(isMonthly ? 'Avg Net' : 'Net Income', 'partner', 'netIncome', false, true)}
+              {renderPerPaycheckRow('partner', false)}
+              {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax', 'partner', 'tax')}
             </>
           )}
 
