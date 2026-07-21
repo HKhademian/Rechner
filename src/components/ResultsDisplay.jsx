@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { deductions, hasPartner, salariesPerYear, partnerSalariesPerYear } from '../store/calculatorStore';
-import ScenarioSaver from './ScenarioSaver';
 
 export default function ResultsDisplay() {
   const [mounted, setMounted] = useState(false);
@@ -129,8 +128,6 @@ export default function ResultsDisplay() {
       <div style="margin-top: 0.5rem; text-align: center; color: #64748b; font-size: 0.75rem;">
         * Note: This is a simplified estimation for educational purposes.
       </div>
-
-      <ScenarioSaver />
     </div>
   );
 }

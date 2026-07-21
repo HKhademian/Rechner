@@ -52,6 +52,27 @@ export const partnerSalariesPerYear = persistedSignal('partnerSalariesPerYear', 
 
 // Saved Scenarios
 export const savedScenarios = persistedSignal('savedScenarios', []);
+export const activeScenarioId = persistedSignal('activeScenarioId', null);
+
+function getCurrentInputs() {
+  return {
+    inputMode: inputMode.value,
+    grossIncome: grossIncome.value,
+    taxBracket: taxBracket.value,
+    hasChurchTax: hasChurchTax.value,
+    state: state.value,
+    children: children.value,
+    workingMonths: workingMonths.value,
+    salariesPerYear: salariesPerYear.value,
+    hasPartner: hasPartner.value,
+    partnerGrossIncome: partnerGrossIncome.value,
+    partnerTaxBracket: partnerTaxBracket.value,
+    partnerHasChurchTax: partnerHasChurchTax.value,
+    partnerState: partnerState.value,
+    partnerWorkingMonths: partnerWorkingMonths.value,
+    partnerSalariesPerYear: partnerSalariesPerYear.value
+  };
+}
 
 export function saveScenario(title, description, currentDeductions) {
   const newScenario = {
@@ -59,30 +80,41 @@ export function saveScenario(title, description, currentDeductions) {
     title: title || 'Untitled Scenario',
     description: description || '',
     timestamp: new Date().toISOString(),
-    inputs: {
-      inputMode: inputMode.value,
-      grossIncome: grossIncome.value,
-      taxBracket: taxBracket.value,
-      hasChurchTax: hasChurchTax.value,
-      state: state.value,
-      children: children.value,
-      workingMonths: workingMonths.value,
-      salariesPerYear: salariesPerYear.value,
-      hasPartner: hasPartner.value,
-      partnerGrossIncome: partnerGrossIncome.value,
-      partnerTaxBracket: partnerTaxBracket.value,
-      partnerHasChurchTax: partnerHasChurchTax.value,
-      partnerState: partnerState.value,
-      partnerWorkingMonths: partnerWorkingMonths.value,
-      partnerSalariesPerYear: partnerSalariesPerYear.value
-    },
+    inputs: getCurrentInputs(),
     data: currentDeductions // snapshot of the computed deductions
   };
   savedScenarios.value = [...savedScenarios.value, newScenario];
+  activeScenarioId.value = newScenario.id;
 }
 
 export function deleteScenario(id) {
   savedScenarios.value = savedScenarios.value.filter(s => s.id !== id);
+  if (activeScenarioId.value === id) {
+    activeScenarioId.value = null;
+  }
+}
+
+export function loadScenario(id) {
+  const scenario = savedScenarios.value.find(s => s.id === id);
+  if (scenario && scenario.inputs) {
+    inputMode.value = scenario.inputs.inputMode ?? 'yearly';
+    grossIncome.value = scenario.inputs.grossIncome ?? 50000;
+    taxBracket.value = scenario.inputs.taxBracket ?? '1';
+    hasChurchTax.value = scenario.inputs.hasChurchTax ?? false;
+    state.value = scenario.inputs.state ?? 'Berlin';
+    children.value = scenario.inputs.children ?? 0;
+    workingMonths.value = scenario.inputs.workingMonths ?? 12;
+    salariesPerYear.value = scenario.inputs.salariesPerYear ?? 12;
+    hasPartner.value = scenario.inputs.hasPartner ?? false;
+    partnerGrossIncome.value = scenario.inputs.partnerGrossIncome ?? 40000;
+    partnerTaxBracket.value = scenario.inputs.partnerTaxBracket ?? '4';
+    partnerHasChurchTax.value = scenario.inputs.partnerHasChurchTax ?? false;
+    partnerState.value = scenario.inputs.partnerState ?? 'Berlin';
+    partnerWorkingMonths.value = scenario.inputs.partnerWorkingMonths ?? 12;
+    partnerSalariesPerYear.value = scenario.inputs.partnerSalariesPerYear ?? 12;
+    
+    activeScenarioId.value = id;
+  }
 }
 
 // Exact Tax Formula (Grundtarif) - Shifts according to configBasicAllowance
@@ -229,3 +261,26 @@ export const deductions = computed(() => {
     }
   };
 });
+
+// Auto-save effect: if an active scenario is set, live-update it when deductions change
+if (typeof window !== 'undefined') {
+  effect(() => {
+    const data = deductions.value; // Track changes to deductions
+    const id = activeScenarioId.peek(); // Do not track changes to activeScenarioId itself
+    if (id) {
+      const scenarios = savedScenarios.peek();
+      const index = scenarios.findIndex(s => s.id === id);
+      if (index > -1) {
+        // Deep clone to avoid mutating the signal value directly in place without triggering updates
+        const newScenarios = [...scenarios];
+        newScenarios[index] = { 
+          ...newScenarios[index], 
+          inputs: getCurrentInputs(),
+          data 
+        };
+        // Update the persisted array (this will save to localStorage)
+        savedScenarios.value = newScenarios;
+      }
+    }
+  });
+}

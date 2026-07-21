@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { deductions, savedScenarios, deleteScenario, inputMode } from '../store/calculatorStore';
+import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, inputMode } from '../store/calculatorStore';
 
 export default function ComparisonTable() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  
+  useEffect(() => {
+    setMounted(true);
+    // Initialize first scenario if none exist
+    if (savedScenarios.peek().length === 0) {
+      saveScenario('My First Scenario', 'Default starting point', deductions.peek());
+    } else if (!activeScenarioId.peek()) {
+      // Auto-select first if none is active
+      activeScenarioId.value = savedScenarios.peek()[0].id;
+    }
+  }, []);
 
-  const displayMode = useSignal('yearly'); // Local toggle for table view (yearly/monthly)
+  const displayMode = useSignal('yearly'); 
 
   if (!mounted || savedScenarios.value.length === 0) return null;
 
@@ -16,33 +26,22 @@ export default function ComparisonTable() {
 
   const isMonthly = displayMode.value === 'monthly';
 
-  // Helper to extract a single metric for a specific column (current or saved)
   const getMetric = (snapshot, personKey, metricKey, useDivider = true) => {
     const person = snapshot[personKey];
     if (!person) return 0;
-    
-    // In our simplified model, the 'monthsWorked' acts as the divider if we view monthly
-    // But since this table might show complex scenarios with different working months,
-    // we use the person's specific monthsWorked to find their monthly average, or 1 for yearly.
     const divider = (isMonthly && useDivider) ? person.monthsWorked : 1;
-    
-    // Total deductions for the household doesn't have a monthsWorked directly in household object,
-    // so we handle household level differently if needed.
     return person[metricKey] / divider;
   };
 
   const getHouseholdMetric = (snapshot, metricKey) => {
     if (!isMonthly) return snapshot.household[metricKey];
-    
-    // For household monthly, sum up the individual monthly averages
     const p1Monthly = getMetric(snapshot, 'person1', metricKey);
     const p2Monthly = snapshot.partner ? getMetric(snapshot, 'partner', metricKey) : 0;
     return p1Monthly + p2Monthly;
   };
 
   const renderPerPaycheckRow = (personKey, isHousehold = false) => {
-    if (!isMonthly) return null; // Only show per-paycheck in monthly view
-
+    if (!isMonthly) return null; 
     const cells = [];
 
     const getPaycheckVal = (snapshot) => {
@@ -60,19 +59,11 @@ export default function ComparisonTable() {
       }
     };
 
-    // Current Story (Live)
-    const current = getPaycheckVal(deductions.value);
-    cells.push(
-      <td key="current" style="padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 200px; color: var(--success);">
-        {format(current.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{current.hint}</span>
-      </td>
-    );
-
-    // Saved Scenarios
     savedScenarios.value.forEach(scenario => {
       const saved = getPaycheckVal(scenario.data);
+      const isActive = activeScenarioId.value === scenario.id;
       cells.push(
-        <td key={scenario.id} style="padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); min-width: 200px; color: #f8fafc;">
+        <td key={scenario.id} style={`padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--card-border); min-width: 220px; color: ${isActive ? 'var(--success)' : '#f8fafc'}; background: ${isActive ? 'rgba(16, 185, 129, 0.05)' : 'transparent'};`}>
           {format(saved.val)} <span style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">{saved.hint}</span>
         </td>
       );
@@ -91,25 +82,15 @@ export default function ComparisonTable() {
   const renderRow = (label, personKey, metricKey, isHousehold = false, isHeader = false) => {
     const cells = [];
     
-    // Current Story (Live)
-    const currentVal = isHousehold 
-      ? getHouseholdMetric(deductions.value, metricKey) 
-      : getMetric(deductions.value, personKey, metricKey);
-      
-    cells.push(
-      <td key="current" style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 200px;`}>
-        {format(currentVal)}
-      </td>
-    );
-
-    // Saved Scenarios
     savedScenarios.value.forEach(scenario => {
       const savedVal = isHousehold 
         ? getHouseholdMetric(scenario.data, metricKey) 
         : getMetric(scenario.data, personKey, metricKey);
+      
+      const isActive = activeScenarioId.value === scenario.id;
         
       cells.push(
-        <td key={scenario.id} style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); min-width: 200px;`}>
+        <td key={scenario.id} style={`padding: 12px 16px; font-weight: ${isHeader ? 'bold' : 'normal'}; border-bottom: 1px solid var(--card-border); min-width: 220px; background: ${isActive ? 'rgba(16, 185, 129, 0.05)' : 'transparent'};`}>
           {format(savedVal)}
         </td>
       );
@@ -125,27 +106,41 @@ export default function ComparisonTable() {
     );
   };
 
+  const handleAddScenario = () => {
+    const count = savedScenarios.peek().length + 1;
+    saveScenario(`Scenario ${count}`, 'New simulation', deductions.peek());
+  };
+
   return (
-    <div class="glass-panel fade-in" style="max-width: 95vw; margin: 40px auto 40px auto; padding: 25px; overflow-x: auto; position: relative;">
+    <div class="glass-panel fade-in" style="max-width: 95vw; margin: 0 auto 40px auto; padding: 25px; overflow-x: auto; position: relative; border-top: 4px solid var(--primary);">
       
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
-          <h2 style="margin: 0;">Multi-Scenario Comparison</h2>
-          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">Compare your current inputs against saved scenarios side-by-side.</p>
+          <h2 style="margin: 0;">Scenario Manager</h2>
+          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">Click "Edit" on a scenario to live-edit it using the form below.</p>
         </div>
         
-        <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px;">
+        <div style="display: flex; gap: 15px; align-items: center;">
+          <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px;">
+            <button 
+              style={`padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-weight: bold; background: ${isMonthly ? 'var(--primary)' : 'transparent'}; color: ${isMonthly ? '#fff' : '#cbd5e1'}`}
+              onClick={() => displayMode.value = 'monthly'}
+            >
+              Monthly
+            </button>
+            <button 
+              style={`padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-weight: bold; background: ${!isMonthly ? 'var(--primary)' : 'transparent'}; color: ${!isMonthly ? '#fff' : '#cbd5e1'}`}
+              onClick={() => displayMode.value = 'yearly'}
+            >
+              Yearly
+            </button>
+          </div>
+          
           <button 
-            style={`padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-weight: bold; background: ${isMonthly ? 'var(--primary)' : 'transparent'}; color: ${isMonthly ? '#fff' : '#cbd5e1'}`}
-            onClick={() => displayMode.value = 'monthly'}
+            onClick={handleAddScenario}
+            style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;"
           >
-            Monthly
-          </button>
-          <button 
-            style={`padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-weight: bold; background: ${!isMonthly ? 'var(--primary)' : 'transparent'}; color: ${!isMonthly ? '#fff' : '#cbd5e1'}`}
-            onClick={() => displayMode.value = 'yearly'}
-          >
-            Yearly
+            ➕ Add Scenario
           </button>
         </div>
       </div>
@@ -154,33 +149,52 @@ export default function ComparisonTable() {
         <thead>
           <tr>
             <th style="padding: 16px; border-bottom: 2px solid var(--card-border); width: 220px; position: sticky; left: 0; top: 0; background: #1e293b; z-index: 20; border-right: 2px solid var(--card-border);"></th>
-            <th style="padding: 16px; border-bottom: 2px solid var(--primary); color: var(--success); background: rgba(16, 185, 129, 0.1); position: sticky; top: 0; z-index: 15; min-width: 200px;">
-              <div style="font-size: 1.1rem; font-weight: 700;">Current Story</div>
-              <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">(Live inputs)</div>
-            </th>
             
-            {savedScenarios.value.map(scenario => (
-              <th key={scenario.id} style="padding: 16px; border-bottom: 2px solid var(--card-border); position: sticky; top: 0; background: #1e293b; z-index: 15; min-width: 200px;">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                  <div>
-                    <div style="font-size: 1.1rem;">{scenario.title}</div>
-                    {scenario.description && <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">{scenario.description}</div>}
+            {savedScenarios.value.map(scenario => {
+              const isActive = activeScenarioId.value === scenario.id;
+              
+              return (
+                <th key={scenario.id} style={`padding: 16px; border-bottom: 2px solid ${isActive ? 'var(--success)' : 'var(--card-border)'}; position: sticky; top: 0; background: ${isActive ? 'rgba(16, 185, 129, 0.1)' : '#1e293b'}; z-index: 15; min-width: 220px; border-top: ${isActive ? '2px solid var(--success)' : 'none'};`}>
+                  <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                      <div>
+                        <div style="font-size: 1.1rem; color: ${isActive ? 'var(--success)' : 'white'};">{scenario.title}</div>
+                        {scenario.description && <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">{scenario.description}</div>}
+                      </div>
+                      {savedScenarios.value.length > 1 && (
+                        <button 
+                          onClick={() => deleteScenario(scenario.id)}
+                          style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px;"
+                          title="Delete Scenario"
+                        >
+                          ✖
+                        </button>
+                      )}
+                    </div>
+                    
+                    {isActive ? (
+                      <div style="background: var(--success); color: #000; font-size: 0.75rem; text-align: center; padding: 4px; border-radius: 4px; font-weight: bold;">
+                        CURRENTLY EDITING
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => loadScenario(scenario.id)}
+                        style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); font-size: 0.75rem; padding: 4px; border-radius: 4px; cursor: pointer; width: 100%; transition: 0.2s;"
+                        onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                        onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                      >
+                        ✏️ Edit Scenario
+                      </button>
+                    )}
                   </div>
-                  <button 
-                    onClick={() => deleteScenario(scenario.id)}
-                    style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px;"
-                    title="Delete Scenario"
-                  >
-                    ✖
-                  </button>
-                </div>
-              </th>
-            ))}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td colSpan={savedScenarios.value.length + 2} style="padding: 20px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
+            <td colSpan={savedScenarios.value.length + 1} style="padding: 20px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Household Totals
             </td>
           </tr>
@@ -190,7 +204,7 @@ export default function ComparisonTable() {
           {renderRow(isMonthly ? 'Household Avg Deductions' : 'Total Deductions', null, 'totalDeductions', true)}
           
           <tr>
-            <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
+            <td colSpan={savedScenarios.value.length + 1} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
               Person 1 Details
             </td>
           </tr>
@@ -201,11 +215,10 @@ export default function ComparisonTable() {
           {renderRow(isMonthly ? 'Avg Health Care' : 'Health Care', 'person1', 'healthCare')}
           {renderRow(isMonthly ? 'Avg Pension' : 'Pension', 'person1', 'pension')}
           
-          {/* We only render Partner Details if at least one scenario has a partner */}
-          {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
+          {(savedScenarios.value.some(s => s.data.partner)) && (
             <>
               <tr>
-                <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
+                <td colSpan={savedScenarios.value.length + 1} style="padding: 25px 16px 8px 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
                   Partner Details
                 </td>
               </tr>
