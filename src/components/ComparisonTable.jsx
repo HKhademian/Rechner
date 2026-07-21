@@ -129,7 +129,7 @@ export default function ComparisonTable() {
   };
 
   return (
-    <div class="glass-panel fade-in" style="max-width: 95vw; margin: 0 auto 40px auto; padding: 25px; overflow-x: auto; position: relative; border-top: 4px solid var(--primary);">
+    <div class="glass-panel fade-in" style="max-width: 95vw; margin: 0 auto 40px auto; padding: 25px; position: relative; border-top: 4px solid var(--primary);">
       
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
@@ -155,7 +155,8 @@ export default function ComparisonTable() {
         </div>
       </div>
 
-      <table style="table-layout: fixed; width: max-content; border-collapse: separate; border-spacing: 0; text-align: left;">
+      <div style="overflow-x: auto; padding-bottom: 10px;">
+        <table style="table-layout: fixed; width: max-content; border-collapse: separate; border-spacing: 0; text-align: left;">
         <thead>
           <tr>
             <th style="padding: 16px; border-bottom: 2px solid var(--card-border); width: 250px; position: sticky; left: 0; top: 0; background: #1e293b; z-index: 20; border-right: 2px solid var(--card-border);"></th>
@@ -297,6 +298,7 @@ export default function ComparisonTable() {
 
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
