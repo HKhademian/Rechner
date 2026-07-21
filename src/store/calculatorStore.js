@@ -50,6 +50,24 @@ export const partnerState = persistedSignal('partnerState', 'Berlin');
 export const partnerWorkingMonths = persistedSignal('partnerWorkingMonths', 12);
 export const partnerSalariesPerYear = persistedSignal('partnerSalariesPerYear', 12);
 
+// Saved Scenarios
+export const savedScenarios = persistedSignal('savedScenarios', []);
+
+export function saveScenario(title, description, currentDeductions) {
+  const newScenario = {
+    id: Date.now().toString(),
+    title: title || 'Untitled Scenario',
+    description: description || '',
+    timestamp: new Date().toISOString(),
+    data: currentDeductions // snapshot of the computed deductions
+  };
+  savedScenarios.value = [...savedScenarios.value, newScenario];
+}
+
+export function deleteScenario(id) {
+  savedScenarios.value = savedScenarios.value.filter(s => s.id !== id);
+}
+
 // Exact Tax Formula (Grundtarif) - Shifts according to configBasicAllowance
 function getBaseTax(zve, basicAllowance) {
   if (zve <= basicAllowance) return 0;
