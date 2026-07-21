@@ -234,8 +234,11 @@ export default function InputForm() {
 
       <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 30px 0;" />
       
-      <details style="cursor: pointer;">
-        <summary style="font-weight: 600; color: #94a3b8; outline: none;">Advanced Tax Configuration (2026)</summary>
+      <details style="cursor: pointer; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px;">
+        <summary style="font-weight: 600; color: #f8fafc; outline: none; display: flex; justify-content: space-between; align-items: center; padding: 5px;">
+          ⚙️ Advanced Tax Configuration (2026)
+          <span style="font-size: 0.8rem; color: #94a3b8;">Click to expand</span>
+        </summary>
         <TaxSettings />
       </details>
 
