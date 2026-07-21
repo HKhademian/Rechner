@@ -90,6 +90,47 @@ export default function ComparisonTable() {
     );
   };
 
+  const renderAverageMonthlyNetRow = (personKey, isHousehold = false) => {
+    const cells = [];
+    
+    const getAvgVal = (snapshot) => {
+      if (isHousehold) {
+        return snapshot.household.netIncome / 12;
+      } else {
+        const p = snapshot[personKey];
+        return p ? p.netIncome / 12 : 0;
+      }
+    };
+
+    const currentVal = getAvgVal(deductions.value);
+    cells.push(
+      <td key="current" style="padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 220px; color: #e2e8f0;">
+        {format(currentVal)} <span style="font-size: 0.8rem; color: #94a3b8;">/ mo</span>
+      </td>
+    );
+
+    savedScenarios.value.forEach(scenario => {
+      const isActive = activeScenarioId.value === scenario.id;
+      const dataToUse = isActive && scenarioDraft.value ? scenarioDraft.value.data : scenario.data;
+      const savedVal = getAvgVal(dataToUse);
+      
+      cells.push(
+        <td key={scenario.id} style={`padding: 12px 16px; border-bottom: 1px solid var(--card-border); min-width: 220px; color: #cbd5e1; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
+          {format(savedVal)} <span style="font-size: 0.8rem; color: #94a3b8;">/ mo</span>
+        </td>
+      );
+    });
+
+    return (
+      <tr class="comparison-row">
+        <td style="padding: 12px 16px; font-weight: 500; border-bottom: 1px solid var(--card-border); color: #94a3b8; position: sticky; left: 0; background: #2a3b52; z-index: 10; border-right: 2px solid var(--card-border);">
+          Avg. Monthly Net <span style="font-size: 0.75rem; color: #64748b; margin-left: 4px;">(Yearly / 12)</span>
+        </td>
+        {cells}
+      </tr>
+    );
+  };
+
   const renderRow = (label, personKey, metricKey, isHousehold = false, isHeader = false) => {
     const cells = [];
     
@@ -351,6 +392,7 @@ export default function ComparisonTable() {
           </tr>
           {renderRow(isMonthly ? 'Household Avg Gross' : 'Household Gross', null, 'grossYearly', true, true)}
           {renderRow(isMonthly ? 'Household Avg Net' : 'Household Net', null, 'netIncome', true, true)}
+          {renderAverageMonthlyNetRow(null, true)}
           {renderPerPaycheckRow(null, true)}
           {renderRow(isMonthly ? 'Household Avg Deductions' : 'Total Deductions', null, 'totalDeductions', true)}
           
@@ -361,6 +403,7 @@ export default function ComparisonTable() {
           </tr>
           {renderRow(isMonthly ? 'Avg Gross' : 'Gross Income', 'person1', 'grossYearly', false, true)}
           {renderRow(isMonthly ? 'Avg Net' : 'Net Income', 'person1', 'netIncome', false, true)}
+          {renderAverageMonthlyNetRow('person1', false)}
           {renderPerPaycheckRow('person1', false)}
           {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax', 'person1', 'tax')}
           {renderRow(isMonthly ? 'Avg Health Care' : 'Health Care', 'person1', 'healthCare')}
@@ -405,6 +448,7 @@ export default function ComparisonTable() {
               </tr>
               {renderRow(isMonthly ? 'Avg Gross' : 'Gross Income', 'partner', 'grossYearly', false, true)}
               {renderRow(isMonthly ? 'Avg Net' : 'Net Income', 'partner', 'netIncome', false, true)}
+              {renderAverageMonthlyNetRow('partner', false)}
               {renderPerPaycheckRow('partner', false)}
               {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax', 'partner', 'tax')}
 
