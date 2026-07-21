@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent, cancelEdit } from '../store/calculatorStore';
+import { 
+  grossIncome, taxBracket, hasChurchTax, state, children, workingMonths, salariesPerYear,
+  hasPartner, partnerGrossIncome, partnerTaxBracket, partnerHasChurchTax, partnerState, partnerWorkingMonths, partnerSalariesPerYear,
+  deductions, savedScenarios, activeScenarioId, saveScenario, deleteScenario, loadScenario, updateScenarioMetaData, overwriteScenarioWithCurrent, cancelEdit 
+} from '../store/calculatorStore';
 import { PlusIcon, DownloadIcon, XIcon, SaveIcon } from './Icons';
 
 export default function ComparisonTable() {
@@ -116,6 +120,34 @@ export default function ComparisonTable() {
     return (
       <tr class="comparison-row">
         <td style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--card-border); color: #e2e8f0; position: sticky; left: 0; background: #1e293b; z-index: 10; border-right: 2px solid var(--card-border);">
+          {label}
+        </td>
+        {cells}
+      </tr>
+    );
+  };
+
+  const renderInputRow = (label, currentVal, getSavedVal) => {
+    const cells = [];
+    cells.push(
+      <td key="current" style="padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); color: #e2e8f0; font-size: 0.9rem;">
+        {currentVal}
+      </td>
+    );
+
+    savedScenarios.value.forEach(scenario => {
+      const savedVal = getSavedVal(scenario.inputs || {});
+      const isActive = activeScenarioId.value === scenario.id;
+      cells.push(
+        <td key={scenario.id} style={`padding: 12px 16px; border-bottom: 1px solid var(--card-border); color: #cbd5e1; font-size: 0.9rem; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
+          {savedVal}
+        </td>
+      );
+    });
+
+    return (
+      <tr class="comparison-row">
+        <td style="padding: 12px 16px; font-weight: 500; border-bottom: 1px solid var(--card-border); color: #94a3b8; position: sticky; left: 0; background: #2a3b52; z-index: 10; border-right: 2px solid var(--card-border); font-size: 0.9rem;">
           {label}
         </td>
         {cells}
@@ -282,6 +314,18 @@ export default function ComparisonTable() {
           {renderRow(isMonthly ? 'Avg Health Care' : 'Health Care', 'person1', 'healthCare')}
           {renderRow(isMonthly ? 'Avg Pension' : 'Pension', 'person1', 'pension')}
           
+          <tr>
+            <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; background: rgba(0,0,0,0.1);">
+              Person 1 Configuration
+            </td>
+          </tr>
+          {renderInputRow('State', state.value, s => s.state || '-')}
+          {renderInputRow('Tax Bracket', `Class ${taxBracket.value}`, s => s.taxBracket ? `Class ${s.taxBracket}` : '-')}
+          {renderInputRow('Church Tax', hasChurchTax.value ? 'Yes' : 'No', s => s.hasChurchTax ? 'Yes' : 'No')}
+          {renderInputRow('Children', children.value, s => s.children ?? '-')}
+          {renderInputRow('Working Months', `${workingMonths.value} Months`, s => s.workingMonths ? `${s.workingMonths} Months` : '-')}
+          {renderInputRow('Salaries / Year', `${salariesPerYear.value} Salaries`, s => s.salariesPerYear ? `${s.salariesPerYear} Salaries` : '-')}
+          
           {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
             <>
               <tr>
@@ -293,6 +337,17 @@ export default function ComparisonTable() {
               {renderRow(isMonthly ? 'Avg Net' : 'Net Income', 'partner', 'netIncome', false, true)}
               {renderPerPaycheckRow('partner', false)}
               {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax', 'partner', 'tax')}
+
+              <tr>
+                <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; background: rgba(0,0,0,0.1);">
+                  Partner Configuration
+                </td>
+              </tr>
+              {renderInputRow('Partner State', partnerState.value, s => s.partnerState || '-')}
+              {renderInputRow('Partner Bracket', `Class ${partnerTaxBracket.value}`, s => s.partnerTaxBracket ? `Class ${s.partnerTaxBracket}` : '-')}
+              {renderInputRow('Partner Church Tax', partnerHasChurchTax.value ? 'Yes' : 'No', s => s.partnerHasChurchTax ? 'Yes' : 'No')}
+              {renderInputRow('Partner Work Months', `${partnerWorkingMonths.value} Months`, s => s.partnerWorkingMonths ? `${s.partnerWorkingMonths} Months` : '-')}
+              {renderInputRow('Partner Salaries', `${partnerSalariesPerYear.value} Salaries`, s => s.partnerSalariesPerYear ? `${s.partnerSalariesPerYear} Salaries` : '-')}
             </>
           )}
 
