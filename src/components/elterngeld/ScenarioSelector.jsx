@@ -15,58 +15,58 @@ export default function ScenarioSelector() {
   const scenarios = [
     {
       id: 'C',
-      title: 'Scenario C',
-      subtitle: 'Fully Optimized (Recommended)',
-      badge: '🚀 Max State Benefits',
+      title: 'Szenario C',
+      subtitle: 'Vollständig optimiert (Empfohlen)',
+      badge: 'Maximaler Leistungsbezug',
       badgeColor: '#10b981',
-      description: 'Proactive Tax Swaps (H:V / W:III) 7M pre-birth + Synthetic Rule + Sibling Bonus + Full Tax Reconciliation Refund.',
+      description: 'Proaktiver Steuerklassenwechsel (H: V / W: III) 7 Monate vor Mutterschutz + Fiktives Netto + Geschwisterbonus + Steuererstattung.',
       highlights: [
-        'Wife EGPlus maxed at €900/mo',
-        'Mutterschutz at €2,603/mo',
-        'Sibling Bonus +10% until Child 1 is 3yo',
-        `Finanzamt Refund: +${formatCurrency(metrics.taxRefundC)}`
+        'Mutter: ElterngeldPlus bei maximal €900 / Monat',
+        'Mutterschutzlohn bei €2.603 / Monat',
+        'Geschwisterbonus +10% bis Kind 1 das 3. Lbj. vollendet',
+        `Finanzamt-Erstattung: +${formatCurrency(metrics.taxRefundC)}`
       ]
     },
     {
       id: 'B',
-      title: 'Scenario B',
-      subtitle: 'Unoptimized (Static III/V)',
-      badge: '⚠️ Standard Default',
+      title: 'Szenario B',
+      subtitle: 'Nicht optimiert (Statisch III/V)',
+      badge: 'Standardverlauf',
       badgeColor: '#f59e0b',
-      description: 'Couple never changes tax classes. Wife receives standard Mutterschutz & ElterngeldPlus based on Class V salary.',
+      description: 'Kein Steuerklassenwechsel. Mutter bezieht Mutterschutz und ElterngeldPlus auf Basis Steuerklasse V.',
       highlights: [
-        'Wife EGPlus: €500.50/mo (Child 1)',
-        'Child 2 EGPlus: €150/mo floor (14M trap)',
-        'Mutterschutz at €1,975/mo',
-        `Leaves ${formatCurrency(metrics.gainCvsB)} on the table`
+        'Mutter ElterngeldPlus: €500,50 / Monat (Kind 1)',
+        'Kind 2: Mindestbetrag €150 / Monat (14-Monate-Falle)',
+        'Mutterschutzlohn bei €1.975 / Monat',
+        `Verzicht auf ${formatCurrency(metrics.gainCvsB)} staatliche Förderung`
       ]
     },
     {
       id: 'A',
-      title: 'Scenario A',
-      subtitle: 'Baseline (No Children)',
-      badge: '👔 Status Quo',
+      title: 'Szenario A',
+      subtitle: 'Basisfall (Keine Kinder)',
+      badge: 'Status Quo',
       badgeColor: '#64748b',
-      description: 'No children. Household earns standard salaries (Husband €2,895 + Wife €1,975 = €6,125/mo flat).',
+      description: 'Keine Kinder. Fortlaufende Standardgehälter (Mann €2.895 + Frau €1.975 = €6.125 / Monat).',
       highlights: [
-        'Flat €6,125/mo monthly cash flow',
-        '0 parental leave / 0 benefits',
-        'No part-time reduction',
-        'Total 5-Yr: €367,500'
+        'Konstant €6.125 / Monat Nettozufluss',
+        'Keine Elternzeit / keine Lohnersatzleistungen',
+        'Keine Teilzeitreduktion',
+        '5-Jahres-Summe: €367.500'
       ]
     },
     {
       id: 'compare',
-      title: 'Compare All',
-      subtitle: 'Side-by-Side Analysis',
-      badge: '📊 Multi-Scenario Overlay',
-      badgeColor: '#8b5cf6',
-      description: 'Directly overlay and compare cash flows and accumulated wealth across all 3 timeline pathways.',
+      title: 'Vergleich',
+      subtitle: 'Szenarien-Gegenüberstellung',
+      badge: 'Mehrfach-Vergleich',
+      badgeColor: '#2563eb',
+      description: 'Direkter Vergleich der monatlichen Liquiditätsverläufe und der kumulierten Vermögensbildung aller 3 Pfade.',
       highlights: [
-        'Monthly cash flow overlay',
-        'Direct cumulative delta curves',
-        'Side-by-side benefit extraction',
-        'Clear financial impact comparison'
+        'Monatliche Liquiditätskurven im Vergleich',
+        'Kumulierte Ertragsdifferenzen',
+        'Direkter Förderungsvergleich',
+        'Transparente Entscheidungsgrundlage'
       ]
     }
   ];
@@ -84,18 +84,17 @@ export default function ScenarioSelector() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{
             display: 'inline-block',
-            width: '10px',
-            height: '10px',
+            width: '8px',
+            height: '8px',
             borderRadius: '50%',
-            backgroundColor: '#3b82f6',
-            boxShadow: '0 0 8px #3b82f6'
+            backgroundColor: '#2563eb'
           }}></span>
-          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-            Select Simulation Scenario
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+            Simulationsszenario auswählen
           </span>
         </div>
-        <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-          Click any card to switch timeline calculations instantly
+        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+          Klicken Sie auf ein Szenario, um die Berechnungen sofort zu aktualisieren
         </div>
       </div>
 
@@ -114,27 +113,23 @@ export default function ScenarioSelector() {
               style={{
                 textAlign: 'left',
                 background: isSelected
-                  ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(49, 46, 129, 0.5) 100%)'
-                  : 'rgba(30, 41, 59, 0.6)',
+                  ? '#1e293b'
+                  : 'rgba(30, 41, 59, 0.5)',
                 border: isSelected
                   ? `2px solid ${sc.badgeColor}`
-                  : '1px solid rgba(51, 65, 85, 0.7)',
-                borderRadius: '14px',
+                  : '1px solid #334155',
+                borderRadius: '10px',
                 padding: '16px',
                 cursor: 'pointer',
-                transition: 'all 0.25s ease',
-                position: 'relative',
-                boxShadow: isSelected
-                  ? `0 8px 24px -4px ${sc.badgeColor}40`
-                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                transform: isSelected ? 'translateY(-2px)' : 'none'
+                transition: 'all 0.15s ease',
+                position: 'relative'
               }}
             >
               {/* Header: Title & Badge */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <div>
                   <div style={{
-                    fontSize: '1.1rem',
+                    fontSize: '1.05rem',
                     fontWeight: 800,
                     color: isSelected ? '#ffffff' : '#f1f5f9'
                   }}>
@@ -145,11 +140,11 @@ export default function ScenarioSelector() {
                   </div>
                 </div>
                 <span style={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.68rem',
                   fontWeight: 700,
                   padding: '3px 8px',
-                  borderRadius: '999px',
-                  backgroundColor: `${sc.badgeColor}25`,
+                  borderRadius: '4px',
+                  backgroundColor: `${sc.badgeColor}20`,
                   color: sc.badgeColor,
                   border: `1px solid ${sc.badgeColor}50`
                 }}>
@@ -169,7 +164,7 @@ export default function ScenarioSelector() {
 
               {/* Highlights bullet list */}
               <div style={{
-                borderTop: '1px solid rgba(51, 65, 85, 0.6)',
+                borderTop: '1px solid #334155',
                 paddingTop: '10px',
                 display: 'flex',
                 flexDirection: 'column',

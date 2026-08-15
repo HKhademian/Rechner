@@ -45,8 +45,8 @@ export default function RulesExplainer() {
     {
       title: '3. The "Synthetic" Tax Rule (Fiktive Steuerklasse)',
       lawRef: 'BEEG § 2e (Fiktives Netto)',
-      icon: '✨',
-      color: '#06b6d4',
+      icon: '📜',
+      color: '#0891b2',
       summary: 'Reverting to Class V post-birth does not reduce the locked Class III Elterngeld payout.',
       content: (
         <div>

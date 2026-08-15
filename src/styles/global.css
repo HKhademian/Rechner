@@ -212,17 +212,6 @@ input:checked + .slider:before {
   background-color: #2a3b52 !important;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.05);
-  }
-}
-
 /* Custom Webkit Scrollbar */
 ::-webkit-scrollbar {
   height: 8px;

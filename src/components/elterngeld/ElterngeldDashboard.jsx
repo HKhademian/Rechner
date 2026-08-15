@@ -20,38 +20,36 @@ export default function ElterngeldDashboard() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            borderRadius: '999px',
-            padding: '4px 14px',
-            fontSize: '0.8rem',
-            color: '#a5b4fc',
+            background: 'rgba(30, 41, 59, 0.8)',
+            border: '1px solid #334155',
+            borderRadius: '6px',
+            padding: '4px 12px',
+            fontSize: '0.78rem',
+            color: '#94a3b8',
             marginBottom: '12px'
           }}>
-            <span>🇩🇪 German Parental Allowance & Tax Optimization Engine</span>
+            <span>Bundeselterngeld- und Elternzeitgesetz (BEEG) • Mehrjahres-Finanzanalyse</span>
           </div>
 
           <h1 style={{
-            fontSize: '2.8rem',
-            fontWeight: 900,
-            background: 'linear-gradient(135deg, #ffffff 0%, #93c5fd 50%, #c084fc 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            fontSize: '2.4rem',
+            fontWeight: 800,
+            color: '#f8fafc',
             margin: '0 0 10px 0',
             letterSpacing: '-0.03em'
           }}>
-            5-Year Elterngeld Multi-Year Financial Simulator
+            Elterngeld & Elternzeit 5-Jahres-Simulation
           </h1>
 
           <p style={{
             color: '#94a3b8',
-            fontSize: '1.05rem',
+            fontSize: '1rem',
             maxWidth: '820px',
             margin: '0 auto',
             lineHeight: 1.5
           }}>
-            Model 60 months of household cash flows across three life-planning scenarios for two children.
-            Discover how proactive tax bracket swaps (III/V), synthetic tax rules, and sibling bonuses extract maximum state benefits.
+            60-Monate-Haushaltsrechnung für die Familienplanung mit zwei Kindern.
+            Vergleich von drei Szenarien unter Berücksichtigung von Steuerklassenwechseln (III/V), Mutterschutz, ElterngeldPlus und Geschwisterbonus.
           </p>
         </div>
 
@@ -76,19 +74,18 @@ export default function ElterngeldDashboard() {
 
       {/* Footer */}
       <footer style={{
-        borderTop: '1px solid rgba(51, 65, 85, 0.6)',
-        padding: '24px 20px',
-        textAlign: 'center',
-        color: '#64748b',
+        borderTop: '1px solid #334155',
+        padding: '20px 24px',
+        color: '#94a3b8',
         fontSize: '0.8rem',
-        background: 'rgba(15, 23, 42, 0.9)'
+        background: '#0f172a'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <strong>Steuer & Elterngeld Studio</strong> • German Federal Parental Allowance (BEEG) & Maternity Protection (MuSchG)
+            <strong>Netto- & Elterngeldrechner</strong> • Gesetzliche Grundlagen: BEEG, MuSchG & EStG
           </div>
           <div>
-            Client-side simulation engine • Data stays private in your browser
+            Lokale Client-Berechnung • Keine Datenspeicherung auf externen Servern
           </div>
         </div>
       </footer>

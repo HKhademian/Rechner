@@ -169,20 +169,18 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #ec4899',
-        background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(49, 46, 129, 0.4) 100%)'
+        borderLeft: '4px solid #2563eb',
+        background: '#1e293b'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Grand Total Inflow (60M)
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Gesamter Mittelzufluss (60M)
             </div>
             <div style={{
               fontSize: '2rem',
               fontWeight: 800,
-              background: 'linear-gradient(90deg, #ffffff, #f472b6)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#f8fafc',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
               fontFamily: 'monospace'
@@ -191,11 +189,11 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(236, 72, 153, 0.2)',
-            border: '1px solid rgba(236, 72, 153, 0.4)',
+            background: 'rgba(37, 99, 235, 0.15)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
             borderRadius: '10px',
             padding: '8px',
-            color: '#f472b6'
+            color: '#60a5fa'
           }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 3h12l4 6-10 13L2 9Z"/>
@@ -212,15 +210,15 @@ export default function KpiScorecard() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(16, 185, 129, 0.2)',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              borderRadius: '999px',
+              background: 'rgba(16, 185, 129, 0.15)',
+              border: '1px solid rgba(16, 185, 129, 0.35)',
+              borderRadius: '6px',
               padding: '3px 10px',
               fontSize: '0.75rem',
               fontWeight: 700,
               color: '#34d399'
             }}>
-              <span>🚀 +{formatCurrency(metrics.gainCvsB)} vs Unoptimized (Scenario B)</span>
+              <span>+{formatCurrency(metrics.gainCvsB)} Mehrertrag ggü. Szenario B</span>
             </div>
           )}
           {isScenarioB && (
@@ -228,15 +226,15 @@ export default function KpiScorecard() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(245, 158, 11, 0.2)',
-              border: '1px solid rgba(245, 158, 11, 0.4)',
-              borderRadius: '999px',
+              background: 'rgba(245, 158, 11, 0.15)',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              borderRadius: '6px',
               padding: '3px 10px',
               fontSize: '0.75rem',
               fontWeight: 600,
               color: '#fbbf24'
             }}>
-              <span>⚠️ Misses out on {formatCurrency(metrics.gainCvsB)} state optimization</span>
+              <span>Differenz zu Szenario C: -{formatCurrency(metrics.gainCvsB)}</span>
             </div>
           )}
           {isScenarioA && (
@@ -244,15 +242,15 @@ export default function KpiScorecard() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(148, 163, 184, 0.2)',
-              border: '1px solid rgba(148, 163, 184, 0.4)',
-              borderRadius: '999px',
+              background: 'rgba(148, 163, 184, 0.15)',
+              border: '1px solid rgba(148, 163, 184, 0.35)',
+              borderRadius: '6px',
               padding: '3px 10px',
               fontSize: '0.75rem',
               fontWeight: 600,
               color: '#cbd5e1'
             }}>
-              <span>Baseline Career: Flat €6,125/month salary</span>
+              <span>Basisverlauf: €6.125 / Monat Netto</span>
             </div>
           )}
         </div>

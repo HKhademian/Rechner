@@ -255,39 +255,33 @@ export default function TimelineChart() {
           <defs>
             {/* Gradients */}
             <linearGradient id="gradHusband" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#818cf8" />
-              <stop offset="100%" stopColor="#4f46e5" />
+              <stop offset="0%" stopColor="#4f46e5" />
+              <stop offset="100%" stopColor="#3730a3" />
             </linearGradient>
             <linearGradient id="gradWife" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#38bdf8" />
-              <stop offset="100%" stopColor="#0284c7" />
+              <stop offset="0%" stopColor="#0284c7" />
+              <stop offset="100%" stopColor="#0369a1" />
             </linearGradient>
             <linearGradient id="gradMutterschutz" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#c084fc" />
-              <stop offset="100%" stopColor="#9333ea" />
+              <stop offset="0%" stopColor="#7c3aed" />
+              <stop offset="100%" stopColor="#6d28d9" />
             </linearGradient>
             <linearGradient id="gradWifeEG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#34d399" />
-              <stop offset="100%" stopColor="#059669" />
+              <stop offset="0%" stopColor="#059669" />
+              <stop offset="100%" stopColor="#047857" />
             </linearGradient>
             <linearGradient id="gradHusbandEG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fbbf24" />
-              <stop offset="100%" stopColor="#d97706" />
+              <stop offset="0%" stopColor="#d97706" />
+              <stop offset="100%" stopColor="#b45309" />
             </linearGradient>
             <linearGradient id="gradKindergeld" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fb7185" />
-              <stop offset="100%" stopColor="#e11d48" />
+              <stop offset="0%" stopColor="#e11d48" />
+              <stop offset="100%" stopColor="#be123c" />
             </linearGradient>
             <linearGradient id="gradTaxRefund" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22d3ee" />
-              <stop offset="100%" stopColor="#0891b2" />
+              <stop offset="0%" stopColor="#0891b2" />
+              <stop offset="100%" stopColor="#0e7490" />
             </linearGradient>
-
-            {/* Subtle glow filter */}
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
 
           {/* Grid lines (Horizontal Y-Axis) */}
@@ -340,7 +334,7 @@ export default function TimelineChart() {
                   fontSize="11"
                   fontWeight="700"
                 >
-                  Year {m.year}
+                  Jahr {m.year}
                 </text>
               </g>
             ) : null;
@@ -467,8 +461,8 @@ export default function TimelineChart() {
                 const yTop = margin.top + scaleY(m.monthlyTotal);
                 return (
                   <g key={`refund-bar-${m.month}`}>
-                    <line x1={x} y1={yBase} x2={x} y2={yTop} stroke="#22d3ee" strokeWidth="4" strokeLinecap="round" />
-                    <circle cx={x} cy={yTop} r="4" fill="#22d3ee" filter="url(#glow)" />
+                    <line x1={x} y1={yBase} x2={x} y2={yTop} stroke="#0891b2" strokeWidth="4" strokeLinecap="round" />
+                    <circle cx={x} cy={yTop} r="4" fill="#0891b2" />
                   </g>
                 );
               })}
@@ -482,10 +476,10 @@ export default function TimelineChart() {
               <path
                 d={getComparePath(aData)}
                 fill="none"
-                stroke="#94a3b8"
+                stroke="#64748b"
                 strokeWidth="2.5"
                 strokeDasharray="6 4"
-                opacity="0.7"
+                opacity="0.8"
               />
               {/* Scenario B Line (Amber) */}
               <path
@@ -495,13 +489,12 @@ export default function TimelineChart() {
                 strokeWidth="3"
                 opacity="0.9"
               />
-              {/* Scenario C Line (Emerald Green with glow) */}
+              {/* Scenario C Line (Emerald Green) */}
               <path
                 d={getComparePath(cData)}
                 fill="none"
                 stroke="#10b981"
-                strokeWidth="3.5"
-                filter="url(#glow)"
+                strokeWidth="3"
               />
 
               {/* Data points for active compare */}
@@ -512,7 +505,7 @@ export default function TimelineChart() {
                 const yC = margin.top + scaleY(cData.months[m.month - 1]?.monthlyTotal || 0);
                 return (
                   <g key={`compare-pts-${m.month}`}>
-                    <circle cx={x} cy={yA} r="2" fill="#94a3b8" />
+                    <circle cx={x} cy={yA} r="2" fill="#64748b" />
                     <circle cx={x} cy={yB} r="3" fill="#f59e0b" />
                     <circle cx={x} cy={yC} r="3.5" fill="#10b981" />
                   </g>
@@ -529,8 +522,8 @@ export default function TimelineChart() {
             const isBirth = m.eventType === 'birth';
             const isBonusEnd = m.eventType === 'bonus_end';
 
-            const pinColor = isBirth ? '#ec4899' : isSwap ? '#10b981' : '#f59e0b';
-            const pinIcon = isBirth ? '👶' : isSwap ? '🔄' : '⏰';
+            const pinColor = isBirth ? '#2563eb' : isSwap ? '#10b981' : '#f59e0b';
+            const pinLabel = isBirth ? 'Geburt' : isSwap ? 'Wechsel' : 'Bonus-Ende';
 
             return (
               <g key={`event-pin-${m.month}`} style={{ cursor: 'pointer' }}>
@@ -547,16 +540,16 @@ export default function TimelineChart() {
                 />
 
                 {/* Event Marker Pin Badge */}
-                <circle cx={x} cy={margin.top - 16} r="10" fill={pinColor} filter="url(#glow)" />
+                <circle cx={x} cy={margin.top - 16} r="8" fill={pinColor} />
                 <text
                   x={x}
-                  y={margin.top - 12}
+                  y={margin.top - 13}
                   textAnchor="middle"
-                  fontSize="10"
+                  fontSize="8"
                   fill="#ffffff"
-                  fontWeight="800"
+                  fontWeight="700"
                 >
-                  {pinIcon}
+                  {isBirth ? '1' : isSwap ? '§' : '•'}
                 </text>
               </g>
             );
