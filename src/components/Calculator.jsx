@@ -1,10 +1,12 @@
 import InputForm from './InputForm';
 import ResultsDisplay from './ResultsDisplay';
 import ComparisonTable from './ComparisonTable';
+import Navigation from './Navigation';
 
 export default function Calculator() {
   return (
     <>
+    <Navigation currentPath="/" />
     <div style="text-align: center; margin-bottom: 20px; margin-top: 20px;">
       <h1 style="font-size: 3rem; background: -webkit-linear-gradient(45deg, var(--primary), #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
         German Net Pay Calculator
