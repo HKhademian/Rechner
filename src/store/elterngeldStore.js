@@ -15,8 +15,9 @@ export const wifePostBirthHours = signal(24);
 export const kindergeldPerChild = signal(259);
 
 // Timeline & Spacing Controls
-export const child1BirthMonth = signal(9); // Month 9 (Swap 1 active M1 to M7, Pre-Mutterschutz M8)
-export const birthSpacingMonths = signal(27); // Gap of 27 months -> Child 2 born at Month 36
+export const prePregnancyPlanningMonths = signal(3); // Start 3 months before pregnancy
+export const child1BirthMonth = signal(12); // Month 12 (3M pre-preg + 9M pregnancy)
+export const birthSpacingMonths = signal(27); // Gap of 27 months -> Child 2 born at Month 39
 export const swapLeadMonths = signal(7); // 7 months prior to Mutterschutz phase
 export const preMutterschutzMonths = signal(1.5); // 6 weeks
 export const postMutterschutzMonths = signal(2); // 8 weeks
@@ -40,7 +41,8 @@ export function resetToDefaults() {
   wifePostBirthHours.value = 24;
 
   kindergeldPerChild.value = 259;
-  child1BirthMonth.value = 9;
+  prePregnancyPlanningMonths.value = 3;
+  child1BirthMonth.value = 12;
   birthSpacingMonths.value = 27;
   swapLeadMonths.value = 7;
   preMutterschutzMonths.value = 1.5;
@@ -57,46 +59,49 @@ export function computeTimelineData(scenarioKey) {
   const w3PT = wifeClass3PartTimeNet.value;
   const kgRate = kindergeldPerChild.value;
 
-  const b1 = child1BirthMonth.value; // e.g. 9
+  const prePreg = prePregnancyPlanningMonths.value; // e.g. 3
+  const preg1Start = prePreg + 1; // Month 4
+  const b1 = child1BirthMonth.value; // e.g. 12 (Month 4 + 8-9M)
   const spacing = birthSpacingMonths.value; // e.g. 27
-  const b2 = b1 + spacing; // e.g. 36
+  const b2 = b1 + spacing; // e.g. 39
   const swapLead = swapLeadMonths.value; // e.g. 7
 
-  // Swap 1 Window: 7 months before Pre-Mutterschutz 1
-  // Pre-Mutterschutz 1 is month (b1 - 1) -> e.g. M8.
-  // Swap 1 is (b1 - 1 - swapLead + 1) to (b1 - 1) -> M1 to M7
+  // Pre-Mutterschutz 1 is 1 month before birth (e.g. Month 11)
   const preM1 = Math.max(1, b1 - 1);
+  // Swap 1 Window: 7 months before Pre-Mutterschutz 1 (e.g. M4 to M10)
   const swap1Start = Math.max(1, preM1 - swapLead);
   const swap1End = preM1 - 1;
 
-  // Mutterschutz 1: Pre-birth (M8) & Post-birth (M9, M10)
+  // Mutterschutz 1: Pre-birth (M11) & Post-birth (M12, M13)
   const mutterschutz1Months = [preM1, b1, b1 + 1];
 
-  // Elterngeld Child 1: Post-birth M11 to M22 (12 months EGPlus) + Partnerschaftsbonus M23 to M26 (4 months)
-  const eg1Start = b1 + 2; // Month 11
-  const eg1BaseEnd = eg1Start + 11; // Month 22
-  const eg1BonusStart = eg1BaseEnd + 1; // Month 23
-  const eg1BonusEnd = eg1BonusStart + 3; // Month 26
+  // Elterngeld Child 1: Post-birth M14 to M25 (12 months EGPlus) + Partnerschaftsbonus M26 to M29 (4 months)
+  const eg1Start = b1 + 2; // Month 14
+  const eg1BaseEnd = eg1Start + 11; // Month 25
+  const eg1BonusStart = eg1BaseEnd + 1; // Month 26
+  const eg1BonusEnd = eg1BonusStart + 3; // Month 29
 
-  // Swap 2 Window: 7 months before Pre-Mutterschutz 2
-  // Pre-Mutterschutz 2 is month (b2 - 1) -> e.g. M35.
+  // Pregnancy 2 Start (18 months gap after Birth 1: e.g. Month 12 + 18 = Month 30)
+  const preg2Start = b1 + 18; // Month 30
+  // Pre-Mutterschutz 2 is 1 month before Birth 2 (e.g. Month 38)
   const preM2 = Math.max(1, b2 - 1);
-  const swap2Start = Math.max(1, preM2 - swapLead); // e.g. M28
-  const swap2End = preM2 - 1; // e.g. M34
+  // Swap 2 Window: 7 months before Pre-Mutterschutz 2 (e.g. M31 to M37)
+  const swap2Start = Math.max(1, preM2 - swapLead);
+  const swap2End = preM2 - 1;
 
-  // Mutterschutz 2: Pre-birth (M35) & Post-birth (M36, M37)
+  // Mutterschutz 2: Pre-birth (M38) & Post-birth (M39, M40)
   const mutterschutz2Months = [preM2, b2, b2 + 1];
 
-  // Elterngeld Child 2: Post-birth M38 to M49 (12 months EGPlus) + Partnerschaftsbonus M50 to M53 (4 months)
-  const eg2Start = b2 + 2; // Month 38
-  const eg2BaseEnd = eg2Start + 11; // Month 49
-  const eg2BonusStart = eg2BaseEnd + 1; // Month 50
-  const eg2BonusEnd = eg2BonusStart + 3; // Month 53
+  // Elterngeld Child 2: Post-birth M41 to M52 (12 months EGPlus) + Partnerschaftsbonus M53 to M56 (4 months)
+  const eg2Start = b2 + 2; // Month 41
+  const eg2BaseEnd = eg2Start + 11; // Month 52
+  const eg2BonusStart = eg2BaseEnd + 1; // Month 53
+  const eg2BonusEnd = eg2BonusStart + 3; // Month 56
 
   // Sibling Bonus (Geschwisterbonus) Condition:
   // Child 1 is born at b1. Child 1 turns 3 years old at month (b1 + 36).
   // Sibling bonus applies from b2 until month (b1 + 36) inclusive.
-  const siblingBonusEndMonth = b1 + 36; // e.g. 9 + 36 = 45
+  const siblingBonusEndMonth = b1 + 36; // e.g. 12 + 36 = 48
 
   // Calculations for Elterngeld rates:
   // 1. Child 1:
@@ -350,15 +355,15 @@ export function computeTimelineData(scenarioKey) {
       }
 
       // Annual Tax Reconciliation Refund (Finanzamt reconciliation):
-      // Swap 1 refund (M1-M8: 8 months of -€275/mo = €2,200) realized in Month 12
+      // Swap 1 refund realized at Month 12 (Year 1 annual tax return)
       if (m === 12) {
-        const swap1MonthsCount = (preM1 - swap1Start + 1); // 8 months
+        const swap1MonthsCount = (preM1 - swap1Start + 1); // 7-8 months
         const monthlyWithholdingDeficit1 = (h3Net + w5FT) - (h5Net + w3FT); // €6,125 - €5,850 = €275
         taxRefund = swap1MonthsCount * monthlyWithholdingDeficit1;
       }
-      // Swap 2 refund (M28-M35: 8 months of -€535/mo = €4,280) realized in Month 36
-      if (m === 36) {
-        const swap2MonthsCount = (preM2 - swap2Start + 1); // 8 months
+      // Swap 2 refund realized at Month 39 (Year 3/4 annual tax return)
+      if (m === b2) {
+        const swap2MonthsCount = (preM2 - swap2Start + 1); // 7-8 months
         const monthlyWithholdingDeficit2 = (h3Net + w5PT) - (h5Net + w3PT); // €5,355 - €4,820 = €535
         taxRefund = swap2MonthsCount * monthlyWithholdingDeficit2;
       }
@@ -376,20 +381,29 @@ export function computeTimelineData(scenarioKey) {
     // Check special life event tags
     let eventTag = null;
     let eventType = null;
-    if (m === swap1Start && scenarioKey === 'C') {
-      eventTag = 'Swap 1 Begins (H:V / W:III)';
+    if (m === 1) {
+      eventTag = 'Start Vorbereitungsphase (3M vor Schwangerschaft)';
+      eventType = 'planning';
+    } else if (m === preg1Start && scenarioKey === 'C') {
+      eventTag = 'Schwangerschaft 1 & Steuerklassenwechsel (H: V / W: III)';
       eventType = 'swap';
+    } else if (m === preg1Start && scenarioKey !== 'A') {
+      eventTag = 'Schwangerschaft 1 (Beginn)';
+      eventType = 'preg';
     } else if (m === b1 && scenarioKey !== 'A') {
-      eventTag = '👶 Birth 1 (Child 1)';
+      eventTag = 'Geburt Kind 1';
       eventType = 'birth';
+    } else if (m === preg2Start && scenarioKey !== 'A') {
+      eventTag = 'Schwangerschaft 2 (18M Abstand)';
+      eventType = 'preg';
     } else if (m === swap2Start && scenarioKey === 'C') {
-      eventTag = '🔄 Swap 2 Begins (H:V / W:III)';
+      eventTag = 'Steuerklassenwechsel 2 (H: V / W: III)';
       eventType = 'swap';
     } else if (m === b2 && scenarioKey !== 'A') {
-      eventTag = '👶 Birth 2 (Child 2)';
+      eventTag = 'Geburt Kind 2';
       eventType = 'birth';
     } else if (m === siblingBonusEndMonth && scenarioKey !== 'A') {
-      eventTag = '⏰ Child 1 turns 3 (Sibling Bonus Ends)';
+      eventTag = 'Kind 1 vollendet 3. Lbj. (Geschwisterbonus endet)';
       eventType = 'bonus_end';
     }
 
