@@ -66,13 +66,13 @@ export default function TimelineChart() {
 
   // Colors
   const colors = {
-    husbandSalary: '#6366f1', // Indigo
-    wifeSalary: '#0ea5e9',    // Sky blue
-    mutterschutz: '#a855f7',  // Violet / Purple
-    wifeElterngeld: '#10b981',// Emerald green
-    husbandElterngeld: '#f59e0b', // Amber
-    kindergeld: '#f43f5e',    // Rose
-    taxRefund: '#06b6d4'      // Cyan
+    husbandSalary: '#2563eb', // Institutional Financial Blue
+    wifeSalary: '#0284c7',    // Steel Blue
+    mutterschutz: '#4338ca',  // Dark Indigo
+    wifeElterngeld: '#059669',// Forest / Emerald Green
+    husbandElterngeld: '#d97706', // Warm Amber
+    kindergeld: '#be123c',    // Burgundy / Brick Red
+    taxRefund: '#0891b2'      // Petrol Cyan
   };
 
   // Handle Mouse Move for Tooltip
@@ -139,132 +139,96 @@ export default function TimelineChart() {
         gap: '12px',
         marginBottom: '18px'
       }}>
-        {/* Title & Active Scenario Indicator */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-              Monthly Net Household Cash Flow (60-Month Timeline)
-            </h2>
-            <span style={{
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: '999px',
-              backgroundColor: scenarioKey === 'C' ? 'rgba(16, 185, 129, 0.2)' : scenarioKey === 'B' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(148, 163, 184, 0.2)',
-              color: scenarioKey === 'C' ? '#34d399' : scenarioKey === 'B' ? '#fbbf24' : '#cbd5e1',
-              border: `1px solid ${scenarioKey === 'C' ? '#10b981' : scenarioKey === 'B' ? '#f59e0b' : '#64748b'}`
-            }}>
-              Active: Scenario {scenarioKey}
-            </span>
-          </div>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '4px 0 0 0' }}>
-            X-axis: Months 1 to 60 (Years 1 to 5) • Y-axis: Total Monthly Household Inflow (€)
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0, letterSpacing: '-0.02em' }}>
+            Monatlicher Mittelzufluss & Leistungsverlauf (60 Monate)
+          </h3>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
+            Aufschlüsselung von Erwerbseinkommen, Mutterschutz, ElterngeldPlus, Kindergeld und Steuererstattungen.
           </p>
         </div>
 
-        {/* View Mode & Range Toggles */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {/* Time Range Filter */}
-          <div style={{
-            display: 'flex',
-            background: 'rgba(15, 23, 42, 0.8)',
-            padding: '3px',
-            borderRadius: '8px',
-            border: '1px solid rgba(51, 65, 85, 0.8)'
-          }}>
-            {[
-              { id: 'all', label: 'All 60M' },
-              { id: 'child1', label: 'Y1–2 (Child 1)' },
-              { id: 'child2', label: 'Y3–4 (Child 2)' },
-              { id: 'post', label: 'Y5 (Post-Leave)' }
-            ].map(r => (
-              <button
-                key={r.id}
-                onClick={() => { timeRangeFilter.value = r.id; }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '0.72rem',
-                  fontWeight: filter === r.id ? 700 : 500,
-                  background: filter === r.id ? 'rgba(59, 130, 246, 0.35)' : 'transparent',
-                  color: filter === r.id ? '#ffffff' : '#94a3b8',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Chart Display Mode */}
-          <div style={{
-            display: 'flex',
-            background: 'rgba(15, 23, 42, 0.8)',
-            padding: '3px',
-            borderRadius: '8px',
-            border: '1px solid rgba(51, 65, 85, 0.8)'
-          }}>
-            {[
-              { id: 'stacked_bar', label: '📊 Stacked Bar' },
-              { id: 'area', label: '📈 Area Trend' },
-              { id: 'compare', label: '⚖️ Compare A/B/C' }
-            ].map(m => (
-              <button
-                key={m.id}
-                onClick={() => { chartMode.value = m.id; }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '0.72rem',
-                  fontWeight: mode === m.id ? 700 : 500,
-                  background: mode === m.id ? 'rgba(139, 92, 246, 0.4)' : 'transparent',
-                  color: mode === m.id ? '#ffffff' : '#94a3b8',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
+        {/* View Mode Switcher */}
+        <div style={{
+          display: 'flex',
+          background: 'rgba(15, 23, 42, 0.8)',
+          padding: '3px',
+          borderRadius: '8px',
+          border: '1px solid #334155',
+          gap: '4px'
+        }}>
+          <button
+            type="button"
+            onClick={() => chartMode.value = 'stacked_bar'}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: mode === 'stacked_bar' ? '#2563eb' : 'transparent',
+              color: mode === 'stacked_bar' ? '#ffffff' : '#94a3b8',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Gestapeltes Balkendiagramm
+          </button>
+          <button
+            type="button"
+            onClick={() => chartMode.value = 'area'}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: mode === 'area' ? '#2563eb' : 'transparent',
+              color: mode === 'area' ? '#ffffff' : '#94a3b8',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Flächendiagramm
+          </button>
+          <button
+            type="button"
+            onClick={() => chartMode.value = 'compare'}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: mode === 'compare' ? '#2563eb' : 'transparent',
+              color: mode === 'compare' ? '#ffffff' : '#94a3b8',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Szenarien-Vergleich
+          </button>
         </div>
       </div>
 
-      {/* SVG Chart Container */}
-      <div
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          width: '100%',
-          overflowX: 'auto',
-          position: 'relative',
-          background: 'rgba(15, 23, 42, 0.5)',
-          borderRadius: '12px',
-          padding: '8px 0',
-          border: '1px solid rgba(51, 65, 85, 0.4)'
-        }}
-      >
+      {/* SVG Chart Plot Area */}
+      <div ref={containerRef} style={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          style={{ width: '100%', height: 'auto', display: 'block', minWidth: '700px' }}
+          style={{ width: '100%', height: 'auto', minWidth: '850px', display: 'block' }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         >
+          {/* Gradient definitions */}
           <defs>
-            {/* Gradients */}
             <linearGradient id="gradHusband" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4f46e5" />
-              <stop offset="100%" stopColor="#3730a3" />
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#1d4ed8" />
             </linearGradient>
             <linearGradient id="gradWife" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#0284c7" />
               <stop offset="100%" stopColor="#0369a1" />
             </linearGradient>
             <linearGradient id="gradMutterschutz" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#7c3aed" />
-              <stop offset="100%" stopColor="#6d28d9" />
+              <stop offset="0%" stopColor="#6366f1" />
+              <stop offset="100%" stopColor="#4338ca" />
             </linearGradient>
             <linearGradient id="gradWifeEG" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#059669" />
@@ -347,7 +311,6 @@ export default function TimelineChart() {
 
             let currentY = 0;
 
-            // Stack elements in order
             const segments = [
               { key: 'husbandSalary', val: m.husbandSalary, fill: 'url(#gradHusband)' },
               { key: 'wifeSalary', val: m.wifeSalary, fill: 'url(#gradWife)' },
@@ -360,7 +323,6 @@ export default function TimelineChart() {
 
             return (
               <g key={m.month} opacity={isHovered ? 1 : 0.9}>
-                {/* Hover column background highlight */}
                 {isHovered && (
                   <rect
                     x={margin.left + i * barSlotWidth}
@@ -371,8 +333,6 @@ export default function TimelineChart() {
                     rx="4"
                   />
                 )}
-
-                {/* Stacked rects */}
                 {segments.map((seg) => {
                   if (seg.val <= 0) return null;
                   const segHeight = (seg.val / yMax) * plotHeight;
@@ -388,7 +348,6 @@ export default function TimelineChart() {
                       height={Math.max(1, segHeight)}
                       fill={seg.fill}
                       rx="2"
-                      style={{ transition: 'all 0.2s ease' }}
                     />
                   );
                 })}
@@ -399,61 +358,12 @@ export default function TimelineChart() {
           {/* Render Mode: AREA TREND */}
           {mode === 'area' && (
             <g>
-              {/* Husband Salary Area */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary,
-                  () => 0
-                )}
-                fill="url(#gradHusband)"
-                opacity="0.85"
-              />
-              {/* Wife Salary Area */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary,
-                  m => m.husbandSalary
-                )}
-                fill="url(#gradWife)"
-                opacity="0.85"
-              />
-              {/* Mutterschutz Area */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz,
-                  m => m.husbandSalary + m.wifeSalary
-                )}
-                fill="url(#gradMutterschutz)"
-                opacity="0.85"
-              />
-              {/* Wife Elterngeld Area */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz
-                )}
-                fill="url(#gradWifeEG)"
-                opacity="0.85"
-              />
-              {/* Husband Elterngeld Area */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld
-                )}
-                fill="url(#gradHusbandEG)"
-                opacity="0.85"
-              />
-              {/* Kindergeld Area */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld
-                )}
-                fill="url(#gradKindergeld)"
-                opacity="0.85"
-              />
-              {/* Tax Refund Peak Line */}
+              <path d={getStackedAreaPath(m => m.husbandSalary, () => 0)} fill="url(#gradHusband)" opacity="0.85" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary, m => m.husbandSalary)} fill="url(#gradWife)" opacity="0.85" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz, m => m.husbandSalary + m.wifeSalary)} fill="url(#gradMutterschutz)" opacity="0.85" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz)} fill="url(#gradWifeEG)" opacity="0.85" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld)} fill="url(#gradHusbandEG)" opacity="0.85" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld)} fill="url(#gradKindergeld)" opacity="0.85" />
               {displayedMonths.map((m, i) => {
                 if (m.taxRefund <= 0) return null;
                 const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
@@ -472,32 +382,9 @@ export default function TimelineChart() {
           {/* Render Mode: COMPARE A/B/C OVERLAY */}
           {mode === 'compare' && (
             <g>
-              {/* Scenario A Line (Gray) */}
-              <path
-                d={getComparePath(aData)}
-                fill="none"
-                stroke="#64748b"
-                strokeWidth="2.5"
-                strokeDasharray="6 4"
-                opacity="0.8"
-              />
-              {/* Scenario B Line (Amber) */}
-              <path
-                d={getComparePath(bData)}
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="3"
-                opacity="0.9"
-              />
-              {/* Scenario C Line (Emerald Green) */}
-              <path
-                d={getComparePath(cData)}
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="3"
-              />
-
-              {/* Data points for active compare */}
+              <path d={getComparePath(aData)} fill="none" stroke="#64748b" strokeWidth="2.5" strokeDasharray="6 4" opacity="0.8" />
+              <path d={getComparePath(bData)} fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.9" />
+              <path d={getComparePath(cData)} fill="none" stroke="#10b981" strokeWidth="3" />
               {displayedMonths.map((m, i) => {
                 const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
                 const yA = margin.top + scaleY(aData.months[m.month - 1]?.monthlyTotal || 0);
@@ -518,140 +405,83 @@ export default function TimelineChart() {
           {displayedMonths.map((m, i) => {
             if (!m.eventTag) return null;
             const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-            const isSwap = m.eventType === 'swap';
             const isBirth = m.eventType === 'birth';
-            const isBonusEnd = m.eventType === 'bonus_end';
-
+            const isSwap = m.eventType === 'swap';
             const pinColor = isBirth ? '#2563eb' : isSwap ? '#10b981' : '#f59e0b';
-            const pinLabel = isBirth ? 'Geburt' : isSwap ? 'Wechsel' : 'Bonus-Ende';
-
             return (
               <g key={`event-pin-${m.month}`} style={{ cursor: 'pointer' }}>
-                {/* Vertical reference line */}
-                <line
-                  x1={x}
-                  y1={margin.top - 16}
-                  x2={x}
-                  y2={svgHeight - margin.bottom}
-                  stroke={pinColor}
-                  strokeWidth="1.5"
-                  strokeDasharray={isBirth ? 'none' : '3 3'}
-                  opacity="0.85"
-                />
-
-                {/* Event Marker Pin Badge */}
+                <line x1={x} y1={margin.top - 16} x2={x} y2={svgHeight - margin.bottom} stroke={pinColor} strokeWidth="1.5" strokeDasharray={isBirth ? 'none' : '3 3'} opacity="0.85" />
                 <circle cx={x} cy={margin.top - 16} r="8" fill={pinColor} />
-                <text
-                  x={x}
-                  y={margin.top - 13}
-                  textAnchor="middle"
-                  fontSize="8"
-                  fill="#ffffff"
-                  fontWeight="700"
-                >
+                <text x={x} y={margin.top - 13} textAnchor="middle" fontSize="8" fill="#ffffff" fontWeight="700">
                   {isBirth ? '1' : isSwap ? '§' : '•'}
                 </text>
               </g>
             );
           })}
 
-          {/* X-Axis Baseline */}
-          <line
-            x1={margin.left}
-            y1={svgHeight - margin.bottom}
-            x2={svgWidth - margin.right}
-            y2={svgHeight - margin.bottom}
-            stroke="#475569"
-            strokeWidth="1"
-          />
+          <line x1={margin.left} y1={svgHeight - margin.bottom} x2={svgWidth - margin.right} y2={svgHeight - margin.bottom} stroke="#475569" strokeWidth="1" />
 
-          {/* X-Axis Labels (Month Numbers) */}
           {displayedMonths.map((m, i) => {
             const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
             const showLabel = numBars <= 24 || m.month % 3 === 0 || m.month === 1;
             if (!showLabel) return null;
-
             return (
-              <text
-                key={`xlabel-${m.month}`}
-                x={x}
-                y={svgHeight - margin.bottom + 18}
-                textAnchor="middle"
-                fill="#94a3b8"
-                fontSize="10"
-                fontFamily="monospace"
-              >
+              <text key={`xlabel-${m.month}`} x={x} y={svgHeight - margin.bottom + 18} textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">
                 M{m.month}
               </text>
             );
           })}
         </svg>
 
-        {/* Hover Tooltip Card */}
+        {/* Floating Tooltip */}
         {tooltipState && (
           <div style={{
             position: 'absolute',
-            left: `${Math.min(svgWidth - 260, Math.max(10, tooltipState.x - 120))}px`,
-            top: '20px',
-            background: 'rgba(15, 23, 42, 0.96)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(99, 102, 241, 0.4)',
-            borderRadius: '12px',
+            left: `${Math.min(svgWidth - 220, Math.max(10, tooltipState.x - 110))}px`,
+            top: '10px',
+            background: 'rgba(15, 23, 42, 0.95)',
+            border: '1px solid #475569',
+            borderRadius: '8px',
             padding: '12px 16px',
-            boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
             pointerEvents: 'none',
             zIndex: 30,
-            width: '240px'
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+            minWidth: '220px'
           }}>
-            {/* Header: Month & Phase */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '8px' }}>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#f8fafc' }}>
-                  Month {tooltipState.month.month} (Year {tooltipState.month.year})
-                </div>
-                <div style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 600 }}>
-                  {tooltipState.month.taxClassLabel}
-                </div>
-              </div>
-              <div style={{
-                fontSize: '1rem',
-                fontWeight: 800,
-                color: '#10b981',
-                fontFamily: 'monospace'
-              }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '8px' }}>
+              <span style={{ fontWeight: 800, color: '#f8fafc', fontSize: '0.9rem' }}>
+                Monat {tooltipState.month.month} (Jahr {tooltipState.month.year})
+              </span>
+              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#10b981', fontSize: '0.95rem' }}>
                 {formatCurrency(tooltipState.month.monthlyTotal)}
-              </div>
+              </span>
             </div>
 
-            {/* Event Tag if any */}
             {tooltipState.month.eventTag && (
               <div style={{
                 fontSize: '0.72rem',
                 fontWeight: 700,
-                color: '#ec4899',
-                backgroundColor: 'rgba(236, 72, 153, 0.15)',
-                padding: '3px 8px',
-                borderRadius: '6px',
-                marginBottom: '8px',
-                border: '1px solid rgba(236, 72, 153, 0.3)'
+                color: '#60a5fa',
+                background: 'rgba(37, 99, 235, 0.15)',
+                border: '1px solid rgba(37, 99, 235, 0.3)',
+                borderRadius: '4px',
+                padding: '2px 6px',
+                marginBottom: '8px'
               }}>
                 {tooltipState.month.eventTag}
               </div>
             )}
 
-            {/* Phase info */}
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '8px' }}>
-              {tooltipState.month.phaseLabel}
+            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '6px' }}>
+              Status: <span style={{ color: '#cbd5e1' }}>{tooltipState.month.taxClassLabel}</span>
             </div>
 
-            {/* Line-by-line Breakdown */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.74rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.75rem' }}>
               {tooltipState.month.husbandSalary > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandSalary }}></span>
-                    Husband Salary:
+                    Gehalt Ehemann:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandSalary)}</span>
                 </div>
@@ -660,16 +490,16 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeSalary }}></span>
-                    Wife Salary:
+                    Gehalt Ehefrau:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeSalary)}</span>
                 </div>
               )}
               {tooltipState.month.mutterschutz > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d8b4fe' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#93c5fd' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.mutterschutz }}></span>
-                    Mutterschutz:
+                    Mutterschaftsleistungen:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.mutterschutz)}</span>
                 </div>
@@ -678,7 +508,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6ee7b7' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeElterngeld }}></span>
-                    Wife Elterngeld:
+                    ElterngeldPlus (Mutter):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeElterngeld)}</span>
                 </div>
@@ -687,7 +517,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fde68a' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandElterngeld }}></span>
-                    Husband Elterngeld:
+                    Partnermonate (Vater):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandElterngeld)}</span>
                 </div>
@@ -705,7 +535,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#67e8f9' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.taxRefund }}></span>
-                    Finanzamt Refund:
+                    Finanzamt Steuererstattung:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>+{formatCurrency(tooltipState.month.taxRefund)}</span>
                 </div>
@@ -728,11 +558,11 @@ export default function TimelineChart() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandSalary }}></span>
-          <span>Husband Salary</span>
+          <span>Gehalt Ehemann</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeSalary }}></span>
-          <span>Wife Salary</span>
+          <span>Gehalt Ehefrau</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.mutterschutz }}></span>
@@ -740,19 +570,19 @@ export default function TimelineChart() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeElterngeld }}></span>
-          <span>Wife Elterngeld (Plus)</span>
+          <span>ElterngeldPlus (Mutter)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandElterngeld }}></span>
-          <span>Husband Elterngeld (€150)</span>
+          <span>Partnermonate (Vater €150)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.kindergeld }}></span>
-          <span>Kindergeld (€259/ch)</span>
+          <span>Kindergeld (€259 / Kind)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.taxRefund }}></span>
-          <span>Tax Reconciliation Refund</span>
+          <span>Finanzamt Steuererstattung</span>
         </div>
       </div>
     </div>

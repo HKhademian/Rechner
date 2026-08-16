@@ -33,12 +33,12 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #6366f1'
+        borderLeft: '4px solid #2563eb'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Total Earned Salaries
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Gesamte Netto-Arbeitslöhne
             </div>
             <div style={{
               fontSize: '1.9rem',
@@ -52,20 +52,20 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            borderRadius: '10px',
+            background: 'rgba(37, 99, 235, 0.15)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
+            borderRadius: '6px',
             padding: '8px',
-            color: '#818cf8'
+            color: '#60a5fa'
           }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
               <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
             </svg>
           </div>
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '6px' }}>
-          Husband (32h) & Wife (40h pre-birth / 24h part-time)
+        <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '6px' }}>
+          Ehemann (32h) & Ehefrau (40h vor Geburt / 24h Teilzeit)
         </div>
       </div>
 
@@ -74,12 +74,12 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #10b981'
+        borderLeft: '4px solid #059669'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              State Benefits Extracted
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Staatliche Transferleistungen
             </div>
             <div style={{
               fontSize: '1.9rem',
@@ -93,13 +93,13 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(16, 185, 129, 0.15)',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            borderRadius: '10px',
+            background: 'rgba(5, 150, 105, 0.15)',
+            border: '1px solid rgba(5, 150, 105, 0.3)',
+            borderRadius: '6px',
             padding: '8px',
             color: '#34d399'
           }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
           </div>
@@ -107,14 +107,14 @@ export default function KpiScorecard() {
         
         {/* Breakdown chips */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
-            Mutterschutz: {formatCurrency(current.summary.totalMutterschutz)}
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+            MuSch: {formatCurrency(current.summary.totalMutterschutz)}
           </span>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-            Elterngeld: {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+            EG: {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
           </span>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', background: 'rgba(244, 63, 94, 0.2)', color: '#fda4af', border: '1px solid rgba(244, 63, 94, 0.3)' }}>
-            Kindergeld: {formatCurrency(current.summary.totalKindergeld)}
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            KG: {formatCurrency(current.summary.totalKindergeld)}
           </span>
         </div>
       </div>
@@ -124,17 +124,17 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #06b6d4'
+        borderLeft: '4px solid #0284c7'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Finanzamt Tax Refund
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Finanzamt Steuererstattungen
             </div>
             <div style={{
               fontSize: '1.9rem',
               fontWeight: 800,
-              color: '#06b6d4',
+              color: '#38bdf8',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
               fontFamily: 'monospace'
@@ -143,13 +143,13 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(6, 182, 212, 0.15)',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
-            borderRadius: '10px',
+            background: 'rgba(2, 132, 199, 0.15)',
+            border: '1px solid rgba(2, 132, 199, 0.3)',
+            borderRadius: '6px',
             padding: '8px',
-            color: '#22d3ee'
+            color: '#38bdf8'
           }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
               <path d="M3 3v5h5"/>
               <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
@@ -157,10 +157,10 @@ export default function KpiScorecard() {
             </svg>
           </div>
         </div>
-        <div style={{ fontSize: '0.78rem', color: isScenarioC ? '#a5f3fc' : '#64748b', marginTop: '6px' }}>
+        <div style={{ fontSize: '0.76rem', color: isScenarioC ? '#93c5fd' : '#64748b', marginTop: '6px' }}>
           {isScenarioC
-            ? '✓ Annual reconciliation refunds monthly III/V swap withholding deficit'
-            : 'No tax class swaps performed (0 reconciliation)'}
+            ? 'Jährliche Zusammenveranlagung erstattet Lohnsteuerdifferenzen zu 100 %'
+            : 'Kein Steuerklassenwechsel durchgeführt (0 Erstattung)'}
         </div>
       </div>
 
