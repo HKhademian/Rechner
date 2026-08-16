@@ -584,6 +584,21 @@ export interface GrossToNetBreakdown {
 }
 
 /**
+ * Statutory Child Allowance Favorability Assessment Result (§ 31, § 32 Abs. 6 EStG Günstigerprüfung)
+ */
+export interface GuenstigerpruefungResult {
+  readonly jointAnnualZvE: EuroAmount;
+  readonly totalKinderfreibetrag: EuroAmount;
+  readonly jointTaxWithoutAllowance: EuroAmount;
+  readonly jointTaxWithAllowance: EuroAmount;
+  readonly taxSavingsFromAllowance: EuroAmount;
+  readonly totalKindergeldReceived: EuroAmount;
+  readonly extraTaxRefund: EuroAmount;
+  readonly isKinderfreibetragFavorable: boolean;
+  readonly statutoryCitation: StatutoryCitation;
+}
+
+/**
  * Spousal Household Gross-to-Net Set
  */
 export interface SpousalGrossToNetSet {
