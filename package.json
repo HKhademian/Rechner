@@ -9,6 +9,7 @@
     "#store/*": "./src/store/*.ts",
     "#components/*": "./src/components/*.tsx",
     "#engine/*": "./src/engine/*.ts",
+    "#cli/*": "./src/cli/*.ts",
     "#styles/*": "./src/styles/*",
     "#/*": "./src/*"
   },

@@ -14,12 +14,14 @@ process.env.CHECKPOINT_DISABLE = '1';
  * without requiring web browser rendering or DOM captures.
  */
 
+import { fileURLToPath } from 'node:url';
 import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 import {
   TaxClass,
   ScenarioId,
   TargetPerson,
   CliOutputFormat,
+  FieldColumnKey,
   toCliOutputFormat,
   toNetSalary,
   toEuroAmount,
@@ -32,8 +34,15 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
-  type SimulationResult
+  type SimulationResult,
+  type TimelineMonth
 } from '#engine/types';
+import {
+  getFieldExplanation,
+  getRowExplanation,
+  type FieldExplanation,
+  type RowExplanation
+} from '#engine/explanation/timelineExplainer';
 
 // ANSI Color Codes
 const RESET = '\x1b[0m';
@@ -66,6 +75,124 @@ export function toCliScenarioTarget(val: string): CliScenarioTarget {
   throw new TypeError(`Invalid CLI scenario target: ${val}. Expected 'A', 'B', 'C', or 'compare'.`);
 }
 
+export function parseMonthArg(val: string): number {
+  if (!val) {
+    throw new TypeError('Missing month argument. Example: explain M21 or --explain 21');
+  }
+  const clean = val.trim().replace(/^[Mm](?:onth)?\s*/i, '');
+  const num = parseInt(clean, 10);
+  if (Number.isNaN(num) || num < 1 || num > 120) {
+    throw new TypeError(`Invalid month argument "${val}". Expected integer between 1 and 120 (e.g. M21 or 21).`);
+  }
+  return num;
+}
+
+export function parseFieldArg(val: string): FieldColumnKey {
+  if (!val) {
+    throw new TypeError('Missing field argument. Available fields: partner, mother, mutterschutz, husband, wife, taxClass, kindergeld, special, net, cumulative, phase, month.');
+  }
+  const normalized = val.trim().toLowerCase().replace(/[-_\s]+/g, '');
+  switch (normalized) {
+    case 'partner':
+    case 'father':
+    case 'fatherelterngeld':
+    case 'husbandelterngeld':
+    case 'partnermonths':
+    case 'partnershipbonus':
+    case 'partnerbonus':
+      return FieldColumnKey.HusbandElterngeld;
+
+    case 'mother':
+    case 'wifeelterngeld':
+    case 'egplus':
+    case 'elterngeldplus':
+    case 'elterngeld':
+    case 'parentalallowance':
+      return FieldColumnKey.WifeElterngeld;
+
+    case 'mutterschutz':
+    case 'maternity':
+    case 'muschg':
+      return FieldColumnKey.Mutterschutz;
+
+    case 'husband':
+    case 'husbandsalary':
+    case 'fathersalary':
+    case 'fathergross':
+      return FieldColumnKey.HusbandSalary;
+
+    case 'wife':
+    case 'wifesalary':
+    case 'mothersalary':
+    case 'mothergross':
+      return FieldColumnKey.WifeSalary;
+
+    case 'tax':
+    case 'taxclass':
+    case 'taxclasses':
+    case 'classes':
+    case 'class':
+      return FieldColumnKey.TaxClass;
+
+    case 'kindergeld':
+    case 'childbenefit':
+    case 'child':
+    case 'children':
+      return FieldColumnKey.Kindergeld;
+
+    case 'special':
+    case 'specialevents':
+    case 'bonus':
+    case 'taxreturn':
+    case 'refund':
+      return FieldColumnKey.SpecialEvents;
+
+    case 'net':
+    case 'netinflow':
+    case 'monthlynet':
+    case 'monthlytotal':
+    case 'inflow':
+    case 'total':
+      return FieldColumnKey.NetInflow;
+
+    case 'cumulative':
+    case 'cumulativetotal':
+    case 'cumulated':
+    case 'balance':
+    case 'wealth':
+      return FieldColumnKey.CumulativeTotal;
+
+    case 'phase':
+    case 'status':
+    case 'event':
+    case 'eventtag':
+      return FieldColumnKey.Phase;
+
+    case 'month':
+    case 'date':
+    case 'calendar':
+      return FieldColumnKey.Month;
+
+    default: {
+      const validNames = [
+        'partner (or husbandElterngeld)',
+        'mother (or wifeElterngeld, egplus)',
+        'mutterschutz',
+        'husband (or husbandSalary)',
+        'wife (or wifeSalary)',
+        'taxClass',
+        'kindergeld',
+        'special (or specialEvents)',
+        'net (or netInflow)',
+        'cumulative (or cumulativeTotal)',
+        'phase',
+        'month'
+      ];
+      throw new TypeError(`Unknown explanation field: "${val}". Available fields are: ${validNames.join(', ')}.`);
+    }
+  }
+}
+
 interface CliOptions {
   scenario: CliScenarioTarget;
   startYear: number;
@@ -79,6 +206,8 @@ interface CliOptions {
   taxReturnMonth: number;
   pregYear?: number;
   pregMonth?: number;
+  explainMonth?: number;
+  explainField?: FieldColumnKey;
 }
 
 function parseArgs(args: string[]): CliOptions {
@@ -100,6 +229,25 @@ function parseArgs(args: string[]): CliOptions {
     if (arg === '--help' || arg === '-h') {
       printHelp();
       process.exit(0);
+    } else if (arg === 'explain') {
+      const nextArg = args[++i];
+      if (nextArg) {
+        opts.explainMonth = parseMonthArg(nextArg);
+      }
+      // Check if following arguments provide 'field <fieldName>' or '--field <fieldName>'
+      if (i + 1 < args.length) {
+        const peek = args[i + 1];
+        if (peek === 'field' || peek === '--field') {
+          i += 1;
+          opts.explainField = parseFieldArg(args[++i]);
+        }
+      }
+    } else if (arg === '--explain' || arg === '-e') {
+      opts.explainMonth = parseMonthArg(args[++i]);
+    } else if (arg === '--explain-month') {
+      opts.explainMonth = parseMonthArg(args[++i]);
+    } else if (arg === '--explain-field' || arg === '--field') {
+      opts.explainField = parseFieldArg(args[++i]);
     } else if (arg === '--scenario' || arg === '-s') {
       opts.scenario = toCliScenarioTarget(args[++i] || 'compare');
     } else if (arg === '--start-year') {
@@ -140,12 +288,28 @@ function parseArgs(args: string[]): CliOptions {
 
 function printHelp() {
   console.log(`
-${BOLD}${CYAN}German Elterngeld Headless Scenario Runner${RESET}
-${DIM}Simulate multi-year financial cash flows, tax classes (§ 2b BEEG), and benefit optimization.${RESET}
+${BOLD}${CYAN}German Elterngeld Headless Scenario Runner & Statutory Explainer${RESET}
+${DIM}Simulate multi-year financial cash flows, tax classes (§ 2b BEEG), and step-by-step formula derivations.${RESET}
 
 ${BOLD}Usage:${RESET}
   npm run sim -- [options]
+  npm run sim -- explain <month> [field <fieldName>] [options]
   node src/cli/runner.ts [options]
+  node src/cli/runner.ts explain <month> [field <fieldName>] [options]
+
+${BOLD}Explanation Commands:${RESET}
+  explain <month>                  Full statutory and cash flow audit for a specific month (e.g. explain M21 or explain 14)
+  explain <month> field <name>     Detailed step-by-step calculation & statutory citation for a specific field:
+                                   • ${BOLD}partner${RESET}       (Father's Partner Months / Partnership Bonus allowance)
+                                   • ${BOLD}mother${RESET}        (Mother's ElterngeldPlus replacement calculation)
+                                   • ${BOLD}mutterschutz${RESET}  (Maternity Protection 100% wage guarantee)
+                                   • ${BOLD}husband${RESET}       (Husband's net take-home salary)
+                                   • ${BOLD}wife${RESET}          (Wife's earned part-time salary)
+                                   • ${BOLD}taxClass${RESET}      (Spousal tax class withholding assignment)
+                                   • ${BOLD}kindergeld${RESET}    (Child benefit under § 66 EStG)
+                                   • ${BOLD}special${RESET}       (Bonuses, tax refunds & one-off events)
+                                   • ${BOLD}net${RESET}           (Total monthly net household inflow)
+                                   • ${BOLD}cumulative${RESET}    (Progressive 5-year cumulative total)
 
 ${BOLD}Options:${RESET}
   -s, --scenario <A|B|C|compare>   Scenario to execute (default: compare)
@@ -156,16 +320,116 @@ ${BOLD}Options:${RESET}
   --spacing <months>               Birth spacing between Child 1 and Child 2 (default: 27)
   -r, --raise <decimal>            Annual salary raise decimal rate, e.g. 0.03 for 3% (default: 0)
   -f, --format <table|summary|milestones|json> Output display format (default: table)
+  -e, --explain <month>            Inspect full month audit (e.g. -e M21)
+  --field <fieldName>              Field to inspect with --explain (e.g. --field partner)
   --no-13th                        Disable 13th month bonuses (Vacation & Christmas)
   --tax-month <1..12>              Filing month for annual tax refund reconciliation (default: 3)
   -h, --help                       Show this help message
 
 ${BOLD}Examples:${RESET}
-  npm run sim                                    # Full 5-year comparison (Scenario C vs B vs A)
-  npm run sim -- -s C -f milestones              # Show all milestone events for Scenario C
-  npm run sim -- -s C -r 0.03 -d 36              # 3-year simulation with +3% annual raise
+  npm run sim                                    # Full 5-year comparison table
+  npm run sim -- explain M21                     # Full cash flow audit for Month 21
+  npm run sim -- explain M21 field partner       # Step-by-step calculation for Father Partner Months
+  npm run sim -- explain M14 field mother        # Formula derivation for Mother's ElterngeldPlus
+  npm run sim -- explain M12 field mutterschutz  # Maternity Protection allowance breakdown
+  npm run sim -- -s C -f milestones              # Milestone events for Scenario C
   npm run sim -- --format json > result.json     # Export full JSON ledger
 `);
+}
+
+function printFieldExplanation(
+  exp: FieldExplanation,
+  monthNum: number,
+  scenarioId: ScenarioId,
+  m: TimelineMonth
+): void {
+  const line = '═'.repeat(80);
+  console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
+  console.log(`${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (Month ${m.month} · ${m.calendarLabel})${RESET}`);
+  console.log(`${DIM}Scenario: ${scenarioId} · Spousal Tax Classes: ${m.taxClassLabel}${RESET}`);
+  console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
+
+  console.log(`  ${BOLD}Value:${RESET}              ${GREEN}${BOLD}${exp.valueFormatted}${RESET}`);
+  if (exp.derivationFormula) {
+    console.log(`  ${BOLD}Derivation Formula:${RESET} ${YELLOW}${exp.derivationFormula}${RESET}`);
+  }
+  if (exp.legalCitation) {
+    console.log(`  ${BOLD}Legal Citation:${RESET}     ${BLUE}${exp.legalCitation}${RESET}`);
+  }
+  if (exp.diffVsBFormatted) {
+    console.log(`  ${BOLD}Comparison vs. B:${RESET}   ${exp.diffVsBFormatted.includes('+') ? GREEN : RED}${exp.diffVsBFormatted}${RESET}`);
+  }
+
+  console.log(`\n${BOLD}Description:${RESET}`);
+  console.log(`  ${exp.explanation}`);
+
+  if (exp.contributingFactors && exp.contributingFactors.length > 0) {
+    console.log(`\n${BOLD}Contributing Parameters / Factors:${RESET}`);
+    exp.contributingFactors.forEach((f) => {
+      console.log(`  • ${BOLD}${f.name}:${RESET} ${CYAN}${f.value}${RESET}${f.description ? ` (${DIM}${f.description}${RESET})` : ''}`);
+    });
+  }
+
+  if (exp.calculationSteps && exp.calculationSteps.length > 0) {
+    console.log(`\n${BOLD}Step-by-Step Calculation Breakdown:${RESET}`);
+    exp.calculationSteps.forEach((s) => {
+      console.log(`  ${BOLD}[${s.stepNumber}] ${s.description}${RESET}`);
+      console.log(`      ${DIM}Formula:${RESET} ${YELLOW}${s.formula}${RESET}`);
+      console.log(`      ${DIM}Result:${RESET}  ${GREEN}${BOLD}${s.result}${RESET}`);
+    });
+  }
+
+  console.log(`\n${CYAN}${line}${RESET}\n`);
+}
+
+function printMonthExplanation(
+  rowExp: RowExplanation,
+  m: TimelineMonth,
+  scenarioId: ScenarioId
+): void {
+  const line = '═'.repeat(80);
+  console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
+  console.log(`${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title}${RESET}`);
+  console.log(`${DIM}${rowExp.subtitle} · Scenario: ${scenarioId}${RESET}`);
+  console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
+
+  console.log(`  ${BOLD}Phase / Status:${RESET}      ${MAGENTA}${rowExp.phaseOrCategory}${RESET}`);
+  console.log(`  ${BOLD}Monthly Net Inflow:${RESET}  ${GREEN}${BOLD}${rowExp.totalNetInflowFormatted}${RESET}${rowExp.diffVsBFormatted ? ` (${rowExp.diffVsBFormatted} vs Scenario B)` : ''}`);
+  console.log(`  ${BOLD}Progressive Total:${RESET}   ${CYAN}${BOLD}${rowExp.cumulatedTotalFormatted}${RESET}`);
+  if (rowExp.legalCitation) {
+    console.log(`  ${BOLD}Statutory Basis:${RESET}     ${BLUE}${rowExp.legalCitation}${RESET}`);
+  }
+
+  console.log(`\n${BOLD}Audit Summary:${RESET}`);
+  console.log(`  ${rowExp.summaryDescription}`);
+
+  if (rowExp.streams.length > 0) {
+    console.log(`\n${BOLD}Itemized Cash Flow Breakdown:${RESET}`);
+    rowExp.streams.forEach((st) => {
+      console.log(`  • ${BOLD}${st.label.padEnd(38)}:${RESET} ${GREEN}${st.valueFormatted.padStart(10)}${RESET} ${DIM}[${st.formula || st.notes}]${RESET}`);
+    });
+    console.log(`  ${'─'.repeat(52)}`);
+    console.log(`    ${BOLD}${'Total Net Household Inflow'.padEnd(36)}:${RESET} ${GREEN}${BOLD}${rowExp.totalNetInflowFormatted.padStart(10)}${RESET}`);
+  }
+
+  if (m.startingActions && m.startingActions.length > 0) {
+    console.log(`\n${BOLD}Pre-Month Action Milestones:${RESET}`);
+    m.startingActions.forEach((act) => {
+      console.log(`  ⚡ ${BOLD}${act.title}${RESET}`);
+      console.log(`     ↳ ${DIM}${act.description}${RESET}`);
+    });
+  }
+
+  if (m.specialEvents && m.specialEvents.length > 0) {
+    console.log(`\n${BOLD}Special Fiscal Events in Month ${m.month}:${RESET}`);
+    m.specialEvents.forEach((ev) => {
+      const isCost = (ev.amount as number) < 0;
+      console.log(`  💰 ${BOLD}${ev.title}${RESET} (${isCost ? RED : GREEN}${(ev.amount as number).toLocaleString('de-DE')} €${RESET})`);
+      console.log(`     ↳ ${DIM}${ev.description || ev.category}${RESET}`);
+    });
+  }
+
+  console.log(`\n${CYAN}${line}${RESET}\n`);
 }
 
 function formatEuro(amount: number): string {
@@ -460,24 +724,79 @@ function printMilestones(res: SimulationResult) {
 }
 
 // Main Execution
-const opts = parseArgs(process.argv.slice(2));
+export function runCli(argv: string[] = process.argv.slice(2)): void {
+  const opts = parseArgs(argv);
 
-if (opts.format === CliOutputFormat.Json) {
-  const resA = buildSimulation(ScenarioId.A, opts);
-  const resB = buildSimulation(ScenarioId.B, opts);
-  const resC = buildSimulation(ScenarioId.C, opts);
-  console.log(JSON.stringify({ options: opts, scenarioA: resA, scenarioB: resB, scenarioC: resC }, null, 2));
-} else {
-  const resA = buildSimulation(ScenarioId.A, opts);
-  const resB = buildSimulation(ScenarioId.B, opts);
-  const resC = buildSimulation(ScenarioId.C, opts);
+  if (opts.explainMonth !== undefined) {
+    const scenarioKey = opts.scenario === CliScenarioTarget.Compare ? ScenarioId.C : (opts.scenario as ScenarioId);
+    const targetSim = buildSimulation(scenarioKey, opts);
+    const bSim = buildSimulation(ScenarioId.B, opts);
 
-  printSummaryScorecard(resA, resB, resC);
+    const monthIdx = opts.explainMonth - 1;
+    if (monthIdx < 0 || monthIdx >= targetSim.months.length) {
+      console.error(`Error: Month ${opts.explainMonth} is outside simulation duration (${targetSim.months.length} months).`);
+      process.exit(1);
+    }
 
-  if (opts.format === CliOutputFormat.Milestones) {
-    printMilestones(resC);
-  } else if (opts.format === CliOutputFormat.Table) {
-    const target = opts.scenario === CliScenarioTarget.A ? resA : (opts.scenario === CliScenarioTarget.B ? resB : resC);
-    printLedgerTable(target, opts.scenario === CliScenarioTarget.Compare || opts.scenario === CliScenarioTarget.C ? resB : undefined);
+    const m = targetSim.months[monthIdx];
+    const bMonth = bSim.months[monthIdx];
+
+    if (opts.explainField) {
+      const fieldExp = getFieldExplanation(opts.explainField, m, bMonth, scenarioKey);
+      if (opts.format === CliOutputFormat.Json) {
+        console.log(JSON.stringify({
+          simulationMonth: opts.explainMonth,
+          calendarMonth: m.calendarLabel,
+          scenario: scenarioKey,
+          fieldKey: opts.explainField,
+          explanation: fieldExp
+        }, null, 2));
+      } else {
+        printFieldExplanation(fieldExp, opts.explainMonth, scenarioKey, m);
+      }
+    } else {
+      const rowExp = getRowExplanation(m, bMonth, scenarioKey);
+      if (opts.format === CliOutputFormat.Json) {
+        console.log(JSON.stringify({
+          simulationMonth: opts.explainMonth,
+          calendarMonth: m.calendarLabel,
+          scenario: scenarioKey,
+          rowExplanation: rowExp,
+          monthDetails: m
+        }, null, 2));
+      } else {
+        printMonthExplanation(rowExp, m, scenarioKey);
+      }
+    }
+  } else if (opts.format === CliOutputFormat.Json) {
+    const resA = buildSimulation(ScenarioId.A, opts);
+    const resB = buildSimulation(ScenarioId.B, opts);
+    const resC = buildSimulation(ScenarioId.C, opts);
+    console.log(JSON.stringify({ options: opts, scenarioA: resA, scenarioB: resB, scenarioC: resC }, null, 2));
+  } else {
+    const resA = buildSimulation(ScenarioId.A, opts);
+    const resB = buildSimulation(ScenarioId.B, opts);
+    const resC = buildSimulation(ScenarioId.C, opts);
+
+    printSummaryScorecard(resA, resB, resC);
+
+    if (opts.format === CliOutputFormat.Milestones) {
+      printMilestones(resC);
+    } else if (opts.format === CliOutputFormat.Table) {
+      const target = opts.scenario === CliScenarioTarget.A ? resA : (opts.scenario === CliScenarioTarget.B ? resB : resC);
+      printLedgerTable(target, opts.scenario === CliScenarioTarget.Compare || opts.scenario === CliScenarioTarget.C ? resB : undefined);
+    }
   }
+}
+
+const isDirectRun = Boolean(
+  process.argv[1] && (
+    fileURLToPath(import.meta.url) === process.argv[1] ||
+    process.argv[1].endsWith('runner.ts') ||
+    process.argv[1].endsWith('runner.js')
+  )
+);
+
+if (isDirectRun) {
+  runCli(process.argv.slice(2));
 }
