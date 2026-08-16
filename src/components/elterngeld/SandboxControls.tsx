@@ -750,6 +750,9 @@ export default function SandboxControls(): JSX.Element {
                   value={kindergeldPerChild.value}
                   onInput={(e) => { kindergeldPerChild.value = Number((e.target as HTMLInputElement).value); }}
                 />
+                <div style={{ fontSize: '0.64rem', color: '#94a3b8', marginTop: '2px' }}>
+                  ↳ Reconciled against Kinderfreibetrag (9.540 €/child § 32 Abs. 6) in annual tax return (<span style={{ color: '#38bdf8', fontWeight: 600 }}>Günstigerprüfung § 31 EStG</span>).
+                </div>
               </div>
             </div>
 
