@@ -485,6 +485,25 @@ export default function SandboxControls(): JSX.Element {
                 </span>
               </div>
 
+              {/* Active Swap Schedule Badge */}
+              <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#86efac', marginBottom: '4px' }}>
+                  Active Tax Class Switch Windows:
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '3px' }}>
+                  <span>Swap 1 (Child 1):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
+                    {getCalDate(Math.max(1, (child1BirthMonth.value - 1) - swapLeadMonths.value))} (M{Math.max(1, (child1BirthMonth.value - 1) - swapLeadMonths.value)}) → {getCalDate(child1BirthMonth.value)} (M{child1BirthMonth.value})
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1' }}>
+                  <span>Swap 2 (Child 2):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
+                    {getCalDate(Math.max(child1BirthMonth.value + 2, (child1BirthMonth.value + birthSpacingMonths.value - 1) - swapLeadMonths.value))} (M{Math.max(child1BirthMonth.value + 2, (child1BirthMonth.value + birthSpacingMonths.value - 1) - swapLeadMonths.value)}) → {getCalDate(child1BirthMonth.value + birthSpacingMonths.value)} (M{child1BirthMonth.value + birthSpacingMonths.value})
+                  </span>
+                </div>
+              </div>
+
               {/* Swap Lead Time */}
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
