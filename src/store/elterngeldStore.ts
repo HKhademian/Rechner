@@ -5,6 +5,7 @@ import {
   TaxClass,
   TargetPerson,
   SalaryInputMode,
+  SalaryPeriod,
   type PregnancyId,
   type SwitchId,
   type RaiseId,
@@ -21,6 +22,7 @@ import {
   toRaiseId,
   toFinancialEventId,
   toSalaryInputMode,
+  toSalaryPeriod,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -32,10 +34,14 @@ import {
 import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 import { deriveSpousalNetSalaries, computeGrossToNetBreakdown } from '#engine/tax/wageTax';
 
-// Input Mode (Gross vs Net Mode)
+// Input Mode (Gross vs Net Mode) & Period (Monthly vs Yearly)
 export const salaryInputMode = signal<SalaryInputMode>(SalaryInputMode.Gross);
+export const salaryPeriod = signal<SalaryPeriod>(SalaryPeriod.Monthly);
 export const husbandGross = signal<number>(4500);
 export const wifeGross = signal<number>(3000);
+
+export const husbandGrossYearly = computed(() => (husbandGross.value || 0) * 12);
+export const wifeGrossYearly = computed(() => (wifeGross.value || 0) * 12);
 
 // Default Financial Parameters (The Sandbox)
 export const husbandClass3Net = signal(3184);
@@ -71,6 +77,18 @@ export function setHusbandGross(gross: number) {
 export function setWifeGross(gross: number) {
   wifeGross.value = gross;
   syncGrossToNet();
+}
+
+export function setHusbandGrossYearly(yearly: number) {
+  setHusbandGross(Math.round(yearly / 12));
+}
+
+export function setWifeGrossYearly(yearly: number) {
+  setWifeGross(Math.round(yearly / 12));
+}
+
+export function setSalaryPeriod(period: SalaryPeriod) {
+  salaryPeriod.value = period;
 }
 
 export function setSalaryInputMode(mode: SalaryInputMode) {
@@ -403,6 +421,10 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     startCalendarYear: startYear,
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: duration,
+    salaryInputMode: salaryInputMode.value,
+    salaryPeriod: salaryPeriod.value,
+    husbandGross: toGrossSalary(husbandGross.value),
+    wifeGross: toGrossSalary(wifeGross.value),
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: toNetSalary(husbandClass3Net.value),
     husbandInitialClass5Net: toNetSalary(husbandClass5Net.value),

@@ -182,6 +182,12 @@ export const SalaryInputMode = {
 } as const;
 export type SalaryInputMode = (typeof SalaryInputMode)[keyof typeof SalaryInputMode];
 
+export const SalaryPeriod = {
+  Monthly: 'MONTHLY',
+  Yearly: 'YEARLY'
+} as const;
+export type SalaryPeriod = (typeof SalaryPeriod)[keyof typeof SalaryPeriod];
+
 export const WageTaxZone = {
   Zone1Null: 'ZONE_1_NULL',
   Zone2Progression1: 'ZONE_2_PROGRESSION_1',
@@ -400,6 +406,13 @@ export function toSalaryInputMode(val: string): SalaryInputMode {
   return upper as SalaryInputMode;
 }
 
+export function toSalaryPeriod(val: string): SalaryPeriod {
+  const upper = val.toUpperCase();
+  if (upper === 'MONTHLY' || upper === 'MONTH' || upper === 'M') return SalaryPeriod.Monthly;
+  if (upper === 'YEARLY' || upper === 'YEAR' || upper === 'ANNUAL' || upper === 'A' || upper === 'Y') return SalaryPeriod.Yearly;
+  throw new TypeError(`Invalid SalaryPeriod: ${val}. Expected 'MONTHLY' or 'YEARLY'.`);
+}
+
 export function toWageTaxZone(val: string): WageTaxZone {
   const values = Object.values(WageTaxZone) as string[];
   if (!values.includes(val)) {
@@ -603,6 +616,7 @@ export interface PreexistingConditions {
   readonly startCalendarMonth: CalendarMonth;
   readonly simulationDurationMonths: number;
   readonly salaryInputMode?: SalaryInputMode;
+  readonly salaryPeriod?: SalaryPeriod;
   readonly husbandGross?: GrossSalary;
   readonly wifeGross?: GrossSalary;
   readonly husbandInitialTaxClass: TaxClass;

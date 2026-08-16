@@ -177,5 +177,71 @@ describe('Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)', () => {
       assert.ok(stdout.includes('GERMAN ELTERNGELD SIMULATION KPI SCORECARD'));
       assert.ok(stdout.includes('Net Optimization Advantage (Scenario C vs B)'));
     });
+
+    it('executes "spousal-net --husband-gross 54000 --wife-gross 36000 --yearly" with annual totals', async () => {
+      const { stdout, stderr } = await execFileAsync('node', [
+        'src/cli/runner.ts',
+        'spousal-net',
+        '--husband-gross',
+        '54000',
+        '--wife-gross',
+        '36000',
+        '--yearly'
+      ]);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('SPOUSAL HOUSEHOLD GROSS-TO-NET COMPARISON SET (ANNUAL'));
+      assert.ok(stdout.includes('54.000 €'));
+      assert.ok(stdout.includes('36.000 €'));
+      assert.ok(stdout.includes('38.208 €'));
+      assert.ok(stdout.includes('28.776 €'));
+      assert.ok(stdout.includes('21.012 €'));
+      assert.ok(stdout.includes('Elterngeld Booster!'));
+      assert.ok(stdout.includes('Annual Temporary Tax Gap:'));
+      assert.ok(stdout.includes('-6.204 €'));
+    });
+
+    it('executes "gross-to-net -g 54000 -c III -y" with annual deductions breakdown', async () => {
+      const { stdout, stderr } = await execFileAsync('node', [
+        'src/cli/runner.ts',
+        'gross-to-net',
+        '-g',
+        '54000',
+        '-c',
+        'III',
+        '-y'
+      ]);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('STATUTORY GROSS-TO-NET BREAKDOWN (ANNUAL'));
+      assert.ok(stdout.includes('Annual Gross Salary:'));
+      assert.ok(stdout.includes('54.000 €'));
+      assert.ok(stdout.includes('Total Social Security:'));
+      assert.ok(stdout.includes('14.820 €'));
+      assert.ok(stdout.includes('Total Tax Withholding:'));
+      assert.ok(stdout.includes('9.348 €'));
+      assert.ok(stdout.includes('Annual Net Take-Home Pay:'));
+      assert.ok(stdout.includes('38.208 €'));
+    });
+
+    it('outputs structured JSON with period property when "-f json --yearly" is invoked', async () => {
+      const { stdout, stderr } = await execFileAsync('node', [
+        'src/cli/runner.ts',
+        'spousal-net',
+        '--husband-gross',
+        '54000',
+        '--wife-gross',
+        '36000',
+        '--period',
+        'yearly',
+        '-f',
+        'json'
+      ]);
+      assert.equal(stderr, '');
+      const parsed = JSON.parse(stdout);
+      assert.equal(parsed.period, 'YEARLY');
+      assert.equal(parsed.husbandGross, 4500);
+      assert.equal(parsed.wifeGrossFullTime, 3000);
+      assert.equal(parsed.husbandClass3Net, 3184);
+      assert.equal(parsed.wifeClass3FullTimeNet, 2603);
+    });
   });
 });

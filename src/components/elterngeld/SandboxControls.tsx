@@ -2,11 +2,17 @@ import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import {
   salaryInputMode,
+  salaryPeriod,
   husbandGross,
   wifeGross,
+  husbandGrossYearly,
+  wifeGrossYearly,
   setHusbandGross,
   setWifeGross,
+  setHusbandGrossYearly,
+  setWifeGrossYearly,
   setSalaryInputMode,
+  setSalaryPeriod,
   derivedSpousalSet,
   husbandClass3Net,
   husbandClass5Net,
@@ -54,6 +60,7 @@ import {
   TargetPerson,
   FinancialEventCategory,
   SalaryInputMode,
+  SalaryPeriod,
   toSimulationMonth,
   toCalendarMonth,
   toEuroAmount,
@@ -347,112 +354,200 @@ export default function SandboxControls(): JSX.Element {
                 </div>
               </div>
 
-              {/* Salary Input Mode Switcher */}
+              {/* Salary Input Mode & Cadence Switchers */}
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#1e293b',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                marginBottom: '12px',
-                border: '1px solid #334155'
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                marginBottom: '12px'
               }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
-                  Salary Mode:
-                </span>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setSalaryInputMode(SalaryInputMode.Gross)}
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: '3px',
-                      border: salaryInputMode.value === SalaryInputMode.Gross ? '1px solid #10b981' : '1px solid transparent',
-                      background: salaryInputMode.value === SalaryInputMode.Gross ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                      color: salaryInputMode.value === SalaryInputMode.Gross ? '#6ee7b7' : '#94a3b8',
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ⚡ Gross (Auto § 38b)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSalaryInputMode(SalaryInputMode.Net)}
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: '3px',
-                      border: salaryInputMode.value === SalaryInputMode.Net ? '1px solid #38bdf8' : '1px solid transparent',
-                      background: salaryInputMode.value === SalaryInputMode.Net ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-                      color: salaryInputMode.value === SalaryInputMode.Net ? '#7dd3fc' : '#94a3b8',
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    🔧 Net (Manual)
-                  </button>
+                {/* Mode Switcher */}
+                <div style={{
+                  background: '#1e293b',
+                  padding: '4px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid #334155',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>
+                    Mode:
+                  </span>
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSalaryInputMode(SalaryInputMode.Gross)}
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        border: salaryInputMode.value === SalaryInputMode.Gross ? '1px solid #10b981' : '1px solid transparent',
+                        background: salaryInputMode.value === SalaryInputMode.Gross ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                        color: salaryInputMode.value === SalaryInputMode.Gross ? '#6ee7b7' : '#94a3b8',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                      title="Automated Statutory Gross-to-Net Engine (§ 38b EStG)"
+                    >
+                      ⚡ Gross
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSalaryInputMode(SalaryInputMode.Net)}
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        border: salaryInputMode.value === SalaryInputMode.Net ? '1px solid #38bdf8' : '1px solid transparent',
+                        background: salaryInputMode.value === SalaryInputMode.Net ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+                        color: salaryInputMode.value === SalaryInputMode.Net ? '#7dd3fc' : '#94a3b8',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                      title="Direct Net Salary Overrides"
+                    >
+                      🔧 Net
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cadence / Period Switcher */}
+                <div style={{
+                  background: '#1e293b',
+                  padding: '4px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid #334155',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>
+                    Period:
+                  </span>
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSalaryPeriod(SalaryPeriod.Monthly)}
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        border: salaryPeriod.value === SalaryPeriod.Monthly ? '1px solid #38bdf8' : '1px solid transparent',
+                        background: salaryPeriod.value === SalaryPeriod.Monthly ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+                        color: salaryPeriod.value === SalaryPeriod.Monthly ? '#7dd3fc' : '#94a3b8',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      📅 Month
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSalaryPeriod(SalaryPeriod.Yearly)}
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        border: salaryPeriod.value === SalaryPeriod.Yearly ? '1px solid #a855f7' : '1px solid transparent',
+                        background: salaryPeriod.value === SalaryPeriod.Yearly ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
+                        color: salaryPeriod.value === SalaryPeriod.Yearly ? '#d8b4fe' : '#94a3b8',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      📆 Year
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {salaryInputMode.value === SalaryInputMode.Gross ? (
                 <>
-                  {/* Husband Monthly Gross */}
+                  {/* Husband Gross */}
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                      <span style={{ color: '#cbd5e1' }}>Husband Monthly Gross (32h):</span>
+                      <span style={{ color: '#cbd5e1' }}>
+                        Husband Gross (32h):
+                      </span>
                       <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
-                        {formatCurrency(husbandGross.value)} / mo
+                        {salaryPeriod.value === SalaryPeriod.Yearly
+                          ? `${formatCurrency(husbandGrossYearly.value)} / yr (${formatCurrency(husbandGross.value)} / mo)`
+                          : `${formatCurrency(husbandGross.value)} / mo`}
                       </span>
                     </div>
-                    <input
-                      type="range"
-                      min="2500"
-                      max="12000"
-                      step="50"
-                      value={husbandGross.value}
-                      onInput={(e) => { setHusbandGross(Number((e.target as HTMLInputElement).value)); }}
-                    />
+                    {salaryPeriod.value === SalaryPeriod.Yearly ? (
+                      <input
+                        type="range"
+                        min="30000"
+                        max="150000"
+                        step="500"
+                        value={husbandGrossYearly.value}
+                        onInput={(e) => { setHusbandGrossYearly(Number((e.target as HTMLInputElement).value)); }}
+                      />
+                    ) : (
+                      <input
+                        type="range"
+                        min="2500"
+                        max="12000"
+                        step="50"
+                        value={husbandGross.value}
+                        onInput={(e) => { setHusbandGross(Number((e.target as HTMLInputElement).value)); }}
+                      />
+                    )}
                     <div style={{ display: 'flex', gap: '6px', marginTop: '2px', fontSize: '0.66rem' }}>
                       <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#93c5fd' }}>
-                        Class III: <strong>{formatCurrency(derivedSpousalSet.value.husbandClass3Net as number)}</strong>
+                        Class III: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.husbandClass3Net as number) * 12 : (derivedSpousalSet.value.husbandClass3Net as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                       </span>
                       <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#fde047' }}>
-                        Class V: <strong>{formatCurrency(derivedSpousalSet.value.husbandClass5Net as number)}</strong>
+                        Class V: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.husbandClass5Net as number) * 12 : (derivedSpousalSet.value.husbandClass5Net as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                       </span>
                       <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#94a3b8' }}>
-                        Class IV: {formatCurrency(derivedSpousalSet.value.husbandClass4Net as number)}
+                        Class IV: {formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.husbandClass4Net as number) * 12 : (derivedSpousalSet.value.husbandClass4Net as number))}
                       </span>
                     </div>
                   </div>
 
-                  {/* Wife Monthly Gross FT */}
+                  {/* Wife Gross FT */}
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                      <span style={{ color: '#cbd5e1' }}>Wife Monthly Gross FT (40h):</span>
+                      <span style={{ color: '#cbd5e1' }}>
+                        Wife Gross FT (40h):
+                      </span>
                       <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2dd4bf' }}>
-                        {formatCurrency(wifeGross.value)} / mo
+                        {salaryPeriod.value === SalaryPeriod.Yearly
+                          ? `${formatCurrency(wifeGrossYearly.value)} / yr (${formatCurrency(wifeGross.value)} / mo)`
+                          : `${formatCurrency(wifeGross.value)} / mo`}
                       </span>
                     </div>
-                    <input
-                      type="range"
-                      min="1500"
-                      max="8000"
-                      step="50"
-                      value={wifeGross.value}
-                      onInput={(e) => { setWifeGross(Number((e.target as HTMLInputElement).value)); }}
-                    />
+                    {salaryPeriod.value === SalaryPeriod.Yearly ? (
+                      <input
+                        type="range"
+                        min="18000"
+                        max="100000"
+                        step="500"
+                        value={wifeGrossYearly.value}
+                        onInput={(e) => { setWifeGrossYearly(Number((e.target as HTMLInputElement).value)); }}
+                      />
+                    ) : (
+                      <input
+                        type="range"
+                        min="1500"
+                        max="8000"
+                        step="50"
+                        value={wifeGross.value}
+                        onInput={(e) => { setWifeGross(Number((e.target as HTMLInputElement).value)); }}
+                      />
+                    )}
                     <div style={{ display: 'flex', gap: '6px', marginTop: '2px', fontSize: '0.66rem' }}>
                       <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#fde047' }}>
-                        Class V: <strong>{formatCurrency(derivedSpousalSet.value.wifeClass5FullTimeNet as number)}</strong>
+                        Class V: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass5FullTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass5FullTimeNet as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                       </span>
                       <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#86efac' }}>
-                        Class III: <strong>{formatCurrency(derivedSpousalSet.value.wifeClass3FullTimeNet as number)}</strong>
+                        Class III: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass3FullTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass3FullTimeNet as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                       </span>
                       <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#c4b5fd' }}>
-                        PT (24h): {formatCurrency(derivedSpousalSet.value.wifeClass5PartTimeNet as number)}
+                        PT (24h): {formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass5PartTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass5PartTimeNet as number))}
                       </span>
                     </div>
                   </div>
@@ -490,18 +585,18 @@ export default function SandboxControls(): JSX.Element {
                         color: '#cbd5e1'
                       }}>
                         <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: '4px' }}>
-                          Husband (Class III): Deductions {formatCurrency((derivedSpousalSet.value.husbandBreakdownClass3.monthlyGross as number) - (derivedSpousalSet.value.husbandBreakdownClass3.monthlyNetTakeHome as number))} ({derivedSpousalSet.value.husbandBreakdownClass3.effectiveTotalDeductionRatePercent}%)
+                          Husband (Class III): Deductions {formatCurrency(((derivedSpousalSet.value.husbandBreakdownClass3.monthlyGross as number) - (derivedSpousalSet.value.husbandBreakdownClass3.monthlyNetTakeHome as number)) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))} ({derivedSpousalSet.value.husbandBreakdownClass3.effectiveTotalDeductionRatePercent}%)
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '6px' }}>
-                          <span>• Social: {formatCurrency(derivedSpousalSet.value.husbandBreakdownClass3.totalSocialSecurity as number)}</span>
-                          <span>• Tax: {formatCurrency(derivedSpousalSet.value.husbandBreakdownClass3.monthlyWageTax as number)}</span>
+                          <span>• Social: {formatCurrency((derivedSpousalSet.value.husbandBreakdownClass3.totalSocialSecurity as number) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))}</span>
+                          <span>• Tax: {formatCurrency((derivedSpousalSet.value.husbandBreakdownClass3.monthlyWageTax as number) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))}</span>
                         </div>
                         <div style={{ fontWeight: 700, color: '#2dd4bf', marginBottom: '4px' }}>
-                          Wife FT (Class V): Deductions {formatCurrency((derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyGross as number) - (derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyNetTakeHome as number))} ({derivedSpousalSet.value.wifeBreakdownClass5FT.effectiveTotalDeductionRatePercent}%)
+                          Wife FT (Class V): Deductions {formatCurrency(((derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyGross as number) - (derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyNetTakeHome as number)) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))} ({derivedSpousalSet.value.wifeBreakdownClass5FT.effectiveTotalDeductionRatePercent}%)
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-                          <span>• Social: {formatCurrency(derivedSpousalSet.value.wifeBreakdownClass5FT.totalSocialSecurity as number)}</span>
-                          <span>• Tax: {formatCurrency(derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyWageTax as number)}</span>
+                          <span>• Social: {formatCurrency((derivedSpousalSet.value.wifeBreakdownClass5FT.totalSocialSecurity as number) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))}</span>
+                          <span>• Tax: {formatCurrency((derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyWageTax as number) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))}</span>
                         </div>
                       </div>
                     )}
@@ -512,37 +607,67 @@ export default function SandboxControls(): JSX.Element {
                   {/* Husband Baseline Class III */}
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                      <span style={{ color: '#cbd5e1' }}>Husband Class III Net (32h):</span>
+                      <span style={{ color: '#cbd5e1' }}>
+                        Husband Class III Net (32h):
+                      </span>
                       <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
-                        {formatCurrency(husbandClass3Net.value)}
+                        {salaryPeriod.value === SalaryPeriod.Yearly
+                          ? `${formatCurrency(husbandClass3Net.value * 12)} / yr (${formatCurrency(husbandClass3Net.value)} / mo)`
+                          : `${formatCurrency(husbandClass3Net.value)} / mo`}
                       </span>
                     </div>
-                    <input
-                      type="range"
-                      min="2000"
-                      max="7000"
-                      step="25"
-                      value={husbandClass3Net.value}
-                      onInput={(e) => { husbandClass3Net.value = Number((e.target as HTMLInputElement).value); }}
-                    />
+                    {salaryPeriod.value === SalaryPeriod.Yearly ? (
+                      <input
+                        type="range"
+                        min="24000"
+                        max="84000"
+                        step="300"
+                        value={husbandClass3Net.value * 12}
+                        onInput={(e) => { husbandClass3Net.value = Math.round(Number((e.target as HTMLInputElement).value) / 12); }}
+                      />
+                    ) : (
+                      <input
+                        type="range"
+                        min="2000"
+                        max="7000"
+                        step="25"
+                        value={husbandClass3Net.value}
+                        onInput={(e) => { husbandClass3Net.value = Number((e.target as HTMLInputElement).value); }}
+                      />
+                    )}
                   </div>
 
                   {/* Wife Baseline Class V */}
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                      <span style={{ color: '#cbd5e1' }}>Wife Class V FT Net (40h):</span>
+                      <span style={{ color: '#cbd5e1' }}>
+                        Wife Class V FT Net (40h):
+                      </span>
                       <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
-                        {formatCurrency(wifeClass5FullTimeNet.value)}
+                        {salaryPeriod.value === SalaryPeriod.Yearly
+                          ? `${formatCurrency(wifeClass5FullTimeNet.value * 12)} / yr (${formatCurrency(wifeClass5FullTimeNet.value)} / mo)`
+                          : `${formatCurrency(wifeClass5FullTimeNet.value)} / mo`}
                       </span>
                     </div>
-                    <input
-                      type="range"
-                      min="1200"
-                      max="4500"
-                      step="25"
-                      value={wifeClass5FullTimeNet.value}
-                      onInput={(e) => { wifeClass5FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
-                    />
+                    {salaryPeriod.value === SalaryPeriod.Yearly ? (
+                      <input
+                        type="range"
+                        min="14400"
+                        max="54000"
+                        step="300"
+                        value={wifeClass5FullTimeNet.value * 12}
+                        onInput={(e) => { wifeClass5FullTimeNet.value = Math.round(Number((e.target as HTMLInputElement).value) / 12); }}
+                      />
+                    ) : (
+                      <input
+                        type="range"
+                        min="1200"
+                        max="4500"
+                        step="25"
+                        value={wifeClass5FullTimeNet.value}
+                        onInput={(e) => { wifeClass5FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
+                      />
+                    )}
                   </div>
                 </>
               )}
