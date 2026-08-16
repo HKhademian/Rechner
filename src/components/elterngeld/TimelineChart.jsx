@@ -64,15 +64,15 @@ export default function TimelineChart() {
   // Y Scale function
   const scaleY = (val) => plotHeight - (val / yMax) * plotHeight;
 
-  // Colors
+  // Colors (Corporate Minimal Palette)
   const colors = {
-    husbandSalary: '#2563eb', // Institutional Financial Blue
-    wifeSalary: '#0284c7',    // Steel Blue
-    mutterschutz: '#4338ca',  // Dark Indigo
-    wifeElterngeld: '#059669',// Forest / Emerald Green
-    husbandElterngeld: '#d97706', // Warm Amber
-    kindergeld: '#be123c',    // Burgundy / Brick Red
-    taxRefund: '#0891b2'      // Petrol Cyan
+    husbandSalary: '#1e40af',     // Corporate Navy Blue
+    wifeSalary: '#0284c7',        // Steel Blue
+    mutterschutz: '#475569',      // Slate Gray
+    wifeElterngeld: '#15803d',    // Deep Forest Green
+    husbandElterngeld: '#b45309', // Muted Bronze Amber
+    kindergeld: '#991b1b',        // Dark Crimson Red
+    taxRefund: '#0f766e'          // Petrol Teal
   };
 
   // Handle Mouse Move for Tooltip
@@ -109,23 +109,27 @@ export default function TimelineChart() {
     return subset.reduce((acc, m, i) => {
       const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
       const y = margin.top + scaleY(m.monthlyTotal);
-      return i === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
+      return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
     }, '');
   };
 
-  // Area path generator for Area mode
-  const getStackedAreaPath = (stackTopFn, stackBottomFn) => {
+  // Stacked Area generator for Area mode
+  const getStackedAreaPath = (topFn, bottomFn) => {
     if (displayedMonths.length === 0) return '';
-    let topPoints = [];
-    let bottomPoints = [];
-    displayedMonths.forEach((m, i) => {
+    const topPoints = displayedMonths.map((m, i) => {
       const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-      const yTop = margin.top + scaleY(stackTopFn(m));
-      const yBottom = margin.top + scaleY(stackBottomFn(m));
-      topPoints.push(`${x},${yTop}`);
-      bottomPoints.unshift(`${x},${yBottom}`);
-    });
-    return `M ${topPoints.join(' L ')} L ${bottomPoints.join(' L ')} Z`;
+      const y = margin.top + scaleY(topFn(m));
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+
+    const bottomPoints = displayedMonths.slice().reverse().map((m, i) => {
+      const originalIdx = displayedMonths.length - 1 - i;
+      const x = margin.left + originalIdx * barSlotWidth + barSlotWidth / 2;
+      const y = margin.top + scaleY(bottomFn(m));
+      return `L ${x} ${y}`;
+    }).join(' ');
+
+    return `${topPoints} ${bottomPoints} Z`;
   };
 
   return (
@@ -151,9 +155,9 @@ export default function TimelineChart() {
         {/* View Mode Switcher */}
         <div style={{
           display: 'flex',
-          background: 'rgba(15, 23, 42, 0.8)',
+          background: '#0f172a',
           padding: '3px',
-          borderRadius: '8px',
+          borderRadius: '6px',
           border: '1px solid #334155',
           gap: '4px'
         }}>
@@ -162,7 +166,7 @@ export default function TimelineChart() {
             onClick={() => chartMode.value = 'stacked_bar'}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: '4px',
               border: 'none',
               background: mode === 'stacked_bar' ? '#2563eb' : 'transparent',
               color: mode === 'stacked_bar' ? '#ffffff' : '#94a3b8',
@@ -178,7 +182,7 @@ export default function TimelineChart() {
             onClick={() => chartMode.value = 'area'}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: '4px',
               border: 'none',
               background: mode === 'area' ? '#2563eb' : 'transparent',
               color: mode === 'area' ? '#ffffff' : '#94a3b8',
@@ -194,7 +198,7 @@ export default function TimelineChart() {
             onClick={() => chartMode.value = 'compare'}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: '4px',
               border: 'none',
               background: mode === 'compare' ? '#2563eb' : 'transparent',
               color: mode === 'compare' ? '#ffffff' : '#94a3b8',
@@ -216,38 +220,6 @@ export default function TimelineChart() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Gradient definitions */}
-          <defs>
-            <linearGradient id="gradHusband" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#1d4ed8" />
-            </linearGradient>
-            <linearGradient id="gradWife" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0284c7" />
-              <stop offset="100%" stopColor="#0369a1" />
-            </linearGradient>
-            <linearGradient id="gradMutterschutz" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" />
-              <stop offset="100%" stopColor="#4338ca" />
-            </linearGradient>
-            <linearGradient id="gradWifeEG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" />
-              <stop offset="100%" stopColor="#047857" />
-            </linearGradient>
-            <linearGradient id="gradHusbandEG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#d97706" />
-              <stop offset="100%" stopColor="#b45309" />
-            </linearGradient>
-            <linearGradient id="gradKindergeld" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#e11d48" />
-              <stop offset="100%" stopColor="#be123c" />
-            </linearGradient>
-            <linearGradient id="gradTaxRefund" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0891b2" />
-              <stop offset="100%" stopColor="#0e7490" />
-            </linearGradient>
-          </defs>
-
           {/* Grid lines (Horizontal Y-Axis) */}
           {[0, 2000, 4000, 6000, 8000].map((tick) => {
             if (tick > yMax) return null;
@@ -287,14 +259,14 @@ export default function TimelineChart() {
                   y1={margin.top}
                   x2={x}
                   y2={svgHeight - margin.bottom}
-                  stroke="rgba(99, 102, 241, 0.35)"
+                  stroke="#334155"
                   strokeWidth="1.5"
                   strokeDasharray="2 2"
                 />
                 <text
                   x={x + 4}
                   y={margin.top - 12}
-                  fill="#818cf8"
+                  fill="#94a3b8"
                   fontSize="11"
                   fontWeight="700"
                 >
@@ -312,25 +284,25 @@ export default function TimelineChart() {
             let currentY = 0;
 
             const segments = [
-              { key: 'husbandSalary', val: m.husbandSalary, fill: 'url(#gradHusband)' },
-              { key: 'wifeSalary', val: m.wifeSalary, fill: 'url(#gradWife)' },
-              { key: 'mutterschutz', val: m.mutterschutz, fill: 'url(#gradMutterschutz)' },
-              { key: 'wifeElterngeld', val: m.wifeElterngeld, fill: 'url(#gradWifeEG)' },
-              { key: 'husbandElterngeld', val: m.husbandElterngeld, fill: 'url(#gradHusbandEG)' },
-              { key: 'kindergeld', val: m.kindergeld, fill: 'url(#gradKindergeld)' },
-              { key: 'taxRefund', val: m.taxRefund, fill: 'url(#gradTaxRefund)' }
+              { key: 'husbandSalary', val: m.husbandSalary, fill: colors.husbandSalary },
+              { key: 'wifeSalary', val: m.wifeSalary, fill: colors.wifeSalary },
+              { key: 'mutterschutz', val: m.mutterschutz, fill: colors.mutterschutz },
+              { key: 'wifeElterngeld', val: m.wifeElterngeld, fill: colors.wifeElterngeld },
+              { key: 'husbandElterngeld', val: m.husbandElterngeld, fill: colors.husbandElterngeld },
+              { key: 'kindergeld', val: m.kindergeld, fill: colors.kindergeld },
+              { key: 'taxRefund', val: m.taxRefund, fill: colors.taxRefund }
             ];
 
             return (
-              <g key={m.month} opacity={isHovered ? 1 : 0.9}>
+              <g key={m.month} opacity={isHovered ? 1 : 0.92}>
                 {isHovered && (
                   <rect
                     x={margin.left + i * barSlotWidth}
                     y={margin.top}
                     width={barSlotWidth}
                     height={plotHeight}
-                    fill="rgba(255, 255, 255, 0.05)"
-                    rx="4"
+                    fill="rgba(255, 255, 255, 0.04)"
+                    rx="2"
                   />
                 )}
                 {segments.map((seg) => {
@@ -347,7 +319,7 @@ export default function TimelineChart() {
                       width={barWidth}
                       height={Math.max(1, segHeight)}
                       fill={seg.fill}
-                      rx="2"
+                      rx="1"
                     />
                   );
                 })}
@@ -358,12 +330,12 @@ export default function TimelineChart() {
           {/* Render Mode: AREA TREND */}
           {mode === 'area' && (
             <g>
-              <path d={getStackedAreaPath(m => m.husbandSalary, () => 0)} fill="url(#gradHusband)" opacity="0.85" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary, m => m.husbandSalary)} fill="url(#gradWife)" opacity="0.85" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz, m => m.husbandSalary + m.wifeSalary)} fill="url(#gradMutterschutz)" opacity="0.85" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz)} fill="url(#gradWifeEG)" opacity="0.85" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld)} fill="url(#gradHusbandEG)" opacity="0.85" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld)} fill="url(#gradKindergeld)" opacity="0.85" />
+              <path d={getStackedAreaPath(m => m.husbandSalary, () => 0)} fill={colors.husbandSalary} opacity="0.9" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary, m => m.husbandSalary)} fill={colors.wifeSalary} opacity="0.9" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz, m => m.husbandSalary + m.wifeSalary)} fill={colors.mutterschutz} opacity="0.9" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz)} fill={colors.wifeElterngeld} opacity="0.9" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld)} fill={colors.husbandElterngeld} opacity="0.9" />
+              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld)} fill={colors.kindergeld} opacity="0.9" />
               {displayedMonths.map((m, i) => {
                 if (m.taxRefund <= 0) return null;
                 const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
@@ -371,8 +343,8 @@ export default function TimelineChart() {
                 const yTop = margin.top + scaleY(m.monthlyTotal);
                 return (
                   <g key={`refund-bar-${m.month}`}>
-                    <line x1={x} y1={yBase} x2={x} y2={yTop} stroke="#0891b2" strokeWidth="4" strokeLinecap="round" />
-                    <circle cx={x} cy={yTop} r="4" fill="#0891b2" />
+                    <line x1={x} y1={yBase} x2={x} y2={yTop} stroke={colors.taxRefund} strokeWidth="3" strokeLinecap="round" />
+                    <circle cx={x} cy={yTop} r="3.5" fill={colors.taxRefund} />
                   </g>
                 );
               })}
@@ -382,9 +354,9 @@ export default function TimelineChart() {
           {/* Render Mode: COMPARE A/B/C OVERLAY */}
           {mode === 'compare' && (
             <g>
-              <path d={getComparePath(aData)} fill="none" stroke="#64748b" strokeWidth="2.5" strokeDasharray="6 4" opacity="0.8" />
-              <path d={getComparePath(bData)} fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.9" />
-              <path d={getComparePath(cData)} fill="none" stroke="#10b981" strokeWidth="3" />
+              <path d={getComparePath(aData)} fill="none" stroke="#475569" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
+              <path d={getComparePath(bData)} fill="none" stroke="#b45309" strokeWidth="2.5" opacity="0.95" />
+              <path d={getComparePath(cData)} fill="none" stroke="#15803d" strokeWidth="2.5" />
               {displayedMonths.map((m, i) => {
                 const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
                 const yA = margin.top + scaleY(aData.months[m.month - 1]?.monthlyTotal || 0);
@@ -392,9 +364,9 @@ export default function TimelineChart() {
                 const yC = margin.top + scaleY(cData.months[m.month - 1]?.monthlyTotal || 0);
                 return (
                   <g key={`compare-pts-${m.month}`}>
-                    <circle cx={x} cy={yA} r="2" fill="#64748b" />
-                    <circle cx={x} cy={yB} r="3" fill="#f59e0b" />
-                    <circle cx={x} cy={yC} r="3.5" fill="#10b981" />
+                    <circle cx={x} cy={yA} r="2" fill="#475569" />
+                    <circle cx={x} cy={yB} r="2.5" fill="#b45309" />
+                    <circle cx={x} cy={yC} r="3" fill="#15803d" />
                   </g>
                 );
               })}

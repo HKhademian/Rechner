@@ -5,131 +5,122 @@ export default function RulesExplainer() {
 
   const rules = [
     {
-      title: '1. Pre & Post-Birth Mutterschutz (Maternity Protection)',
-      lawRef: 'MuSchG § 3, 19 & BEEG § 3 Abs. 1',
-      icon: '🛡️',
-      color: '#a855f7',
-      summary: '100% Net Wage Replacement; Overrides Months 1 & 2 of Elterngeld.',
+      title: '1. Mutterschutzfristen & Lohnersatz',
+      lawRef: 'MuSchG § 3, § 19 & BEEG § 3 Abs. 1',
+      tag: '§ 1',
+      summary: '100 % Netto-Lohnersatzleistung; verbraucht rechtlich die Elterngeldmonate 1 & 2.',
       content: (
         <div>
           <p>
-            Under the German <strong>Mutterschutzgesetz (MuSchG)</strong>, employed mothers are placed on mandatory maternity protection <strong>6 weeks (1.5 months) before birth</strong> and <strong>8 weeks (2 months) after birth</strong>.
+            Gemäß dem <strong>Mutterschutzgesetz (MuSchG)</strong> gelten für angestellte Mütter gesetzliche Schutzfristen von <strong>6 Wochen vor der Entbindung</strong> und <strong>8 Wochen nach der Geburt</strong>.
           </p>
           <ul>
-            <li><strong>100% Net Replacement:</strong> The statutory health fund (Krankenkasse) pays Mutterschaftsgeld (€13/day) and the employer pays the Arbeitgeberzuschuss, guaranteeing 100% of the active net salary.</li>
-            <li><strong>Elterngeld Offset (BEEG § 3):</strong> Post-birth Mutterschutz months legally consume Months 1 and 2 of the 14-month Basiselterngeld entitlement. Therefore, ElterngeldPlus commences in Month 3 (or Month 11 on the calendar timeline).</li>
-            <li><strong>Optimization Rationale:</strong> In Scenario C, because the mother swapped into <strong>Tax Class III</strong> 7 months prior, her Mutterschutz benefit is paid at <strong>€2,603/month</strong> instead of €1,975/month!</li>
+            <li><strong>100 % Nettoausgleich:</strong> Die gesetzliche Krankenkasse zahlt Mutterschaftsgeld (bis zu €13/Tag) und der Arbeitgeber leistet den Zuschuss nach § 20 MuSchG bis zur vollen Höhe des bisherigen Nettoarbeitsentgelts.</li>
+            <li><strong>Anrechnung auf Elterngeld (§ 3 BEEG):</strong> Die nachgeburtlichen Mutterschutzmonate gelten kraft Gesetzes als verbrauchte Basiselterngeldmonate der Mutter. Der reguläre ElterngeldPlus-Bezug beginnt somit ab Lebensmonat 3.</li>
+            <li><strong>Optimierungseffekt:</strong> Durch den rechtzeitigen Wechsel in <strong>Steuerklasse III</strong> beträgt der Mutterschutzlohn <strong>€2.603 / Monat</strong> statt €1.975 / Monat.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '2. Proactive Tax Class Swaps (Steuerklassenwechsel III/V)',
-      lawRef: 'BEEG § 2b & BFH Urteil VI R 2/13',
-      icon: '🔄',
-      color: '#10b981',
-      summary: 'Swapping to Class III 7 months before Mutterschutz maximizes Elterngeld legally.',
+      title: '2. Proaktiver Steuerklassenwechsel (III/V)',
+      lawRef: 'BEEG § 2b & BFH-Urteil VI R 2/13',
+      tag: '§ 2',
+      summary: 'Wechsel in Steuerklasse III mindestens 7 Monate vor Mutterschutz sichert den Höchstbetrag.',
       content: (
         <div>
           <p>
-            The Elterngeld calculation basis (<em>Bemessungszeitraum</em>) consists of the <strong>12 calendar months before the month Mutterschutz begins</strong>.
+            Der Bemessungszeitraum für das Elterngeld umfasst die <strong>12 Kalendermonate vor dem Monat des Beginns des Mutterschutzes</strong> (§ 2b BEEG).
           </p>
           <ul>
-            <li><strong>Predominant Tax Class Rule:</strong> The tax class active for the <em>majority</em> (at least 7 out of 12 months) of this assessment window is used to determine taxable net income for Elterngeld.</li>
-            <li><strong>Federal Fiscal Court Ruling:</strong> The German Supreme Tax Court (BFH VI R 2/13) ruled that switching tax classes solely to optimize Elterngeld is <strong>100% legal</strong> and does not constitute tax evasion (*kein Rechtsmissbrauch*).</li>
-            <li><strong>Execution Window:</strong> Couple initiates Swap 1 in Month 1 (7 full months before Month 8 Mutterschutz), locking in Class III for the mother.</li>
+            <li><strong>Überwiegende Steuerklasse:</strong> Diejenige Steuerklasse, die in der Mehrheit der 12 Bemessungsmonate (innert 7 Monate) vorgelegen hat, wird für den gesamten Bemessungszeitraum zugrunde gelegt.</li>
+            <li><strong>BFH-Urteil (VI R 2/13):</strong> Der Bundesfinanzhof hat ausdrücklich entschieden, dass ein Steuerklassenwechsel zur Maximierung des Elterngeldes legal ist und keinen Rechtsmissbrauch darstellt.</li>
+            <li><strong>Zeitlicher Ablauf:</strong> Der Wechsel in Steuerklasse III (Frau) / V (Mann) erfolgt in Monat 4 bei Schwangerschaftsbeginn, genau 7 Monate vor dem Mutterschutz in Monat 11.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '3. The "Synthetic" Tax Rule (Fiktive Steuerklasse)',
-      lawRef: 'BEEG § 2e (Fiktives Netto)',
-      icon: '📜',
-      color: '#0891b2',
-      summary: 'Reverting to Class V post-birth does not reduce the locked Class III Elterngeld payout.',
+      title: '3. Fiktive Steuerklasse (Fiktives Netto)',
+      lawRef: 'BEEG § 2e (Fiktiver Steuerabzug)',
+      tag: '§ 3',
+      summary: 'Der Rückwechsel in Steuerklasse V nach der Geburt mindert das bewilligte Elterngeld nicht.',
       content: (
         <div>
           <p>
-            Under German Elterngeld law, the Elterngeldstelle calculates a <strong>fictitious net income (Fiktives Netto)</strong> based solely on the pre-birth assessment period.
+            Nach der Geburt wechselt das Ehepaar unmittelbar zurück in die Kombination <strong>Ehemann III / Ehefrau V</strong>, um die laufenden Lohnabzüge des Hauptverdieners zu minimieren.
           </p>
           <ul>
-            <li><strong>Asymmetry Advantage:</strong> Once the mother gives birth, the couple immediately changes tax classes back to <strong>Husband III / Wife V</strong> so the Husband regains his full €2,895 net.</li>
-            <li><strong>Elterngeld Preservation:</strong> The mother's ElterngeldPlus continues to be calculated using the higher pre-birth Class III benchmark (€2,603), yielding the maximum capped <strong>€900.00/month</strong>!</li>
+            <li><strong>Unveränderte Bemessungsgrundlage:</strong> Die Elterngeldstelle ermittelt den Elterngeldsatz ausschließlich anhand des im Bemessungszeitraum vor der Geburt festgestellten Nettoeinkommens (fiktives Netto).</li>
+            <li><strong>Maximaler Auszahlungsbetrag:</strong> Die Mutter erhält bei Teilzeitarbeit nach der Geburt weiterhin den gedeckelten Höchstsatz von <strong>€900,00 / Monat</strong> ElterngeldPlus.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '4. Finanzamt Annual Tax Reconciliation (No Lost Wealth)',
-      lawRef: 'EStG § 26b (Ehegatten-Splitting)',
-      icon: '💰',
-      color: '#3b82f6',
-      summary: 'Monthly tax withholding deficits during swap are 100% refunded in joint annual tax filing.',
+      title: '4. Finanzamt-Steuererstattung (Ehegatten-Splitting)',
+      lawRef: 'EStG § 26, § 26b (Zusammenveranlagung)',
+      tag: '§ 4',
+      summary: 'Lohnsteuer-Mehreinzahlungen während der Wechselphase werden zu 100 % erstattet.',
       content: (
         <div>
           <p>
-            Tax classes III and V only regulate monthly wage tax withholding (<em>Lohnsteuerabzug</em>).
+            Steuerklassen steuern lediglich den unterjährigen monatlichen Lohnsteuerabzug als Vorauszahlung.
           </p>
           <ul>
-            <li><strong>Splitting Tariff:</strong> In Germany, married couples filing jointly (*Zusammenveranlagung*) pay tax on their combined income under the exact same *Splittingtabelle*, irrespective of whether they were in III/V, IV/IV, or V/III during the year.</li>
-            <li><strong>100% Refund:</strong> During the 7 swap months, the temporary monthly deficit (-€275/mo in Swap 1, -€535/mo in Swap 2) is mathematically refunded in full by the Finanzamt upon submission of the annual tax return (*Einkommensteuererklärung*).</li>
-            <li><strong>Total Optimization Gain:</strong> The family collects over <strong>€5,670+</strong> in tax refunds plus higher state benefits.</li>
+            <li><strong>Splittingtarif:</strong> Bei der jährlichen Einkommensteuererklärung (§ 26b EStG) wird das gesamte Jahreseinkommen der Eheleute gemeinsam nach dem Grundsatz des Ehegatten-Splittings versteuert.</li>
+            <li><strong>Vollständige Erstattung:</strong> Sämtliche unterjährigen Minderzuflüsse aus der Steuerklasse V des Mannes werden über die Steuererstattung zu 100 % an das Paar zurückbezahlt (+€5.670 Gesamtvolumen).</li>
           </ul>
         </div>
       )
     },
     {
-      title: '5. Husband\'s Partnermonate & Partnerschaftsbonus',
-      lawRef: 'BEEG § 4b (Partnerschaftsbonus)',
-      icon: '🤝',
-      color: '#f59e0b',
-      summary: '4 Partnermonate minimums + 4 bonus months for concurrent 24–32h part-time work.',
+      title: '5. Partnermonate & Partnerschaftsbonus',
+      lawRef: 'BEEG § 4, § 4b (Partnerschaftsbonus)',
+      tag: '§ 5',
+      summary: '4 Partnermonate Mindestbetrag (€150/M) + 4 Bonusmonate bei paralleler Teilzeit (24–32h).',
       content: (
         <div>
           <p>
-            Both parents can leverage flexible ElterngeldPlus without taking full leaves of absence:
+            Das BEEG ermöglicht die Kombination von ElterngeldPlus und Erwerbstätigkeit:
           </p>
           <ul>
-            <li><strong>Husband Partnermonate:</strong> The Husband receives a flat minimum of <strong>€150/month</strong> ElterngeldPlus for 4 concurrent months (Months 11–14 & 38–41) while retaining his standard 32-hour salary.</li>
-            <li><strong>Partnerschaftsbonus (Months 23–26 & 50–53):</strong> When both parents work simultaneously between <strong>24 and 32 hours/week</strong>, each parent receives <strong>4 additional bonus months</strong> of ElterngeldPlus (Wife €900/mo + Husband €150/mo).</li>
+            <li><strong>Partnermonate Ehemann:</strong> Der Vater bezieht für 4 Monate den Mindestbetrag von <strong>€150 / Monat</strong> ElterngeldPlus parallel zu seiner regulären 32-Stunden-Woche.</li>
+            <li><strong>Partnerschaftsbonus:</strong> Arbeiten beide Elternteile gleichzeitig in 4 aufeinanderfolgenden Monaten zwischen <strong>24 und 32 Wochenstunden</strong>, erhalten beide Elternteile je <strong>4 zusätzliche Bonusmonate</strong> ElterngeldPlus.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '6. Geschwisterbonus (Sibling Bonus)',
+      title: '6. Geschwisterbonus',
       lawRef: 'BEEG § 2a (Geschwisterbonus)',
-      icon: '👶',
-      color: '#ec4899',
-      summary: '+10% bonus on Child 2 Elterngeld until Child 1 reaches age 3 (Month 45).',
+      tag: '§ 6',
+      summary: '+10 % Zuschlag auf das Elterngeld von Kind 2 bis zum 3. Geburtstag von Kind 1.',
       content: (
         <div>
           <p>
-            If a second child is born while an older sibling is under 3 years of age (under 36 months):
+            Lebt im Haushalt ein älteres Kind unter 3 Jahren (unter 36 Lebensmonaten), erhöht sich das Elterngeld für das Neugeborene:
           </p>
           <ul>
-            <li><strong>10% Benefit Surcharge:</strong> Child 2\'s Elterngeld payout is boosted by <strong>+10%</strong> (at least +€75/month for ElterngeldPlus or +€150/month for Basiselterngeld).</li>
-            <li><strong>Expiry Trigger:</strong> In our timeline, Child 1 is born at Month 9 and turns 3 at <strong>Month 45</strong>. Child 2 (born Month 36) enjoys this boost from Months 36 to 45, after which it expires.</li>
+            <li><strong>Zuschlagshöhe:</strong> +10 % des zustehenden Elterngeldes (mindestens +€75 / Monat bei ElterngeldPlus bzw. +€150 bei Basiselterngeld).</li>
+            <li><strong>Laufzeit:</strong> Kind 1 vollendet das 36. Lebensmonat in Monat 48. Bis zu diesem Monat wird der Geschwisterbonus für Kind 2 voll ausgezahlt.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '7. The 14-Month Assessment Trap (14-Monate-Falle)',
-      lawRef: 'BEEG § 2b Abs. 1 (Bemessungszeitraum Kind 2)',
-      icon: '⚠️',
-      color: '#ef4444',
-      summary: 'How part-time working between children dilutes the assessment baseline for Child 2.',
+      title: '7. Bemessungszeitraum Kind 2 (14-Monate-Falle)',
+      lawRef: 'BEEG § 2b Abs. 1 (Verwässerungsgrundsatz)',
+      tag: '§ 7',
+      summary: 'Vermeidung der Mindestbetragsfalle durch erneuten gezielten Steuerklassenwechsel.',
       content: (
         <div>
           <p>
-            For Child 2, the 12-month pre-birth assessment window cannot be reset if parental leave months for Child 1 have already passed.
+            Für das zweite Kind fließen die Teilzeitmonate zwischen den Geburten in den 12-monatigen Bemessungszeitraum ein.
           </p>
           <ul>
-            <li><strong>The Trap:</strong> The mother\'s 12-month window captures 10 months of part-time salary (at 24h) and only 2 months of earlier full-time salary.</li>
-            <li><strong>Scenario B Effect:</strong> Without optimization, Child 2\'s ElterngeldPlus drops to the legal minimum floor of <strong>€150/month</strong> (+ €75 sibling bonus = €225/mo).</li>
-            <li><strong>Scenario C Solution:</strong> Executing Swap 2 (Class III Part-Time at €1.648) increases the blended pre-birth net to €1,951.67, raising Child 2\'s payout to <strong>€485.58/month</strong>!</li>
+            <li><strong>Das Problem in Szenario B:</strong> Ohne Anpassung sinkt das Elterngeld für Kind 2 auf den Sockelbetrag von <strong>€150 / Monat</strong> ab.</li>
+            <li><strong>Die Lösung in Szenario C:</strong> Durch den rechtzeitigen zweiten Wechsel in Steuerklasse III (Teilzeit) wird das Elterngeld für Kind 2 auf <strong>€485,58 / Monat</strong> gesteigert.</li>
           </ul>
         </div>
       )
@@ -140,10 +131,11 @@ export default function RulesExplainer() {
     <div className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
         <div style={{
-          background: 'rgba(168, 85, 247, 0.2)',
+          background: 'rgba(37, 99, 235, 0.15)',
           padding: '8px',
-          borderRadius: '8px',
-          color: '#c084fc'
+          borderRadius: '6px',
+          color: '#60a5fa',
+          border: '1px solid #334155'
         }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
@@ -153,86 +145,103 @@ export default function RulesExplainer() {
         </div>
         <div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-            German Law Rules Engine & Optimization Playbook
+            Gesetzliche Grundlagen & Rechtsprechung (BEEG / MuSchG / EStG)
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
-            Click on any legal rule below to inspect the statutory basis (BEEG, MuSchG, EStG) modeled in this simulation.
+            Klicken Sie auf einen Paragrafen, um die im Berechnungsmodell hinterlegten Rechtsnormen einzusehen.
           </p>
         </div>
       </div>
 
-      {/* Accordion / Tab Buttons */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '8px',
-        marginBottom: '16px'
+        gridTemplateColumns: 'minmax(240px, 320px) 1fr',
+        gap: '20px'
       }}>
-        {rules.map((rule, idx) => {
-          const isSelected = activeTab === idx;
-          return (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setActiveTab(idx)}
-              style={{
-                textAlign: 'left',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: isSelected ? `1px solid ${rule.color}` : '1px solid rgba(51, 65, 85, 0.6)',
-                background: isSelected ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.4)',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>{rule.icon}</span>
-                <span style={{
-                  fontSize: '0.8rem',
-                  fontWeight: isSelected ? 700 : 600,
-                  color: isSelected ? '#ffffff' : '#cbd5e1'
-                }}>
-                  {rule.title.split('(')[0]}
-                </span>
-              </div>
-              <div style={{ fontSize: '0.68rem', color: isSelected ? rule.color : '#64748b', marginTop: '2px' }}>
-                {rule.lawRef}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Active Rule Details Panel */}
-      <div style={{
-        background: 'rgba(15, 23, 42, 0.7)',
-        border: `1px solid ${rules[activeTab].color}40`,
-        borderRadius: '12px',
-        padding: '20px',
-        borderLeft: `4px solid ${rules[activeTab].color}`
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1.25rem' }}>{rules[activeTab].icon}</span>
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-              {rules[activeTab].title}
-            </h4>
-          </div>
-          <span style={{
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            padding: '3px 10px',
-            borderRadius: '999px',
-            backgroundColor: `${rules[activeTab].color}20`,
-            color: rules[activeTab].color,
-            border: `1px solid ${rules[activeTab].color}50`
-          }}>
-            {rules[activeTab].lawRef}
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {rules.map((rule, idx) => {
+            const isSelected = activeTab === idx;
+            return (
+              <button
+                key={rule.title}
+                onClick={() => setActiveTab(idx)}
+                type="button"
+                style={{
+                  textAlign: 'left',
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid',
+                  borderColor: isSelected ? '#2563eb' : '#334155',
+                  background: isSelected ? '#1e293b' : '#0f172a',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  borderLeft: isSelected ? '3px solid #2563eb' : '1px solid #334155'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{
+                    fontSize: '0.84rem',
+                    fontWeight: isSelected ? 700 : 500,
+                    color: isSelected ? '#ffffff' : '#cbd5e1'
+                  }}>
+                    {rule.title}
+                  </span>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    background: '#1e293b',
+                    color: '#94a3b8',
+                    border: '1px solid #334155',
+                    fontFamily: 'monospace'
+                  }}>
+                    {rule.tag}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '3px' }}>
+                  {rule.lawRef}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-          {rules[activeTab].content}
+        <div style={{
+          background: '#0f172a',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid #334155'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            borderBottom: '1px solid #334155',
+            paddingBottom: '12px',
+            marginBottom: '14px'
+          }}>
+            <div>
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+                {rules[activeTab].title}
+              </h4>
+              <div style={{
+                fontSize: '0.76rem',
+                color: '#60a5fa',
+                fontWeight: 600,
+                marginTop: '3px'
+              }}>
+                Rechtsgrundlage: {rules[activeTab].lawRef}
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            fontSize: '0.84rem',
+            lineHeight: 1.6,
+            color: '#cbd5e1'
+          }}>
+            {rules[activeTab].content}
+          </div>
         </div>
       </div>
     </div>

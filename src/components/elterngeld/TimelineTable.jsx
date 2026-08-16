@@ -96,10 +96,10 @@ export default function TimelineTable() {
       }}>
         <div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-            60-Month Cash Flow Ledger (Scenario {scenario})
+            60-Monate-Liquiditätsjournal (Szenario {scenario})
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
-            Complete month-by-month cash flow audit with tax classes, benefit distributions, and refund timelines.
+            Monatliche Aufschlüsselung der Erwerbseinkommen, Lohnersatzleistungen und Steuererstattungen.
           </p>
         </div>
 
@@ -108,14 +108,17 @@ export default function TimelineTable() {
           {/* Search box */}
           <input
             type="text"
-            placeholder="Filter phase, event, M..."
+            placeholder="Phase, Ereignis, Monat filtern..."
             value={searchTerm}
             onInput={(e) => setSearchTerm(e.target.value)}
             style={{
               padding: '6px 12px',
-              borderRadius: '8px',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              background: '#0f172a',
+              color: '#f8fafc',
               fontSize: '0.78rem',
-              width: '180px'
+              width: '200px'
             }}
           />
 
@@ -125,17 +128,20 @@ export default function TimelineTable() {
             onChange={(e) => setSelectedYear(e.target.value)}
             style={{
               padding: '6px 10px',
-              borderRadius: '8px',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              background: '#0f172a',
+              color: '#f8fafc',
               fontSize: '0.78rem',
-              width: '120px'
+              width: '130px'
             }}
           >
-            <option value="all">All Years (1–5)</option>
-            <option value="1">Year 1 (M1–12)</option>
-            <option value="2">Year 2 (M13–24)</option>
-            <option value="3">Year 3 (M25–36)</option>
-            <option value="4">Year 4 (M37–48)</option>
-            <option value="5">Year 5 (M49–60)</option>
+            <option value="all">Alle Jahre (1–5)</option>
+            <option value="1">Jahr 1 (M1–12)</option>
+            <option value="2">Jahr 2 (M13–24)</option>
+            <option value="3">Jahr 3 (M25–36)</option>
+            <option value="4">Jahr 4 (M37–48)</option>
+            <option value="5">Jahr 5 (M49–60)</option>
           </select>
 
           {/* Scenario C vs B Delta toggle */}
@@ -145,16 +151,16 @@ export default function TimelineTable() {
               onClick={() => setShowDelta(!showDelta)}
               style={{
                 padding: '6px 12px',
-                borderRadius: '8px',
-                border: showDelta ? '1px solid #10b981' : '1px solid #64748b',
-                background: showDelta ? 'rgba(16, 185, 129, 0.2)' : 'rgba(51, 65, 85, 0.4)',
-                color: showDelta ? '#34d399' : '#cbd5e1',
+                borderRadius: '6px',
+                border: showDelta ? '1px solid #2563eb' : '1px solid #334155',
+                background: showDelta ? '#1e293b' : '#0f172a',
+                color: showDelta ? '#60a5fa' : '#94a3b8',
                 fontSize: '0.75rem',
                 fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
-              {showDelta ? '✓ Delta vs B Active' : '+ Compare Delta vs B'}
+              {showDelta ? '✓ Differenz vs. B aktiv' : '+ Differenz zu B anzeigen'}
             </button>
           )}
 
@@ -164,10 +170,10 @@ export default function TimelineTable() {
             onClick={exportCSV}
             style={{
               padding: '6px 14px',
-              borderRadius: '8px',
-              border: '1px solid #3b82f6',
-              background: 'rgba(59, 130, 246, 0.25)',
-              color: '#93c5fd',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              background: '#1e293b',
+              color: '#f8fafc',
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: 'pointer',
@@ -181,7 +187,7 @@ export default function TimelineTable() {
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" x2="12" y1="15" y2="3"/>
             </svg>
-            Export CSV
+            CSV Export
           </button>
         </div>
       </div>
@@ -189,8 +195,8 @@ export default function TimelineTable() {
       {/* Table Container */}
       <div style={{
         overflowX: 'auto',
-        borderRadius: '10px',
-        border: '1px solid rgba(51, 65, 85, 0.6)'
+        borderRadius: '6px',
+        border: '1px solid #334155'
       }}>
         <table style={{
           width: '100%',
@@ -200,24 +206,24 @@ export default function TimelineTable() {
         }}>
           <thead>
             <tr style={{
-              background: 'rgba(15, 23, 42, 0.95)',
+              background: '#0f172a',
               color: '#94a3b8',
-              borderBottom: '2px solid rgba(51, 65, 85, 0.8)',
+              borderBottom: '2px solid #334155',
               fontWeight: 700
             }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Month</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Phase / Milestone</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Tax Classes</th>
-              <th style={{ padding: '10px 12px' }}>Husband</th>
-              <th style={{ padding: '10px 12px' }}>Wife</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Monat</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Phase / Meilenstein</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Steuerklassen</th>
+              <th style={{ padding: '10px 12px' }}>Gehalt Mann</th>
+              <th style={{ padding: '10px 12px' }}>Gehalt Frau</th>
               <th style={{ padding: '10px 12px' }}>Mutterschutz</th>
-              <th style={{ padding: '10px 12px' }}>Wife EG</th>
-              <th style={{ padding: '10px 12px' }}>Husband EG</th>
+              <th style={{ padding: '10px 12px' }}>ElterngeldPlus (Mutter)</th>
+              <th style={{ padding: '10px 12px' }}>Partnermonate (Vater)</th>
               <th style={{ padding: '10px 12px' }}>Kindergeld</th>
-              <th style={{ padding: '10px 12px' }}>Tax Refund</th>
-              <th style={{ padding: '10px 12px', color: '#f8fafc' }}>Monthly Net</th>
-              {showDelta && <th style={{ padding: '10px 12px', color: '#34d399' }}>Gain vs B</th>}
-              <th style={{ padding: '10px 12px', color: '#93c5fd' }}>Cumulative</th>
+              <th style={{ padding: '10px 12px' }}>Steuererstattung</th>
+              <th style={{ padding: '10px 12px', color: '#f8fafc' }}>Monatssumme Netto</th>
+              {showDelta && <th style={{ padding: '10px 12px', color: '#60a5fa' }}>Differenz vs. B</th>}
+              <th style={{ padding: '10px 12px', color: '#cbd5e1' }}>Kumuliert</th>
             </tr>
           </thead>
           <tbody>
@@ -230,11 +236,11 @@ export default function TimelineTable() {
                 <tr
                   key={m.month}
                   style={{
-                    borderBottom: '1px solid rgba(51, 65, 85, 0.3)',
+                    borderBottom: '1px solid #334155',
                     background: isHovered
-                      ? 'rgba(59, 130, 246, 0.15)'
+                      ? 'rgba(37, 99, 235, 0.15)'
                       : m.eventTag
-                      ? 'rgba(236, 72, 153, 0.06)'
+                      ? 'rgba(30, 41, 59, 0.5)'
                       : 'transparent',
                     transition: 'background 0.15s ease'
                   }}
@@ -243,7 +249,7 @@ export default function TimelineTable() {
                 >
                   <td style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#f8fafc', fontFamily: 'monospace' }}>
                     M{m.month}
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', marginLeft: '4px' }}>(Y{m.year})</span>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', marginLeft: '4px' }}>(J{m.year})</span>
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'left' }}>
                     {m.eventTag ? (
@@ -253,9 +259,9 @@ export default function TimelineTable() {
                         borderRadius: '4px',
                         fontSize: '0.72rem',
                         fontWeight: 700,
-                        background: 'rgba(236, 72, 153, 0.2)',
-                        color: '#f472b6',
-                        border: '1px solid rgba(236, 72, 153, 0.3)'
+                        background: '#1e293b',
+                        color: '#60a5fa',
+                        border: '1px solid #334155'
                       }}>
                         {m.eventTag}
                       </span>
@@ -263,7 +269,7 @@ export default function TimelineTable() {
                       <span style={{ color: '#cbd5e1' }}>{m.phaseLabel}</span>
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px', textAlign: 'left', color: m.isSwapActive ? '#34d399' : '#94a3b8', fontWeight: m.isSwapActive ? 700 : 500 }}>
+                  <td style={{ padding: '8px 12px', textAlign: 'left', color: m.isSwapActive ? '#60a5fa' : '#94a3b8', fontWeight: m.isSwapActive ? 700 : 500 }}>
                     {m.taxClassLabel}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
@@ -272,30 +278,30 @@ export default function TimelineTable() {
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
                     {formatCurrency(m.wifeSalary)}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.mutterschutz > 0 ? '#d8b4fe' : '#64748b' }}>
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.mutterschutz > 0 ? '#93c5fd' : '#64748b' }}>
                     {m.mutterschutz > 0 ? formatCurrency(m.mutterschutz) : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.wifeElterngeld > 0 ? '#6ee7b7' : '#64748b' }}>
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.wifeElterngeld > 0 ? '#86efac' : '#64748b' }}>
                     {m.wifeElterngeld > 0 ? formatCurrency(m.wifeElterngeld) : '—'}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.husbandElterngeld > 0 ? '#fde68a' : '#64748b' }}>
                     {m.husbandElterngeld > 0 ? formatCurrency(m.husbandElterngeld) : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.kindergeld > 0 ? '#fda4af' : '#64748b' }}>
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.kindergeld > 0 ? '#fca5a5' : '#64748b' }}>
                     {m.kindergeld > 0 ? formatCurrency(m.kindergeld) : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.taxRefund > 0 ? '#67e8f9' : '#64748b', fontWeight: m.taxRefund > 0 ? 800 : 400 }}>
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.taxRefund > 0 ? '#5eead4' : '#64748b', fontWeight: m.taxRefund > 0 ? 800 : 400 }}>
                     {m.taxRefund > 0 ? `+${formatCurrency(m.taxRefund)}` : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 800, color: '#10b981' }}>
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 800, color: '#f8fafc' }}>
                     {formatCurrency(m.monthlyTotal)}
                   </td>
                   {showDelta && (
-                    <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: deltaVsB >= 0 ? '#34d399' : '#f59e0b' }}>
+                    <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: deltaVsB >= 0 ? '#4ade80' : '#f87171' }}>
                       {deltaVsB >= 0 ? `+${formatCurrency(deltaVsB)}` : formatCurrency(deltaVsB)}
                     </td>
                   )}
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#93c5fd' }}>
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
                     {formatCurrency(m.cumulatedTotal)}
                   </td>
                 </tr>
