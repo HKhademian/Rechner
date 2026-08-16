@@ -60,14 +60,14 @@ export default function ElterngeldDashboard(): JSX.Element {
         {/* Scenario Selector & Comparison Tabs */}
         <ScenarioSelector />
 
-        {/* Interactive 60-Month Stacked Timeline Chart */}
-        <TimelineChart />
-
         {/* The Sandbox: Interactive Input Parameters & Sliders */}
         <SandboxControls />
 
         {/* Full 60-Month Cash Flow Table & Audit */}
         <TimelineTable />
+
+        {/* Interactive 60-Month Stacked Timeline Chart (Positioned under the Table) */}
+        <TimelineChart />
 
         {/* German Law Rules, Statutory Framework & Legal Precedents (Lowest Page Section) */}
         <RulesExplainer />
