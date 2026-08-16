@@ -37,9 +37,51 @@ graph TD
 
 ---
 
-## 2. State Management Architecture
+## 2. Calculation Engine & Strongly-Typed Domain Modeling (`src/engine/`)
 
-State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-tracked reactive updates:
+The calculation engine is structured as a pure, deterministic, strongly-typed TypeScript core located in `src/engine/`. All financial calculations, timeline indices, tax classes, and statutory references are enforced with **Nominal / Branded Types** to guarantee compile-time safety:
+
+### Nominal Branded Types (`src/engine/types.ts`):
+```typescript
+type Brand<K, T> = K & { readonly __brand: T };
+
+export type SimulationMonth = Brand<number, 'SimulationMonth'>; // 1..60
+export type CalendarYear = Brand<number, 'CalendarYear'>;       // 1..5
+export type CalendarMonth = Brand<number, 'CalendarMonth'>;     // 1..12
+export type WorkingHours = Brand<number, 'WorkingHours'>;       // 24, 32, 40
+
+export type EuroAmount = Brand<number, 'EuroAmount'>;           // Exact EUR
+export type EuroCents = Brand<number, 'EuroCents'>;             // Integer cents
+export type GrossSalary = Brand<number, 'GrossSalary'>;         // Pre-tax gross
+export type NetSalary = Brand<number, 'NetSalary'>;             // Post-withholding net
+
+export type TaxClass = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI';
+export type ScenarioId = 'A' | 'B' | 'C';
+export type StatutoryCitation = Brand<string, 'StatutoryCitation'>;
+export type TransactionId = Brand<string, 'TransactionId'>;
+```
+
+### Engine Submodules:
+1. **`src/engine/tax/`**:
+   - `wageTax.ts`: Monthly wage tax withholding (*Lohnsteuerabzug* § 38b EStG), Solidarity Surcharge (*Solidaritätszuschlag* § 32a EStG), and net wage determination per `TaxClass`.
+   - `jointAssessment.ts`: Annual Joint Assessment with Income Splitting (*Ehegatten-Splitting* § 26b, § 32a Abs. 5 EStG), computing exact annual joint liability and wage tax prepayment reconciliations.
+2. **`src/engine/benefits/`**:
+   - `mutterschutz.ts`: Maternity pay (*Mutterschaftsgeld & Arbeitgeberzuschuss* § 19, 20 MuSchG).
+   - `elterngeldAssessment.ts`: 12-Month pre-birth assessment baseline (*Bemessungszeitraum* § 2b BEEG) and statutory 7-month dominant tax class rule (*Überwiegende Steuerklasse* § 2b Abs. 1 Satz 3 BEEG).
+   - `elterngeldPlus.ts`: Basiselterngeld & ElterngeldPlus (§ 4, 4a BEEG), sliding scale replacement rates (65%–100% § 2 BEEG), statutory caps (€900 / €1,800) and floors (€150 / €300).
+   - `siblingBonus.ts`: Sibling bonus (*Geschwisterbonus* § 2a BEEG +10%, min. +€75 for ElterngeldPlus) until Child 1 reaches 36 months.
+   - `kindergeld.ts`: Statutory child benefit (*Kindergeld* § 66 EStG) per child.
+3. **`src/engine/ledger/`**:
+   - `transaction.ts`: Atomic financial ledger entry with unique `TransactionId`, `SimulationMonth`, signed `EuroAmount`, legal `StatutoryCitation`, and mathematical audit trail.
+   - `ledger.ts`: 60-Month double-entry accounting ledger aggregating monthly sub-accounts, running totals, and annual reconciliation audits.
+4. **`src/engine/simulator/`**:
+   - `timelineGenerator.ts`: Pure deterministic multi-year timeline simulator generating 60-month ledgers for Scenarios A, B, and C with full branded-type safety.
+
+---
+
+## 3. State Management Architecture
+
+State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-tracked reactive updates connecting the TypeScript engine to the UI:
 
 ### Core Stores:
 1. **`src/store/calculatorStore.js`**:
@@ -50,7 +92,7 @@ State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-
 2. **`src/store/elterngeldStore.js`**:
    - Manages household financial parameters (Husband Class III / Class V Net; Wife Full-time Class V / III Net; Wife Part-time Class V / III Net; Kindergeld).
    - Manages timeline signals: `prePregnancyPlanningMonths` (default 3M), `child1BirthMonth` (default 12M), `birthSpacingMonths` (default 27M), `swapLeadMonths` (default 7M).
-   - Reactive computation functions:
+   - Reactive computation functions invoking `timelineGenerator.ts`:
      - `computeTimelineData('A')`: Baseline scenario with flat salaries.
      - `computeTimelineData('B')`: Unoptimized scenario with static Class III/V.
      - `computeTimelineData('C')`: Optimized scenario with proactive swaps, synthetic net rule, sibling bonus, and annual tax refunds.

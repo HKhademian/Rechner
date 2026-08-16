@@ -90,15 +90,38 @@ $$\text{Net}_{\text{Pre-Birth, Blended}} = \frac{10 \cdot \text{Net}_{\text{Part
 
 ---
 
-## 4. Annual Tax Reconciliation (*Finanzamt-Erstattung*)
+## 4. Annual Tax Reconciliation (*Finanzamt-Erstattung & § 26b EStG*)
 
 During proactive tax swap phases, monthly net cash flow experiences a temporary wage tax withholding dip:
 $$\Delta_{\text{Monthly Deficit}} = (\text{Net}_{\text{Husband III}} + \text{Net}_{\text{Wife V}}) - (\text{Net}_{\text{Husband V}} + \text{Net}_{\text{Wife III}})$$
 
-- **Swap 1**: $(2.895 + 1.975) - (2.191 + 2.603) = 6.125 - 5.850 = \mathbf{€275 / \text{month}}$
-- **Swap 2**: $(2.895 + 1.328) - (2.191 + 1.648) = 5.355 - 4.820 = \mathbf{€535 / \text{month}}$
+- **Swap 1 (Full-Time)**: $(2.895 + 1.975) - (2.191 + 2.603) = 6.125 - 5.850 = \mathbf{275\text{ € / month}}$
+- **Swap 2 (Part-Time)**: $(2.895 + 1.328) - (2.191 + 1.648) = 5.355 - 4.820 = \mathbf{535\text{ € / month}}$
 
-Because German joint assessment (*Ehegatten-Splitting*) levies taxes on the annual aggregate household taxable income, monthly withholding differences are **100 % refunded** upon filing the annual income tax return (*Einkommensteuererklärung*):
-$$\text{Refund}_{\text{Swap 1}} = 7 \times €275 = \mathbf{€1.925{,}00} \quad (\text{Realized Month 12})$$
-$$\text{Refund}_{\text{Swap 2}} = 7 \times €535 = \mathbf{€3.745{,}00} \quad (\text{Realized Month 39})$$
-$$\text{Total Refund Added to Cash Flow} = \mathbf{€5.670{,}00}$$
+Under German statutory joint assessment (*Ehegatten-Splitting* § 26b EStG), annual income tax liability is assessed on the aggregate household taxable income. Because Tax Class III/V couples are legally subject to mandatory assessment (*Pflichtveranlagung* § 46 Abs. 2 Nr. 3a EStG), monthly withholding differences are **100 % refunded** upon filing the annual income tax return (*Einkommensteuererklärung*):
+
+### Chronological Calendar Tax Year Refunds (Realized in Year $Y+1$):
+- **Year 1 Return (Filed in Year 2 / Month 15)**:
+  $$\text{Refund}_{\text{Year 1}} = (8 \times 275\text{ €}) + 850\text{ € (Base Deductions)} = \mathbf{3.050\text{ €}}$$
+- **Year 2 Return (Filed in Year 3 / Month 27)**:
+  $$\text{Refund}_{\text{Year 2}} = (0 \times 275\text{ €}) + 850\text{ € (Base Deductions)} = \mathbf{850\text{ €}}$$
+- **Year 3 Return (Filed in Year 4 / Month 39)**:
+  $$\text{Refund}_{\text{Year 3}} = (6 \times 535\text{ €}) + 850\text{ € (Base Deductions)} = \mathbf{4.060\text{ €}}$$
+- **Year 4 Return (Filed in Year 5 / Month 51)**:
+  $$\text{Refund}_{\text{Year 4}} = (2 \times 535\text{ €}) + 850\text{ € (Base Deductions)} = \mathbf{1.920\text{ €}}$$
+- **Year 5 Return**: Standard statutory deduction refund ($850\text{ €}$).
+
+---
+
+## 5. Strongly-Typed TypeScript Nominal Domain Scheme
+
+All calculation primitives strictly enforce nominal branded types:
+```typescript
+// Strongly-typed time and currency domain primitives
+export type SimulationMonth = Brand<number, 'SimulationMonth'>; // M1..M60
+export type CalendarYear = Brand<number, 'CalendarYear'>;       // Y1..Y5
+export type GrossSalary = Brand<number, 'GrossSalary'>;         // EUR Gross
+export type NetSalary = Brand<number, 'NetSalary'>;             // EUR Net
+export type EuroAmount = Brand<number, 'EuroAmount'>;           // Exact EUR
+export type TaxClass = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI';
+```
