@@ -243,5 +243,20 @@ describe('Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)', () => {
       assert.equal(parsed.husbandClass3Net, 3184);
       assert.equal(parsed.wifeClass3FullTimeNet, 2603);
     });
+
+    it('explains tax return month with statutory § 31 Günstigerprüfung when "explain M27 field special" is invoked', async () => {
+      const { stdout, stderr } = await execFileAsync('node', [
+        'src/cli/runner.ts',
+        'explain',
+        'M27',
+        'field',
+        'special'
+      ]);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('Special Payments, Bonuses & Tax Returns'));
+      assert.ok(stdout.includes('Günstigerprüfung'));
+      assert.ok(stdout.includes('Kinderfreibetrag'));
+      assert.ok(stdout.includes('EStG § 26b, § 31'));
+    });
   });
 });
