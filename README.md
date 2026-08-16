@@ -24,6 +24,7 @@ The application is structured into two core modules:
 
 ### 2. Elterngeld & Parental Leave 5-Year Simulator (`/elterngeld`)
 - **60-Month Cash Flow Ledger**: Complete 5-year chronological simulation for a household planning two children.
+- **Special Life & Fiscal Event Rows**: Separate ledger rows for Vacation Bonus (40% in May), Christmas Bonus (60% in Nov), and Annual Tax Assessment Returns (March) with statutory tags.
 - **Statutory Wage Replacement Benefits & Legal Framework**:
   - **Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)**: 6 weeks pre-birth and 8 weeks post-birth with 100% net wage replacement (Maternity benefit + Employer supplement / *Mutterschaftsgeld & Arbeitgeberzuschuss* § 19, § 20 MuSchG).
   - **Maternity Offset (*Anrechnung von Mutterschaftsleistungen* § 3 BEEG)**: Post-birth maternity protection legally consumes Basic Elterngeld months 1 and 2.
@@ -37,25 +38,17 @@ The application is structured into two core modules:
 
 ---
 
-## ⚖️ Scenario Comparison Matrix (Standard Parameters)
-
-| Metric | Scenario A (Baseline) | Scenario B (Unoptimized) | Scenario C (Fully Optimized) | Delta (C vs. B) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Strategy** | No Children / Full-Time | Static III/V without swap | Proactive swaps + Bonus extraction | Strategic Optimization |
-| **Earned Salaries (60M)** | €367,500 | €309,560 | €303,890 | -€5,670 (Interim tax withholding) |
-| **State Benefits (60M)** | €0 | €52,791 | €65,712 | **+€12,921** |
-| **Tax Office Refund** | €0 | €0 | €5,670 | **+€5,670** (100% reimbursed) |
-| **Total Inflow (60M)** | €367,500 | €362,351 | **€375,272** | **+€12,921 Net Financial Gain** |
-
----
-
-## 🛠️ Technology Stack
+## 🛠️ Technology Stack & Test Suite
 
 - **Framework**: [Astro 7](https://astro.build/) (Static Site Generation / Islands Architecture)
+- **Engine**: Pure TypeScript with Nominal Branded Types (`SimulationMonth`, `CalendarYear`, `GrossSalary`, `NetSalary`, `EuroAmount`, `TaxClass`)
 - **UI Components**: [Preact](https://preactjs.com/) (10.x)
 - **State Management**: [@preact/signals](https://preactjs.com/guide/v10/signals/) for high-performance reactive computation
-- **Data Visualization**: Custom SVG charting engine (Stacked Bar, Area Trend, Scenario Overlay)
-- **Design System**: Vanilla CSS with design tokens, institutional dark mode, and responsive layout
+- **Data Visualization**: Custom SVG charting engine (Stacked Bar, Multi-Series Line, Area Trend, Scenario Overlay)
+- **Test Suite**: Native Node.js test runner with **1,116+ unit and scenario tests** verifying statutory equations, edge cases, and combinatorial sweeps:
+  ```bash
+  npm test
+  ```
 
 ---
 
@@ -70,15 +63,31 @@ The application is structured into two core modules:
 │   │   └── TIMELINE_SIMULATION_MODEL.md
 │   └── rules/                     # Version control, atomic commit, and behavioral rules
 ├── src/
+│   ├── engine/                    # Pure TypeScript statutory calculation engine
+│   │   ├── types.ts               # Nominal branded types & validation guards
+│   │   ├── tax/
+│   │   │   ├── wageTax.ts         # § 32a EStG polynomial, Solz, social caps
+│   │   │   └── jointAssessment.ts # § 26b EStG splitting & swap withholding reconciliation
+│   │   ├── benefits/
+│   │   │   ├── mutterschutz.ts    # MuSchG § 19, 20 wage replacement
+│   │   │   ├── elterngeldAssessment.ts # 12M Bemessungszeitraum & 7M dominant class
+│   │   │   ├── elterngeldPlus.ts  # BEEG § 2, 4, 4a sliding scale & caps
+│   │   │   ├── siblingBonus.ts    # BEEG § 2a Geschwisterbonus (+10% / min €75)
+│   │   │   └── kindergeld.ts      # EStG § 66 child benefit
+│   │   ├── ledger/
+│   │   │   ├── transaction.ts     # Immutable transaction factory & audit trails
+│   │   │   └── ledger.ts          # 60-Month balance conservation aggregator
+│   │   └── simulator/
+│   │       └── timelineGenerator.ts # Deterministic multi-year timeline generator
 │   ├── components/
 │   │   ├── elterngeld/
 │   │   │   ├── ElterngeldDashboard.jsx   # Main container for the 5-year simulation
-│   │   │   ├── KpiScorecard.jsx          # 4 dynamic KPI scorecards
+│   │   │   ├── KpiScorecard.jsx          # Dynamic KPI scorecards
 │   │   │   ├── ScenarioSelector.jsx      # Scenario switcher (A / B / C / Multi-view)
-│   │   │   ├── TimelineChart.jsx         # Interactive 60-month SVG chart
-│   │   │   ├── SandboxControls.jsx       # Parameter sliders & presets
+│   │   │   ├── TimelineChart.jsx         # Interactive 60-month SVG chart (4 modes)
+│   │   │   ├── SandboxControls.jsx       # Parameter sliders, presets & bonus controls
 │   │   │   ├── RulesExplainer.jsx        # Statutory references & legal precedents
-│   │   │   └── TimelineTable.jsx         # 60-month tabular ledger & CSV export
+│   │   │   └── TimelineTable.jsx         # 60-month tabular ledger with event rows & CSV export
 │   │   ├── Calculator.jsx                # Main container for net pay calculator
 │   │   ├── ComparisonTable.jsx           # Scenario comparison matrix
 │   │   ├── Icons.jsx                     # Minimalist icon components
@@ -91,13 +100,55 @@ The application is structured into two core modules:
 │   │   └── elterngeld.astro              # Route: /elterngeld (Elterngeld Simulation)
 │   ├── store/
 │   │   ├── calculatorStore.js            # Reactive state for salary calculations
-│   │   ├── elterngeldStore.js            # 60-month simulation engine & BEEG rules
+│   │   ├── elterngeldStore.ts            # Signal store bridging to TypeScript engine
 │   │   └── taxConfigStore.js             # Tax parameters and social ceilings
 │   └── styles/
 │       └── global.css                    # Design tokens and global theme
+├── test/
+│   ├── unit/
+│   │   ├── types.test.ts
+│   │   ├── tax/
+│   │   │   ├── wageTax.test.ts
+│   │   │   ├── wageTax.granular.test.ts
+│   │   │   ├── jointAssessment.test.ts
+│   │   │   └── jointAssessment.granular.test.ts
+│   │   ├── benefits/
+│   │   │   ├── mutterschutz.test.ts
+│   │   │   ├── elterngeldAssessment.test.ts
+│   │   │   ├── elterngeldPlus.test.ts
+│   │   │   ├── elterngeldScale.granular.test.ts
+│   │   │   ├── siblingBonus.test.ts
+│   │   │   └── kindergeld.test.ts
+│   │   └── ledger/
+│   │       └── ledger.test.ts
+│   ├── scenarios/
+│   │   ├── scenarios.test.ts
+│   │   └── simulationMatrix.granular.test.ts
+│   └── combinations/
+│       └── parameterGrid.test.ts
 ├── package.json
 └── astro.config.mjs
 ```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js >= 22.12.0
+
+### Installation & Execution
+```bash
+npm install
+npm run dev
+```
+Open [http://localhost:4321](http://localhost:4321) in your browser.
+
+### Run Comprehensive Tests (1,116+ Tests)
+```bash
+npm test
+```
+
 
 ---
 
