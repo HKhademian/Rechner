@@ -16,6 +16,10 @@ export interface LedgerMonthInput {
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
+  readonly calendarYearNum: number;
+  readonly calendarMonthNum: CalendarMonth;
+  readonly calendarLabel: string;
+  readonly relativeBirthLabel: string;
   readonly husbandSalary: EuroAmount;
   readonly wifeSalary: EuroAmount;
   readonly mutterschutz: EuroAmount;
@@ -81,6 +85,10 @@ export function buildMonthlyLedgerEntry(
     month: input.month,
     year: input.year,
     monthInYear: input.monthInYear,
+    calendarYearNum: input.calendarYearNum,
+    calendarMonthNum: input.calendarMonthNum,
+    calendarLabel: input.calendarLabel,
+    relativeBirthLabel: input.relativeBirthLabel,
     husbandSalary: input.husbandSalary,
     wifeSalary: input.wifeSalary,
     mutterschutz: input.mutterschutz,

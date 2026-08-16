@@ -27,12 +27,22 @@ export default function TimelineTable(): JSX.Element {
   const bData = scenarioBData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
 
+  // Unique calendar years for the filter dropdown
+  const uniqueCalYears = Array.from(new Set(current.months.map(m => m.calendarYearNum)));
+
   // Filter rows
   const filteredMonths = current.months.filter(m => {
-    if (selectedYear !== 'all' && (m.year as number) !== Number(selectedYear)) return false;
+    if (selectedYear !== 'all') {
+      if (selectedYear.startsWith('cal_')) {
+        const calYearNum = Number(selectedYear.replace('cal_', ''));
+        if (m.calendarYearNum !== calYearNum) return false;
+      } else if ((m.year as number) !== Number(selectedYear)) {
+        return false;
+      }
+    }
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      const matchMonth = `m${m.month}`.includes(term) || `month ${m.month}`.includes(term);
+      const matchMonth = `m${m.month}`.includes(term) || `month ${m.month}`.includes(term) || m.calendarLabel.includes(term) || m.relativeBirthLabel.toLowerCase().includes(term);
       const matchPhase = m.phaseLabel.toLowerCase().includes(term);
       const matchTax = m.taxClassLabel.toLowerCase().includes(term);
       const matchEvent = m.eventTag && m.eventTag.toLowerCase().includes(term);
@@ -46,8 +56,10 @@ export default function TimelineTable(): JSX.Element {
   const exportCSV = (): void => {
     const headers = [
       'Entry Type',
-      'Month',
-      'Year',
+      'Simulation Month',
+      'Calendar Date',
+      'Relative to Delivery',
+      'Simulation Year',
       'Phase / Event Name',
       'Tax Classes',
       'Husband Base Salary',
@@ -87,6 +99,8 @@ export default function TimelineTable(): JSX.Element {
       rows.push([
         'Monthly Base',
         `Month ${m.month}`,
+        m.calendarLabel,
+        m.relativeBirthLabel,
         `Year ${m.year}`,
         `"${m.phaseLabel}"`,
         `"${m.taxClassLabel}"`,
@@ -119,6 +133,8 @@ export default function TimelineTable(): JSX.Element {
           rows.push([
             'Special Event',
             `Month ${m.month} (Event)`,
+            ev.calendarLabel,
+            ev.relativeBirthLabel,
             `Year ${m.year}`,
             `"${ev.title}"`,
             `"${ev.taxClassLabel}"`,
@@ -149,7 +165,7 @@ export default function TimelineTable(): JSX.Element {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Elterngeld_Simulation_Scenario_${scenario}_60M_Ledger_with_Diffs.csv`);
+    link.setAttribute('download', `Elterngeld_Simulation_Scenario_${scenario}_${current.months.length}M_Ledger_with_Diffs.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -467,8 +483,13 @@ export default function TimelineTable(): JSX.Element {
                   onMouseLeave={() => { hoveredMonth.value = null; }}
                 >
                   <td style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#f8fafc', fontFamily: 'monospace' }}>
-                    M{m.month}
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', marginLeft: '4px' }}>(Y{m.year})</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span>M{m.month}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>({m.calendarLabel})</span>
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500 }}>
+                      {m.relativeBirthLabel} · Y{m.year}
+                    </div>
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'left' }}>
                     {m.eventTag ? (
@@ -589,7 +610,8 @@ export default function TimelineTable(): JSX.Element {
                       onMouseLeave={() => { hoveredMonth.value = null; }}
                     >
                       <td style={{ padding: '6px 12px', textAlign: 'left', color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4', fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                        ↳ M{m.month} Event
+                        <div>↳ M{m.month} Event</div>
+                        <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
                       </td>
                       <td style={{ padding: '6px 12px', textAlign: 'left' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>

@@ -189,6 +189,10 @@ export interface SpecialEventItem {
   readonly eventId: EventId;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
+  readonly calendarYearNum: number;
+  readonly calendarMonthNum: CalendarMonth;
+  readonly calendarLabel: string;
+  readonly relativeBirthLabel: string;
   readonly type: SpecialEventType;
   readonly title: string;
   readonly category: SpecialEventCategory;
@@ -205,6 +209,10 @@ export interface MonthlyLedgerEntry {
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
+  readonly calendarYearNum: number;
+  readonly calendarMonthNum: CalendarMonth;
+  readonly calendarLabel: string;
+  readonly relativeBirthLabel: string;
   readonly husbandSalary: EuroAmount;
   readonly wifeSalary: EuroAmount;
   readonly mutterschutz: EuroAmount;

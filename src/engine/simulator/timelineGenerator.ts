@@ -31,6 +31,9 @@ import { computeKindergeld } from '#engine/benefits/kindergeld';
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
+  readonly startCalendarYear?: number;
+  readonly startCalendarMonth?: CalendarMonth;
+  readonly simulationDurationMonths?: number;
   readonly husbandClass3Net: NetSalary;
   readonly husbandClass5Net: NetSalary;
   readonly wifeClass5FullTimeNet: NetSalary;
@@ -49,12 +52,16 @@ export interface TimelineSimulationParams {
 }
 
 /**
- * Pure Deterministic 60-Month Timeline Simulator
+ * Pure Deterministic Dynamic Timeline Simulator
  */
 export function generateTimelineSimulation(
   params: TimelineSimulationParams
 ): SimulationResult {
   const scenarioKey = params.scenarioKey;
+  const startYear = params.startCalendarYear ?? 2026;
+  const startMonth = (params.startCalendarMonth as number) ?? 1;
+  const duration = params.simulationDurationMonths ?? 60;
+
   const h3Net = params.husbandClass3Net;
   const h5Net = params.husbandClass5Net;
   const w5FT = params.wifeClass5FullTimeNet;
@@ -113,6 +120,10 @@ export function generateTimelineSimulation(
     readonly month: SimulationMonth;
     readonly year: CalendarYear;
     readonly monthInYear: CalendarMonth;
+    readonly calendarYearNum: number;
+    readonly calendarMonthNum: CalendarMonth;
+    readonly calendarLabel: string;
+    readonly relativeBirthLabel: string;
     readonly husbandSalary: EuroAmount;
     readonly wifeSalary: EuroAmount;
     readonly mutterschutz: EuroAmount;
@@ -131,10 +142,24 @@ export function generateTimelineSimulation(
 
   const rawMonths: RawMonth[] = [];
 
-  for (let m = 1; m <= 60; m++) {
+  for (let m = 1; m <= duration; m++) {
     const sMonth = toSimulationMonth(m);
-    const year = toCalendarYear(Math.ceil(m / 12));
+    const totalElapsedMonths = (startMonth - 1) + (m - 1);
+    const calendarMonthNum = toCalendarMonth((totalElapsedMonths % 12) + 1);
+    const calendarYearNum = startYear + Math.floor(totalElapsedMonths / 12);
+    const calendarLabel = `${String(calendarMonthNum).padStart(2, '0')}.${calendarYearNum}`;
+    const year = toCalendarYear(Math.min(10, Math.ceil(m / 12)));
     const monthInYear = toCalendarMonth(((m - 1) % 12) + 1);
+
+    // Relative delivery notation (e.g. M-11, M0, M+1)
+    let relativeBirthLabel: string;
+    if (m < b1) {
+      relativeBirthLabel = `M-${b1 - m}`;
+    } else if (m === b1) {
+      relativeBirthLabel = 'M0 (Birth)';
+    } else {
+      relativeBirthLabel = `M+${m - b1}`;
+    }
 
     let husbandSalary = toEuroAmount(0);
     let wifeSalary = toEuroAmount(0);
@@ -356,6 +381,10 @@ export function generateTimelineSimulation(
       month: sMonth,
       year,
       monthInYear,
+      calendarYearNum,
+      calendarMonthNum,
+      calendarLabel,
+      relativeBirthLabel,
       husbandSalary,
       wifeSalary,
       mutterschutz,
@@ -373,34 +402,33 @@ export function generateTimelineSimulation(
     });
   }
 
-  // PASS 2: Aggregate Annual Tax Return Reconciliations (§ 26b EStG)
-  const yearlyDeficits: Record<number, EuroAmount[]> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+  // PASS 2: Aggregate Annual Tax Return Reconciliations by Calendar Year (§ 26b EStG)
+  const deficitsByCalYear: Record<number, EuroAmount[]> = {};
   rawMonths.forEach(rm => {
-    const yNum = rm.year as number;
-    if (yearlyDeficits[yNum]) {
-      yearlyDeficits[yNum].push(rm.monthlyWithholdingDeficit);
+    const cy = rm.calendarYearNum;
+    if (!deficitsByCalYear[cy]) {
+      deficitsByCalYear[cy] = [];
     }
+    deficitsByCalYear[cy].push(rm.monthlyWithholdingDeficit);
   });
 
   const taxRefundByMonth: Record<number, EuroAmount> = {};
-  const tMonth = params.taxReturnMonth as number;
+  const tMonth = (params.taxReturnMonth as number) ?? 3;
   const baseStandardRefund = toEuroAmount(850);
 
-  // Year 0 (Pre-simulation standard return)
-  taxRefundByMonth[tMonth] = baseStandardRefund;
-
-  for (let yr = 1; yr <= 4; yr++) {
-    const refundMonth = yr * 12 + tMonth;
-    if (refundMonth <= 60) {
+  rawMonths.forEach(rm => {
+    if ((rm.calendarMonthNum as number) === tMonth) {
+      const reconciledCalYear = rm.calendarYearNum - 1;
+      const deficits = deficitsByCalYear[reconciledCalYear] || [];
       const recon = computeAnnualTaxReconciliation(
-        toCalendarYear(yr),
-        toSimulationMonth(refundMonth),
-        yearlyDeficits[yr] || [],
+        toCalendarYear(Math.min(10, Math.max(1, rm.year as number))),
+        rm.month,
+        deficits,
         baseStandardRefund
       );
-      taxRefundByMonth[refundMonth] = recon.totalRefundAmount;
+      taxRefundByMonth[rm.month as number] = recon.totalRefundAmount;
     }
-  }
+  });
 
   // PASS 3: Assemble Final Ledger and Transactions
   const months: MonthlyLedgerEntry[] = [];
@@ -412,19 +440,19 @@ export function generateTimelineSimulation(
   for (let i = 0; i < rawMonths.length; i++) {
     const rm = rawMonths[i];
     const m = rm.month as number;
-    const mInYear = rm.monthInYear as number;
+    const calMonth = rm.calendarMonthNum as number;
     const year = rm.year;
 
-    // 13th Month Salary Events
+    // 13th Month Salary Events triggered on configured calendar months
     let bonus40Amount = toEuroAmount(0);
     let bonus60Amount = toEuroAmount(0);
     const currentHusbandNet = rm.isSwapActive ? (h5Net as number) : (h3Net as number);
 
     if (params.enable13thSalary) {
-      if (mInYear === (params.bonus40Month as number)) {
+      if (calMonth === (params.bonus40Month as number)) {
         bonus40Amount = toEuroAmount(Math.round(0.40 * currentHusbandNet));
       }
-      if (mInYear === (params.bonus60Month as number)) {
+      if (calMonth === (params.bonus60Month as number)) {
         bonus60Amount = toEuroAmount(Math.round(0.60 * currentHusbandNet));
       }
     }
@@ -443,7 +471,7 @@ export function generateTimelineSimulation(
         amount: rm.husbandSalary,
         statutoryCitation: '§ 19 EStG (Einkünfte aus nichtselbständiger Arbeit)',
         taxClassLabel: rm.taxClassLabel,
-        description: `Husband Monthly Working Salary (${rm.taxClassLabel})`,
+        description: `Husband Monthly Working Salary (${rm.taxClassLabel}) - ${rm.calendarLabel}`,
         auditTrail: `Net Salary earned in ${rm.taxClassLabel}`
       }));
     }
@@ -458,7 +486,7 @@ export function generateTimelineSimulation(
         amount: rm.wifeSalary,
         statutoryCitation: '§ 19 EStG (Einkünfte aus nichtselbständiger Arbeit)',
         taxClassLabel: rm.taxClassLabel,
-        description: `Wife Monthly Working Salary (${rm.taxClassLabel})`,
+        description: `Wife Monthly Working Salary (${rm.taxClassLabel}) - ${rm.calendarLabel}`,
         auditTrail: `Net Salary earned in ${rm.taxClassLabel}`
       }));
     }
@@ -473,7 +501,7 @@ export function generateTimelineSimulation(
         amount: bonus40Amount,
         statutoryCitation: '§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)',
         taxClassLabel: rm.taxClassLabel,
-        description: '13th Month Salary: 40% Vacation Bonus (*Urlaubsgeld*)',
+        description: `13th Month Salary: 40% Vacation Bonus (${rm.calendarLabel})`,
         auditTrail: `40% of Husband Base Net (${currentHusbandNet} €)`
       }));
     }
@@ -488,7 +516,7 @@ export function generateTimelineSimulation(
         amount: bonus60Amount,
         statutoryCitation: '§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)',
         taxClassLabel: rm.taxClassLabel,
-        description: '13th Month Salary: 60% Christmas Bonus (*Weihnachtsgeld*)',
+        description: `13th Month Salary: 60% Christmas Bonus (${rm.calendarLabel})`,
         auditTrail: `60% of Husband Base Net (${currentHusbandNet} €)`
       }));
     }
@@ -503,7 +531,7 @@ export function generateTimelineSimulation(
         amount: rm.mutterschutz,
         statutoryCitation: 'MuSchG § 19 & § 20 (100% Net Wage Replacement)',
         taxClassLabel: rm.taxClassLabel,
-        description: 'Maternity Protection Benefit (*Mutterschutz*)',
+        description: `Maternity Protection Benefit (*Mutterschutz*) - ${rm.calendarLabel}`,
         auditTrail: 'GKV Mutterschaftsgeld + Employer Supplement'
       }));
     }
@@ -518,7 +546,7 @@ export function generateTimelineSimulation(
         amount: rm.wifeElterngeld,
         statutoryCitation: 'BEEG § 4a (ElterngeldPlus)',
         taxClassLabel: rm.taxClassLabel,
-        description: 'ElterngeldPlus (Mother)',
+        description: `ElterngeldPlus (Mother) - ${rm.calendarLabel}`,
         auditTrail: `Statutory Parental Allowance with synthetic net evaluation`
       }));
     }
@@ -535,7 +563,7 @@ export function generateTimelineSimulation(
         amount: rm.husbandElterngeld,
         statutoryCitation: 'BEEG § 4b (Partnermonate / Partnerschaftsbonus)',
         taxClassLabel: rm.taxClassLabel,
-        description: 'Partner Months / Partnerschaftsbonus (Father)',
+        description: `Partner Months / Partnerschaftsbonus (Father) - ${rm.calendarLabel}`,
         auditTrail: 'Monthly partner allowance while working concurrent part-time'
       }));
     }
@@ -550,7 +578,7 @@ export function generateTimelineSimulation(
         amount: rm.kindergeld,
         statutoryCitation: 'EStG § 66 (Kindergeld)',
         taxClassLabel: rm.taxClassLabel,
-        description: 'Statutory Child Benefit (*Kindergeld*)',
+        description: `Statutory Child Benefit (*Kindergeld*) - ${rm.calendarLabel}`,
         auditTrail: `Monthly allowance per living child`
       }));
     }
@@ -565,7 +593,7 @@ export function generateTimelineSimulation(
         amount: taxRefund,
         statutoryCitation: 'EStG § 26b (*Ehegatten-Splitting*) & § 46 Abs. 2 Nr. 3a',
         taxClassLabel: 'Joint Assessment (*Splitting*)',
-        description: 'Annual Tax Assessment Refund (*Finanzamt*)',
+        description: `Annual Tax Assessment Refund (${rm.calendarLabel})`,
         auditTrail: 'Full refund of Class V interim withholding deficit + statutory standard deductions return'
       }));
     }
@@ -575,28 +603,28 @@ export function generateTimelineSimulation(
     let eventType: string | null = null;
 
     if (m === 1) {
-      eventTag = 'Planning Phase Start (*Vorbereitung*)';
+      eventTag = `Simulation Start (${rm.calendarLabel})`;
       eventType = 'planning';
     } else if (m === preg1Start && scenarioKey === 'C') {
-      eventTag = 'Pregnancy 1 & Tax Swap (*Steuerklassenwechsel* III/V)';
+      eventTag = `Pregnancy 1 & Tax Swap (${rm.calendarLabel})`;
       eventType = 'swap';
     } else if (m === preg1Start && scenarioKey !== 'A') {
-      eventTag = 'Pregnancy 1 Start (*Beginn*)';
+      eventTag = `Pregnancy 1 Start (${rm.calendarLabel})`;
       eventType = 'preg';
     } else if (m === b1 && scenarioKey !== 'A') {
-      eventTag = 'Child 1 Birth (*Geburt Kind 1*)';
+      eventTag = `Child 1 Birth (${rm.calendarLabel})`;
       eventType = 'birth';
     } else if (m === preg2Start && scenarioKey !== 'A') {
-      eventTag = 'Pregnancy 2 Start (18M Gap)';
+      eventTag = `Pregnancy 2 Start (${rm.calendarLabel})`;
       eventType = 'preg';
     } else if (m === swap2Start && scenarioKey === 'C') {
-      eventTag = 'Tax Swap 2 (*Steuerklassenwechsel 2* III/V)';
+      eventTag = `Tax Swap 2 (${rm.calendarLabel})`;
       eventType = 'swap';
     } else if (m === b2 && scenarioKey !== 'A') {
-      eventTag = 'Child 2 Birth (*Geburt Kind 2*)';
+      eventTag = `Child 2 Birth (${rm.calendarLabel})`;
       eventType = 'birth';
     } else if (m === siblingBonusEndMonth && scenarioKey !== 'A') {
-      eventTag = 'Child 1 Age 3 (*Geschwisterbonus* Ends)';
+      eventTag = `Child 1 Age 3 (${rm.calendarLabel})`;
       eventType = 'bonus_end';
     }
 
@@ -607,8 +635,12 @@ export function generateTimelineSimulation(
         eventId: toEventId(`EVENT-M${m}-BONUS40`),
         month: rm.month,
         year,
+        calendarYearNum: rm.calendarYearNum,
+        calendarMonthNum: rm.calendarMonthNum,
+        calendarLabel: rm.calendarLabel,
+        relativeBirthLabel: rm.relativeBirthLabel,
         type: SpecialEventType.Bonus40,
-        title: '13th Month Salary: 40% Vacation Bonus (*Urlaubsgeld*)',
+        title: `13th Month Salary: 40% Vacation Bonus (${rm.calendarLabel})`,
         category: SpecialEventCategory.ThirteenthSalary,
         statutory: toStatutoryCitation('§ 9a / § 19 EStG (BEEG § 2c exempt)'),
         taxClassLabel: rm.taxClassLabel,
@@ -622,8 +654,12 @@ export function generateTimelineSimulation(
         eventId: toEventId(`EVENT-M${m}-BONUS60`),
         month: rm.month,
         year,
+        calendarYearNum: rm.calendarYearNum,
+        calendarMonthNum: rm.calendarMonthNum,
+        calendarLabel: rm.calendarLabel,
+        relativeBirthLabel: rm.relativeBirthLabel,
         type: SpecialEventType.Bonus60,
-        title: '13th Month Salary: 60% Christmas Bonus (*Weihnachtsgeld*)',
+        title: `13th Month Salary: 60% Christmas Bonus (${rm.calendarLabel})`,
         category: SpecialEventCategory.ThirteenthSalary,
         statutory: toStatutoryCitation('§ 9a / § 19 EStG (BEEG § 2c exempt)'),
         taxClassLabel: rm.taxClassLabel,
@@ -634,19 +670,24 @@ export function generateTimelineSimulation(
 
     if ((taxRefund as number) > 0) {
       const isDeficitRefund = (taxRefund as number) > 850;
+      const reconciledCalYear = rm.calendarYearNum - 1;
       specialEvents.push({
         eventId: toEventId(`EVENT-M${m}-TAX-REFUND`),
         month: rm.month,
         year,
+        calendarYearNum: rm.calendarYearNum,
+        calendarMonthNum: rm.calendarMonthNum,
+        calendarLabel: rm.calendarLabel,
+        relativeBirthLabel: rm.relativeBirthLabel,
         type: SpecialEventType.TaxReturn,
-        title: `Annual Tax Assessment Refund (Year ${Math.max(1, (year as number) - 1)} Return)`,
+        title: `Annual Tax Return (Tax Year ${reconciledCalYear} Return in ${rm.calendarLabel})`,
         category: SpecialEventCategory.TaxOffice,
         statutory: toStatutoryCitation('§ 26b EStG (*Ehegatten-Splitting*)'),
         taxClassLabel: 'Joint Assessment (*Splitting*)',
         amount: taxRefund,
         description: isDeficitRefund
-          ? `Full refund of Tax Class V wage withholding deficit (+${((taxRefund as number) - 850).toLocaleString('de-DE')} €) plus statutory deductions return (+850 €)`
-          : 'Standard annual income tax reconciliation and statutory deductions return (+850 €)'
+          ? `Full refund of Tax Class V wage withholding deficit (+${((taxRefund as number) - 850).toLocaleString('de-DE')} €) plus statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
+          : `Standard annual income tax reconciliation and statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
       });
     }
 
@@ -661,6 +702,10 @@ export function generateTimelineSimulation(
         month: rm.month,
         year,
         monthInYear: rm.monthInYear,
+        calendarYearNum: rm.calendarYearNum,
+        calendarMonthNum: rm.calendarMonthNum,
+        calendarLabel: rm.calendarLabel,
+        relativeBirthLabel: rm.relativeBirthLabel,
         husbandSalary: rm.husbandSalary,
         wifeSalary: rm.wifeSalary,
         mutterschutz: rm.mutterschutz,
@@ -695,19 +740,31 @@ export function generateTimelineSimulation(
     months.push(entry);
   }
 
+  // Summary Metrics
+  const totalSalaries = months.reduce((sum, m) => sum + (m.earnedSalaries as number), 0);
+  const totalBenefits = months.reduce((sum, m) => sum + (m.stateBenefits as number), 0);
+  const totalTaxRefunds = months.reduce((sum, m) => sum + (m.taxRefund as number), 0);
+  const grandTotal = months.reduce((sum, m) => sum + (m.monthlyTotal as number), 0);
+
+  const totalMutterschutz = months.reduce((sum, m) => sum + (m.mutterschutz as number), 0);
+  const totalWifeElterngeld = months.reduce((sum, m) => sum + (m.wifeElterngeld as number), 0);
+  const totalHusbandElterngeld = months.reduce((sum, m) => sum + (m.husbandElterngeld as number), 0);
+  const totalKindergeld = months.reduce((sum, m) => sum + (m.kindergeld as number), 0);
+  const total13thSalaries = months.reduce((sum, m) => sum + (m.specialBonusTotal as number), 0);
+
   return {
     scenarioKey,
     months,
     summary: {
-      totalSalaries: toEuroAmount(runSalaries),
-      totalBenefits: toEuroAmount(runBenefits),
-      totalTaxRefunds: toEuroAmount(runTaxRefunds),
-      grandTotal: toEuroAmount(runTotal),
-      totalMutterschutz: toEuroAmount(months.reduce((acc, m) => acc + (m.mutterschutz as number), 0)),
-      totalWifeElterngeld: toEuroAmount(months.reduce((acc, m) => acc + (m.wifeElterngeld as number), 0)),
-      totalHusbandElterngeld: toEuroAmount(months.reduce((acc, m) => acc + (m.husbandElterngeld as number), 0)),
-      totalKindergeld: toEuroAmount(months.reduce((acc, m) => acc + (m.kindergeld as number), 0)),
-      total13thSalaries: toEuroAmount(months.reduce((acc, m) => acc + (m.specialBonusTotal as number), 0))
+      totalSalaries: toEuroAmount(totalSalaries),
+      totalBenefits: toEuroAmount(totalBenefits),
+      totalTaxRefunds: toEuroAmount(totalTaxRefunds),
+      grandTotal: toEuroAmount(grandTotal),
+      totalMutterschutz: toEuroAmount(totalMutterschutz),
+      totalWifeElterngeld: toEuroAmount(totalWifeElterngeld),
+      totalHusbandElterngeld: toEuroAmount(totalHusbandElterngeld),
+      totalKindergeld: toEuroAmount(totalKindergeld),
+      total13thSalaries: toEuroAmount(total13thSalaries)
     }
   };
 }

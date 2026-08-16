@@ -120,4 +120,72 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       assert.ok(benefitsGain > 8000, `Benefits gain (${benefitsGain} €) must exceed 8.000 €`);
     });
   });
+
+  describe('Dynamic Timeline Start Month, Year & Duration Calibration', () => {
+    it('supports custom 12-month simulation starting in September 2026', () => {
+      const res = generateTimelineSimulation({
+        ...defaultParams,
+        scenarioKey: ScenarioId.C,
+        startCalendarYear: 2026,
+        startCalendarMonth: toCalendarMonth(9),
+        simulationDurationMonths: 12
+      });
+
+      assert.equal(res.months.length, 12);
+      assert.equal(res.months[0].calendarLabel, '09.2026');
+      assert.equal(res.months[0].calendarMonthNum, 9);
+      assert.equal(res.months[0].calendarYearNum, 2026);
+      assert.equal(res.months[0].relativeBirthLabel, 'M-11');
+
+      assert.equal(res.months[11].calendarLabel, '08.2027');
+      assert.equal(res.months[11].calendarMonthNum, 8);
+      assert.equal(res.months[11].calendarYearNum, 2027);
+      assert.equal(res.months[11].relativeBirthLabel, 'M0 (Birth)');
+    });
+
+    it('accurately positions 13th month bonuses based on real calendar months', () => {
+      // Start in September 2026 (Month 9). November 2026 (Christmas bonus) is simulation Month 3 (09 -> 10 -> 11).
+      const res = generateTimelineSimulation({
+        ...defaultParams,
+        scenarioKey: ScenarioId.C,
+        startCalendarYear: 2026,
+        startCalendarMonth: toCalendarMonth(9),
+        simulationDurationMonths: 24,
+        bonus40Month: toCalendarMonth(5), // May
+        bonus60Month: toCalendarMonth(11) // November
+      });
+
+      // Simulation Month 3 = November 2026 -> 60% Christmas bonus
+      const m3 = res.months[2];
+      assert.equal(m3.calendarLabel, '11.2026');
+      assert.ok(m3.bonus60Amount > 0, 'Month 3 (November 2026) must contain 60% bonus');
+
+      // Simulation Month 9 = May 2027 -> 40% Vacation bonus
+      const m9 = res.months[8];
+      assert.equal(m9.calendarLabel, '05.2027');
+      assert.ok(m9.bonus40Amount > 0, 'Month 9 (May 2027) must contain 40% bonus');
+    });
+
+    it('accurately reconciles tax returns on configured calendar month (March of following year)', () => {
+      // Start in September 2026. March 2027 is simulation Month 7.
+      const res = generateTimelineSimulation({
+        ...defaultParams,
+        scenarioKey: ScenarioId.C,
+        startCalendarYear: 2026,
+        startCalendarMonth: toCalendarMonth(9),
+        simulationDurationMonths: 36,
+        taxReturnMonth: toCalendarMonth(3) // March
+      });
+
+      // Month 7 = 03.2027 -> Receives tax refund for calendar year 2026
+      const m7 = res.months[6];
+      assert.equal(m7.calendarLabel, '03.2027');
+      assert.ok(m7.taxRefund > 0, 'Month 7 (March 2027) must receive the 2026 tax return');
+
+      // Month 19 = 03.2028 -> Receives tax refund for calendar year 2027
+      const m19 = res.months[18];
+      assert.equal(m19.calendarLabel, '03.2028');
+      assert.ok(m19.taxRefund > 0, 'Month 19 (March 2028) must receive the 2027 tax return');
+    });
+  });
 });

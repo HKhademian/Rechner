@@ -30,7 +30,10 @@ export const bonus60Month = signal(11); // Month 10 or 11 of each year (60% Chri
 export const taxReturnMonth = signal(3); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
 export const showSpecialEventRows = signal(true); // Table display toggle
 
-// Timeline & Spacing Controls
+// Timeline & Calendar Simulation Controls
+export const startCalendarYear = signal(2026); // Default 2026
+export const startCalendarMonth = signal(1); // Default 1 (January)
+export const simulationDurationMonths = signal(60); // Default 60 months (5 years)
 export const prePregnancyPlanningMonths = signal(3); // Start 3 months before pregnancy
 export const child1BirthMonth = signal(12); // Month 12 (3M pre-preg + 9M pregnancy)
 export const birthSpacingMonths = signal(27); // Gap of 27 months -> Child 2 born at Month 39
@@ -63,6 +66,9 @@ export function resetToDefaults() {
   taxReturnMonth.value = 3;
   showSpecialEventRows.value = true;
 
+  startCalendarYear.value = 2026;
+  startCalendarMonth.value = 1;
+  simulationDurationMonths.value = 60;
   prePregnancyPlanningMonths.value = 3;
   child1BirthMonth.value = 12;
   birthSpacingMonths.value = 27;
@@ -75,6 +81,9 @@ export function resetToDefaults() {
 export function computeTimelineData(scenarioKey: ScenarioIdType) {
   return generateTimelineSimulation({
     scenarioKey,
+    startCalendarYear: startCalendarYear.value,
+    startCalendarMonth: toCalendarMonth(startCalendarMonth.value),
+    simulationDurationMonths: simulationDurationMonths.value,
     husbandClass3Net: toNetSalary(husbandClass3Net.value),
     husbandClass5Net: toNetSalary(husbandClass5Net.value),
     wifeClass5FullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),

@@ -13,6 +13,9 @@ import {
   bonus40Month,
   bonus60Month,
   taxReturnMonth,
+  startCalendarYear,
+  startCalendarMonth,
+  simulationDurationMonths,
   prePregnancyPlanningMonths,
   child1BirthMonth,
   birthSpacingMonths,
@@ -28,8 +31,31 @@ function formatCurrency(amount: number): string {
   }).format(amount || 0);
 }
 
+const MONTH_NAMES = [
+  '01 - January (Januar)',
+  '02 - February (Februar)',
+  '03 - March (März)',
+  '04 - April (April)',
+  '05 - May (Mai)',
+  '06 - June (Juni)',
+  '07 - July (Juli)',
+  '08 - August (August)',
+  '09 - September (September)',
+  '10 - October (Oktober)',
+  '11 - November (November)',
+  '12 - December (Dezember)'
+];
+
 export default function SandboxControls(): JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(true);
+
+  // Helper to compute calendar date for simulation month offset
+  const getCalDate = (simMonth: number): string => {
+    const totalElapsed = (startCalendarMonth.value - 1) + (simMonth - 1);
+    const m = (totalElapsed % 12) + 1;
+    const y = startCalendarYear.value + Math.floor(totalElapsed / 12);
+    return `${String(m).padStart(2, '0')}.${y}`;
+  };
 
   // Preset Handlers
   const applyPreset = (presetName: 'default' | 'high_earner' | 'equal'): void => {
@@ -57,6 +83,11 @@ export default function SandboxControls(): JSX.Element {
       swapLeadMonths.value = 7;
     }
   };
+
+  const preg1SimMonth = prePregnancyPlanningMonths.value + 1;
+  const b1SimMonth = child1BirthMonth.value;
+  const b2SimMonth = b1SimMonth + birthSpacingMonths.value;
+  const endSimMonth = simulationDurationMonths.value;
 
   return (
     <div className="glass-panel" style={{ padding: '22px', marginBottom: '28px' }}>
@@ -384,16 +415,101 @@ export default function SandboxControls(): JSX.Element {
                 paddingBottom: '8px'
               }}>
                 <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#93c5fd' }}>
-                  Timeline, Lead Time & Benefits
+                  Timeline, Calendar & Family Milestones
                 </span>
               </div>
 
-              {/* Pre-Pregnancy Start Buffer */}
+              {/* 1. Simulation Start Calendar Month & Year */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
+                  <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Simulation Start Date (Calendar):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
+                    {getCalDate(1)} (Month 1)
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px', marginTop: '4px' }}>
+                  <select
+                    value={startCalendarMonth.value}
+                    onChange={(e) => {
+                      startCalendarMonth.value = Number((e.target as HTMLSelectElement).value);
+                    }}
+                    style={{
+                      background: '#0f172a',
+                      color: '#f8fafc',
+                      border: '1px solid #334155',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      fontSize: '0.76rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {MONTH_NAMES.map((name, idx) => (
+                      <option key={`start-m-${idx + 1}`} value={idx + 1}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={startCalendarYear.value}
+                    onChange={(e) => {
+                      startCalendarYear.value = Number((e.target as HTMLSelectElement).value);
+                    }}
+                    style={{
+                      background: '#0f172a',
+                      color: '#f8fafc',
+                      border: '1px solid #334155',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      fontSize: '0.76rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map((yr) => (
+                      <option key={`start-y-${yr}`} value={yr}>
+                        Year {yr}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 2. Simulation Duration */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
+                  <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Simulation Duration:</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#a78bfa' }}>
+                    {simulationDurationMonths.value} Months (Ends {getCalDate(endSimMonth)})
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                  {[12, 24, 36, 48, 60, 72].map((dur) => (
+                    <button
+                      key={`dur-opt-${dur}`}
+                      type="button"
+                      onClick={() => { simulationDurationMonths.value = dur; }}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '3px',
+                        border: simulationDurationMonths.value === dur ? '1px solid #8b5cf6' : '1px solid #334155',
+                        background: simulationDurationMonths.value === dur ? '#4c1d95' : '#0f172a',
+                        color: simulationDurationMonths.value === dur ? '#ddd6fe' : '#94a3b8',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {dur}M ({dur / 12}Y)
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Pre-Pregnancy Start Buffer */}
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
                   <span style={{ color: '#cbd5e1' }}>Pre-Pregnancy Planning Buffer:</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#60a5fa' }}>
-                    {prePregnancyPlanningMonths.value} Months
+                    {prePregnancyPlanningMonths.value} Months (Pregnancy starts {getCalDate(preg1SimMonth)})
                   </span>
                 </div>
                 <input
@@ -408,8 +524,20 @@ export default function SandboxControls(): JSX.Element {
                     child1BirthMonth.value = val + 9;
                   }}
                 />
-                <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                  Simulation starts M1 • Pregnancy starts M{prePregnancyPlanningMonths.value + 1} • Birth 1 occurs M{prePregnancyPlanningMonths.value + 9}
+                <div style={{
+                  fontSize: '0.7rem',
+                  color: '#94a3b8',
+                  marginTop: '4px',
+                  background: '#0f172a',
+                  padding: '6px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid #1e293b'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Sim Start: <strong style={{ color: '#f8fafc' }}>{getCalDate(1)}</strong> (M1)</span>
+                    <span>Pregnancy: <strong style={{ color: '#f8fafc' }}>{getCalDate(preg1SimMonth)}</strong> (M{preg1SimMonth})</span>
+                    <span>Birth 1: <strong style={{ color: '#f8fafc' }}>{getCalDate(b1SimMonth)}</strong> (M{b1SimMonth})</span>
+                  </div>
                 </div>
               </div>
 

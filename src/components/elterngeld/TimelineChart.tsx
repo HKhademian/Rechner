@@ -724,7 +724,7 @@ export default function TimelineChart(): JSX.Element {
             Baseline Net Inflow (€6,125 / mo)
           </text>
 
-          {/* Bottom X-Axis (Month Markers) */}
+          {/* Bottom X-Axis (Month & Calendar Markers) */}
           <line
             x1={margin.left}
             y1={svgHeight - margin.bottom}
@@ -734,7 +734,9 @@ export default function TimelineChart(): JSX.Element {
             strokeWidth="1"
           />
           {displayedMonths.map((m, i) => {
-            const isLabel = (m.month as number) === 1 || (m.month as number) % 6 === 0 || (m.month as number) === 60;
+            const totalCount = displayedMonths.length;
+            const step = totalCount <= 12 ? 1 : totalCount <= 24 ? 2 : totalCount <= 36 ? 3 : 6;
+            const isLabel = (m.month as number) === 1 || (m.month as number) % step === 0 || (m.month as number) === totalCount;
             const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
             return isLabel ? (
               <g key={`x-tick-${m.month}`}>
@@ -747,13 +749,23 @@ export default function TimelineChart(): JSX.Element {
                 />
                 <text
                   x={x}
-                  y={svgHeight - margin.bottom + 18}
+                  y={svgHeight - margin.bottom + 15}
                   textAnchor="middle"
                   fill="#94a3b8"
-                  fontSize="10"
+                  fontSize="9"
                   fontFamily="monospace"
                 >
                   M{m.month}
+                </text>
+                <text
+                  x={x}
+                  y={svgHeight - margin.bottom + 25}
+                  textAnchor="middle"
+                  fill="#38bdf8"
+                  fontSize="7.5"
+                  fontFamily="monospace"
+                >
+                  {m.calendarLabel}
                 </text>
               </g>
             ) : null;
@@ -775,9 +787,17 @@ export default function TimelineChart(): JSX.Element {
             zIndex: 30
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid #334155', paddingBottom: '4px' }}>
-              <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f8fafc' }}>
-                Month {tooltipState.month.month} ({tooltipState.month.dateFormatted})
-              </span>
+              <div>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f8fafc' }}>
+                  Month {tooltipState.month.month}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#38bdf8', marginLeft: '6px', fontWeight: 600 }}>
+                  ({tooltipState.month.calendarLabel})
+                </span>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                  {tooltipState.month.relativeBirthLabel}
+                </div>
+              </div>
               <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#60a5fa', fontSize: '0.95rem' }}>
                 {formatCurrency(getMonthActiveTotal(tooltipState.month))}
               </span>
