@@ -10,6 +10,18 @@ import {
   LegalRuleKey
 } from '#store/elterngeldStore';
 import { ActionType, ActionCategory, type TimelineMonth, type SpecialEventItem, type ActionRowItem } from '#engine/types';
+import FieldExplainerModal from './FieldExplainerModal';
+import RowExplainerModal from './RowExplainerModal';
+import {
+  getFieldExplanation,
+  getActionFieldExplanation,
+  getSpecialEventFieldExplanation,
+  getRowExplanation,
+  getActionRowExplanation,
+  getSpecialEventRowExplanation,
+  type FieldExplanation,
+  type RowExplanation
+} from '#engine/explanation/timelineExplainer';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
@@ -23,6 +35,8 @@ export default function TimelineTable(): JSX.Element {
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showDelta, setShowDelta] = useState<boolean>(true);
+  const [selectedFieldExplanation, setSelectedFieldExplanation] = useState<FieldExplanation | null>(null);
+  const [selectedRowExplanation, setSelectedRowExplanation] = useState<RowExplanation | null>(null);
 
   const scenario = activeScenario.value;
   const current = currentScenarioData.value;
@@ -541,7 +555,6 @@ export default function TimelineTable(): JSX.Element {
                   const isDelivery = act.type === ActionType.ChildDelivery;
                   const isPregnancy = act.type === ActionType.PregnancyPositive;
                   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
-                  const isRaise = act.category === ActionCategory.SalaryRaise;
 
                   const badgeBg = isDelivery
                     ? '#0284c7'
@@ -588,11 +601,42 @@ export default function TimelineTable(): JSX.Element {
                       onMouseEnter={() => { hoveredMonth.value = m.month; }}
                       onMouseLeave={() => { hoveredMonth.value = null; }}
                     >
-                      <td style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: titleColor, fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                        <div>↳ M{m.month} Event</div>
-                        <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({m.calendarLabel})</div>
+                      <td
+                        style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: titleColor, fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer' }}
+                        title="Click to view action milestone derivation or inspect full row"
+                        onClick={() => setSelectedFieldExplanation(getActionFieldExplanation('month', act, m))}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                          <div>
+                            <div>↳ M{m.month} Event</div>
+                            <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({m.calendarLabel})</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRowExplanation(getActionRowExplanation(act, m, scenario));
+                            }}
+                            title="Inspect full action milestone details"
+                            style={{
+                              background: '#1e293b',
+                              border: '1px solid #475569',
+                              borderRadius: '4px',
+                              padding: '2px 5px',
+                              fontSize: '0.66rem',
+                              color: '#38bdf8',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ℹ️
+                          </button>
+                        </div>
                       </td>
-                      <td style={{ padding: '6px 12px', textAlign: 'left' }}>
+                      <td
+                        style={{ padding: '6px 12px', textAlign: 'left', cursor: 'pointer' }}
+                        title="Click to view milestone details and legal context"
+                        onClick={() => setSelectedFieldExplanation(getActionFieldExplanation('title', act, m))}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span style={{
                             display: 'inline-block',
@@ -613,7 +657,11 @@ export default function TimelineTable(): JSX.Element {
                           {act.description}
                         </div>
                       </td>
-                      <td style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem' }}>
+                      <td
+                        style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem', cursor: 'pointer' }}
+                        title="Click to view tax class assignment"
+                        onClick={() => setSelectedFieldExplanation(getActionFieldExplanation('taxClass', act, m))}
+                      >
                         {act.taxClassLabel || '—'}
                       </td>
                       <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
@@ -685,11 +733,42 @@ export default function TimelineTable(): JSX.Element {
                       onMouseEnter={() => { hoveredMonth.value = m.month; }}
                       onMouseLeave={() => { hoveredMonth.value = null; }}
                     >
-                      <td style={{ padding: '6px 12px', textAlign: 'left', color: valColor, fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                        <div>↳ M{m.month} {isCost ? 'Cost' : 'Event'}</div>
-                        <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
+                      <td
+                        style={{ padding: '6px 12px', textAlign: 'left', color: valColor, fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer' }}
+                        title="Click to view event derivation or inspect full row"
+                        onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation('month', ev, m, evCumulated, diffEvCumulated))}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                          <div>
+                            <div>↳ M{m.month} {isCost ? 'Cost' : 'Event'}</div>
+                            <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRowExplanation(getSpecialEventRowExplanation(ev, m, bMonth, prevCumulated, scenario));
+                            }}
+                            title="Inspect full fiscal event breakdown"
+                            style={{
+                              background: '#1e293b',
+                              border: '1px solid #475569',
+                              borderRadius: '4px',
+                              padding: '2px 5px',
+                              fontSize: '0.66rem',
+                              color: '#38bdf8',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ℹ️
+                          </button>
+                        </div>
                       </td>
-                      <td style={{ padding: '6px 12px', textAlign: 'left' }}>
+                      <td
+                        style={{ padding: '6px 12px', textAlign: 'left', cursor: 'pointer' }}
+                        title="Click to view event description and legal rule"
+                        onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation('title', ev, m, evCumulated, diffEvCumulated))}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span style={{
                             display: 'inline-block',
@@ -724,7 +803,11 @@ export default function TimelineTable(): JSX.Element {
                       <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
                       <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
                       <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px' }}>
+                      <td
+                        style={{ padding: '6px 12px', cursor: 'pointer' }}
+                        title="Click to view transaction amount and formula derivation"
+                        onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation('amount', ev, m, evCumulated, diffEvCumulated))}
+                      >
                         {renderCell(
                           ev.amount as number,
                           evDiff,
@@ -733,7 +816,11 @@ export default function TimelineTable(): JSX.Element {
                           true
                         )}
                       </td>
-                      <td style={{ padding: '6px 12px' }}>
+                      <td
+                        style={{ padding: '6px 12px', cursor: 'pointer' }}
+                        title="Click to view net inflow calculation"
+                        onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation('netInflow', ev, m, evCumulated, diffEvCumulated))}
+                      >
                         {renderCell(
                           ev.amount as number,
                           evDiff,
@@ -742,7 +829,11 @@ export default function TimelineTable(): JSX.Element {
                           true
                         )}
                       </td>
-                      <td style={{ padding: '6px 12px' }}>
+                      <td
+                        style={{ padding: '6px 12px', cursor: 'pointer' }}
+                        title="Click to view cumulative balance derivation"
+                        onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation('cumulativeTotal', ev, m, evCumulated, diffEvCumulated))}
+                      >
                         {renderCell(
                           evCumulated,
                           diffEvCumulated,
@@ -770,16 +861,47 @@ export default function TimelineTable(): JSX.Element {
                   onMouseEnter={() => { hoveredMonth.value = m.month; }}
                   onMouseLeave={() => { hoveredMonth.value = null; }}
                 >
-                  <td style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#f8fafc', fontFamily: 'monospace' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span>M{m.month}</span>
-                      <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>({m.calendarLabel})</span>
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500 }}>
-                      {m.relativeBirthLabel} · Y{m.year}
+                  <td
+                    style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#f8fafc', fontFamily: 'monospace', cursor: 'pointer' }}
+                    title="Click to view month derivation or click ℹ️ to inspect the full row"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('month', m, bMonth, scenario))}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>M{m.month}</span>
+                          <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>({m.calendarLabel})</span>
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500 }}>
+                          {m.relativeBirthLabel} · Y{m.year}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRowExplanation(getRowExplanation(m, bMonth, scenario));
+                        }}
+                        title="Inspect full monthly cash flow and statutory audit"
+                        style={{
+                          background: '#1e293b',
+                          border: '1px solid #475569',
+                          borderRadius: '4px',
+                          padding: '2px 5px',
+                          fontSize: '0.66rem',
+                          color: '#38bdf8',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ℹ️
+                      </button>
                     </div>
                   </td>
-                  <td style={{ padding: '8px 12px', textAlign: 'left' }}>
+                  <td
+                    style={{ padding: '8px 12px', textAlign: 'left', cursor: 'pointer' }}
+                    title="Click to view lifecycle phase explanation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('phase', m, bMonth, scenario))}
+                  >
                     {m.eventTag ? (
                       <span style={{
                         display: 'inline-block',
@@ -797,7 +919,11 @@ export default function TimelineTable(): JSX.Element {
                       <span style={{ color: '#cbd5e1' }}>{m.phaseLabel}</span>
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px', textAlign: 'left' }}>
+                  <td
+                    style={{ padding: '8px 12px', textAlign: 'left', cursor: 'pointer' }}
+                    title="Click to view tax class derivation and legal basis"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('taxClass', m, bMonth, scenario))}
+                  >
                     <div style={{
                       color: m.isSwapActive ? '#60a5fa' : '#94a3b8',
                       fontWeight: m.isSwapActive ? 700 : 500
@@ -814,13 +940,25 @@ export default function TimelineTable(): JSX.Element {
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view husband net salary derivation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('husbandSalary', m, bMonth, scenario))}
+                  >
                     {renderCell(m.husbandSalary as number, diffHusband, false)}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view wife earned salary derivation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('wifeSalary', m, bMonth, scenario))}
+                  >
                     {renderCell(m.wifeSalary as number, diffWife, false)}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view maternity protection allowance (MuSchG) derivation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('mutterschutz', m, bMonth, scenario))}
+                  >
                     {renderCell(
                       m.mutterschutz as number,
                       diffMutterschutz,
@@ -828,7 +966,11 @@ export default function TimelineTable(): JSX.Element {
                       (m.mutterschutz as number) > 0 ? '#93c5fd' : undefined
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view mother ElterngeldPlus replacement calculation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('wifeElterngeld', m, bMonth, scenario))}
+                  >
                     {renderCell(
                       m.wifeElterngeld as number,
                       diffWifeElterngeld,
@@ -836,7 +978,11 @@ export default function TimelineTable(): JSX.Element {
                       (m.wifeElterngeld as number) > 0 ? '#86efac' : undefined
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view father partner months / partnership bonus allowance"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('husbandElterngeld', m, bMonth, scenario))}
+                  >
                     {renderCell(
                       m.husbandElterngeld as number,
                       diffHusbandElterngeld,
@@ -844,7 +990,11 @@ export default function TimelineTable(): JSX.Element {
                       (m.husbandElterngeld as number) > 0 ? '#fde68a' : undefined
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view Kindergeld child benefit derivation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('kindergeld', m, bMonth, scenario))}
+                  >
                     {renderCell(
                       m.kindergeld as number,
                       diffKindergeld,
@@ -852,7 +1002,11 @@ export default function TimelineTable(): JSX.Element {
                       (m.kindergeld as number) > 0 ? '#fca5a5' : undefined
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view special payments and annual bonuses"
+                    onClick={() => !isSpecialRowsActive && setSelectedFieldExplanation(getFieldExplanation('specialEvents', m, bMonth, scenario))}
+                  >
                     {isSpecialRowsActive ? (
                       <span style={{ color: '#475569', fontStyle: 'italic' }}>—</span>
                     ) : (
@@ -864,7 +1018,11 @@ export default function TimelineTable(): JSX.Element {
                       )
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view total monthly net inflow calculation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('netInflow', m, bMonth, scenario))}
+                  >
                     {renderCell(
                       isSpecialRowsActive ? (m.regularMonthlyTotal as number) : (m.monthlyTotal as number),
                       diffNetInflow,
@@ -873,7 +1031,11 @@ export default function TimelineTable(): JSX.Element {
                       true
                     )}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view progressive cumulative 5-year balance calculation"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation('cumulativeTotal', m, bMonth, scenario))}
+                  >
                     {renderCell(
                       m.cumulatedTotal as number,
                       diffCumulated,
@@ -887,6 +1049,18 @@ export default function TimelineTable(): JSX.Element {
           </tbody>
         </table>
       </div>
+
+      {/* Field-Level Explanatory Popover Modal */}
+      <FieldExplainerModal
+        explanation={selectedFieldExplanation}
+        onClose={() => setSelectedFieldExplanation(null)}
+      />
+
+      {/* Full-Row Explanatory Audit Modal */}
+      <RowExplainerModal
+        explanation={selectedRowExplanation}
+        onClose={() => setSelectedRowExplanation(null)}
+      />
     </div>
   );
 }
