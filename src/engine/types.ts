@@ -170,7 +170,7 @@ export function toScenarioId(val: string): ScenarioId {
  * Immutable Accounting Transaction Entry
  */
 export interface AccountingTransaction {
-  readonly id: TransactionId;
+  readonly transactionId: TransactionId;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly type: TransactionType;

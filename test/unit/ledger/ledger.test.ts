@@ -15,7 +15,7 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
   describe('createTransaction', () => {
     it('creates immutable, validly branded transaction records', () => {
       const tx = createTransaction({
-        id: 'TX-M1-TEST',
+        transactionId: 'TX-M1-TEST',
         month: toSimulationMonth(1),
         year: toCalendarYear(1),
         type: TransactionType.SalaryBase,
@@ -27,7 +27,7 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
         auditTrail: 'Monthly net salary'
       });
 
-      assert.equal(tx.id, 'TX-M1-TEST');
+      assert.equal(tx.transactionId, 'TX-M1-TEST');
       assert.equal(tx.amount, 2895);
       assert.equal(tx.statutoryCitation, '§ 19 EStG');
     });

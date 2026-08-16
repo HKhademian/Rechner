@@ -435,7 +435,7 @@ export function generateTimelineSimulation(
     const txs: AccountingTransaction[] = [];
     if ((rm.husbandSalary as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-HUSBAND-SALARY`,
+        transactionId: `TX-M${m}-HUSBAND-SALARY`,
         month: rm.month,
         year,
         type: TransactionType.SalaryBase,
@@ -450,7 +450,7 @@ export function generateTimelineSimulation(
 
     if ((rm.wifeSalary as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-WIFE-SALARY`,
+        transactionId: `TX-M${m}-WIFE-SALARY`,
         month: rm.month,
         year,
         type: TransactionType.SalaryBase,
@@ -465,7 +465,7 @@ export function generateTimelineSimulation(
 
     if ((bonus40Amount as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-BONUS-40`,
+        transactionId: `TX-M${m}-BONUS-40`,
         month: rm.month,
         year,
         type: TransactionType.SalaryBonus13thVacation,
@@ -480,7 +480,7 @@ export function generateTimelineSimulation(
 
     if ((bonus60Amount as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-BONUS-60`,
+        transactionId: `TX-M${m}-BONUS-60`,
         month: rm.month,
         year,
         type: TransactionType.SalaryBonus13thChristmas,
@@ -495,7 +495,7 @@ export function generateTimelineSimulation(
 
     if ((rm.mutterschutz as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-MUTTERSCHUTZ`,
+        transactionId: `TX-M${m}-MUTTERSCHUTZ`,
         month: rm.month,
         year,
         type: TransactionType.BenefitMutterschutz,
@@ -510,7 +510,7 @@ export function generateTimelineSimulation(
 
     if ((rm.wifeElterngeld as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-WIFE-ELTERNGELD`,
+        transactionId: `TX-M${m}-WIFE-ELTERNGELD`,
         month: rm.month,
         year,
         type: TransactionType.BenefitElterngeldPlusMother,
@@ -525,7 +525,7 @@ export function generateTimelineSimulation(
 
     if ((rm.husbandElterngeld as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-HUSBAND-ELTERNGELD`,
+        transactionId: `TX-M${m}-HUSBAND-ELTERNGELD`,
         month: rm.month,
         year,
         type: rm.isPartnerschaftsbonus
@@ -542,7 +542,7 @@ export function generateTimelineSimulation(
 
     if ((rm.kindergeld as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-KINDERGELD`,
+        transactionId: `TX-M${m}-KINDERGELD`,
         month: rm.month,
         year,
         type: TransactionType.BenefitKindergeld,
@@ -557,7 +557,7 @@ export function generateTimelineSimulation(
 
     if ((taxRefund as number) > 0) {
       txs.push(createTransaction({
-        id: `TX-M${m}-TAX-REFUND`,
+        transactionId: `TX-M${m}-TAX-REFUND`,
         month: rm.month,
         year,
         type: TransactionType.TaxReconciliationRefund,

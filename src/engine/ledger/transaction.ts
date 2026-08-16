@@ -12,7 +12,7 @@ import {
 } from '../types.ts';
 
 export interface CreateTransactionParams {
-  readonly id: string;
+  readonly transactionId: string;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly type: TransactionType;
@@ -29,7 +29,7 @@ export interface CreateTransactionParams {
  */
 export function createTransaction(params: CreateTransactionParams): AccountingTransaction {
   return {
-    id: toTransactionId(params.id),
+    transactionId: toTransactionId(params.transactionId),
     month: params.month,
     year: params.year,
     type: params.type,
