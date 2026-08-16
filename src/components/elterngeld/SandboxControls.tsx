@@ -560,23 +560,141 @@ export default function SandboxControls(): JSX.Element {
                   </div>
                   <input
                     type="range"
-                    min="15"
-                    max="32"
+                    min="0"
+                    max="40"
                     step="1"
                     value={wifePostBirthHours.value}
                     onInput={(e) => { setWifePostBirthHours(Number((e.target as HTMLInputElement).value)); }}
                   />
-                  <div style={{ fontSize: '0.64rem', color: '#94a3b8', marginTop: '2px' }}>
-                    ↳ Statutory BEEG corridor: 24–32h for Partnerschaftsbonus (§ 4b BEEG).
-                  </div>
+
+                  {/* Statutory Elterngeld & Partnership Bonus (§ 1 & § 4b BEEG) Indicators */}
+                  {wifePostBirthHours.value > 32 ? (
+                    <div
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        fontSize: '0.66rem',
+                        color: '#fecdd3',
+                        background: '#881337',
+                        padding: '4px 6px',
+                        borderRadius: '4px',
+                        marginTop: '4px',
+                        fontWeight: 600,
+                        border: '1px solid #be123c'
+                      }}
+                    >
+                      ⚠️ Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours &gt; 32h / week disqualify from all Elterngeld (0 € benefit paid).
+                    </div>
+                  ) : wifePostBirthHours.value >= 24 && wifePostBirthHours.value <= 32 ? (
+                    <button
+                      type="button"
+                      onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        fontSize: '0.66rem',
+                        color: '#86efac',
+                        background: '#14532d',
+                        padding: '3px 6px',
+                        borderRadius: '4px',
+                        marginTop: '4px',
+                        fontWeight: 600,
+                        border: '1px solid #15803d',
+                        cursor: 'pointer'
+                      }}
+                      title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
+                    >
+                      ✓ ElterngeldPlus &amp; Partnerschaftsbonus (§ 4b BEEG ↗) corridor (24–32h / week)
+                    </button>
+                  ) : wifePostBirthHours.value === 0 ? (
+                    <div style={{
+                      fontSize: '0.66rem',
+                      color: '#93c5fd',
+                      background: '#1e3a8a',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      marginTop: '4px'
+                    }}>
+                      ℹ Full Parental Leave (0h / week · 100% leave)
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        fontSize: '0.66rem',
+                        color: '#fde68a',
+                        background: '#78350f',
+                        padding: '3px 6px',
+                        borderRadius: '4px',
+                        marginTop: '4px',
+                        border: '1px solid #b45309',
+                        cursor: 'pointer'
+                      }}
+                      title="Click to view § 4b BEEG corridor requirements"
+                    >
+                      ℹ Eligible for ElterngeldPlus (≤ 32h), but outside Partnerschaftsbonus corridor (must be 24–32h for +4 bonus months ↗)
+                    </button>
+                  )}
                 </div>
-                <div style={{ display: 'flex', gap: '4px', fontSize: '0.66rem', flexWrap: 'wrap' }}>
+
+                <div style={{ display: 'flex', gap: '4px', fontSize: '0.66rem', flexWrap: 'wrap', marginBottom: '6px' }}>
                   <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#fde047' }}>
                     PT Gross: {formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeGrossPartTime as number) * 12 : (derivedSpousalSet.value.wifeGrossPartTime as number))}
                   </span>
                   <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#c4b5fd' }}>
                     PT Net (Class V): <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass5PartTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass5PartTimeNet as number))}</strong>
                   </span>
+                </div>
+
+                {/* Statutory ElterngeldPlus Replacement Calculation */}
+                <div style={{
+                  background: '#0f172a',
+                  border: '1px solid #334155',
+                  borderRadius: '5px',
+                  padding: '6px 8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '3px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#cbd5e1' }}>
+                    <button
+                      type="button"
+                      onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#cbd5e1',
+                        padding: 0,
+                        cursor: 'pointer',
+                        fontSize: '0.68rem',
+                        textAlign: 'left',
+                        textDecoration: 'underline'
+                      }}
+                      title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
+                    >
+                      Statutory ElterngeldPlus (65% loss ↗):
+                    </button>
+                    <strong style={{ color: '#f472b6', fontFamily: 'monospace' }}>
+                      +{formatCurrency(Math.min(900, Math.max(150, Math.round(Math.max(0, (derivedSpousalSet.value.wifeClass3FullTimeNet as number) - (derivedSpousalSet.value.wifeClass5PartTimeNet as number)) * 0.65))))}
+                    </strong>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.70rem',
+                    color: '#f8fafc',
+                    borderTop: '1px solid #334155',
+                    paddingTop: '3px',
+                    fontWeight: 700
+                  }}>
+                    <span>Total Monthly Mother Inflow:</span>
+                    <span style={{ color: '#4ade80', fontFamily: 'monospace' }}>
+                      {formatCurrency((derivedSpousalSet.value.wifeClass5PartTimeNet as number) + Math.min(900, Math.max(150, Math.round(Math.max(0, (derivedSpousalSet.value.wifeClass3FullTimeNet as number) - (derivedSpousalSet.value.wifeClass5PartTimeNet as number)) * 0.65))))}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -919,152 +1037,6 @@ export default function SandboxControls(): JSX.Element {
               >
                 ➕ Add Pregnancy (Child #{customPregnancies.value.length + 1})
               </button>
-
-              {/* Mother Post-Birth Part-Time Working Hours & Auto-Calculated Net */}
-              <div style={{ marginTop: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Mother Post-Birth Hours:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
-                    {wifePostBirthHours.value}h / week
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="40"
-                  step="1"
-                  value={wifePostBirthHours.value}
-                  onInput={(e) => { wifePostBirthHours.value = Number((e.target as HTMLInputElement).value); }}
-                />
-
-                {/* Statutory Elterngeld & Partnership Bonus (§ 1 & § 4b BEEG) Indicators */}
-                {wifePostBirthHours.value > 32 ? (
-                  <div
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      fontSize: '0.66rem',
-                      color: '#fecdd3',
-                      background: '#881337',
-                      padding: '4px 6px',
-                      borderRadius: '4px',
-                      marginTop: '4px',
-                      fontWeight: 600,
-                      border: '1px solid #be123c'
-                    }}
-                  >
-                    ⚠️ Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours &gt; 32h / week disqualify from all Elterngeld (0 € benefit paid).
-                  </div>
-                ) : wifePostBirthHours.value >= 24 && wifePostBirthHours.value <= 32 ? (
-                  <button
-                    type="button"
-                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      fontSize: '0.66rem',
-                      color: '#86efac',
-                      background: '#14532d',
-                      padding: '3px 6px',
-                      borderRadius: '4px',
-                      marginTop: '4px',
-                      fontWeight: 600,
-                      border: '1px solid #15803d',
-                      cursor: 'pointer'
-                    }}
-                    title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
-                  >
-                    ✓ ElterngeldPlus &amp; Partnerschaftsbonus (§ 4b BEEG ↗) corridor (24–32h / week)
-                  </button>
-                ) : wifePostBirthHours.value === 0 ? (
-                  <div style={{
-                    fontSize: '0.66rem',
-                    color: '#93c5fd',
-                    background: '#1e3a8a',
-                    padding: '3px 6px',
-                    borderRadius: '4px',
-                    marginTop: '4px'
-                  }}>
-                    ℹ Full Parental Leave (0h / 100% leave)
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      fontSize: '0.66rem',
-                      color: '#fde68a',
-                      background: '#78350f',
-                      padding: '3px 6px',
-                      borderRadius: '4px',
-                      marginTop: '4px',
-                      border: '1px solid #b45309',
-                      cursor: 'pointer'
-                    }}
-                    title="Click to view § 4b BEEG corridor requirements"
-                  >
-                    ℹ Eligible for ElterngeldPlus (≤ 32h), but outside Partnerschaftsbonus corridor (must be 24–32h for +4 bonus months ↗)
-                  </button>
-                )}
-
-                {/* Real-time Statutorily Calculated Breakdown */}
-                <div style={{
-                  background: '#1e293b',
-                  border: '1px solid #334155',
-                  borderRadius: '5px',
-                  padding: '8px 10px',
-                  marginTop: '8px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1' }}>
-                    <span>Calculated Part-Time Net (Class V):</span>
-                    <strong style={{ color: '#5eead4', fontFamily: 'monospace' }}>
-                      {formatCurrency(wifeClass5PartTimeNet.value)}
-                    </strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1' }}>
-                    <button
-                      type="button"
-                      onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#cbd5e1',
-                        padding: 0,
-                        cursor: 'pointer',
-                        fontSize: '0.70rem',
-                        textAlign: 'left',
-                        textDecoration: 'underline'
-                      }}
-                      title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
-                    >
-                      Statutory ElterngeldPlus (65% loss ↗):
-                    </button>
-                    <strong style={{ color: '#f472b6', fontFamily: 'monospace' }}>
-                      +{formatCurrency(Math.min(900, Math.max(150, Math.round(Math.max(0, wifeClass3FullTimeNet.value - wifeClass5PartTimeNet.value) * 0.65))))}
-                    </strong>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '0.72rem',
-                    color: '#f8fafc',
-                    borderTop: '1px solid #334155',
-                    paddingTop: '4px',
-                    marginTop: '2px',
-                    fontWeight: 700
-                  }}>
-                    <span>Total Monthly Mother Inflow:</span>
-                    <span style={{ color: '#4ade80', fontFamily: 'monospace' }}>
-                      {formatCurrency(wifeClass5PartTimeNet.value + Math.min(900, Math.max(150, Math.round(Math.max(0, wifeClass3FullTimeNet.value - wifeClass5PartTimeNet.value) * 0.65))))}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* ======================================================== */}
