@@ -243,24 +243,24 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.BEEG_PartnershipBonus,
-      title: '5. Partnership Bonus Months (Partnerschaftsbonus)',
-      lawRef: 'BEEG § 4, § 4b (Partnership Bonus)',
+      title: '5. Parental Leave Allocation & Partnership Bonus (Partnerschaftsbonus)',
+      lawRef: 'BEEG § 4, § 4a, § 4b (Elterngeld & Partnership Bonus)',
       tag: '§ 4b BEEG',
-      summary: '4 partner months base + 4 additional bonus months for concurrent part-time work (24–32h/wk).',
+      summary: '65% salary loss replacement; 2 full / 4 PT months (father) + 10 full / 20 PT months (mother) + 4 bonus months each (24–32h).',
       statutoryText: (
         <div>
           <p>
-            Under <strong>§ 4b BEEG</strong>, parents who share childcare and gainful employment equally can unlock <strong>4 additional bonus months of ElterngeldPlus per parent</strong> (8 bonus months total):
+            Under <strong>§ 4, § 4a, and § 4b BEEG</strong>, parental allowance covers <strong>65% of the net salary drop</strong> (&Delta;Net = Pre-birth Net &minus; Post-birth Net) with a structured baseline allocation:
           </p>
           <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <li>
-              <strong>Weekly Hours Corridor:</strong> Both parents must simultaneously work between <strong>24 and 32 hours per week</strong> (under statutory reform) for at least 2 to 4 consecutive life months.
+              <strong>Mother's Entitlement:</strong> 2 months covered by 100% statutory <em>Mutterschutz</em> (which consume 2 Base months) + <strong>10 full Basiselterngeld months</strong> (0h / week) OR <strong>20 half ElterngeldPlus months</strong> (&le; 32h / week).
             </li>
             <li>
-              <strong>Parallel Entitlement:</strong> Both parents receive their respective calculated ElterngeldPlus payments concurrently while continuing gainful employment.
+              <strong>Father's Partner Months (§ 4 Abs. 3):</strong> <strong>2 full Basiselterngeld months</strong> (0h / week) OR <strong>4 half ElterngeldPlus months</strong> (&le; 32h / week).
             </li>
             <li>
-              <strong>Father Base Months:</strong> In addition, the father receives 4 baseline partner months at the statutory minimum base rate of 150 € / month.
+              <strong>Partnership Bonus Exception (§ 4b BEEG):</strong> <strong>4 additional bonus months for EACH partner</strong> (4 months for mother + 4 months for father = 8 bonus months total) when <strong>both partners work between 24 and 32 hours per week simultaneously</strong> in the same month!
             </li>
           </ul>
         </div>
@@ -268,11 +268,11 @@ export default function RulesExplainer(): JSX.Element {
       example: (
         <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
           <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
-            📊 Worked Numerical Example:
+            📊 Statutory Allocation &amp; Payout Example:
           </div>
           <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-            <div>• Mother works 24h / week $\rightarrow$ Receives <strong>900 € / mo</strong> ElterngeldPlus.</div>
-            <div>• Father works 32h / week $\rightarrow$ Receives <strong>150 € / mo</strong> ElterngeldPlus.</div>
+            <div>• <strong>Mother:</strong> 20 ElterngeldPlus months (up to <strong>900 € / mo</strong>) + 4 Partnership Bonus months (<strong>900 € / mo</strong>) = <strong>24 ElterngeldPlus months</strong>.</div>
+            <div>• <strong>Father:</strong> 4 ElterngeldPlus partner months (<strong>150 € / mo</strong>) + 4 Partnership Bonus months (<strong>150 € / mo</strong>) = <strong>8 ElterngeldPlus months</strong>.</div>
             <div>• 4 Partnership Bonus Months total payout: (900 € + 150 €) × 4 months = <strong style={{ color: '#4ade80' }}>+4.200 € total cash benefit</strong>.</div>
           </div>
         </div>
@@ -281,7 +281,12 @@ export default function RulesExplainer(): JSX.Element {
         {
           label: '§ 4b BEEG - Partnerschaftsbonus',
           url: 'https://www.gesetze-im-internet.de/beeg/__4b.html',
-          description: 'Statutory requirements for the 24–32 hour working corridor and 4 bonus months.'
+          description: 'Statutory requirements for the 24–32 hour working corridor and 4 bonus months per parent.'
+        },
+        {
+          label: '§ 4a BEEG - ElterngeldPlus',
+          url: 'https://www.gesetze-im-internet.de/beeg/__4a.html',
+          description: 'Conversion rule: 1 Basiselterngeld month = 2 ElterngeldPlus months while working up to 32h/week.'
         }
       ]
     },
