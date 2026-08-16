@@ -1,4 +1,4 @@
-import { signal, computed } from '@preact/signals';
+import { signal, computed, effect } from '@preact/signals';
 import {
   type ScenarioId as ScenarioIdType,
   ScenarioId,
@@ -33,30 +33,40 @@ import {
 } from '#engine/types';
 import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 import { deriveSpousalNetSalaries, computeGrossToNetBreakdown } from '#engine/tax/wageTax';
+import {
+  getDefaultPersistedState,
+  loadFromStorage,
+  saveToStorage,
+  clearStorage,
+  type ElterngeldPersistedState
+} from '#engine/storage/persistence';
+
+// Initial state loaded from localStorage (or statutory defaults)
+const initialPersisted = loadFromStorage();
 
 // Input Mode (Gross vs Net Mode) & Period (Monthly vs Yearly)
-export const salaryInputMode = signal<SalaryInputMode>(SalaryInputMode.Gross);
-export const salaryPeriod = signal<SalaryPeriod>(SalaryPeriod.Monthly);
-export const husbandGross = signal<number>(4500);
-export const wifeGross = signal<number>(3000);
+export const salaryInputMode = signal<SalaryInputMode>(initialPersisted.salaryInputMode);
+export const salaryPeriod = signal<SalaryPeriod>(initialPersisted.salaryPeriod);
+export const husbandGross = signal<number>(initialPersisted.husbandGross);
+export const wifeGross = signal<number>(initialPersisted.wifeGross);
 
 export const husbandGrossYearly = computed(() => (husbandGross.value || 0) * 12);
 export const wifeGrossYearly = computed(() => (wifeGross.value || 0) * 12);
 
 // Default Financial Parameters (The Sandbox)
-export const husbandClass3Net = signal(3184);
-export const husbandClass5Net = signal(2398);
-export const husbandHours = signal(32);
+export const husbandClass3Net = signal(initialPersisted.husbandClass3Net);
+export const husbandClass5Net = signal(initialPersisted.husbandClass5Net);
+export const husbandHours = signal(initialPersisted.husbandHours);
 
-export const wifeInitialHours = signal(40);
-export const wifePostBirthHours = signal(24);
-export const wifeClass5FullTimeNet = signal(1975);
-export const wifeClass3FullTimeNet = signal(2603);
+export const wifeInitialHours = signal(initialPersisted.wifeInitialHours);
+export const wifePostBirthHours = signal(initialPersisted.wifePostBirthHours);
+export const wifeClass5FullTimeNet = signal(initialPersisted.wifeClass5FullTimeNet);
+export const wifeClass3FullTimeNet = signal(initialPersisted.wifeClass3FullTimeNet);
 
 // Additional Income Channels
-export const annualBonusGross = signal<number>(0);
-export const annualBonusMonth = signal<number>(12);
-export const investmentReturnMonthly = signal<number>(0);
+export const annualBonusGross = signal<number>(initialPersisted.annualBonusGross);
+export const annualBonusMonth = signal<number>(initialPersisted.annualBonusMonth);
+export const investmentReturnMonthly = signal<number>(initialPersisted.investmentReturnMonthly);
 
 export function syncGrossToNet() {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
@@ -162,34 +172,34 @@ export const wifeClass3PartTimeNet = computed(() => {
   return Math.round(ft * ratio);
 });
 
-export const kindergeldPerChild = signal(259);
+export const kindergeldPerChild = signal(initialPersisted.kindergeldPerChild);
 
 // Special Annual Events (13th Month Salary & Tax Return Timing)
-export const enable13thSalary = signal(true);
-export const bonus40Month = signal(5); // Month 4 or 5 of each year (40% Vacation Bonus / Urlaubsgeld)
-export const bonus60Month = signal(11); // Month 10 or 11 of each year (60% Christmas Bonus / Weihnachtsgeld)
-export const taxReturnMonth = signal(3); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
-export const showSpecialEventRows = signal(true); // Table display toggle
+export const enable13thSalary = signal(initialPersisted.enable13thSalary);
+export const bonus40Month = signal(initialPersisted.bonus40Month); // Month 4 or 5 of each year (40% Vacation Bonus / Urlaubsgeld)
+export const bonus60Month = signal(initialPersisted.bonus60Month); // Month 10 or 11 of each year (60% Christmas Bonus / Weihnachtsgeld)
+export const taxReturnMonth = signal(initialPersisted.taxReturnMonth); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
+export const showSpecialEventRows = signal(initialPersisted.showSpecialEventRows); // Table display toggle
 
 // Batch 3: Salary Raises & Career Progression Controls
-export const enableSalaryRaises = signal(false);
-export const annualSalaryRaisePercent = signal(0); // 0%, 2%, 3%, 5% annual raise
+export const enableSalaryRaises = signal(initialPersisted.enableSalaryRaises);
+export const annualSalaryRaisePercent = signal(initialPersisted.annualSalaryRaisePercent); // 0%, 2%, 3%, 5% annual raise
 
 // Timeline & Calendar Simulation Controls
-export const startCalendarYear = signal(2026); // Default 2026
-export const startCalendarMonth = signal(1); // Default 1 (January)
-export const simulationDurationMonths = signal(60); // Default 60 months (5 years)
-export const prePregnancyPlanningMonths = signal(8); // Default 8 months planning -> Pregnancy starts in September 2026 (09.2026)
-export const child1BirthMonth = signal(17); // Month 17 (05.2027 / 9 months pregnancy)
-export const birthSpacingMonths = signal(27); // Gap of 27 months -> Child 2 born at Month 44
-export const swapLeadMonths = signal(7); // 7 months prior to Mutterschutz phase
-export const preMutterschutzMonths = signal(1.5); // 6 weeks
-export const postMutterschutzMonths = signal(2); // 8 weeks
+export const startCalendarYear = signal(initialPersisted.startCalendarYear); // Default 2026
+export const startCalendarMonth = signal(initialPersisted.startCalendarMonth); // Default 1 (January)
+export const simulationDurationMonths = signal(initialPersisted.simulationDurationMonths); // Default 60 months (5 years)
+export const prePregnancyPlanningMonths = signal(initialPersisted.prePregnancyPlanningMonths); // Default 8 months planning -> Pregnancy starts in September 2026 (09.2026)
+export const child1BirthMonth = signal(initialPersisted.child1BirthMonth); // Month 17 (05.2027 / 9 months pregnancy)
+export const birthSpacingMonths = signal(initialPersisted.birthSpacingMonths); // Gap of 27 months -> Child 2 born at Month 44
+export const swapLeadMonths = signal(initialPersisted.swapLeadMonths); // 7 months prior to Mutterschutz phase
+export const preMutterschutzMonths = signal(initialPersisted.preMutterschutzMonths); // 6 weeks
+export const postMutterschutzMonths = signal(initialPersisted.postMutterschutzMonths); // 8 weeks
 
 // UI & View State
-export const activeScenario = signal<string>(ScenarioId.C); // 'A', 'B', 'C', or 'compare'
-export const chartMode = signal<string>('stacked_bar'); // 'stacked_bar', 'lines', 'area', 'compare'
-export const timeRangeFilter = signal<string>('all'); // 'all', 'child1', 'child2', 'post'
+export const activeScenario = signal<string>(initialPersisted.activeScenario); // 'A', 'B', 'C', or 'compare'
+export const chartMode = signal<string>(initialPersisted.chartMode); // 'stacked_bar', 'lines', 'area', 'compare'
+export const timeRangeFilter = signal<string>(initialPersisted.timeRangeFilter); // 'all', 'child1', 'child2', 'post'
 export const hoveredMonth = signal<number | null>(null);
 
 /**
@@ -340,11 +350,30 @@ export function createDefaultFinancialEvents(): FinancialEventAction[] {
   ];
 }
 
-// User-Defined Dynamic Action Collections
-export const customPregnancies = signal<PregnancyAction[]>(createDefaultPregnancies());
-export const customTaxClassSwitches = signal<TaxClassSwitchAction[]>(createDefaultTaxClassSwitches());
-export const customSalaryRaises = signal<SalaryRaiseAction[]>(createDefaultSalaryRaises());
-export const customFinancialEvents = signal<FinancialEventAction[]>(createDefaultFinancialEvents());
+// User-Defined Dynamic Action Collections (Initialized with persisted state or defaults)
+export const customPregnancies = signal<PregnancyAction[]>(
+  initialPersisted.customPregnancies && initialPersisted.customPregnancies.length > 0
+    ? (initialPersisted.customPregnancies as PregnancyAction[])
+    : createDefaultPregnancies()
+);
+
+export const customTaxClassSwitches = signal<TaxClassSwitchAction[]>(
+  initialPersisted.customTaxClassSwitches && initialPersisted.customTaxClassSwitches.length > 0
+    ? (initialPersisted.customTaxClassSwitches as TaxClassSwitchAction[])
+    : createDefaultTaxClassSwitches()
+);
+
+export const customSalaryRaises = signal<SalaryRaiseAction[]>(
+  initialPersisted.customSalaryRaises && initialPersisted.customSalaryRaises.length > 0
+    ? (initialPersisted.customSalaryRaises as SalaryRaiseAction[])
+    : createDefaultSalaryRaises()
+);
+
+export const customFinancialEvents = signal<FinancialEventAction[]>(
+  initialPersisted.customFinancialEvents && initialPersisted.customFinancialEvents.length > 0
+    ? (initialPersisted.customFinancialEvents as FinancialEventAction[])
+    : createDefaultFinancialEvents()
+);
 
 // Batch 1 Mutation Helpers
 export function addPregnancyAction(action: PregnancyAction) {
@@ -406,40 +435,115 @@ export function removeFinancialEventAction(eventId: FinancialEventId | string) {
   customFinancialEvents.value = customFinancialEvents.value.filter(e => e.eventId !== eventId);
 }
 
+/**
+ * Persists the entire reactive state of the simulator into localStorage.
+ */
+export function persistCurrentState(): void {
+  saveToStorage({
+    salaryInputMode: salaryInputMode.value,
+    salaryPeriod: salaryPeriod.value,
+    husbandGross: husbandGross.value,
+    wifeGross: wifeGross.value,
+    husbandHours: husbandHours.value,
+    wifeInitialHours: wifeInitialHours.value,
+    wifePostBirthHours: wifePostBirthHours.value,
+    husbandClass3Net: husbandClass3Net.value,
+    husbandClass5Net: husbandClass5Net.value,
+    wifeClass5FullTimeNet: wifeClass5FullTimeNet.value,
+    wifeClass3FullTimeNet: wifeClass3FullTimeNet.value,
+
+    annualBonusGross: annualBonusGross.value,
+    annualBonusMonth: annualBonusMonth.value,
+    investmentReturnMonthly: investmentReturnMonthly.value,
+
+    kindergeldPerChild: kindergeldPerChild.value,
+    enable13thSalary: enable13thSalary.value,
+    bonus40Month: bonus40Month.value,
+    bonus60Month: bonus60Month.value,
+    taxReturnMonth: taxReturnMonth.value,
+    showSpecialEventRows: showSpecialEventRows.value,
+    enableSalaryRaises: enableSalaryRaises.value,
+    annualSalaryRaisePercent: annualSalaryRaisePercent.value,
+
+    startCalendarYear: startCalendarYear.value,
+    startCalendarMonth: startCalendarMonth.value,
+    simulationDurationMonths: simulationDurationMonths.value,
+    prePregnancyPlanningMonths: prePregnancyPlanningMonths.value,
+    child1BirthMonth: child1BirthMonth.value,
+    birthSpacingMonths: birthSpacingMonths.value,
+    swapLeadMonths: swapLeadMonths.value,
+    preMutterschutzMonths: preMutterschutzMonths.value,
+    postMutterschutzMonths: postMutterschutzMonths.value,
+
+    customPregnancies: customPregnancies.value,
+    customTaxClassSwitches: customTaxClassSwitches.value,
+    customSalaryRaises: customSalaryRaises.value,
+    customFinancialEvents: customFinancialEvents.value,
+
+    activeScenario: activeScenario.value,
+    chartMode: chartMode.value,
+    timeRangeFilter: timeRangeFilter.value
+  });
+}
+
+// Auto-persist signal changes to localStorage in browser environment
+if (typeof window !== 'undefined') {
+  effect(() => {
+    persistCurrentState();
+  });
+}
+
 export function resetToDefaults() {
-  husbandClass3Net.value = 2895;
-  husbandClass5Net.value = 2191;
-  husbandHours.value = 32;
+  clearStorage();
+  const defaults = getDefaultPersistedState();
 
-  wifeClass5FullTimeNet.value = 1975;
-  wifeClass3FullTimeNet.value = 2603;
-  wifeInitialHours.value = 40;
-  wifePostBirthHours.value = 24;
+  salaryInputMode.value = defaults.salaryInputMode;
+  salaryPeriod.value = defaults.salaryPeriod;
+  husbandGross.value = defaults.husbandGross;
+  wifeGross.value = defaults.wifeGross;
+  husbandHours.value = defaults.husbandHours;
+  wifeInitialHours.value = defaults.wifeInitialHours;
+  wifePostBirthHours.value = defaults.wifePostBirthHours;
+  husbandClass3Net.value = defaults.husbandClass3Net;
+  husbandClass5Net.value = defaults.husbandClass5Net;
+  wifeClass5FullTimeNet.value = defaults.wifeClass5FullTimeNet;
+  wifeClass3FullTimeNet.value = defaults.wifeClass3FullTimeNet;
 
-  kindergeldPerChild.value = 259;
-  enable13thSalary.value = true;
-  bonus40Month.value = 5;
-  bonus60Month.value = 11;
-  taxReturnMonth.value = 3;
-  showSpecialEventRows.value = true;
+  annualBonusGross.value = defaults.annualBonusGross;
+  annualBonusMonth.value = defaults.annualBonusMonth;
+  investmentReturnMonthly.value = defaults.investmentReturnMonthly;
 
-  enableSalaryRaises.value = false;
-  annualSalaryRaisePercent.value = 0;
+  kindergeldPerChild.value = defaults.kindergeldPerChild;
+  enable13thSalary.value = defaults.enable13thSalary;
+  bonus40Month.value = defaults.bonus40Month;
+  bonus60Month.value = defaults.bonus60Month;
+  taxReturnMonth.value = defaults.taxReturnMonth;
+  showSpecialEventRows.value = defaults.showSpecialEventRows;
 
-  startCalendarYear.value = 2026;
-  startCalendarMonth.value = 1;
-  simulationDurationMonths.value = 60;
-  prePregnancyPlanningMonths.value = 8;
-  child1BirthMonth.value = 17;
-  birthSpacingMonths.value = 27;
-  swapLeadMonths.value = 7;
-  preMutterschutzMonths.value = 1.5;
-  postMutterschutzMonths.value = 2;
+  enableSalaryRaises.value = defaults.enableSalaryRaises;
+  annualSalaryRaisePercent.value = defaults.annualSalaryRaisePercent;
 
-  customPregnancies.value = createDefaultPregnancies();
-  customTaxClassSwitches.value = createDefaultTaxClassSwitches();
-  customSalaryRaises.value = createDefaultSalaryRaises();
-  customFinancialEvents.value = createDefaultFinancialEvents();
+  startCalendarYear.value = defaults.startCalendarYear;
+  startCalendarMonth.value = defaults.startCalendarMonth;
+  simulationDurationMonths.value = defaults.simulationDurationMonths;
+  prePregnancyPlanningMonths.value = defaults.prePregnancyPlanningMonths;
+  child1BirthMonth.value = defaults.child1BirthMonth;
+  birthSpacingMonths.value = defaults.birthSpacingMonths;
+  swapLeadMonths.value = defaults.swapLeadMonths;
+  preMutterschutzMonths.value = defaults.preMutterschutzMonths;
+  postMutterschutzMonths.value = defaults.postMutterschutzMonths;
+
+  customPregnancies.value = [...defaults.customPregnancies];
+  customTaxClassSwitches.value = [...defaults.customTaxClassSwitches];
+  customSalaryRaises.value = [...defaults.customSalaryRaises];
+  customFinancialEvents.value = [...defaults.customFinancialEvents];
+
+  activeScenario.value = defaults.activeScenario;
+  chartMode.value = defaults.chartMode;
+  timeRangeFilter.value = defaults.timeRangeFilter;
+
+  syncGrossToNet();
+  persistCurrentState();
 }
 
 // 60-Month Cash Flow Engine for a given scenario ('A', 'B', or 'C')
