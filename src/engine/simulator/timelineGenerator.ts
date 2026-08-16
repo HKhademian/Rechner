@@ -5,6 +5,7 @@ import {
   type NetSalary,
   type EuroAmount,
   type EventId,
+  TaxClass,
   ScenarioId,
   TransactionType,
   TransactionDirection,
@@ -14,6 +15,11 @@ import {
   type MonthlyLedgerEntry,
   type AccountingTransaction,
   type SpecialEventItem,
+  type PreexistingConditions,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction,
+  type ScenarioActionBatches,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
@@ -27,7 +33,6 @@ import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
 import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '#engine/tax/jointAssessment';
 import { computeElterngeldBenefits } from '#engine/benefits/elterngeldPlus';
 import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
-import { computeKindergeld } from '#engine/benefits/kindergeld';
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
@@ -52,70 +57,21 @@ export interface TimelineSimulationParams {
 }
 
 /**
- * Pure Deterministic Dynamic Timeline Simulator
+ * Executes a simulation scenario from discrete action batches:
+ * 0. Preexisting conditions (baseline tax classes, salaries, children, dates)
+ * 1. Pregnancy positive decisions (positive test date, delivery date, parental leave)
+ * 2. Tax class switches (proactive switches, optimization intent, reversions)
+ * 3. Salary raises and career progression events
  */
-export function generateTimelineSimulation(
-  params: TimelineSimulationParams
-): SimulationResult {
-  const scenarioKey = params.scenarioKey;
-  const startYear = params.startCalendarYear ?? 2026;
-  const startMonth = (params.startCalendarMonth as number) ?? 1;
-  const duration = params.simulationDurationMonths ?? 60;
+export function runScenarioBatches(batches: ScenarioActionBatches): SimulationResult {
+  const { scenarioKey, preexisting, pregnancies, taxClassSwitches, salaryRaises } = batches;
 
-  const h3Net = params.husbandClass3Net;
-  const h5Net = params.husbandClass5Net;
-  const w5FT = params.wifeClass5FullTimeNet;
-  const w3FT = params.wifeClass3FullTimeNet;
-  const w5PT = params.wifeClass5PartTimeNet;
-  const w3PT = params.wifeClass3PartTimeNet;
-  const kgRate = params.kindergeldPerChild;
+  const startYear = preexisting.startCalendarYear;
+  const startMonth = preexisting.startCalendarMonth as number;
+  const duration = preexisting.simulationDurationMonths;
+  const kgRate = preexisting.kindergeldPerChild as number;
 
-  // Timeline Milestones
-  const preBuffer = params.prePregnancyPlanningMonths;
-  const b1 = params.child1BirthMonth as number;
-  const spacing = params.birthSpacingMonths;
-  const b2 = b1 + spacing;
-
-  const preg1Start = preBuffer + 1;
-  const preM1 = b1 - 1;
-  const mutterschutz1Months = [preM1, b1, b1 + 1];
-
-  const preg2Start = b1 + (spacing - 9);
-  const preM2 = b2 - 1;
-  const mutterschutz2Months = [preM2, b2, b2 + 1];
-
-  const lead = params.swapLeadMonths;
-  const swap1Start = Math.max(1, preM1 - lead);
-  const swap1End = preM1 - 1;
-
-  const swap2Start = Math.max(b1 + 2, preM2 - lead);
-  const swap2End = preM2 - 1;
-
-  // Parental Allowance Windows
-  const eg1Start = b1 + 2;
-  const eg1End = eg1Start + 11;
-  const eg1BonusStart = eg1End + 1;
-  const eg1BonusEnd = eg1BonusStart + 3;
-
-  const eg2Start = b2 + 2;
-  const eg2End = eg2Start + 11;
-  const eg2BonusStart = eg2End + 1;
-  const eg2BonusEnd = eg2BonusStart + 3;
-
-  const siblingBonusEndMonth = b1 + 36;
-
-  // Child 1 Elterngeld Entitlements
-  const egChild1B = computeElterngeldBenefits(w5FT, w5PT);
-  const egChild1C = computeElterngeldBenefits(w3FT, w5PT);
-
-  // Child 2 Elterngeld Entitlements (Blended 12-Month Assessment Baseline)
-  const blendedNetB = toNetSalary(Math.round((10 * (w5PT as number) + 2 * (w5FT as number)) / 12));
-  const egChild2B = computeElterngeldBenefits(blendedNetB, w5PT);
-
-  const blendedNetC = toNetSalary(Math.round((10 * (w3PT as number) + 2 * (w3FT as number)) / 12));
-  const egChild2C = computeElterngeldBenefits(blendedNetC, w5PT);
-
-  // PASS 1: Generate Raw Monthly Inflows and Track Swap Withholding Variances
+  // PASS 1: Month-by-month state reduction across action batches
   interface RawMonth {
     readonly month: SimulationMonth;
     readonly year: CalendarYear;
@@ -142,6 +98,11 @@ export function generateTimelineSimulation(
 
   const rawMonths: RawMonth[] = [];
 
+  // Identify Child 1 delivery for relative delivery notation
+  const child1Delivery = pregnancies.length > 0
+    ? (pregnancies[0].calculatedDeliverySimulationMonth as number)
+    : 12;
+
   for (let m = 1; m <= duration; m++) {
     const sMonth = toSimulationMonth(m);
     const totalElapsedMonths = (startMonth - 1) + (m - 1);
@@ -151,229 +112,195 @@ export function generateTimelineSimulation(
     const year = toCalendarYear(Math.min(10, Math.ceil(m / 12)));
     const monthInYear = toCalendarMonth(((m - 1) % 12) + 1);
 
-    // Relative delivery notation (e.g. M-11, M0, M+1)
+    // Relative delivery milestone notation
     let relativeBirthLabel: string;
-    if (m < b1) {
-      relativeBirthLabel = `M-${b1 - m}`;
-    } else if (m === b1) {
+    if (m < child1Delivery) {
+      relativeBirthLabel = `M-${child1Delivery - m}`;
+    } else if (m === child1Delivery) {
       relativeBirthLabel = 'M0 (Birth)';
     } else {
-      relativeBirthLabel = `M+${m - b1}`;
+      relativeBirthLabel = `M+${m - child1Delivery}`;
     }
 
-    let husbandSalary = toEuroAmount(0);
+    // --- Batch 3: Evaluate Active Salaries from Baseline + Raises ---
+    let curH3Net = preexisting.husbandInitialNet as number;
+    let curH5Net = preexisting.husbandInitialClass5Net as number;
+    let curW5FT = preexisting.wifeInitialFullTimeNet as number;
+    let curW3FT = preexisting.wifeInitialClass3FullTimeNet as number;
+    let curW5PT = preexisting.wifeInitialPartTimeClass5Net as number;
+    let curW3PT = preexisting.wifeInitialPartTimeClass3Net as number;
+
+    salaryRaises.forEach((sr) => {
+      if ((sr.effectiveSimulationMonth as number) <= m) {
+        if (sr.percentageIncrease) {
+          const factor = 1 + sr.percentageIncrease;
+          curH3Net = Math.round(curH3Net * factor);
+          curH5Net = Math.round(curH5Net * factor);
+          curW5FT = Math.round(curW5FT * factor);
+          curW3FT = Math.round(curW3FT * factor);
+          curW5PT = Math.round(curW5PT * factor);
+          curW3PT = Math.round(curW3PT * factor);
+        } else {
+          if (sr.newHusbandClass3Net) curH3Net = sr.newHusbandClass3Net as number;
+          if (sr.newHusbandClass5Net) curH5Net = sr.newHusbandClass5Net as number;
+          if (sr.newWifeClass5FTNet) curW5FT = sr.newWifeClass5FTNet as number;
+          if (sr.newWifeClass3FTNet) curW3FT = sr.newWifeClass3FTNet as number;
+          if (sr.newWifeClass5PTNet) curW5PT = sr.newWifeClass5PTNet as number;
+          if (sr.newWifeClass3PTNet) curW3PT = sr.newWifeClass3PTNet as number;
+        }
+      }
+    });
+
+    // --- Batch 2: Evaluate Active Tax Class Switches ---
+    let isSwapActive = false;
+    let taxClassLabel = 'H: III | W: V';
+
+    if (scenarioKey === ScenarioId.C) {
+      taxClassSwitches.forEach((sw) => {
+        const eff = sw.effectiveSimulationMonth as number;
+        const rev = sw.revertSimulationMonth ? (sw.revertSimulationMonth as number) : Infinity;
+        if (m >= eff && m < rev) {
+          isSwapActive = true;
+          taxClassLabel = `H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass}`;
+        }
+      });
+    }
+
+    let husbandSalary = toEuroAmount(isSwapActive ? curH5Net : curH3Net);
     let wifeSalary = toEuroAmount(0);
     let mutterschutz = toEuroAmount(0);
     let wifeElterngeld = toEuroAmount(0);
     let husbandElterngeld = toEuroAmount(0);
     let kindergeld = toEuroAmount(0);
-    let taxClassLabel = 'H: III | W: V';
-    let phaseLabel = 'Standard FT';
-    let isSwapActive = false;
+    let phaseLabel = 'Standard Career';
     let isMutterschutz = false;
     let isPartnerschaftsbonus = false;
     let hasSiblingBonus = false;
     const transactions: AccountingTransaction[] = [];
 
+    // --- Batch 1: Evaluate Active Pregnancies & Parental Leaves ---
     if (scenarioKey === ScenarioId.A) {
-      husbandSalary = toEuroAmount(h3Net as number);
-      wifeSalary = toEuroAmount(w5FT as number);
-      phaseLabel = 'Standard Career (No Leave)';
+      husbandSalary = toEuroAmount(curH3Net);
+      wifeSalary = toEuroAmount(curW5FT);
+      phaseLabel = 'Standard Career (No Children)';
       taxClassLabel = 'H: III | W: V';
-    } else if (scenarioKey === ScenarioId.B) {
-      husbandSalary = toEuroAmount(h3Net as number);
-      taxClassLabel = 'H: III | W: V';
-
-      // Kindergeld
-      if (m >= b1 && m < b2) {
-        kindergeld = toEuroAmount(kgRate as number);
-      } else if (m >= b2) {
-        kindergeld = toEuroAmount((kgRate as number) * 2);
-      }
-
-      // Mutterschutz 1
-      if (mutterschutz1Months.includes(m)) {
-        isMutterschutz = true;
-        wifeSalary = toEuroAmount(0);
-        mutterschutz = toEuroAmount(w5FT as number);
-        phaseLabel = m === preM1 ? 'Pre-Birth Mutterschutz 1 (MuSchG)' : 'Post-Birth Mutterschutz 1';
-      }
-      // Child 1 Elterngeld
-      else if (m >= eg1Start && m <= eg1BonusEnd) {
-        wifeSalary = toEuroAmount(w5PT as number);
-        wifeElterngeld = egChild1B.elterngeldPlus;
-        phaseLabel = 'Child 1 EGPlus (Mother)';
-
-        if (m >= eg1Start && m <= eg1Start + 3) {
-          husbandElterngeld = toEuroAmount(150);
+    } else {
+      // Calculate living children count for Kindergeld
+      let livingChildren = preexisting.existingChildrenCount;
+      pregnancies.forEach((preg) => {
+        const del = preg.calculatedDeliverySimulationMonth as number;
+        if (m >= del) {
+          livingChildren += 1;
         }
-        if (m >= eg1BonusStart && m <= eg1BonusEnd) {
-          isPartnerschaftsbonus = true;
-          husbandElterngeld = toEuroAmount(150);
-          phaseLabel = 'Partnerschaftsbonus 1 (Both 24-32h)';
-        }
-      }
-      // Mutterschutz 2
-      else if (mutterschutz2Months.includes(m)) {
-        isMutterschutz = true;
-        wifeSalary = toEuroAmount(0);
-        mutterschutz = toEuroAmount(w5PT as number);
-        phaseLabel = m === preM2 ? 'Pre-Birth Mutterschutz 2 (PT Basis)' : 'Post-Birth Mutterschutz 2';
-      }
-      // Child 2 Elterngeld
-      else if (m >= eg2Start && m <= eg2BonusEnd) {
-        wifeSalary = toEuroAmount(w5PT as number);
-        const sibling = computeSiblingBonus(egChild2B.elterngeldPlus, toSimulationMonth(b1), sMonth);
-        hasSiblingBonus = sibling.isEligible;
-        wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
-        phaseLabel = sibling.isEligible ? 'Child 2 EGPlus + Sibling Bonus (+10%)' : 'Child 2 EGPlus (Min €150)';
+      });
+      kindergeld = toEuroAmount(livingChildren * kgRate);
 
-        if (m >= eg2Start && m <= eg2Start + 3) {
-          husbandElterngeld = toEuroAmount(150);
-        }
-        if (m >= eg2BonusStart && m <= eg2BonusEnd) {
-          isPartnerschaftsbonus = true;
-          husbandElterngeld = toEuroAmount(150);
-          phaseLabel = 'Partnerschaftsbonus 2 (Both 24-32h)';
-        }
-      }
-      // Part-time gap / post-leave
-      else if (m > b1) {
-        wifeSalary = toEuroAmount(w5PT as number);
-        phaseLabel = 'Family Part-Time (Post-Leave)';
-      } else {
-        wifeSalary = toEuroAmount(w5FT as number);
-        phaseLabel = 'Pre-Birth Full-Time';
-      }
-    } else if (scenarioKey === ScenarioId.C) {
-      // Kindergeld
-      if (m >= b1 && m < b2) {
-        kindergeld = toEuroAmount(kgRate as number);
-      } else if (m >= b2) {
-        kindergeld = toEuroAmount((kgRate as number) * 2);
-      }
+      // Check lifecycle per pregnancy
+      let inSpecialPhase = false;
 
-      // Pre-Swap 1
-      if (m < swap1Start) {
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(w5FT as number);
-        taxClassLabel = 'H: III | W: V';
-        phaseLabel = m < preg1Start ? 'Planning Phase (Pre-Pregnancy)' : 'Pregnancy 1 (Pre-Swap)';
-      }
-      // Swap 1 Active (Pre-Maternity 1)
-      else if (m >= swap1Start && m <= swap1End) {
-        isSwapActive = true;
-        husbandSalary = toEuroAmount(h5Net as number);
-        wifeSalary = toEuroAmount(w3FT as number);
-        taxClassLabel = 'H: V | W: III (Swap 1)';
-        phaseLabel = 'Swap 1 Active (7M Pre-Mutterschutz)';
-      }
-      // Pre-Birth Mutterschutz 1
-      else if (m === preM1) {
-        isMutterschutz = true;
-        isSwapActive = true;
-        husbandSalary = toEuroAmount(h5Net as number);
-        wifeSalary = toEuroAmount(0);
-        mutterschutz = toEuroAmount(w3FT as number);
-        taxClassLabel = 'H: V | W: III (Pre-M)';
-        phaseLabel = 'Pre-Birth Mutterschutz 1 (Class III FT)';
-      }
-      // Post-Birth Mutterschutz 1 (Reverted to III/V)
-      else if (m === b1 || m === b1 + 1) {
-        isMutterschutz = true;
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(0);
-        mutterschutz = toEuroAmount(w3FT as number);
-        taxClassLabel = 'H: III | W: V (Reverted)';
-        phaseLabel = 'Post-Birth Mutterschutz 1 (Maxed Benefit)';
-      }
-      // Child 1 ElterngeldPlus
-      else if (m >= eg1Start && m <= eg1BonusEnd) {
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(w5PT as number);
-        wifeElterngeld = egChild1C.elterngeldPlus;
-        taxClassLabel = 'H: III | W: V';
-        phaseLabel = 'Child 1 EGPlus (Synthetic Class III Maxed €900)';
+      pregnancies.forEach((preg, pIdx) => {
+        const b = preg.calculatedDeliverySimulationMonth as number;
+        const preM = b - 1;
+        const mutterschutzMonths = [preM, b, b + 1];
+        const egStart = b + 2;
+        const egEnd = egStart + 11;
+        const egBonusStart = egEnd + 1;
+        const egBonusEnd = egBonusStart + 3;
 
-        if (m >= eg1Start && m <= eg1Start + 3) {
-          husbandElterngeld = toEuroAmount(150);
-        }
-        if (m >= eg1BonusStart && m <= eg1BonusEnd) {
-          isPartnerschaftsbonus = true;
-          husbandElterngeld = toEuroAmount(150);
-          phaseLabel = 'Partnerschaftsbonus 1 (Both 24-32h)';
-        }
-      }
-      // Swap 2 Active (Pre-Maternity 2)
-      else if (m >= swap2Start && m <= swap2End) {
-        isSwapActive = true;
-        husbandSalary = toEuroAmount(h5Net as number);
-        wifeSalary = toEuroAmount(w3PT as number);
-        taxClassLabel = 'H: V | W: III (Swap 2)';
-        phaseLabel = 'Swap 2 Active (7M Pre-Mutterschutz 2)';
-      }
-      // Pre-Birth Mutterschutz 2
-      else if (m === preM2) {
-        isMutterschutz = true;
-        isSwapActive = true;
-        husbandSalary = toEuroAmount(h5Net as number);
-        wifeSalary = toEuroAmount(0);
-        mutterschutz = toEuroAmount(w3PT as number);
-        taxClassLabel = 'H: V | W: III (Pre-M2)';
-        phaseLabel = 'Pre-Birth Mutterschutz 2 (Class III PT)';
-      }
-      // Post-Birth Mutterschutz 2
-      else if (m === b2 || m === b2 + 1) {
-        isMutterschutz = true;
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(0);
-        mutterschutz = toEuroAmount(w3PT as number);
-        taxClassLabel = 'H: III | W: V (Reverted)';
-        phaseLabel = 'Post-Birth Mutterschutz 2 (Maxed Benefit)';
-      }
-      // Child 2 ElterngeldPlus
-      else if (m >= eg2Start && m <= eg2BonusEnd) {
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(w5PT as number);
-        taxClassLabel = 'H: III | W: V';
+        // Mutterschutz Phase
+        if (mutterschutzMonths.includes(m)) {
+          inSpecialPhase = true;
+          isMutterschutz = true;
+          wifeSalary = toEuroAmount(0);
 
-        const sibling = computeSiblingBonus(egChild2C.elterngeldPlus, toSimulationMonth(b1), sMonth);
-        hasSiblingBonus = sibling.isEligible;
-        wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
-        phaseLabel = sibling.isEligible
-          ? 'Child 2 EGPlus + Sibling Bonus (+10%)'
-          : 'Child 2 EGPlus (Post-Sibling Bonus)';
+          if (scenarioKey === ScenarioId.C) {
+            const mRate = (pIdx === 0) ? curW3FT : curW3PT;
+            mutterschutz = toEuroAmount(mRate);
+            phaseLabel = m === preM
+              ? `Pre-Birth Mutterschutz (Child ${preg.childIndex})`
+              : `Post-Birth Mutterschutz (Child ${preg.childIndex})`;
+          } else {
+            const mRate = (pIdx === 0) ? curW5FT : curW5PT;
+            mutterschutz = toEuroAmount(mRate);
+            phaseLabel = m === preM
+              ? `Pre-Birth Mutterschutz (Child ${preg.childIndex})`
+              : `Post-Birth Mutterschutz (Child ${preg.childIndex})`;
+          }
+        }
+        // ElterngeldPlus Phase
+        else if (m >= egStart && m <= egBonusEnd) {
+          inSpecialPhase = true;
+          wifeSalary = toEuroAmount(curW5PT);
 
-        if (m >= eg2Start && m <= eg2Start + 3) {
-          husbandElterngeld = toEuroAmount(150);
+          // Calculate Elterngeld Entitlement
+          if (pIdx === 0) {
+            // Child 1
+            const egEntitlement = computeElterngeldBenefits(
+              toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+              toNetSalary(curW5PT)
+            );
+            wifeElterngeld = egEntitlement.elterngeldPlus;
+            phaseLabel = `Child ${preg.childIndex} EGPlus (Mother)`;
+          } else {
+            // Child 2+ with blended pre-birth assessment baseline (10M PT + 2M FT)
+            const blendedNet = toNetSalary(
+              Math.round(
+                (10 * (scenarioKey === ScenarioId.C ? curW3PT : curW5PT) +
+                  2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
+                  12
+              )
+            );
+            const egEntitlement = computeElterngeldBenefits(blendedNet, toNetSalary(curW5PT));
+
+            // Sibling bonus eligibility vs Child 1
+            const prevBirth = pregnancies[0].calculatedDeliverySimulationMonth;
+            const sibling = computeSiblingBonus(egEntitlement.elterngeldPlus, prevBirth, sMonth);
+            hasSiblingBonus = sibling.isEligible;
+            wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
+            phaseLabel = sibling.isEligible
+              ? `Child ${preg.childIndex} EGPlus + Sibling Bonus (+10%)`
+              : `Child ${preg.childIndex} EGPlus`;
+          }
+
+          // Partner Months (Father)
+          if (m >= egStart && m <= egStart + 3) {
+            husbandElterngeld = toEuroAmount(150);
+          }
+          if (m >= egBonusStart && m <= egBonusEnd) {
+            isPartnerschaftsbonus = true;
+            husbandElterngeld = toEuroAmount(150);
+            phaseLabel = `Partnerschaftsbonus ${preg.childIndex} (Both 24-32h)`;
+          }
         }
-        if (m >= eg2BonusStart && m <= eg2BonusEnd) {
-          isPartnerschaftsbonus = true;
-          husbandElterngeld = toEuroAmount(150);
-          phaseLabel = 'Partnerschaftsbonus 2 (Both 24-32h)';
+      });
+
+      // If not in active maternity or parental allowance
+      if (!inSpecialPhase) {
+        if (m > child1Delivery) {
+          wifeSalary = toEuroAmount(isSwapActive ? curW3PT : curW5PT);
+          phaseLabel = isSwapActive
+            ? 'Swap Active (Part-Time)'
+            : 'Family Part-Time (Post-Leave)';
+        } else {
+          wifeSalary = toEuroAmount(isSwapActive ? curW3FT : curW5FT);
+          phaseLabel = isSwapActive
+            ? 'Swap Active (Pre-Mutterschutz)'
+            : (m < (pregnancies[0]?.positiveTestSimulationMonth as number ?? 4)
+                ? 'Pre-Pregnancy Planning'
+                : 'Pre-Birth Full-Time');
         }
-      }
-      // Part-Time Gap or Post-Leave
-      else if (m > b1) {
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(w5PT as number);
-        phaseLabel = 'Family Part-Time (Post-Leave)';
-      } else {
-        husbandSalary = toEuroAmount(h3Net as number);
-        wifeSalary = toEuroAmount(w5FT as number);
-        phaseLabel = 'Pre-Birth Full-Time';
       }
     }
 
     // Exact Wage Withholding Deficit during active swap
     let monthlyWithholdingDeficit = toEuroAmount(0);
     if (scenarioKey === ScenarioId.C && isSwapActive) {
-      const isPT = m > b1 || phaseLabel.includes('Part-Time');
+      const isPT = m > child1Delivery || phaseLabel.includes('Part-Time');
       monthlyWithholdingDeficit = computeMonthlySwapWithholdingVariance(
-        h3Net,
-        h5Net,
-        isPT ? w3PT : w3FT,
-        isPT ? w5PT : w5FT
+        toNetSalary(curH3Net),
+        toNetSalary(curH5Net),
+        toNetSalary(isPT ? curW3PT : curW3FT),
+        toNetSalary(isPT ? curW5PT : curW5FT)
       );
     }
 
@@ -413,7 +340,7 @@ export function generateTimelineSimulation(
   });
 
   const taxRefundByMonth: Record<number, EuroAmount> = {};
-  const tMonth = (params.taxReturnMonth as number) ?? 3;
+  const tMonth = (preexisting.taxReturnMonth as number) ?? 3;
   const baseStandardRefund = toEuroAmount(850);
 
   rawMonths.forEach(rm => {
@@ -446,13 +373,13 @@ export function generateTimelineSimulation(
     // 13th Month Salary Events triggered on configured calendar months
     let bonus40Amount = toEuroAmount(0);
     let bonus60Amount = toEuroAmount(0);
-    const currentHusbandNet = rm.isSwapActive ? (h5Net as number) : (h3Net as number);
+    const currentHusbandNet = rm.husbandSalary as number;
 
-    if (params.enable13thSalary) {
-      if (calMonth === (params.bonus40Month as number)) {
+    if (preexisting.enable13thSalary) {
+      if (calMonth === (preexisting.bonus40Month as number)) {
         bonus40Amount = toEuroAmount(Math.round(0.40 * currentHusbandNet));
       }
-      if (calMonth === (params.bonus60Month as number)) {
+      if (calMonth === (preexisting.bonus60Month as number)) {
         bonus60Amount = toEuroAmount(Math.round(0.60 * currentHusbandNet));
       }
     }
@@ -605,28 +532,27 @@ export function generateTimelineSimulation(
     if (m === 1) {
       eventTag = `Simulation Start (${rm.calendarLabel})`;
       eventType = 'planning';
-    } else if (m === preg1Start && scenarioKey === 'C') {
-      eventTag = `Pregnancy 1 & Tax Swap (${rm.calendarLabel})`;
-      eventType = 'swap';
-    } else if (m === preg1Start && scenarioKey !== 'A') {
-      eventTag = `Pregnancy 1 Start (${rm.calendarLabel})`;
-      eventType = 'preg';
-    } else if (m === b1 && scenarioKey !== 'A') {
-      eventTag = `Child 1 Birth (${rm.calendarLabel})`;
-      eventType = 'birth';
-    } else if (m === preg2Start && scenarioKey !== 'A') {
-      eventTag = `Pregnancy 2 Start (${rm.calendarLabel})`;
-      eventType = 'preg';
-    } else if (m === swap2Start && scenarioKey === 'C') {
-      eventTag = `Tax Swap 2 (${rm.calendarLabel})`;
-      eventType = 'swap';
-    } else if (m === b2 && scenarioKey !== 'A') {
-      eventTag = `Child 2 Birth (${rm.calendarLabel})`;
-      eventType = 'birth';
-    } else if (m === siblingBonusEndMonth && scenarioKey !== 'A') {
-      eventTag = `Child 1 Age 3 (${rm.calendarLabel})`;
-      eventType = 'bonus_end';
     }
+
+    pregnancies.forEach((preg) => {
+      const pTest = preg.positiveTestSimulationMonth as number;
+      const del = preg.calculatedDeliverySimulationMonth as number;
+      if (m === pTest) {
+        eventTag = `Pregnancy ${preg.childIndex} Positive (${rm.calendarLabel})`;
+        eventType = 'preg';
+      } else if (m === del) {
+        eventTag = `Child ${preg.childIndex} Birth (${rm.calendarLabel})`;
+        eventType = 'birth';
+      }
+    });
+
+    taxClassSwitches.forEach((sw, sIdx) => {
+      const eff = sw.effectiveSimulationMonth as number;
+      if (m === eff && scenarioKey === ScenarioId.C) {
+        eventTag = `Tax Swap ${sIdx + 1} (${rm.calendarLabel})`;
+        eventType = 'swap';
+      }
+    });
 
     // Build Special Events for UI display (table sub-rows)
     const specialEvents: SpecialEventItem[] = [];
@@ -767,4 +693,111 @@ export function generateTimelineSimulation(
       total13thSalaries: toEuroAmount(total13thSalaries)
     }
   };
+}
+
+/**
+ * Pure Deterministic Dynamic Timeline Simulator adapter for TimelineSimulationParams
+ */
+export function generateTimelineSimulation(
+  params: TimelineSimulationParams
+): SimulationResult {
+  const startYear = params.startCalendarYear ?? 2026;
+  const startMonth = (params.startCalendarMonth as number) ?? 1;
+  const duration = params.simulationDurationMonths ?? 60;
+
+  const b1 = params.child1BirthMonth as number;
+  const spacing = params.birthSpacingMonths;
+  const b2 = b1 + spacing;
+  const lead = params.swapLeadMonths;
+
+  // Batch 0: Preexisting Conditions
+  const preexisting: PreexistingConditions = {
+    startCalendarYear: startYear,
+    startCalendarMonth: toCalendarMonth(startMonth),
+    simulationDurationMonths: duration,
+    husbandInitialTaxClass: TaxClass.III,
+    husbandInitialNet: params.husbandClass3Net,
+    husbandInitialClass5Net: params.husbandClass5Net,
+    husbandWeeklyHours: toEuroAmount(32) as unknown as import('#engine/types').WorkingHours,
+    wifeInitialTaxClass: TaxClass.V,
+    wifeInitialFullTimeNet: params.wifeClass5FullTimeNet,
+    wifeInitialClass3FullTimeNet: params.wifeClass3FullTimeNet,
+    wifeInitialPartTimeClass5Net: params.wifeClass5PartTimeNet,
+    wifeInitialPartTimeClass3Net: params.wifeClass3PartTimeNet,
+    wifeWeeklyHours: toEuroAmount(40) as unknown as import('#engine/types').WorkingHours,
+    existingChildrenCount: 0,
+    kindergeldPerChild: params.kindergeldPerChild,
+    enable13thSalary: params.enable13thSalary,
+    bonus40Month: params.bonus40Month,
+    bonus60Month: params.bonus60Month,
+    taxReturnMonth: params.taxReturnMonth
+  };
+
+  // Batch 1: Pregnancy Actions
+  const pregnancies: PregnancyAction[] = [
+    {
+      pregnancyId: 'PREG-CHILD-1',
+      childIndex: 1,
+      positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + params.prePregnancyPlanningMonths) % 12) + 1),
+      positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + params.prePregnancyPlanningMonths) / 12),
+      positiveTestSimulationMonth: toSimulationMonth(params.prePregnancyPlanningMonths + 1),
+      calculatedDeliverySimulationMonth: toSimulationMonth(b1),
+      motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+      motherPostBirthPartTimeClass5Net: params.wifeClass5PartTimeNet,
+      motherPostBirthPartTimeClass3Net: params.wifeClass3PartTimeNet,
+      fatherPartnerMonthsCount: 4
+    },
+    {
+      pregnancyId: 'PREG-CHILD-2',
+      childIndex: 2,
+      positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + (b2 - 9)) % 12) + 1),
+      positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
+      positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
+      calculatedDeliverySimulationMonth: toSimulationMonth(b2),
+      motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+      motherPostBirthPartTimeClass5Net: params.wifeClass5PartTimeNet,
+      motherPostBirthPartTimeClass3Net: params.wifeClass3PartTimeNet,
+      fatherPartnerMonthsCount: 4
+    }
+  ];
+
+  // Batch 2: Tax Class Switches
+  const preM1 = b1 - 1;
+  const swap1Start = Math.max(1, preM1 - lead);
+  const preM2 = b2 - 1;
+  const swap2Start = Math.max(b1 + 2, preM2 - lead);
+
+  const taxClassSwitches: TaxClassSwitchAction[] = [
+    {
+      switchId: 'SWAP-CHILD-1',
+      effectiveSimulationMonth: toSimulationMonth(swap1Start),
+      effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap1Start - 1) % 12) + 1),
+      effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
+      targetHusbandTaxClass: TaxClass.V,
+      targetWifeTaxClass: TaxClass.III,
+      statutoryReason: 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)',
+      revertSimulationMonth: toSimulationMonth(b1)
+    },
+    {
+      switchId: 'SWAP-CHILD-2',
+      effectiveSimulationMonth: toSimulationMonth(swap2Start),
+      effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap2Start - 1) % 12) + 1),
+      effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),
+      targetHusbandTaxClass: TaxClass.V,
+      targetWifeTaxClass: TaxClass.III,
+      statutoryReason: 'Optimize Child 2 Part-Time Elterngeld baseline (§ 2b BEEG)',
+      revertSimulationMonth: toSimulationMonth(b2)
+    }
+  ];
+
+  // Batch 3: Salary Raises (Empty by default in legacy params)
+  const salaryRaises: SalaryRaiseAction[] = [];
+
+  return runScenarioBatches({
+    scenarioKey: params.scenarioKey,
+    preexisting,
+    pregnancies,
+    taxClassSwitches,
+    salaryRaises
+  });
 }

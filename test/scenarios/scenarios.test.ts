@@ -188,4 +188,102 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       assert.ok(m19.taxRefund > 0, 'Month 19 (March 2028) must receive the 2027 tax return');
     });
   });
+
+  describe('Discrete Batch Action Simulation Architecture (runScenarioBatches)', () => {
+    it('executes simulation with discrete batches: preexisting, pregnancy, tax switches, and raises', async () => {
+      const { runScenarioBatches } = await import('#engine/simulator/timelineGenerator');
+      const { TaxClass } = await import('#engine/types');
+
+      const preexisting = {
+        startCalendarYear: 2026,
+        startCalendarMonth: toCalendarMonth(1),
+        simulationDurationMonths: 36,
+        husbandInitialTaxClass: TaxClass.III,
+        husbandInitialNet: toNetSalary(4000),
+        husbandInitialClass5Net: toNetSalary(3000),
+        husbandWeeklyHours: toEuroAmount(32) as unknown as import('#engine/types').WorkingHours,
+        wifeInitialTaxClass: TaxClass.V,
+        wifeInitialFullTimeNet: toNetSalary(2000),
+        wifeInitialClass3FullTimeNet: toNetSalary(2800),
+        wifeInitialPartTimeClass5Net: toNetSalary(1200),
+        wifeInitialPartTimeClass3Net: toNetSalary(1600),
+        wifeWeeklyHours: toEuroAmount(40) as unknown as import('#engine/types').WorkingHours,
+        existingChildrenCount: 0,
+        kindergeldPerChild: toEuroAmount(250),
+        enable13thSalary: true,
+        bonus40Month: toCalendarMonth(5),
+        bonus60Month: toCalendarMonth(11),
+        taxReturnMonth: toCalendarMonth(3)
+      };
+
+      const pregnancies = [
+        {
+          pregnancyId: 'PREG-1',
+          childIndex: 1,
+          positiveTestCalendarMonth: toCalendarMonth(9),
+          positiveTestCalendarYear: 2026,
+          positiveTestSimulationMonth: toSimulationMonth(9),
+          calculatedDeliverySimulationMonth: toSimulationMonth(18),
+          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeClass5Net: toNetSalary(1200),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1600),
+          fatherPartnerMonthsCount: 4
+        }
+      ];
+
+      const taxClassSwitches = [
+        {
+          switchId: 'SWAP-1',
+          effectiveSimulationMonth: toSimulationMonth(10),
+          effectiveCalendarMonth: toCalendarMonth(10),
+          effectiveCalendarYear: 2026,
+          targetHusbandTaxClass: TaxClass.V,
+          targetWifeTaxClass: TaxClass.III,
+          statutoryReason: 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)',
+          revertSimulationMonth: toSimulationMonth(18)
+        }
+      ];
+
+      const salaryRaises = [
+        {
+          raiseId: 'RAISE-Y2',
+          effectiveSimulationMonth: toSimulationMonth(13),
+          effectiveCalendarMonth: toCalendarMonth(1),
+          effectiveCalendarYear: 2027,
+          targetPerson: 'both' as const,
+          percentageIncrease: 0.05, // +5% raise in Year 2
+          reason: 'Annual Tariff / Promotion'
+        }
+      ];
+
+      const res = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting,
+        pregnancies,
+        taxClassSwitches,
+        salaryRaises
+      });
+
+      assert.equal(res.months.length, 36);
+
+      // Month 1-9: Initial salaries
+      assert.equal(res.months[0].husbandSalary, 4000);
+      assert.equal(res.months[0].wifeSalary, 2000);
+
+      // Month 10: Swap 1 active (H: V | W: III)
+      assert.equal(res.months[9].husbandSalary, 3000);
+      assert.equal(res.months[9].wifeSalary, 2800);
+      assert.equal(res.months[9].isSwapActive, true);
+
+      // Month 13: 5% salary raise applied
+      // Husband Class V was 3000 -> now 3150
+      // Wife Class III was 2800 -> now 2940
+      assert.equal(res.months[12].husbandSalary, 3150);
+      assert.equal(res.months[12].wifeSalary, 2940);
+
+      // Month 18: Child 1 Birth (Mutterschutz)
+      assert.equal(res.months[17].isMutterschutz, true);
+      assert.ok(res.months[17].mutterschutz > 0);
+    });
+  });
 });

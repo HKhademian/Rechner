@@ -262,3 +262,92 @@ export interface SimulationResult {
     readonly total13thSalaries: EuroAmount;
   };
 }
+
+// ==========================================
+// Discrete Batch Action Architecture Types
+// ==========================================
+
+/**
+ * Batch 0: Preexisting Baseline Conditions
+ */
+export interface PreexistingConditions {
+  readonly startCalendarYear: number;
+  readonly startCalendarMonth: CalendarMonth;
+  readonly simulationDurationMonths: number;
+  readonly husbandInitialTaxClass: TaxClass;
+  readonly husbandInitialNet: NetSalary;
+  readonly husbandInitialClass5Net: NetSalary;
+  readonly husbandWeeklyHours: WorkingHours;
+  readonly wifeInitialTaxClass: TaxClass;
+  readonly wifeInitialFullTimeNet: NetSalary;
+  readonly wifeInitialClass3FullTimeNet: NetSalary;
+  readonly wifeInitialPartTimeClass5Net: NetSalary;
+  readonly wifeInitialPartTimeClass3Net: NetSalary;
+  readonly wifeWeeklyHours: WorkingHours;
+  readonly existingChildrenCount: number;
+  readonly kindergeldPerChild: EuroAmount;
+  readonly enable13thSalary: boolean;
+  readonly bonus40Month: CalendarMonth;
+  readonly bonus60Month: CalendarMonth;
+  readonly taxReturnMonth: CalendarMonth;
+}
+
+/**
+ * Batch 1: Pregnancy Positive Decisions
+ */
+export interface PregnancyAction {
+  readonly pregnancyId: string;
+  readonly childIndex: number;
+  readonly positiveTestCalendarMonth: CalendarMonth;
+  readonly positiveTestCalendarYear: number;
+  readonly positiveTestSimulationMonth: SimulationMonth;
+  readonly calculatedDeliverySimulationMonth: SimulationMonth;
+  readonly motherPostBirthPartTimeHours: WorkingHours;
+  readonly motherPostBirthPartTimeClass5Net: NetSalary;
+  readonly motherPostBirthPartTimeClass3Net: NetSalary;
+  readonly fatherPartnerMonthsCount: number;
+}
+
+/**
+ * Batch 2: Tax Class Switches
+ */
+export interface TaxClassSwitchAction {
+  readonly switchId: string;
+  readonly effectiveSimulationMonth: SimulationMonth;
+  readonly effectiveCalendarMonth: CalendarMonth;
+  readonly effectiveCalendarYear: number;
+  readonly targetHusbandTaxClass: TaxClass;
+  readonly targetWifeTaxClass: TaxClass;
+  readonly statutoryReason: string;
+  readonly revertSimulationMonth?: SimulationMonth;
+}
+
+/**
+ * Batch 3: Salary Raises & Career Adjustments
+ */
+export interface SalaryRaiseAction {
+  readonly raiseId: string;
+  readonly effectiveSimulationMonth: SimulationMonth;
+  readonly effectiveCalendarMonth: CalendarMonth;
+  readonly effectiveCalendarYear: number;
+  readonly targetPerson: 'husband' | 'wife' | 'both';
+  readonly percentageIncrease?: number;
+  readonly newHusbandClass3Net?: NetSalary;
+  readonly newHusbandClass5Net?: NetSalary;
+  readonly newWifeClass5FTNet?: NetSalary;
+  readonly newWifeClass3FTNet?: NetSalary;
+  readonly newWifeClass5PTNet?: NetSalary;
+  readonly newWifeClass3PTNet?: NetSalary;
+  readonly reason: string;
+}
+
+/**
+ * Combined Scenario Action Batches Input
+ */
+export interface ScenarioActionBatches {
+  readonly scenarioKey: ScenarioId;
+  readonly preexisting: PreexistingConditions;
+  readonly pregnancies: readonly PregnancyAction[];
+  readonly taxClassSwitches: readonly TaxClassSwitchAction[];
+  readonly salaryRaises: readonly SalaryRaiseAction[];
+}

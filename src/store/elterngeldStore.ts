@@ -1,12 +1,17 @@
 import { signal, computed } from '@preact/signals';
-import { generateTimelineSimulation } from '#engine/simulator/timelineGenerator';
+import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
 import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  TaxClass,
   ScenarioId,
-  type ScenarioId as ScenarioIdType
+  type ScenarioId as ScenarioIdType,
+  type PreexistingConditions,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction
 } from '#engine/types';
 
 // Default Financial Parameters (The Sandbox)
@@ -29,6 +34,10 @@ export const bonus40Month = signal(5); // Month 4 or 5 of each year (40% Vacatio
 export const bonus60Month = signal(11); // Month 10 or 11 of each year (60% Christmas Bonus / Weihnachtsgeld)
 export const taxReturnMonth = signal(3); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
 export const showSpecialEventRows = signal(true); // Table display toggle
+
+// Batch 3: Salary Raises & Career Progression Controls
+export const enableSalaryRaises = signal(false);
+export const annualSalaryRaisePercent = signal(0); // 0%, 2%, 3%, 5% annual raise
 
 // Timeline & Calendar Simulation Controls
 export const startCalendarYear = signal(2026); // Default 2026
@@ -66,6 +75,9 @@ export function resetToDefaults() {
   taxReturnMonth.value = 3;
   showSpecialEventRows.value = true;
 
+  enableSalaryRaises.value = false;
+  annualSalaryRaisePercent.value = 0;
+
   startCalendarYear.value = 2026;
   startCalendarMonth.value = 1;
   simulationDurationMonths.value = 60;
@@ -79,26 +91,120 @@ export function resetToDefaults() {
 
 // 60-Month Cash Flow Engine for a given scenario ('A', 'B', or 'C')
 export function computeTimelineData(scenarioKey: ScenarioIdType) {
-  return generateTimelineSimulation({
-    scenarioKey,
-    startCalendarYear: startCalendarYear.value,
-    startCalendarMonth: toCalendarMonth(startCalendarMonth.value),
-    simulationDurationMonths: simulationDurationMonths.value,
-    husbandClass3Net: toNetSalary(husbandClass3Net.value),
-    husbandClass5Net: toNetSalary(husbandClass5Net.value),
-    wifeClass5FullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),
-    wifeClass3FullTimeNet: toNetSalary(wifeClass3FullTimeNet.value),
-    wifeClass5PartTimeNet: toNetSalary(wifeClass5PartTimeNet.value),
-    wifeClass3PartTimeNet: toNetSalary(wifeClass3PartTimeNet.value),
+  const startYear = startCalendarYear.value;
+  const startMonth = startCalendarMonth.value;
+  const duration = simulationDurationMonths.value;
+  const b1 = child1BirthMonth.value;
+  const spacing = birthSpacingMonths.value;
+  const b2 = b1 + spacing;
+  const lead = swapLeadMonths.value;
+
+  // Batch 0: Preexisting Baseline Conditions
+  const preexisting: PreexistingConditions = {
+    startCalendarYear: startYear,
+    startCalendarMonth: toCalendarMonth(startMonth),
+    simulationDurationMonths: duration,
+    husbandInitialTaxClass: TaxClass.III,
+    husbandInitialNet: toNetSalary(husbandClass3Net.value),
+    husbandInitialClass5Net: toNetSalary(husbandClass5Net.value),
+    husbandWeeklyHours: toEuroAmount(husbandHours.value) as unknown as import('#engine/types').WorkingHours,
+    wifeInitialTaxClass: TaxClass.V,
+    wifeInitialFullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),
+    wifeInitialClass3FullTimeNet: toNetSalary(wifeClass3FullTimeNet.value),
+    wifeInitialPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
+    wifeInitialPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
+    wifeWeeklyHours: toEuroAmount(wifeInitialHours.value) as unknown as import('#engine/types').WorkingHours,
+    existingChildrenCount: 0,
     kindergeldPerChild: toEuroAmount(kindergeldPerChild.value),
-    prePregnancyPlanningMonths: prePregnancyPlanningMonths.value,
-    child1BirthMonth: toSimulationMonth(child1BirthMonth.value),
-    birthSpacingMonths: birthSpacingMonths.value,
-    swapLeadMonths: swapLeadMonths.value,
     enable13thSalary: enable13thSalary.value,
     bonus40Month: toCalendarMonth(bonus40Month.value),
     bonus60Month: toCalendarMonth(bonus60Month.value),
     taxReturnMonth: toCalendarMonth(taxReturnMonth.value)
+  };
+
+  // Batch 1: Pregnancy Actions
+  const pregnancies: PregnancyAction[] = [
+    {
+      pregnancyId: 'PREG-CHILD-1',
+      childIndex: 1,
+      positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + prePregnancyPlanningMonths.value) % 12) + 1),
+      positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + prePregnancyPlanningMonths.value) / 12),
+      positiveTestSimulationMonth: toSimulationMonth(prePregnancyPlanningMonths.value + 1),
+      calculatedDeliverySimulationMonth: toSimulationMonth(b1),
+      motherPostBirthPartTimeHours: toEuroAmount(wifePostBirthHours.value) as unknown as import('#engine/types').WorkingHours,
+      motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
+      motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
+      fatherPartnerMonthsCount: 4
+    },
+    {
+      pregnancyId: 'PREG-CHILD-2',
+      childIndex: 2,
+      positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + (b2 - 9)) % 12) + 1),
+      positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
+      positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
+      calculatedDeliverySimulationMonth: toSimulationMonth(b2),
+      motherPostBirthPartTimeHours: toEuroAmount(wifePostBirthHours.value) as unknown as import('#engine/types').WorkingHours,
+      motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
+      motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
+      fatherPartnerMonthsCount: 4
+    }
+  ];
+
+  // Batch 2: Tax Class Switches
+  const preM1 = b1 - 1;
+  const swap1Start = Math.max(1, preM1 - lead);
+  const preM2 = b2 - 1;
+  const swap2Start = Math.max(b1 + 2, preM2 - lead);
+
+  const taxClassSwitches: TaxClassSwitchAction[] = [
+    {
+      switchId: 'SWAP-CHILD-1',
+      effectiveSimulationMonth: toSimulationMonth(swap1Start),
+      effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap1Start - 1) % 12) + 1),
+      effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
+      targetHusbandTaxClass: TaxClass.V,
+      targetWifeTaxClass: TaxClass.III,
+      statutoryReason: 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)',
+      revertSimulationMonth: toSimulationMonth(b1)
+    },
+    {
+      switchId: 'SWAP-CHILD-2',
+      effectiveSimulationMonth: toSimulationMonth(swap2Start),
+      effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap2Start - 1) % 12) + 1),
+      effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),
+      targetHusbandTaxClass: TaxClass.V,
+      targetWifeTaxClass: TaxClass.III,
+      statutoryReason: 'Optimize Child 2 Part-Time Elterngeld baseline (§ 2b BEEG)',
+      revertSimulationMonth: toSimulationMonth(b2)
+    }
+  ];
+
+  // Batch 3: Salary Raises & Career Adjustments
+  const salaryRaises: SalaryRaiseAction[] = [];
+  if (enableSalaryRaises.value && annualSalaryRaisePercent.value > 0) {
+    const rate = annualSalaryRaisePercent.value / 100;
+    for (let yr = 2; yr <= 5; yr++) {
+      const raiseSimMonth = (yr - 1) * 12 + 1;
+      if (raiseSimMonth <= duration) {
+        salaryRaises.push({
+          raiseId: `RAISE-Y${yr}`,
+          effectiveSimulationMonth: toSimulationMonth(raiseSimMonth),
+          effectiveCalendarMonth: toCalendarMonth(1),
+          effectiveCalendarYear: startYear + (yr - 1),
+          targetPerson: 'both',
+          percentageIncrease: rate,
+          reason: `Annual Tariff / Merit Increase (+${annualSalaryRaisePercent.value}%)`
+        });
+      }
+    }
+  }
+
+  return runScenarioBatches({
+    scenarioKey,
+    preexisting,
+    pregnancies,
+    taxClassSwitches,
+    salaryRaises
   });
 }
 

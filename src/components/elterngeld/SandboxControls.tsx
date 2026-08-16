@@ -8,11 +8,15 @@ import {
   wifeClass3FullTimeNet,
   wifeClass5PartTimeNet,
   wifeClass3PartTimeNet,
+  wifeInitialHours,
+  wifePostBirthHours,
   kindergeldPerChild,
   enable13thSalary,
   bonus40Month,
   bonus60Month,
   taxReturnMonth,
+  enableSalaryRaises,
+  annualSalaryRaisePercent,
   startCalendarYear,
   startCalendarMonth,
   simulationDurationMonths,
@@ -116,10 +120,10 @@ export default function SandboxControls(): JSX.Element {
           </div>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-              Parameter Sandbox & Timeline Calibration
+              Discrete Batch Action Sandbox & Simulation Runner
             </h3>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
-              Fine-tune net salaries across tax classes, pre-pregnancy lead times, and birth spacing.
+              Configured via discrete batches: 0. Preexisting Baseline → 1. Pregnancy Decisions → 2. Tax Switches → 3. Salary Raises
             </p>
           </div>
         </div>
@@ -147,7 +151,7 @@ export default function SandboxControls(): JSX.Element {
             border: '1px solid #334155'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>Presets:</span>
+              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>Scenario Presets:</span>
               <button
                 type="button"
                 onClick={() => applyPreset('default')}
@@ -219,36 +223,93 @@ export default function SandboxControls(): JSX.Element {
             </button>
           </div>
 
-          {/* Grid Layout of Controls */}
+          {/* 4-Batch Grid Layout */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
-            gap: '24px'
+            gap: '20px'
           }}>
-            {/* Column 1: Husband Parameters */}
+            {/* ======================================================== */}
+            {/* BATCH 0: PREEXISTING CONDITIONS & BASELINE INCOMES */}
+            {/* ======================================================== */}
             <div style={{
               background: '#0f172a',
               padding: '16px',
               borderRadius: '6px',
-              border: '1px solid #334155'
+              border: '1px solid #334155',
+              gridColumn: 'span 1'
             }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                marginBottom: '14px',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
                 borderBottom: '1px solid #334155',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#93c5fd' }}>
-                  Husband Parameters (32h / week)
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#60a5fa' }}>
+                  0. Preexisting Conditions
+                </span>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8', background: '#1e293b', padding: '2px 6px', borderRadius: '4px' }}>
+                  Start: {getCalDate(1)}
                 </span>
               </div>
 
-              {/* Husband Full-Time Net Class III */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Standard Net (*Steuerklasse III*):</span>
+              {/* Simulation Start Date & Duration */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Sim Start & Duration:</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
+                    {getCalDate(1)} → {getCalDate(endSimMonth)} ({simulationDurationMonths.value}M)
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '6px', marginBottom: '6px' }}>
+                  <select
+                    value={startCalendarMonth.value}
+                    onChange={(e) => { startCalendarMonth.value = Number((e.target as HTMLSelectElement).value); }}
+                    style={{ background: '#1e293b', color: '#f8fafc', border: '1px solid #334155', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
+                  >
+                    {MONTH_NAMES.map((name, idx) => (
+                      <option key={`start-m-${idx + 1}`} value={idx + 1}>{name}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={startCalendarYear.value}
+                    onChange={(e) => { startCalendarYear.value = Number((e.target as HTMLSelectElement).value); }}
+                    style={{ background: '#1e293b', color: '#f8fafc', border: '1px solid #334155', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
+                  >
+                    {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map((yr) => (
+                      <option key={`start-y-${yr}`} value={yr}>Year {yr}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {[12, 24, 36, 48, 60, 72].map((dur) => (
+                    <button
+                      key={`dur-btn-${dur}`}
+                      type="button"
+                      onClick={() => { simulationDurationMonths.value = dur; }}
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        border: simulationDurationMonths.value === dur ? '1px solid #38bdf8' : '1px solid #334155',
+                        background: simulationDurationMonths.value === dur ? '#0284c7' : '#0f172a',
+                        color: '#ffffff',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {dur}M
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Husband Baseline Class III */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Husband Class III Net (32h):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
                     {formatCurrency(husbandClass3Net.value)}
                   </span>
@@ -263,73 +324,10 @@ export default function SandboxControls(): JSX.Element {
                 />
               </div>
 
-              {/* Husband Class V Net */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Net during swap (*Steuerklasse V*):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fbbf24' }}>
-                    {formatCurrency(husbandClass5Net.value)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1500"
-                  max="5500"
-                  step="25"
-                  value={husbandClass5Net.value}
-                  onInput={(e) => { husbandClass5Net.value = Number((e.target as HTMLInputElement).value); }}
-                />
-                <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                  Monthly cash withholding during swap: -{formatCurrency(husbandClass3Net.value - husbandClass5Net.value)}/mo (refunded via *Ehegatten-Splitting*)
-                </div>
-              </div>
-
-              {/* Husband Weekly Hours */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Working Hours (Part-Time):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
-                    {husbandHours.value} hrs / week
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="24"
-                  max="40"
-                  step="1"
-                  value={husbandHours.value}
-                  onInput={(e) => { husbandHours.value = Number((e.target as HTMLInputElement).value); }}
-                />
-                <div style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '2px' }}>
-                  Eligible for 4 Partner Months (*Partnermonate*) + 4 Partnership Bonus Months (*Partnerschaftsbonus* § 4b BEEG)
-                </div>
-              </div>
-            </div>
-
-            {/* Column 2: Wife Parameters */}
-            <div style={{
-              background: '#0f172a',
-              padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #334155'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginBottom: '14px',
-                borderBottom: '1px solid #334155',
-                paddingBottom: '8px'
-              }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#5eead4' }}>
-                  Wife Parameters (40h pre-birth → 24h post-birth)
-                </span>
-              </div>
-
-              {/* Wife Full-Time Net Class V */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Full-Time Net (*Steuerklasse V*):</span>
+              {/* Wife Baseline Class V */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Wife Class V FT Net (40h):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
                     {formatCurrency(wifeClass5FullTimeNet.value)}
                   </span>
@@ -344,10 +342,174 @@ export default function SandboxControls(): JSX.Element {
                 />
               </div>
 
-              {/* Wife Full-Time Net Class III */}
+              {/* Kindergeld */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Kindergeld (§ 66 EStG):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fca5a5' }}>
+                    {formatCurrency(kindergeldPerChild.value)} / mo
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="200"
+                  max="350"
+                  step="5"
+                  value={kindergeldPerChild.value}
+                  onInput={(e) => { kindergeldPerChild.value = Number((e.target as HTMLInputElement).value); }}
+                />
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* BATCH 1: PREGNANCY POSITIVE DECISIONS & MILESTONES */}
+            {/* ======================================================== */}
+            <div style={{
+              background: '#0f172a',
+              padding: '16px',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              gridColumn: 'span 1'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
+                borderBottom: '1px solid #334155',
+                paddingBottom: '8px'
+              }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f472b6' }}>
+                  1. Pregnancy Positive Decisions
+                </span>
+                <span style={{ fontSize: '0.68rem', color: '#fbcfe8', background: '#831843', padding: '2px 6px', borderRadius: '4px' }}>
+                  2 Pregnancies Active
+                </span>
+              </div>
+
+              {/* Child 1 Pregnancy Milestone */}
+              <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '4px' }}>
+                  Child 1 Pregnancy & Delivery:
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1' }}>
+                  <span>Positive Test: <strong>{getCalDate(preg1SimMonth)}</strong> (M{preg1SimMonth})</span>
+                  <span>Birth 1: <strong>{getCalDate(b1SimMonth)}</strong> (M{b1SimMonth})</span>
+                </div>
+                <div style={{ marginTop: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8' }}>
+                    <span>Pre-Pregnancy Buffer:</span>
+                    <span>{prePregnancyPlanningMonths.value} Months</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="12"
+                    step="1"
+                    value={prePregnancyPlanningMonths.value}
+                    onInput={(e) => {
+                      const val = Number((e.target as HTMLInputElement).value);
+                      prePregnancyPlanningMonths.value = val;
+                      child1BirthMonth.value = val + 9;
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Child 2 Pregnancy Milestone & Spacing */}
+              <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '4px' }}>
+                  Child 2 Pregnancy & Spacing:
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1' }}>
+                  <span>Birth 2 Date: <strong>{getCalDate(b2SimMonth)}</strong> (M{b2SimMonth})</span>
+                  <span>Spacing: <strong>{birthSpacingMonths.value}M</strong></span>
+                </div>
+                <input
+                  type="range"
+                  min="12"
+                  max="42"
+                  step="1"
+                  value={birthSpacingMonths.value}
+                  onInput={(e) => { birthSpacingMonths.value = Number((e.target as HTMLInputElement).value); }}
+                />
+                <div style={{ fontSize: '0.68rem', color: birthSpacingMonths.value < 36 ? '#4ade80' : '#fbbf24', marginTop: '2px' }}>
+                  {birthSpacingMonths.value < 36 ? '✓ Sibling Bonus (+10%) eligible' : '✗ Sibling bonus expired (≥36M)'}
+                </div>
+              </div>
+
+              {/* Wife Post-Birth Part-Time Net */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Post-Birth Part-Time (24h Net):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
+                    {formatCurrency(wifeClass5PartTimeNet.value)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="800"
+                  max="3000"
+                  step="20"
+                  value={wifeClass5PartTimeNet.value}
+                  onInput={(e) => { wifeClass5PartTimeNet.value = Number((e.target as HTMLInputElement).value); }}
+                />
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* BATCH 2: TAX CLASS SWITCHES (§ 2b BEEG) */}
+            {/* ======================================================== */}
+            <div style={{
+              background: '#0f172a',
+              padding: '16px',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              gridColumn: 'span 1'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
+                borderBottom: '1px solid #334155',
+                paddingBottom: '8px'
+              }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#4ade80' }}>
+                  2. Tax Class Switches
+                </span>
+                <span style={{ fontSize: '0.68rem', color: '#86efac', background: '#14532d', padding: '2px 6px', borderRadius: '4px' }}>
+                  § 2b BEEG
+                </span>
+              </div>
+
+              {/* Swap Lead Time */}
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Optimized Full-Time Net (*Steuerklasse III*):</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Proactive Switch Lead Time:</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
+                    {swapLeadMonths.value} Months pre-maternity
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="12"
+                  step="1"
+                  value={swapLeadMonths.value}
+                  onInput={(e) => { swapLeadMonths.value = Number((e.target as HTMLInputElement).value); }}
+                />
+                <div style={{ fontSize: '0.68rem', color: swapLeadMonths.value >= 7 ? '#4ade80' : '#ef4444', marginTop: '2px' }}>
+                  {swapLeadMonths.value >= 7
+                    ? '✓ 7+ months guarantee Class III dominance (*Überwiegende Steuerklasse*)'
+                    : '⚠ <7 months risks default to Class V under § 2b BEEG'}
+                </div>
+              </div>
+
+              {/* Wife Optimized Class III FT Net */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Wife Net in Class III (Full-Time):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
                     {formatCurrency(wifeClass3FullTimeNet.value)}
                   </span>
@@ -362,357 +524,125 @@ export default function SandboxControls(): JSX.Element {
                 />
               </div>
 
-              {/* Wife Part-Time Net Class V */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Part-Time Net (*Steuerklasse V* - 24h):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
-                    {formatCurrency(wifeClass5PartTimeNet.value)}
+              {/* Husband Class V Net during Swap */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Husband Net in Class V (Swap):</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fbbf24' }}>
+                    {formatCurrency(husbandClass5Net.value)}
                   </span>
                 </div>
                 <input
                   type="range"
-                  min="800"
-                  max="3000"
-                  step="20"
-                  value={wifeClass5PartTimeNet.value}
-                  onInput={(e) => { wifeClass5PartTimeNet.value = Number((e.target as HTMLInputElement).value); }}
+                  min="1500"
+                  max="5500"
+                  step="25"
+                  value={husbandClass5Net.value}
+                  onInput={(e) => { husbandClass5Net.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
 
-              {/* Wife Part-Time Net Class III */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Optimized Part-Time Net (*Steuerklasse III* - 24h):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
-                    {formatCurrency(wifeClass3PartTimeNet.value)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1000"
-                  max="4000"
-                  step="20"
-                  value={wifeClass3PartTimeNet.value}
-                  onInput={(e) => { wifeClass3PartTimeNet.value = Number((e.target as HTMLInputElement).value); }}
-                />
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', background: '#1e293b', padding: '6px 8px', borderRadius: '4px' }}>
+                Interim withholding deficit: -{formatCurrency(husbandClass3Net.value - husbandClass5Net.value)}/mo (reconciled in March tax return).
               </div>
             </div>
 
-            {/* Column 3: State Benefits & Timing Parameters */}
+            {/* ======================================================== */}
+            {/* BATCH 3: SALARY RAISES & CAREER PROGRESSION */}
+            {/* ======================================================== */}
             <div style={{
               background: '#0f172a',
               padding: '16px',
               borderRadius: '6px',
-              border: '1px solid #334155'
+              border: '1px solid #334155',
+              gridColumn: 'span 1'
             }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                marginBottom: '14px',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
                 borderBottom: '1px solid #334155',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#93c5fd' }}>
-                  Timeline, Calendar & Family Milestones
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#fbbf24' }}>
+                  3. Salary Raises & Career
                 </span>
+                <button
+                  type="button"
+                  onClick={() => { enableSalaryRaises.value = !enableSalaryRaises.value; }}
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    border: enableSalaryRaises.value ? '1px solid #f59e0b' : '1px solid #334155',
+                    background: enableSalaryRaises.value ? '#78350f' : '#1e293b',
+                    color: enableSalaryRaises.value ? '#fde68a' : '#94a3b8',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {enableSalaryRaises.value ? 'Enabled' : 'Disabled'}
+                </button>
               </div>
 
-              {/* 1. Simulation Start Calendar Month & Year */}
+              {/* Annual Raise Percentage Selector */}
               <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Simulation Start Date (Calendar):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
-                    {getCalDate(1)} (Month 1)
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
+                  <span style={{ color: '#cbd5e1' }}>Annual Wage Growth Rate:</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fde68a' }}>
+                    +{annualSalaryRaisePercent.value}% / year
                   </span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px', marginTop: '4px' }}>
-                  <select
-                    value={startCalendarMonth.value}
-                    onChange={(e) => {
-                      startCalendarMonth.value = Number((e.target as HTMLSelectElement).value);
-                    }}
-                    style={{
-                      background: '#0f172a',
-                      color: '#f8fafc',
-                      border: '1px solid #334155',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '0.76rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {MONTH_NAMES.map((name, idx) => (
-                      <option key={`start-m-${idx + 1}`} value={idx + 1}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={startCalendarYear.value}
-                    onChange={(e) => {
-                      startCalendarYear.value = Number((e.target as HTMLSelectElement).value);
-                    }}
-                    style={{
-                      background: '#0f172a',
-                      color: '#f8fafc',
-                      border: '1px solid #334155',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      fontSize: '0.76rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map((yr) => (
-                      <option key={`start-y-${yr}`} value={yr}>
-                        Year {yr}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* 2. Simulation Duration */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Simulation Duration:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#a78bfa' }}>
-                    {simulationDurationMonths.value} Months (Ends {getCalDate(endSimMonth)})
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                  {[12, 24, 36, 48, 60, 72].map((dur) => (
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {[0, 2, 3, 5].map((pct) => (
                     <button
-                      key={`dur-opt-${dur}`}
+                      key={`pct-btn-${pct}`}
                       type="button"
-                      onClick={() => { simulationDurationMonths.value = dur; }}
+                      onClick={() => {
+                        enableSalaryRaises.value = pct > 0;
+                        annualSalaryRaisePercent.value = pct;
+                      }}
                       style={{
                         padding: '3px 8px',
                         borderRadius: '3px',
-                        border: simulationDurationMonths.value === dur ? '1px solid #8b5cf6' : '1px solid #334155',
-                        background: simulationDurationMonths.value === dur ? '#4c1d95' : '#0f172a',
-                        color: simulationDurationMonths.value === dur ? '#ddd6fe' : '#94a3b8',
+                        border: annualSalaryRaisePercent.value === pct ? '1px solid #f59e0b' : '1px solid #334155',
+                        background: annualSalaryRaisePercent.value === pct ? '#78350f' : '#0f172a',
+                        color: annualSalaryRaisePercent.value === pct ? '#fde68a' : '#94a3b8',
                         fontSize: '0.72rem',
                         fontWeight: 700,
                         cursor: 'pointer'
                       }}
                     >
-                      {dur}M ({dur / 12}Y)
+                      {pct === 0 ? 'Static (0%)' : `+${pct}% / yr`}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 3. Pre-Pregnancy Start Buffer */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Pre-Pregnancy Planning Buffer:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#60a5fa' }}>
-                    {prePregnancyPlanningMonths.value} Months (Pregnancy starts {getCalDate(preg1SimMonth)})
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="12"
-                  step="1"
-                  value={prePregnancyPlanningMonths.value}
-                  onInput={(e) => {
-                    const val = Number((e.target as HTMLInputElement).value);
-                    prePregnancyPlanningMonths.value = val;
-                    child1BirthMonth.value = val + 9;
-                  }}
-                />
-                <div style={{
-                  fontSize: '0.7rem',
-                  color: '#94a3b8',
-                  marginTop: '4px',
-                  background: '#0f172a',
-                  padding: '6px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid #1e293b'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Sim Start: <strong style={{ color: '#f8fafc' }}>{getCalDate(1)}</strong> (M1)</span>
-                    <span>Pregnancy: <strong style={{ color: '#f8fafc' }}>{getCalDate(preg1SimMonth)}</strong> (M{preg1SimMonth})</span>
-                    <span>Birth 1: <strong style={{ color: '#f8fafc' }}>{getCalDate(b1SimMonth)}</strong> (M{b1SimMonth})</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Kindergeld */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Child Benefit (*Kindergeld* § 66 EStG / child / mo):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fca5a5' }}>
-                    {formatCurrency(kindergeldPerChild.value)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="200"
-                  max="350"
-                  step="5"
-                  value={kindergeldPerChild.value}
-                  onInput={(e) => { kindergeldPerChild.value = Number((e.target as HTMLInputElement).value); }}
-                />
-              </div>
-
-              {/* Birth Spacing (Months between Birth 1 and Birth 2) */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Birth Spacing (Child 1 → Child 2):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
-                    {birthSpacingMonths.value} Months
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="12"
-                  max="42"
-                  step="1"
-                  value={birthSpacingMonths.value}
-                  onInput={(e) => { birthSpacingMonths.value = Number((e.target as HTMLInputElement).value); }}
-                />
-                <div style={{ fontSize: '0.7rem', color: birthSpacingMonths.value < 36 ? '#4ade80' : '#fbbf24', marginTop: '2px' }}>
-                  {birthSpacingMonths.value < 36
-                    ? `Eligible for Sibling Bonus (*Geschwisterbonus* § 2a BEEG +10% until Month ${child1BirthMonth.value + 36})`
-                    : 'Spacing ≥36 Months: Sibling bonus expires'}
-                </div>
-              </div>
-
-              {/* Swap Lead Time (Months before Mutterschutz) */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Tax Class Swap Lead Time:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
-                    {swapLeadMonths.value} Months pre-maternity
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="12"
-                  step="1"
-                  value={swapLeadMonths.value}
-                  onInput={(e) => { swapLeadMonths.value = Number((e.target as HTMLInputElement).value); }}
-                />
-                <div style={{ fontSize: '0.7rem', color: swapLeadMonths.value >= 7 ? '#4ade80' : '#ef4444', marginTop: '2px' }}>
-                  {swapLeadMonths.value >= 7
-                    ? '7+ months guarantee Tax Class III dominance during the 12-month Elterngeld assessment period (*Überwiegende Steuerklasse* § 2b BEEG)'
-                    : '<7 months risks default to Tax Class V under BEEG § 2b'}
-                </div>
-              </div>
-
-              {/* 13th Month Salary Controls (Sonderzahlung / Jahressonderzahlung) */}
-              <div style={{
-                marginTop: '12px',
-                paddingTop: '12px',
-                borderTop: '1px solid #334155'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fbbf24' }}>
-                    13th Month Salary (*13. Monatsgehalt*):
-                  </span>
+              {/* 13th Salary Toggle & Controls */}
+              <div style={{ borderTop: '1px solid #334155', paddingTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.76rem', color: '#cbd5e1', fontWeight: 600 }}>13th Month Salary Bonuses:</span>
                   <button
                     type="button"
                     onClick={() => { enable13thSalary.value = !enable13thSalary.value; }}
                     style={{
-                      padding: '2px 8px',
-                      borderRadius: '4px',
+                      padding: '2px 6px',
+                      borderRadius: '3px',
                       border: enable13thSalary.value ? '1px solid #b45309' : '1px solid #334155',
                       background: enable13thSalary.value ? '#b45309' : '#1e293b',
                       color: '#ffffff',
-                      fontSize: '0.72rem',
+                      fontSize: '0.68rem',
                       fontWeight: 700,
                       cursor: 'pointer'
                     }}
                   >
-                    {enable13thSalary.value ? 'Enabled' : 'Disabled'}
+                    {enable13thSalary.value ? 'Active' : 'Off'}
                   </button>
                 </div>
-
-                {enable13thSalary.value && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {/* 40% Vacation Bonus Month (M4 vs M5) */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem' }}>
-                      <span style={{ color: '#cbd5e1' }}>Part 1: 40% Vacation Bonus (*Urlaubsgeld*):</span>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        {[4, 5].map((mNum) => (
-                          <button
-                            key={`bonus40-opt-${mNum}`}
-                            type="button"
-                            onClick={() => { bonus40Month.value = mNum; }}
-                            style={{
-                              padding: '2px 6px',
-                              borderRadius: '3px',
-                              border: bonus40Month.value === mNum ? '1px solid #f59e0b' : '1px solid #334155',
-                              background: bonus40Month.value === mNum ? '#78350f' : '#0f172a',
-                              color: bonus40Month.value === mNum ? '#fde68a' : '#94a3b8',
-                              fontSize: '0.7rem',
-                              fontWeight: 700,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Month {mNum}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 60% Christmas Bonus Month (M10 vs M11) */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem' }}>
-                      <span style={{ color: '#cbd5e1' }}>Part 2: 60% Christmas Bonus (*Weihnachtsgeld*):</span>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        {[10, 11].map((mNum) => (
-                          <button
-                            key={`bonus60-opt-${mNum}`}
-                            type="button"
-                            onClick={() => { bonus60Month.value = mNum; }}
-                            style={{
-                              padding: '2px 6px',
-                              borderRadius: '3px',
-                              border: bonus60Month.value === mNum ? '1px solid #f59e0b' : '1px solid #334155',
-                              background: bonus60Month.value === mNum ? '#78350f' : '#0f172a',
-                              color: bonus60Month.value === mNum ? '#fde68a' : '#94a3b8',
-                              fontSize: '0.7rem',
-                              fontWeight: 700,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Month {mNum}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Tax Return Month (M2 vs M3) */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem', marginTop: '10px' }}>
-                  <span style={{ color: '#5eead4', fontWeight: 600 }}>Annual Tax Return (*Finanzamt*):</span>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {[2, 3].map((mNum) => (
-                      <button
-                        key={`tax-opt-${mNum}`}
-                        type="button"
-                        onClick={() => { taxReturnMonth.value = mNum; }}
-                        style={{
-                          padding: '2px 6px',
-                          borderRadius: '3px',
-                          border: taxReturnMonth.value === mNum ? '1px solid #0f766e' : '1px solid #334155',
-                          background: taxReturnMonth.value === mNum ? '#134e4a' : '#0f172a',
-                          color: taxReturnMonth.value === mNum ? '#99f6e4' : '#94a3b8',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Month {mNum}
-                      </button>
-                    ))}
-                  </div>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                  ↳ 40% Vacation (May) + 60% Christmas (Nov) bonuses automatically factored into timeline.
                 </div>
               </div>
             </div>
