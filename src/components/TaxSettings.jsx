@@ -11,7 +11,7 @@ export default function TaxSettings() {
   return (
     <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; font-size: 1.1rem; color: #f8fafc;">Advanced Constants (2026 Defaults)</h3>
+        <h3 style="margin: 0; font-size: 1.1rem; color: #f8fafc;">Statutory Constants & Assessment Ceilings (2024–2026)</h3>
         <button 
           onClick={resetConfig}
           style="padding: 6px 12px; border-radius: 4px; border: 1px solid var(--danger); background: transparent; color: var(--danger); cursor: pointer; transition: 0.2s;"
@@ -23,7 +23,7 @@ export default function TaxSettings() {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
         
         <div class="input-group">
-          <label for="healthCap">Health Insurance Cap (€)</label>
+          <label for="healthCap">Health Insurance Ceiling (*BBG Krankenversicherung* €/yr)</label>
           <input 
             id="healthCap"
             type="number" 
@@ -33,7 +33,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="pensionCap">Pension Cap (€)</label>
+          <label for="pensionCap">Pension Ceiling (*BBG Rentenversicherung* €/yr)</label>
           <input 
             id="pensionCap"
             type="number" 
@@ -43,7 +43,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="basicAllowance">Basic Tax-Free Allowance (€)</label>
+          <label for="basicAllowance">Basic Tax-Free Allowance (*Grundfreibetrag* § 32a EStG €)</label>
           <input 
             id="basicAllowance"
             type="number" 
@@ -53,7 +53,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="childTaxReduction">Child Tax Allowance Est. (€)</label>
+          <label for="childTaxReduction">Child Tax Allowance (*Kinderfreibetrag* § 32 EStG €)</label>
           <input 
             id="childTaxReduction"
             type="number" 
@@ -63,7 +63,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="workExpense">Work Expense Allowance (€)</label>
+          <label for="workExpense">Employee Lump-Sum (*Arbeitnehmer-Pauschbetrag* § 9a EStG €)</label>
           <input 
             id="workExpense"
             type="number" 
@@ -75,12 +75,12 @@ export default function TaxSettings() {
       </div>
       
       <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 20px 0;" />
-      <h4 style="margin-top: 0; color: #cbd5e1;">Social Security Rates</h4>
+      <h4 style="margin-top: 0; color: #cbd5e1;">Social Security Contribution Rates (*Sozialversicherungsbeiträge*)</h4>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
         
         <div class="input-group">
-          <label for="healthRate">Health Base Rate (%)</label>
+          <label for="healthRate">Health Base Rate (*Allgemeiner Beitragssatz GKV* %)</label>
           <input 
             id="healthRate"
             type="number" 
@@ -91,7 +91,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="healthZusatz">Health Zusatzbeitrag (%)</label>
+          <label for="healthZusatz">Health Surcharge (*Zusatzbeitrag GKV* %)</label>
           <input 
             id="healthZusatz"
             type="number" 
@@ -102,7 +102,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="pensionRate">Pension Rate (%)</label>
+          <label for="pensionRate">Pension Rate (*Rentenversicherung GRV* %)</label>
           <input 
             id="pensionRate"
             type="number" 
@@ -113,7 +113,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="unemploymentRate">Unemployment Rate (%)</label>
+          <label for="unemploymentRate">Unemployment Rate (*Arbeitslosenversicherung ALV* %)</label>
           <input 
             id="unemploymentRate"
             type="number" 
@@ -124,7 +124,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="careRate">Care (Pflege) Base Rate (%)</label>
+          <label for="careRate">Long-Term Care Base (*Pflegeversicherung PV* %)</label>
           <input 
             id="careRate"
             type="number" 
@@ -135,7 +135,7 @@ export default function TaxSettings() {
         </div>
 
         <div class="input-group">
-          <label for="carePenalty">Care Childless Penalty (%)</label>
+          <label for="carePenalty">Care Childless Surcharge (*Kinderlosenzuschlag PV* %)</label>
           <input 
             id="carePenalty"
             type="number" 

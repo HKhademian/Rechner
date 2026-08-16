@@ -43,7 +43,7 @@ export default function InputForm() {
       </div>
 
       <div class="input-group">
-        <label for="children">Number of Children (Kinderfreibetrag)</label>
+        <label for="children">Number of Children (*Kinderfreibetrag* § 32 Abs. 6 EStG)</label>
         <select 
           id="children"
           value={children.value} 
@@ -98,23 +98,23 @@ export default function InputForm() {
       </div>
 
       <div class="input-group">
-        <label for="bracket">Tax Class (Steuerklasse)</label>
+        <label for="bracket">Tax Class (*Steuerklasse* § 38b EStG)</label>
         <select 
           id="bracket"
           value={taxBracket.value} 
           onChange={(e) => taxBracket.value = e.target.value}
         >
-          <option value="1">Class I (Single)</option>
-          <option value="2">Class II (Single Parent)</option>
-          <option value="3">Class III (Married, Higher Earner)</option>
-          <option value="4">Class IV (Married, Equal Earners)</option>
-          <option value="5">Class V (Married, Lower Earner)</option>
-          <option value="6">Class VI (Second Employment)</option>
+          <option value="1">Class I (Single / *Steuerklasse I*)</option>
+          <option value="2">Class II (Single Parent / *Steuerklasse II* § 24b EStG)</option>
+          <option value="3">Class III (Married, Primary Earner / *Steuerklasse III*)</option>
+          <option value="4">Class IV (Married, Equal Earners / *Steuerklasse IV*)</option>
+          <option value="5">Class V (Married, Secondary Earner / *Steuerklasse V*)</option>
+          <option value="6">Class VI (Secondary Job / *Steuerklasse VI*)</option>
         </select>
       </div>
 
       <div class="input-group">
-        <label for="state">Federal State (Bundesland)</label>
+        <label for="state">Federal State (*Bundesland*)</label>
         <select 
           id="state"
           value={state.value} 
@@ -125,7 +125,7 @@ export default function InputForm() {
       </div>
 
       <div class="input-group" style="display: flex; justify-content: space-between; align-items: center;">
-        <label for="church" style="margin-bottom: 0;">Liable for Church Tax (Kirchensteuer)?</label>
+        <label for="church" style="margin-bottom: 0;">Liable for Church Tax (*Kirchensteuer*)?</label>
         <label class="switch">
           <input 
             id="church"
@@ -140,7 +140,7 @@ export default function InputForm() {
       <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 30px 0;" />
 
       <div class="input-group" style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">Add Spouse / Partner</h3>
+        <h3 style="margin: 0;">Add Spouse / Partner (*Ehegatte*)</h3>
         <label class="switch">
           <input 
             type="checkbox" 
@@ -195,20 +195,20 @@ export default function InputForm() {
           </div>
           
           <div class="input-group">
-            <label for="partnerBracket">Partner's Tax Class (Steuerklasse)</label>
+            <label for="partnerBracket">Partner's Tax Class (*Steuerklasse* § 38b EStG)</label>
             <select 
               id="partnerBracket"
               value={partnerTaxBracket.value} 
               onChange={(e) => partnerTaxBracket.value = e.target.value}
             >
-              <option value="3">Class III (Higher Earner)</option>
-              <option value="4">Class IV (Equal Earners)</option>
-              <option value="5">Class V (Lower Earner)</option>
+              <option value="3">Class III (Primary Earner / *Steuerklasse III*)</option>
+              <option value="4">Class IV (Equal Earners / *Steuerklasse IV*)</option>
+              <option value="5">Class V (Secondary Earner / *Steuerklasse V*)</option>
             </select>
           </div>
 
           <div class="input-group">
-            <label for="partnerState">Partner's Federal State</label>
+            <label for="partnerState">Partner's Federal State (*Bundesland*)</label>
             <select 
               id="partnerState"
               value={partnerState.value} 
@@ -219,7 +219,7 @@ export default function InputForm() {
           </div>
 
           <div class="input-group" style="display: flex; justify-content: space-between; align-items: center;">
-            <label for="partnerChurch" style="margin-bottom: 0;">Partner liable for Church Tax?</label>
+            <label for="partnerChurch" style="margin-bottom: 0;">Partner liable for Church Tax (*Kirchensteuer*)?</label>
             <label class="switch">
               <input 
                 id="partnerChurch"

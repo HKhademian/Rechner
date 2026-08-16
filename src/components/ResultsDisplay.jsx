@@ -41,32 +41,32 @@ export default function ResultsDisplay() {
           <span class="amount">{format(gross)}</span>
         </div>
 
-        <div style="color: #94a3b8; font-size: 0.78rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Social Security Contributions</div>
+        <div style="color: #94a3b8; font-size: 0.78rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Social Security Contributions (*Sozialabgaben*)</div>
         <div class="deduction-item">
-          <span>Health Insurance (Krankenversicherung) <small>({pct(personData.healthCare, personData.grossYearly)})</small></span>
+          <span>Health Insurance (*Krankenversicherung - GKV*) <small>({pct(personData.healthCare, personData.grossYearly)})</small></span>
           <span class="amount" style="color: var(--deduction)">- {format(personData.healthCare / divider)}</span>
         </div>
         <div class="deduction-item">
-          <span>Pension Insurance (Rentenversicherung) <small>({pct(personData.pension, personData.grossYearly)})</small></span>
+          <span>Pension Insurance (*Rentenversicherung - GRV*) <small>({pct(personData.pension, personData.grossYearly)})</small></span>
           <span class="amount" style="color: var(--deduction)">- {format(personData.pension / divider)}</span>
         </div>
         <div class="deduction-item">
-          <span>Unemployment (Arbeitslosenversicherung) <small>({pct(personData.unemployment, personData.grossYearly)})</small></span>
+          <span>Unemployment (*Arbeitslosenversicherung - ALV*) <small>({pct(personData.unemployment, personData.grossYearly)})</small></span>
           <span class="amount" style="color: var(--deduction)">- {format(personData.unemployment / divider)}</span>
         </div>
         <div class="deduction-item">
-          <span>Long-Term Care (Pflegeversicherung) <small>({pct(personData.care, personData.grossYearly)})</small></span>
+          <span>Long-Term Care (*Pflegeversicherung - PV*) <small>({pct(personData.care, personData.grossYearly)})</small></span>
           <span class="amount" style="color: var(--deduction)">- {format(personData.care / divider)}</span>
         </div>
 
-        <div style="color: #94a3b8; font-size: 0.78rem; margin-bottom: 8px; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Taxes & Surcharges</div>
+        <div style="color: #94a3b8; font-size: 0.78rem; margin-bottom: 8px; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Taxes & Surcharges (*Steuern*)</div>
         <div class="deduction-item">
-          <span>Wage Tax (Lohnsteuer) <small>({pct(personData.tax, personData.grossYearly)})</small></span>
+          <span>Wage Tax (*Lohnsteuer - EStG*) <small>({pct(personData.tax, personData.grossYearly)})</small></span>
           <span class="amount" style="color: var(--danger)">- {format(personData.tax / divider)}</span>
         </div>
         {personData.churchTax > 0 && (
           <div class="deduction-item">
-            <span>Church Tax (Kirchensteuer) <small>({pct(personData.churchTax, personData.grossYearly)})</small></span>
+            <span>Church Tax (*Kirchensteuer*) <small>({pct(personData.churchTax, personData.grossYearly)})</small></span>
             <span class="amount" style="color: var(--danger)">- {format(personData.churchTax / divider)}</span>
           </div>
         )}
@@ -103,7 +103,7 @@ export default function ResultsDisplay() {
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
         {renderPerson('Person 1', d.person1, salariesPerYear.value)}
-        {hasPartner.value && renderPerson('Spouse / Partner', d.partner, partnerSalariesPerYear.value)}
+        {hasPartner.value && renderPerson('Spouse / Partner (*Ehegatte*)', d.partner, partnerSalariesPerYear.value)}
       </div>
 
       <div class="total-net fade-in" style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.25); border-top: none;">
@@ -126,7 +126,7 @@ export default function ResultsDisplay() {
         Effective Tax & Social Security Rate: <strong style="color: #f8fafc;">{pct(d.household.totalDeductions, d.household.grossYearly)}</strong>
       </div>
       <div style="margin-top: 0.5rem; text-align: center; color: #64748b; font-size: 0.75rem;">
-        Computed in compliance with German § 32a EStG and Social Insurance Contribution Ceilings (BBG).
+        Computed in compliance with German § 32a EStG and Social Insurance Assessment Ceilings (*Beitragsbemessungsgrenzen - BBG*).
       </div>
     </div>
   );
