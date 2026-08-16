@@ -1,20 +1,43 @@
 /**
- * Nominal Brand Type Primitive
- * Enforces nominal typing in TypeScript to prevent unit confusion and compiler-time discrepancies.
+ * Nominal Brand Type Primitives with Unique Symbol Discriminators
+ * Enforces nominal typing and subtype inheritance hierarchies in TypeScript.
  */
-export type Brand<K, T> = K & { readonly __brand: T };
+declare const _BRAND_TAG: unique symbol;
+declare const _BRAND_KIND: unique symbol;
+
+export type Brand<Base, Tag extends string> = Base & {
+  readonly [_BRAND_TAG]: Tag;
+};
+
+export type SubBrand<ParentBrand, SubTag extends string> = ParentBrand & {
+  readonly [_BRAND_KIND]: SubTag;
+};
 
 // Temporal & Timeline Nominal Types
-export type SimulationMonth = Brand<number, 'SimulationMonth'>; // M1..M60
-export type CalendarYear = Brand<number, 'CalendarYear'>;       // Y1..Y5
+export type SimulationMonth = Brand<number, 'SimulationMonth'>; // M1..M120
+export type CalendarYear = Brand<number, 'CalendarYear'>;       // Y1..Y10
 export type CalendarMonth = Brand<number, 'CalendarMonth'>;     // M1..M12 (1=Jan, 12=Dec)
 export type WorkingHours = Brand<number, 'WorkingHours'>;       // e.g. 24, 32, 40
 
-// Monetary Nominal Types
+// Monetary Hierarchy (GrossSalary and NetSalary are nominal subtypes of EuroAmount)
 export type EuroAmount = Brand<number, 'EuroAmount'>;           // Exact EUR rounded/scaled
+export type GrossSalary = SubBrand<EuroAmount, 'GrossSalary'>;   // Pre-tax gross salary in EUR
+export type NetSalary = SubBrand<EuroAmount, 'NetSalary'>;       // Post-withholding net salary in EUR
+export type KinderfreibetragAnnualAmount = SubBrand<EuroAmount, 'KinderfreibetragAnnualAmount'>; // Statutory annual child allowance
 export type EuroCents = Brand<number, 'EuroCents'>;             // Integer cents (1 EUR = 100 cents)
-export type GrossSalary = Brand<number, 'GrossSalary'>;         // Pre-tax gross salary in EUR
-export type NetSalary = Brand<number, 'NetSalary'>;             // Post-withholding net salary in EUR
+
+// Entity & Action Identifier Hierarchy
+export type EntityId = Brand<string, 'EntityId'>;
+export type StatutoryCitation = SubBrand<EntityId, 'StatutoryCitation'>;
+export type TransactionId = SubBrand<EntityId, 'TransactionId'>;
+export type EventId = SubBrand<EntityId, 'EventId'>;
+
+// Discrete Batch Action Identifier Hierarchy (Subtypes of ActionId & EntityId)
+export type ActionId = SubBrand<EntityId, 'ActionId'>;
+export type PregnancyId = SubBrand<ActionId, 'PregnancyId'>;
+export type SwitchId = SubBrand<ActionId, 'SwitchId'>;
+export type RaiseId = SubBrand<ActionId, 'RaiseId'>;
+export type FinancialEventId = SubBrand<ActionId, 'FinancialEventId'>;
 
 // Tax & Legal Categorization Enums (Strict Const Enums)
 export const TaxClass = {
@@ -33,15 +56,6 @@ export const ScenarioId = {
   C: 'C'
 } as const;
 export type ScenarioId = (typeof ScenarioId)[keyof typeof ScenarioId];
-
-export type StatutoryCitation = Brand<string, 'StatutoryCitation'>;
-export type TransactionId = Brand<string, 'TransactionId'>;
-export type EventId = Brand<string, 'EventId'>;
-export type ActionId = Brand<string, 'ActionId'>;
-export type PregnancyId = Brand<string, 'PregnancyId'>;
-export type SwitchId = Brand<string, 'SwitchId'>;
-export type RaiseId = Brand<string, 'RaiseId'>;
-export type FinancialEventId = Brand<string, 'FinancialEventId'>;
 
 // Discrete Batch Action Enums (Strict Const Enums)
 export const ActionCategory = {
@@ -316,6 +330,53 @@ export function toFinancialEventId(val: string): FinancialEventId {
     throw new TypeError(`Invalid FinancialEventId: ${val}. Must be non-empty string.`);
   }
   return val as FinancialEventId;
+}
+
+export function toEntityId(val: string): EntityId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid EntityId: ${val}. Must be non-empty string.`);
+  }
+  return val as EntityId;
+}
+
+export function toKinderfreibetragAnnualAmount(val: number): KinderfreibetragAnnualAmount {
+  if (typeof val !== 'number' || Number.isNaN(val) || val < 0) {
+    throw new TypeError(`Invalid KinderfreibetragAnnualAmount: ${val}. Must be non-negative.`);
+  }
+  return Math.round(val) as KinderfreibetragAnnualAmount;
+}
+
+// Nominal Subtype Guards
+export function isEuroAmount(val: unknown): val is EuroAmount {
+  return typeof val === 'number' && !Number.isNaN(val);
+}
+
+export function isGrossSalary(val: unknown): val is GrossSalary {
+  return typeof val === 'number' && !Number.isNaN(val) && val >= 0;
+}
+
+export function isNetSalary(val: unknown): val is NetSalary {
+  return typeof val === 'number' && !Number.isNaN(val) && val >= 0;
+}
+
+export function isActionId(val: unknown): val is ActionId {
+  return typeof val === 'string' && val.length > 0;
+}
+
+export function isPregnancyId(val: unknown): val is PregnancyId {
+  return typeof val === 'string' && val.startsWith('PREG');
+}
+
+export function isSwitchId(val: unknown): val is SwitchId {
+  return typeof val === 'string' && (val.startsWith('SWAP') || val.startsWith('SWITCH'));
+}
+
+export function isRaiseId(val: unknown): val is RaiseId {
+  return typeof val === 'string' && val.startsWith('RAISE');
+}
+
+export function isFinancialEventId(val: unknown): val is FinancialEventId {
+  return typeof val === 'string' && (val.startsWith('FEVENT') || val.startsWith('FIN-EVENT'));
 }
 
 export function toFinancialEventCategory(val: string): FinancialEventCategory {
