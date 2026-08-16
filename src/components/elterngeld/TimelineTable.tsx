@@ -574,26 +574,50 @@ export default function TimelineTable(): JSX.Element {
                   </tr>
                 )),
 
-                /* 2. Special Fiscal Event Rows (Pre-Month 13th Salary Bonuses & Annual Tax Returns) */
+                /* 2. Special Fiscal Event Rows (Pre-Month Bonuses, Tax Returns, and One-Off Costs/Income) */
                 hasEvents && m.specialEvents.map((ev: SpecialEventItem) => {
-                  const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
+                  const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.eventId === ev.eventId || bItem.title === ev.title || bItem.type === ev.type);
                   const bEvAmount = bEv ? (bEv.amount as number) : 0;
                   const evDiff = (ev.amount as number) - bEvAmount;
+                  const isCost = (ev.amount as number) < 0;
+
+                  const rowBg = isCost
+                    ? 'rgba(225, 29, 72, 0.10)'
+                    : (ev.type as string).startsWith('bonus')
+                    ? 'rgba(180, 83, 9, 0.12)'
+                    : 'rgba(15, 118, 110, 0.15)';
+
+                  const badgeBg = isCost
+                    ? '#be123c'
+                    : (ev.type as string).startsWith('bonus')
+                    ? '#b45309'
+                    : '#0f766e';
+
+                  const titleColor = isCost
+                    ? '#fda4af'
+                    : (ev.type as string).startsWith('bonus')
+                    ? '#fde68a'
+                    : '#99f6e4';
+
+                  const valColor = isCost
+                    ? '#f87171'
+                    : (ev.type as string).startsWith('bonus')
+                    ? '#fbbf24'
+                    : '#5eead4';
+
                   return (
                     <tr
                       key={ev.eventId}
                       style={{
                         borderBottom: '1px dashed #334155',
-                        background: (ev.type as string).startsWith('bonus')
-                          ? 'rgba(180, 83, 9, 0.12)'
-                          : 'rgba(15, 118, 110, 0.15)',
+                        background: rowBg,
                         transition: 'background 0.15s ease'
                       }}
                       onMouseEnter={() => { hoveredMonth.value = m.month; }}
                       onMouseLeave={() => { hoveredMonth.value = null; }}
                     >
-                      <td style={{ padding: '6px 12px', textAlign: 'left', color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4', fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                        <div>↳ M{m.month} Event</div>
+                      <td style={{ padding: '6px 12px', textAlign: 'left', color: valColor, fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                        <div>↳ M{m.month} {isCost ? 'Cost' : 'Event'}</div>
                         <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
                       </td>
                       <td style={{ padding: '6px 12px', textAlign: 'left' }}>
@@ -604,16 +628,16 @@ export default function TimelineTable(): JSX.Element {
                             borderRadius: '3px',
                             fontSize: '0.68rem',
                             fontWeight: 800,
-                            background: (ev.type as string).startsWith('bonus') ? '#b45309' : '#0f766e',
+                            background: badgeBg,
                             color: '#ffffff'
                           }}>
-                            {ev.category}
+                            {isCost ? `💸 ${ev.category}` : ev.category}
                           </span>
-                          <span style={{ fontWeight: 600, color: (ev.type as string).startsWith('bonus') ? '#fde68a' : '#99f6e4', fontSize: '0.75rem' }}>
+                          <span style={{ fontWeight: 600, color: titleColor, fontSize: '0.75rem' }}>
                             {ev.title}
                           </span>
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.68rem', color: '#cbd5e1', marginTop: '2px' }}>
                           {ev.description}
                         </div>
                       </td>
@@ -636,7 +660,7 @@ export default function TimelineTable(): JSX.Element {
                           ev.amount as number,
                           evDiff,
                           false,
-                          (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4',
+                          valColor,
                           true
                         )}
                       </td>
@@ -645,7 +669,7 @@ export default function TimelineTable(): JSX.Element {
                           ev.amount as number,
                           evDiff,
                           false,
-                          (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4',
+                          valColor,
                           true
                         )}
                       </td>

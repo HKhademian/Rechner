@@ -336,10 +336,12 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     if (m.specialEvents && m.specialEvents.length > 0) {
       m.specialEvents.forEach((ev) => {
         const isBonus = (ev.type as string).startsWith('bonus');
-        const color = isBonus ? YELLOW : CYAN;
+        const isCost = (ev.amount as number) < 0;
+        const color = isCost ? RED : isBonus ? YELLOW : CYAN;
+        const tag = isCost ? '[Cost]' : isBonus ? '[Bon]' : '[Evt]';
         const evTitle = `↳ ${ev.category}: ${ev.title}`;
         const evRow = [
-          `M${String(m.month).padEnd(2)} [Evt]`,
+          `M${String(m.month).padEnd(2)} ${tag}`,
           ev.calendarLabel.padEnd(8),
           `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(30 + color.length + RESET.length),
           (ev.taxClassLabel || '—').slice(0, 11).padEnd(11),
@@ -349,7 +351,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
           '—'.padStart(10),
           '—'.padStart(10),
           isBonus ? String(ev.amount).padStart(7) : '—'.padStart(7),
-          !isBonus ? String(ev.amount).padStart(10) : '—'.padStart(10),
+          !isBonus && !isCost ? String(ev.amount).padStart(10) : (isCost ? String(ev.amount).padStart(10) : '—'.padStart(10)),
           `${String(ev.amount).padStart(7)}${''.padStart(8)}`,
           '—'.padStart(10)
         ].join(' | ');

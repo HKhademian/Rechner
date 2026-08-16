@@ -28,12 +28,16 @@ import {
   customPregnancies,
   customTaxClassSwitches,
   customSalaryRaises,
+  customFinancialEvents,
   addPregnancyAction,
   removePregnancyAction,
   addTaxClassSwitchAction,
   removeTaxClassSwitchAction,
   addSalaryRaiseAction,
   removeSalaryRaiseAction,
+  addFinancialEventAction,
+  removeFinancialEventAction,
+  updateFinancialEventAction,
   resetToDefaults,
   scrollToLegalRule,
   LegalRuleKey
@@ -41,13 +45,15 @@ import {
 import {
   TaxClass,
   TargetPerson,
+  FinancialEventCategory,
   toSimulationMonth,
   toCalendarMonth,
   toEuroAmount,
   toNetSalary,
   toPregnancyId,
   toSwitchId,
-  toRaiseId
+  toRaiseId,
+  toFinancialEventId
 } from '#engine/types';
 
 function formatCurrency(amount: number): string {
@@ -990,6 +996,170 @@ export default function SandboxControls(): JSX.Element {
                 <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
                   ↳ 40% Vacation (May) + 60% Christmas (Nov) bonuses automatically factored into timeline.
                 </div>
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* BATCH 4: FINANCIAL EVENTS (ONE-OFF COSTS & INFLOWS) */}
+            {/* ======================================================== */}
+            <div style={{
+              background: '#0f172a',
+              padding: '16px',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              gridColumn: 'span 1'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
+                borderBottom: '1px solid #334155',
+                paddingBottom: '8px'
+              }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f43f5e' }}>
+                  4. Financial Events & Costs
+                </span>
+                <span style={{ fontSize: '0.68rem', color: '#fecdd3', background: '#881337', padding: '2px 6px', borderRadius: '4px' }}>
+                  {customFinancialEvents.value.length} Events Active
+                </span>
+              </div>
+
+              {/* Dynamic Financial Events List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                {customFinancialEvents.value.map((fe, idx) => {
+                  const sMonth = fe.effectiveSimulationMonth as number;
+                  const isCost = (fe.amount as number) < 0;
+
+                  return (
+                    <div
+                      key={fe.eventId || `fe-${idx}`}
+                      style={{
+                        background: '#1e293b',
+                        padding: '8px 10px',
+                        borderRadius: '5px',
+                        border: isCost ? '1px solid #e11d48' : '1px solid #059669'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{
+                            fontSize: '0.65rem',
+                            fontWeight: 800,
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            background: isCost ? '#be123c' : '#047857',
+                            color: '#ffffff'
+                          }}>
+                            {isCost ? '💸 COST' : '💰 INFLOW'}
+                          </span>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 800, color: isCost ? '#fda4af' : '#6ee7b7' }}>
+                            {fe.title}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.78rem', color: isCost ? '#f87171' : '#4ade80' }}>
+                            {formatCurrency(fe.amount as number)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeFinancialEventAction(fe.eventId)}
+                            style={{
+                              background: '#7f1d1d',
+                              color: '#fca5a5',
+                              border: 'none',
+                              borderRadius: '3px',
+                              padding: '2px 5px',
+                              fontSize: '0.62rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '2px' }}>
+                        <span>Effective: <strong style={{ color: isCost ? '#fca5a5' : '#86efac' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{fe.category}</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                        {fe.description}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add Financial Cost Button */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const count = customFinancialEvents.value.length;
+                    const defaultMonth = Math.min(simulationDurationMonths.value, child1BirthMonth.value + (count * 6));
+                    const totalElapsed = (startCalendarMonth.value - 1) + (defaultMonth - 1);
+                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                    const sYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                    addFinancialEventAction({
+                      eventId: toFinancialEventId(`FIN-CUSTOM-COST-${count + 1}`),
+                      effectiveSimulationMonth: toSimulationMonth(defaultMonth),
+                      effectiveCalendarMonth: sMonth,
+                      effectiveCalendarYear: sYear,
+                      title: `Child Expense / Equipment #${count + 1}`,
+                      amount: toEuroAmount(-1000),
+                      category: FinancialEventCategory.BabyEquipment,
+                      description: 'Custom family nursery or childcare expense'
+                    });
+                  }}
+                  style={{
+                    padding: '6px',
+                    background: '#881337',
+                    color: '#fecdd3',
+                    border: '1px solid #be123c',
+                    borderRadius: '4px',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ➕ Add Cost (-1.000 €)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const count = customFinancialEvents.value.length;
+                    const defaultMonth = Math.min(simulationDurationMonths.value, 12 + (count * 6));
+                    const totalElapsed = (startCalendarMonth.value - 1) + (defaultMonth - 1);
+                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                    const sYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                    addFinancialEventAction({
+                      eventId: toFinancialEventId(`FIN-CUSTOM-INCOME-${count + 1}`),
+                      effectiveSimulationMonth: toSimulationMonth(defaultMonth),
+                      effectiveCalendarMonth: sMonth,
+                      effectiveCalendarYear: sYear,
+                      title: `Family Bonus / Grant #${count + 1}`,
+                      amount: toEuroAmount(1500),
+                      category: FinancialEventCategory.CareerBonus,
+                      description: 'Special employer bonus or one-off grant'
+                    });
+                  }}
+                  style={{
+                    padding: '6px',
+                    background: '#064e3b',
+                    color: '#a7f3d0',
+                    border: '1px solid #059669',
+                    borderRadius: '4px',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ➕ Add Inflow (+1.500 €)
+                </button>
               </div>
             </div>
           </div>

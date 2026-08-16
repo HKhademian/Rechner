@@ -7,6 +7,8 @@ import {
   type PregnancyId,
   type SwitchId,
   type RaiseId,
+  type FinancialEventId,
+  FinancialEventCategory,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
@@ -14,10 +16,12 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toFinancialEventId,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
-  type SalaryRaiseAction
+  type SalaryRaiseAction,
+  type FinancialEventAction
 } from '#engine/types';
 import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 
@@ -186,10 +190,50 @@ export function createDefaultSalaryRaises(): SalaryRaiseAction[] {
   return salaryRaises;
 }
 
+export function createDefaultFinancialEvents(): FinancialEventAction[] {
+  const b1 = child1BirthMonth.value;
+  const startYear = startCalendarYear.value;
+  const startMonth = startCalendarMonth.value;
+
+  const m17 = b1;
+  const totalElapsed17 = (startMonth - 1) + (m17 - 1);
+  const calM17 = toCalendarMonth((totalElapsed17 % 12) + 1);
+  const calY17 = startYear + Math.floor(totalElapsed17 / 12);
+
+  const m26 = b1 + 9; // e.g. Kita entry
+  const totalElapsed26 = (startMonth - 1) + (m26 - 1);
+  const calM26 = toCalendarMonth((totalElapsed26 % 12) + 1);
+  const calY26 = startYear + Math.floor(totalElapsed26 / 12);
+
+  return [
+    {
+      eventId: toFinancialEventId('FIN-CHILD1-EQUIPMENT'),
+      effectiveSimulationMonth: toSimulationMonth(m17),
+      effectiveCalendarMonth: calM17,
+      effectiveCalendarYear: calY17,
+      title: 'Child #1 Initial Equipment (*Erstausstattung*)',
+      amount: toEuroAmount(-1500),
+      category: FinancialEventCategory.BabyEquipment,
+      description: 'Crib, stroller, car seat, changing table, and initial newborn essentials'
+    },
+    {
+      eventId: toFinancialEventId('FIN-CHILD1-KITA-DEPOSIT'),
+      effectiveSimulationMonth: toSimulationMonth(m26),
+      effectiveCalendarMonth: calM26,
+      effectiveCalendarYear: calY26,
+      title: 'Kita Childcare Enrollment & Equipment (*Kita-Start*)',
+      amount: toEuroAmount(-600),
+      category: FinancialEventCategory.ChildcareFees,
+      description: 'One-off daycare entrance fee, activity deposit, and outdoor gear'
+    }
+  ];
+}
+
 // User-Defined Dynamic Action Collections
 export const customPregnancies = signal<PregnancyAction[]>(createDefaultPregnancies());
 export const customTaxClassSwitches = signal<TaxClassSwitchAction[]>(createDefaultTaxClassSwitches());
 export const customSalaryRaises = signal<SalaryRaiseAction[]>(createDefaultSalaryRaises());
+export const customFinancialEvents = signal<FinancialEventAction[]>(createDefaultFinancialEvents());
 
 // Batch 1 Mutation Helpers
 export function addPregnancyAction(action: PregnancyAction) {
@@ -236,6 +280,21 @@ export function removeSalaryRaiseAction(raiseId: RaiseId | string) {
   customSalaryRaises.value = customSalaryRaises.value.filter(r => r.raiseId !== raiseId);
 }
 
+// Batch 4 Mutation Helpers
+export function addFinancialEventAction(action: FinancialEventAction) {
+  customFinancialEvents.value = [...customFinancialEvents.value, action];
+}
+
+export function updateFinancialEventAction(eventId: FinancialEventId | string, updates: Partial<FinancialEventAction>) {
+  customFinancialEvents.value = customFinancialEvents.value.map(e =>
+    e.eventId === eventId ? { ...e, ...updates } : e
+  );
+}
+
+export function removeFinancialEventAction(eventId: FinancialEventId | string) {
+  customFinancialEvents.value = customFinancialEvents.value.filter(e => e.eventId !== eventId);
+}
+
 export function resetToDefaults() {
   husbandClass3Net.value = 2895;
   husbandClass5Net.value = 2191;
@@ -269,6 +328,7 @@ export function resetToDefaults() {
   customPregnancies.value = createDefaultPregnancies();
   customTaxClassSwitches.value = createDefaultTaxClassSwitches();
   customSalaryRaises.value = createDefaultSalaryRaises();
+  customFinancialEvents.value = createDefaultFinancialEvents();
 }
 
 // 60-Month Cash Flow Engine for a given scenario ('A', 'B', or 'C')
@@ -312,7 +372,8 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     preexisting,
     pregnancies: dynamicPregnancies,
     taxClassSwitches: customTaxClassSwitches.value,
-    salaryRaises: customSalaryRaises.value
+    salaryRaises: customSalaryRaises.value,
+    financialEvents: customFinancialEvents.value
   });
 }
 
