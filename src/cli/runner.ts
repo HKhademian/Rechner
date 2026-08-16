@@ -341,12 +341,27 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
 
     // Print Special Fiscal Event Rows immediately BEFORE Month m
     if (m.specialEvents && m.specialEvents.length > 0) {
-      m.specialEvents.forEach((ev) => {
+      const prevMonthIdx = (m.month as number) - 2;
+      const prevCum = prevMonthIdx >= 0 ? (res.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+      const bPrevCum = prevMonthIdx >= 0 && resB ? (resB.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+
+      m.specialEvents.forEach((ev, evIdx) => {
         const isBonus = (ev.type as string).startsWith('bonus');
         const isCost = (ev.amount as number) < 0;
         const color = isCost ? RED : isBonus ? YELLOW : CYAN;
         const tag = isCost ? '[Cost]' : isBonus ? '[Bon]' : '[Evt]';
         const evTitle = `↳ ${ev.category}: ${ev.title}`;
+
+        const priorEventsSum = m.specialEvents.slice(0, evIdx).reduce((acc, it) => acc + (it.amount as number), 0);
+        const evCumulated = prevCum + priorEventsSum + (ev.amount as number);
+
+        const bEvents = bMonth?.specialEvents || [];
+        const bMatchIdx = bEvents.findIndex((it) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
+        const bPriorSum = bMatchIdx >= 0 ? bEvents.slice(0, bMatchIdx + 1).reduce((acc, it) => acc + (it.amount as number), 0) : 0;
+        const bEvCumulated = bPrevCum + bPriorSum;
+        const diffEvCumulated = resB ? evCumulated - bEvCumulated : 0;
+        const diffCumStr = resB && diffEvCumulated !== 0 ? ` (${diffEvCumulated > 0 ? '+' : ''}${diffEvCumulated}€)` : '';
+
         const evRow = [
           `M${String(m.month).padEnd(2)} ${tag}`,
           ev.calendarLabel.padEnd(8),
@@ -360,7 +375,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
           isBonus ? String(ev.amount).padStart(7) : '—'.padStart(7),
           !isBonus && !isCost ? String(ev.amount).padStart(10) : (isCost ? String(ev.amount).padStart(10) : '—'.padStart(10)),
           `${String(ev.amount).padStart(7)}${''.padStart(8)}`,
-          '—'.padStart(10)
+          `${String(evCumulated).padStart(7)}${diffCumStr.padStart(3)}`
         ].join(' | ');
         console.log(`| ${evRow} |`);
       });

@@ -113,10 +113,24 @@ export default function TimelineTable(): JSX.Element {
 
       // 2. Special Event Rows (Placed immediately BEFORE month m)
       if (m.specialEvents && m.specialEvents.length > 0) {
-        m.specialEvents.forEach((ev: SpecialEventItem) => {
-          const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
+        const prevMonthIdx = (m.month as number) - 2;
+        const prevCum = prevMonthIdx >= 0 ? (current.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+        const bPrevCum = prevMonthIdx >= 0 ? (bData.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+
+        m.specialEvents.forEach((ev: SpecialEventItem, evIdx: number) => {
+          const bEvents = bMonth?.specialEvents || [];
+          const bMatchIdx = bEvents.findIndex((it: SpecialEventItem) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
+          const bEv = bMatchIdx >= 0 ? bEvents[bMatchIdx] : undefined;
           const bEvAmount = bEv ? (bEv.amount as number) : 0;
           const evDiff = (ev.amount as number) - bEvAmount;
+
+          const priorEventsSum = m.specialEvents.slice(0, evIdx).reduce((acc: number, it: SpecialEventItem) => acc + (it.amount as number), 0);
+          const evCumulated = prevCum + priorEventsSum + (ev.amount as number);
+
+          const bPriorSum = bMatchIdx >= 0 ? bEvents.slice(0, bMatchIdx + 1).reduce((acc: number, it: SpecialEventItem) => acc + (it.amount as number), 0) : 0;
+          const bEvCumulated = bPrevCum + bPriorSum;
+          const diffEvCumulated = evCumulated - bEvCumulated;
+
           rows.push([
             'Special Event',
             `Month ${m.month} (Event)`,
@@ -130,7 +144,8 @@ export default function TimelineTable(): JSX.Element {
             evDiff,
             ev.amount as number,
             evDiff,
-            '—', '—'
+            evCumulated,
+            diffEvCumulated
           ]);
         });
       }
@@ -575,11 +590,25 @@ export default function TimelineTable(): JSX.Element {
                 )),
 
                 /* 2. Special Fiscal Event Rows (Pre-Month Bonuses, Tax Returns, and One-Off Costs/Income) */
-                hasEvents && m.specialEvents.map((ev: SpecialEventItem) => {
-                  const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.eventId === ev.eventId || bItem.title === ev.title || bItem.type === ev.type);
+                hasEvents && m.specialEvents.map((ev: SpecialEventItem, evIdx: number) => {
+                  const bEvents = bMonth?.specialEvents || [];
+                  const bMatchIdx = bEvents.findIndex((it: SpecialEventItem) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
+                  const bEv = bMatchIdx >= 0 ? bEvents[bMatchIdx] : undefined;
                   const bEvAmount = bEv ? (bEv.amount as number) : 0;
                   const evDiff = (ev.amount as number) - bEvAmount;
                   const isCost = (ev.amount as number) < 0;
+
+                  // Progressive Cumulative Total calculation at this event row
+                  const prevMonthIdx = (m.month as number) - 2;
+                  const prevCumulated = prevMonthIdx >= 0 ? (current.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+                  const bPrevCumulated = prevMonthIdx >= 0 ? (bData.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+
+                  const priorEventsSum = m.specialEvents.slice(0, evIdx).reduce((acc: number, it: SpecialEventItem) => acc + (it.amount as number), 0);
+                  const evCumulated = prevCumulated + priorEventsSum + (ev.amount as number);
+
+                  const bPriorSum = bMatchIdx >= 0 ? bEvents.slice(0, bMatchIdx + 1).reduce((acc: number, it: SpecialEventItem) => acc + (it.amount as number), 0) : 0;
+                  const bEvCumulated = bPrevCumulated + bPriorSum;
+                  const diffEvCumulated = evCumulated - bEvCumulated;
 
                   const rowBg = isCost
                     ? 'rgba(225, 29, 72, 0.10)'
@@ -673,7 +702,15 @@ export default function TimelineTable(): JSX.Element {
                           true
                         )}
                       </td>
-                      <td style={{ padding: '6px 12px', color: '#64748b', fontSize: '0.72rem' }}>—</td>
+                      <td style={{ padding: '6px 12px' }}>
+                        {renderCell(
+                          evCumulated,
+                          diffEvCumulated,
+                          false,
+                          '#cbd5e1',
+                          false
+                        )}
+                      </td>
                     </tr>
                   );
                 }),
