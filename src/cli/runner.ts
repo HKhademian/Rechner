@@ -241,7 +241,10 @@ interface CliOptions {
   bonus?: number;
   husbandGross?: number;
   wifeGross?: number;
+  husbandHours?: number;
   wifeHours?: number;
+  annualBonusGross?: number;
+  investmentReturnMonthly?: number;
   salaryMode?: SalaryInputMode;
   pregYear?: number;
   pregMonth?: number;
@@ -336,8 +339,14 @@ function parseArgs(args: string[]): CliOptions {
       opts.husbandGross = Number(args[++i]);
     } else if (arg === '--wife-gross' || arg === '--w-gross') {
       opts.wifeGross = Number(args[++i]);
+    } else if (arg === '--husband-hours' || arg === '--h-hours') {
+      opts.husbandHours = Number(args[++i]);
     } else if (arg === '--wife-hours' || arg === '--w-hours') {
       opts.wifeHours = Number(args[++i]);
+    } else if (arg === '--annual-bonus' || arg === '--annual-bonus-gross' || arg === '--bonus-gross') {
+      opts.annualBonusGross = Number(args[++i]);
+    } else if (arg === '--investment' || arg === '--investment-return' || arg === '--capital-inflow') {
+      opts.investmentReturnMonthly = Number(args[++i]);
     } else if (arg === '--salary-mode') {
       opts.salaryMode = args[++i]?.toUpperCase() === 'GROSS' ? SalaryInputMode.Gross : SalaryInputMode.Net;
     }
@@ -674,13 +683,17 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: spousal ? spousal.husbandClass3Net : toNetSalary(2895),
     husbandInitialClass5Net: spousal ? spousal.husbandClass5Net : toNetSalary(2191),
-    husbandWeeklyHours: toWorkingHours(32),
+    husbandWeeklyHours: toWorkingHours(opts.husbandHours || 32),
     wifeInitialTaxClass: TaxClass.V,
     wifeInitialFullTimeNet: spousal ? spousal.wifeClass5FullTimeNet : toNetSalary(1975),
     wifeInitialClass3FullTimeNet: spousal ? spousal.wifeClass3FullTimeNet : toNetSalary(2603),
     wifeInitialPartTimeClass5Net: spousal ? spousal.wifeClass5PartTimeNet : toNetSalary(1328),
     wifeInitialPartTimeClass3Net: spousal ? spousal.wifeClass3PartTimeNet : toNetSalary(1648),
     wifeWeeklyHours: toWorkingHours(40),
+    wifePostBirthWeeklyHours: toWorkingHours(opts.wifeHours || 24),
+    annualBonusGross: opts.annualBonusGross ? toEuroAmount(opts.annualBonusGross) : undefined,
+    annualBonusMonth: toCalendarMonth(12),
+    investmentReturnMonthly: opts.investmentReturnMonthly ? toEuroAmount(opts.investmentReturnMonthly) : undefined,
     existingChildrenCount: opts.childrenCount,
     kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: opts.enable13th,
