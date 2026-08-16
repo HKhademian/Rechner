@@ -4,12 +4,14 @@ import {
   ScenarioId,
   TaxClass,
   TargetPerson,
+  SalaryInputMode,
   type PregnancyId,
   type SwitchId,
   type RaiseId,
   type FinancialEventId,
   FinancialEventCategory,
   toNetSalary,
+  toGrossSalary,
   toEuroAmount,
   toWorkingHours,
   toSimulationMonth,
@@ -18,17 +20,26 @@ import {
   toSwitchId,
   toRaiseId,
   toFinancialEventId,
+  toSalaryInputMode,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
-  type FinancialEventAction
+  type FinancialEventAction,
+  type GrossToNetBreakdown,
+  type SpousalGrossToNetSet
 } from '#engine/types';
 import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
+import { deriveSpousalNetSalaries, computeGrossToNetBreakdown } from '#engine/tax/wageTax';
+
+// Input Mode (Gross vs Net Mode)
+export const salaryInputMode = signal<SalaryInputMode>(SalaryInputMode.Gross);
+export const husbandGross = signal<number>(4500);
+export const wifeGross = signal<number>(3000);
 
 // Default Financial Parameters (The Sandbox)
-export const husbandClass3Net = signal(2895);
-export const husbandClass5Net = signal(2191);
+export const husbandClass3Net = signal(3184);
+export const husbandClass5Net = signal(2398);
 export const husbandHours = signal(32);
 
 export const wifeInitialHours = signal(40);
@@ -36,7 +47,53 @@ export const wifePostBirthHours = signal(24);
 export const wifeClass5FullTimeNet = signal(1975);
 export const wifeClass3FullTimeNet = signal(2603);
 
+export function syncGrossToNet() {
+  if (salaryInputMode.value === SalaryInputMode.Gross) {
+    const spousal = deriveSpousalNetSalaries(
+      toGrossSalary(Math.max(0, husbandGross.value || 0)),
+      toGrossSalary(Math.max(0, wifeGross.value || 0)),
+      toWorkingHours(wifePostBirthHours.value || 24),
+      toWorkingHours(wifeInitialHours.value || 40),
+      0
+    );
+    husbandClass3Net.value = spousal.husbandClass3Net as number;
+    husbandClass5Net.value = spousal.husbandClass5Net as number;
+    wifeClass5FullTimeNet.value = spousal.wifeClass5FullTimeNet as number;
+    wifeClass3FullTimeNet.value = spousal.wifeClass3FullTimeNet as number;
+  }
+}
+
+export function setHusbandGross(gross: number) {
+  husbandGross.value = gross;
+  syncGrossToNet();
+}
+
+export function setWifeGross(gross: number) {
+  wifeGross.value = gross;
+  syncGrossToNet();
+}
+
+export function setSalaryInputMode(mode: SalaryInputMode) {
+  salaryInputMode.value = mode;
+  if (mode === SalaryInputMode.Gross) {
+    syncGrossToNet();
+  }
+}
+
+export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
+  return deriveSpousalNetSalaries(
+    toGrossSalary(Math.max(0, husbandGross.value || 0)),
+    toGrossSalary(Math.max(0, wifeGross.value || 0)),
+    toWorkingHours(wifePostBirthHours.value || 24),
+    toWorkingHours(wifeInitialHours.value || 40),
+    0
+  );
+});
+
 export const wifeClass5PartTimeNet = computed(() => {
+  if (salaryInputMode.value === SalaryInputMode.Gross) {
+    return derivedSpousalSet.value.wifeClass5PartTimeNet as number;
+  }
   const ft = wifeClass5FullTimeNet.value;
   const initH = wifeInitialHours.value || 40;
   const pbH = wifePostBirthHours.value;
@@ -45,6 +102,9 @@ export const wifeClass5PartTimeNet = computed(() => {
 });
 
 export const wifeClass3PartTimeNet = computed(() => {
+  if (salaryInputMode.value === SalaryInputMode.Gross) {
+    return derivedSpousalSet.value.wifeClass3PartTimeNet as number;
+  }
   const ft = wifeClass3FullTimeNet.value;
   const initH = wifeInitialHours.value || 40;
   const pbH = wifePostBirthHours.value;

@@ -124,5 +124,58 @@ describe('Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)', () => {
       assert.ok(parsed.explanation.contributingFactors.length >= 3);
       assert.ok(parsed.explanation.calculationSteps.length >= 2);
     });
+
+    it('executes "gross-to-net -g 4500 -c III" and returns itemized tax breakdown', async () => {
+      const { stdout, stderr } = await execFileAsync('node', ['src/cli/runner.ts', 'gross-to-net', '-g', '4500', '-c', 'III']);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('STATUTORY GROSS-TO-NET BREAKDOWN'));
+      assert.ok(stdout.includes('4.500 €'));
+      assert.ok(stdout.includes('Health Insurance (GKV'));
+      assert.ok(stdout.includes('Pension Insurance (GRV'));
+      assert.ok(stdout.includes('Monthly Net Take-Home Pay:'));
+      assert.ok(stdout.includes('Elterngeld Synthetic Net (§ 2c):'));
+    });
+
+    it('executes "gross-to-net -g 3000 -c V -b 2000" with Sonstige Bezüge bonus taxation', async () => {
+      const { stdout, stderr } = await execFileAsync('node', ['src/cli/runner.ts', 'gross-to-net', '-g', '3000', '-c', 'V', '-b', '2000']);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('Non-Recurrent Bonus:'));
+      assert.ok(stdout.includes('2.000 €'));
+      assert.ok(stdout.includes('Bonus Tax (Annual Differential):'));
+      assert.ok(stdout.includes('Sonstige Bezüge § 39b EStG'));
+    });
+
+    it('executes "spousal-net --husband-gross 4500 --wife-gross 3000" and outputs comparison set', async () => {
+      const { stdout, stderr } = await execFileAsync('node', [
+        'src/cli/runner.ts',
+        'spousal-net',
+        '--husband-gross',
+        '4500',
+        '--wife-gross',
+        '3000'
+      ]);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('SPOUSAL HOUSEHOLD GROSS-TO-NET COMPARISON SET'));
+      assert.ok(stdout.includes('Tax Class III (Default):'));
+      assert.ok(stdout.includes('Tax Class V (Prenatal Swap):'));
+      assert.ok(stdout.includes('Wife Full-Time (40h) Salary Breakdown:'));
+      assert.ok(stdout.includes('Wife Post-Birth Part-Time (24h) Salary Breakdown:'));
+      assert.ok(stdout.includes('Monthly Temporary Tax Gap:'));
+    });
+
+    it('runs simulation with dynamic gross parameters "--husband-gross 4500 --wife-gross 3000"', async () => {
+      const { stdout, stderr } = await execFileAsync('node', [
+        'src/cli/runner.ts',
+        '--husband-gross',
+        '4500',
+        '--wife-gross',
+        '3000',
+        '-f',
+        'summary'
+      ]);
+      assert.equal(stderr, '');
+      assert.ok(stdout.includes('GERMAN ELTERNGELD SIMULATION KPI SCORECARD'));
+      assert.ok(stdout.includes('Net Optimization Advantage (Scenario C vs B)'));
+    });
   });
 });

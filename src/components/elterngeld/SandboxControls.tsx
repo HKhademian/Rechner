@@ -1,6 +1,13 @@
 import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import {
+  salaryInputMode,
+  husbandGross,
+  wifeGross,
+  setHusbandGross,
+  setWifeGross,
+  setSalaryInputMode,
+  derivedSpousalSet,
   husbandClass3Net,
   husbandClass5Net,
   husbandHours,
@@ -46,6 +53,7 @@ import {
   TaxClass,
   TargetPerson,
   FinancialEventCategory,
+  SalaryInputMode,
   toSimulationMonth,
   toCalendarMonth,
   toEuroAmount,
@@ -81,6 +89,7 @@ const MONTH_NAMES = [
 
 export default function SandboxControls(): JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(true);
+  const [showDeductionsBreakdown, setShowDeductionsBreakdown] = useState<boolean>(false);
 
   // Helper to compute calendar date for simulation month offset
   const getCalDate = (simMonth: number): string => {
@@ -94,11 +103,13 @@ export default function SandboxControls(): JSX.Element {
   const applyPreset = (presetName: 'default' | 'high_earner' | 'equal'): void => {
     if (presetName === 'default') {
       resetToDefaults();
+      setSalaryInputMode(SalaryInputMode.Gross);
+      setHusbandGross(4500);
+      setWifeGross(3000);
     } else if (presetName === 'high_earner') {
-      husbandClass3Net.value = 5200;
-      husbandClass5Net.value = 3900;
-      wifeClass5FullTimeNet.value = 2600;
-      wifeClass3FullTimeNet.value = 3000;
+      setSalaryInputMode(SalaryInputMode.Gross);
+      setHusbandGross(8200);
+      setWifeGross(4500);
       wifeInitialHours.value = 40;
       wifePostBirthHours.value = 24;
       prePregnancyPlanningMonths.value = 8;
@@ -106,10 +117,9 @@ export default function SandboxControls(): JSX.Element {
       birthSpacingMonths.value = 27;
       swapLeadMonths.value = 7;
     } else if (presetName === 'equal') {
-      husbandClass3Net.value = 3400;
-      husbandClass5Net.value = 2600;
-      wifeClass5FullTimeNet.value = 2600;
-      wifeClass3FullTimeNet.value = 3400;
+      setSalaryInputMode(SalaryInputMode.Gross);
+      setHusbandGross(4800);
+      setWifeGross(4800);
       wifeInitialHours.value = 40;
       wifePostBirthHours.value = 24;
       prePregnancyPlanningMonths.value = 8;
@@ -337,41 +347,205 @@ export default function SandboxControls(): JSX.Element {
                 </div>
               </div>
 
-              {/* Husband Baseline Class III */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Husband Class III Net (32h):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
-                    {formatCurrency(husbandClass3Net.value)}
-                  </span>
+              {/* Salary Input Mode Switcher */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#1e293b',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                marginBottom: '12px',
+                border: '1px solid #334155'
+              }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
+                  Salary Mode:
+                </span>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSalaryInputMode(SalaryInputMode.Gross)}
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: '3px',
+                      border: salaryInputMode.value === SalaryInputMode.Gross ? '1px solid #10b981' : '1px solid transparent',
+                      background: salaryInputMode.value === SalaryInputMode.Gross ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                      color: salaryInputMode.value === SalaryInputMode.Gross ? '#6ee7b7' : '#94a3b8',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ⚡ Gross (Auto § 38b)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSalaryInputMode(SalaryInputMode.Net)}
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: '3px',
+                      border: salaryInputMode.value === SalaryInputMode.Net ? '1px solid #38bdf8' : '1px solid transparent',
+                      background: salaryInputMode.value === SalaryInputMode.Net ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+                      color: salaryInputMode.value === SalaryInputMode.Net ? '#7dd3fc' : '#94a3b8',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🔧 Net (Manual)
+                  </button>
                 </div>
-                <input
-                  type="range"
-                  min="2000"
-                  max="7000"
-                  step="25"
-                  value={husbandClass3Net.value}
-                  onInput={(e) => { husbandClass3Net.value = Number((e.target as HTMLInputElement).value); }}
-                />
               </div>
 
-              {/* Wife Baseline Class V */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Wife Class V FT Net (40h):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
-                    {formatCurrency(wifeClass5FullTimeNet.value)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1200"
-                  max="4500"
-                  step="25"
-                  value={wifeClass5FullTimeNet.value}
-                  onInput={(e) => { wifeClass5FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
-                />
-              </div>
+              {salaryInputMode.value === SalaryInputMode.Gross ? (
+                <>
+                  {/* Husband Monthly Gross */}
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                      <span style={{ color: '#cbd5e1' }}>Husband Monthly Gross (32h):</span>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
+                        {formatCurrency(husbandGross.value)} / mo
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="2500"
+                      max="12000"
+                      step="50"
+                      value={husbandGross.value}
+                      onInput={(e) => { setHusbandGross(Number((e.target as HTMLInputElement).value)); }}
+                    />
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '2px', fontSize: '0.66rem' }}>
+                      <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#93c5fd' }}>
+                        Class III: <strong>{formatCurrency(derivedSpousalSet.value.husbandClass3Net as number)}</strong>
+                      </span>
+                      <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#fde047' }}>
+                        Class V: <strong>{formatCurrency(derivedSpousalSet.value.husbandClass5Net as number)}</strong>
+                      </span>
+                      <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#94a3b8' }}>
+                        Class IV: {formatCurrency(derivedSpousalSet.value.husbandClass4Net as number)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Wife Monthly Gross FT */}
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                      <span style={{ color: '#cbd5e1' }}>Wife Monthly Gross FT (40h):</span>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2dd4bf' }}>
+                        {formatCurrency(wifeGross.value)} / mo
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1500"
+                      max="8000"
+                      step="50"
+                      value={wifeGross.value}
+                      onInput={(e) => { setWifeGross(Number((e.target as HTMLInputElement).value)); }}
+                    />
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '2px', fontSize: '0.66rem' }}>
+                      <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#fde047' }}>
+                        Class V: <strong>{formatCurrency(derivedSpousalSet.value.wifeClass5FullTimeNet as number)}</strong>
+                      </span>
+                      <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#86efac' }}>
+                        Class III: <strong>{formatCurrency(derivedSpousalSet.value.wifeClass3FullTimeNet as number)}</strong>
+                      </span>
+                      <span style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '3px', color: '#c4b5fd' }}>
+                        PT (24h): {formatCurrency(derivedSpousalSet.value.wifeClass5PartTimeNet as number)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Deductions Breakdown Toggle */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeductionsBreakdown(!showDeductionsBreakdown)}
+                      style={{
+                        width: '100%',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #334155',
+                        background: '#0f172a',
+                        color: '#94a3b8',
+                        fontSize: '0.68rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <span>📊 Statutory Tax & Social Deductions</span>
+                      <span>{showDeductionsBreakdown ? '▲ Hide' : '▼ Expand'}</span>
+                    </button>
+                    {showDeductionsBreakdown && (
+                      <div style={{
+                        background: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '4px',
+                        padding: '8px',
+                        marginTop: '4px',
+                        fontSize: '0.68rem',
+                        color: '#cbd5e1'
+                      }}>
+                        <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: '4px' }}>
+                          Husband (Class III): Deductions {formatCurrency((derivedSpousalSet.value.husbandBreakdownClass3.monthlyGross as number) - (derivedSpousalSet.value.husbandBreakdownClass3.monthlyNetTakeHome as number))} ({derivedSpousalSet.value.husbandBreakdownClass3.effectiveTotalDeductionRatePercent}%)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '6px' }}>
+                          <span>• Social: {formatCurrency(derivedSpousalSet.value.husbandBreakdownClass3.totalSocialSecurity as number)}</span>
+                          <span>• Tax: {formatCurrency(derivedSpousalSet.value.husbandBreakdownClass3.monthlyWageTax as number)}</span>
+                        </div>
+                        <div style={{ fontWeight: 700, color: '#2dd4bf', marginBottom: '4px' }}>
+                          Wife FT (Class V): Deductions {formatCurrency((derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyGross as number) - (derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyNetTakeHome as number))} ({derivedSpousalSet.value.wifeBreakdownClass5FT.effectiveTotalDeductionRatePercent}%)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                          <span>• Social: {formatCurrency(derivedSpousalSet.value.wifeBreakdownClass5FT.totalSocialSecurity as number)}</span>
+                          <span>• Tax: {formatCurrency(derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyWageTax as number)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Husband Baseline Class III */}
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                      <span style={{ color: '#cbd5e1' }}>Husband Class III Net (32h):</span>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
+                        {formatCurrency(husbandClass3Net.value)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="2000"
+                      max="7000"
+                      step="25"
+                      value={husbandClass3Net.value}
+                      onInput={(e) => { husbandClass3Net.value = Number((e.target as HTMLInputElement).value); }}
+                    />
+                  </div>
+
+                  {/* Wife Baseline Class V */}
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+                      <span style={{ color: '#cbd5e1' }}>Wife Class V FT Net (40h):</span>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
+                        {formatCurrency(wifeClass5FullTimeNet.value)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1200"
+                      max="4500"
+                      step="25"
+                      value={wifeClass5FullTimeNet.value}
+                      onInput={(e) => { wifeClass5FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Kindergeld */}
               <div>

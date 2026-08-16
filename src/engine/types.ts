@@ -175,6 +175,28 @@ export const CliOutputFormat = {
 } as const;
 export type CliOutputFormat = (typeof CliOutputFormat)[keyof typeof CliOutputFormat];
 
+// Gross-to-Net & Bonus Architecture Enums (Strict Const Enums)
+export const SalaryInputMode = {
+  Gross: 'GROSS',
+  Net: 'NET'
+} as const;
+export type SalaryInputMode = (typeof SalaryInputMode)[keyof typeof SalaryInputMode];
+
+export const WageTaxZone = {
+  Zone1Null: 'ZONE_1_NULL',
+  Zone2Progression1: 'ZONE_2_PROGRESSION_1',
+  Zone3Progression2: 'ZONE_3_PROGRESSION_2',
+  Zone4Proportional42: 'ZONE_4_PROPORTIONAL_42',
+  Zone5Reichensteuer45: 'ZONE_5_REICHENSTEUER_45'
+} as const;
+export type WageTaxZone = (typeof WageTaxZone)[keyof typeof WageTaxZone];
+
+export const BonusTaxMethod = {
+  RegularWage: 'REGULAR_WAGE',
+  SonstigeBezuegeAnnualDiff: 'SONSTIGE_BEZUEGE_ANNUAL_DIFF'
+} as const;
+export type BonusTaxMethod = (typeof BonusTaxMethod)[keyof typeof BonusTaxMethod];
+
 // Type Constructors & Validation Helpers
 export function toSimulationMonth(val: number): SimulationMonth {
   if (!Number.isInteger(val) || val < 1 || val > 120) {
@@ -369,6 +391,31 @@ export function toCliOutputFormat(val: string): CliOutputFormat {
   return normalized as CliOutputFormat;
 }
 
+export function toSalaryInputMode(val: string): SalaryInputMode {
+  const upper = val.toUpperCase();
+  const values = Object.values(SalaryInputMode) as string[];
+  if (!values.includes(upper)) {
+    throw new TypeError(`Invalid SalaryInputMode: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return upper as SalaryInputMode;
+}
+
+export function toWageTaxZone(val: string): WageTaxZone {
+  const values = Object.values(WageTaxZone) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid WageTaxZone: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as WageTaxZone;
+}
+
+export function toBonusTaxMethod(val: string): BonusTaxMethod {
+  const values = Object.values(BonusTaxMethod) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid BonusTaxMethod: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as BonusTaxMethod;
+}
+
 /**
  * Immutable Accounting Transaction Entry
  */
@@ -482,6 +529,68 @@ export interface SimulationResult {
   };
 }
 
+/**
+ * Itemized German Gross-to-Net Payroll & Statutory Tax Breakdown
+ */
+export interface GrossToNetBreakdown {
+  readonly monthlyGross: GrossSalary;
+  readonly annualGross: GrossSalary;
+  readonly taxClass: TaxClass;
+  readonly childrenCount: number;
+
+  // Itemized Social Insurance Deductions (§§ 20, 55 SGB)
+  readonly healthInsurance: EuroAmount;
+  readonly healthInsuranceRate: number;
+  readonly pensionInsurance: EuroAmount;
+  readonly pensionInsuranceRate: number;
+  readonly unemploymentInsurance: EuroAmount;
+  readonly unemploymentInsuranceRate: number;
+  readonly careInsurance: EuroAmount;
+  readonly careInsuranceRate: number;
+  readonly totalSocialSecurity: EuroAmount;
+
+  // Statutory Wage Taxes (§§ 32a, 38b EStG, SolzG)
+  readonly taxableIncomeZvE: EuroAmount;
+  readonly wageTaxZone: WageTaxZone;
+  readonly monthlyWageTax: EuroAmount;
+  readonly monthlySolidaritySurcharge: EuroAmount;
+  readonly totalTaxWithholding: EuroAmount;
+
+  // Non-Recurrent Bonus Accounting (§ 39b Abs. 3 EStG)
+  readonly oneOffBonusAmount?: EuroAmount;
+  readonly bonusTaxDeduction?: EuroAmount;
+
+  // Final Net Take-Home & Elterngeld Synthetic Net
+  readonly monthlyNetTakeHome: NetSalary;
+  readonly elterngeldSyntheticNet: NetSalary; // § 2c BEEG (Clean baseline excluding non-recurrent bonuses)
+  readonly effectiveTaxRatePercent: number;
+  readonly effectiveTotalDeductionRatePercent: number;
+  readonly statutoryCitation: StatutoryCitation;
+}
+
+/**
+ * Spousal Household Gross-to-Net Set
+ */
+export interface SpousalGrossToNetSet {
+  readonly husbandGross: GrossSalary;
+  readonly husbandClass3Net: NetSalary;
+  readonly husbandClass5Net: NetSalary;
+  readonly husbandClass4Net: NetSalary;
+  readonly wifeGrossFullTime: GrossSalary;
+  readonly wifeClass5FullTimeNet: NetSalary;
+  readonly wifeClass3FullTimeNet: NetSalary;
+  readonly wifeClass4FullTimeNet: NetSalary;
+  readonly wifeGrossPartTime: GrossSalary;
+  readonly wifeClass5PartTimeNet: NetSalary;
+  readonly wifeClass3PartTimeNet: NetSalary;
+  readonly wifePartTimeWeeklyHours: WorkingHours;
+  readonly husbandWeeklyHours: WorkingHours;
+  readonly husbandBreakdownClass3: GrossToNetBreakdown;
+  readonly husbandBreakdownClass5: GrossToNetBreakdown;
+  readonly wifeBreakdownClass5FT: GrossToNetBreakdown;
+  readonly wifeBreakdownClass3FT: GrossToNetBreakdown;
+}
+
 // ==========================================
 // Discrete Batch Action Architecture Types
 // ==========================================
@@ -493,6 +602,9 @@ export interface PreexistingConditions {
   readonly startCalendarYear: number;
   readonly startCalendarMonth: CalendarMonth;
   readonly simulationDurationMonths: number;
+  readonly salaryInputMode?: SalaryInputMode;
+  readonly husbandGross?: GrossSalary;
+  readonly wifeGross?: GrossSalary;
   readonly husbandInitialTaxClass: TaxClass;
   readonly husbandInitialNet: NetSalary;
   readonly husbandInitialClass5Net: NetSalary;
