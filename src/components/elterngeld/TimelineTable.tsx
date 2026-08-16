@@ -113,7 +113,9 @@ export default function TimelineTable(): JSX.Element {
       // Special Event Rows
       if (m.specialEvents && m.specialEvents.length > 0) {
         m.specialEvents.forEach((ev: SpecialEventItem) => {
-          const evDiff = (ev.type as string) === 'tax_return' ? (ev.amount as number) : 0;
+          const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
+          const bEvAmount = bEv ? (bEv.amount as number) : 0;
+          const evDiff = (ev.amount as number) - bEvAmount;
           rows.push([
             'Special Event',
             `Month ${m.month} (Event)`,
@@ -570,7 +572,9 @@ export default function TimelineTable(): JSX.Element {
 
                 /* 2. Special Event Rows (13th Month Salary Chunks & Annual Tax Returns) */
                 hasEvents && m.specialEvents.map((ev: SpecialEventItem) => {
-                  const evDiff = (ev.type as string) === 'tax_return' ? (ev.amount as number) : 0;
+                  const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
+                  const bEvAmount = bEv ? (bEv.amount as number) : 0;
+                  const evDiff = (ev.amount as number) - bEvAmount;
                   return (
                     <tr
                       key={ev.eventId}
@@ -612,7 +616,7 @@ export default function TimelineTable(): JSX.Element {
                         <div>{ev.taxClassLabel}</div>
                         {showDelta && scenario === 'C' && (
                           <div style={{ fontSize: '0.66rem', color: '#64748b' }}>
-                            {(ev.type as string) === 'tax_return' ? 'Splitting Reconciled' : 'Same as B'}
+                            {evDiff !== 0 ? 'Splitting Reconciled' : 'Same as B'}
                           </div>
                         )}
                       </td>
