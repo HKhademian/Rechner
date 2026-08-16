@@ -1,135 +1,135 @@
-# Deutscher Netto- & Elterngeldrechner
+# German Net Salary Calculator & Elterngeld 5-Year Financial Simulator
 
-Ein interaktives, clientseitiges Web-Analyse- und Simulationsstudio zur präzisen Berechnung des deutschen Nettolohns sowie zur mehrjährigen Finanz- und Elternzeitplanung (BEEG / EStG / MuSchG).
-
----
-
-## 📌 Funktionsübersicht
-
-Die Anwendung gliedert sich in zwei Kernmodule:
-
-### 1. Deutscher Nettolohnrechner (`/`)
-- **Vollständige Tarifberechnung**: Steuerklassen I bis VI gemäß § 32a EStG und Einkommensteuertarif 2024–2026.
-- **Sozialversicherungsbeiträge mit Beitragsbemessungsgrenzen (BBG)**:
-  - Gesetzliche Krankenversicherung (Allgemeiner Beitragssatz 14,6 % + kassenindividueller Zusatzbeitrag, paritätisch finanziert).
-  - Gesetzliche Rentenversicherung (18,6 %, 50/50).
-  - Arbeitslosenversicherung (2,6 %, 50/50).
-  - Pflegeversicherung inklusive kinderlosen Zuschlägen (4,0 % für Kinderlose) und Entlastungsstufen ab dem 2. Kind.
-- **Steuerabzüge & Freibeträge**:
-  - Grundfreibetrag, Arbeitnehmer-Pauschbetrag (§ 9a EStG), Sonderausgaben-Vorsorgeaufwendungen (§ 10 EStG).
-  - Entlastungsbetrag für Alleinerziehende (§ 24b EStG - Steuerklasse II).
-  - Kirchensteuer (8 % in Bayern/Baden-Württemberg, sonst 9 %) und Solidaritätszuschlag mit Freigrenzenprüfung.
-- **Partner- und Haushaltseffekt**: Gegenüberstellung von Einzel- und Haushaltsnettoeinkommen bei unterschiedlichen Steuerklassenkombinationen (III/V, IV/IV, IV mit Faktor).
-- **Szenarien-Vergleich**: Speichern, Laden und Gegenüberstellen von bis zu mehreren Haushaltsszenarien.
-
-### 2. Elterngeld & Elternzeit 5-Jahres-Simulation (`/elterngeld`)
-- **60-Monate-Cashflow-Ledger**: Vollständige Simulation über 5 Jahre (60 Monate) für die Familienplanung mit zwei Kindern.
-- **Gesetzliche Lohnersatzleistungen & Regelwerke**:
-  - **Mutterschutzgesetz (MuSchG)**: 6 Wochen vor der Geburt und 8 Wochen nach der Geburt mit 100 % Nettoeinkommensersatz (Mutterschaftsgeld + Arbeitgeberzuschuss).
-  - **Anrechnung Mutterschutz (§ 3 BEEG)**: Verbrauch der Basiselterngeldmonate 1 und 2 durch den nachgeburtlichen Mutterschutz.
-  - **ElterngeldPlus & Deckelung**: 65 % des Nettoeinkommensverlustes bei Teilzeitarbeit, gedeckelt auf maximal **€900,00 / Monat**.
-  - **Proaktiver Steuerklassenwechsel (III/V)**: Wechsel in Steuerklasse III mindestens 7 Monate vor dem Mutterschutz, um die überwiegende Steuerklasse im 12-monatigen Bemessungszeitraum (§ 2b BEEG) zu sichern (BFH-Urteil VI R 2/13).
-  - **Fiktive Steuerklasse (*Fiktives Netto*)**: Nach der Geburt wechselt das Paar zurück in Klasse III (Mann) / V (Frau). Die Elterngeldstelle berechnet das ElterngeldPlus weiterhin auf Basis des hohen vorgeburtlichen Klasse-III-Nettos.
-  - **Finanzamt-Steuererstattung (Ehegatten-Splitting)**: Monatliche Liquiditätseinbußen während der Wechselphase werden über die jährliche Einkommensteuererklärung (§ 26b EStG) zu 100 % erstattet.
-  - **Partnermonate & Partnerschaftsbonus (§ 4b BEEG)**: 4 Partnermonate Mindestbetrag (€150 / Monat) für den Vater sowie je 4 zusätzliche Bonusmonate bei gleichzeitiger Teilzeitarbeit beider Elternteile zwischen 24 und 32 Wochenstunden.
-  - **Geschwisterbonus (§ 2a BEEG)**: +10 % Zuschlag auf das Elterngeld für Kind 2, bis Kind 1 das 36. Lebensmonat (3. Lebensjahr) vollendet.
-  - **14-Monate-Falle bei Kind 2**: Modellierung des verwässerten Bemessungszeitraums (10 Monate Teilzeit + 2 Monate Vollzeit) und Optimierung über erneuten Steuerklassenwechsel.
+An interactive, client-side web analysis and financial simulation studio for precise German net income calculations and multi-year parental leave planning (BEEG / EStG / MuSchG).
 
 ---
 
-## ⚖️ Szenarien-Vergleichsmatrix (Standard-Parameter)
+## 📌 Feature Overview
 
-| Kennzahl | Szenario A (Basisfall) | Szenario B (Nicht optimiert) | Szenario C (Vollständig optimiert) | Differenz (C vs. B) |
+The application is structured into two core modules:
+
+### 1. German Net Salary Calculator (`/`)
+- **Complete Tax Computation**: Tax classes I through VI in accordance with German § 32a EStG and the 2024–2026 progressive income tax tariff.
+- **Social Security Contributions with Contribution Ceilings (BBG)**:
+  - Statutory Health Insurance (*Krankenversicherung*: General rate 14.6% + individual supplementary contribution, split 50/50).
+  - Statutory Pension Insurance (*Rentenversicherung*: 18.6%, split 50/50).
+  - Statutory Unemployment Insurance (*Arbeitslosenversicherung*: 2.6%, split 50/50).
+  - Statutory Long-Term Care Insurance (*Pflegeversicherung*: 4.0% for childless individuals, with progressive relief tiers from the 2nd child onwards).
+- **Tax Deductions & Allowances**:
+  - Basic Tax-Free Allowance (*Grundfreibetrag*), Employee Lump-Sum Allowance (*Arbeitnehmer-Pauschbetrag* § 9a EStG), Special Expenses & Vorsorgeaufwand (§ 10 EStG).
+  - Single Parent Tax Relief (*Entlastungsbetrag für Alleinerziehende* § 24b EStG - Tax Class II).
+  - Church Tax (*Kirchensteuer*: 8% in Bavaria/Baden-Württemberg, 9% in all other states) and Solidarity Surcharge (*Solidaritätszuschlag*) exemption threshold verification.
+- **Spouse & Household Modeling**: Direct side-by-side comparison of individual vs. household net income across tax class combinations (III/V, IV/IV, IV with factor).
+- **Scenario Manager**: Save, load, edit, and compare multiple household scenarios.
+
+### 2. Elterngeld & Parental Leave 5-Year Simulator (`/elterngeld`)
+- **60-Month Cash Flow Ledger**: Complete 5-year chronological simulation for a household planning two children.
+- **Statutory Wage Replacement Benefits & Legal Framework**:
+  - **Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)**: 6 weeks pre-birth and 8 weeks post-birth with 100% net wage replacement (Maternity benefit + Employer supplement).
+  - **Maternity Offset (*Anrechnung MuSchG § 3 BEEG*)**: Post-birth maternity protection legally consumes Basic Elterngeld months 1 and 2.
+  - **ElterngeldPlus & Statutory Cap**: 65% replacement rate for part-time income losses, capped at **€900.00 / month**.
+  - **Proactive Tax Class Swap (III/V)**: Swapping to Tax Class III at least 7 months before maternity protection to secure Tax Class III as the predominant class across the 12-month assessment window (§ 2b BEEG; BFH Ruling VI R 2/13).
+  - **Synthetic Net Principle (*Fiktives Netto*)**: Swapping back to Tax Class III (Husband) / V (Wife) post-birth does not lower the approved ElterngeldPlus entitlement.
+  - **Tax Office Reconciliation (*Ehegatten-Splitting*)**: Monthly withholding deductions during the swap period are 100% refunded to the couple via the annual joint tax assessment (§ 26b EStG).
+  - **Partner Months & Partnership Bonus (§ 4b BEEG)**: 4 partner months base rate (€150 / month) for the father plus 4 additional bonus months when both parents work part-time concurrently between 24 and 32 hours per week.
+  - **Sibling Bonus (*Geschwisterbonus § 2a BEEG*)**: +10% surcharge on Child 2 Elterngeld until Child 1 turns 3 years old (36 months).
+  - **14-Month Trap Avoidance (Child 2)**: Modeling the diluted assessment window (10 months part-time + 2 months full-time) and optimization via timed secondary tax class switching.
+
+---
+
+## ⚖️ Scenario Comparison Matrix (Standard Parameters)
+
+| Metric | Scenario A (Baseline) | Scenario B (Unoptimized) | Scenario C (Fully Optimized) | Delta (C vs. B) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Strategie** | Keine Kinder / Vollzeit | Statisch III/V ohne Wechsel | Proaktive Wechsel + Bonus-Ausschöpfung | Strategische Optimierung |
-| **Verdiente Gehälter (60M)** | €367.500 | €309.560 | €303.890 | -€5.670 (Lohnsteuer-Einbehalt) |
-| **Staatliche Leistungen (60M)** | €0 | €52.791 | €65.712 | **+€12.921** |
-| **Finanzamt-Erstattung** | €0 | €0 | €5.670 | **+€5.670** (100 % Rückerstattung) |
-| **Gesamter Mittelzufluss (60M)** | €367.500 | €362.351 | **€375.272** | **+€12.921 Liquiditätsvorteil** |
+| **Strategy** | No Children / Full-Time | Static III/V without swap | Proactive swaps + Bonus extraction | Strategic Optimization |
+| **Earned Salaries (60M)** | €367,500 | €309,560 | €303,890 | -€5,670 (Interim tax withholding) |
+| **State Benefits (60M)** | €0 | €52,791 | €65,712 | **+€12,921** |
+| **Tax Office Refund** | €0 | €0 | €5,670 | **+€5,670** (100% reimbursed) |
+| **Total Inflow (60M)** | €367,500 | €362,351 | **€375,272** | **+€12,921 Net Financial Gain** |
 
 ---
 
-## 🛠️ Technologie-Stack
+## 🛠️ Technology Stack
 
 - **Framework**: [Astro 7](https://astro.build/) (Static Site Generation / Islands Architecture)
-- **UI-Komponenten**: [Preact](https://preactjs.com/) (10.x)
-- **Zustandsverwaltung**: [@preact/signals](https://preactjs.com/guide/v10/signals/) für reaktive, verzögerungsfreie Neuberechnungen
-- **Visualisierung**: Eigenentwickelte, hochauflösende SVG-Diagramm-Engine (Gestapeltes Balkendiagramm, Flächentrend, Szenarien-Overlay)
-- **Design System**: Vanilla CSS mit CSS-Variablen, semantischem Dark-Mode und nativer Responsivität
+- **UI Components**: [Preact](https://preactjs.com/) (10.x)
+- **State Management**: [@preact/signals](https://preactjs.com/guide/v10/signals/) for high-performance reactive computation
+- **Data Visualization**: Custom SVG charting engine (Stacked Bar, Area Trend, Scenario Overlay)
+- **Design System**: Vanilla CSS with design tokens, institutional dark mode, and responsive layout
 
 ---
 
-## 📁 Projektstruktur
+## 📁 Project Structure
 
 ```text
 /
 ├── .agents/
-│   ├── docs/                      # Architektur- und Berechnungsschemata
+│   ├── docs/                      # Architectural specifications and tax schemas
 │   │   ├── ARCHITECTURE.md
 │   │   ├── GERMAN_TAX_AND_ELTERNGELD_SCHEMES.md
 │   │   └── TIMELINE_SIMULATION_MODEL.md
-│   └── rules/                     # Arbeitsrichtlinien für Versionskontrolle und Dokumentation
+│   └── rules/                     # Version control, atomic commit, and behavioral rules
 ├── src/
 │   ├── components/
 │   │   ├── elterngeld/
-│   │   │   ├── ElterngeldDashboard.jsx   # Haupt-Container der 5-Jahres-Simulation
-│   │   │   ├── KpiScorecard.jsx          # 4 dynamische Metrik-Karten
-│   │   │   ├── ScenarioSelector.jsx      # Szenarien-Umschalter (A / B / C / Vergleich)
-│   │   │   ├── TimelineChart.jsx         # Interaktives 60-Monate-SVG-Diagramm
-│   │   │   ├── SandboxControls.jsx       # Parameter-Schieberegler & Presets
-│   │   │   ├── RulesExplainer.jsx        # Gesetzesreferenzen & Urteile
-│   │   │   └── TimelineTable.jsx         # 60-Monate-Tabelle & CSV-Export
-│   │   ├── Calculator.jsx                # Haupt-Container des Nettolohnrechners
-│   │   ├── ComparisonTable.jsx           # Vergleichstabelle für Steuer-Szenarien
-│   │   ├── Icons.jsx                     # UI-Icon-Bibliothek
-│   │   ├── InputForm.jsx                 # Eingabeformular für Gehalt & Steuerdaten
-│   │   ├── Navigation.jsx                # Globale Navigation zwischen Seiten
-│   │   ├── ResultsDisplay.jsx            # Aufschlüsselung der Steuer- & Sozialabgaben
-│   │   └── TaxSettings.jsx               # Globale Tarifeinstellungen & Grenzwerte
+│   │   │   ├── ElterngeldDashboard.jsx   # Main container for the 5-year simulation
+│   │   │   ├── KpiScorecard.jsx          # 4 dynamic KPI scorecards
+│   │   │   ├── ScenarioSelector.jsx      # Scenario switcher (A / B / C / Multi-view)
+│   │   │   ├── TimelineChart.jsx         # Interactive 60-month SVG chart
+│   │   │   ├── SandboxControls.jsx       # Parameter sliders & presets
+│   │   │   ├── RulesExplainer.jsx        # Statutory references & legal precedents
+│   │   │   └── TimelineTable.jsx         # 60-month tabular ledger & CSV export
+│   │   ├── Calculator.jsx                # Main container for net pay calculator
+│   │   ├── ComparisonTable.jsx           # Scenario comparison matrix
+│   │   ├── Icons.jsx                     # Minimalist icon components
+│   │   ├── InputForm.jsx                 # Salary and household inputs
+│   │   ├── Navigation.jsx                # Global application header and navigation
+│   │   ├── ResultsDisplay.jsx            # Wage deductions & social security breakdown
+│   │   └── TaxSettings.jsx               # Statutory rates and contribution ceiling settings
 │   ├── pages/
-│   │   ├── index.astro                   # Route: / (Nettolohnrechner)
-│   │   └── elterngeld.astro              # Route: /elterngeld (Elterngeld-Simulation)
+│   │   ├── index.astro                   # Route: / (Net Pay Calculator)
+│   │   └── elterngeld.astro              # Route: /elterngeld (Elterngeld Simulation)
 │   ├── store/
-│   │   ├── calculatorStore.js            # Zustand & Steuerberechnung Nettolohn
-│   │   ├── elterngeldStore.js            # 60-Monate-Simulationsmodell & BEEG-Regelwerk
-│   │   └── taxConfigStore.js             # Beitrags- und Freibetragskonfigurationen
+│   │   ├── calculatorStore.js            # Reactive state for salary calculations
+│   │   ├── elterngeldStore.js            # 60-month simulation engine & BEEG rules
+│   │   └── taxConfigStore.js             # Tax parameters and social ceilings
 │   └── styles/
-│       └── global.css                    # Globales Theme und Layout-Stile
+│       └── global.css                    # Design tokens and global theme
 ├── package.json
 └── astro.config.mjs
 ```
 
 ---
 
-## 🚀 Entwicklung & Befehle
+## 🚀 Development & Commands
 
-Alle Befehle werden im Projekt-Wurzelverzeichnis ausgeführt:
+Run all commands from the project root:
 
-| Befehl | Beschreibung |
+| Command | Description |
 | :--- | :--- |
-| `npm install` | Installiert alle benötigten Abhängigkeiten |
-| `npm run dev` | Startet den lokalen Entwicklungsserver unter `http://localhost:4321` |
-| `npm run build` | Erstellt das produktionsreife Bundle im Verzeichnis `./dist/` |
-| `npm run preview` | Startet eine lokale Vorschau des erstellten Produktions-Builds |
+| `npm install` | Installs project dependencies |
+| `npm run dev` | Starts local dev server at `http://localhost:4321` |
+| `npm run build` | Builds static production bundle in `./dist/` |
+| `npm run preview` | Previews production build locally |
 
 ---
 
-## 📜 Gesetzliche Grundlagen
+## 📜 Statutory Foundations & Legal Precedents
 
-Die mathematische und steuerliche Modellierung basiert auf den folgenden bundesdeutschen Gesetzen und höchstrichterlichen Entscheidungen:
-1. **BEEG (Bundeselterngeld- und Elternzeitgesetz)**:
-   - § 2: Höhe des Elterngeldes (65 % Ersatzrate, Deckelung auf €1.800 Basiselterngeld bzw. €900 ElterngeldPlus).
-   - § 2a: Geschwisterbonus (+10 %, mindestens €75 bei ElterngeldPlus).
-   - § 2b: Bemessungszeitraum (12 Kalendermonate vor dem Mutterschutz; Überwiegende Steuerklasse).
-   - § 2e: Fiktiver Lohnsteuerabzug zur Bestimmung des Elterngeld-Nettos.
-   - § 3: Anrechnung von Mutterschaftsleistungen.
-   - § 4b: Partnerschaftsbonus bei gleichzeitiger Teilzeit von 24–32 Wochenstunden.
-2. **MuSchG (Mutterschutzgesetz)**:
-   - § 3: Schutzfristen vor und nach der Entbindung (6 Wochen / 8 Wochen).
-   - § 19, 20: Mutterschaftsgeld und Arbeitgeberzuschuss (100 % Nettoausgleich).
-3. **EStG (Einkommensteuergesetz)**:
-   - § 32a: Einkommensteuertarif (Grundtarif und Splittingtarif).
-   - § 26, 26b: Zusammenveranlagung von Ehegatten (Vollständige Erstattung von Steuerklassen-Differenzen).
-   - § 39e: Verfahren zur Bildung und Änderung von Lohnsteuerabzugsmerkmalen.
-4. **Rechtsprechung**:
-   - **BFH Urteil vom 27.03.2014 – VI R 2/13**: Ein Steuerklassenwechsel zur Optimierung des Elterngeldes ist legal und stellt keinen Rechtsmissbrauch dar.
+The underlying mathematical and legal models are strictly aligned with German statutory law and federal court rulings:
+1. **BEEG (Federal Parental Allowance and Parental Leave Act)**:
+   - § 2: Calculation and standard 65% replacement rate, statutory caps (€1,800 Basic / €900 ElterngeldPlus).
+   - § 2a: Sibling bonus (+10%, minimum €75 for ElterngeldPlus).
+   - § 2b: Assessment period (12 calendar months pre-maternity; predominant tax class rule).
+   - § 2e: Synthetic wage tax deductions for establishing Elterngeld net income.
+   - § 3: Offsetting maternity benefits against parental allowance entitlement.
+   - § 4b: Partnership bonus months for concurrent part-time work between 24 and 32 hours per week.
+2. **MuSchG (Maternity Protection Act)**:
+   - § 3: Statutory protection periods (6 weeks pre-birth / 8 weeks post-birth).
+   - § 19, 20: Maternity allowance and employer supplementary allowance (100% net wage compensation).
+3. **EStG (Income Tax Act)**:
+   - § 32a: Progressive income tax formula (Basic tariff & Splitting tariff).
+   - § 26, 26b: Joint income tax assessment for married couples (100% tax reconciliation).
+   - § 39e: Procedures for modifying wage tax deduction characteristics.
+4. **Jurisprudence**:
+   - **Federal Fiscal Court (BFH Ruling of March 27, 2014 – VI R 2/13)**: Tax class modifications executed to optimize parental allowance benefits are lawful and do not constitute an abuse of legal rights.
