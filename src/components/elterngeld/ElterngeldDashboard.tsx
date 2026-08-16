@@ -66,11 +66,11 @@ export default function ElterngeldDashboard(): JSX.Element {
         {/* The Sandbox: Interactive Input Parameters & Sliders */}
         <SandboxControls />
 
-        {/* German Law Rules & Strategy Playbook */}
-        <RulesExplainer />
-
         {/* Full 60-Month Cash Flow Table & Audit */}
         <TimelineTable />
+
+        {/* German Law Rules, Statutory Framework & Legal Precedents (Lowest Page Section) */}
+        <RulesExplainer />
       </main>
 
       {/* Footer */}

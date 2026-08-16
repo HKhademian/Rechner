@@ -2,7 +2,9 @@ import type { JSX } from 'preact';
 import {
   currentScenarioData,
   comparisonMetrics,
-  activeScenario
+  activeScenario,
+  scrollToLegalRule,
+  LegalRuleKey
 } from '#store/elterngeldStore';
 
 function formatCurrency(amount: number): string {
@@ -115,15 +117,69 @@ export default function KpiScorecard(): JSX.Element {
 
         {/* Breakdown chips */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#93c5fd', border: '1px solid #334155' }}>
-            Maternity (*Mutterschutz* MuSchG): {formatCurrency(current.summary.totalMutterschutz)}
-          </span>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#86efac', border: '1px solid #334155' }}>
-            Parental Allowance (*Elterngeld* § 4 BEEG): {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
-          </span>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#fca5a5', border: '1px solid #334155' }}>
-            Child Benefit (*Kindergeld* § 66 EStG): {formatCurrency(current.summary.totalKindergeld)}
-          </span>
+          <button
+            type="button"
+            onClick={() => scrollToLegalRule(LegalRuleKey.MuSchG_Maternity)}
+            style={{
+              fontSize: '0.72rem',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              background: '#0f172a',
+              color: '#93c5fd',
+              border: '1px solid #334155',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Click to view statutory MuSchG rule and worked example"
+          >
+            <span>Maternity (*MuSchG*):</span>
+            <strong style={{ color: '#ffffff' }}>{formatCurrency(current.summary.totalMutterschutz)}</strong>
+            <span style={{ color: '#60a5fa', fontSize: '0.65rem' }}>↗</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
+            style={{
+              fontSize: '0.72rem',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              background: '#0f172a',
+              color: '#86efac',
+              border: '1px solid #334155',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Click to view statutory Elterngeld § 4 BEEG rule and worked example"
+          >
+            <span>Parental Allowance (*§ 4 BEEG*):</span>
+            <strong style={{ color: '#ffffff' }}>{formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}</strong>
+            <span style={{ color: '#4ade80', fontSize: '0.65rem' }}>↗</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)}
+            style={{
+              fontSize: '0.72rem',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              background: '#0f172a',
+              color: '#fca5a5',
+              border: '1px solid #334155',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Click to view statutory Kindergeld § 66 EStG rule and worked example"
+          >
+            <span>Child Benefit (*§ 66 EStG*):</span>
+            <strong style={{ color: '#ffffff' }}>{formatCurrency(current.summary.totalKindergeld)}</strong>
+            <span style={{ color: '#f87171', fontSize: '0.65rem' }}>↗</span>
+          </button>
         </div>
       </div>
 
@@ -166,9 +222,27 @@ export default function KpiScorecard(): JSX.Element {
           </div>
         </div>
         <div style={{ fontSize: '0.76rem', color: isScenarioC ? '#93c5fd' : '#64748b', marginTop: '6px' }}>
-          {isScenarioC
-            ? 'Joint tax assessment (*Ehegatten-Splitting* § 26b EStG) refunds 100% of interim wage tax deficits'
-            : 'No tax class optimization performed (€0 refund)'}
+          {isScenarioC ? (
+            <button
+              type="button"
+              onClick={() => scrollToLegalRule(LegalRuleKey.EStG_TaxSplitting)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#5eead4',
+                padding: 0,
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontSize: '0.76rem',
+                textDecoration: 'underline'
+              }}
+              title="Click to view § 26b EStG Marital Splitting rules & worked example"
+            >
+              Joint tax assessment (*Ehegatten-Splitting* § 26b EStG ↗) refunds 100% of interim wage tax deficits
+            </button>
+          ) : (
+            'No tax class optimization performed (€0 refund)'
+          )}
         </div>
       </div>
 

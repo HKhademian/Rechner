@@ -344,3 +344,32 @@ export const comparisonMetrics = computed(() => {
     mutterschutzGainCvsB: (c.totalMutterschutz as number) - (b.totalMutterschutz as number)
   };
 });
+
+// ============================================================================
+// Legal Framework & Statutory Precedents Navigation
+// ============================================================================
+
+export const LegalRuleKey = {
+  MuSchG_Maternity: 'muschg-maternity',
+  BEEG_TaxSwap: 'beeg-tax-swap',
+  BEEG_SyntheticNet: 'beeg-synthetic-net',
+  EStG_TaxSplitting: 'estg-tax-splitting',
+  BEEG_PartnershipBonus: 'beeg-partnership-bonus',
+  BEEG_SiblingBonus: 'beeg-sibling-bonus',
+  BEEG_Child2Dilution: 'beeg-child2-dilution',
+  EStG_Kindergeld: 'estg-kindergeld'
+} as const;
+
+export type LegalRuleKeyType = typeof LegalRuleKey[keyof typeof LegalRuleKey];
+
+export const activeLegalRuleKey = signal<LegalRuleKeyType>(LegalRuleKey.BEEG_TaxSwap);
+
+export function scrollToLegalRule(ruleKey: LegalRuleKeyType): void {
+  activeLegalRuleKey.value = ruleKey;
+  if (typeof document !== 'undefined') {
+    const container = document.getElementById('statutory-legal-framework');
+    if (container) {
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}

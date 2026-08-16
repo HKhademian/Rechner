@@ -5,7 +5,9 @@ import {
   activeScenario,
   scenarioBData,
   hoveredMonth,
-  showSpecialEventRows
+  showSpecialEventRows,
+  scrollToLegalRule,
+  LegalRuleKey
 } from '#store/elterngeldStore';
 import type { TimelineMonth, SpecialEventItem } from '#engine/types';
 
@@ -407,31 +409,81 @@ export default function TimelineTable(): JSX.Element {
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
-                <div>Maternity (*MuSchG*)</div>
+                <div>
+                  <span>Maternity </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.MuSchG_Maternity)}
+                    style={{ background: 'none', border: 'none', color: '#93c5fd', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    title="Click to view § 3 MuSchG statutory rule and example"
+                  >
+                    (*MuSchG ↗*)
+                  </button>
+                </div>
                 {showDelta && scenario === 'C' && (
                   <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
-                <div>ElterngeldPlus (*Mother*)</div>
+                <div>
+                  <span>ElterngeldPlus </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
+                    style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    title="Click to view § 4 BEEG statutory rule and example"
+                  >
+                    (*§ 4 BEEG ↗*)
+                  </button>
+                </div>
                 {showDelta && scenario === 'C' && (
                   <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
-                <div>Partner Months (*Father*)</div>
+                <div>
+                  <span>Partner Months </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
+                    style={{ background: 'none', border: 'none', color: '#fde68a', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    title="Click to view § 4b BEEG Partnership Bonus statutory rule and example"
+                  >
+                    (*§ 4b BEEG ↗*)
+                  </button>
+                </div>
                 {showDelta && scenario === 'C' && (
                   <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
-                <div>Child Benefit (*Kindergeld*)</div>
+                <div>
+                  <span>Child Benefit </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)}
+                    style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    title="Click to view § 66 EStG Kindergeld statutory rule and example"
+                  >
+                    (*§ 66 EStG ↗*)
+                  </button>
+                </div>
                 {showDelta && scenario === 'C' && (
                   <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px', color: '#fbbf24' }}>
-                <div>Special Payment / Tax</div>
+                <div>
+                  <span>Special / Tax </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.EStG_TaxSplitting)}
+                    style={{ background: 'none', border: 'none', color: '#5eead4', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    title="Click to view § 26b EStG Marital Splitting statutory rule and example"
+                  >
+                    (*§ 26b ↗*)
+                  </button>
+                </div>
                 {showDelta && scenario === 'C' && (
                   <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}

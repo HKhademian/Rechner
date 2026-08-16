@@ -34,7 +34,9 @@ import {
   removeTaxClassSwitchAction,
   addSalaryRaiseAction,
   removeSalaryRaiseAction,
-  resetToDefaults
+  resetToDefaults,
+  scrollToLegalRule,
+  LegalRuleKey
 } from '#store/elterngeldStore';
 import {
   TaxClass,
@@ -368,7 +370,25 @@ export default function SandboxControls(): JSX.Element {
               {/* Kindergeld */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Kindergeld (§ 66 EStG):</span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#cbd5e1',
+                      padding: 0,
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Click to view § 66 EStG Kindergeld legal rule & example"
+                  >
+                    <span>Kindergeld</span>
+                    <span style={{ color: '#60a5fa', textDecoration: 'underline', fontSize: '0.72rem' }}>(§ 66 EStG ↗)</span>:
+                  </button>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fca5a5' }}>
                     {formatCurrency(kindergeldPerChild.value)} / mo
                   </span>
@@ -518,29 +538,23 @@ export default function SandboxControls(): JSX.Element {
                 onClick={() => {
                   const count = customPregnancies.value.length;
                   const lastPreg = customPregnancies.value[count - 1];
-                  const lastDelivery = (lastPreg?.calculatedDeliverySimulationMonth as number) || 17;
-                  const newDelivery = lastDelivery + 24;
-                  const newPositive = newDelivery - 8;
-                  const totalElapsed = (startCalendarMonth.value - 1) + (newPositive - 1);
-                  const pMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                  const pYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
+                  const lastDeliv = lastPreg.calculatedDeliverySimulationMonth as number;
+                  const newSimMonth = Math.min(simulationDurationMonths.value - 10, lastDeliv + 19);
 
                   addPregnancyAction({
-                    pregnancyId: toPregnancyId(`PREG-CHILD-${count + 1}`),
+                    pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
                     childIndex: count + 1,
-                    positiveTestCalendarMonth: pMonth,
-                    positiveTestCalendarYear: pYear,
-                    positiveTestSimulationMonth: toSimulationMonth(newPositive),
-                    calculatedDeliverySimulationMonth: toSimulationMonth(newDelivery),
+                    positiveTestSimulationMonth: toSimulationMonth(newSimMonth),
+                    calculatedDeliverySimulationMonth: toSimulationMonth(newSimMonth + 8),
                     motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
-                    motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-                    motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-                    fatherPartnerMonthsCount: 4
+                    motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
+                    motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
+                    fatherPartnerMonthsTaken: 4
                   });
                 }}
                 style={{
                   width: '100%',
-                  padding: '7px',
+                  padding: '6px',
                   background: '#831843',
                   color: '#fbcfe8',
                   border: '1px solid #be185d',
@@ -573,17 +587,26 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* Statutory Partnership Bonus Corridor (§ 4b BEEG) Indicator */}
                 {wifePostBirthHours.value >= 24 && wifePostBirthHours.value <= 32 ? (
-                  <div style={{
-                    fontSize: '0.66rem',
-                    color: '#86efac',
-                    background: '#14532d',
-                    padding: '3px 6px',
-                    borderRadius: '4px',
-                    marginTop: '4px',
-                    fontWeight: 600
-                  }}>
-                    ✓ Partnerschaftsbonus (§ 4b BEEG) corridor (24–32h / week)
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      fontSize: '0.66rem',
+                      color: '#86efac',
+                      background: '#14532d',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      marginTop: '4px',
+                      fontWeight: 600,
+                      border: '1px solid #15803d',
+                      cursor: 'pointer'
+                    }}
+                    title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
+                  >
+                    ✓ Partnerschaftsbonus (§ 4b BEEG ↗) corridor (24–32h / week)
+                  </button>
                 ) : wifePostBirthHours.value === 0 ? (
                   <div style={{
                     fontSize: '0.66rem',
@@ -596,16 +619,25 @@ export default function SandboxControls(): JSX.Element {
                     ℹ Full Parental Leave (0h / 100% leave)
                   </div>
                 ) : (
-                  <div style={{
-                    fontSize: '0.66rem',
-                    color: '#fde68a',
-                    background: '#78350f',
-                    padding: '3px 6px',
-                    borderRadius: '4px',
-                    marginTop: '4px'
-                  }}>
-                    ℹ Outside Partnerschaftsbonus corridor (must be 24–32h for +4 bonus months)
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      fontSize: '0.66rem',
+                      color: '#fde68a',
+                      background: '#78350f',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      marginTop: '4px',
+                      border: '1px solid #b45309',
+                      cursor: 'pointer'
+                    }}
+                    title="Click to view § 4b BEEG corridor requirements"
+                  >
+                    ℹ Outside Partnerschaftsbonus corridor (must be 24–32h for +4 bonus months ↗)
+                  </button>
                 )}
 
                 {/* Real-time Statutorily Calculated Breakdown */}
@@ -626,7 +658,23 @@ export default function SandboxControls(): JSX.Element {
                     </strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1' }}>
-                    <span>Statutory ElterngeldPlus (65% loss):</span>
+                    <button
+                      type="button"
+                      onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#cbd5e1',
+                        padding: 0,
+                        cursor: 'pointer',
+                        fontSize: '0.70rem',
+                        textAlign: 'left',
+                        textDecoration: 'underline'
+                      }}
+                      title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
+                    >
+                      Statutory ElterngeldPlus (65% loss ↗):
+                    </button>
                     <strong style={{ color: '#f472b6', fontFamily: 'monospace' }}>
                       +{formatCurrency(Math.min(900, Math.max(150, Math.round(Math.max(0, wifeClass3FullTimeNet.value - wifeClass5PartTimeNet.value) * 0.65))))}
                     </strong>
@@ -668,9 +716,27 @@ export default function SandboxControls(): JSX.Element {
                 borderBottom: '1px solid #334155',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#4ade80' }}>
-                  2. Tax Class Switches
-                </span>
+                <button
+                  type="button"
+                  onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_TaxSwap)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: '0.88rem',
+                    color: '#4ade80',
+                    textAlign: 'left',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Click to view § 2b BEEG & BFH VI R 2/13 tax optimization rules"
+                >
+                  <span>2. Tax Class Switches</span>
+                  <span style={{ fontSize: '0.72rem', textDecoration: 'underline' }}>(§ 2b BEEG ↗)</span>
+                </button>
                 <span style={{ fontSize: '0.68rem', color: '#86efac', background: '#14532d', padding: '2px 6px', borderRadius: '4px' }}>
                   {customTaxClassSwitches.value.length} Switches Active
                 </span>
