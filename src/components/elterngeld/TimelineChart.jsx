@@ -557,7 +557,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#93c5fd' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.mutterschutz }}></span>
-                    Maternity Pay (MuSch):
+                    Maternity Pay (*Mutterschutz* MuSchG):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.mutterschutz)}</span>
                 </div>
@@ -566,7 +566,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6ee7b7' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeElterngeld }}></span>
-                    ElterngeldPlus (Mother):
+                    ElterngeldPlus (Mother / § 4 BEEG):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeElterngeld)}</span>
                 </div>
@@ -575,7 +575,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fde68a' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandElterngeld }}></span>
-                    Partner Months (Father):
+                    Partner Months (*Partnermonate* § 4 BEEG):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandElterngeld)}</span>
                 </div>
@@ -584,7 +584,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fda4af' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.kindergeld }}></span>
-                    Child Benefit (KG):
+                    Child Benefit (*Kindergeld* § 66 EStG):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.kindergeld)}</span>
                 </div>
@@ -593,7 +593,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#67e8f9' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.taxRefund }}></span>
-                    Finanzamt Tax Refund:
+                    Tax Office Refund (*Finanzamt* § 26b EStG):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>+{formatCurrency(tooltipState.month.taxRefund)}</span>
                 </div>
@@ -624,23 +624,23 @@ export default function TimelineChart() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.mutterschutz }}></span>
-          <span>Maternity (MuSch)</span>
+          <span>Maternity (*Mutterschutz* MuSchG)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeElterngeld }}></span>
-          <span>ElterngeldPlus (Mother)</span>
+          <span>ElterngeldPlus (Mother / § 4 BEEG)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandElterngeld }}></span>
-          <span>Partner Months (Father €150)</span>
+          <span>Partner Months (*Partnermonate*)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.kindergeld }}></span>
-          <span>Kindergeld (€259 / child)</span>
+          <span>Child Benefit (*Kindergeld* €259 / child)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.taxRefund }}></span>
-          <span>Finanzamt Tax Refund</span>
+          <span>Tax Office Refund (*Finanzamt-Erstattung*)</span>
         </div>
       </div>
     </div>

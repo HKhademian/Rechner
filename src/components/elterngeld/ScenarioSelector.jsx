@@ -19,12 +19,12 @@ export default function ScenarioSelector() {
       subtitle: 'Fully Optimized (Recommended)',
       badge: 'Maximum State Benefit',
       badgeColor: '#15803d',
-      description: 'Proactive tax class swap (H: V / W: III) 7 months pre-maternity + Synthetic Net + Sibling Bonus + Tax Refund.',
+      description: 'Proactive tax class swap (*Steuerklassenwechsel* III/V § 39e EStG) + Synthetic Net (*Fiktives Netto* § 2e BEEG) + Sibling Bonus (*Geschwisterbonus*) + Joint Tax Refund (*Ehegatten-Splitting*).',
       highlights: [
-        'Mother: ElterngeldPlus capped at max €900 / month',
-        'Maternity Protection net salary at €2,603 / month',
-        'Sibling Bonus +10% until Child 1 turns 3 years old',
-        `Tax Office Refund: +${formatCurrency(metrics.taxRefundC)}`
+        'Mother: ElterngeldPlus capped at maximum €900 / month (§ 4 BEEG)',
+        'Maternity Protection (*Mutterschutz* MuSchG) net pay at €2,603 / month',
+        'Sibling Bonus (*Geschwisterbonus* § 2a BEEG) +10% until Child 1 turns 3',
+        `Tax Office Refund (*Finanzamt-Erstattung* § 26b EStG): +${formatCurrency(metrics.taxRefundC)}`
       ]
     },
     {
@@ -33,12 +33,12 @@ export default function ScenarioSelector() {
       subtitle: 'Unoptimized (Static III/V)',
       badge: 'Standard Baseline',
       badgeColor: '#b45309',
-      description: 'No tax class changes. Mother receives maternity and ElterngeldPlus calculated under Tax Class V.',
+      description: 'No tax class changes. Mother receives maternity and ElterngeldPlus calculated under Tax Class V (*Steuerklasse V*).',
       highlights: [
         'Mother ElterngeldPlus: €500.50 / month (Child 1)',
-        'Child 2: Reduced to base €150 / mo (14-Month Trap)',
-        'Maternity Protection salary at €1,975 / month',
-        `Forfeits ${formatCurrency(metrics.gainCvsB)} in state benefits`
+        'Child 2: Diluted to base €150 / month (*14-Monate-Falle* § 2b BEEG)',
+        'Maternity Protection (*Mutterschutz*) net pay at €1,975 / month',
+        `Forfeits ${formatCurrency(metrics.gainCvsB)} in statutory benefits`
       ]
     },
     {
@@ -47,11 +47,11 @@ export default function ScenarioSelector() {
       subtitle: 'No Children (Status Quo)',
       badge: 'Constant Employment',
       badgeColor: '#475569',
-      description: 'No children. Continued standard wages (Husband €2,895 + Wife €1,975 = €6,125 / month net).',
+      description: 'No children. Continuous standard wage flow (Husband €2,895 + Wife €1,975 = €6,125 / month net).',
       highlights: [
-        'Constant €6,125 / month net income stream',
+        'Constant €6,125 / month household net income stream',
         'No parental leave / zero wage replacement benefits',
-        'No part-time hours reduction',
+        'No part-time working hours reduction',
         '5-Year Total Net Inflow: €367,500'
       ]
     },

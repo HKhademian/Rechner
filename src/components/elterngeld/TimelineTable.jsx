@@ -213,14 +213,14 @@ export default function TimelineTable() {
             }}>
               <th style={{ padding: '10px 12px', textAlign: 'left' }}>Month</th>
               <th style={{ padding: '10px 12px', textAlign: 'left' }}>Phase / Milestone</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Tax Classes</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left' }}>Tax Classes (*Steuerklassen*)</th>
               <th style={{ padding: '10px 12px' }}>Husband Salary</th>
               <th style={{ padding: '10px 12px' }}>Wife Salary</th>
-              <th style={{ padding: '10px 12px' }}>Maternity (MuSch)</th>
-              <th style={{ padding: '10px 12px' }}>ElterngeldPlus (Mother)</th>
-              <th style={{ padding: '10px 12px' }}>Partner Months (Father)</th>
-              <th style={{ padding: '10px 12px' }}>Kindergeld</th>
-              <th style={{ padding: '10px 12px' }}>Tax Refund</th>
+              <th style={{ padding: '10px 12px' }}>Maternity (*Mutterschutz* MuSchG)</th>
+              <th style={{ padding: '10px 12px' }}>ElterngeldPlus (Mother / § 4 BEEG)</th>
+              <th style={{ padding: '10px 12px' }}>Partner Months (*Partnermonate*)</th>
+              <th style={{ padding: '10px 12px' }}>Child Benefit (*Kindergeld*)</th>
+              <th style={{ padding: '10px 12px' }}>Tax Refund (*Finanzamt*)</th>
               <th style={{ padding: '10px 12px', color: '#f8fafc' }}>Monthly Total Net</th>
               {showDelta && <th style={{ padding: '10px 12px', color: '#60a5fa' }}>Delta vs. B</th>}
               <th style={{ padding: '10px 12px', color: '#cbd5e1' }}>Cumulated</th>

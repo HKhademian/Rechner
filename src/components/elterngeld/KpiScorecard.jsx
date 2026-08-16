@@ -108,13 +108,13 @@ export default function KpiScorecard() {
         {/* Breakdown chips */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
           <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#93c5fd', border: '1px solid #334155' }}>
-            Maternity (MuSch): {formatCurrency(current.summary.totalMutterschutz)}
+            Maternity (*Mutterschutz* MuSchG): {formatCurrency(current.summary.totalMutterschutz)}
           </span>
           <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#86efac', border: '1px solid #334155' }}>
-            Elterngeld: {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
+            Parental Allowance (*Elterngeld* § 4 BEEG): {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
           </span>
           <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#fca5a5', border: '1px solid #334155' }}>
-            Child Benefit (KG): {formatCurrency(current.summary.totalKindergeld)}
+            Child Benefit (*Kindergeld* § 66 EStG): {formatCurrency(current.summary.totalKindergeld)}
           </span>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function KpiScorecard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Tax Office (Finanzamt) Refunds
+              Tax Office (*Finanzamt*) Refunds
             </div>
             <div style={{
               fontSize: '1.9rem',
@@ -159,7 +159,7 @@ export default function KpiScorecard() {
         </div>
         <div style={{ fontSize: '0.76rem', color: isScenarioC ? '#93c5fd' : '#64748b', marginTop: '6px' }}>
           {isScenarioC
-            ? 'Joint tax assessment (Splitting) refunds 100% of wage tax deficits'
+            ? 'Joint tax assessment (*Ehegatten-Splitting* § 26b EStG) refunds 100% of interim wage tax deficits'
             : 'No tax class optimization performed (€0 refund)'}
         </div>
       </div>

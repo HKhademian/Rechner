@@ -214,7 +214,7 @@ export default function SandboxControls() {
               {/* Husband Full-Time Net Class III */}
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Standard Net (Tax Class III):</span>
+                  <span style={{ color: '#cbd5e1' }}>Standard Net (*Steuerklasse III*):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
                     {formatCurrency(husbandClass3Net.value)}
                   </span>
@@ -232,7 +232,7 @@ export default function SandboxControls() {
               {/* Husband Class V Net */}
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Net during swap (Tax Class V):</span>
+                  <span style={{ color: '#cbd5e1' }}>Net during swap (*Steuerklasse V*):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fbbf24' }}>
                     {formatCurrency(husbandClass5Net.value)}
                   </span>
@@ -246,7 +246,7 @@ export default function SandboxControls() {
                   onInput={(e) => { husbandClass5Net.value = Number(e.target.value); }}
                 />
                 <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                  Monthly cash withholding during swap: -{formatCurrency(husbandClass3Net.value - husbandClass5Net.value)}/mo (refunded via tax return)
+                  Monthly cash withholding during swap: -{formatCurrency(husbandClass3Net.value - husbandClass5Net.value)}/mo (refunded via *Ehegatten-Splitting*)
                 </div>
               </div>
 
@@ -267,7 +267,7 @@ export default function SandboxControls() {
                   onInput={(e) => { husbandHours.value = Number(e.target.value); }}
                 />
                 <div style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '2px' }}>
-                  Eligible for 4 Partner Months + 4 Partnership Bonus Months (24–32h)
+                  Eligible for 4 Partner Months (*Partnermonate*) + 4 Partnership Bonus Months (*Partnerschaftsbonus* § 4b BEEG)
                 </div>
               </div>
             </div>
@@ -295,7 +295,7 @@ export default function SandboxControls() {
               {/* Wife Full-Time Net Class V */}
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Full-Time Net (Tax Class V):</span>
+                  <span style={{ color: '#cbd5e1' }}>Full-Time Net (*Steuerklasse V*):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
                     {formatCurrency(wifeClass5FullTimeNet.value)}
                   </span>
@@ -313,7 +313,7 @@ export default function SandboxControls() {
               {/* Wife Full-Time Net Class III */}
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Optimized Full-Time Net (Tax Class III):</span>
+                  <span style={{ color: '#cbd5e1' }}>Optimized Full-Time Net (*Steuerklasse III*):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
                     {formatCurrency(wifeClass3FullTimeNet.value)}
                   </span>
@@ -331,7 +331,7 @@ export default function SandboxControls() {
               {/* Wife Part-Time Net Class V */}
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Part-Time Net (Tax Class V - 24h):</span>
+                  <span style={{ color: '#cbd5e1' }}>Part-Time Net (*Steuerklasse V* - 24h):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
                     {formatCurrency(wifeClass5PartTimeNet.value)}
                   </span>
@@ -349,7 +349,7 @@ export default function SandboxControls() {
               {/* Wife Part-Time Net Class III */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Optimized Part-Time Net (Tax Class III - 24h):</span>
+                  <span style={{ color: '#cbd5e1' }}>Optimized Part-Time Net (*Steuerklasse III* - 24h):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
                     {formatCurrency(wifeClass3PartTimeNet.value)}
                   </span>
@@ -413,7 +413,7 @@ export default function SandboxControls() {
               {/* Kindergeld */}
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Child Benefit (Kindergeld / child / mo):</span>
+                  <span style={{ color: '#cbd5e1' }}>Child Benefit (*Kindergeld* § 66 EStG / child / mo):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fca5a5' }}>
                     {formatCurrency(kindergeldPerChild.value)}
                   </span>
@@ -433,7 +433,7 @@ export default function SandboxControls() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
                   <span style={{ color: '#cbd5e1' }}>Birth Spacing (Child 1 → Child 2):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
-                    {birthSpacingMonths.value} Months (18M gap)
+                    {birthSpacingMonths.value} Months
                   </span>
                 </div>
                 <input
@@ -446,7 +446,7 @@ export default function SandboxControls() {
                 />
                 <div style={{ fontSize: '0.7rem', color: birthSpacingMonths.value < 36 ? '#4ade80' : '#fbbf24', marginTop: '2px' }}>
                   {birthSpacingMonths.value < 36
-                    ? `Eligible for Sibling Bonus (+10% until Month ${child1BirthMonth.value + 36})`
+                    ? `Eligible for Sibling Bonus (*Geschwisterbonus* § 2a BEEG +10% until Month ${child1BirthMonth.value + 36})`
                     : 'Spacing ≥36 Months: Sibling bonus expires'}
                 </div>
               </div>
@@ -469,7 +469,7 @@ export default function SandboxControls() {
                 />
                 <div style={{ fontSize: '0.7rem', color: swapLeadMonths.value >= 7 ? '#4ade80' : '#ef4444', marginTop: '2px' }}>
                   {swapLeadMonths.value >= 7
-                    ? '7+ months guarantee Tax Class III dominance during the 12-month Elterngeld assessment period'
+                    ? '7+ months guarantee Tax Class III dominance during the 12-month Elterngeld assessment period (*Überwiegende Steuerklasse* § 2b BEEG)'
                     : '<7 months risks default to Tax Class V under BEEG § 2b'}
                 </div>
               </div>
