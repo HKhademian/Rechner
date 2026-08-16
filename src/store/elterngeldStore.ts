@@ -53,6 +53,11 @@ export const wifePostBirthHours = signal(24);
 export const wifeClass5FullTimeNet = signal(1975);
 export const wifeClass3FullTimeNet = signal(2603);
 
+// Additional Income Channels
+export const annualBonusGross = signal<number>(0);
+export const annualBonusMonth = signal<number>(12);
+export const investmentReturnMonthly = signal<number>(0);
+
 export function syncGrossToNet() {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
     const spousal = deriveSpousalNetSalaries(
@@ -85,6 +90,33 @@ export function setHusbandGrossYearly(yearly: number) {
 
 export function setWifeGrossYearly(yearly: number) {
   setWifeGross(Math.round(yearly / 12));
+}
+
+export function setHusbandHours(hours: number) {
+  husbandHours.value = hours;
+  syncGrossToNet();
+}
+
+export function setWifeInitialHours(hours: number) {
+  wifeInitialHours.value = hours;
+  syncGrossToNet();
+}
+
+export function setWifePostBirthHours(hours: number) {
+  wifePostBirthHours.value = hours;
+  syncGrossToNet();
+}
+
+export function setAnnualBonusGross(amount: number) {
+  annualBonusGross.value = amount;
+}
+
+export function setAnnualBonusMonth(m: number) {
+  annualBonusMonth.value = m;
+}
+
+export function setInvestmentReturnMonthly(amount: number) {
+  investmentReturnMonthly.value = amount;
 }
 
 export function setSalaryPeriod(period: SalaryPeriod) {
@@ -435,6 +467,10 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     wifeInitialPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
     wifeInitialPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
     wifeWeeklyHours: toWorkingHours(wifeInitialHours.value),
+    wifePostBirthWeeklyHours: toWorkingHours(wifePostBirthHours.value),
+    annualBonusGross: toEuroAmount(annualBonusGross.value),
+    annualBonusMonth: toCalendarMonth(annualBonusMonth.value),
+    investmentReturnMonthly: toEuroAmount(investmentReturnMonthly.value),
     existingChildrenCount: 0,
     kindergeldPerChild: toEuroAmount(kindergeldPerChild.value),
     enable13thSalary: enable13thSalary.value,
