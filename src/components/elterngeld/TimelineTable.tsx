@@ -218,7 +218,7 @@ export default function TimelineTable(): JSX.Element {
                 cursor: 'pointer'
               }}
             >
-              {showDelta ? '✓ Delta vs. B Active' : '+ Show Delta vs. B'}
+              {showDelta ? '✓ Per-Column Diff Active (vs. B)' : '+ Show Per-Column Diff (vs. B)'}
             </button>
           )}
 
@@ -280,7 +280,6 @@ export default function TimelineTable(): JSX.Element {
               <th style={{ padding: '10px 12px' }}>Child Benefit (*Kindergeld*)</th>
               <th style={{ padding: '10px 12px', color: '#fbbf24' }}>Special Payment / Tax (*Sonderzahlung*)</th>
               <th style={{ padding: '10px 12px', color: '#f8fafc' }}>Net Inflow</th>
-              {showDelta && <th style={{ padding: '10px 12px', color: '#60a5fa' }}>Delta vs. B</th>}
               <th style={{ padding: '10px 12px', color: '#cbd5e1' }}>Cumulated</th>
             </tr>
           </thead>
@@ -288,7 +287,18 @@ export default function TimelineTable(): JSX.Element {
             {filteredMonths.map((m: TimelineMonth) => {
               const isHovered = hoveredMonth.value === m.month;
               const bMonth = bData.months[(m.month as number) - 1];
-              const deltaVsB = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
+
+              // Per-column diff calculations vs Scenario B
+              const diffHusband = (m.husbandSalary as number) - (bMonth ? (bMonth.husbandSalary as number) : 0);
+              const diffWife = (m.wifeSalary as number) - (bMonth ? (bMonth.wifeSalary as number) : 0);
+              const diffMutterschutz = (m.mutterschutz as number) - (bMonth ? (bMonth.mutterschutz as number) : 0);
+              const diffWifeElterngeld = (m.wifeElterngeld as number) - (bMonth ? (bMonth.wifeElterngeld as number) : 0);
+              const diffHusbandElterngeld = (m.husbandElterngeld as number) - (bMonth ? (bMonth.husbandElterngeld as number) : 0);
+              const diffKindergeld = (m.kindergeld as number) - (bMonth ? (bMonth.kindergeld as number) : 0);
+              const diffSpecialEvents = (m.specialEventsTotal as number) - (bMonth ? (bMonth.specialEventsTotal as number) : 0);
+              const diffNetInflow = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
+              const diffCumulated = (m.cumulatedTotal as number) - (bMonth ? (bMonth.cumulatedTotal as number) : 0);
+
               const hasEvents = isSpecialRowsActive && m.specialEvents && m.specialEvents.length > 0;
 
               return [
@@ -333,38 +343,80 @@ export default function TimelineTable(): JSX.Element {
                     {m.taxClassLabel}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
-                    {formatCurrency(m.husbandSalary as number)}
+                    <div>{formatCurrency(m.husbandSalary as number)}</div>
+                    {showDelta && diffHusband !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffHusband > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffHusband > 0 ? `+${formatCurrency(diffHusband)}` : formatCurrency(diffHusband)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
-                    {formatCurrency(m.wifeSalary as number)}
+                    <div>{formatCurrency(m.wifeSalary as number)}</div>
+                    {showDelta && diffWife !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffWife > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffWife > 0 ? `+${formatCurrency(diffWife)}` : formatCurrency(diffWife)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.mutterschutz as number) > 0 ? '#93c5fd' : '#64748b' }}>
-                    {(m.mutterschutz as number) > 0 ? formatCurrency(m.mutterschutz as number) : '—'}
+                    <div>{(m.mutterschutz as number) > 0 ? formatCurrency(m.mutterschutz as number) : '—'}</div>
+                    {showDelta && diffMutterschutz !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffMutterschutz > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffMutterschutz > 0 ? `+${formatCurrency(diffMutterschutz)}` : formatCurrency(diffMutterschutz)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.wifeElterngeld as number) > 0 ? '#86efac' : '#64748b' }}>
-                    {(m.wifeElterngeld as number) > 0 ? formatCurrency(m.wifeElterngeld as number) : '—'}
+                    <div>{(m.wifeElterngeld as number) > 0 ? formatCurrency(m.wifeElterngeld as number) : '—'}</div>
+                    {showDelta && diffWifeElterngeld !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffWifeElterngeld > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffWifeElterngeld > 0 ? `+${formatCurrency(diffWifeElterngeld)}` : formatCurrency(diffWifeElterngeld)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.husbandElterngeld as number) > 0 ? '#fde68a' : '#64748b' }}>
-                    {(m.husbandElterngeld as number) > 0 ? formatCurrency(m.husbandElterngeld as number) : '—'}
+                    <div>{(m.husbandElterngeld as number) > 0 ? formatCurrency(m.husbandElterngeld as number) : '—'}</div>
+                    {showDelta && diffHusbandElterngeld !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffHusbandElterngeld > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffHusbandElterngeld > 0 ? `+${formatCurrency(diffHusbandElterngeld)}` : formatCurrency(diffHusbandElterngeld)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.kindergeld as number) > 0 ? '#fca5a5' : '#64748b' }}>
-                    {(m.kindergeld as number) > 0 ? formatCurrency(m.kindergeld as number) : '—'}
+                    <div>{(m.kindergeld as number) > 0 ? formatCurrency(m.kindergeld as number) : '—'}</div>
+                    {showDelta && diffKindergeld !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffKindergeld > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffKindergeld > 0 ? `+${formatCurrency(diffKindergeld)}` : formatCurrency(diffKindergeld)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#64748b' }}>
-                    {!isSpecialRowsActive && (m.specialEventsTotal as number) > 0
-                      ? formatCurrency(m.specialEventsTotal as number)
-                      : '—'}
+                    <div>
+                      {!isSpecialRowsActive && (m.specialEventsTotal as number) > 0
+                        ? formatCurrency(m.specialEventsTotal as number)
+                        : '—'}
+                    </div>
+                    {showDelta && !isSpecialRowsActive && diffSpecialEvents !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffSpecialEvents > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffSpecialEvents > 0 ? `+${formatCurrency(diffSpecialEvents)}` : formatCurrency(diffSpecialEvents)}
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: '#f8fafc' }}>
-                    {formatCurrency(isSpecialRowsActive ? (m.regularMonthlyTotal as number) : (m.monthlyTotal as number))}
+                    <div>{formatCurrency(isSpecialRowsActive ? (m.regularMonthlyTotal as number) : (m.monthlyTotal as number))}</div>
+                    {showDelta && diffNetInflow !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffNetInflow > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffNetInflow > 0 ? `+${formatCurrency(diffNetInflow)}` : formatCurrency(diffNetInflow)}
+                      </div>
+                    )}
                   </td>
-                  {showDelta && (
-                    <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: deltaVsB >= 0 ? '#4ade80' : '#f87171' }}>
-                      {deltaVsB >= 0 ? `+${formatCurrency(deltaVsB)}` : formatCurrency(deltaVsB)}
-                    </td>
-                  )}
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
-                    {formatCurrency(m.cumulatedTotal as number)}
+                    <div>{formatCurrency(m.cumulatedTotal as number)}</div>
+                    {showDelta && diffCumulated !== 0 && (
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: diffCumulated > 0 ? '#4ade80' : '#f87171' }}>
+                        {diffCumulated > 0 ? `+${formatCurrency(diffCumulated)}` : formatCurrency(diffCumulated)}
+                      </div>
+                    )}
                   </td>
                 </tr>,
 
@@ -421,7 +473,12 @@ export default function TimelineTable(): JSX.Element {
                       fontWeight: 800,
                       color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4'
                     }}>
-                      +{formatCurrency(ev.amount as number)}
+                      <div>+{formatCurrency(ev.amount as number)}</div>
+                      {showDelta && (ev.type as string) === 'tax_return' && (
+                        <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#4ade80' }}>
+                          +{formatCurrency(ev.amount as number)} (Diff vs B)
+                        </div>
+                      )}
                     </td>
                     <td style={{
                       padding: '6px 12px',
@@ -429,9 +486,13 @@ export default function TimelineTable(): JSX.Element {
                       fontWeight: 800,
                       color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4'
                     }}>
-                      +{formatCurrency(ev.amount as number)}
+                      <div>+{formatCurrency(ev.amount as number)}</div>
+                      {showDelta && (ev.type as string) === 'tax_return' && (
+                        <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#4ade80' }}>
+                          +{formatCurrency(ev.amount as number)}
+                        </div>
+                      )}
                     </td>
-                    {showDelta && <td style={{ padding: '6px 12px', color: '#64748b' }}>—</td>}
                     <td style={{ padding: '6px 12px', fontFamily: 'monospace', color: '#94a3b8' }}>
                       {formatCurrency(m.cumulatedTotal as number)}
                     </td>
