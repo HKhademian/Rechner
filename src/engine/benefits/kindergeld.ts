@@ -2,7 +2,7 @@ import {
   type EuroAmount,
   toEuroAmount,
   toStatutoryCitation
-} from '../types.ts';
+} from '#engine/types';
 
 /**
  * Statutory Child Benefit Calculation (§ 66 EStG)

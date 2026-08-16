@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeKindergeld } from '../../../src/engine/benefits/kindergeld.ts';
-import { toEuroAmount } from '../../../src/engine/types.ts';
+import { computeKindergeld } from '#engine/benefits/kindergeld';
+import { toEuroAmount } from '#engine/types';
 
 describe('Child Benefit Engine (Kindergeld § 66 EStG)', () => {
   it('computes 0 € for 0 children', () => {

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTransaction } from '../../../src/engine/ledger/transaction.ts';
-import { buildMonthlyLedgerEntry } from '../../../src/engine/ledger/ledger.ts';
+import { createTransaction } from '#engine/ledger/transaction';
+import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
 import {
   toSimulationMonth,
   toCalendarYear,
@@ -9,7 +9,7 @@ import {
   toEuroAmount,
   TransactionType,
   TransactionDirection
-} from '../../../src/engine/types.ts';
+} from '#engine/types';
 
 describe('Atomic Ledger & Transaction Integrity Engine', () => {
   describe('createTransaction', () => {

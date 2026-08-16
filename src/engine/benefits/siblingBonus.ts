@@ -3,7 +3,7 @@ import {
   type EuroAmount,
   toEuroAmount,
   toStatutoryCitation
-} from '../types.ts';
+} from '#engine/types';
 
 /**
  * Sibling Bonus Determination (§ 2a BEEG)

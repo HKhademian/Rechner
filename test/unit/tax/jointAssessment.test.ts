@@ -4,13 +4,13 @@ import {
   computeJointTaxLiability,
   computeMonthlySwapWithholdingVariance,
   computeAnnualTaxReconciliation
-} from '../../../src/engine/tax/jointAssessment.ts';
+} from '#engine/tax/jointAssessment';
 import {
   toNetSalary,
   toEuroAmount,
   toCalendarYear,
   toSimulationMonth
-} from '../../../src/engine/types.ts';
+} from '#engine/types';
 
 describe('Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)', () => {
   describe('computeJointTaxLiability - Married Splitting Tariff (§ 32a Abs. 5 EStG)', () => {

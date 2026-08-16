@@ -15,10 +15,10 @@ import {
   workingMonths,
   salariesPerYear,
   inputMode
-} from '../store/calculatorStore.ts';
+} from '#store/calculatorStore';
 import { useState, useEffect } from 'preact/hooks';
-import TaxSettings from './TaxSettings.tsx';
-import { SettingsIcon } from './Icons.tsx';
+import TaxSettings from '#components/TaxSettings';
+import { SettingsIcon } from '#components/Icons';
 
 const germanStates = [
   'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen',

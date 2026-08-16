@@ -10,7 +10,7 @@ import {
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth
-} from '../types.ts';
+} from '#engine/types';
 
 export interface LedgerMonthInput {
   readonly month: SimulationMonth;

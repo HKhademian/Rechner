@@ -11,7 +11,7 @@ import {
   configUnemploymentRate,
   configCareRateBase,
   configCareChildlessPenalty
-} from './taxConfigStore.ts';
+} from '#store/taxConfigStore';
 
 // Helper to persist signals in localStorage
 function persistedSignal<T>(key: string, initialValue: T): Signal<T> {

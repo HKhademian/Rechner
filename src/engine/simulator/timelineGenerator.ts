@@ -21,13 +21,13 @@ import {
   toNetSalary,
   toEventId,
   toStatutoryCitation
-} from '../types.ts';
-import { createTransaction } from '../ledger/transaction.ts';
-import { buildMonthlyLedgerEntry } from '../ledger/ledger.ts';
-import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '../tax/jointAssessment.ts';
-import { computeElterngeldBenefits } from '../benefits/elterngeldPlus.ts';
-import { computeSiblingBonus } from '../benefits/siblingBonus.ts';
-import { computeKindergeld } from '../benefits/kindergeld.ts';
+} from '#engine/types';
+import { createTransaction } from '#engine/ledger/transaction';
+import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
+import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '#engine/tax/jointAssessment';
+import { computeElterngeldBenefits } from '#engine/benefits/elterngeldPlus';
+import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
+import { computeKindergeld } from '#engine/benefits/kindergeld';
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;

@@ -1,5 +1,5 @@
 import { signal, computed } from '@preact/signals';
-import { generateTimelineSimulation } from '../engine/simulator/timelineGenerator.ts';
+import { generateTimelineSimulation } from '#engine/simulator/timelineGenerator';
 import {
   toNetSalary,
   toEuroAmount,
@@ -7,7 +7,7 @@ import {
   toCalendarMonth,
   ScenarioId,
   type ScenarioId as ScenarioIdType
-} from '../engine/types.ts';
+} from '#engine/types';
 
 // Default Financial Parameters (The Sandbox)
 export const husbandClass3Net = signal(2895);

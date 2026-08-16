@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {
   computeStatutoryReplacementRate,
   computeElterngeldBenefits
-} from '../../../src/engine/benefits/elterngeldPlus.ts';
-import { toNetSalary } from '../../../src/engine/types.ts';
+} from '#engine/benefits/elterngeldPlus';
+import { toNetSalary } from '#engine/types';
 
 describe('Granular Elterngeld Replacement Scale & Caps (300 Individual Assertions)', () => {
   // Test 150 net salary points from 300 € to 1.800 € in 10 € increments

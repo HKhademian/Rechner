@@ -1,11 +1,11 @@
 import type { JSX } from 'preact';
-import KpiScorecard from './KpiScorecard.tsx';
-import ScenarioSelector from './ScenarioSelector.tsx';
-import TimelineChart from './TimelineChart.tsx';
-import SandboxControls from './SandboxControls.tsx';
-import RulesExplainer from './RulesExplainer.tsx';
-import TimelineTable from './TimelineTable.tsx';
-import Navigation from '../Navigation.tsx';
+import KpiScorecard from '#components/elterngeld/KpiScorecard';
+import ScenarioSelector from '#components/elterngeld/ScenarioSelector';
+import TimelineChart from '#components/elterngeld/TimelineChart';
+import SandboxControls from '#components/elterngeld/SandboxControls';
+import RulesExplainer from '#components/elterngeld/RulesExplainer';
+import TimelineTable from '#components/elterngeld/TimelineTable';
+import Navigation from '#components/Navigation';
 
 export default function ElterngeldDashboard(): JSX.Element {
   return (

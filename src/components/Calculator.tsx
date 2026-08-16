@@ -1,8 +1,8 @@
 import type { JSX } from 'preact';
-import InputForm from './InputForm.tsx';
-import ResultsDisplay from './ResultsDisplay.tsx';
-import ComparisonTable from './ComparisonTable.tsx';
-import Navigation from './Navigation.tsx';
+import InputForm from '#components/InputForm';
+import ResultsDisplay from '#components/ResultsDisplay';
+import ComparisonTable from '#components/ComparisonTable';
+import Navigation from '#components/Navigation';
 
 export default function Calculator(): JSX.Element {
   return (

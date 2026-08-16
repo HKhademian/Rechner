@@ -5,8 +5,8 @@ import {
   computeSolidaritySurcharge,
   computeMonthlySocialSecurity,
   computeMonthlyNetSalary
-} from '../../../src/engine/tax/wageTax.ts';
-import { toGrossSalary, toEuroAmount, TaxClass } from '../../../src/engine/types.ts';
+} from '#engine/tax/wageTax';
+import { toGrossSalary, toEuroAmount, TaxClass } from '#engine/types';
 
 describe('German Wage Tax Withholding Engine (§ 32a, § 38b EStG)', () => {
   describe('computeAnnualIncomeTax - § 32a EStG Progressive Tariff', () => {

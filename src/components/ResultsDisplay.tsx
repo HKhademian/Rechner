@@ -7,7 +7,7 @@ import {
   salariesPerYear,
   partnerSalariesPerYear,
   type PersonDeductions
-} from '../store/calculatorStore.ts';
+} from '#store/calculatorStore';
 
 export default function ResultsDisplay(): JSX.Element {
   const [mounted, setMounted] = useState<boolean>(false);

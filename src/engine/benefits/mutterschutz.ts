@@ -3,7 +3,7 @@ import {
   type EuroAmount,
   toEuroAmount,
   toStatutoryCitation
-} from '../types.ts';
+} from '#engine/types';
 
 /**
  * Maternity Protection Wage Replacement (§ 19, § 20 MuSchG)

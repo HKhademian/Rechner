@@ -5,8 +5,8 @@ import {
   computeSolidaritySurcharge,
   computeMonthlySocialSecurity,
   computeMonthlyNetSalary
-} from '../../../src/engine/tax/wageTax.ts';
-import { toGrossSalary, toEuroAmount, TaxClass } from '../../../src/engine/types.ts';
+} from '#engine/tax/wageTax';
+import { toGrossSalary, toEuroAmount, TaxClass } from '#engine/types';
 
 describe('Granular Wage Tax Unit Tests (300 Individual Assertions)', () => {
   // Test 100 distinct taxable income levels from 0 € to 100.000 € in 1.000 € steps

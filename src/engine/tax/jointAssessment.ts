@@ -5,8 +5,8 @@ import {
   type SimulationMonth,
   toEuroAmount,
   toStatutoryCitation
-} from '../types.ts';
-import { computeAnnualIncomeTax, computeSolidaritySurcharge } from './wageTax.ts';
+} from '#engine/types';
+import { computeAnnualIncomeTax, computeSolidaritySurcharge } from '#engine/tax/wageTax';
 
 /**
  * Annual Joint Tax Liability under Ehegatten-Splitting (§ 26b, § 32a Abs. 5 EStG)

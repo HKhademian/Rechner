@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {
   computeStatutoryReplacementRate,
   computeElterngeldBenefits
-} from '../../../src/engine/benefits/elterngeldPlus.ts';
-import { toNetSalary } from '../../../src/engine/types.ts';
+} from '#engine/benefits/elterngeldPlus';
+import { toNetSalary } from '#engine/types';
 
 describe('Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)', () => {
   describe('computeStatutoryReplacementRate - Sliding Replacement Scale (§ 2 BEEG)', () => {

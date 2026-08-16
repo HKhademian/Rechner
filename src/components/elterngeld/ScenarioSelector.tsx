@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
-import { activeScenario, comparisonMetrics } from '../../store/elterngeldStore.ts';
-import { ScenarioId, type ScenarioId as ScenarioIdType } from '../../engine/types.ts';
+import { activeScenario, comparisonMetrics } from '#store/elterngeldStore';
+import { ScenarioId, type ScenarioId as ScenarioIdType } from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {

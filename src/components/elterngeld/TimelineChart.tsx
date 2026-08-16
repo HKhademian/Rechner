@@ -9,8 +9,8 @@ import {
   scenarioCData,
   currentScenarioData,
   hoveredMonth
-} from '../../store/elterngeldStore.ts';
-import type { TimelineMonth, ScenarioTimelineResult } from '../../engine/types.ts';
+} from '#store/elterngeldStore';
+import type { TimelineMonth, ScenarioTimelineResult } from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {

@@ -6,8 +6,8 @@ import {
   scenarioBData,
   hoveredMonth,
   showSpecialEventRows
-} from '../../store/elterngeldStore.ts';
-import type { TimelineMonth, SpecialEventItem } from '../../engine/types.ts';
+} from '#store/elterngeldStore';
+import type { TimelineMonth, SpecialEventItem } from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {

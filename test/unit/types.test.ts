@@ -20,7 +20,7 @@ import {
   TransactionDirection,
   SpecialEventType,
   SpecialEventCategory
-} from '../../src/engine/types.ts';
+} from '#engine/types';
 
 describe('Strongly-Typed Domain Types & Constructors', () => {
   describe('toSimulationMonth', () => {

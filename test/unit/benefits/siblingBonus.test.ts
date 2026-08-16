@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeSiblingBonus } from '../../../src/engine/benefits/siblingBonus.ts';
-import { toEuroAmount, toSimulationMonth } from '../../../src/engine/types.ts';
+import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
+import { toEuroAmount, toSimulationMonth } from '#engine/types';
 
 describe('Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)', () => {
   it('grants +10% bonus with statutory minimum of +€75/month when older child is under 36 months', () => {

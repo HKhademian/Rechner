@@ -3,7 +3,7 @@ import {
   currentScenarioData,
   comparisonMetrics,
   activeScenario
-} from '../../store/elterngeldStore.ts';
+} from '#store/elterngeldStore';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {

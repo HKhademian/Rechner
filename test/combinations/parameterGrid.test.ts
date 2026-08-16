@@ -1,13 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateTimelineSimulation } from '../../src/engine/simulator/timelineGenerator.ts';
+import { generateTimelineSimulation } from '#engine/simulator/timelineGenerator';
 import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
   ScenarioId
-} from '../../src/engine/types.ts';
+} from '#engine/types';
 
 describe('Combinatorial Parameter Grid Sweep & Invariance Tests', () => {
   const husbandSalaries = [

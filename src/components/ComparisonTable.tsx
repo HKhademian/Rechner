@@ -30,8 +30,8 @@ import {
   type HouseholdScenarioData,
   type CalculatorInputs,
   type PersonDeductions
-} from '../store/calculatorStore.ts';
-import { PlusIcon, DownloadIcon, XIcon, SaveIcon, EditIcon } from './Icons.tsx';
+} from '#store/calculatorStore';
+import { PlusIcon, DownloadIcon, XIcon, SaveIcon, EditIcon } from '#components/Icons';
 
 export default function ComparisonTable(): JSX.Element | null {
   const [mounted, setMounted] = useState<boolean>(false);

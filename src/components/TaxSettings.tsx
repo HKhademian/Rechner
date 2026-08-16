@@ -13,7 +13,7 @@ import {
   configCareRateBase,
   configCareChildlessPenalty,
   resetConfig
-} from '../store/taxConfigStore.ts';
+} from '#store/taxConfigStore';
 
 export default function TaxSettings(): JSX.Element {
   const parsePercent = (val: number): string => (val * 100).toFixed(2);
