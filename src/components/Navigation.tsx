@@ -1,4 +1,10 @@
-export default function Navigation({ currentPath = '/' }) {
+import type { JSX } from 'preact';
+
+export interface NavigationProps {
+  currentPath?: string;
+}
+
+export default function Navigation({ currentPath = '/' }: NavigationProps): JSX.Element {
   const isNetCalculator = currentPath === '/' || currentPath === '';
   const isElterngeld = currentPath === '/elterngeld' || currentPath.startsWith('/elterngeld');
 

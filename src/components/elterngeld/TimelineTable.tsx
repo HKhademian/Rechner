@@ -1,18 +1,15 @@
+import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import {
   currentScenarioData,
   activeScenario,
   scenarioBData,
-  scenarioCData,
   hoveredMonth,
-  showSpecialEventRows,
-  enable13thSalary,
-  bonus40Month,
-  bonus60Month,
-  taxReturnMonth
-} from '../../store/elterngeldStore';
+  showSpecialEventRows
+} from '../../store/elterngeldStore.ts';
+import type { TimelineMonth, SpecialEventItem } from '../../engine/types.ts';
 
-function formatCurrency(amount) {
+function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
@@ -20,34 +17,33 @@ function formatCurrency(amount) {
   }).format(amount || 0);
 }
 
-export default function TimelineTable() {
-  const [selectedYear, setSelectedYear] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showDelta, setShowDelta] = useState(false);
+export default function TimelineTable(): JSX.Element {
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showDelta, setShowDelta] = useState<boolean>(false);
 
   const scenario = activeScenario.value;
   const current = currentScenarioData.value;
   const bData = scenarioBData.value;
-  const cData = scenarioCData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
 
   // Filter rows
   const filteredMonths = current.months.filter(m => {
-    if (selectedYear !== 'all' && m.year !== Number(selectedYear)) return false;
+    if (selectedYear !== 'all' && (m.year as number) !== Number(selectedYear)) return false;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       const matchMonth = `m${m.month}`.includes(term) || `month ${m.month}`.includes(term);
       const matchPhase = m.phaseLabel.toLowerCase().includes(term);
       const matchTax = m.taxClassLabel.toLowerCase().includes(term);
       const matchEvent = m.eventTag && m.eventTag.toLowerCase().includes(term);
-      const matchSpecial = m.specialEvents && m.specialEvents.some(e => e.title.toLowerCase().includes(term) || e.category.toLowerCase().includes(term));
+      const matchSpecial = m.specialEvents && m.specialEvents.some((e: SpecialEventItem) => e.title.toLowerCase().includes(term) || (e.category as string).toLowerCase().includes(term));
       if (!matchMonth && !matchPhase && !matchTax && !matchEvent && !matchSpecial) return false;
     }
     return true;
   });
 
   // Export to CSV
-  const exportCSV = () => {
+  const exportCSV = (): void => {
     const headers = [
       'Entry Type',
       'Month',
@@ -65,7 +61,7 @@ export default function TimelineTable() {
       'Cumulative Total'
     ];
 
-    const rows = [];
+    const rows: (string | number)[][] = [];
     current.months.forEach(m => {
       // Base monthly row
       rows.push([
@@ -74,20 +70,20 @@ export default function TimelineTable() {
         `Year ${m.year}`,
         `"${m.phaseLabel}"`,
         `"${m.taxClassLabel}"`,
-        m.husbandSalary,
-        m.wifeSalary,
-        m.mutterschutz,
-        m.wifeElterngeld,
-        m.husbandElterngeld,
-        m.kindergeld,
+        m.husbandSalary as number,
+        m.wifeSalary as number,
+        m.mutterschutz as number,
+        m.wifeElterngeld as number,
+        m.husbandElterngeld as number,
+        m.kindergeld as number,
         0,
-        m.regularMonthlyTotal,
-        m.cumulatedTotal
+        m.regularMonthlyTotal as number,
+        m.cumulatedTotal as number
       ]);
 
       // Special Event Rows
       if (m.specialEvents && m.specialEvents.length > 0) {
-        m.specialEvents.forEach(ev => {
+        m.specialEvents.forEach((ev: SpecialEventItem) => {
           rows.push([
             'Special Event',
             `Month ${m.month} (Event)`,
@@ -100,9 +96,9 @@ export default function TimelineTable() {
             0,
             0,
             0,
-            ev.amount,
-            ev.amount,
-            m.cumulatedTotal
+            ev.amount as number,
+            ev.amount as number,
+            m.cumulatedTotal as number
           ]);
         });
       }
@@ -172,7 +168,7 @@ export default function TimelineTable() {
             type="text"
             placeholder="Filter phase, event, month..."
             value={searchTerm}
-            onInput={(e) => setSearchTerm(e.target.value)}
+            onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             style={{
               padding: '6px 12px',
               borderRadius: '6px',
@@ -187,7 +183,7 @@ export default function TimelineTable() {
           {/* Year selector */}
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
+            onChange={(e) => setSelectedYear((e.target as HTMLSelectElement).value)}
             style={{
               padding: '6px 10px',
               borderRadius: '6px',
@@ -289,10 +285,10 @@ export default function TimelineTable() {
             </tr>
           </thead>
           <tbody>
-            {filteredMonths.map((m) => {
+            {filteredMonths.map((m: TimelineMonth) => {
               const isHovered = hoveredMonth.value === m.month;
-              const bMonth = bData.months[m.month - 1];
-              const deltaVsB = m.monthlyTotal - (bMonth ? bMonth.monthlyTotal : 0);
+              const bMonth = bData.months[(m.month as number) - 1];
+              const deltaVsB = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
               const hasEvents = isSpecialRowsActive && m.specialEvents && m.specialEvents.length > 0;
 
               return [
@@ -337,30 +333,30 @@ export default function TimelineTable() {
                     {m.taxClassLabel}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
-                    {formatCurrency(m.husbandSalary)}
+                    {formatCurrency(m.husbandSalary as number)}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
-                    {formatCurrency(m.wifeSalary)}
+                    {formatCurrency(m.wifeSalary as number)}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.mutterschutz > 0 ? '#93c5fd' : '#64748b' }}>
-                    {m.mutterschutz > 0 ? formatCurrency(m.mutterschutz) : '—'}
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.mutterschutz as number) > 0 ? '#93c5fd' : '#64748b' }}>
+                    {(m.mutterschutz as number) > 0 ? formatCurrency(m.mutterschutz as number) : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.wifeElterngeld > 0 ? '#86efac' : '#64748b' }}>
-                    {m.wifeElterngeld > 0 ? formatCurrency(m.wifeElterngeld) : '—'}
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.wifeElterngeld as number) > 0 ? '#86efac' : '#64748b' }}>
+                    {(m.wifeElterngeld as number) > 0 ? formatCurrency(m.wifeElterngeld as number) : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.husbandElterngeld > 0 ? '#fde68a' : '#64748b' }}>
-                    {m.husbandElterngeld > 0 ? formatCurrency(m.husbandElterngeld) : '—'}
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.husbandElterngeld as number) > 0 ? '#fde68a' : '#64748b' }}>
+                    {(m.husbandElterngeld as number) > 0 ? formatCurrency(m.husbandElterngeld as number) : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: m.kindergeld > 0 ? '#fca5a5' : '#64748b' }}>
-                    {m.kindergeld > 0 ? formatCurrency(m.kindergeld) : '—'}
+                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: (m.kindergeld as number) > 0 ? '#fca5a5' : '#64748b' }}>
+                    {(m.kindergeld as number) > 0 ? formatCurrency(m.kindergeld as number) : '—'}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#64748b' }}>
-                    {!isSpecialRowsActive && m.specialEventsTotal > 0
-                      ? formatCurrency(m.specialEventsTotal)
+                    {!isSpecialRowsActive && (m.specialEventsTotal as number) > 0
+                      ? formatCurrency(m.specialEventsTotal as number)
                       : '—'}
                   </td>
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: '#f8fafc' }}>
-                    {formatCurrency(isSpecialRowsActive ? m.regularMonthlyTotal : m.monthlyTotal)}
+                    {formatCurrency(isSpecialRowsActive ? (m.regularMonthlyTotal as number) : (m.monthlyTotal as number))}
                   </td>
                   {showDelta && (
                     <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: deltaVsB >= 0 ? '#4ade80' : '#f87171' }}>
@@ -368,17 +364,17 @@ export default function TimelineTable() {
                     </td>
                   )}
                   <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>
-                    {formatCurrency(m.cumulatedTotal)}
+                    {formatCurrency(m.cumulatedTotal as number)}
                   </td>
                 </tr>,
 
                 /* 2. Special Event Rows (13th Month Salary Chunks & Annual Tax Returns) */
-                hasEvents && m.specialEvents.map((ev) => (
+                hasEvents && m.specialEvents.map((ev: SpecialEventItem) => (
                   <tr
-                    key={ev.eventId || ev.id}
+                    key={ev.eventId}
                     style={{
                       borderBottom: '1px solid #334155',
-                      background: ev.type.startsWith('bonus')
+                      background: (ev.type as string).startsWith('bonus')
                         ? 'rgba(180, 83, 9, 0.12)'
                         : 'rgba(15, 118, 110, 0.15)',
                       transition: 'background 0.15s ease'
@@ -386,7 +382,7 @@ export default function TimelineTable() {
                     onMouseEnter={() => { hoveredMonth.value = m.month; }}
                     onMouseLeave={() => { hoveredMonth.value = null; }}
                   >
-                    <td style={{ padding: '6px 12px', textAlign: 'left', color: ev.type.startsWith('bonus') ? '#fbbf24' : '#5eead4', fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                    <td style={{ padding: '6px 12px', textAlign: 'left', color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4', fontFamily: 'monospace', fontSize: '0.72rem' }}>
                       ↳ M{m.month} Event
                     </td>
                     <td style={{ padding: '6px 12px', textAlign: 'left' }}>
@@ -397,12 +393,12 @@ export default function TimelineTable() {
                           borderRadius: '3px',
                           fontSize: '0.68rem',
                           fontWeight: 800,
-                          background: ev.type.startsWith('bonus') ? '#b45309' : '#0f766e',
+                          background: (ev.type as string).startsWith('bonus') ? '#b45309' : '#0f766e',
                           color: '#ffffff'
                         }}>
                           {ev.category}
                         </span>
-                        <span style={{ fontWeight: 600, color: ev.type.startsWith('bonus') ? '#fde68a' : '#99f6e4', fontSize: '0.75rem' }}>
+                        <span style={{ fontWeight: 600, color: (ev.type as string).startsWith('bonus') ? '#fde68a' : '#99f6e4', fontSize: '0.75rem' }}>
                           {ev.title}
                         </span>
                       </div>
@@ -423,21 +419,21 @@ export default function TimelineTable() {
                       padding: '6px 12px',
                       fontFamily: 'monospace',
                       fontWeight: 800,
-                      color: ev.type.startsWith('bonus') ? '#fbbf24' : '#5eead4'
+                      color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4'
                     }}>
-                      +{formatCurrency(ev.amount)}
+                      +{formatCurrency(ev.amount as number)}
                     </td>
                     <td style={{
                       padding: '6px 12px',
                       fontFamily: 'monospace',
                       fontWeight: 800,
-                      color: ev.type.startsWith('bonus') ? '#fbbf24' : '#5eead4'
+                      color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4'
                     }}>
-                      +{formatCurrency(ev.amount)}
+                      +{formatCurrency(ev.amount as number)}
                     </td>
                     {showDelta && <td style={{ padding: '6px 12px', color: '#64748b' }}>—</td>}
                     <td style={{ padding: '6px 12px', fontFamily: 'monospace', color: '#94a3b8' }}>
-                      {formatCurrency(m.cumulatedTotal)}
+                      {formatCurrency(m.cumulatedTotal as number)}
                     </td>
                   </tr>
                 ))

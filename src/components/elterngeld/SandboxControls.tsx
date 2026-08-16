@@ -1,3 +1,4 @@
+import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import {
   husbandClass3Net,
@@ -7,8 +8,6 @@ import {
   wifeClass3FullTimeNet,
   wifeClass5PartTimeNet,
   wifeClass3PartTimeNet,
-  wifeInitialHours,
-  wifePostBirthHours,
   kindergeldPerChild,
   enable13thSalary,
   bonus40Month,
@@ -19,9 +18,9 @@ import {
   birthSpacingMonths,
   swapLeadMonths,
   resetToDefaults
-} from '../../store/elterngeldStore';
+} from '../../store/elterngeldStore.ts';
 
-function formatCurrency(amount) {
+function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
@@ -29,11 +28,11 @@ function formatCurrency(amount) {
   }).format(amount || 0);
 }
 
-export default function SandboxControls() {
-  const [isOpen, setIsOpen] = useState(true);
+export default function SandboxControls(): JSX.Element {
+  const [isOpen, setIsOpen] = useState<boolean>(true);
 
   // Preset Handlers
-  const applyPreset = (presetName) => {
+  const applyPreset = (presetName: 'default' | 'high_earner' | 'equal'): void => {
     if (presetName === 'default') {
       resetToDefaults();
     } else if (presetName === 'high_earner') {
@@ -229,7 +228,7 @@ export default function SandboxControls() {
                   max="7000"
                   step="25"
                   value={husbandClass3Net.value}
-                  onInput={(e) => { husbandClass3Net.value = Number(e.target.value); }}
+                  onInput={(e) => { husbandClass3Net.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
 
@@ -247,7 +246,7 @@ export default function SandboxControls() {
                   max="5500"
                   step="25"
                   value={husbandClass5Net.value}
-                  onInput={(e) => { husbandClass5Net.value = Number(e.target.value); }}
+                  onInput={(e) => { husbandClass5Net.value = Number((e.target as HTMLInputElement).value); }}
                 />
                 <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
                   Monthly cash withholding during swap: -{formatCurrency(husbandClass3Net.value - husbandClass5Net.value)}/mo (refunded via *Ehegatten-Splitting*)
@@ -268,7 +267,7 @@ export default function SandboxControls() {
                   max="40"
                   step="1"
                   value={husbandHours.value}
-                  onInput={(e) => { husbandHours.value = Number(e.target.value); }}
+                  onInput={(e) => { husbandHours.value = Number((e.target as HTMLInputElement).value); }}
                 />
                 <div style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '2px' }}>
                   Eligible for 4 Partner Months (*Partnermonate*) + 4 Partnership Bonus Months (*Partnerschaftsbonus* § 4b BEEG)
@@ -310,7 +309,7 @@ export default function SandboxControls() {
                   max="4500"
                   step="25"
                   value={wifeClass5FullTimeNet.value}
-                  onInput={(e) => { wifeClass5FullTimeNet.value = Number(e.target.value); }}
+                  onInput={(e) => { wifeClass5FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
 
@@ -328,7 +327,7 @@ export default function SandboxControls() {
                   max="5500"
                   step="25"
                   value={wifeClass3FullTimeNet.value}
-                  onInput={(e) => { wifeClass3FullTimeNet.value = Number(e.target.value); }}
+                  onInput={(e) => { wifeClass3FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
 
@@ -346,7 +345,7 @@ export default function SandboxControls() {
                   max="3000"
                   step="20"
                   value={wifeClass5PartTimeNet.value}
-                  onInput={(e) => { wifeClass5PartTimeNet.value = Number(e.target.value); }}
+                  onInput={(e) => { wifeClass5PartTimeNet.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
 
@@ -364,7 +363,7 @@ export default function SandboxControls() {
                   max="4000"
                   step="20"
                   value={wifeClass3PartTimeNet.value}
-                  onInput={(e) => { wifeClass3PartTimeNet.value = Number(e.target.value); }}
+                  onInput={(e) => { wifeClass3PartTimeNet.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
             </div>
@@ -404,7 +403,7 @@ export default function SandboxControls() {
                   step="1"
                   value={prePregnancyPlanningMonths.value}
                   onInput={(e) => {
-                    const val = Number(e.target.value);
+                    const val = Number((e.target as HTMLInputElement).value);
                     prePregnancyPlanningMonths.value = val;
                     child1BirthMonth.value = val + 9;
                   }}
@@ -428,7 +427,7 @@ export default function SandboxControls() {
                   max="350"
                   step="5"
                   value={kindergeldPerChild.value}
-                  onInput={(e) => { kindergeldPerChild.value = Number(e.target.value); }}
+                  onInput={(e) => { kindergeldPerChild.value = Number((e.target as HTMLInputElement).value); }}
                 />
               </div>
 
@@ -446,7 +445,7 @@ export default function SandboxControls() {
                   max="42"
                   step="1"
                   value={birthSpacingMonths.value}
-                  onInput={(e) => { birthSpacingMonths.value = Number(e.target.value); }}
+                  onInput={(e) => { birthSpacingMonths.value = Number((e.target as HTMLInputElement).value); }}
                 />
                 <div style={{ fontSize: '0.7rem', color: birthSpacingMonths.value < 36 ? '#4ade80' : '#fbbf24', marginTop: '2px' }}>
                   {birthSpacingMonths.value < 36
@@ -469,7 +468,7 @@ export default function SandboxControls() {
                   max="12"
                   step="1"
                   value={swapLeadMonths.value}
-                  onInput={(e) => { swapLeadMonths.value = Number(e.target.value); }}
+                  onInput={(e) => { swapLeadMonths.value = Number((e.target as HTMLInputElement).value); }}
                 />
                 <div style={{ fontSize: '0.7rem', color: swapLeadMonths.value >= 7 ? '#4ade80' : '#ef4444', marginTop: '2px' }}>
                   {swapLeadMonths.value >= 7

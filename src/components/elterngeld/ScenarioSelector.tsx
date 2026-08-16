@@ -1,6 +1,8 @@
-import { activeScenario, comparisonMetrics } from '../../store/elterngeldStore';
+import type { JSX } from 'preact';
+import { activeScenario, comparisonMetrics } from '../../store/elterngeldStore.ts';
+import { ScenarioId, type ScenarioId as ScenarioIdType } from '../../engine/types.ts';
 
-function formatCurrency(amount) {
+function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
@@ -8,13 +10,23 @@ function formatCurrency(amount) {
   }).format(amount || 0);
 }
 
-export default function ScenarioSelector() {
+interface ScenarioCardItem {
+  id: ScenarioIdType | 'compare';
+  title: string;
+  subtitle: string;
+  badge: string;
+  badgeColor: string;
+  description: string;
+  highlights: string[];
+}
+
+export default function ScenarioSelector(): JSX.Element {
   const current = activeScenario.value;
   const metrics = comparisonMetrics.value;
 
-  const scenarios = [
+  const scenarios: ScenarioCardItem[] = [
     {
-      id: 'C',
+      id: ScenarioId.C,
       title: 'Scenario C',
       subtitle: 'Fully Optimized (Recommended)',
       badge: 'Maximum State Benefit',
@@ -28,7 +40,7 @@ export default function ScenarioSelector() {
       ]
     },
     {
-      id: 'B',
+      id: ScenarioId.B,
       title: 'Scenario B',
       subtitle: 'Unoptimized (Static III/V)',
       badge: 'Standard Baseline',
@@ -42,7 +54,7 @@ export default function ScenarioSelector() {
       ]
     },
     {
-      id: 'A',
+      id: ScenarioId.A,
       title: 'Scenario A',
       subtitle: 'No Children (Status Quo)',
       badge: 'Constant Employment',

@@ -1,9 +1,18 @@
+import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 
-export default function RulesExplainer() {
-  const [activeTab, setActiveTab] = useState(0);
+interface RuleItem {
+  title: string;
+  lawRef: string;
+  tag: string;
+  summary: string;
+  content: JSX.Element;
+}
 
-  const rules = [
+export default function RulesExplainer(): JSX.Element {
+  const [activeTab, setActiveTab] = useState<number>(0);
+
+  const rules: RuleItem[] = [
     {
       title: '1. Maternity Protection & Wage Replacement',
       lawRef: 'MuSchG § 3, § 19 & BEEG § 3 Para. 1',
@@ -12,10 +21,10 @@ export default function RulesExplainer() {
       content: (
         <div>
           <p>
-            Under the German <strong>Maternity Protection Act (MuSchG)</strong>, employed mothers are entitled to statutory protection periods of <strong>6 weeks pre-birth</strong> and <strong>8 weeks post-birth</strong>.
+            Under the German <strong>Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)</strong>, employed mothers are entitled to statutory protection periods of <strong>6 weeks pre-birth</strong> and <strong>8 weeks post-birth</strong>.
           </p>
           <ul>
-            <li><strong>100% Net Replacement:</strong> Statutory health insurance pays maternity benefit (up to €13/day) and the employer pays the statutory supplement under § 20 MuSchG up to full previous net pay.</li>
+            <li><strong>100% Net Replacement:</strong> Statutory health insurance pays maternity benefit (*Mutterschaftsgeld* up to €13/day) and the employer pays the statutory supplement under § 20 MuSchG up to full previous net pay.</li>
             <li><strong>Offset against Elterngeld (§ 3 BEEG):</strong> Post-birth maternity protection months legally count as used Basic Elterngeld months for the mother. Standard ElterngeldPlus payouts start from life month 3.</li>
             <li><strong>Optimization Effect:</strong> Switching to <strong>Tax Class III</strong> in a timely manner increases the monthly maternity net pay to <strong>€2,603 / month</strong> (vs. €1,975 / month in Tax Class V).</li>
           </ul>
@@ -33,7 +42,7 @@ export default function RulesExplainer() {
             The assessment period for parental allowance comprises the <strong>12 calendar months prior to the month maternity protection begins</strong> (§ 2b BEEG).
           </p>
           <ul>
-            <li><strong>Predominant Tax Class:</strong> Whichever tax class was held for the majority of the 12 assessment months (at least 7 months) is applied across the entire baseline calculation.</li>
+            <li><strong>Predominant Tax Class (*Überwiegende Steuerklasse*):</strong> Whichever tax class was held for the majority of the 12 assessment months (at least 7 months) is applied across the entire baseline calculation.</li>
             <li><strong>BFH Precedent (VI R 2/13):</strong> The Federal Fiscal Court has explicitly confirmed that swapping tax classes to maximize parental allowance is lawful and does not constitute tax abuse.</li>
             <li><strong>Execution Timeline:</strong> Swapping to Tax Class III (Wife) / V (Husband) occurs in Month 4 at the start of pregnancy, exactly 7 months before maternity protection begins in Month 11.</li>
           </ul>
@@ -68,7 +77,7 @@ export default function RulesExplainer() {
             Tax classes govern only monthly payroll withholding as an advance payment toward annual liability.
           </p>
           <ul>
-            <li><strong>Income Splitting Tariff:</strong> On the annual income tax return (§ 26b EStG), the household's total yearly income is assessed jointly under German marital income splitting.</li>
+            <li><strong>Income Splitting Tariff (*Splittingtarif*):</strong> On the annual income tax return (§ 26b EStG), the household's total yearly income is assessed jointly under German marital income splitting.</li>
             <li><strong>Full Reconciliation:</strong> All interim salary reductions from the husband's temporary Tax Class V placement are refunded to the couple in full (+€5,670 total refund volume).</li>
           </ul>
         </div>
@@ -86,7 +95,7 @@ export default function RulesExplainer() {
           </p>
           <ul>
             <li><strong>Father's Partner Months:</strong> The father receives 4 months of the minimum base rate of <strong>€150 / month</strong> ElterngeldPlus alongside his standard 32-hour week.</li>
-            <li><strong>Partnership Bonus:</strong> When both parents work concurrently between <strong>24 and 32 hours per week</strong> for 4 consecutive months, each parent receives <strong>4 additional bonus months</strong> of ElterngeldPlus.</li>
+            <li><strong>Partnership Bonus (*Partnerschaftsbonus*):</strong> When both parents work concurrently between <strong>24 and 32 hours per week</strong> for 4 consecutive months, each parent receives <strong>4 additional bonus months</strong> of ElterngeldPlus.</li>
           </ul>
         </div>
       )
@@ -145,7 +154,7 @@ export default function RulesExplainer() {
         </div>
         <div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-            Statutory Framework & Legal Precedents (BEEG / MuSchG / EStG)
+            Statutory Framework & Legal Precedents (*BEEG / MuSchG / EStG*)
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
             Select any legal section below to review the statutory provisions governing the calculation engine.

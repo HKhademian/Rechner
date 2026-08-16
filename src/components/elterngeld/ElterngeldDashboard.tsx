@@ -1,12 +1,13 @@
-import KpiScorecard from './KpiScorecard';
-import ScenarioSelector from './ScenarioSelector';
-import TimelineChart from './TimelineChart';
-import SandboxControls from './SandboxControls';
-import RulesExplainer from './RulesExplainer';
-import TimelineTable from './TimelineTable';
-import Navigation from '../Navigation';
+import type { JSX } from 'preact';
+import KpiScorecard from './KpiScorecard.tsx';
+import ScenarioSelector from './ScenarioSelector.tsx';
+import TimelineChart from './TimelineChart.tsx';
+import SandboxControls from './SandboxControls.tsx';
+import RulesExplainer from './RulesExplainer.tsx';
+import TimelineTable from './TimelineTable.tsx';
+import Navigation from '../Navigation.tsx';
 
-export default function ElterngeldDashboard() {
+export default function ElterngeldDashboard(): JSX.Element {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0f172a' }}>
       {/* Global Top Navigation */}
@@ -28,7 +29,7 @@ export default function ElterngeldDashboard() {
             color: '#94a3b8',
             marginBottom: '12px'
           }}>
-            <span>Federal Parental Allowance & Leave Act (BEEG) • Multi-Year Financial Modeling</span>
+            <span>Federal Parental Allowance & Leave Act (*BEEG*) • Multi-Year Financial Modeling</span>
           </div>
 
           <h1 style={{

@@ -81,27 +81,27 @@ The application is structured into two core modules:
 │   │       └── timelineGenerator.ts # Deterministic multi-year timeline generator
 │   ├── components/
 │   │   ├── elterngeld/
-│   │   │   ├── ElterngeldDashboard.jsx   # Main container for the 5-year simulation
-│   │   │   ├── KpiScorecard.jsx          # Dynamic KPI scorecards
-│   │   │   ├── ScenarioSelector.jsx      # Scenario switcher (A / B / C / Multi-view)
-│   │   │   ├── TimelineChart.jsx         # Interactive 60-month SVG chart (4 modes)
-│   │   │   ├── SandboxControls.jsx       # Parameter sliders, presets & bonus controls
-│   │   │   ├── RulesExplainer.jsx        # Statutory references & legal precedents
-│   │   │   └── TimelineTable.jsx         # 60-month tabular ledger with event rows & CSV export
-│   │   ├── Calculator.jsx                # Main container for net pay calculator
-│   │   ├── ComparisonTable.jsx           # Scenario comparison matrix
-│   │   ├── Icons.jsx                     # Minimalist icon components
-│   │   ├── InputForm.jsx                 # Salary and household inputs
-│   │   ├── Navigation.jsx                # Global application header and navigation
-│   │   ├── ResultsDisplay.jsx            # Wage deductions & social security breakdown
-│   │   └── TaxSettings.jsx               # Statutory rates and contribution ceiling settings
+│   │   │   ├── ElterngeldDashboard.tsx   # Main container for the 5-year simulation
+│   │   │   ├── KpiScorecard.tsx          # Dynamic KPI scorecards
+│   │   │   ├── ScenarioSelector.tsx      # Scenario switcher (A / B / C / Multi-view)
+│   │   │   ├── TimelineChart.tsx         # Interactive 60-month SVG chart (4 modes)
+│   │   │   ├── SandboxControls.tsx       # Parameter sliders, presets & bonus controls
+│   │   │   ├── RulesExplainer.tsx        # Statutory references & legal precedents
+│   │   │   └── TimelineTable.tsx         # 60-month tabular ledger with event rows & CSV export
+│   │   ├── Calculator.tsx                # Main container for net pay calculator
+│   │   ├── ComparisonTable.tsx           # Scenario comparison matrix
+│   │   ├── Icons.tsx                     # Minimalist icon components
+│   │   ├── InputForm.tsx                 # Salary and household inputs
+│   │   ├── Navigation.tsx                # Global application header and navigation
+│   │   ├── ResultsDisplay.tsx            # Wage deductions & social security breakdown
+│   │   └── TaxSettings.tsx               # Statutory rates and contribution ceiling settings
 │   ├── pages/
 │   │   ├── index.astro                   # Route: / (Net Pay Calculator)
 │   │   └── elterngeld.astro              # Route: /elterngeld (Elterngeld Simulation)
 │   ├── store/
-│   │   ├── calculatorStore.js            # Reactive state for salary calculations
+│   │   ├── calculatorStore.ts            # Reactive state for salary calculations
 │   │   ├── elterngeldStore.ts            # Signal store bridging to TypeScript engine
-│   │   └── taxConfigStore.js             # Tax parameters and social ceilings
+│   │   └── taxConfigStore.ts             # Tax parameters and social ceilings
 │   └── styles/
 │       └── global.css                    # Design tokens and global theme
 ├── test/

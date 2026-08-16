@@ -1,10 +1,11 @@
+import type { JSX } from 'preact';
 import {
   currentScenarioData,
   comparisonMetrics,
   activeScenario
-} from '../../store/elterngeldStore';
+} from '../../store/elterngeldStore.ts';
 
-function formatCurrency(amount) {
+function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
@@ -12,7 +13,7 @@ function formatCurrency(amount) {
   }).format(amount || 0);
 }
 
-export default function KpiScorecard() {
+export default function KpiScorecard(): JSX.Element {
   const current = currentScenarioData.value;
   const metrics = comparisonMetrics.value;
   const scenario = activeScenario.value;
@@ -111,7 +112,7 @@ export default function KpiScorecard() {
             </svg>
           </div>
         </div>
-        
+
         {/* Breakdown chips */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
           <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#93c5fd', border: '1px solid #334155' }}>

@@ -1,61 +1,122 @@
-import { signal, computed, effect } from '@preact/signals';
+import { signal, computed, effect, type Signal } from '@preact/signals';
 import {
-  configHealthCap, configPensionCap, configBasicAllowance, configChildTaxReduction, configWorkExpenseAllowance,
-  configHealthRateBase, configHealthRateZusatz, configPensionRate, configUnemploymentRate, configCareRateBase, configCareChildlessPenalty
-} from './taxConfigStore';
+  configHealthCap,
+  configPensionCap,
+  configBasicAllowance,
+  configChildTaxReduction,
+  configWorkExpenseAllowance,
+  configHealthRateBase,
+  configHealthRateZusatz,
+  configPensionRate,
+  configUnemploymentRate,
+  configCareRateBase,
+  configCareChildlessPenalty
+} from './taxConfigStore.ts';
 
 // Helper to persist signals in localStorage
-function persistedSignal(key, initialValue) {
+function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
   let initial = initialValue;
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem(key);
     if (stored !== null) {
       try {
         initial = JSON.parse(stored);
-      } catch (e) {
+      } catch {
         // Fallback to initialValue if parsing fails
       }
     }
   }
-  
-  const s = signal(initial);
-  
+
+  const s = signal<T>(initial);
+
   if (typeof window !== 'undefined') {
     effect(() => {
       localStorage.setItem(key, JSON.stringify(s.value));
     });
   }
-  
+
   return s;
 }
 
+export interface CalculatorInputs {
+  inputMode: 'yearly' | 'monthly';
+  grossIncome: number;
+  taxBracket: string;
+  hasChurchTax: boolean;
+  state: string;
+  children: number;
+  workingMonths: number;
+  salariesPerYear: number;
+  hasPartner: boolean;
+  partnerGrossIncome: number;
+  partnerTaxBracket: string;
+  partnerHasChurchTax: boolean;
+  partnerState: string;
+  partnerWorkingMonths: number;
+  partnerSalariesPerYear: number;
+}
+
+export interface PersonDeductions {
+  grossYearly: number;
+  healthCare: number;
+  pension: number;
+  unemployment: number;
+  care: number;
+  tax: number;
+  churchTax: number;
+  totalSocialSecurity: number;
+  totalDeductions: number;
+  netIncome: number;
+  monthsWorked: number;
+  salariesReceived: number;
+}
+
+export interface HouseholdScenarioData {
+  person1: PersonDeductions;
+  partner: PersonDeductions | null;
+  household: {
+    grossYearly: number;
+    netIncome: number;
+    totalDeductions: number;
+  };
+}
+
+export interface SavedScenarioItem {
+  id: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  inputs: CalculatorInputs;
+  data: HouseholdScenarioData;
+}
+
 // Display Settings
-export const inputMode = persistedSignal('inputMode', 'yearly'); // 'yearly' or 'monthly'
+export const inputMode = persistedSignal<'yearly' | 'monthly'>('inputMode', 'yearly');
 
 // Person 1 Settings
-export const grossIncome = persistedSignal('grossIncome', 50000);
-export const taxBracket = persistedSignal('taxBracket', '1');
-export const hasChurchTax = persistedSignal('hasChurchTax', false);
-export const state = persistedSignal('state', 'Berlin');
-export const children = persistedSignal('children', 0);
-export const workingMonths = persistedSignal('workingMonths', 12); 
-export const salariesPerYear = persistedSignal('salariesPerYear', 12); 
+export const grossIncome = persistedSignal<number>('grossIncome', 50000);
+export const taxBracket = persistedSignal<string>('taxBracket', '1');
+export const hasChurchTax = persistedSignal<boolean>('hasChurchTax', false);
+export const state = persistedSignal<string>('state', 'Berlin');
+export const children = persistedSignal<number>('children', 0);
+export const workingMonths = persistedSignal<number>('workingMonths', 12);
+export const salariesPerYear = persistedSignal<number>('salariesPerYear', 12);
 
 // Partner Settings
-export const hasPartner = persistedSignal('hasPartner', false);
-export const partnerGrossIncome = persistedSignal('partnerGrossIncome', 40000);
-export const partnerTaxBracket = persistedSignal('partnerTaxBracket', '4');
-export const partnerHasChurchTax = persistedSignal('partnerHasChurchTax', false);
-export const partnerState = persistedSignal('partnerState', 'Berlin');
-export const partnerWorkingMonths = persistedSignal('partnerWorkingMonths', 12);
-export const partnerSalariesPerYear = persistedSignal('partnerSalariesPerYear', 12);
+export const hasPartner = persistedSignal<boolean>('hasPartner', false);
+export const partnerGrossIncome = persistedSignal<number>('partnerGrossIncome', 40000);
+export const partnerTaxBracket = persistedSignal<string>('partnerTaxBracket', '4');
+export const partnerHasChurchTax = persistedSignal<boolean>('partnerHasChurchTax', false);
+export const partnerState = persistedSignal<string>('partnerState', 'Berlin');
+export const partnerWorkingMonths = persistedSignal<number>('partnerWorkingMonths', 12);
+export const partnerSalariesPerYear = persistedSignal<number>('partnerSalariesPerYear', 12);
 
 // Saved Scenarios
-export const savedScenarios = persistedSignal('savedScenarios', []);
-export const activeScenarioId = persistedSignal('activeScenarioId', null);
-export const scenarioDraft = signal(null);
+export const savedScenarios = persistedSignal<SavedScenarioItem[]>('savedScenarios', []);
+export const activeScenarioId = persistedSignal<string | null>('activeScenarioId', null);
+export const scenarioDraft = signal<SavedScenarioItem | null>(null);
 
-function getCurrentInputs() {
+export function getCurrentInputs(): CalculatorInputs {
   return {
     inputMode: inputMode.value,
     grossIncome: grossIncome.value,
@@ -75,27 +136,27 @@ function getCurrentInputs() {
   };
 }
 
-export function saveScenario(title, description, currentDeductions) {
-  const newScenario = {
+export function saveScenario(title?: string, description?: string, currentDeductions?: HouseholdScenarioData): void {
+  const newScenario: SavedScenarioItem = {
     id: Date.now().toString(),
     title: title || 'Untitled Scenario',
     description: description || '',
     timestamp: new Date().toISOString(),
     inputs: getCurrentInputs(),
-    data: currentDeductions 
+    data: currentDeductions || calculateScenarioData(getCurrentInputs())
   };
   savedScenarios.value = [...savedScenarios.value, newScenario];
   editScenario(newScenario.id);
 }
 
-export function deleteScenario(id) {
+export function deleteScenario(id: string): void {
   savedScenarios.value = savedScenarios.value.filter(s => s.id !== id);
   if (activeScenarioId.value === id) {
     cancelEdit();
   }
 }
 
-export function loadScenario(id) {
+export function loadScenario(id: string): void {
   const scenario = savedScenarios.value.find(s => s.id === id);
   if (scenario && scenario.inputs) {
     inputMode.value = scenario.inputs.inputMode ?? 'yearly';
@@ -117,39 +178,54 @@ export function loadScenario(id) {
 }
 
 // Exact Tax Formula (Grundtarif) - Shifts according to configBasicAllowance
-function getBaseTax(zve, basicAllowance) {
+function getBaseTax(zve: number, basicAllowance: number): number {
   if (zve <= basicAllowance) return 0;
-  
-  // We use the progressive formula but anchored by the dynamic basic allowance
-  // The actual German bands shift relative to the basic allowance. 
-  // We'll keep the band widths roughly the same as 2024 for simplicity, but anchor to configBasicAllowance.
-  // Band 2: basicAllowance to (basicAllowance + 5401)
-  const band2Cap = basicAllowance + 5401; // roughly 17005 - 11604 = 5401
+
+  const band2Cap = basicAllowance + 5401;
   if (zve <= band2Cap) {
     const y = (zve - basicAllowance) / 10000;
     return Math.floor((922.98 * y + 1400) * y);
   }
-  
-  // Band 3: band2Cap to (band2Cap + 49755)
-  const band3Cap = band2Cap + 49755; // roughly 66760 - 17005 = 49755
+
+  const band3Cap = band2Cap + 49755;
   if (zve <= band3Cap) {
     const z = (zve - band2Cap) / 10000;
     return Math.floor((216.16 * z + 2397) * z + 865.13);
   }
-  
-  // Band 4: band3Cap to 277825
-  const band4Cap = 277825; 
+
+  const band4Cap = 277825;
   if (zve <= band4Cap) {
     return Math.floor(0.42 * zve - 10453.22);
   }
-  
+
   // Band 5
   return Math.floor(0.45 * zve - 18787.97);
 }
 
-function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bundesland, monthsWorked, salariesReceived = 12) {
+function calculateForPerson(
+  grossYearly: number,
+  bracket: string,
+  paysChurchTax: boolean,
+  numChildren: number,
+  bundesland: string,
+  monthsWorked: number,
+  salariesReceived = 12
+): PersonDeductions {
   if (grossYearly <= 0) {
-    return { grossYearly, healthCare: 0, pension: 0, unemployment: 0, care: 0, tax: 0, churchTax: 0, totalSocialSecurity: 0, totalDeductions: 0, netIncome: 0, monthsWorked };
+    return {
+      grossYearly,
+      healthCare: 0,
+      pension: 0,
+      unemployment: 0,
+      care: 0,
+      tax: 0,
+      churchTax: 0,
+      totalSocialSecurity: 0,
+      totalDeductions: 0,
+      netIncome: 0,
+      monthsWorked,
+      salariesReceived
+    };
   }
 
   // 1. Social Security (with dynamic Config Caps)
@@ -159,23 +235,23 @@ function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bu
   const assessableHealth = Math.min(grossYearly, healthCap);
   const assessablePension = Math.min(grossYearly, pensionCap);
 
-  const healthInsuranceRate = configHealthRateBase.value + configHealthRateZusatz.value; 
+  const healthInsuranceRate = configHealthRateBase.value + configHealthRateZusatz.value;
   const pensionInsuranceRate = configPensionRate.value;
   const unemploymentInsuranceRate = configUnemploymentRate.value;
-  
+
   let careInsuranceRate = configCareRateBase.value;
   if (numChildren === 0) {
     careInsuranceRate += configCareChildlessPenalty.value;
   } else if (numChildren > 1) {
     const extraChildren = Math.min(numChildren - 1, 4);
-    careInsuranceRate -= (extraChildren * 0.0025);
+    careInsuranceRate -= extraChildren * 0.0025;
   }
 
   const healthCare = assessableHealth * healthInsuranceRate;
   const pension = assessablePension * pensionInsuranceRate;
   const unemployment = assessablePension * unemploymentInsuranceRate;
   const care = assessableHealth * careInsuranceRate;
-  
+
   const totalSocialSecurity = healthCare + pension + unemployment + care;
 
   // 2. Taxable Income (Zu versteuerndes Einkommen - ZvE)
@@ -187,17 +263,17 @@ function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bu
   // 3. Tax Calculation
   let tax = 0;
   const basicAllowance = configBasicAllowance.value;
-  
+
   if (bracket === '3') {
     tax = getBaseTax(taxableIncome / 2, basicAllowance) * 2;
   } else if (bracket === '5') {
     tax = getBaseTax(taxableIncome, basicAllowance) * 1.6;
   } else if (bracket === '6') {
-    tax = getBaseTax(taxableIncome + basicAllowance, basicAllowance); // Shift up to bypass basic allowance
+    tax = getBaseTax(taxableIncome + basicAllowance, basicAllowance);
   } else {
     tax = getBaseTax(taxableIncome, basicAllowance);
     if (bracket === '2') {
-      let class2ZvE = taxableIncome - 4260; // Fixed Single Parent allowance
+      let class2ZvE = taxableIncome - 4260;
       if (class2ZvE < 0) class2ZvE = 0;
       tax = getBaseTax(class2ZvE, basicAllowance);
     }
@@ -209,14 +285,14 @@ function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bu
   if (tax < 0) tax = 0;
 
   let soli = 0;
-  const soliThreshold = (bracket === '3') ? 36260 : 18130;
+  const soliThreshold = bracket === '3' ? 36260 : 18130;
   if (tax > soliThreshold) {
     soli = tax * 0.055;
   }
 
-  const churchRate = (bundesland === 'Bayern' || bundesland === 'Baden-Württemberg') ? 0.08 : 0.09;
-  const churchTax = paysChurchTax ? (tax * churchRate) : 0;
-  
+  const churchRate = bundesland === 'Bayern' || bundesland === 'Baden-Württemberg' ? 0.08 : 0.09;
+  const churchTax = paysChurchTax ? tax * churchRate : 0;
+
   const totalDeductions = totalSocialSecurity + tax + soli + churchTax;
 
   return {
@@ -235,15 +311,31 @@ function calculateForPerson(grossYearly, bracket, paysChurchTax, numChildren, bu
   };
 }
 
-export function calculateScenarioData(inputs) {
-  const p1YearlyGross = inputs.inputMode === 'monthly' ? (inputs.grossIncome * inputs.salariesPerYear) : inputs.grossIncome;
-  const p2YearlyGross = inputs.inputMode === 'monthly' ? (inputs.partnerGrossIncome * inputs.partnerSalariesPerYear) : inputs.partnerGrossIncome;
+export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenarioData {
+  const p1YearlyGross = inputs.inputMode === 'monthly' ? inputs.grossIncome * inputs.salariesPerYear : inputs.grossIncome;
+  const p2YearlyGross = inputs.inputMode === 'monthly' ? inputs.partnerGrossIncome * inputs.partnerSalariesPerYear : inputs.partnerGrossIncome;
 
-  const person1 = calculateForPerson(p1YearlyGross, inputs.taxBracket, inputs.hasChurchTax, inputs.children, inputs.state, inputs.workingMonths, inputs.salariesPerYear);
-  
-  let partner = null;
+  const person1 = calculateForPerson(
+    p1YearlyGross,
+    inputs.taxBracket,
+    inputs.hasChurchTax,
+    inputs.children,
+    inputs.state,
+    inputs.workingMonths,
+    inputs.salariesPerYear
+  );
+
+  let partner: PersonDeductions | null = null;
   if (inputs.hasPartner) {
-    partner = calculateForPerson(p2YearlyGross, inputs.partnerTaxBracket, inputs.partnerHasChurchTax, inputs.children, inputs.partnerState, inputs.partnerWorkingMonths, inputs.partnerSalariesPerYear);
+    partner = calculateForPerson(
+      p2YearlyGross,
+      inputs.partnerTaxBracket,
+      inputs.partnerHasChurchTax,
+      inputs.children,
+      inputs.partnerState,
+      inputs.partnerWorkingMonths,
+      inputs.partnerSalariesPerYear
+    );
   }
 
   const householdGross = person1.grossYearly + (partner ? partner.grossYearly : 0);
@@ -261,11 +353,11 @@ export function calculateScenarioData(inputs) {
   };
 }
 
-export const deductions = computed(() => {
+export const deductions = computed<HouseholdScenarioData>(() => {
   return calculateScenarioData(getCurrentInputs());
 });
 
-export function editScenario(id) {
+export function editScenario(id: string): void {
   const scenario = savedScenarios.peek().find(s => s.id === id);
   if (scenario) {
     scenarioDraft.value = {
@@ -276,7 +368,7 @@ export function editScenario(id) {
   }
 }
 
-export function updateScenarioMetaData(newTitle, newDescription) {
+export function updateScenarioMetaData(newTitle: string, newDescription: string): void {
   if (scenarioDraft.value) {
     scenarioDraft.value = {
       ...scenarioDraft.value,
@@ -286,9 +378,9 @@ export function updateScenarioMetaData(newTitle, newDescription) {
   }
 }
 
-export function updateScenarioInput(field, value) {
+export function updateScenarioInput<K extends keyof CalculatorInputs>(field: K, value: CalculatorInputs[K]): void {
   if (scenarioDraft.value) {
-    const newInputs = { ...scenarioDraft.value.inputs, [field]: value };
+    const newInputs: CalculatorInputs = { ...scenarioDraft.value.inputs, [field]: value };
     scenarioDraft.value = {
       ...scenarioDraft.value,
       inputs: newInputs,
@@ -297,7 +389,7 @@ export function updateScenarioInput(field, value) {
   }
 }
 
-export function overwriteScenarioWithCurrent(id) {
+export function overwriteScenarioWithCurrent(id: string): void {
   const scenarios = savedScenarios.peek();
   const index = scenarios.findIndex(s => s.id === id);
   if (index > -1) {
@@ -314,7 +406,7 @@ export function overwriteScenarioWithCurrent(id) {
   }
 }
 
-export function saveDraft() {
+export function saveDraft(): void {
   if (scenarioDraft.value && activeScenarioId.value) {
     const scenarios = savedScenarios.peek();
     const index = scenarios.findIndex(s => s.id === activeScenarioId.value);
@@ -327,7 +419,7 @@ export function saveDraft() {
   }
 }
 
-export function cancelEdit() {
+export function cancelEdit(): void {
   activeScenarioId.value = null;
   scenarioDraft.value = null;
 }
