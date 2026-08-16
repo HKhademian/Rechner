@@ -351,22 +351,40 @@ export function getFieldExplanation(
     case FieldColumnKey.SpecialEvents: {
       const bSpecial = bMonth ? (bMonth.specialEventsTotal as number) : spTotal;
       const diffSp = spTotal - bSpecial;
+      const taxReturnEvent = m.specialEvents?.find(e => e.type === SpecialEventType.TaxReturn);
+
+      let explText = spTotal !== 0
+        ? `Month ${m.month} includes ${formatCurrency(spTotal)} in special transactions (e.g. annual salary bonus, tax refund from joint assessment § 26b EStG, or one-off childcare expenses).`
+        : `0 € (No one-off special fiscal payments or tax returns scheduled in Month ${m.month}).`;
+
+      if (taxReturnEvent) {
+        explText = `Month ${m.month} includes an annual Tax Return Refund of ${formatCurrency(taxReturnEvent.amount as number)}. ${taxReturnEvent.description}`;
+      }
+
+      const factors: ContributingFactor[] = [
+        { name: 'Total Special Inflows', value: spTotal > 0 ? formatCurrency(spTotal) : '0 €', description: 'Bonuses or Tax Refunds' },
+        { name: 'Total Special Outflows', value: spTotal < 0 ? formatCurrency(Math.abs(spTotal)) : '0 €', description: 'One-off costs or investments' }
+      ];
+
+      if (taxReturnEvent) {
+        factors.push({
+          name: 'Annual Tax Assessment',
+          value: formatCurrency(taxReturnEvent.amount as number),
+          description: taxReturnEvent.statutory
+        });
+      }
+
       return {
         fieldKey: ExplanationFieldKey.SpecialEvents,
         fieldTitle: 'Special Payments, Bonuses & Tax Returns',
         valueFormatted: formatCurrency(spTotal),
         derivationFormula: 'Sum of all special fiscal events in this month (13th Salary + Tax Return + One-Off Inflows/Costs)',
-        explanation: spTotal !== 0
-          ? `Month ${m.month} includes ${formatCurrency(spTotal)} in special transactions (e.g. annual salary bonus, tax refund from joint assessment § 26b EStG, or one-off childcare expenses).`
-          : `0 € (No one-off special fiscal payments or tax returns scheduled in Month ${m.month}).`,
-        contributingFactors: [
-          { name: 'Total Special Inflows', value: spTotal > 0 ? formatCurrency(spTotal) : '0 €', description: 'Bonuses or Tax Refunds' },
-          { name: 'Total Special Outflows', value: spTotal < 0 ? formatCurrency(Math.abs(spTotal)) : '0 €', description: 'One-off costs or investments' }
-        ],
+        explanation: explText,
+        contributingFactors: factors,
         calculationSteps: [
           { stepNumber: 1, description: 'Aggregate special transactions for month', formula: 'Sum(Credits) - Sum(Debits)', result: formatCurrency(spTotal) }
         ],
-        legalCitation: toStatutoryCitation('EStG § 26b (Steuererstattung) & § 2c BEEG (Sonstige Bezüge)'),
+        legalCitation: toStatutoryCitation(taxReturnEvent ? 'EStG § 26b, § 31 (*Günstigerprüfung*) & § 46' : 'EStG § 26b (Steuererstattung) & § 2c BEEG (Sonstige Bezüge)'),
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         diffVsBFormatted: diffSp !== 0 ? `${diffSp > 0 ? '+' : ''}${formatCurrency(diffSp)} vs B` : undefined
       };
