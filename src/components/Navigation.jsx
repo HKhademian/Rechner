@@ -50,10 +50,10 @@ export default function Navigation({ currentPath = '/' }) {
               letterSpacing: '-0.02em',
               color: '#f8fafc'
             }}>
-              Netto- & Elterngeldrechner
+              German Net Salary & Parental Allowance Planner
             </div>
             <div style={{ fontSize: '0.72rem', color: '#94a3b8', letterSpacing: '0.02em' }}>
-              Finanz- und Elternzeitplanung (BEEG / EStG)
+              Household Financial & Parental Leave Optimization (BEEG / EStG)
             </div>
           </div>
         </a>
@@ -97,7 +97,7 @@ export default function Navigation({ currentPath = '/' }) {
               <path d="M12 18h.01"/>
               <path d="M8 18h.01"/>
             </svg>
-            Nettolohnrechner
+            Net Salary Calculator
           </a>
 
           {/* Tab 2: 5-Year Elterngeld Simulator */}
@@ -121,7 +121,7 @@ export default function Navigation({ currentPath = '/' }) {
               <path d="M3 3v18h18"/>
               <path d="m19 9-5 5-4-4-3 3"/>
             </svg>
-            Elterngeld 5-Jahres-Simulation
+            Elterngeld 5-Year Simulator
           </a>
         </nav>
 
@@ -144,7 +144,7 @@ export default function Navigation({ currentPath = '/' }) {
               borderRadius: '50%',
               backgroundColor: '#10b981'
             }}></span>
-            <span>Stand: BEEG & EStG 2024–2026</span>
+            <span>Statutory Rules: 2024–2026 EStG / BEEG</span>
           </div>
         </div>
       </div>

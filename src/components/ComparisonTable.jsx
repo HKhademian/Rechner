@@ -83,7 +83,7 @@ export default function ComparisonTable() {
     return (
       <tr class="comparison-row">
         <td style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--card-border); color: #cbd5e1; position: sticky; left: 0; background: #1e293b; z-index: 10; border-right: 2px solid var(--card-border);">
-          Auszahlung pro Gehalt
+          Net Per Paycheck
         </td>
         {cells}
       </tr>
@@ -105,7 +105,7 @@ export default function ComparisonTable() {
     const currentVal = getAvgVal(deductions.value);
     cells.push(
       <td key="current" style="padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: rgba(16, 185, 129, 0.1); min-width: 220px; color: #e2e8f0;">
-        {format(currentVal)} <span style="font-size: 0.8rem; color: #94a3b8;">/ Monat</span>
+        {format(currentVal)} <span style="font-size: 0.8rem; color: #94a3b8;">/ mo</span>
       </td>
     );
 
@@ -116,7 +116,7 @@ export default function ComparisonTable() {
       
       cells.push(
         <td key={scenario.id} style={`padding: 12px 16px; border-bottom: 1px solid var(--card-border); min-width: 220px; color: #cbd5e1; background: ${isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent'};`}>
-          {format(savedVal)} <span style="font-size: 0.8rem; color: #94a3b8;">/ Monat</span>
+          {format(savedVal)} <span style="font-size: 0.8rem; color: #94a3b8;">/ mo</span>
         </td>
       );
     });
@@ -124,7 +124,7 @@ export default function ComparisonTable() {
     return (
       <tr class="comparison-row">
         <td style="padding: 12px 16px; font-weight: 500; border-bottom: 1px solid var(--card-border); color: #94a3b8; position: sticky; left: 0; background: #1e293b; z-index: 10; border-right: 2px solid var(--card-border);">
-          Durchschn. Monatsnetto <span style="font-size: 0.75rem; color: #64748b; margin-left: 4px;">(Jahr / 12)</span>
+          Avg. Monthly Net <span style="font-size: 0.75rem; color: #64748b; margin-left: 4px;">(Yearly / 12)</span>
         </td>
         {cells}
       </tr>
@@ -239,7 +239,7 @@ export default function ComparisonTable() {
 
   const handleAddScenario = () => {
     const count = savedScenarios.peek().length + 1;
-    saveScenario(`Szenario ${count}`, 'Neue Simulation', deductions.peek());
+    saveScenario(`Scenario ${count}`, 'New simulation', deductions.peek());
   };
 
   return (
@@ -247,8 +247,8 @@ export default function ComparisonTable() {
       
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
-          <h2 style="margin: 0;">Szenarien-Vergleich & Haushaltsmodelle</h2>
-          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">Gegenüberstellung des aktuellen Live-Stands mit gespeicherten Haushalts-Szenarien.</p>
+          <h2 style="margin: 0;">Scenario Manager & Household Models</h2>
+          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">Compare your active live inputs against saved household planning scenarios.</p>
         </div>
         
         <div style="display: flex; gap: 15px; align-items: center;">
@@ -257,13 +257,13 @@ export default function ComparisonTable() {
               style={`padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-weight: bold; background: ${isMonthly ? 'var(--primary)' : 'transparent'}; color: ${isMonthly ? '#fff' : '#cbd5e1'}`}
               onClick={() => displayMode.value = 'monthly'}
             >
-              Monatlich
+              Monthly
             </button>
             <button 
               style={`padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; transition: 0.2s; font-size: 0.8rem; font-weight: bold; background: ${!isMonthly ? 'var(--primary)' : 'transparent'}; color: ${!isMonthly ? '#fff' : '#cbd5e1'}`}
               onClick={() => displayMode.value = 'yearly'}
             >
-              Jährlich
+              Yearly
             </button>
           </div>
         </div>
@@ -279,8 +279,8 @@ export default function ComparisonTable() {
               <div style="display: flex; flex-direction: column; gap: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: start; gap: 8px;">
                   <div style="flex: 1;">
-                    <div style="font-size: 1.1rem; color: var(--success); padding: 2px 4px; font-weight: bold;">Aktiver Live-Stand</div>
-                    <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; padding: 2px 4px;">Reagiert auf Eingaberegler</div>
+                    <div style="font-size: 1.1rem; color: var(--success); padding: 2px 4px; font-weight: bold;">Live Calculation</div>
+                    <div style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; padding: 2px 4px;">Reacts live to sliders</div>
                   </div>
                   
                   <button 
@@ -288,7 +288,7 @@ export default function ComparisonTable() {
                     style="background: transparent; color: var(--success); border: none; cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
                     onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
                     onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
-                    title="Als neues Szenario speichern"
+                    title="Save as New Scenario"
                   >
                     <PlusIcon />
                   </button>
@@ -311,17 +311,17 @@ export default function ComparisonTable() {
                           style={`background: transparent; border: 1px solid transparent; color: ${isActive ? 'var(--primary)' : 'white'}; font-size: 1.1rem; font-weight: bold; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s; pointer-events: ${isActive ? 'auto' : 'none'};`}
                           onFocus={(e) => { if (isActive) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
                           onBlur={(e) => { if (isActive) e.target.style.background = 'transparent'; }}
-                          title={isActive ? "Titel bearbeiten" : scenario.title}
+                          title={isActive ? "Edit title" : scenario.title}
                         />
                         <input 
                           type="text" 
                           value={isActive && scenarioDraft.value ? scenarioDraft.value.description : scenario.description} 
-                          placeholder={isActive ? "Beschreibung hinzufügen..." : ""}
+                          placeholder={isActive ? "Add description..." : ""}
                           onChange={(e) => isActive && updateScenarioMetaData(scenarioDraft.value.title, e.target.value)}
                           style={`background: transparent; border: 1px solid transparent; color: #94a3b8; font-size: 0.8rem; font-weight: normal; width: 100%; padding: 2px 4px; border-radius: 4px; outline: none; transition: 0.2s; pointer-events: ${isActive ? 'auto' : 'none'};`}
                           onFocus={(e) => { if (isActive) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
                           onBlur={(e) => { if (isActive) e.target.style.background = 'transparent'; }}
-                          title={isActive ? "Beschreibung bearbeiten" : scenario.description}
+                          title={isActive ? "Edit description" : scenario.description}
                         />
                       </div>
                       
@@ -333,7 +333,7 @@ export default function ComparisonTable() {
                               style="background: transparent; border: none; color: var(--success); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
                               onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
                               onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
-                              title="In Live-Berechnung laden"
+                              title="Load into Live Calculator"
                             >
                               <DownloadIcon />
                             </button>
@@ -342,7 +342,7 @@ export default function ComparisonTable() {
                               style="background: transparent; border: none; color: var(--primary); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
                               onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
                               onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
-                              title="Szenario bearbeiten"
+                              title="Edit Scenario"
                             >
                               <EditIcon />
                             </button>
@@ -353,7 +353,7 @@ export default function ComparisonTable() {
                           style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s;"
                           onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
                           onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
-                          title="Szenario löschen"
+                          title="Delete Scenario"
                         >
                           <XIcon />
                         </button>
@@ -365,16 +365,16 @@ export default function ComparisonTable() {
                         <button 
                           onClick={saveDraft}
                           style="background: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;"
-                          title="Änderungen speichern"
+                          title="Save changes to scenario"
                         >
-                          <SaveIcon /> Speichern
+                          <SaveIcon /> Save
                         </button>
                         <button 
                           onClick={cancelEdit}
                           style="background: transparent; color: #cbd5e1; border: 1px solid var(--card-border); padding: 6px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1;"
-                          title="Abbrechen ohne Speichern"
+                          title="Cancel editing"
                         >
-                          Abbrechen
+                          Cancel
                         </button>
                       </div>
                     )}
@@ -387,38 +387,38 @@ export default function ComparisonTable() {
         <tbody>
           <tr>
             <td colSpan={savedScenarios.value.length + 2} style="padding: 20px 16px 8px 16px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
-              Haushalt Gesamtergebnis
+              Household Summary
             </td>
           </tr>
-          {renderRow(isMonthly ? 'Haushalt Durchschn. Brutto' : 'Haushalt Brutto', null, 'grossYearly', true, true)}
-          {renderRow(isMonthly ? 'Haushalt Durchschn. Netto' : 'Haushalt Netto', null, 'netIncome', true, true)}
+          {renderRow(isMonthly ? 'Household Avg Gross' : 'Household Gross', null, 'grossYearly', true, true)}
+          {renderRow(isMonthly ? 'Household Avg Net' : 'Household Net Pay', null, 'netIncome', true, true)}
           {renderAverageMonthlyNetRow(null, true)}
           {renderPerPaycheckRow(null, true)}
-          {renderRow(isMonthly ? 'Haushalt Durchschn. Abzüge' : 'Gesamtabzüge', null, 'totalDeductions', true)}
+          {renderRow(isMonthly ? 'Household Avg Deductions' : 'Total Deductions', null, 'totalDeductions', true)}
           
           <tr>
             <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
-              Ergebnis Person 1
+              Person 1 Summary
             </td>
           </tr>
-          {renderRow(isMonthly ? 'Durchschn. Brutto' : 'Bruttoeinkommen', 'person1', 'grossYearly', false, true)}
-          {renderRow(isMonthly ? 'Durchschn. Netto' : 'Nettolohn', 'person1', 'netIncome', false, true)}
+          {renderRow(isMonthly ? 'Avg Gross' : 'Gross Income', 'person1', 'grossYearly', false, true)}
+          {renderRow(isMonthly ? 'Avg Net' : 'Net Take-Home Pay', 'person1', 'netIncome', false, true)}
           {renderAverageMonthlyNetRow('person1', false)}
           {renderPerPaycheckRow('person1', false)}
-          {renderRow(isMonthly ? 'Durchschn. Lohnsteuer' : 'Lohnsteuer', 'person1', 'tax')}
-          {renderRow(isMonthly ? 'Durchschn. Krankenvers.' : 'Krankenversicherung', 'person1', 'healthCare')}
-          {renderRow(isMonthly ? 'Durchschn. Rentenvers.' : 'Rentenversicherung', 'person1', 'pension')}
+          {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax (Lohnsteuer)', 'person1', 'tax')}
+          {renderRow(isMonthly ? 'Avg Health Care' : 'Health Insurance', 'person1', 'healthCare')}
+          {renderRow(isMonthly ? 'Avg Pension' : 'Pension Insurance', 'person1', 'pension')}
           
           <tr>
             <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; background: rgba(0,0,0,0.1);">
-              Parameter Person 1
+              Person 1 Parameters
             </td>
           </tr>
           {(() => {
             const taxBracketOptions = [
-              { value: '1', label: 'Klasse I' }, { value: '2', label: 'Klasse II' },
-              { value: '3', label: 'Klasse III' }, { value: '4', label: 'Klasse IV' },
-              { value: '5', label: 'Klasse V' }, { value: '6', label: 'Klasse VI' }
+              { value: '1', label: 'Class I' }, { value: '2', label: 'Class II' },
+              { value: '3', label: 'Class III' }, { value: '4', label: 'Class IV' },
+              { value: '5', label: 'Class V' }, { value: '6', label: 'Class VI' }
             ];
             const stateOptions = [
               'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 
@@ -428,13 +428,13 @@ export default function ComparisonTable() {
 
             return (
               <>
-                {renderInputRow('Bruttoeinkommen', format(grossIncome.value), 'grossIncome', 'number', null, s => format(s.grossIncome || 0))}
-                {renderInputRow('Bundesland', state.value, 'state', 'select', stateOptions, s => s.state || '-')}
-                {renderInputRow('Steuerklasse', `Klasse ${taxBracket.value}`, 'taxBracket', 'select', taxBracketOptions, s => s.taxBracket ? `Klasse ${s.taxBracket}` : '-')}
-                {renderInputRow('Kirchensteuer', hasChurchTax.value ? 'Ja' : 'Nein', 'hasChurchTax', 'checkbox', null, s => s.hasChurchTax ? 'Ja' : 'Nein')}
-                {renderInputRow('Kinder', children.value, 'children', 'number', null, s => s.children ?? '-')}
-                {renderInputRow('Erwerbsmonate', `${workingMonths.value} Monate`, 'workingMonths', 'number', null, s => s.workingMonths ? `${s.workingMonths} Monate` : '-')}
-                {renderInputRow('Gehälter / Jahr', `${salariesPerYear.value} Gehälter`, 'salariesPerYear', 'number', null, s => s.salariesPerYear ? `${s.salariesPerYear} Gehälter` : '-')}
+                {renderInputRow('Gross Income', format(grossIncome.value), 'grossIncome', 'number', null, s => format(s.grossIncome || 0))}
+                {renderInputRow('Federal State', state.value, 'state', 'select', stateOptions, s => s.state || '-')}
+                {renderInputRow('Tax Class', `Class ${taxBracket.value}`, 'taxBracket', 'select', taxBracketOptions, s => s.taxBracket ? `Class ${s.taxBracket}` : '-')}
+                {renderInputRow('Church Tax', hasChurchTax.value ? 'Yes' : 'No', 'hasChurchTax', 'checkbox', null, s => s.hasChurchTax ? 'Yes' : 'No')}
+                {renderInputRow('Children', children.value, 'children', 'number', null, s => s.children ?? '-')}
+                {renderInputRow('Working Months', `${workingMonths.value} Months`, 'workingMonths', 'number', null, s => s.workingMonths ? `${s.workingMonths} Months` : '-')}
+                {renderInputRow('Salaries / Year', `${salariesPerYear.value} Salaries`, 'salariesPerYear', 'number', null, s => s.salariesPerYear ? `${s.salariesPerYear} Salaries` : '-')}
               </>
             );
           })()}
@@ -443,25 +443,25 @@ export default function ComparisonTable() {
             <>
               <tr>
                 <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; background: rgba(0,0,0,0.2);">
-                  Ergebnis Partner
+                  Partner Summary
                 </td>
               </tr>
-              {renderRow(isMonthly ? 'Durchschn. Brutto' : 'Bruttoeinkommen', 'partner', 'grossYearly', false, true)}
-              {renderRow(isMonthly ? 'Durchschn. Netto' : 'Nettolohn', 'partner', 'netIncome', false, true)}
+              {renderRow(isMonthly ? 'Avg Gross' : 'Gross Income', 'partner', 'grossYearly', false, true)}
+              {renderRow(isMonthly ? 'Avg Net' : 'Net Take-Home Pay', 'partner', 'netIncome', false, true)}
               {renderAverageMonthlyNetRow('partner', false)}
               {renderPerPaycheckRow('partner', false)}
-              {renderRow(isMonthly ? 'Durchschn. Lohnsteuer' : 'Lohnsteuer', 'partner', 'tax')}
+              {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax (Lohnsteuer)', 'partner', 'tax')}
 
               <tr>
                 <td colSpan={savedScenarios.value.length + 2} style="padding: 25px 16px 8px 16px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; background: rgba(0,0,0,0.1);">
-                  Parameter Partner
+                  Partner Parameters
                 </td>
               </tr>
               {(() => {
                 const taxBracketOptions = [
-                  { value: '1', label: 'Klasse I' }, { value: '2', label: 'Klasse II' },
-                  { value: '3', label: 'Klasse III' }, { value: '4', label: 'Klasse IV' },
-                  { value: '5', label: 'Klasse V' }, { value: '6', label: 'Klasse VI' }
+                  { value: '1', label: 'Class I' }, { value: '2', label: 'Class II' },
+                  { value: '3', label: 'Class III' }, { value: '4', label: 'Class IV' },
+                  { value: '5', label: 'Class V' }, { value: '6', label: 'Class VI' }
                 ];
                 const stateOptions = [
                   'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 
@@ -471,12 +471,12 @@ export default function ComparisonTable() {
     
                 return (
                   <>
-                    {renderInputRow('Bruttoeinkommen Partner', format(partnerGrossIncome.value), 'partnerGrossIncome', 'number', null, s => format(s.partnerGrossIncome || 0))}
-                    {renderInputRow('Bundesland Partner', partnerState.value, 'partnerState', 'select', stateOptions, s => s.partnerState || '-')}
-                    {renderInputRow('Steuerklasse Partner', `Klasse ${partnerTaxBracket.value}`, 'partnerTaxBracket', 'select', taxBracketOptions, s => s.partnerTaxBracket ? `Klasse ${s.partnerTaxBracket}` : '-')}
-                    {renderInputRow('Kirchensteuer Partner', partnerHasChurchTax.value ? 'Ja' : 'Nein', 'partnerHasChurchTax', 'checkbox', null, s => s.partnerHasChurchTax ? 'Ja' : 'Nein')}
-                    {renderInputRow('Erwerbsmonate Partner', `${partnerWorkingMonths.value} Monate`, 'partnerWorkingMonths', 'number', null, s => s.partnerWorkingMonths ? `${s.partnerWorkingMonths} Monate` : '-')}
-                    {renderInputRow('Gehälter Partner', `${partnerSalariesPerYear.value} Gehälter`, 'partnerSalariesPerYear', 'number', null, s => s.partnerSalariesPerYear ? `${s.partnerSalariesPerYear} Gehälter` : '-')}
+                    {renderInputRow('Partner Gross', format(partnerGrossIncome.value), 'partnerGrossIncome', 'number', null, s => format(s.partnerGrossIncome || 0))}
+                    {renderInputRow('Partner Federal State', partnerState.value, 'partnerState', 'select', stateOptions, s => s.partnerState || '-')}
+                    {renderInputRow('Partner Tax Class', `Class ${partnerTaxBracket.value}`, 'partnerTaxBracket', 'select', taxBracketOptions, s => s.partnerTaxBracket ? `Class ${s.partnerTaxBracket}` : '-')}
+                    {renderInputRow('Partner Church Tax', partnerHasChurchTax.value ? 'Yes' : 'No', 'partnerHasChurchTax', 'checkbox', null, s => s.partnerHasChurchTax ? 'Yes' : 'No')}
+                    {renderInputRow('Partner Working Months', `${partnerWorkingMonths.value} Months`, 'partnerWorkingMonths', 'number', null, s => s.partnerWorkingMonths ? `${s.partnerWorkingMonths} Months` : '-')}
+                    {renderInputRow('Partner Salaries', `${partnerSalariesPerYear.value} Salaries`, 'partnerSalariesPerYear', 'number', null, s => s.partnerSalariesPerYear ? `${s.partnerSalariesPerYear} Salaries` : '-')}
                   </>
                 );
               })()}

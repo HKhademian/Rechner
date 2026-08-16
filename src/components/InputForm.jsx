@@ -19,45 +19,45 @@ export default function InputForm() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div class="glass-panel fade-in">Einstellungen werden geladen...</div>;
+  if (!mounted) return <div class="glass-panel fade-in">Loading parameters...</div>;
 
   const isMonthly = inputMode.value === 'monthly';
 
   return (
     <div class="glass-panel fade-in">
-      <h2>Haushalts- & Gehaltsdaten</h2>
+      <h2>Household & Salary Parameters</h2>
       
       <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <button 
           style={`flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--card-border); cursor: pointer; transition: 0.2s; background: ${isMonthly ? 'var(--primary)' : 'transparent'}; color: ${isMonthly ? '#fff' : '#cbd5e1'}`}
           onClick={() => inputMode.value = 'monthly'}
         >
-          Monatliche Eingabe
+          Monthly Input
         </button>
         <button 
           style={`flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--card-border); cursor: pointer; transition: 0.2s; background: ${!isMonthly ? 'var(--primary)' : 'transparent'}; color: ${!isMonthly ? '#fff' : '#cbd5e1'}`}
           onClick={() => inputMode.value = 'yearly'}
         >
-          Jährliche Eingabe
+          Yearly Input
         </button>
       </div>
 
       <div class="input-group">
-        <label for="children">Anzahl der Kinder</label>
+        <label for="children">Number of Children (Kinderfreibetrag)</label>
         <select 
           id="children"
           value={children.value} 
           onChange={(e) => children.value = Number(e.target.value)}
         >
-          {[0, 1, 2, 3, 4, 5].map(num => <option key={num} value={num}>{num}</option>)}
+          {[0, 1, 2, 3, 4, 5].map(num => <option key={num} value={num}>{num} {num === 1 ? 'Child' : 'Children'}</option>)}
         </select>
       </div>
 
       <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 30px 0;" />
 
-      <h3>Angaben Person 1</h3>
+      <h3>Person 1 Details</h3>
       <div class="input-group">
-        <label for="gross">Bruttoeinkommen ({isMonthly ? 'Monatlich' : 'Jährlich'}): €{grossIncome.value.toLocaleString('de-DE')}</label>
+        <label for="gross">Gross Income ({isMonthly ? 'Monthly' : 'Yearly'}): €{grossIncome.value.toLocaleString('de-DE')}</label>
         <input 
           id="gross"
           type="range" 
@@ -76,45 +76,45 @@ export default function InputForm() {
       </div>
 
       <div class="input-group">
-        <label for="salariesPerYear">Gehälter pro Jahr (z. B. inkl. 13. Monatsgehalt)</label>
+        <label for="salariesPerYear">Salaries Received / Year (e.g. 13th month bonus)</label>
         <select 
           id="salariesPerYear"
           value={salariesPerYear.value} 
           onChange={(e) => salariesPerYear.value = Number(e.target.value)}
         >
-          {[12, 12.5, 13, 13.5, 14].map(num => <option key={num} value={num}>{num} Gehälter</option>)}
+          {[12, 12.5, 13, 13.5, 14].map(num => <option key={num} value={num}>{num} Salaries</option>)}
         </select>
       </div>
 
       <div class="input-group">
-        <label for="workingMonths">Erwerbsmonate pro Jahr</label>
+        <label for="workingMonths">Active Working Months / Year</label>
         <select 
           id="workingMonths"
           value={workingMonths.value} 
           onChange={(e) => workingMonths.value = Number(e.target.value)}
         >
-          {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => <option key={num} value={num}>{num} {num === 1 ? 'Monat' : 'Monate'}</option>)}
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => <option key={num} value={num}>{num} {num === 1 ? 'Month' : 'Months'}</option>)}
         </select>
       </div>
 
       <div class="input-group">
-        <label for="bracket">Steuerklasse</label>
+        <label for="bracket">Tax Class (Steuerklasse)</label>
         <select 
           id="bracket"
           value={taxBracket.value} 
           onChange={(e) => taxBracket.value = e.target.value}
         >
-          <option value="1">Klasse I (Alleinstehend)</option>
-          <option value="2">Klasse II (Alleinerziehend)</option>
-          <option value="3">Klasse III (Verheiratet, höherer Verdienst)</option>
-          <option value="4">Klasse IV (Verheiratet, gleicher Verdienst)</option>
-          <option value="5">Klasse V (Verheiratet, geringerer Verdienst)</option>
-          <option value="6">Klasse VI (Zweitjob / Nebenbeschäftigung)</option>
+          <option value="1">Class I (Single)</option>
+          <option value="2">Class II (Single Parent)</option>
+          <option value="3">Class III (Married, Higher Earner)</option>
+          <option value="4">Class IV (Married, Equal Earners)</option>
+          <option value="5">Class V (Married, Lower Earner)</option>
+          <option value="6">Class VI (Second Employment)</option>
         </select>
       </div>
 
       <div class="input-group">
-        <label for="state">Bundesland</label>
+        <label for="state">Federal State (Bundesland)</label>
         <select 
           id="state"
           value={state.value} 
@@ -125,7 +125,7 @@ export default function InputForm() {
       </div>
 
       <div class="input-group" style="display: flex; justify-content: space-between; align-items: center;">
-        <label for="church" style="margin-bottom: 0;">Kirchensteuerpflichtig?</label>
+        <label for="church" style="margin-bottom: 0;">Liable for Church Tax (Kirchensteuer)?</label>
         <label class="switch">
           <input 
             id="church"
@@ -140,7 +140,7 @@ export default function InputForm() {
       <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 30px 0;" />
 
       <div class="input-group" style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">Partner / Ehegatte hinzufügen</h3>
+        <h3 style="margin: 0;">Add Spouse / Partner</h3>
         <label class="switch">
           <input 
             type="checkbox" 
@@ -154,7 +154,7 @@ export default function InputForm() {
       {hasPartner.value && (
         <div class="fade-in" style="margin-top: 20px; padding: 15px; border-radius: 8px; background: rgba(0,0,0,0.2);">
           <div class="input-group">
-            <label for="partnerGross">Bruttoeinkommen Partner ({isMonthly ? 'Monatlich' : 'Jährlich'}): €{partnerGrossIncome.value.toLocaleString('de-DE')}</label>
+            <label for="partnerGross">Partner's Gross ({isMonthly ? 'Monthly' : 'Yearly'}): €{partnerGrossIncome.value.toLocaleString('de-DE')}</label>
             <input 
               id="partnerGross"
               type="range" 
@@ -173,42 +173,42 @@ export default function InputForm() {
           </div>
 
           <div class="input-group">
-            <label for="partnerSalariesPerYear">Gehälter Partner / Jahr</label>
+            <label for="partnerSalariesPerYear">Partner's Salaries / Year</label>
             <select 
               id="partnerSalariesPerYear"
               value={partnerSalariesPerYear.value} 
               onChange={(e) => partnerSalariesPerYear.value = Number(e.target.value)}
             >
-              {[12, 12.5, 13, 13.5, 14].map(num => <option key={num} value={num}>{num} Gehälter</option>)}
+              {[12, 12.5, 13, 13.5, 14].map(num => <option key={num} value={num}>{num} Salaries</option>)}
             </select>
           </div>
 
           <div class="input-group">
-            <label for="partnerWorkingMonths">Erwerbsmonate Partner</label>
+            <label for="partnerWorkingMonths">Partner's Working Months</label>
             <select 
               id="partnerWorkingMonths"
               value={partnerWorkingMonths.value} 
               onChange={(e) => partnerWorkingMonths.value = Number(e.target.value)}
             >
-              {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => <option key={num} value={num}>{num} {num === 1 ? 'Monat' : 'Monate'}</option>)}
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => <option key={num} value={num}>{num} {num === 1 ? 'Month' : 'Months'}</option>)}
             </select>
           </div>
           
           <div class="input-group">
-            <label for="partnerBracket">Steuerklasse Partner</label>
+            <label for="partnerBracket">Partner's Tax Class (Steuerklasse)</label>
             <select 
               id="partnerBracket"
               value={partnerTaxBracket.value} 
               onChange={(e) => partnerTaxBracket.value = e.target.value}
             >
-              <option value="3">Klasse III (Höherer Verdienst)</option>
-              <option value="4">Klasse IV (Gleicher Verdienst)</option>
-              <option value="5">Klasse V (Geringerer Verdienst)</option>
+              <option value="3">Class III (Higher Earner)</option>
+              <option value="4">Class IV (Equal Earners)</option>
+              <option value="5">Class V (Lower Earner)</option>
             </select>
           </div>
 
           <div class="input-group">
-            <label for="partnerState">Bundesland Partner</label>
+            <label for="partnerState">Partner's Federal State</label>
             <select 
               id="partnerState"
               value={partnerState.value} 
@@ -219,7 +219,7 @@ export default function InputForm() {
           </div>
 
           <div class="input-group" style="display: flex; justify-content: space-between; align-items: center;">
-            <label for="partnerChurch" style="margin-bottom: 0;">Partner kirchensteuerpflichtig?</label>
+            <label for="partnerChurch" style="margin-bottom: 0;">Partner liable for Church Tax?</label>
             <label class="switch">
               <input 
                 id="partnerChurch"
@@ -238,9 +238,9 @@ export default function InputForm() {
       <details style="cursor: pointer; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px;">
         <summary style="font-weight: 600; color: #f8fafc; outline: none; display: flex; justify-content: space-between; align-items: center; padding: 5px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <SettingsIcon size={16} /> Erweiterte Tarifeinstellungen & Grenzwerte (2024–2026)
+            <SettingsIcon size={16} /> Advanced Tax Settings & Social Thresholds (2024–2026)
           </div>
-          <span style="font-size: 0.8rem; color: #94a3b8;">Ausklappen</span>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Expand</span>
         </summary>
         <TaxSettings />
       </details>

@@ -8,7 +8,7 @@ export default function Calculator() {
     <>
     <Navigation currentPath="/" />
     <div style="text-align: center; margin-bottom: 20px; margin-top: 20px;">
-      <h1 style="font-size: 3rem; background: -webkit-linear-gradient(45deg, var(--primary), #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      <h1 style="font-size: 2.8rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.03em;">
         German Net Pay Calculator
       </h1>
       <p style="color: #94a3b8; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
