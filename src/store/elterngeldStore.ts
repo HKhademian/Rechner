@@ -4,7 +4,8 @@ import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
-  toCalendarMonth
+  toCalendarMonth,
+  type ScenarioId
 } from '../engine/types';
 
 // Default Financial Parameters (The Sandbox)
@@ -37,10 +38,10 @@ export const preMutterschutzMonths = signal(1.5); // 6 weeks
 export const postMutterschutzMonths = signal(2); // 8 weeks
 
 // UI & View State
-export const activeScenario = signal('C'); // 'A', 'B', 'C', or 'compare'
-export const chartMode = signal('stacked_bar'); // 'stacked_bar', 'lines', 'area', 'compare'
-export const timeRangeFilter = signal('all'); // 'all', 'child1', 'child2', 'post'
-export const hoveredMonth = signal(null);
+export const activeScenario = signal<string>('C'); // 'A', 'B', 'C', or 'compare'
+export const chartMode = signal<string>('stacked_bar'); // 'stacked_bar', 'lines', 'area', 'compare'
+export const timeRangeFilter = signal<string>('all'); // 'all', 'child1', 'child2', 'post'
+export const hoveredMonth = signal<number | null>(null);
 
 export function resetToDefaults() {
   husbandClass3Net.value = 2895;
@@ -70,7 +71,7 @@ export function resetToDefaults() {
 }
 
 // 60-Month Cash Flow Engine for a given scenario ('A', 'B', or 'C')
-export function computeTimelineData(scenarioKey) {
+export function computeTimelineData(scenarioKey: ScenarioId) {
   return generateTimelineSimulation({
     scenarioKey,
     husbandClass3Net: toNetSalary(husbandClass3Net.value),
