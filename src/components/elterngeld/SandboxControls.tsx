@@ -72,7 +72,8 @@ export default function SandboxControls(): JSX.Element {
       wifeClass3FullTimeNet.value = 3000;
       wifeClass5PartTimeNet.value = 1650;
       wifeClass3PartTimeNet.value = 2200;
-      prePregnancyPlanningMonths.value = 3;
+      prePregnancyPlanningMonths.value = 8;
+      child1BirthMonth.value = 17;
       birthSpacingMonths.value = 27;
       swapLeadMonths.value = 7;
     } else if (presetName === 'equal') {
@@ -82,7 +83,8 @@ export default function SandboxControls(): JSX.Element {
       wifeClass3FullTimeNet.value = 3400;
       wifeClass5PartTimeNet.value = 1600;
       wifeClass3PartTimeNet.value = 2100;
-      prePregnancyPlanningMonths.value = 3;
+      prePregnancyPlanningMonths.value = 8;
+      child1BirthMonth.value = 17;
       birthSpacingMonths.value = 24;
       swapLeadMonths.value = 7;
     }
