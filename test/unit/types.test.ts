@@ -9,6 +9,8 @@ import {
   toEuroCents,
   toGrossSalary,
   toNetSalary,
+  toEntityId,
+  toKinderfreibetragAnnualAmount,
   toStatutoryCitation,
   toTransactionId,
   toEventId,
@@ -23,6 +25,14 @@ import {
   toActionType,
   toTargetPerson,
   toFinancialEventCategory,
+  isEuroAmount,
+  isGrossSalary,
+  isNetSalary,
+  isActionId,
+  isPregnancyId,
+  isSwitchId,
+  isRaiseId,
+  isFinancialEventId,
   TaxClass,
   ScenarioId,
   TransactionType,
@@ -32,7 +42,20 @@ import {
   ActionCategory,
   ActionType,
   FinancialEventCategory,
-  TargetPerson
+  TargetPerson,
+  type GrossSalary,
+  type NetSalary,
+  type EuroAmount,
+  type KinderfreibetragAnnualAmount,
+  type PregnancyId,
+  type SwitchId,
+  type RaiseId,
+  type FinancialEventId,
+  type ActionId,
+  type EntityId,
+  type TransactionId,
+  type EventId,
+  type StatutoryCitation
 } from '#engine/types';
 
 describe('Strongly-Typed Domain Types & Constructors', () => {
@@ -267,6 +290,86 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
 
       assert.equal(toFinancialEventCategory('Baby Equipment (*Erstausstattung*)'), FinancialEventCategory.BabyEquipment);
       assert.throws(() => toFinancialEventCategory('invalid-cat'), TypeError);
+    });
+  });
+
+  describe('Hierarchical Brand Subtyping & Type Guards', () => {
+    it('Monetary Hierarchy: GrossSalary and NetSalary are subtypes of EuroAmount', () => {
+      const gross: GrossSalary = toGrossSalary(4500);
+      const net: NetSalary = toNetSalary(3184);
+      const kinderfreibetrag: KinderfreibetragAnnualAmount = toKinderfreibetragAnnualAmount(9540);
+
+      // Subtype assignability to EuroAmount (Polymorphic Monetary handling)
+      const amountFromGross: EuroAmount = gross;
+      const amountFromNet: EuroAmount = net;
+      const amountFromAllowance: EuroAmount = kinderfreibetrag;
+
+      assert.equal(amountFromGross, 4500);
+      assert.equal(amountFromNet, 3184);
+      assert.equal(amountFromAllowance, 9540);
+
+      // Verify monetary type guards
+      assert.equal(isEuroAmount(gross), true);
+      assert.equal(isEuroAmount(net), true);
+      assert.equal(isGrossSalary(gross), true);
+      assert.equal(isNetSalary(net), true);
+      assert.equal(isGrossSalary(-100), false);
+      assert.equal(isNetSalary(NaN), false);
+    });
+
+    it('Action Hierarchy: PregnancyId, SwitchId, RaiseId are subtypes of ActionId and EntityId', () => {
+      const pregId: PregnancyId = toPregnancyId('PREG-1');
+      const switchId: SwitchId = toSwitchId('SWAP-1');
+      const raiseId: RaiseId = toRaiseId('RAISE-1');
+      const finId: FinancialEventId = toFinancialEventId('FEVENT-1');
+      const txId: TransactionId = toTransactionId('TX-1');
+      const evId: EventId = toEventId('EVENT-1');
+      const citation: StatutoryCitation = toStatutoryCitation('§ 31 EStG');
+
+      // Subtype assignability to ActionId
+      const action1: ActionId = pregId;
+      const action2: ActionId = switchId;
+      const action3: ActionId = raiseId;
+      const action4: ActionId = finId;
+
+      assert.equal(action1, 'PREG-1');
+      assert.equal(action2, 'SWAP-1');
+      assert.equal(action3, 'RAISE-1');
+      assert.equal(action4, 'FEVENT-1');
+
+      // Subtype assignability to EntityId
+      const entityFromPreg: EntityId = pregId;
+      const entityFromSwitch: EntityId = switchId;
+      const entityFromTx: EntityId = txId;
+      const entityFromEv: EntityId = evId;
+      const entityFromCitation: EntityId = citation;
+
+      assert.equal(entityFromPreg, 'PREG-1');
+      assert.equal(entityFromSwitch, 'SWAP-1');
+      assert.equal(entityFromTx, 'TX-1');
+      assert.equal(entityFromEv, 'EVENT-1');
+      assert.equal(entityFromCitation, '§ 31 EStG');
+
+      // Verify identifier type guards
+      assert.equal(isActionId(pregId), true);
+      assert.equal(isActionId(switchId), true);
+      assert.equal(isPregnancyId(pregId), true);
+      assert.equal(isPregnancyId('OTHER'), false);
+      assert.equal(isSwitchId(switchId), true);
+      assert.equal(isSwitchId('NOT_A_SWITCH'), false);
+      assert.equal(isRaiseId(raiseId), true);
+      assert.equal(isFinancialEventId(finId), true);
+    });
+
+    it('toEntityId and toKinderfreibetragAnnualAmount validate inputs correctly', () => {
+      const entity = toEntityId('CUSTOM-ENTITY-123');
+      assert.equal(entity, 'CUSTOM-ENTITY-123');
+      assert.throws(() => toEntityId(''), TypeError);
+
+      const kAllowance = toKinderfreibetragAnnualAmount(9540);
+      assert.equal(kAllowance, 9540);
+      assert.throws(() => toKinderfreibetragAnnualAmount(-1), TypeError);
+      assert.throws(() => toKinderfreibetragAnnualAmount(NaN), TypeError);
     });
   });
 });
