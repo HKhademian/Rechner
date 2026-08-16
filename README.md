@@ -10,30 +10,30 @@ The application is structured into two core modules:
 
 ### 1. German Net Salary Calculator (`/`)
 - **Complete Tax Computation**: Tax classes I through VI in accordance with German § 32a EStG and the 2024–2026 progressive income tax tariff.
-- **Social Security Contributions with Contribution Ceilings (BBG)**:
-  - Statutory Health Insurance (*Krankenversicherung*: General rate 14.6% + individual supplementary contribution, split 50/50).
-  - Statutory Pension Insurance (*Rentenversicherung*: 18.6%, split 50/50).
-  - Statutory Unemployment Insurance (*Arbeitslosenversicherung*: 2.6%, split 50/50).
-  - Statutory Long-Term Care Insurance (*Pflegeversicherung*: 4.0% for childless individuals, with progressive relief tiers from the 2nd child onwards).
+- **Social Security Contributions with Assessment Ceilings (*Beitragsbemessungsgrenzen - BBG*)**:
+  - Statutory Health Insurance (*Gesetzliche Krankenversicherung - GKV* § 241a SGB V: General rate 14.6% + individual supplementary contribution, split 50/50).
+  - Statutory Pension Insurance (*Gesetzliche Rentenversicherung - GRV* § 158 SGB VI: 18.6%, split 50/50).
+  - Statutory Unemployment Insurance (*Arbeitslosenversicherung - ALV* § 341 SGB III: 2.6%, split 50/50).
+  - Statutory Long-Term Care Insurance (*Pflegeversicherung - PV* § 55 SGB XI: 4.0% for childless individuals, with progressive relief tiers from the 2nd child onwards).
 - **Tax Deductions & Allowances**:
-  - Basic Tax-Free Allowance (*Grundfreibetrag*), Employee Lump-Sum Allowance (*Arbeitnehmer-Pauschbetrag* § 9a EStG), Special Expenses & Vorsorgeaufwand (§ 10 EStG).
-  - Single Parent Tax Relief (*Entlastungsbetrag für Alleinerziehende* § 24b EStG - Tax Class II).
-  - Church Tax (*Kirchensteuer*: 8% in Bavaria/Baden-Württemberg, 9% in all other states) and Solidarity Surcharge (*Solidaritätszuschlag*) exemption threshold verification.
+  - Basic Tax-Free Allowance (*Grundfreibetrag* § 32a Abs. 1 EStG), Employee Lump-Sum Allowance (*Arbeitnehmer-Pauschbetrag* § 9a EStG), Special Expenses & Pension Expenses (*Sonderausgaben & Vorsorgeaufwendungen* § 10 EStG).
+  - Single Parent Relief (*Entlastungsbetrag für Alleinerziehende* § 24b EStG - Tax Class II / *Steuerklasse II*).
+  - Church Tax (*Kirchensteuer*: 8% in Bavaria/Baden-Württemberg, 9% in all other states) and Solidarity Surcharge (*Solidaritätszuschlag* SolzG) exemption threshold verification.
 - **Spouse & Household Modeling**: Direct side-by-side comparison of individual vs. household net income across tax class combinations (III/V, IV/IV, IV with factor).
 - **Scenario Manager**: Save, load, edit, and compare multiple household scenarios.
 
 ### 2. Elterngeld & Parental Leave 5-Year Simulator (`/elterngeld`)
 - **60-Month Cash Flow Ledger**: Complete 5-year chronological simulation for a household planning two children.
 - **Statutory Wage Replacement Benefits & Legal Framework**:
-  - **Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)**: 6 weeks pre-birth and 8 weeks post-birth with 100% net wage replacement (Maternity benefit + Employer supplement).
-  - **Maternity Offset (*Anrechnung MuSchG § 3 BEEG*)**: Post-birth maternity protection legally consumes Basic Elterngeld months 1 and 2.
-  - **ElterngeldPlus & Statutory Cap**: 65% replacement rate for part-time income losses, capped at **€900.00 / month**.
-  - **Proactive Tax Class Swap (III/V)**: Swapping to Tax Class III at least 7 months before maternity protection to secure Tax Class III as the predominant class across the 12-month assessment window (§ 2b BEEG; BFH Ruling VI R 2/13).
-  - **Synthetic Net Principle (*Fiktives Netto*)**: Swapping back to Tax Class III (Husband) / V (Wife) post-birth does not lower the approved ElterngeldPlus entitlement.
-  - **Tax Office Reconciliation (*Ehegatten-Splitting*)**: Monthly withholding deductions during the swap period are 100% refunded to the couple via the annual joint tax assessment (§ 26b EStG).
-  - **Partner Months & Partnership Bonus (§ 4b BEEG)**: 4 partner months base rate (€150 / month) for the father plus 4 additional bonus months when both parents work part-time concurrently between 24 and 32 hours per week.
-  - **Sibling Bonus (*Geschwisterbonus § 2a BEEG*)**: +10% surcharge on Child 2 Elterngeld until Child 1 turns 3 years old (36 months).
-  - **14-Month Trap Avoidance (Child 2)**: Modeling the diluted assessment window (10 months part-time + 2 months full-time) and optimization via timed secondary tax class switching.
+  - **Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)**: 6 weeks pre-birth and 8 weeks post-birth with 100% net wage replacement (Maternity benefit + Employer supplement / *Mutterschaftsgeld & Arbeitgeberzuschuss* § 19, § 20 MuSchG).
+  - **Maternity Offset (*Anrechnung von Mutterschaftsleistungen* § 3 BEEG)**: Post-birth maternity protection legally consumes Basic Elterngeld months 1 and 2.
+  - **ElterngeldPlus & Statutory Cap (*ElterngeldPlus* § 4 BEEG)**: 65% replacement rate for part-time income losses, capped at **€900.00 / month**.
+  - **Proactive Tax Class Swap (*Steuerklassenwechsel* III/V § 39e EStG / § 2b BEEG)**: Swapping to Tax Class III at least 7 months before maternity protection to secure Tax Class III as the predominant class across the 12-month assessment window (Federal Fiscal Court / *BFH Urteil VI R 2/13*).
+  - **Synthetic Net Principle (*Fiktives Netto* § 2e BEEG)**: Swapping back to Tax Class III (Husband) / V (Wife) post-birth does not lower the approved ElterngeldPlus entitlement.
+  - **Tax Office Reconciliation (*Ehegatten-Splitting* § 26, § 26b EStG)**: Monthly withholding deductions during the swap period are 100% refunded to the couple via the annual joint tax assessment.
+  - **Partner Months & Partnership Bonus (*Partnermonate & Partnerschaftsbonus* § 4, § 4b BEEG)**: 4 partner months base rate (€150 / month) for the father plus 4 additional bonus months when both parents work part-time concurrently between 24 and 32 hours per week.
+  - **Sibling Bonus (*Geschwisterbonus* § 2a BEEG)**: +10% surcharge on Child 2 Elterngeld until Child 1 turns 3 years old (36 months).
+  - **14-Month Trap Avoidance (*14-Monate-Verwässerungsfalle* § 2b BEEG)**: Modeling the diluted assessment window (10 months part-time + 2 months full-time) and optimization via timed secondary tax class switching.
 
 ---
 
