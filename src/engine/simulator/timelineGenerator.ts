@@ -46,7 +46,7 @@ import {
 import { createTransaction } from '#engine/ledger/transaction';
 import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
 import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '#engine/tax/jointAssessment';
-import { computeElterngeldBenefits } from '#engine/benefits/elterngeldPlus';
+import { computeElterngeldBenefits, isElterngeldHoursEligible, isPartnerschaftsbonusEligible } from '#engine/benefits/elterngeldPlus';
 import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
 
 export interface TimelineSimulationParams {
@@ -291,49 +291,98 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
               : `Post-Birth Mutterschutz (Child ${preg.childIndex})`;
           }
         }
-        // ElterngeldPlus Phase
+        // ElterngeldPlus Phase (Standard EG+ months and Partnerschaftsbonus months)
         else if (m >= egStart && m <= egBonusEnd) {
           inSpecialPhase = true;
           wifeSalary = toEuroAmount(curW5PT);
 
-          // Calculate Elterngeld Entitlement
-          if (pIdx === 0) {
-            // Child 1
-            const egEntitlement = computeElterngeldBenefits(
-              toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
-              toNetSalary(curW5PT)
-            );
-            wifeElterngeld = egEntitlement.elterngeldPlus;
-            phaseLabel = `Child ${preg.childIndex} EGPlus (Mother)`;
+          const motherHours = (preg.motherPostBirthPartTimeHours as unknown as number) ?? 24;
+          const fatherHours = (preexisting.husbandWeeklyHours as unknown as number) ?? 32;
+          const isMotherEgEligible = isElterngeldHoursEligible(motherHours);
+          const isBonusWindow = m >= egBonusStart && m <= egBonusEnd;
+          const qualifiesPartnerschaftsbonus = isBonusWindow && isPartnerschaftsbonusEligible(motherHours, fatherHours);
+
+          if (isBonusWindow) {
+            if (qualifiesPartnerschaftsbonus) {
+              isPartnerschaftsbonus = true;
+              husbandElterngeld = toEuroAmount(150);
+              phaseLabel = `Partnerschaftsbonus ${preg.childIndex} (Both 24-32h)`;
+
+              // Mother's benefit calculation
+              if (pIdx === 0) {
+                const egEntitlement = computeElterngeldBenefits(
+                  toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+                  toNetSalary(curW5PT),
+                  motherHours
+                );
+                wifeElterngeld = egEntitlement.elterngeldPlus;
+              } else {
+                const blendedNet = toNetSalary(
+                  Math.round(
+                    (10 * (scenarioKey === ScenarioId.C ? curW3PT : curW5PT) +
+                      2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
+                      12
+                  )
+                );
+                const egEntitlement = computeElterngeldBenefits(blendedNet, toNetSalary(curW5PT), motherHours);
+                const prevBirth = pregnancies[0].calculatedDeliverySimulationMonth;
+                const sibling = computeSiblingBonus(egEntitlement.elterngeldPlus, prevBirth, sMonth);
+                hasSiblingBonus = sibling.isEligible;
+                wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
+              }
+            } else {
+              // Ineligible for Partnerschaftsbonus (§ 4b BEEG) - hours outside 24-32h corridor
+              isPartnerschaftsbonus = false;
+              husbandElterngeld = toEuroAmount(0);
+              wifeElterngeld = toEuroAmount(0);
+              phaseLabel = motherHours > 32
+                ? `Child ${preg.childIndex} Post-Leave (Hours >32h: No EG § 1 BEEG)`
+                : (motherHours < 24
+                    ? `Child ${preg.childIndex} Post-Leave (Hours <24h: No PB § 4b BEEG)`
+                    : `Child ${preg.childIndex} Post-Leave (Father Outside 24-32h)`);
+            }
           } else {
-            // Child 2+ with blended pre-birth assessment baseline (10M PT + 2M FT)
-            const blendedNet = toNetSalary(
-              Math.round(
-                (10 * (scenarioKey === ScenarioId.C ? curW3PT : curW5PT) +
-                  2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
-                  12
-              )
-            );
-            const egEntitlement = computeElterngeldBenefits(blendedNet, toNetSalary(curW5PT));
+            // Standard ElterngeldPlus window (egStart to egEnd)
+            if (isMotherEgEligible) {
+              if (pIdx === 0) {
+                // Child 1
+                const egEntitlement = computeElterngeldBenefits(
+                  toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+                  toNetSalary(curW5PT),
+                  motherHours
+                );
+                wifeElterngeld = egEntitlement.elterngeldPlus;
+                phaseLabel = `Child ${preg.childIndex} EGPlus (Mother)`;
+              } else {
+                // Child 2+ with blended pre-birth assessment baseline (10M PT + 2M FT)
+                const blendedNet = toNetSalary(
+                  Math.round(
+                    (10 * (scenarioKey === ScenarioId.C ? curW3PT : curW5PT) +
+                      2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
+                      12
+                  )
+                );
+                const egEntitlement = computeElterngeldBenefits(blendedNet, toNetSalary(curW5PT), motherHours);
 
-            // Sibling bonus eligibility vs Child 1
-            const prevBirth = pregnancies[0].calculatedDeliverySimulationMonth;
-            const sibling = computeSiblingBonus(egEntitlement.elterngeldPlus, prevBirth, sMonth);
-            hasSiblingBonus = sibling.isEligible;
-            wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
-            phaseLabel = sibling.isEligible
-              ? `Child ${preg.childIndex} EGPlus + Sibling Bonus (+10%)`
-              : `Child ${preg.childIndex} EGPlus`;
-          }
+                // Sibling bonus eligibility vs Child 1
+                const prevBirth = pregnancies[0].calculatedDeliverySimulationMonth;
+                const sibling = computeSiblingBonus(egEntitlement.elterngeldPlus, prevBirth, sMonth);
+                hasSiblingBonus = sibling.isEligible;
+                wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
+                phaseLabel = sibling.isEligible
+                  ? `Child ${preg.childIndex} EGPlus + Sibling Bonus (+10%)`
+                  : `Child ${preg.childIndex} EGPlus`;
+              }
+            } else {
+              // Working > 32h/week: Ineligible for Elterngeld (§ 1 Abs. 1 Nr. 4 BEEG)
+              wifeElterngeld = toEuroAmount(0);
+              phaseLabel = `Child ${preg.childIndex} Post-Leave (Hours >32h: No EG § 1 BEEG)`;
+            }
 
-          // Partner Months (Father)
-          if (m >= egStart && m <= egStart + 3) {
-            husbandElterngeld = toEuroAmount(150);
-          }
-          if (m >= egBonusStart && m <= egBonusEnd) {
-            isPartnerschaftsbonus = true;
-            husbandElterngeld = toEuroAmount(150);
-            phaseLabel = `Partnerschaftsbonus ${preg.childIndex} (Both 24-32h)`;
+            // Partner Months (Father)
+            if (m >= egStart && m <= egStart + 3) {
+              husbandElterngeld = toEuroAmount(150);
+            }
           }
         }
       });

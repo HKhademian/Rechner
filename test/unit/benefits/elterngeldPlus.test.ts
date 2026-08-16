@@ -2,7 +2,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   computeStatutoryReplacementRate,
-  computeElterngeldBenefits
+  computeElterngeldBenefits,
+  isElterngeldHoursEligible,
+  isPartnerschaftsbonusEligible
 } from '#engine/benefits/elterngeldPlus';
 import { toNetSalary } from '#engine/types';
 
@@ -62,6 +64,47 @@ describe('Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
       assert.equal(benefit.elterngeldPlus, 501);
       assert.equal(benefit.isMaxCapped, false);
       assert.equal(benefit.isMinFloorApplied, false);
+    });
+
+    it('disqualifies from Elterngeld entirely when weekly working hours exceed 32h (§ 1 Abs. 1 Nr. 4 BEEG)', () => {
+      for (const hours of [33, 35, 38, 40, 45]) {
+        const benefit = computeElterngeldBenefits(toNetSalary(2603), toNetSalary(1800), hours);
+        assert.equal(benefit.elterngeldPlus, 0);
+        assert.equal(benefit.basiselterngeld, 0);
+        assert.equal(benefit.replacementRate, 0);
+        assert.ok(benefit.statutoryCitation.includes('Ausschluss'));
+      }
+    });
+
+    it('permits standard ElterngeldPlus when working between 0 and 32 hours per week (§ 1 Abs. 1 Nr. 4 BEEG)', () => {
+      for (const hours of [0, 10, 16, 20, 24, 30, 32]) {
+        const benefit = computeElterngeldBenefits(toNetSalary(2603), toNetSalary(1328), hours);
+        assert.equal(benefit.elterngeldPlus, 900);
+      }
+    });
+  });
+
+  describe('Statutory Working Hours Eligibility Helpers (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)', () => {
+    it('isElterngeldHoursEligible validates maximum 32 hours threshold', () => {
+      assert.equal(isElterngeldHoursEligible(0), true);
+      assert.equal(isElterngeldHoursEligible(20), true);
+      assert.equal(isElterngeldHoursEligible(24), true);
+      assert.equal(isElterngeldHoursEligible(32), true);
+      assert.equal(isElterngeldHoursEligible(33), false);
+      assert.equal(isElterngeldHoursEligible(40), false);
+    });
+
+    it('isPartnerschaftsbonusEligible enforces 24-32h simultaneous corridor (§ 4b BEEG)', () => {
+      assert.equal(isPartnerschaftsbonusEligible(24, 32), true);
+      assert.equal(isPartnerschaftsbonusEligible(28, 28), true);
+      assert.equal(isPartnerschaftsbonusEligible(32, 24), true);
+
+      // Outside corridor
+      assert.equal(isPartnerschaftsbonusEligible(20, 32), false); // Mother < 24h
+      assert.equal(isPartnerschaftsbonusEligible(35, 30), false); // Mother > 32h
+      assert.equal(isPartnerschaftsbonusEligible(28, 40), false); // Father > 32h
+      assert.equal(isPartnerschaftsbonusEligible(28, 20), false); // Father < 24h
+      assert.equal(isPartnerschaftsbonusEligible(0, 32), false);  // Mother 0h
     });
   });
 });

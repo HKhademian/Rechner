@@ -7,6 +7,7 @@ import {
   TargetPerson,
   toNetSalary,
   toEuroAmount,
+  toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
   toPregnancyId,
@@ -639,6 +640,118 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
       // Scenario C SHOULD have the event
       assert.ok(resC.months[19].specialEvents.some(e => e.eventId === 'FIN-SCENARIO-C-ONLY'));
+    });
+  });
+
+  describe('Statutory Working Hours & Benefit Qualification (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)', () => {
+    it('disqualifies mother from Elterngeld when part-time hours exceed 32h/week (0 € benefit paid)', () => {
+      const highHoursPregnancy: PregnancyAction = {
+        pregnancyId: toPregnancyId('PREG-HIGH-HOURS'),
+        childIndex: 1,
+        positiveTestCalendarMonth: toCalendarMonth(4),
+        positiveTestCalendarYear: 2026,
+        positiveTestSimulationMonth: toSimulationMonth(4),
+        calculatedDeliverySimulationMonth: toSimulationMonth(12),
+        motherPostBirthPartTimeHours: toWorkingHours(35), // > 32h/week -> Disqualified under § 1 BEEG
+        motherPostBirthPartTimeClass5Net: toNetSalary(1800),
+        motherPostBirthPartTimeClass3Net: toNetSalary(2400),
+        fatherPartnerMonthsCount: 4
+      };
+
+      const res = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies: [highHoursPregnancy],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents: []
+      });
+
+      // Months 14..25 are post-Mutterschutz leave months
+      for (let m = 14; m <= 25; m++) {
+        const month = res.months[m - 1];
+        // Zero Elterngeld for mother because hours > 32
+        assert.equal(month.wifeElterngeld as number, 0, `Month ${m} wifeElterngeld must be 0 for >32h`);
+        assert.ok(month.phaseLabel.includes('>32h: No EG'), `Phase label should indicate exclusion at month ${m}`);
+      }
+    });
+
+    it('denies Partnerschaftsbonus when mother works < 24h/week (outside 24-32h corridor § 4b BEEG)', () => {
+      const lowHoursPregnancy: PregnancyAction = {
+        pregnancyId: toPregnancyId('PREG-LOW-HOURS'),
+        childIndex: 1,
+        positiveTestCalendarMonth: toCalendarMonth(4),
+        positiveTestCalendarYear: 2026,
+        positiveTestSimulationMonth: toSimulationMonth(4),
+        calculatedDeliverySimulationMonth: toSimulationMonth(12),
+        motherPostBirthPartTimeHours: toWorkingHours(20), // 20h < 24h -> Qualifies for EG+, but NOT Partnerschaftsbonus
+        motherPostBirthPartTimeClass5Net: toNetSalary(1045),
+        motherPostBirthPartTimeClass3Net: toNetSalary(1405),
+        fatherPartnerMonthsCount: 4
+      };
+
+      const res = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies: [lowHoursPregnancy],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents: []
+      });
+
+      // Months 14..25: Standard EG+ is paid (€900)
+      for (let m = 14; m <= 25; m++) {
+        const month = res.months[m - 1];
+        assert.equal(month.wifeElterngeld as number, 900);
+      }
+
+      // Months 26..29: Partnerschaftsbonus window -> denied because 20h < 24h
+      for (let m = 26; m <= 29; m++) {
+        const month = res.months[m - 1];
+        assert.equal(month.isPartnerschaftsbonus, false);
+        assert.equal(month.wifeElterngeld as number, 0, `Month ${m} wifeElterngeld must be 0 for <24h during bonus window`);
+        assert.equal(month.husbandElterngeld as number, 0, `Month ${m} husbandElterngeld must be 0 for <24h during bonus window`);
+        assert.ok(month.phaseLabel.includes('<24h: No PB'));
+      }
+    });
+
+    it('grants full ElterngeldPlus AND Partnerschaftsbonus when working 24-32h/week', () => {
+      const optimalHoursPregnancy: PregnancyAction = {
+        pregnancyId: toPregnancyId('PREG-OPTIMAL-HOURS'),
+        childIndex: 1,
+        positiveTestCalendarMonth: toCalendarMonth(4),
+        positiveTestCalendarYear: 2026,
+        positiveTestSimulationMonth: toSimulationMonth(4),
+        calculatedDeliverySimulationMonth: toSimulationMonth(12),
+        motherPostBirthPartTimeHours: toWorkingHours(24), // 24h -> in corridor 24-32h
+        motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+        motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+        fatherPartnerMonthsCount: 4
+      };
+
+      const res = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies: [optimalHoursPregnancy],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents: []
+      });
+
+      // Months 14..25: Standard EG+ is paid (€900)
+      for (let m = 14; m <= 25; m++) {
+        const month = res.months[m - 1];
+        assert.equal(month.wifeElterngeld as number, 900);
+      }
+
+      // Months 26..29: Partnerschaftsbonus granted for both parents
+      for (let m = 26; m <= 29; m++) {
+        const month = res.months[m - 1];
+        assert.equal(month.isPartnerschaftsbonus, true);
+        assert.equal(month.wifeElterngeld as number, 900);
+        assert.equal(month.husbandElterngeld as number, 150);
+        assert.ok(month.phaseLabel.includes('Partnerschaftsbonus 1 (Both 24-32h)'));
+      }
     });
   });
 });

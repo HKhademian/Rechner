@@ -9,7 +9,7 @@ import {
   scrollToLegalRule,
   LegalRuleKey
 } from '#store/elterngeldStore';
-import type { TimelineMonth, SpecialEventItem } from '#engine/types';
+import { ActionType, ActionCategory, type TimelineMonth, type SpecialEventItem, type ActionRowItem } from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {

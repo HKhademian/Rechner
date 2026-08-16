@@ -11,6 +11,7 @@ import {
   FinancialEventCategory,
   toNetSalary,
   toEuroAmount,
+  toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
   toPregnancyId,
@@ -39,7 +40,7 @@ export const wifeClass5PartTimeNet = computed(() => {
   const ft = wifeClass5FullTimeNet.value;
   const initH = wifeInitialHours.value || 40;
   const pbH = wifePostBirthHours.value;
-  const ratio = Math.min(1, Math.max(0, pbH / initH));
+  const ratio = Math.max(0, pbH / initH);
   return Math.round(ft * ratio);
 });
 
@@ -47,7 +48,7 @@ export const wifeClass3PartTimeNet = computed(() => {
   const ft = wifeClass3FullTimeNet.value;
   const initH = wifeInitialHours.value || 40;
   const pbH = wifePostBirthHours.value;
-  const ratio = Math.min(1, Math.max(0, pbH / initH));
+  const ratio = Math.max(0, pbH / initH);
   return Math.round(ft * ratio);
 });
 
@@ -109,7 +110,7 @@ export function createDefaultPregnancies(): PregnancyAction[] {
       positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + prePregnancyPlanningMonths.value) / 12),
       positiveTestSimulationMonth: toSimulationMonth(prePregnancyPlanningMonths.value + 1),
       calculatedDeliverySimulationMonth: toSimulationMonth(b1),
-      motherPostBirthPartTimeHours: toEuroAmount(wifePostBirthHours.value) as unknown as import('#engine/types').WorkingHours,
+      motherPostBirthPartTimeHours: toWorkingHours(wifePostBirthHours.value),
       motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
       motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
       fatherPartnerMonthsCount: 4
@@ -121,7 +122,7 @@ export function createDefaultPregnancies(): PregnancyAction[] {
       positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
       positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
       calculatedDeliverySimulationMonth: toSimulationMonth(b2),
-      motherPostBirthPartTimeHours: toEuroAmount(wifePostBirthHours.value) as unknown as import('#engine/types').WorkingHours,
+      motherPostBirthPartTimeHours: toWorkingHours(wifePostBirthHours.value),
       motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
       motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
       fatherPartnerMonthsCount: 4
@@ -345,13 +346,13 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: toNetSalary(husbandClass3Net.value),
     husbandInitialClass5Net: toNetSalary(husbandClass5Net.value),
-    husbandWeeklyHours: toEuroAmount(husbandHours.value) as unknown as import('#engine/types').WorkingHours,
+    husbandWeeklyHours: toWorkingHours(husbandHours.value),
     wifeInitialTaxClass: TaxClass.V,
     wifeInitialFullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),
     wifeInitialClass3FullTimeNet: toNetSalary(wifeClass3FullTimeNet.value),
     wifeInitialPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
     wifeInitialPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
-    wifeWeeklyHours: toEuroAmount(wifeInitialHours.value) as unknown as import('#engine/types').WorkingHours,
+    wifeWeeklyHours: toWorkingHours(wifeInitialHours.value),
     existingChildrenCount: 0,
     kindergeldPerChild: toEuroAmount(kindergeldPerChild.value),
     enable13thSalary: enable13thSalary.value,
@@ -362,7 +363,7 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
 
   const dynamicPregnancies = customPregnancies.value.map(p => ({
     ...p,
-    motherPostBirthPartTimeHours: toEuroAmount(wifePostBirthHours.value) as unknown as import('#engine/types').WorkingHours,
+    motherPostBirthPartTimeHours: toWorkingHours(wifePostBirthHours.value),
     motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
     motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value)
   }));

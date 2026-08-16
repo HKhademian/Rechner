@@ -49,12 +49,45 @@ export interface ElterngeldEntitlement {
   readonly statutoryCitation: string;
 }
 
+/**
+ * Evaluates Statutory Elterngeld / ElterngeldPlus Hours Eligibility (§ 1 Abs. 1 Nr. 4 BEEG)
+ * Weekly working hours during parental allowance may not exceed 32 hours per week.
+ */
+export function isElterngeldHoursEligible(weeklyHours: number): boolean {
+  return weeklyHours >= 0 && weeklyHours <= 32;
+}
+
+/**
+ * Evaluates Statutory Partnerschaftsbonus Eligibility (§ 4b BEEG)
+ * Both parents must simultaneously work between 24 and 32 hours per week.
+ */
+export function isPartnerschaftsbonusEligible(motherHours: number, fatherHours: number): boolean {
+  return motherHours >= 24 && motherHours <= 32 && fatherHours >= 24 && fatherHours <= 32;
+}
+
 export function computeElterngeldBenefits(
   preBirthNet: NetSalary,
-  partTimeNetDuringLeave: NetSalary = (0 as unknown as NetSalary)
+  partTimeNetDuringLeave: NetSalary = (0 as unknown as NetSalary),
+  weeklyHours?: number
 ): ElterngeldEntitlement {
   const pre = preBirthNet as number;
   const pt = partTimeNetDuringLeave as number;
+
+  // Statutory Exclusion (§ 1 Abs. 1 Nr. 4 BEEG):
+  // Working more than 32 hours/week disqualifies from parental allowance entirely.
+  if (weeklyHours !== undefined && weeklyHours > 32) {
+    return {
+      preBirthNet,
+      partTimeNet: partTimeNetDuringLeave,
+      netIncomeLoss: toEuroAmount(0),
+      replacementRate: 0,
+      basiselterngeld: toEuroAmount(0),
+      elterngeldPlus: toEuroAmount(0),
+      isMaxCapped: false,
+      isMinFloorApplied: false,
+      statutoryCitation: 'BEEG § 1 Abs. 1 Nr. 4 (Ausschluss bei Erwerbstätigkeit > 32 Wochenstunden)'
+    };
+  }
 
   const loss = Math.max(0, pre - pt);
   const rate = computeStatutoryReplacementRate(preBirthNet);

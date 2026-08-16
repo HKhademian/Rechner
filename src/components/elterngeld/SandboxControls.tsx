@@ -591,8 +591,25 @@ export default function SandboxControls(): JSX.Element {
                   onInput={(e) => { wifePostBirthHours.value = Number((e.target as HTMLInputElement).value); }}
                 />
 
-                {/* Statutory Partnership Bonus Corridor (§ 4b BEEG) Indicator */}
-                {wifePostBirthHours.value >= 24 && wifePostBirthHours.value <= 32 ? (
+                {/* Statutory Elterngeld & Partnership Bonus (§ 1 & § 4b BEEG) Indicators */}
+                {wifePostBirthHours.value > 32 ? (
+                  <div
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      fontSize: '0.66rem',
+                      color: '#fecdd3',
+                      background: '#881337',
+                      padding: '4px 6px',
+                      borderRadius: '4px',
+                      marginTop: '4px',
+                      fontWeight: 600,
+                      border: '1px solid #be123c'
+                    }}
+                  >
+                    ⚠️ Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours &gt; 32h / week disqualify from all Elterngeld (0 € benefit paid).
+                  </div>
+                ) : wifePostBirthHours.value >= 24 && wifePostBirthHours.value <= 32 ? (
                   <button
                     type="button"
                     onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
@@ -611,7 +628,7 @@ export default function SandboxControls(): JSX.Element {
                     }}
                     title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
                   >
-                    ✓ Partnerschaftsbonus (§ 4b BEEG ↗) corridor (24–32h / week)
+                    ✓ ElterngeldPlus &amp; Partnerschaftsbonus (§ 4b BEEG ↗) corridor (24–32h / week)
                   </button>
                 ) : wifePostBirthHours.value === 0 ? (
                   <div style={{
@@ -642,7 +659,7 @@ export default function SandboxControls(): JSX.Element {
                     }}
                     title="Click to view § 4b BEEG corridor requirements"
                   >
-                    ℹ Outside Partnerschaftsbonus corridor (must be 24–32h for +4 bonus months ↗)
+                    ℹ Eligible for ElterngeldPlus (≤ 32h), but outside Partnerschaftsbonus corridor (must be 24–32h for +4 bonus months ↗)
                   </button>
                 )}
 
