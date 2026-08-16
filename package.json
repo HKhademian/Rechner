@@ -17,6 +17,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "sim": "node src/cli/runner.ts",
     "test": "node --test 'test/**/*.test.ts'"
   },
   "dependencies": {
