@@ -319,11 +319,21 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     // Print Action Milestone Rows immediately BEFORE Month m
     if (m.startingActions && m.startingActions.length > 0) {
       m.startingActions.forEach((act) => {
-        const actTitle = `⚡ ${act.title}`;
+        const isDelivery = act.type === 'CHILD_DELIVERY';
+        const isPregnancy = act.type === 'PREGNANCY_POSITIVE';
+        const isTaxRevert = act.type === 'TAX_CLASS_SWITCH_REVERT';
+        const isTaxSwitch = act.category === 'TAX_SWITCH';
+        const isRaise = act.category === 'SALARY_RAISE';
+
+        const color = isDelivery ? CYAN : isPregnancy ? MAGENTA : isTaxRevert ? BLUE : isTaxSwitch ? BLUE : YELLOW;
+        const tag = isDelivery ? '[Birth]' : isPregnancy ? '[Preg]' : isTaxRevert ? '[Revert]' : isTaxSwitch ? '[Swap]' : '[Raise]';
+        const cleanTitle = act.title.replace(/^ACTION:\s*/, '');
+        const actTitle = `↳ ${cleanTitle}`;
+
         const actRow = [
-          `M${String(m.month).padEnd(2)} [Act]`,
+          `M${String(m.month).padEnd(2)} ${tag}`,
           m.calendarLabel.padEnd(8),
-          `${MAGENTA}${actTitle.slice(0, 30)}${RESET}`.padEnd(30 + MAGENTA.length + RESET.length),
+          `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(30 + color.length + RESET.length),
           (act.taxClassLabel || '—').slice(0, 11).padEnd(11),
           '—'.padStart(11),
           '—'.padStart(9),

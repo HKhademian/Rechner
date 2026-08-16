@@ -536,58 +536,98 @@ export default function TimelineTable(): JSX.Element {
               const hasEvents = isSpecialRowsActive && m.specialEvents && m.specialEvents.length > 0;
 
               return [
-                /* 1. Action Event Rows (Pre-Month Life & Decision Events) */
-                m.startingActions && m.startingActions.map((act) => (
-                  <tr
-                    key={`action-${act.actionId}-m${m.month}`}
-                    style={{
-                      background: 'rgba(59, 7, 100, 0.40)',
-                      borderBottom: '1px solid #7e22ce',
-                      borderTop: '1px solid #7e22ce'
-                    }}
-                  >
-                    <td style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: '#c084fc', fontFamily: 'monospace' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span>M{m.month}</span>
-                        <span style={{ fontSize: '0.65rem', color: '#f3e8ff', background: '#581c87', padding: '1px 5px', borderRadius: '3px', fontWeight: 800 }}>
-                          ACTION
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.66rem', color: '#c084fc' }}>
-                        {m.calendarLabel}
-                      </div>
-                    </td>
-                    <td style={{ padding: '6px 12px', textAlign: 'left' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        background: '#581c87',
-                        color: '#f3e8ff',
-                        border: '1px solid #9333ea'
-                      }}>
-                        ⚡ {act.title}
-                      </span>
-                      <div style={{ fontSize: '0.68rem', color: '#e2e8f0', marginTop: '2px' }}>
-                        {act.description}
-                      </div>
-                    </td>
-                    <td style={{ padding: '6px 12px', textAlign: 'left', color: '#c084fc', fontWeight: 600 }}>
-                      {act.taxClassLabel || '—'}
-                    </td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                    <td style={{ padding: '6px 12px', color: '#64748b', fontSize: '0.72rem' }}>—</td>
-                  </tr>
-                )),
+                /* 1. Action Event Rows (Pre-Month Life & Decision Events: Pregnancy, Delivery, Tax Switch, Salary Raise) */
+                m.startingActions && m.startingActions.map((act: ActionRowItem) => {
+                  const isDelivery = act.type === ActionType.ChildDelivery;
+                  const isPregnancy = act.type === ActionType.PregnancyPositive;
+                  const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
+                  const isRaise = act.category === ActionCategory.SalaryRaise;
+
+                  const badgeBg = isDelivery
+                    ? '#0284c7'
+                    : isPregnancy
+                    ? '#be185d'
+                    : isTaxSwitch
+                    ? '#4f46e5'
+                    : '#b45309';
+
+                  const badgeLabel = isDelivery
+                    ? '🍼 BIRTH & DELIVERY'
+                    : isPregnancy
+                    ? '👶 PREGNANCY POSITIVE'
+                    : isTaxSwitch
+                    ? (act.type === ActionType.TaxClassSwitchRevert ? '🔄 TAX REVERSION' : '⚖️ TAX CLASS SWITCH')
+                    : '💼 SALARY RAISE';
+
+                  const rowBg = isDelivery
+                    ? 'rgba(2, 132, 199, 0.12)'
+                    : isPregnancy
+                    ? 'rgba(190, 24, 93, 0.12)'
+                    : isTaxSwitch
+                    ? 'rgba(79, 70, 229, 0.12)'
+                    : 'rgba(180, 83, 9, 0.12)';
+
+                  const titleColor = isDelivery
+                    ? '#bae6fd'
+                    : isPregnancy
+                    ? '#fbcfe8'
+                    : isTaxSwitch
+                    ? '#c7d2fe'
+                    : '#fde68a';
+
+                  const cleanTitle = act.title.replace(/^ACTION:\s*/, '');
+
+                  return (
+                    <tr
+                      key={`action-${act.actionId}-m${m.month}`}
+                      style={{
+                        background: rowBg,
+                        borderBottom: '1px dashed #475569',
+                        transition: 'background 0.15s ease'
+                      }}
+                      onMouseEnter={() => { hoveredMonth.value = m.month; }}
+                      onMouseLeave={() => { hoveredMonth.value = null; }}
+                    >
+                      <td style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: titleColor, fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                        <div>↳ M{m.month} Event</div>
+                        <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({m.calendarLabel})</div>
+                      </td>
+                      <td style={{ padding: '6px 12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '1px 6px',
+                            borderRadius: '3px',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            background: badgeBg,
+                            color: '#ffffff'
+                          }}>
+                            {badgeLabel}
+                          </span>
+                          <span style={{ fontWeight: 700, color: titleColor, fontSize: '0.75rem' }}>
+                            {cleanTitle}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#cbd5e1', marginTop: '2px' }}>
+                          {act.description}
+                        </div>
+                      </td>
+                      <td style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem' }}>
+                        {act.taxClassLabel || '—'}
+                      </td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#64748b', fontSize: '0.72rem' }}>—</td>
+                    </tr>
+                  );
+                }),
 
                 /* 2. Special Fiscal Event Rows (Pre-Month Bonuses, Tax Returns, and One-Off Costs/Income) */
                 hasEvents && m.specialEvents.map((ev: SpecialEventItem, evIdx: number) => {
