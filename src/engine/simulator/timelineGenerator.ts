@@ -4,9 +4,12 @@ import {
   type CalendarMonth,
   type NetSalary,
   type EuroAmount,
+  type EventId,
   ScenarioId,
   TransactionType,
   TransactionDirection,
+  SpecialEventType,
+  SpecialEventCategory,
   type SimulationResult,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -15,7 +18,9 @@ import {
   toCalendarYear,
   toCalendarMonth,
   toEuroAmount,
-  toNetSalary
+  toNetSalary,
+  toEventId,
+  toStatutoryCitation
 } from '../types.ts';
 import { createTransaction } from '../ledger/transaction.ts';
 import { buildMonthlyLedgerEntry } from '../ledger/ledger.ts';
@@ -599,13 +604,13 @@ export function generateTimelineSimulation(
     const specialEvents: SpecialEventItem[] = [];
     if ((bonus40Amount as number) > 0) {
       specialEvents.push({
-        id: `bonus40-m${m}`,
+        eventId: toEventId(`EVENT-M${m}-BONUS40`),
         month: rm.month,
         year,
-        type: 'bonus_40',
+        type: SpecialEventType.Bonus40,
         title: '13th Month Salary: 40% Vacation Bonus (*Urlaubsgeld*)',
-        category: '13th Salary (*13. Monatsgehalt*)',
-        statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
+        category: SpecialEventCategory.ThirteenthSalary,
+        statutory: toStatutoryCitation('§ 9a / § 19 EStG (BEEG § 2c exempt)'),
         taxClassLabel: rm.taxClassLabel,
         amount: bonus40Amount,
         description: '40% mid-year bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
@@ -614,13 +619,13 @@ export function generateTimelineSimulation(
 
     if ((bonus60Amount as number) > 0) {
       specialEvents.push({
-        id: `bonus60-m${m}`,
+        eventId: toEventId(`EVENT-M${m}-BONUS60`),
         month: rm.month,
         year,
-        type: 'bonus_60',
+        type: SpecialEventType.Bonus60,
         title: '13th Month Salary: 60% Christmas Bonus (*Weihnachtsgeld*)',
-        category: '13th Salary (*13. Monatsgehalt*)',
-        statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
+        category: SpecialEventCategory.ThirteenthSalary,
+        statutory: toStatutoryCitation('§ 9a / § 19 EStG (BEEG § 2c exempt)'),
         taxClassLabel: rm.taxClassLabel,
         amount: bonus60Amount,
         description: '60% year-end special payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
@@ -630,13 +635,13 @@ export function generateTimelineSimulation(
     if ((taxRefund as number) > 0) {
       const isDeficitRefund = (taxRefund as number) > 850;
       specialEvents.push({
-        id: `tax-return-m${m}`,
+        eventId: toEventId(`EVENT-M${m}-TAX-REFUND`),
         month: rm.month,
         year,
-        type: 'tax_return',
+        type: SpecialEventType.TaxReturn,
         title: `Annual Tax Assessment Refund (Year ${Math.max(1, (year as number) - 1)} Return)`,
-        category: 'Tax Office (*Finanzamt*)',
-        statutory: '§ 26b EStG (*Ehegatten-Splitting*)',
+        category: SpecialEventCategory.TaxOffice,
+        statutory: toStatutoryCitation('§ 26b EStG (*Ehegatten-Splitting*)'),
         taxClassLabel: 'Joint Assessment (*Splitting*)',
         amount: taxRefund,
         description: isDeficitRefund

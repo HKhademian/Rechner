@@ -11,12 +11,15 @@ import {
   toNetSalary,
   toStatutoryCitation,
   toTransactionId,
+  toEventId,
   toTaxClass,
   toScenarioId,
   TaxClass,
   ScenarioId,
   TransactionType,
-  TransactionDirection
+  TransactionDirection,
+  SpecialEventType,
+  SpecialEventCategory
 } from '../../src/engine/types.ts';
 
 describe('Strongly-Typed Domain Types & Constructors', () => {
@@ -111,7 +114,7 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     });
   });
 
-  describe('toStatutoryCitation and toTransactionId', () => {
+  describe('toStatutoryCitation, toTransactionId, and toEventId', () => {
     it('brands valid statutory citation strings', () => {
       const citations = [
         'EStG § 32a',
@@ -128,13 +131,19 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       }
     });
 
+    it('brands valid event IDs', () => {
+      const eid = toEventId('EVENT-M5-BONUS40');
+      assert.equal(eid, 'EVENT-M5-BONUS40');
+    });
+
     it('rejects empty or non-string citations and IDs', () => {
       assert.throws(() => toStatutoryCitation(''), TypeError);
       assert.throws(() => toTransactionId(''), TypeError);
+      assert.throws(() => toEventId(''), TypeError);
     });
   });
 
-  describe('Const Enums and Guards (TaxClass, ScenarioId, TransactionType, TransactionDirection)', () => {
+  describe('Const Enums and Guards (TaxClass, ScenarioId, TransactionType, TransactionDirection, SpecialEventType, SpecialEventCategory)', () => {
     it('TaxClass contains all statutory tax classes I through VI', () => {
       assert.equal(TaxClass.I, 'I');
       assert.equal(TaxClass.II, 'II');
@@ -181,6 +190,15 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     it('TransactionDirection const enum provides Inflow and Outflow directions', () => {
       assert.equal(TransactionDirection.Inflow, 'INFLOW');
       assert.equal(TransactionDirection.Outflow, 'OUTFLOW');
+    });
+
+    it('SpecialEventType and SpecialEventCategory provide strict event metadata keys', () => {
+      assert.equal(SpecialEventType.Bonus40, 'bonus_40');
+      assert.equal(SpecialEventType.Bonus60, 'bonus_60');
+      assert.equal(SpecialEventType.TaxReturn, 'tax_return');
+
+      assert.equal(SpecialEventCategory.ThirteenthSalary, '13th Salary (*13. Monatsgehalt*)');
+      assert.equal(SpecialEventCategory.TaxOffice, 'Tax Office (*Finanzamt*)');
     });
   });
 });

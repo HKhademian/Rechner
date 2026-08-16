@@ -36,6 +36,21 @@ export type ScenarioId = (typeof ScenarioId)[keyof typeof ScenarioId];
 
 export type StatutoryCitation = Brand<string, 'StatutoryCitation'>;
 export type TransactionId = Brand<string, 'TransactionId'>;
+export type EventId = Brand<string, 'EventId'>;
+
+// Special Life & Accounting Event Enums (Strict Const Enums)
+export const SpecialEventType = {
+  Bonus40: 'bonus_40',
+  Bonus60: 'bonus_60',
+  TaxReturn: 'tax_return'
+} as const;
+export type SpecialEventType = (typeof SpecialEventType)[keyof typeof SpecialEventType];
+
+export const SpecialEventCategory = {
+  ThirteenthSalary: '13th Salary (*13. Monatsgehalt*)',
+  TaxOffice: 'Tax Office (*Finanzamt*)'
+} as const;
+export type SpecialEventCategory = (typeof SpecialEventCategory)[keyof typeof SpecialEventCategory];
 
 // Accounting Transaction Enums (Strict Const Enums)
 export const TransactionType = {
@@ -128,6 +143,13 @@ export function toTransactionId(val: string): TransactionId {
   return val as TransactionId;
 }
 
+export function toEventId(val: string): EventId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid EventId: ${val}. Must be non-empty string.`);
+  }
+  return val as EventId;
+}
+
 export function toTaxClass(val: string): TaxClass {
   const values = Object.values(TaxClass) as string[];
   if (!values.includes(val)) {
@@ -164,13 +186,13 @@ export interface AccountingTransaction {
  * Special Event Item Representation (Table sub-row & visual marker)
  */
 export interface SpecialEventItem {
-  readonly id: string;
+  readonly eventId: EventId;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
-  readonly type: string;
+  readonly type: SpecialEventType;
   readonly title: string;
-  readonly category: string;
-  readonly statutory: string;
+  readonly category: SpecialEventCategory;
+  readonly statutory: StatutoryCitation;
   readonly taxClassLabel: string;
   readonly amount: EuroAmount;
   readonly description: string;

@@ -375,7 +375,7 @@ export default function TimelineTable() {
                 /* 2. Special Event Rows (13th Month Salary Chunks & Annual Tax Returns) */
                 hasEvents && m.specialEvents.map((ev) => (
                   <tr
-                    key={ev.id}
+                    key={ev.eventId || ev.id}
                     style={{
                       borderBottom: '1px solid #334155',
                       background: ev.type.startsWith('bonus')
