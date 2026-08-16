@@ -81,7 +81,7 @@ The simulator ingests state in 4 modular batches:
 3. **Batch 2 (Tax Class Switches)**: Start month, target classes (V/III), statutory rationale (§ 2b BEEG), revert month.
 4. **Batch 3 (Salary Raises)**: Effective month, percentage increase, target person (`Both`, `Husband`, `Wife`), reason.
 
-### D. Action Milestone Rows Placement
-- Non-financial life and tax actions carry zero monetary values and render dashes (`—`).
-- Every action taking effect at simulation month $M$ must be placed as a milestone row **immediately before** month $M$'s monthly cash flow row: `M(M-1) -> M(M) [Action Row] -> M(M) [Cash Flow Row]`.
+### D. Event Rows Placement & Presentation
+- **All Events Placed Pre-Month**: All events occurring in a month (both User Action Events and Fiscal Special Events like 13th salary bonuses and annual tax return refunds) must be rendered as dedicated rows **immediately before** the base monthly cash flow row: `M(M-1) -> M(M) [Action Event Rows] -> M(M) [Fiscal Event Rows] -> M(M) [Base Monthly Row]`.
+- **Zero / Dash Non-Event Values**: Non-applicable financial columns must display dashes (`—`). Only the event's special columns carry values (if applicable).
 

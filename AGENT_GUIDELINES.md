@@ -24,10 +24,10 @@ You must commit each feature, each step, and each group of logical changes separ
 
 ---
 
-## 3. Action Milestone Rows & Non-Financial Presentation ([`13_action_milestone_rows_placement.md`](file:///Users/ho/Projects/calculator/.agents/rules/13_action_milestone_rows_placement.md))
+## 3. Event Rows Placement & Presentation ([`13_action_milestone_rows_placement.md`](file:///Users/ho/Projects/calculator/.agents/rules/13_action_milestone_rows_placement.md))
 
-- Life and tax actions (Pregnancies, Swaps, Reversions, Raises) carry no monetary value in financial columns; display dashes (`—`).
-- Every action taking effect at simulation month $M$ must be rendered as a dedicated milestone row placed **immediately before** month $M$'s monthly cash flow row (`M(M-1) -> M(M) [Action Row] -> M(M) [Monthly Row]`).
+- **All Events Placed Pre-Month**: All events occurring in a month (both User Action Events and Fiscal Special Events like 13th salary bonuses and tax return refunds) must have their separate row placed **immediately before** the actual monthly cash flow row (`M(M-1) -> M(M) [Action Events] -> M(M) [Fiscal Events] -> M(M) [Base Monthly Row]`).
+- **Zero / Dash Non-Event Values**: No other regular values are required for event rows. All non-applicable regular financial columns must show dashes (`—`). Only the event's special columns carry values (if applicable).
 
 ---
 
