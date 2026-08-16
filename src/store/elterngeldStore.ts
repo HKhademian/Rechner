@@ -26,12 +26,26 @@ export const husbandClass3Net = signal(2895);
 export const husbandClass5Net = signal(2191);
 export const husbandHours = signal(32);
 
-export const wifeClass5FullTimeNet = signal(1975);
-export const wifeClass3FullTimeNet = signal(2603);
-export const wifeClass5PartTimeNet = signal(1328);
-export const wifeClass3PartTimeNet = signal(1648);
 export const wifeInitialHours = signal(40);
 export const wifePostBirthHours = signal(24);
+export const wifeClass5FullTimeNet = signal(1975);
+export const wifeClass3FullTimeNet = signal(2603);
+
+export const wifeClass5PartTimeNet = computed(() => {
+  const ft = wifeClass5FullTimeNet.value;
+  const initH = wifeInitialHours.value || 40;
+  const pbH = wifePostBirthHours.value;
+  const ratio = Math.min(1, Math.max(0, pbH / initH));
+  return Math.round(ft * ratio);
+});
+
+export const wifeClass3PartTimeNet = computed(() => {
+  const ft = wifeClass3FullTimeNet.value;
+  const initH = wifeInitialHours.value || 40;
+  const pbH = wifePostBirthHours.value;
+  const ratio = Math.min(1, Math.max(0, pbH / initH));
+  return Math.round(ft * ratio);
+});
 
 export const kindergeldPerChild = signal(259);
 
@@ -229,8 +243,6 @@ export function resetToDefaults() {
 
   wifeClass5FullTimeNet.value = 1975;
   wifeClass3FullTimeNet.value = 2603;
-  wifeClass5PartTimeNet.value = 1328;
-  wifeClass3PartTimeNet.value = 1648;
   wifeInitialHours.value = 40;
   wifePostBirthHours.value = 24;
 
@@ -288,10 +300,17 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     taxReturnMonth: toCalendarMonth(taxReturnMonth.value)
   };
 
+  const dynamicPregnancies = customPregnancies.value.map(p => ({
+    ...p,
+    motherPostBirthPartTimeHours: toEuroAmount(wifePostBirthHours.value) as unknown as import('#engine/types').WorkingHours,
+    motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
+    motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value)
+  }));
+
   return runScenarioBatches({
     scenarioKey,
     preexisting,
-    pregnancies: customPregnancies.value,
+    pregnancies: dynamicPregnancies,
     taxClassSwitches: customTaxClassSwitches.value,
     salaryRaises: customSalaryRaises.value
   });
