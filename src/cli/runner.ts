@@ -11,10 +11,14 @@ import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simula
 import {
   TaxClass,
   ScenarioId,
+  TargetPerson,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -183,7 +187,7 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
   // Batch 1: Pregnancy Actions
   const pregnancies: PregnancyAction[] = [
     {
-      pregnancyId: 'PREG-CHILD-1',
+      pregnancyId: toPregnancyId('PREG-CHILD-1'),
       childIndex: 1,
       positiveTestCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + opts.pregStartSimMonth - 1) % 12) + 1),
       positiveTestCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + opts.pregStartSimMonth - 1) / 12),
@@ -195,7 +199,7 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
       fatherPartnerMonthsCount: 4
     },
     {
-      pregnancyId: 'PREG-CHILD-2',
+      pregnancyId: toPregnancyId('PREG-CHILD-2'),
       childIndex: 2,
       positiveTestCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + (b2 - 9)) % 12) + 1),
       positiveTestCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + (b2 - 9)) / 12),
@@ -216,7 +220,7 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
 
   const taxClassSwitches: TaxClassSwitchAction[] = [
     {
-      switchId: 'SWAP-CHILD-1',
+      switchId: toSwitchId('SWAP-CHILD-1'),
       effectiveSimulationMonth: toSimulationMonth(swap1Start),
       effectiveCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + swap1Start - 1) % 12) + 1),
       effectiveCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + swap1Start - 1) / 12),
@@ -226,7 +230,7 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
       revertSimulationMonth: toSimulationMonth(b1)
     },
     {
-      switchId: 'SWAP-CHILD-2',
+      switchId: toSwitchId('SWAP-CHILD-2'),
       effectiveSimulationMonth: toSimulationMonth(swap2Start),
       effectiveCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + swap2Start - 1) % 12) + 1),
       effectiveCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + swap2Start - 1) / 12),
@@ -245,11 +249,11 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
       const raiseMonth = (y - 1) * 12 + 1;
       if (raiseMonth <= opts.duration) {
         salaryRaises.push({
-          raiseId: `RAISE-Y${y}`,
+          raiseId: toRaiseId(`RAISE-Y${y}`),
           effectiveSimulationMonth: toSimulationMonth(raiseMonth),
           effectiveCalendarMonth: toCalendarMonth(opts.startMonth),
           effectiveCalendarYear: opts.startYear + y - 1,
-          targetPerson: 'both',
+          targetPerson: TargetPerson.Both,
           percentageIncrease: opts.annualRaise,
           reason: `Year ${y} Tariff Adjustment (+${(opts.annualRaise * 100).toFixed(1)}%)`
         });

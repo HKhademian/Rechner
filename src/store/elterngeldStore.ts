@@ -3,10 +3,17 @@ import {
   type ScenarioId as ScenarioIdType,
   ScenarioId,
   TaxClass,
+  TargetPerson,
+  type PregnancyId,
+  type SwitchId,
+  type RaiseId,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -78,7 +85,7 @@ export function createDefaultPregnancies(): PregnancyAction[] {
 
   return [
     {
-      pregnancyId: 'PREG-CHILD-1',
+      pregnancyId: toPregnancyId('PREG-CHILD-1'),
       childIndex: 1,
       positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + prePregnancyPlanningMonths.value) % 12) + 1),
       positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + prePregnancyPlanningMonths.value) / 12),
@@ -90,7 +97,7 @@ export function createDefaultPregnancies(): PregnancyAction[] {
       fatherPartnerMonthsCount: 4
     },
     {
-      pregnancyId: 'PREG-CHILD-2',
+      pregnancyId: toPregnancyId('PREG-CHILD-2'),
       childIndex: 2,
       positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + (b2 - 9)) % 12) + 1),
       positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
@@ -119,7 +126,7 @@ export function createDefaultTaxClassSwitches(): TaxClassSwitchAction[] {
 
   return [
     {
-      switchId: 'SWAP-CHILD-1',
+      switchId: toSwitchId('SWAP-CHILD-1'),
       effectiveSimulationMonth: toSimulationMonth(swap1Start),
       effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap1Start - 1) % 12) + 1),
       effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
@@ -129,7 +136,7 @@ export function createDefaultTaxClassSwitches(): TaxClassSwitchAction[] {
       revertSimulationMonth: toSimulationMonth(b1)
     },
     {
-      switchId: 'SWAP-CHILD-2',
+      switchId: toSwitchId('SWAP-CHILD-2'),
       effectiveSimulationMonth: toSimulationMonth(swap2Start),
       effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap2Start - 1) % 12) + 1),
       effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),
@@ -151,11 +158,11 @@ export function createDefaultSalaryRaises(): SalaryRaiseAction[] {
       const raiseSimMonth = (yr - 1) * 12 + 1;
       if (raiseSimMonth <= duration) {
         salaryRaises.push({
-          raiseId: `RAISE-Y${yr}`,
+          raiseId: toRaiseId(`RAISE-Y${yr}`),
           effectiveSimulationMonth: toSimulationMonth(raiseSimMonth),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: startYear + (yr - 1),
-          targetPerson: 'both',
+          targetPerson: TargetPerson.Both,
           percentageIncrease: rate,
           reason: `Annual Tariff / Merit Increase (+${annualSalaryRaisePercent.value}%)`
         });
@@ -175,13 +182,13 @@ export function addPregnancyAction(action: PregnancyAction) {
   customPregnancies.value = [...customPregnancies.value, action];
 }
 
-export function updatePregnancyAction(pregnancyId: string, updates: Partial<PregnancyAction>) {
+export function updatePregnancyAction(pregnancyId: PregnancyId | string, updates: Partial<PregnancyAction>) {
   customPregnancies.value = customPregnancies.value.map(p =>
     p.pregnancyId === pregnancyId ? { ...p, ...updates } : p
   );
 }
 
-export function removePregnancyAction(pregnancyId: string) {
+export function removePregnancyAction(pregnancyId: PregnancyId | string) {
   customPregnancies.value = customPregnancies.value.filter(p => p.pregnancyId !== pregnancyId);
 }
 
@@ -190,13 +197,13 @@ export function addTaxClassSwitchAction(action: TaxClassSwitchAction) {
   customTaxClassSwitches.value = [...customTaxClassSwitches.value, action];
 }
 
-export function updateTaxClassSwitchAction(switchId: string, updates: Partial<TaxClassSwitchAction>) {
+export function updateTaxClassSwitchAction(switchId: SwitchId | string, updates: Partial<TaxClassSwitchAction>) {
   customTaxClassSwitches.value = customTaxClassSwitches.value.map(s =>
     s.switchId === switchId ? { ...s, ...updates } : s
   );
 }
 
-export function removeTaxClassSwitchAction(switchId: string) {
+export function removeTaxClassSwitchAction(switchId: SwitchId | string) {
   customTaxClassSwitches.value = customTaxClassSwitches.value.filter(s => s.switchId !== switchId);
 }
 
@@ -205,13 +212,13 @@ export function addSalaryRaiseAction(action: SalaryRaiseAction) {
   customSalaryRaises.value = [...customSalaryRaises.value, action];
 }
 
-export function updateSalaryRaiseAction(raiseId: string, updates: Partial<SalaryRaiseAction>) {
+export function updateSalaryRaiseAction(raiseId: RaiseId | string, updates: Partial<SalaryRaiseAction>) {
   customSalaryRaises.value = customSalaryRaises.value.map(r =>
     r.raiseId === raiseId ? { ...r, ...updates } : r
   );
 }
 
-export function removeSalaryRaiseAction(raiseId: string) {
+export function removeSalaryRaiseAction(raiseId: RaiseId | string) {
   customSalaryRaises.value = customSalaryRaises.value.filter(r => r.raiseId !== raiseId);
 }
 

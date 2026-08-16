@@ -37,6 +37,34 @@ export type ScenarioId = (typeof ScenarioId)[keyof typeof ScenarioId];
 export type StatutoryCitation = Brand<string, 'StatutoryCitation'>;
 export type TransactionId = Brand<string, 'TransactionId'>;
 export type EventId = Brand<string, 'EventId'>;
+export type ActionId = Brand<string, 'ActionId'>;
+export type PregnancyId = Brand<string, 'PregnancyId'>;
+export type SwitchId = Brand<string, 'SwitchId'>;
+export type RaiseId = Brand<string, 'RaiseId'>;
+
+// Discrete Batch Action Enums (Strict Const Enums)
+export const ActionCategory = {
+  Pregnancy: 'PREGNANCY',
+  TaxSwitch: 'TAX_SWITCH',
+  SalaryRaise: 'SALARY_RAISE'
+} as const;
+export type ActionCategory = (typeof ActionCategory)[keyof typeof ActionCategory];
+
+export const ActionType = {
+  PregnancyPositive: 'PREGNANCY_POSITIVE',
+  ChildDelivery: 'CHILD_DELIVERY',
+  TaxClassSwitchEffective: 'TAX_CLASS_SWITCH_EFFECTIVE',
+  TaxClassSwitchRevert: 'TAX_CLASS_SWITCH_REVERT',
+  SalaryRaiseEffective: 'SALARY_RAISE_EFFECTIVE'
+} as const;
+export type ActionType = (typeof ActionType)[keyof typeof ActionType];
+
+export const TargetPerson = {
+  Both: 'BOTH',
+  Husband: 'HUSBAND',
+  Wife: 'WIFE'
+} as const;
+export type TargetPerson = (typeof TargetPerson)[keyof typeof TargetPerson];
 
 // Special Life & Accounting Event Enums (Strict Const Enums)
 export const SpecialEventType = {
@@ -150,6 +178,58 @@ export function toEventId(val: string): EventId {
   return val as EventId;
 }
 
+export function toActionId(val: string): ActionId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid ActionId: ${val}. Must be non-empty string.`);
+  }
+  return val as ActionId;
+}
+
+export function toPregnancyId(val: string): PregnancyId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid PregnancyId: ${val}. Must be non-empty string.`);
+  }
+  return val as PregnancyId;
+}
+
+export function toSwitchId(val: string): SwitchId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid SwitchId: ${val}. Must be non-empty string.`);
+  }
+  return val as SwitchId;
+}
+
+export function toRaiseId(val: string): RaiseId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid RaiseId: ${val}. Must be non-empty string.`);
+  }
+  return val as RaiseId;
+}
+
+export function toActionCategory(val: string): ActionCategory {
+  const values = Object.values(ActionCategory) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ActionCategory: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ActionCategory;
+}
+
+export function toActionType(val: string): ActionType {
+  const values = Object.values(ActionType) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ActionType: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ActionType;
+}
+
+export function toTargetPerson(val: string): TargetPerson {
+  const values = Object.values(TargetPerson) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid TargetPerson: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as TargetPerson;
+}
+
 export function toTaxClass(val: string): TaxClass {
   const values = Object.values(TaxClass) as string[];
   if (!values.includes(val)) {
@@ -206,13 +286,14 @@ export interface SpecialEventItem {
  * Action Milestone Item (Non-value structural event row placed before the triggering month)
  */
 export interface ActionRowItem {
-  readonly actionId: string;
+  readonly actionId: ActionId;
   readonly month: SimulationMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
   readonly title: string;
   readonly description: string;
-  readonly category: 'pregnancy' | 'tax_switch' | 'salary_raise';
+  readonly category: ActionCategory;
+  readonly type: ActionType;
   readonly taxClassLabel?: string;
 }
 
@@ -311,7 +392,7 @@ export interface PreexistingConditions {
  * Batch 1: Pregnancy Positive Decisions
  */
 export interface PregnancyAction {
-  readonly pregnancyId: string;
+  readonly pregnancyId: PregnancyId;
   readonly childIndex: number;
   readonly positiveTestCalendarMonth: CalendarMonth;
   readonly positiveTestCalendarYear: number;
@@ -327,7 +408,7 @@ export interface PregnancyAction {
  * Batch 2: Tax Class Switches
  */
 export interface TaxClassSwitchAction {
-  readonly switchId: string;
+  readonly switchId: SwitchId;
   readonly effectiveSimulationMonth: SimulationMonth;
   readonly effectiveCalendarMonth: CalendarMonth;
   readonly effectiveCalendarYear: number;
@@ -341,11 +422,11 @@ export interface TaxClassSwitchAction {
  * Batch 3: Salary Raises & Career Adjustments
  */
 export interface SalaryRaiseAction {
-  readonly raiseId: string;
+  readonly raiseId: RaiseId;
   readonly effectiveSimulationMonth: SimulationMonth;
   readonly effectiveCalendarMonth: CalendarMonth;
   readonly effectiveCalendarYear: number;
-  readonly targetPerson: 'husband' | 'wife' | 'both';
+  readonly targetPerson: TargetPerson;
   readonly percentageIncrease?: number;
   readonly newHusbandClass3Net?: NetSalary;
   readonly newHusbandClass5Net?: NetSalary;

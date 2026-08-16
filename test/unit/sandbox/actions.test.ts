@@ -4,10 +4,14 @@ import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
 import {
   TaxClass,
   ScenarioId,
+  TargetPerson,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -41,7 +45,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
     it('accurately triggers Mutterschutz window 6 weeks pre-birth to 8 weeks post-birth', () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: 'PREG-1',
+          pregnancyId: toPregnancyId('PREG-1'),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
@@ -94,7 +98,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
         const pregnancies: PregnancyAction[] = [
           {
-            pregnancyId: 'PREG-1',
+            pregnancyId: toPregnancyId('PREG-1'),
             childIndex: 1,
             positiveTestCalendarMonth: toCalendarMonth(4),
             positiveTestCalendarYear: 2026,
@@ -106,7 +110,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
             fatherPartnerMonthsCount: 4
           },
           {
-            pregnancyId: 'PREG-2',
+            pregnancyId: toPregnancyId('PREG-2'),
             childIndex: 2,
             positiveTestCalendarMonth: toCalendarMonth(1),
             positiveTestCalendarYear: 2028,
@@ -150,7 +154,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
     it('accurately activates Tax Class III for Wife and Class V for Husband during swap window', () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: 'PREG-1',
+          pregnancyId: toPregnancyId('PREG-1'),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
@@ -165,7 +169,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: 'SWAP-1',
+          switchId: toSwitchId('SWAP-1'),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
@@ -216,7 +220,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
     it('correctly calculates annual tax return refund reconciling withholding deficits', () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: 'PREG-1',
+          pregnancyId: toPregnancyId('PREG-1'),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
@@ -234,7 +238,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // Tax return in March 2027 (M15) = 2.200 € + 850 € = 3.050 €
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: 'SWAP-1',
+          switchId: toSwitchId('SWAP-1'),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
@@ -263,11 +267,11 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
     it('applies percentage salary raises from the effective month onwards', () => {
       const salaryRaises: SalaryRaiseAction[] = [
         {
-          raiseId: 'RAISE-1',
+          raiseId: toRaiseId('RAISE-1'),
           effectiveSimulationMonth: toSimulationMonth(13),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2027,
-          targetPerson: 'both',
+          targetPerson: TargetPerson.Both,
           percentageIncrease: 0.10, // +10% raise
           reason: 'Promotion to Staff Engineer'
         }
@@ -299,7 +303,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
     it('accurately integrates all 4 batches concurrently (Preexisting + Pregnancies + Switches + Raises)', () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: 'PREG-1',
+          pregnancyId: toPregnancyId('PREG-1'),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
@@ -314,7 +318,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: 'SWAP-1',
+          switchId: toSwitchId('SWAP-1'),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
@@ -327,11 +331,11 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
       const salaryRaises: SalaryRaiseAction[] = [
         {
-          raiseId: 'RAISE-Y2',
+          raiseId: toRaiseId('RAISE-Y2'),
           effectiveSimulationMonth: toSimulationMonth(13),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2027,
-          targetPerson: 'both',
+          targetPerson: TargetPerson.Both,
           percentageIncrease: 0.05, // +5% in Year 2
           reason: 'Tariff increase'
         }
@@ -361,7 +365,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // 3 Pregnancies: Child 1 (M12), Child 2 (M36), Child 3 (M60)
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: 'PREG-1',
+          pregnancyId: toPregnancyId('PREG-1'),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
@@ -373,7 +377,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
           fatherPartnerMonthsCount: 4
         },
         {
-          pregnancyId: 'PREG-2',
+          pregnancyId: toPregnancyId('PREG-2'),
           childIndex: 2,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2028,
@@ -385,7 +389,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
           fatherPartnerMonthsCount: 4
         },
         {
-          pregnancyId: 'PREG-3',
+          pregnancyId: toPregnancyId('PREG-3'),
           childIndex: 3,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2030,
@@ -401,7 +405,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // 3 Custom Swaps
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: 'SWAP-1',
+          switchId: toSwitchId('SWAP-1'),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
@@ -411,7 +415,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
           revertSimulationMonth: toSimulationMonth(12)
         },
         {
-          switchId: 'SWAP-2',
+          switchId: toSwitchId('SWAP-2'),
           effectiveSimulationMonth: toSimulationMonth(28),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2028,
@@ -421,7 +425,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
           revertSimulationMonth: toSimulationMonth(36)
         },
         {
-          switchId: 'SWAP-3',
+          switchId: toSwitchId('SWAP-3'),
           effectiveSimulationMonth: toSimulationMonth(52),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2030,
@@ -435,20 +439,20 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // Custom Raises
       const salaryRaises: SalaryRaiseAction[] = [
         {
-          raiseId: 'RAISE-HUSBAND-PROMOTION',
+          raiseId: toRaiseId('RAISE-HUSBAND-PROMOTION'),
           effectiveSimulationMonth: toSimulationMonth(25),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2028,
-          targetPerson: 'husband',
+          targetPerson: TargetPerson.Husband,
           percentageIncrease: 0.10, // +10% Husband Promotion
           reason: 'Senior Staff Promotion'
         },
         {
-          raiseId: 'RAISE-WIFE-PROMOTION',
+          raiseId: toRaiseId('RAISE-WIFE-PROMOTION'),
           effectiveSimulationMonth: toSimulationMonth(40),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2029,
-          targetPerson: 'wife',
+          targetPerson: TargetPerson.Wife,
           percentageIncrease: 0.08, // +8% Wife Merit Step
           reason: 'Wife Merit Step'
         }

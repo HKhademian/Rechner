@@ -9,7 +9,8 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarYear,
-  toCalendarMonth
+  toCalendarMonth,
+  type ActionRowItem,
 } from '#engine/types';
 
 export interface LedgerMonthInput {
@@ -30,7 +31,7 @@ export interface LedgerMonthInput {
   readonly bonus40Amount: EuroAmount;
   readonly bonus60Amount: EuroAmount;
   readonly specialEvents: readonly SpecialEventItem[];
-  readonly startingActions?: readonly import('#engine/types').ActionRowItem[];
+  readonly startingActions?: readonly ActionRowItem[];
   readonly taxClassLabel: string;
   readonly phaseLabel: string;
   readonly eventTag: string | null;

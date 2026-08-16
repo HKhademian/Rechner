@@ -5,12 +5,19 @@ import {
   type NetSalary,
   type EuroAmount,
   type EventId,
+  type ActionId,
+  type PregnancyId,
+  type SwitchId,
+  type RaiseId,
   TaxClass,
   ScenarioId,
   TransactionType,
   TransactionDirection,
   SpecialEventType,
   SpecialEventCategory,
+  ActionCategory,
+  ActionType,
+  TargetPerson,
   type SimulationResult,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -27,6 +34,10 @@ import {
   toEuroAmount,
   toNetSalary,
   toEventId,
+  toActionId,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
   toStatutoryCitation
 } from '#engine/types';
 import { createTransaction } from '#engine/ledger/transaction';
@@ -676,25 +687,27 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
       const del = preg.calculatedDeliverySimulationMonth as number;
       if (m === pTest) {
         startingActions.push({
-          actionId: `${preg.pregnancyId}-POSITIVE`,
+          actionId: toActionId(`${preg.pregnancyId}-POSITIVE`),
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           title: `ACTION: Positive Pregnancy Test (Child #${preg.childIndex})`,
           description: `Positive pregnancy test confirmed for Child #${preg.childIndex}. Pre-pregnancy baseline lock initiated (§ 2b BEEG).`,
-          category: 'pregnancy',
+          category: ActionCategory.Pregnancy,
+          type: ActionType.PregnancyPositive,
           taxClassLabel: rm.taxClassLabel
         });
       }
       if (m === del) {
         startingActions.push({
-          actionId: `${preg.pregnancyId}-DELIVERY`,
+          actionId: toActionId(`${preg.pregnancyId}-DELIVERY`),
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           title: `ACTION: Child #${preg.childIndex} Delivery & Birth`,
           description: `Child #${preg.childIndex} born. Statutory Mutterschutz & ElterngeldPlus benefit eligibility begins.`,
-          category: 'pregnancy',
+          category: ActionCategory.Pregnancy,
+          type: ActionType.ChildDelivery,
           taxClassLabel: rm.taxClassLabel
         });
       }
@@ -706,25 +719,27 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
       const rev = sw.revertSimulationMonth as number;
       if (m === eff && scenarioKey === ScenarioId.C) {
         startingActions.push({
-          actionId: `${sw.switchId}-EFFECTIVE`,
+          actionId: toActionId(`${sw.switchId}-EFFECTIVE`),
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           title: `ACTION: Tax Class Switch Active (H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass})`,
           description: sw.statutoryReason || `Proactive tax class switch to optimize Elterngeld assessment baseline (§ 2b BEEG).`,
-          category: 'tax_switch',
+          category: ActionCategory.TaxSwitch,
+          type: ActionType.TaxClassSwitchEffective,
           taxClassLabel: `H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass}`
         });
       }
       if (m === rev && scenarioKey === ScenarioId.C) {
         startingActions.push({
-          actionId: `${sw.switchId}-REVERT`,
+          actionId: toActionId(`${sw.switchId}-REVERT`),
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           title: `ACTION: Tax Class Reversion (H: ${preexisting.husbandInitialTaxClass} | W: ${preexisting.wifeInitialTaxClass})`,
           description: `Reverting tax classes post-delivery back to baseline (${preexisting.husbandInitialTaxClass}/${preexisting.wifeInitialTaxClass}) to maximize family take-home pay.`,
-          category: 'tax_switch',
+          category: ActionCategory.TaxSwitch,
+          type: ActionType.TaxClassSwitchRevert,
           taxClassLabel: `H: ${preexisting.husbandInitialTaxClass} | W: ${preexisting.wifeInitialTaxClass}`
         });
       }
@@ -735,13 +750,14 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
       const eff = sr.effectiveSimulationMonth as number;
       if (m === eff) {
         startingActions.push({
-          actionId: `${sr.raiseId}-EFFECTIVE`,
+          actionId: toActionId(`${sr.raiseId}-EFFECTIVE`),
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           title: `ACTION: Salary Raise Effective (${sr.targetPerson.toUpperCase()} +${((sr.percentageIncrease || 0) * 100).toFixed(0)}%)`,
           description: sr.reason || `Annual wage progression / tariff merit step adjustment.`,
-          category: 'salary_raise',
+          category: ActionCategory.SalaryRaise,
+          type: ActionType.SalaryRaiseEffective,
           taxClassLabel: rm.taxClassLabel
         });
       }
@@ -867,7 +883,7 @@ export function generateTimelineSimulation(
   // Batch 1: Pregnancy Actions
   const pregnancies: PregnancyAction[] = [
     {
-      pregnancyId: 'PREG-CHILD-1',
+      pregnancyId: toPregnancyId('PREG-CHILD-1'),
       childIndex: 1,
       positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + params.prePregnancyPlanningMonths) % 12) + 1),
       positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + params.prePregnancyPlanningMonths) / 12),
@@ -879,7 +895,7 @@ export function generateTimelineSimulation(
       fatherPartnerMonthsCount: 4
     },
     {
-      pregnancyId: 'PREG-CHILD-2',
+      pregnancyId: toPregnancyId('PREG-CHILD-2'),
       childIndex: 2,
       positiveTestCalendarMonth: toCalendarMonth(((startMonth - 1 + (b2 - 9)) % 12) + 1),
       positiveTestCalendarYear: startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
@@ -900,7 +916,7 @@ export function generateTimelineSimulation(
 
   const taxClassSwitches: TaxClassSwitchAction[] = [
     {
-      switchId: 'SWAP-CHILD-1',
+      switchId: toSwitchId('SWAP-CHILD-1'),
       effectiveSimulationMonth: toSimulationMonth(swap1Start),
       effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap1Start - 1) % 12) + 1),
       effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
@@ -910,7 +926,7 @@ export function generateTimelineSimulation(
       revertSimulationMonth: toSimulationMonth(b1)
     },
     {
-      switchId: 'SWAP-CHILD-2',
+      switchId: toSwitchId('SWAP-CHILD-2'),
       effectiveSimulationMonth: toSimulationMonth(swap2Start),
       effectiveCalendarMonth: toCalendarMonth(((startMonth - 1 + swap2Start - 1) % 12) + 1),
       effectiveCalendarYear: startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),

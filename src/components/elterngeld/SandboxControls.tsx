@@ -38,10 +38,14 @@ import {
 } from '#store/elterngeldStore';
 import {
   TaxClass,
+  TargetPerson,
   toSimulationMonth,
   toCalendarMonth,
   toEuroAmount,
-  toNetSalary
+  toNetSalary,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId
 } from '#engine/types';
 
 function formatCurrency(amount: number): string {
@@ -522,7 +526,7 @@ export default function SandboxControls(): JSX.Element {
                   const pYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
 
                   addPregnancyAction({
-                    pregnancyId: `PREG-CHILD-${count + 1}`,
+                    pregnancyId: toPregnancyId(`PREG-CHILD-${count + 1}`),
                     childIndex: count + 1,
                     positiveTestCalendarMonth: pMonth,
                     positiveTestCalendarYear: pYear,
@@ -654,7 +658,7 @@ export default function SandboxControls(): JSX.Element {
                   const sYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
 
                   addTaxClassSwitchAction({
-                    switchId: `SWAP-CHILD-${count + 1}`,
+                    switchId: toSwitchId(`SWAP-CHILD-${count + 1}`),
                     effectiveSimulationMonth: toSimulationMonth(start),
                     effectiveCalendarMonth: sMonth,
                     effectiveCalendarYear: sYear,
@@ -794,11 +798,11 @@ export default function SandboxControls(): JSX.Element {
                   const sYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
 
                   addSalaryRaiseAction({
-                    raiseId: `RAISE-CUSTOM-${count + 1}`,
+                    raiseId: toRaiseId(`RAISE-CUSTOM-${count + 1}`),
                     effectiveSimulationMonth: toSimulationMonth(Math.min(simulationDurationMonths.value, newSimMonth)),
                     effectiveCalendarMonth: sMonth,
                     effectiveCalendarYear: sYear,
-                    targetPerson: 'both',
+                    targetPerson: TargetPerson.Both,
                     percentageIncrease: 0.05,
                     reason: `Merit Promotion / Tariff Adjustment (+5%)`
                   });

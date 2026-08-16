@@ -12,14 +12,24 @@ import {
   toStatutoryCitation,
   toTransactionId,
   toEventId,
+  toActionId,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
   toTaxClass,
   toScenarioId,
+  toActionCategory,
+  toActionType,
+  toTargetPerson,
   TaxClass,
   ScenarioId,
   TransactionType,
   TransactionDirection,
   SpecialEventType,
-  SpecialEventCategory
+  SpecialEventCategory,
+  ActionCategory,
+  ActionType,
+  TargetPerson
 } from '#engine/types';
 
 describe('Strongly-Typed Domain Types & Constructors', () => {
@@ -199,6 +209,49 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
 
       assert.equal(SpecialEventCategory.ThirteenthSalary, '13th Salary (*13. Monatsgehalt*)');
       assert.equal(SpecialEventCategory.TaxOffice, 'Tax Office (*Finanzamt*)');
+    });
+
+    it('ActionCategory, ActionType, and TargetPerson provide strict const enums and guards', () => {
+      assert.equal(ActionCategory.Pregnancy, 'PREGNANCY');
+      assert.equal(ActionCategory.TaxSwitch, 'TAX_SWITCH');
+      assert.equal(ActionCategory.SalaryRaise, 'SALARY_RAISE');
+
+      assert.equal(toActionCategory('PREGNANCY'), ActionCategory.Pregnancy);
+      assert.equal(toActionCategory('TAX_SWITCH'), ActionCategory.TaxSwitch);
+      assert.equal(toActionCategory('SALARY_RAISE'), ActionCategory.SalaryRaise);
+      assert.throws(() => toActionCategory('invalid'), TypeError);
+
+      assert.equal(ActionType.PregnancyPositive, 'PREGNANCY_POSITIVE');
+      assert.equal(ActionType.ChildDelivery, 'CHILD_DELIVERY');
+      assert.equal(ActionType.TaxClassSwitchEffective, 'TAX_CLASS_SWITCH_EFFECTIVE');
+      assert.equal(ActionType.TaxClassSwitchRevert, 'TAX_CLASS_SWITCH_REVERT');
+      assert.equal(ActionType.SalaryRaiseEffective, 'SALARY_RAISE_EFFECTIVE');
+
+      assert.equal(toActionType('PREGNANCY_POSITIVE'), ActionType.PregnancyPositive);
+      assert.throws(() => toActionType('invalid'), TypeError);
+
+      assert.equal(TargetPerson.Both, 'BOTH');
+      assert.equal(TargetPerson.Husband, 'HUSBAND');
+      assert.equal(TargetPerson.Wife, 'WIFE');
+
+      assert.equal(toTargetPerson('BOTH'), TargetPerson.Both);
+      assert.equal(toTargetPerson('HUSBAND'), TargetPerson.Husband);
+      assert.equal(toTargetPerson('WIFE'), TargetPerson.Wife);
+      assert.throws(() => toTargetPerson('other'), TypeError);
+    });
+
+    it('toActionId, toPregnancyId, toSwitchId, and toRaiseId brand valid strings and reject invalid inputs', () => {
+      assert.equal(toActionId('ACT-1'), 'ACT-1');
+      assert.throws(() => toActionId(''), TypeError);
+
+      assert.equal(toPregnancyId('PREG-1'), 'PREG-1');
+      assert.throws(() => toPregnancyId(''), TypeError);
+
+      assert.equal(toSwitchId('SWAP-1'), 'SWAP-1');
+      assert.throws(() => toSwitchId(''), TypeError);
+
+      assert.equal(toRaiseId('RAISE-1'), 'RAISE-1');
+      assert.throws(() => toRaiseId(''), TypeError);
     });
   });
 });
