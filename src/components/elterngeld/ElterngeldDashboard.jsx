@@ -28,7 +28,7 @@ export default function ElterngeldDashboard() {
             color: '#94a3b8',
             marginBottom: '12px'
           }}>
-            <span>Bundeselterngeld- und Elternzeitgesetz (BEEG) • Mehrjahres-Finanzanalyse</span>
+            <span>Federal Parental Allowance & Leave Act (BEEG) • Multi-Year Financial Modeling</span>
           </div>
 
           <h1 style={{
@@ -38,7 +38,7 @@ export default function ElterngeldDashboard() {
             margin: '0 0 10px 0',
             letterSpacing: '-0.03em'
           }}>
-            Elterngeld & Elternzeit 5-Jahres-Simulation
+            Elterngeld & Parental Leave 5-Year Simulator
           </h1>
 
           <p style={{
@@ -48,8 +48,8 @@ export default function ElterngeldDashboard() {
             margin: '0 auto',
             lineHeight: 1.5
           }}>
-            60-Monate-Haushaltsrechnung für die Familienplanung mit zwei Kindern.
-            Vergleich von drei Szenarien unter Berücksichtigung von Steuerklassenwechseln (III/V), Mutterschutz, ElterngeldPlus und Geschwisterbonus.
+            60-month household financial forecast for a family planning two children.
+            Comparing three timeline scenarios incorporating proactive tax class optimization (III/V), statutory maternity pay, ElterngeldPlus, and sibling bonuses.
           </p>
         </div>
 
@@ -82,10 +82,10 @@ export default function ElterngeldDashboard() {
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <strong>Netto- & Elterngeldrechner</strong> • Gesetzliche Grundlagen: BEEG, MuSchG & EStG
+            <strong>German Salary & Parental Allowance Engine</strong> • Statutory Reference: BEEG, MuSchG & EStG
           </div>
           <div>
-            Lokale Client-Berechnung • Keine Datenspeicherung auf externen Servern
+            Local Client-Side Computation • No data transmitted or stored on external servers
           </div>
         </div>
       </footer>

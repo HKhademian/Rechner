@@ -33,12 +33,12 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #2563eb'
+        borderLeft: '4px solid #1e40af'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Gesamte Netto-Arbeitslöhne
+              Total Net Working Salaries
             </div>
             <div style={{
               fontSize: '1.9rem',
@@ -52,8 +52,8 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(37, 99, 235, 0.15)',
-            border: '1px solid rgba(37, 99, 235, 0.3)',
+            background: 'rgba(30, 64, 175, 0.15)',
+            border: '1px solid rgba(30, 64, 175, 0.3)',
             borderRadius: '6px',
             padding: '8px',
             color: '#60a5fa'
@@ -65,7 +65,7 @@ export default function KpiScorecard() {
           </div>
         </div>
         <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '6px' }}>
-          Ehemann (32h) & Ehefrau (40h vor Geburt / 24h Teilzeit)
+          Husband (32h) & Wife (40h pre-birth / 24h part-time)
         </div>
       </div>
 
@@ -74,17 +74,17 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #059669'
+        borderLeft: '4px solid #15803d'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Staatliche Transferleistungen
+              State Benefits & Allowances
             </div>
             <div style={{
               fontSize: '1.9rem',
               fontWeight: 800,
-              color: '#10b981',
+              color: '#4ade80',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
               fontFamily: 'monospace'
@@ -93,11 +93,11 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(5, 150, 105, 0.15)',
-            border: '1px solid rgba(5, 150, 105, 0.3)',
+            background: 'rgba(21, 128, 61, 0.15)',
+            border: '1px solid rgba(21, 128, 61, 0.3)',
             borderRadius: '6px',
             padding: '8px',
-            color: '#34d399'
+            color: '#4ade80'
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -107,14 +107,14 @@ export default function KpiScorecard() {
         
         {/* Breakdown chips */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
-            MuSch: {formatCurrency(current.summary.totalMutterschutz)}
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#93c5fd', border: '1px solid #334155' }}>
+            Maternity (MuSch): {formatCurrency(current.summary.totalMutterschutz)}
           </span>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-            EG: {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#86efac', border: '1px solid #334155' }}>
+            Elterngeld: {formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}
           </span>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-            KG: {formatCurrency(current.summary.totalKindergeld)}
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#fca5a5', border: '1px solid #334155' }}>
+            Child Benefit (KG): {formatCurrency(current.summary.totalKindergeld)}
           </span>
         </div>
       </div>
@@ -124,17 +124,17 @@ export default function KpiScorecard() {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #0284c7'
+        borderLeft: '4px solid #0f766e'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Finanzamt Steuererstattungen
+              Tax Office (Finanzamt) Refunds
             </div>
             <div style={{
               fontSize: '1.9rem',
               fontWeight: 800,
-              color: '#38bdf8',
+              color: '#5eead4',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
               fontFamily: 'monospace'
@@ -143,11 +143,11 @@ export default function KpiScorecard() {
             </div>
           </div>
           <div style={{
-            background: 'rgba(2, 132, 199, 0.15)',
-            border: '1px solid rgba(2, 132, 199, 0.3)',
+            background: 'rgba(15, 118, 110, 0.15)',
+            border: '1px solid rgba(15, 118, 110, 0.3)',
             borderRadius: '6px',
             padding: '8px',
-            color: '#38bdf8'
+            color: '#5eead4'
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -159,8 +159,8 @@ export default function KpiScorecard() {
         </div>
         <div style={{ fontSize: '0.76rem', color: isScenarioC ? '#93c5fd' : '#64748b', marginTop: '6px' }}>
           {isScenarioC
-            ? 'Jährliche Zusammenveranlagung erstattet Lohnsteuerdifferenzen zu 100 %'
-            : 'Kein Steuerklassenwechsel durchgeführt (0 Erstattung)'}
+            ? 'Joint tax assessment (Splitting) refunds 100% of wage tax deficits'
+            : 'No tax class optimization performed (€0 refund)'}
         </div>
       </div>
 
@@ -175,7 +175,7 @@ export default function KpiScorecard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Gesamter Mittelzufluss (60M)
+              Total 5-Year Cash Inflow (60M)
             </div>
             <div style={{
               fontSize: '2rem',
@@ -191,7 +191,7 @@ export default function KpiScorecard() {
           <div style={{
             background: 'rgba(37, 99, 235, 0.15)',
             border: '1px solid rgba(37, 99, 235, 0.3)',
-            borderRadius: '10px',
+            borderRadius: '6px',
             padding: '8px',
             color: '#60a5fa'
           }}>
@@ -210,15 +210,15 @@ export default function KpiScorecard() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(16, 185, 129, 0.15)',
-              border: '1px solid rgba(16, 185, 129, 0.35)',
-              borderRadius: '6px',
+              background: '#0f172a',
+              border: '1px solid #15803d',
+              borderRadius: '4px',
               padding: '3px 10px',
               fontSize: '0.75rem',
               fontWeight: 700,
-              color: '#34d399'
+              color: '#4ade80'
             }}>
-              <span>+{formatCurrency(metrics.gainCvsB)} Mehrertrag ggü. Szenario B</span>
+              <span>+{formatCurrency(metrics.gainCvsB)} Net Financial Gain vs. Scenario B</span>
             </div>
           )}
           {isScenarioB && (
@@ -226,15 +226,15 @@ export default function KpiScorecard() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(245, 158, 11, 0.15)',
-              border: '1px solid rgba(245, 158, 11, 0.35)',
-              borderRadius: '6px',
+              background: '#0f172a',
+              border: '1px solid #b45309',
+              borderRadius: '4px',
               padding: '3px 10px',
               fontSize: '0.75rem',
               fontWeight: 600,
               color: '#fbbf24'
             }}>
-              <span>Differenz zu Szenario C: -{formatCurrency(metrics.gainCvsB)}</span>
+              <span>Deficit vs. Scenario C: -{formatCurrency(metrics.gainCvsB)}</span>
             </div>
           )}
           {isScenarioA && (
@@ -242,15 +242,15 @@ export default function KpiScorecard() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(148, 163, 184, 0.15)',
-              border: '1px solid rgba(148, 163, 184, 0.35)',
-              borderRadius: '6px',
+              background: '#0f172a',
+              border: '1px solid #475569',
+              borderRadius: '4px',
               padding: '3px 10px',
               fontSize: '0.75rem',
               fontWeight: 600,
               color: '#cbd5e1'
             }}>
-              <span>Basisverlauf: €6.125 / Monat Netto</span>
+              <span>Baseline: €6,125 / month net</span>
             </div>
           )}
         </div>

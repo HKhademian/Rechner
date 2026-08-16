@@ -5,122 +5,122 @@ export default function RulesExplainer() {
 
   const rules = [
     {
-      title: '1. Mutterschutzfristen & Lohnersatz',
-      lawRef: 'MuSchG § 3, § 19 & BEEG § 3 Abs. 1',
+      title: '1. Maternity Protection & Wage Replacement',
+      lawRef: 'MuSchG § 3, § 19 & BEEG § 3 Para. 1',
       tag: '§ 1',
-      summary: '100 % Netto-Lohnersatzleistung; verbraucht rechtlich die Elterngeldmonate 1 & 2.',
+      summary: '100% net wage replacement; legally consumes parental allowance months 1 & 2.',
       content: (
         <div>
           <p>
-            Gemäß dem <strong>Mutterschutzgesetz (MuSchG)</strong> gelten für angestellte Mütter gesetzliche Schutzfristen von <strong>6 Wochen vor der Entbindung</strong> und <strong>8 Wochen nach der Geburt</strong>.
+            Under the German <strong>Maternity Protection Act (MuSchG)</strong>, employed mothers are entitled to statutory protection periods of <strong>6 weeks pre-birth</strong> and <strong>8 weeks post-birth</strong>.
           </p>
           <ul>
-            <li><strong>100 % Nettoausgleich:</strong> Die gesetzliche Krankenkasse zahlt Mutterschaftsgeld (bis zu €13/Tag) und der Arbeitgeber leistet den Zuschuss nach § 20 MuSchG bis zur vollen Höhe des bisherigen Nettoarbeitsentgelts.</li>
-            <li><strong>Anrechnung auf Elterngeld (§ 3 BEEG):</strong> Die nachgeburtlichen Mutterschutzmonate gelten kraft Gesetzes als verbrauchte Basiselterngeldmonate der Mutter. Der reguläre ElterngeldPlus-Bezug beginnt somit ab Lebensmonat 3.</li>
-            <li><strong>Optimierungseffekt:</strong> Durch den rechtzeitigen Wechsel in <strong>Steuerklasse III</strong> beträgt der Mutterschutzlohn <strong>€2.603 / Monat</strong> statt €1.975 / Monat.</li>
+            <li><strong>100% Net Replacement:</strong> Statutory health insurance pays maternity benefit (up to €13/day) and the employer pays the statutory supplement under § 20 MuSchG up to full previous net pay.</li>
+            <li><strong>Offset against Elterngeld (§ 3 BEEG):</strong> Post-birth maternity protection months legally count as used Basic Elterngeld months for the mother. Standard ElterngeldPlus payouts start from life month 3.</li>
+            <li><strong>Optimization Effect:</strong> Switching to <strong>Tax Class III</strong> in a timely manner increases the monthly maternity net pay to <strong>€2,603 / month</strong> (vs. €1,975 / month in Tax Class V).</li>
           </ul>
         </div>
       )
     },
     {
-      title: '2. Proaktiver Steuerklassenwechsel (III/V)',
-      lawRef: 'BEEG § 2b & BFH-Urteil VI R 2/13',
+      title: '2. Proactive Tax Class Swap (III/V)',
+      lawRef: 'BEEG § 2b & Federal Fiscal Court (BFH VI R 2/13)',
       tag: '§ 2',
-      summary: 'Wechsel in Steuerklasse III mindestens 7 Monate vor Mutterschutz sichert den Höchstbetrag.',
+      summary: 'Swapping to Tax Class III at least 7 months before maternity protection secures the maximum allowance rate.',
       content: (
         <div>
           <p>
-            Der Bemessungszeitraum für das Elterngeld umfasst die <strong>12 Kalendermonate vor dem Monat des Beginns des Mutterschutzes</strong> (§ 2b BEEG).
+            The assessment period for parental allowance comprises the <strong>12 calendar months prior to the month maternity protection begins</strong> (§ 2b BEEG).
           </p>
           <ul>
-            <li><strong>Überwiegende Steuerklasse:</strong> Diejenige Steuerklasse, die in der Mehrheit der 12 Bemessungsmonate (innert 7 Monate) vorgelegen hat, wird für den gesamten Bemessungszeitraum zugrunde gelegt.</li>
-            <li><strong>BFH-Urteil (VI R 2/13):</strong> Der Bundesfinanzhof hat ausdrücklich entschieden, dass ein Steuerklassenwechsel zur Maximierung des Elterngeldes legal ist und keinen Rechtsmissbrauch darstellt.</li>
-            <li><strong>Zeitlicher Ablauf:</strong> Der Wechsel in Steuerklasse III (Frau) / V (Mann) erfolgt in Monat 4 bei Schwangerschaftsbeginn, genau 7 Monate vor dem Mutterschutz in Monat 11.</li>
+            <li><strong>Predominant Tax Class:</strong> Whichever tax class was held for the majority of the 12 assessment months (at least 7 months) is applied across the entire baseline calculation.</li>
+            <li><strong>BFH Precedent (VI R 2/13):</strong> The Federal Fiscal Court has explicitly confirmed that swapping tax classes to maximize parental allowance is lawful and does not constitute tax abuse.</li>
+            <li><strong>Execution Timeline:</strong> Swapping to Tax Class III (Wife) / V (Husband) occurs in Month 4 at the start of pregnancy, exactly 7 months before maternity protection begins in Month 11.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '3. Fiktive Steuerklasse (Fiktives Netto)',
-      lawRef: 'BEEG § 2e (Fiktiver Steuerabzug)',
+      title: '3. Synthetic Net Principle (Fiktives Netto)',
+      lawRef: 'BEEG § 2e (Standardized Deductions)',
       tag: '§ 3',
-      summary: 'Der Rückwechsel in Steuerklasse V nach der Geburt mindert das bewilligte Elterngeld nicht.',
+      summary: 'Swapping back to Tax Class V post-birth does not reduce approved Elterngeld amounts.',
       content: (
         <div>
           <p>
-            Nach der Geburt wechselt das Ehepaar unmittelbar zurück in die Kombination <strong>Ehemann III / Ehefrau V</strong>, um die laufenden Lohnabzüge des Hauptverdieners zu minimieren.
+            Immediately after birth, the couple swaps back to the combination <strong>Husband III / Wife V</strong> to minimize wage tax withholding on the primary earner's active income.
           </p>
           <ul>
-            <li><strong>Unveränderte Bemessungsgrundlage:</strong> Die Elterngeldstelle ermittelt den Elterngeldsatz ausschließlich anhand des im Bemessungszeitraum vor der Geburt festgestellten Nettoeinkommens (fiktives Netto).</li>
-            <li><strong>Maximaler Auszahlungsbetrag:</strong> Die Mutter erhält bei Teilzeitarbeit nach der Geburt weiterhin den gedeckelten Höchstsatz von <strong>€900,00 / Monat</strong> ElterngeldPlus.</li>
+            <li><strong>Fixed Assessment Baseline:</strong> The Elterngeld office fixes the parental allowance rate purely based on net income established during the pre-birth assessment window (synthetic net).</li>
+            <li><strong>Maximum Allowance Cap:</strong> When working part-time post-birth, the mother still receives the statutory maximum cap of <strong>€900.00 / month</strong> ElterngeldPlus.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '4. Finanzamt-Steuererstattung (Ehegatten-Splitting)',
-      lawRef: 'EStG § 26, § 26b (Zusammenveranlagung)',
+      title: '4. Tax Office Reconciliation (Ehegatten-Splitting)',
+      lawRef: 'EStG § 26, § 26b (Joint Income Assessment)',
       tag: '§ 4',
-      summary: 'Lohnsteuer-Mehreinzahlungen während der Wechselphase werden zu 100 % erstattet.',
+      summary: 'Excess wage tax withheld during the swap period is 100% refunded via the annual tax return.',
       content: (
         <div>
           <p>
-            Steuerklassen steuern lediglich den unterjährigen monatlichen Lohnsteuerabzug als Vorauszahlung.
+            Tax classes govern only monthly payroll withholding as an advance payment toward annual liability.
           </p>
           <ul>
-            <li><strong>Splittingtarif:</strong> Bei der jährlichen Einkommensteuererklärung (§ 26b EStG) wird das gesamte Jahreseinkommen der Eheleute gemeinsam nach dem Grundsatz des Ehegatten-Splittings versteuert.</li>
-            <li><strong>Vollständige Erstattung:</strong> Sämtliche unterjährigen Minderzuflüsse aus der Steuerklasse V des Mannes werden über die Steuererstattung zu 100 % an das Paar zurückbezahlt (+€5.670 Gesamtvolumen).</li>
+            <li><strong>Income Splitting Tariff:</strong> On the annual income tax return (§ 26b EStG), the household's total yearly income is assessed jointly under German marital income splitting.</li>
+            <li><strong>Full Reconciliation:</strong> All interim salary reductions from the husband's temporary Tax Class V placement are refunded to the couple in full (+€5,670 total refund volume).</li>
           </ul>
         </div>
       )
     },
     {
-      title: '5. Partnermonate & Partnerschaftsbonus',
-      lawRef: 'BEEG § 4, § 4b (Partnerschaftsbonus)',
+      title: '5. Partner Months & Partnership Bonus',
+      lawRef: 'BEEG § 4, § 4b (Partnership Bonus)',
       tag: '§ 5',
-      summary: '4 Partnermonate Mindestbetrag (€150/M) + 4 Bonusmonate bei paralleler Teilzeit (24–32h).',
+      summary: '4 partner months base (€150/mo) + 4 bonus months for concurrent part-time work (24–32h/wk).',
       content: (
         <div>
           <p>
-            Das BEEG ermöglicht die Kombination von ElterngeldPlus und Erwerbstätigkeit:
+            BEEG allows combining ElterngeldPlus with gainful part-time employment:
           </p>
           <ul>
-            <li><strong>Partnermonate Ehemann:</strong> Der Vater bezieht für 4 Monate den Mindestbetrag von <strong>€150 / Monat</strong> ElterngeldPlus parallel zu seiner regulären 32-Stunden-Woche.</li>
-            <li><strong>Partnerschaftsbonus:</strong> Arbeiten beide Elternteile gleichzeitig in 4 aufeinanderfolgenden Monaten zwischen <strong>24 und 32 Wochenstunden</strong>, erhalten beide Elternteile je <strong>4 zusätzliche Bonusmonate</strong> ElterngeldPlus.</li>
+            <li><strong>Father's Partner Months:</strong> The father receives 4 months of the minimum base rate of <strong>€150 / month</strong> ElterngeldPlus alongside his standard 32-hour week.</li>
+            <li><strong>Partnership Bonus:</strong> When both parents work concurrently between <strong>24 and 32 hours per week</strong> for 4 consecutive months, each parent receives <strong>4 additional bonus months</strong> of ElterngeldPlus.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '6. Geschwisterbonus',
-      lawRef: 'BEEG § 2a (Geschwisterbonus)',
+      title: '6. Sibling Bonus (Geschwisterbonus)',
+      lawRef: 'BEEG § 2a (Sibling Surcharge)',
       tag: '§ 6',
-      summary: '+10 % Zuschlag auf das Elterngeld von Kind 2 bis zum 3. Geburtstag von Kind 1.',
+      summary: '+10% surcharge on Child 2 Elterngeld until Child 1 turns 3 years old.',
       content: (
         <div>
           <p>
-            Lebt im Haushalt ein älteres Kind unter 3 Jahren (unter 36 Lebensmonaten), erhöht sich das Elterngeld für das Neugeborene:
+            When an older child under 3 years old (under 36 life months) lives in the household, parental allowance for the newborn increases:
           </p>
           <ul>
-            <li><strong>Zuschlagshöhe:</strong> +10 % des zustehenden Elterngeldes (mindestens +€75 / Monat bei ElterngeldPlus bzw. +€150 bei Basiselterngeld).</li>
-            <li><strong>Laufzeit:</strong> Kind 1 vollendet das 36. Lebensmonat in Monat 48. Bis zu diesem Monat wird der Geschwisterbonus für Kind 2 voll ausgezahlt.</li>
+            <li><strong>Surcharge Amount:</strong> +10% of the calculated allowance (minimum +€75 / month for ElterngeldPlus, +€150 for Basic Elterngeld).</li>
+            <li><strong>Duration:</strong> Child 1 turns 36 months in Month 48. Until this month, the sibling bonus for Child 2 is paid out in full.</li>
           </ul>
         </div>
       )
     },
     {
-      title: '7. Bemessungszeitraum Kind 2 (14-Monate-Falle)',
-      lawRef: 'BEEG § 2b Abs. 1 (Verwässerungsgrundsatz)',
+      title: '7. Child 2 Assessment Period (14-Month Trap)',
+      lawRef: 'BEEG § 2b Para. 1 (Dilution Rules)',
       tag: '§ 7',
-      summary: 'Vermeidung der Mindestbetragsfalle durch erneuten gezielten Steuerklassenwechsel.',
+      summary: 'Avoiding the base rate trap through a timed secondary tax class swap.',
       content: (
         <div>
           <p>
-            Für das zweite Kind fließen die Teilzeitmonate zwischen den Geburten in den 12-monatigen Bemessungszeitraum ein.
+            For the second child, part-time months worked between births enter the 12-month parental allowance assessment window.
           </p>
           <ul>
-            <li><strong>Das Problem in Szenario B:</strong> Ohne Anpassung sinkt das Elterngeld für Kind 2 auf den Sockelbetrag von <strong>€150 / Monat</strong> ab.</li>
-            <li><strong>Die Lösung in Szenario C:</strong> Durch den rechtzeitigen zweiten Wechsel in Steuerklasse III (Teilzeit) wird das Elterngeld für Kind 2 auf <strong>€485,58 / Monat</strong> gesteigert.</li>
+            <li><strong>The Pitfall in Scenario B:</strong> Without active planning, Elterngeld for Child 2 drops to the minimum base rate of <strong>€150 / month</strong>.</li>
+            <li><strong>The Solution in Scenario C:</strong> A timely second swap to Tax Class III (part-time) increases Elterngeld for Child 2 to <strong>€485.58 / month</strong>.</li>
           </ul>
         </div>
       )
@@ -131,7 +131,7 @@ export default function RulesExplainer() {
     <div className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
         <div style={{
-          background: 'rgba(37, 99, 235, 0.15)',
+          background: 'rgba(30, 64, 175, 0.15)',
           padding: '8px',
           borderRadius: '6px',
           color: '#60a5fa',
@@ -145,10 +145,10 @@ export default function RulesExplainer() {
         </div>
         <div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-            Gesetzliche Grundlagen & Rechtsprechung (BEEG / MuSchG / EStG)
+            Statutory Framework & Legal Precedents (BEEG / MuSchG / EStG)
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
-            Klicken Sie auf einen Paragrafen, um die im Berechnungsmodell hinterlegten Rechtsnormen einzusehen.
+            Select any legal section below to review the statutory provisions governing the calculation engine.
           </p>
         </div>
       </div>
@@ -171,11 +171,11 @@ export default function RulesExplainer() {
                   padding: '10px 14px',
                   borderRadius: '6px',
                   border: '1px solid',
-                  borderColor: isSelected ? '#2563eb' : '#334155',
+                  borderColor: isSelected ? '#1e40af' : '#334155',
                   background: isSelected ? '#1e293b' : '#0f172a',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  borderLeft: isSelected ? '3px solid #2563eb' : '1px solid #334155'
+                  borderLeft: isSelected ? '3px solid #1e40af' : '1px solid #334155'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -209,7 +209,7 @@ export default function RulesExplainer() {
         <div style={{
           background: '#0f172a',
           padding: '20px',
-          borderRadius: '8px',
+          borderRadius: '6px',
           border: '1px solid #334155'
         }}>
           <div style={{
@@ -230,7 +230,7 @@ export default function RulesExplainer() {
                 fontWeight: 600,
                 marginTop: '3px'
               }}>
-                Rechtsgrundlage: {rules[activeTab].lawRef}
+                Statutory Reference: {rules[activeTab].lawRef}
               </div>
             </div>
           </div>

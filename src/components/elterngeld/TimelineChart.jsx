@@ -145,10 +145,10 @@ export default function TimelineChart() {
       }}>
         <div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0, letterSpacing: '-0.02em' }}>
-            Monatlicher Mittelzufluss & Leistungsverlauf (60 Monate)
+            Monthly Cash Inflow & Benefits Timeline (60 Months)
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
-            Aufschlüsselung von Erwerbseinkommen, Mutterschutz, ElterngeldPlus, Kindergeld und Steuererstattungen.
+            Interactive breakdown of working salaries, maternity pay, ElterngeldPlus, child benefits, and tax refunds.
           </p>
         </div>
 
@@ -168,14 +168,14 @@ export default function TimelineChart() {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'stacked_bar' ? '#2563eb' : 'transparent',
+              background: mode === 'stacked_bar' ? '#1e40af' : 'transparent',
               color: mode === 'stacked_bar' ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
             }}
           >
-            Gestapeltes Balkendiagramm
+            Stacked Bar
           </button>
           <button
             type="button"
@@ -184,14 +184,14 @@ export default function TimelineChart() {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'area' ? '#2563eb' : 'transparent',
+              background: mode === 'area' ? '#1e40af' : 'transparent',
               color: mode === 'area' ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
             }}
           >
-            Flächendiagramm
+            Area Trend
           </button>
           <button
             type="button"
@@ -200,14 +200,14 @@ export default function TimelineChart() {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'compare' ? '#2563eb' : 'transparent',
+              background: mode === 'compare' ? '#1e40af' : 'transparent',
               color: mode === 'compare' ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
             }}
           >
-            Szenarien-Vergleich
+            Scenario Compare
           </button>
         </div>
       </div>
@@ -270,7 +270,7 @@ export default function TimelineChart() {
                   fontSize="11"
                   fontWeight="700"
                 >
-                  Jahr {m.year}
+                  Year {m.year}
                 </text>
               </g>
             ) : null;
@@ -330,112 +330,198 @@ export default function TimelineChart() {
           {/* Render Mode: AREA TREND */}
           {mode === 'area' && (
             <g>
-              <path d={getStackedAreaPath(m => m.husbandSalary, () => 0)} fill={colors.husbandSalary} opacity="0.9" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary, m => m.husbandSalary)} fill={colors.wifeSalary} opacity="0.9" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz, m => m.husbandSalary + m.wifeSalary)} fill={colors.mutterschutz} opacity="0.9" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz)} fill={colors.wifeElterngeld} opacity="0.9" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld)} fill={colors.husbandElterngeld} opacity="0.9" />
-              <path d={getStackedAreaPath(m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld, m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld)} fill={colors.kindergeld} opacity="0.9" />
-              {displayedMonths.map((m, i) => {
-                if (m.taxRefund <= 0) return null;
-                const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-                const yBase = margin.top + scaleY(m.monthlyTotal - m.taxRefund);
-                const yTop = margin.top + scaleY(m.monthlyTotal);
-                return (
-                  <g key={`refund-bar-${m.month}`}>
-                    <line x1={x} y1={yBase} x2={x} y2={yTop} stroke={colors.taxRefund} strokeWidth="3" strokeLinecap="round" />
-                    <circle cx={x} cy={yTop} r="3.5" fill={colors.taxRefund} />
-                  </g>
-                );
-              })}
+              {/* Layer 1: Husband Salary */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.husbandSalary,
+                  () => 0
+                )}
+                fill={colors.husbandSalary}
+                opacity="0.85"
+              />
+              {/* Layer 2: Wife Salary */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.husbandSalary + m.wifeSalary,
+                  m => m.husbandSalary
+                )}
+                fill={colors.wifeSalary}
+                opacity="0.85"
+              />
+              {/* Layer 3: Mutterschutz */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz,
+                  m => m.husbandSalary + m.wifeSalary
+                )}
+                fill={colors.mutterschutz}
+                opacity="0.85"
+              />
+              {/* Layer 4: Wife Elterngeld */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld,
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz
+                )}
+                fill={colors.wifeElterngeld}
+                opacity="0.85"
+              />
+              {/* Layer 5: Husband Elterngeld */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld,
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld
+                )}
+                fill={colors.husbandElterngeld}
+                opacity="0.85"
+              />
+              {/* Layer 6: Kindergeld */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld,
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld
+                )}
+                fill={colors.kindergeld}
+                opacity="0.85"
+              />
+              {/* Layer 7: Tax Refund */}
+              <path
+                d={getStackedAreaPath(
+                  m => m.monthlyTotal,
+                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld
+                )}
+                fill={colors.taxRefund}
+                opacity="0.85"
+              />
+
+              {/* Total Line Top Border */}
+              <path
+                d={displayedMonths.reduce((acc, m, i) => {
+                  const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
+                  const y = margin.top + scaleY(m.monthlyTotal);
+                  return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                }, '')}
+                fill="none"
+                stroke="#60a5fa"
+                strokeWidth="2.5"
+              />
             </g>
           )}
 
-          {/* Render Mode: COMPARE A/B/C OVERLAY */}
+          {/* Render Mode: COMPARE SCENARIOS OVERLAY */}
           {mode === 'compare' && (
             <g>
-              <path d={getComparePath(aData)} fill="none" stroke="#475569" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
-              <path d={getComparePath(bData)} fill="none" stroke="#b45309" strokeWidth="2.5" opacity="0.95" />
-              <path d={getComparePath(cData)} fill="none" stroke="#15803d" strokeWidth="2.5" />
-              {displayedMonths.map((m, i) => {
-                const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-                const yA = margin.top + scaleY(aData.months[m.month - 1]?.monthlyTotal || 0);
-                const yB = margin.top + scaleY(bData.months[m.month - 1]?.monthlyTotal || 0);
-                const yC = margin.top + scaleY(cData.months[m.month - 1]?.monthlyTotal || 0);
-                return (
-                  <g key={`compare-pts-${m.month}`}>
-                    <circle cx={x} cy={yA} r="2" fill="#475569" />
-                    <circle cx={x} cy={yB} r="2.5" fill="#b45309" />
-                    <circle cx={x} cy={yC} r="3" fill="#15803d" />
-                  </g>
-                );
-              })}
+              {/* Scenario A (No Kids) */}
+              <path
+                d={getComparePath(aData)}
+                fill="none"
+                stroke="#64748b"
+                strokeWidth="2.5"
+                strokeDasharray="4 4"
+              />
+              {/* Scenario B (Unoptimized) */}
+              <path
+                d={getComparePath(bData)}
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="2.5"
+              />
+              {/* Scenario C (Fully Optimized) */}
+              <path
+                d={getComparePath(cData)}
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="3.5"
+              />
             </g>
           )}
 
-          {/* Vertical Event Annotation Pins & Reference Lines */}
+          {/* Baseline Net Salary Reference Line (€6,125) */}
+          <line
+            x1={margin.left}
+            y1={margin.top + scaleY(6125)}
+            x2={svgWidth - margin.right}
+            y2={margin.top + scaleY(6125)}
+            stroke="#475569"
+            strokeWidth="1.5"
+            strokeDasharray="6 3"
+          />
+          <text
+            x={svgWidth - margin.right - 5}
+            y={margin.top + scaleY(6125) - 6}
+            fill="#94a3b8"
+            fontSize="10"
+            textAnchor="end"
+            fontFamily="monospace"
+          >
+            Baseline Net Inflow (€6,125 / mo)
+          </text>
+
+          {/* Bottom X-Axis (Month Markers) */}
+          <line
+            x1={margin.left}
+            y1={svgHeight - margin.bottom}
+            x2={svgWidth - margin.right}
+            y2={svgHeight - margin.bottom}
+            stroke="#475569"
+            strokeWidth="1"
+          />
           {displayedMonths.map((m, i) => {
-            if (!m.eventTag) return null;
+            const isLabel = m.month === 1 || m.month % 6 === 0 || m.month === 60;
             const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-            const isBirth = m.eventType === 'birth';
-            const isSwap = m.eventType === 'swap';
-            const pinColor = isBirth ? '#2563eb' : isSwap ? '#10b981' : '#f59e0b';
-            return (
-              <g key={`event-pin-${m.month}`} style={{ cursor: 'pointer' }}>
-                <line x1={x} y1={margin.top - 16} x2={x} y2={svgHeight - margin.bottom} stroke={pinColor} strokeWidth="1.5" strokeDasharray={isBirth ? 'none' : '3 3'} opacity="0.85" />
-                <circle cx={x} cy={margin.top - 16} r="8" fill={pinColor} />
-                <text x={x} y={margin.top - 13} textAnchor="middle" fontSize="8" fill="#ffffff" fontWeight="700">
-                  {isBirth ? '1' : isSwap ? '§' : '•'}
+            return isLabel ? (
+              <g key={`x-tick-${m.month}`}>
+                <line
+                  x1={x}
+                  y1={svgHeight - margin.bottom}
+                  x2={x}
+                  y2={svgHeight - margin.bottom + 5}
+                  stroke="#64748b"
+                />
+                <text
+                  x={x}
+                  y={svgHeight - margin.bottom + 18}
+                  textAnchor="middle"
+                  fill="#94a3b8"
+                  fontSize="10"
+                  fontFamily="monospace"
+                >
+                  M{m.month}
                 </text>
               </g>
-            );
-          })}
-
-          <line x1={margin.left} y1={svgHeight - margin.bottom} x2={svgWidth - margin.right} y2={svgHeight - margin.bottom} stroke="#475569" strokeWidth="1" />
-
-          {displayedMonths.map((m, i) => {
-            const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-            const showLabel = numBars <= 24 || m.month % 3 === 0 || m.month === 1;
-            if (!showLabel) return null;
-            return (
-              <text key={`xlabel-${m.month}`} x={x} y={svgHeight - margin.bottom + 18} textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">
-                M{m.month}
-              </text>
-            );
+            ) : null;
           })}
         </svg>
 
-        {/* Floating Tooltip */}
+        {/* Custom Tooltip */}
         {tooltipState && (
           <div style={{
             position: 'absolute',
-            left: `${Math.min(svgWidth - 220, Math.max(10, tooltipState.x - 110))}px`,
-            top: '10px',
-            background: 'rgba(15, 23, 42, 0.95)',
-            border: '1px solid #475569',
-            borderRadius: '8px',
+            left: `${Math.min(svgWidth - 280, Math.max(margin.left, tooltipState.x - 120))}px`,
+            top: '20px',
+            background: '#0f172a',
+            border: '1px solid #334155',
+            borderRadius: '6px',
             padding: '12px 16px',
+            minWidth: '240px',
             pointerEvents: 'none',
-            zIndex: 30,
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
-            minWidth: '220px'
+            zIndex: 30
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 800, color: '#f8fafc', fontSize: '0.9rem' }}>
-                Monat {tooltipState.month.month} (Jahr {tooltipState.month.year})
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid #334155', paddingBottom: '4px' }}>
+              <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f8fafc' }}>
+                Month {tooltipState.month.month} ({tooltipState.month.dateFormatted})
               </span>
-              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#10b981', fontSize: '0.95rem' }}>
+              <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#60a5fa', fontSize: '0.95rem' }}>
                 {formatCurrency(tooltipState.month.monthlyTotal)}
               </span>
             </div>
 
             {tooltipState.month.eventTag && (
               <div style={{
-                fontSize: '0.72rem',
+                fontSize: '0.7rem',
                 fontWeight: 700,
-                color: '#60a5fa',
-                background: 'rgba(37, 99, 235, 0.15)',
-                border: '1px solid rgba(37, 99, 235, 0.3)',
+                color: '#38bdf8',
+                background: '#1e293b',
                 borderRadius: '4px',
                 padding: '2px 6px',
                 marginBottom: '8px'
@@ -453,7 +539,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandSalary }}></span>
-                    Gehalt Ehemann:
+                    Husband Net Salary:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandSalary)}</span>
                 </div>
@@ -462,7 +548,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeSalary }}></span>
-                    Gehalt Ehefrau:
+                    Wife Net Salary:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeSalary)}</span>
                 </div>
@@ -471,7 +557,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#93c5fd' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.mutterschutz }}></span>
-                    Mutterschaftsleistungen:
+                    Maternity Pay (MuSch):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.mutterschutz)}</span>
                 </div>
@@ -480,7 +566,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6ee7b7' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeElterngeld }}></span>
-                    ElterngeldPlus (Mutter):
+                    ElterngeldPlus (Mother):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeElterngeld)}</span>
                 </div>
@@ -489,7 +575,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fde68a' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandElterngeld }}></span>
-                    Partnermonate (Vater):
+                    Partner Months (Father):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandElterngeld)}</span>
                 </div>
@@ -498,7 +584,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fda4af' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.kindergeld }}></span>
-                    Kindergeld:
+                    Child Benefit (KG):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.kindergeld)}</span>
                 </div>
@@ -507,7 +593,7 @@ export default function TimelineChart() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#67e8f9' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.taxRefund }}></span>
-                    Finanzamt Steuererstattung:
+                    Finanzamt Tax Refund:
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>+{formatCurrency(tooltipState.month.taxRefund)}</span>
                 </div>
@@ -530,31 +616,31 @@ export default function TimelineChart() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandSalary }}></span>
-          <span>Gehalt Ehemann</span>
+          <span>Husband Salary</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeSalary }}></span>
-          <span>Gehalt Ehefrau</span>
+          <span>Wife Salary</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.mutterschutz }}></span>
-          <span>Mutterschutz</span>
+          <span>Maternity (MuSch)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeElterngeld }}></span>
-          <span>ElterngeldPlus (Mutter)</span>
+          <span>ElterngeldPlus (Mother)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandElterngeld }}></span>
-          <span>Partnermonate (Vater €150)</span>
+          <span>Partner Months (Father €150)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.kindergeld }}></span>
-          <span>Kindergeld (€259 / Kind)</span>
+          <span>Kindergeld (€259 / child)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.taxRefund }}></span>
-          <span>Finanzamt Steuererstattung</span>
+          <span>Finanzamt Tax Refund</span>
         </div>
       </div>
     </div>

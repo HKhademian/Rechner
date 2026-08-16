@@ -15,58 +15,58 @@ export default function ScenarioSelector() {
   const scenarios = [
     {
       id: 'C',
-      title: 'Szenario C',
-      subtitle: 'Vollständig optimiert (Empfohlen)',
-      badge: 'Maximaler Leistungsbezug',
-      badgeColor: '#10b981',
-      description: 'Proaktiver Steuerklassenwechsel (H: V / W: III) 7 Monate vor Mutterschutz + Fiktives Netto + Geschwisterbonus + Steuererstattung.',
+      title: 'Scenario C',
+      subtitle: 'Fully Optimized (Recommended)',
+      badge: 'Maximum State Benefit',
+      badgeColor: '#15803d',
+      description: 'Proactive tax class swap (H: V / W: III) 7 months pre-maternity + Synthetic Net + Sibling Bonus + Tax Refund.',
       highlights: [
-        'Mutter: ElterngeldPlus bei maximal €900 / Monat',
-        'Mutterschutzlohn bei €2.603 / Monat',
-        'Geschwisterbonus +10% bis Kind 1 das 3. Lbj. vollendet',
-        `Finanzamt-Erstattung: +${formatCurrency(metrics.taxRefundC)}`
+        'Mother: ElterngeldPlus capped at max €900 / month',
+        'Maternity Protection net salary at €2,603 / month',
+        'Sibling Bonus +10% until Child 1 turns 3 years old',
+        `Tax Office Refund: +${formatCurrency(metrics.taxRefundC)}`
       ]
     },
     {
       id: 'B',
-      title: 'Szenario B',
-      subtitle: 'Nicht optimiert (Statisch III/V)',
-      badge: 'Standardverlauf',
-      badgeColor: '#f59e0b',
-      description: 'Kein Steuerklassenwechsel. Mutter bezieht Mutterschutz und ElterngeldPlus auf Basis Steuerklasse V.',
+      title: 'Scenario B',
+      subtitle: 'Unoptimized (Static III/V)',
+      badge: 'Standard Baseline',
+      badgeColor: '#b45309',
+      description: 'No tax class changes. Mother receives maternity and ElterngeldPlus calculated under Tax Class V.',
       highlights: [
-        'Mutter ElterngeldPlus: €500,50 / Monat (Kind 1)',
-        'Kind 2: Mindestbetrag €150 / Monat (14-Monate-Falle)',
-        'Mutterschutzlohn bei €1.975 / Monat',
-        `Verzicht auf ${formatCurrency(metrics.gainCvsB)} staatliche Förderung`
+        'Mother ElterngeldPlus: €500.50 / month (Child 1)',
+        'Child 2: Reduced to base €150 / mo (14-Month Trap)',
+        'Maternity Protection salary at €1,975 / month',
+        `Forfeits ${formatCurrency(metrics.gainCvsB)} in state benefits`
       ]
     },
     {
       id: 'A',
-      title: 'Szenario A',
-      subtitle: 'Basisfall (Keine Kinder)',
-      badge: 'Status Quo',
-      badgeColor: '#64748b',
-      description: 'Keine Kinder. Fortlaufende Standardgehälter (Mann €2.895 + Frau €1.975 = €6.125 / Monat).',
+      title: 'Scenario A',
+      subtitle: 'No Children (Status Quo)',
+      badge: 'Constant Employment',
+      badgeColor: '#475569',
+      description: 'No children. Continued standard wages (Husband €2,895 + Wife €1,975 = €6,125 / month net).',
       highlights: [
-        'Konstant €6.125 / Monat Nettozufluss',
-        'Keine Elternzeit / keine Lohnersatzleistungen',
-        'Keine Teilzeitreduktion',
-        '5-Jahres-Summe: €367.500'
+        'Constant €6,125 / month net income stream',
+        'No parental leave / zero wage replacement benefits',
+        'No part-time hours reduction',
+        '5-Year Total Net Inflow: €367,500'
       ]
     },
     {
       id: 'compare',
-      title: 'Vergleich',
-      subtitle: 'Szenarien-Gegenüberstellung',
-      badge: 'Mehrfach-Vergleich',
-      badgeColor: '#2563eb',
-      description: 'Direkter Vergleich der monatlichen Liquiditätsverläufe und der kumulierten Vermögensbildung aller 3 Pfade.',
+      title: 'Multi-Scenario',
+      subtitle: 'Side-by-Side Comparison',
+      badge: 'Overlay View',
+      badgeColor: '#1e40af',
+      description: 'Direct comparison of monthly liquidity curves and 5-year cumulative household asset accumulation.',
       highlights: [
-        'Monatliche Liquiditätskurven im Vergleich',
-        'Kumulierte Ertragsdifferenzen',
-        'Direkter Förderungsvergleich',
-        'Transparente Entscheidungsgrundlage'
+        'Monthly cash flow curves compared side-by-side',
+        'Cumulative financial differential tracking',
+        'Direct subsidy & tax reconciliation comparison',
+        'Transparent decision framework'
       ]
     }
   ];
@@ -90,11 +90,11 @@ export default function ScenarioSelector() {
             backgroundColor: '#2563eb'
           }}></span>
           <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-            Simulationsszenario auswählen
+            Select Simulation Scenario
           </span>
         </div>
         <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-          Klicken Sie auf ein Szenario, um die Berechnungen sofort zu aktualisieren
+          Click on any scenario to update the financial model in real time
         </div>
       </div>
 
@@ -114,11 +114,11 @@ export default function ScenarioSelector() {
                 textAlign: 'left',
                 background: isSelected
                   ? '#1e293b'
-                  : 'rgba(30, 41, 59, 0.5)',
+                  : '#0f172a',
                 border: isSelected
                   ? `2px solid ${sc.badgeColor}`
                   : '1px solid #334155',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 padding: '16px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -142,11 +142,11 @@ export default function ScenarioSelector() {
                 <span style={{
                   fontSize: '0.68rem',
                   fontWeight: 700,
-                  padding: '3px 8px',
+                  padding: '2px 8px',
                   borderRadius: '4px',
-                  backgroundColor: `${sc.badgeColor}20`,
+                  backgroundColor: '#1e293b',
                   color: sc.badgeColor,
-                  border: `1px solid ${sc.badgeColor}50`
+                  border: `1px solid ${sc.badgeColor}`
                 }}>
                   {sc.badge}
                 </span>
