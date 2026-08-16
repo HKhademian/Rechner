@@ -33,12 +33,27 @@ export type FieldColumnKey =
   | 'netInflow'
   | 'cumulativeTotal';
 
+export interface CalculationFactor {
+  readonly name: string;
+  readonly value: string;
+  readonly description?: string;
+}
+
+export interface CalculationStep {
+  readonly stepNumber: number;
+  readonly description: string;
+  readonly formula: string;
+  readonly result: string;
+}
+
 export interface FieldExplanation {
   readonly fieldKey: string;
   readonly fieldTitle: string;
   readonly valueFormatted: string;
   readonly derivationFormula?: string;
   readonly explanation: string;
+  readonly contributingFactors?: readonly CalculationFactor[];
+  readonly calculationSteps?: readonly CalculationStep[];
   readonly legalCitation?: string;
   readonly legalRuleKey?: LegalRuleKeyType;
   readonly diffVsBFormatted?: string;
@@ -107,6 +122,15 @@ export function getFieldExplanation(
         valueFormatted: `Month ${m.month} · Year ${m.year}`,
         derivationFormula: `Start Year + (${m.month} - 1) div 12 $\\rightarrow$ Calendar Date`,
         explanation: `This represents Simulation Month ${m.month}, falling in ${m.calendarLabel} (${m.relativeBirthLabel}). In the 5-year multi-scenario simulation, every financial cash flow and milestone is mapped deterministically to this calendar month.`,
+        contributingFactors: [
+          { name: 'Simulation Month', value: `Month ${m.month} of 60`, description: 'Progressive timeline index' },
+          { name: 'Calendar Date', value: m.calendarLabel, description: 'Statutory assessment calendar month' },
+          { name: 'Relative Birth Offset', value: m.relativeBirthLabel, description: 'Distance from delivery milestone' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Compute calendar year offset', formula: `2026 + floor((${m.month} - 1) / 12)`, result: `Year ${m.year}` },
+          { stepNumber: 2, description: 'Compute calendar month', formula: `((${m.month} - 1) % 12) + 1`, result: m.calendarLabel }
+        ],
         legalCitation: 'BEEG § 2b (Bemessungszeitraum nach Lebens- & Kalendermonaten)'
       };
 
@@ -117,6 +141,10 @@ export function getFieldExplanation(
         valueFormatted: m.eventTag || m.phaseLabel,
         derivationFormula: 'Determined by pregnancy delivery offset and parental leave schedule',
         explanation: `In Month ${m.month}, the family is in the phase "${m.phaseLabel}". This phase governs active employment hours, maternity leave protections, parental allowance claims, and tax class configurations.`,
+        contributingFactors: [
+          { name: 'Active Phase', value: m.phaseLabel, description: 'Statutory benefit or employment phase' },
+          { name: 'Mother Work Status', value: wSalary === 0 && mutterschutzVal > 0 ? 'Maternity Protection (100% leave)' : wSalary > 0 ? 'Part-Time Work (24h/wk)' : 'Parental Leave', description: 'Gainful employment status' }
+        ],
         legalCitation: 'BEEG § 4 (Basiselterngeld) & § 4a (ElterngeldPlus)'
       };
 
@@ -127,6 +155,14 @@ export function getFieldExplanation(
         valueFormatted: m.taxClassLabel,
         derivationFormula: m.taxClassLabel.includes('III') ? 'Husband: Tax Class III / Wife: Tax Class V (or III swap)' : 'Standard baseline tax class assignment',
         explanation: `In Month ${m.month}, the spouses are assigned "${m.taxClassLabel}". Monthly wage tax withholding is calculated according to § 38b EStG. Any temporary withholding variance between III/V and IV/IV is reconciled annually via joint tax assessment (§ 26b EStG).`,
+        contributingFactors: [
+          { name: 'Active Spousal Classes', value: m.taxClassLabel, description: 'Monthly payroll tax withholding configuration' },
+          { name: 'Tax Swap Status', value: m.isSwapActive ? 'Active Prenatal Optimization Swap' : 'Standard Baseline Combination', description: 'Optimized vs unoptimized classification' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Determine spousal monthly withholding class', formula: 'EStG § 38b table mapping', result: m.taxClassLabel },
+          { stepNumber: 2, description: 'Reconcile spousal splitting tariff variance', formula: 'Joint Assessment (§ 26b EStG)', result: 'Excess withholding fully refunded annually' }
+        ],
         legalCitation: 'EStG § 38b (Lohnsteuerklassen) & § 26b (Zusammenveranlagung)',
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting
       };
@@ -134,12 +170,24 @@ export function getFieldExplanation(
     case 'husbandSalary': {
       const bHusband = bMonth ? (bMonth.husbandSalary as number) : hSalary;
       const diffH = hSalary - bHusband;
+      const activeClass = m.taxClassLabel.split('/')[0] || 'Class III';
       return {
         fieldKey: 'husbandSalary',
         fieldTitle: "Husband's Monthly Net Salary",
         valueFormatted: formatCurrency(hSalary),
-        derivationFormula: `Gross Salary $\\rightarrow$ § 38b Wage Tax (${m.taxClassLabel.split('/')[0] || 'Class III'}) $\\rightarrow$ Social Contributions $\\rightarrow$ Net`,
+        derivationFormula: `Gross Salary $\\rightarrow$ § 38b Wage Tax (${activeClass}) $\\rightarrow$ Social Contributions $\\rightarrow$ Net`,
         explanation: `The husband's take-home pay for Month ${m.month} is ${formatCurrency(hSalary)}. When temporarily switched to Tax Class V during the prenatal swap, withholding increases, but the difference is fully refunded upon filing the annual tax return.`,
+        contributingFactors: [
+          { name: 'Base Gross Salary', value: '~4.500 € / month', description: 'Regular full-time employment gross' },
+          { name: 'Active Tax Class', value: activeClass, description: 'Withholding wage tax tariff' },
+          { name: 'Statutory Social Contributions', value: '~1.065 € / month', description: 'Health, Pension, Care, Unemployment insurance' },
+          { name: 'Wage Tax Withholding', value: activeClass.includes('III') ? '~1.200 € / month' : '~2.195 € / month', description: 'Advance payroll tax deduction (§ 38b EStG)' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Compute social security deductions', formula: 'BBG assessment ceilings applied', result: '~1.065 €' },
+          { stepNumber: 2, description: `Compute wage tax withholding for ${activeClass}`, formula: '§ 32a progressive tariff formula', result: activeClass.includes('III') ? '~1.200 €' : '~2.195 €' },
+          { stepNumber: 3, description: 'Compute net take-home salary', formula: 'Gross - Social Security - Wage Tax', result: formatCurrency(hSalary) }
+        ],
         legalCitation: 'EStG § 38b (Lohnsteuerabzug) & § 32a (Einkommensteuertarif)',
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         diffVsBFormatted: diffH !== 0 ? `${diffH > 0 ? '+' : ''}${formatCurrency(diffH)} vs B` : undefined
@@ -149,16 +197,28 @@ export function getFieldExplanation(
     case 'wifeSalary': {
       const bWife = bMonth ? (bMonth.wifeSalary as number) : wSalary;
       const diffW = wSalary - bWife;
+      const isFullLeave = wSalary === 0;
+      const ftBase = 1975;
       return {
         fieldKey: 'wifeSalary',
         fieldTitle: "Wife's Earned Net Salary",
         valueFormatted: formatCurrency(wSalary),
-        derivationFormula: wSalary === 0
+        derivationFormula: isFullLeave
           ? '0 € (Full Maternity Leave / Mutterschutz § 3 MuSchG)'
-          : `Full-Time Net × (Post-Birth Hours / Initial Hours) $\\rightarrow$ ${formatCurrency(wSalary)}`,
-        explanation: wSalary === 0
+          : `Full-Time Net (${formatCurrency(ftBase)}) × (24h / 40h) $\\rightarrow$ ${formatCurrency(wSalary)}`,
+        explanation: isFullLeave
           ? `The mother earns 0 € direct employment salary in Month ${m.month} because she is on statutory Maternity Protection (Mutterschutz) or full parental leave.`
           : `The mother earns ${formatCurrency(wSalary)} in Month ${m.month} from part-time gainful employment. Her earned net salary is calculated proportionally based on her weekly working hours.`,
+        contributingFactors: [
+          { name: 'Full-Time Baseline Net', value: `${formatCurrency(ftBase)} / month (Class V)`, description: 'Full 40h/week baseline salary' },
+          { name: 'Initial Contract Hours', value: '40 hours / week', description: 'Standard contractual working week' },
+          { name: 'Post-Birth Part-Time Hours', value: isFullLeave ? '0 hours / week' : '24 hours / week', description: 'Actual working hours in this month' },
+          { name: 'Hours Scaling Ratio', value: isFullLeave ? '0%' : '60.0% (24 / 40)', description: 'Proportional working time' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Determine working time ratio', formula: isFullLeave ? '0h / 40h' : '24h / 40h', result: isFullLeave ? '0.0' : '0.60' },
+          { stepNumber: 2, description: 'Scale full-time net salary', formula: `${formatCurrency(ftBase)} × ${isFullLeave ? '0.0' : '0.60'}`, result: formatCurrency(wSalary) }
+        ],
         legalCitation: 'BEEG § 1 Abs. 1 Nr. 4 (Zulässige Teilzeit bis 32h/Woche)',
         legalRuleKey: LegalRuleKey.BEEG_SyntheticNet,
         diffVsBFormatted: diffW !== 0 ? `${diffW > 0 ? '+' : ''}${formatCurrency(diffW)} vs B` : undefined
@@ -168,6 +228,7 @@ export function getFieldExplanation(
     case 'mutterschutz': {
       const bMutterschutz = bMonth ? (bMonth.mutterschutz as number) : mutterschutzVal;
       const diffM = mutterschutzVal - bMutterschutz;
+      const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
       return {
         fieldKey: 'mutterschutz',
         fieldTitle: 'Maternity Protection Allowance (Mutterschaftsgeld & AG-Zuschuss)',
@@ -178,6 +239,21 @@ export function getFieldExplanation(
         explanation: mutterschutzVal > 0
           ? `Under §§ 19, 20 MuSchG, the mother receives 100% wage replacement (${formatCurrency(mutterschutzVal)}) during the statutory protection period (6 weeks pre-birth to 8 weeks post-birth). In Scenario C, because of the prenatal tax class swap, this benefit is evaluated using the higher Tax Class III net salary!`
           : `0 € because Month ${m.month} falls outside the active maternity protection window.`,
+        contributingFactors: mutterschutzVal > 0 ? [
+          { name: 'Pre-Birth Average Net Baseline', value: `${formatCurrency(preNet)} / month`, description: `Evaluated in ${scenarioId === ScenarioId.C ? 'Tax Class III (Optimized)' : 'Tax Class V'}` },
+          { name: 'Health Insurance Mutterschaftsgeld', value: '13 € / day (390 € / mo)', description: 'Statutory health insurance daily benefit (§ 19 MuSchG)' },
+          { name: 'Employer Mandatory Supplement', value: `${formatCurrency(Math.max(0, preNet - 390))} / month`, description: 'Arbeitgeberzuschuss under § 20 MuSchG' },
+          { name: 'Statutory Protection Window', value: '6 weeks pre-birth + 8 weeks post-birth', description: 'Mandatory paid leave (§ 3 MuSchG)' }
+        ] : [
+          { name: 'Protection Window Status', value: 'Inactive (0 €)', description: 'Outside 6-week pre-birth / 8-week post-birth window' }
+        ],
+        calculationSteps: mutterschutzVal > 0 ? [
+          { stepNumber: 1, description: 'Compute health insurance daily grant', formula: '30 days × 13 € / day', result: '390 €' },
+          { stepNumber: 2, description: 'Compute mandatory employer supplement', formula: `${formatCurrency(preNet)} - 390 €`, result: formatCurrency(Math.max(0, preNet - 390)) },
+          { stepNumber: 3, description: 'Combine for 100% wage guarantee', formula: `390 € + ${formatCurrency(Math.max(0, preNet - 390))}`, result: formatCurrency(mutterschutzVal) }
+        ] : [
+          { stepNumber: 1, description: 'Check statutory maternity window', formula: 'Month in [delivery - 1, delivery, delivery + 1]', result: '0 € (Outside protection window)' }
+        ],
         legalCitation: 'MuSchG § 19, § 20 & BEEG § 3 Abs. 1',
         legalRuleKey: LegalRuleKey.MuSchG_Maternity,
         diffVsBFormatted: diffM !== 0 ? `${diffM > 0 ? '+' : ''}${formatCurrency(diffM)} vs B` : undefined
@@ -187,16 +263,36 @@ export function getFieldExplanation(
     case 'wifeElterngeld': {
       const bWifeEg = bMonth ? (bMonth.wifeElterngeld as number) : wElterngeld;
       const diffWeg = wElterngeld - bWifeEg;
+      const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
+      const ptNet = wSalary;
+      const netLoss = Math.max(0, preNet - ptNet);
+      const rawBenefit = Math.round(netLoss * 0.65);
       return {
         fieldKey: 'wifeElterngeld',
         fieldTitle: "Mother's ElterngeldPlus / Parental Allowance",
         valueFormatted: formatCurrency(wElterngeld),
         derivationFormula: wElterngeld > 0
-          ? 'Min(900 €, Max(150 €, 65% × (Pre-Birth Baseline Net - Post-Birth Part-Time Net)))'
+          ? `Min(900 €, Max(150 €, 65% × (${formatCurrency(preNet)} - ${formatCurrency(ptNet)}))) = ${formatCurrency(wElterngeld)}`
           : '0 € (Outside parental allowance period or working > 32h/week § 1 BEEG)',
         explanation: wElterngeld > 0
-          ? `The mother receives ${formatCurrency(wElterngeld)} in parental allowance under § 4a BEEG. In Scenario C, because the predominant pre-birth tax class was Class III (§ 2b BEEG), the baseline net income is locked at the maximum rate, yielding the statutory ceiling of 900 € / month!`
+          ? `The mother receives ${formatCurrency(wElterngeld)} in parental allowance under § 4a BEEG. In Scenario C, because the predominant pre-birth tax class was Class III (§ 2b BEEG), the baseline net income is locked at ${formatCurrency(preNet)}, yielding the statutory ceiling of 900 € / month!`
           : `0 € in Month ${m.month} because the mother is either in Mutterschutz (covered by 100% wage guarantee), outside the benefit period, or working more than 32 hours per week.`,
+        contributingFactors: wElterngeld > 0 ? [
+          { name: 'Pre-Birth Assessment Net (§ 2b BEEG)', value: `${formatCurrency(preNet)} / month`, description: scenarioId === ScenarioId.C ? 'Locked at Tax Class III Synthetic Net' : 'Unoptimized Tax Class V Net' },
+          { name: 'Post-Birth Part-Time Net (24h/wk)', value: `${formatCurrency(ptNet)} / month`, description: 'Actual earned employment income' },
+          { name: 'Net Income Loss (ΔNet)', value: `${formatCurrency(netLoss)} / month`, description: 'Pre-Birth Net - Post-Birth Net' },
+          { name: 'Statutory Replacement Rate (§ 2 BEEG)', value: '65.0%', description: 'Wage replacement percentage' },
+          { name: 'Statutory Maximum Cap (§ 4a BEEG)', value: '900 € / month', description: '50% of monthly full entitlement cap' }
+        ] : [
+          { name: 'Benefit Status', value: '0 € / month', description: 'Outside claim window or working > 32h/week' }
+        ],
+        calculationSteps: wElterngeld > 0 ? [
+          { stepNumber: 1, description: 'Calculate monthly net salary drop (ΔNet)', formula: `${formatCurrency(preNet)} - ${formatCurrency(ptNet)}`, result: formatCurrency(netLoss) },
+          { stepNumber: 2, description: 'Apply 65% statutory replacement rate', formula: `${formatCurrency(netLoss)} × 65%`, result: `${formatCurrency(rawBenefit)} / month` },
+          { stepNumber: 3, description: 'Apply statutory ElterngeldPlus cap / floor', formula: `Min(900 €, Max(150 €, ${formatCurrency(rawBenefit)}))`, result: formatCurrency(wElterngeld) }
+        ] : [
+          { stepNumber: 1, description: 'Evaluate statutory eligibility (§ 1 & § 4 BEEG)', formula: 'Check active leave phase and working hours (<= 32h)', result: '0 € (Ineligible in this month)' }
+        ],
         legalCitation: 'BEEG § 2 (Ersatzrate), § 2b (Bemessungszeitraum), § 4a (ElterngeldPlus)',
         legalRuleKey: LegalRuleKey.BEEG_SyntheticNet,
         diffVsBFormatted: diffWeg !== 0 ? `${diffWeg > 0 ? '+' : ''}${formatCurrency(diffWeg)} vs B` : undefined
@@ -216,6 +312,19 @@ export function getFieldExplanation(
         explanation: hElterngeld > 0
           ? `The father receives ${formatCurrency(hElterngeld)} under § 4 Abs. 3 (Partner Months) or § 4b BEEG (Partnerschaftsbonus). In the Partnership Bonus months, both parents work concurrently between 24 and 32 hours per week, unlocking extra allowance for both.`
           : `0 € because the father is not claiming parental allowance in Month ${m.month}.`,
+        contributingFactors: hElterngeld > 0 ? [
+          { name: 'Father Post-Birth Hours', value: '32 hours / week (Part-Time)', description: 'Working within statutory 24-32h corridor' },
+          { name: 'Entitlement Type', value: m.phaseLabel.includes('Partnerschaftsbonus') ? 'Partnerschaftsbonus (§ 4b BEEG)' : 'Partner Months (§ 4 Abs. 3 BEEG)', description: 'Statutory benefit category' },
+          { name: 'Statutory Minimum Allowance Floor', value: '150 € / month', description: 'Guaranteed statutory minimum benefit' }
+        ] : [
+          { name: 'Benefit Status', value: '0 € / month', description: 'Not claiming parental allowance in this month' }
+        ],
+        calculationSteps: hElterngeld > 0 ? [
+          { stepNumber: 1, description: 'Verify statutory working hours corridor', formula: '24h <= 32h <= 32h per week (§ 4b BEEG)', result: 'Eligible (Within Corridor)' },
+          { stepNumber: 2, description: 'Apply statutory ElterngeldPlus minimum rate', formula: 'Max(150 €, 65% × Salary Loss)', result: formatCurrency(hElterngeld) }
+        ] : [
+          { stepNumber: 1, description: 'Check father claim schedule', formula: 'Month in Partner Months or Partnership Bonus window', result: '0 € (Inactive)' }
+        ],
         legalCitation: 'BEEG § 4 Abs. 3 (Partnermonate) & § 4b (Partnerschaftsbonus)',
         legalRuleKey: LegalRuleKey.BEEG_PartnershipBonus,
         diffVsBFormatted: diffHeg !== 0 ? `${diffHeg > 0 ? '+' : ''}${formatCurrency(diffHeg)} vs B` : undefined
@@ -223,12 +332,20 @@ export function getFieldExplanation(
     }
 
     case 'kindergeld': {
+      const childCount = Math.max(1, Math.round(kg / 250));
       return {
         fieldKey: 'kindergeld',
         fieldTitle: 'Statutory Child Benefit (Kindergeld § 66 EStG)',
         valueFormatted: formatCurrency(kg),
-        derivationFormula: '250 € / month per qualifying living child living in household',
-        explanation: `Under § 66 EStG / BKGG, the family receives ${formatCurrency(kg)} per month in child benefit (${Math.round(kg / 250)} child/children × 250 €). Kindergeld is paid universally and is tax-free.`,
+        derivationFormula: `${childCount} Child(ren) × 250 € / month = ${formatCurrency(kg)}`,
+        explanation: `Under § 66 EStG / BKGG, the family receives ${formatCurrency(kg)} per month in child benefit (${childCount} child/children × 250 €). Kindergeld is paid universally and is tax-free.`,
+        contributingFactors: [
+          { name: 'Eligible Living Children', value: `${childCount} child(ren)`, description: 'Children living in household' },
+          { name: 'Statutory Monthly Rate per Child', value: '250 € / month', description: 'Universal child benefit (§ 66 EStG)' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Multiply child count by statutory rate', formula: `${childCount} × 250 €`, result: formatCurrency(kg) }
+        ],
         legalCitation: 'EStG § 66 (Höhe des Kindergeldes) & BKGG',
         legalRuleKey: LegalRuleKey.EStG_Kindergeld
       };
@@ -245,6 +362,13 @@ export function getFieldExplanation(
         explanation: spTotal !== 0
           ? `Month ${m.month} includes ${formatCurrency(spTotal)} in special transactions (e.g. annual salary bonus, tax refund from joint assessment § 26b EStG, or one-off childcare expenses).`
           : `0 € (No one-off special fiscal payments or tax returns scheduled in Month ${m.month}).`,
+        contributingFactors: [
+          { name: 'Total Special Inflows', value: spTotal > 0 ? formatCurrency(spTotal) : '0 €', description: 'Bonuses or Tax Refunds' },
+          { name: 'Total Special Outflows', value: spTotal < 0 ? formatCurrency(Math.abs(spTotal)) : '0 €', description: 'One-off costs or investments' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Aggregate special transactions for month', formula: 'Sum(Credits) - Sum(Debits)', result: formatCurrency(spTotal) }
+        ],
         legalCitation: 'EStG § 26b (Steuererstattung) & § 2c BEEG (Sonstige Bezüge)',
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         diffVsBFormatted: diffSp !== 0 ? `${diffSp > 0 ? '+' : ''}${formatCurrency(diffSp)} vs B` : undefined
@@ -258,6 +382,18 @@ export function getFieldExplanation(
         valueFormatted: formatCurrency(netInflow),
         derivationFormula: 'Husband Salary + Wife Salary + Mutterschutz + Wife EG + Husband EG + Kindergeld + Special Payments',
         explanation: `The net liquid cash entering the household in Month ${m.month} is ${formatCurrency(netInflow)}. (${diffNetStr})`,
+        contributingFactors: [
+          { name: "Husband's Net Salary", value: formatCurrency(hSalary), description: 'Regular take-home employment pay' },
+          { name: "Wife's Net Salary / Mutterschutz", value: formatCurrency(wSalary + mutterschutzVal), description: 'Earnings or 100% maternity wage replacement' },
+          { name: 'Parental Allowance (Wife + Husband)', value: formatCurrency(wElterngeld + hElterngeld), description: 'ElterngeldPlus and Partner Months' },
+          { name: 'Kindergeld', value: formatCurrency(kg), description: 'Universal child benefit' },
+          { name: 'Special Payments / Refunds', value: formatCurrency(spTotal), description: 'Bonuses, Tax refunds, or One-off costs' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Sum employment earnings', formula: `${formatCurrency(hSalary)} + ${formatCurrency(wSalary + mutterschutzVal)}`, result: formatCurrency(hSalary + wSalary + mutterschutzVal) },
+          { stepNumber: 2, description: 'Sum statutory parental benefits', formula: `${formatCurrency(wElterngeld + hElterngeld)} + ${formatCurrency(kg)}`, result: formatCurrency(wElterngeld + hElterngeld + kg) },
+          { stepNumber: 3, description: 'Add special payments / one-off events', formula: `${formatCurrency(hSalary + wSalary + mutterschutzVal + wElterngeld + hElterngeld + kg)} + ${formatCurrency(spTotal)}`, result: formatCurrency(netInflow) }
+        ],
         legalCitation: 'EStG, MuSchG, BEEG Gesamtliquiditätsrechnung',
         diffVsBFormatted: diffNet !== 0 ? `${diffNet > 0 ? '+' : ''}${formatCurrency(diffNet)} vs B` : undefined
       };
@@ -266,12 +402,22 @@ export function getFieldExplanation(
     case 'cumulativeTotal': {
       const bCum = bMonth ? (bMonth.cumulatedTotal as number) : cumTotal;
       const diffCum = cumTotal - bCum;
+      const prevBal = cumTotal - netInflow;
       return {
         fieldKey: 'cumulativeTotal',
         fieldTitle: 'Progressive Cumulative 5-Year Total',
         valueFormatted: formatCurrency(cumTotal),
         derivationFormula: 'Previous Month Cumulative Balance + Current Month Net Inflow',
         explanation: `The progressive cumulative net wealth accumulated from Month 1 through Month ${m.month} is ${formatCurrency(cumTotal)}. In Scenario C, this reflects all optimized tax swap benefits and parental allowance entitlements. (${diffCum > 0 ? `+${formatCurrency(diffCum)} ahead of Scenario B` : 'Baseline comparison'})`,
+        contributingFactors: [
+          { name: 'Prior Cumulative Balance (M - 1)', value: formatCurrency(prevBal), description: `Accumulated net wealth through Month ${m.month - 1}` },
+          { name: 'Current Month Net Inflow', value: `+${formatCurrency(netInflow)}`, description: `Total liquidity in Month ${m.month}` },
+          { name: 'Scenario B Reference Balance', value: bMonth ? formatCurrency(bMonth.cumulatedTotal as number) : '—', description: 'Comparison baseline' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Add current monthly net inflow to prior balance', formula: `${formatCurrency(prevBal)} + ${formatCurrency(netInflow)}`, result: formatCurrency(cumTotal) },
+          { stepNumber: 2, description: 'Calculate cumulative advantage vs Scenario B', formula: `${formatCurrency(cumTotal)} - ${bMonth ? formatCurrency(bMonth.cumulatedTotal as number) : '0 €'}`, result: diffCum !== 0 ? `${diffCum > 0 ? '+' : ''}${formatCurrency(diffCum)}` : '0 €' }
+        ],
         legalCitation: '5-Year Multi-Scenario Financial Trajectory',
         diffVsBFormatted: diffCum !== 0 ? `${diffCum > 0 ? '+' : ''}${formatCurrency(diffCum)} vs B` : undefined
       };
@@ -299,6 +445,14 @@ export function getActionFieldExplanation(
         valueFormatted: `↳ M${m.month} Event (${m.calendarLabel})`,
         derivationFormula: `Lifecycle action scheduled before Month ${m.month}`,
         explanation: `This row represents a discrete user action / lifecycle milestone occurring immediately prior to Month ${m.month} (${m.calendarLabel}).`,
+        contributingFactors: [
+          { name: 'Action ID', value: act.actionId, description: 'Unique action identifier' },
+          { name: 'Milestone Type', value: act.type, description: 'Lifecycle categorization' },
+          { name: 'Trigger Month', value: `Month ${m.month} (${m.calendarLabel})`, description: 'Scheduled timeline placement' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Evaluate lifecycle trigger', formula: 'Execute action before month cash flow', result: 'Preconditions updated' }
+        ],
         legalCitation: 'BEEG & EStG Lifecycle Trigger'
       };
 
@@ -310,6 +464,11 @@ export function getActionFieldExplanation(
         valueFormatted: act.title,
         derivationFormula: `Action Type: ${act.type} (${act.category})`,
         explanation: `${act.description} This action establishes the legal preconditions for subsequent benefits, salary calculations, and tax assessment.`,
+        contributingFactors: [
+          { name: 'Category', value: act.category, description: 'Domain classification' },
+          { name: 'Action Type', value: act.type, description: 'Discrete lifecycle behavior' },
+          { name: 'Parameters', value: act.description, description: 'User-specified settings' }
+        ],
         legalCitation: isTaxSwitch
           ? 'EStG § 38b & BFH Decision VI R 2/13 (Steuerklassenwechsel)'
           : isDelivery
@@ -333,6 +492,9 @@ export function getActionFieldExplanation(
         explanation: act.taxClassLabel
           ? `The spousal tax class is updated to "${act.taxClassLabel}".`
           : 'This action does not alter the spousal tax class.',
+        contributingFactors: [
+          { name: 'Updated Combination', value: act.taxClassLabel || 'Unchanged', description: 'Assigned wage tax classes' }
+        ],
         legalCitation: 'EStG § 38b',
         legalRuleKey: LegalRuleKey.BEEG_TaxSwap
       };
@@ -368,6 +530,11 @@ export function getSpecialEventFieldExplanation(
         valueFormatted: `↳ M${m.month} Event (${m.calendarLabel})`,
         derivationFormula: `Fiscal event triggering in Month ${m.month}`,
         explanation: `This row represents a discrete monetary transaction occurring in Month ${m.month} (${m.calendarLabel}).`,
+        contributingFactors: [
+          { name: 'Event ID', value: ev.eventId, description: 'Ledger item identifier' },
+          { name: 'Transaction Category', value: ev.category, description: 'Fiscal classification' },
+          { name: 'Transaction Amount', value: formatCurrency(ev.amount as number), description: isCost ? 'Expense' : 'Income' }
+        ],
         legalCitation: 'Fiscal Ledger Transaction'
       };
 
@@ -379,6 +546,11 @@ export function getSpecialEventFieldExplanation(
         valueFormatted: ev.title,
         derivationFormula: `Event ID: ${ev.eventId} · Category: ${ev.category}`,
         explanation: `${ev.description || ev.title}. This transaction is credited/debited directly to the household ledger in Month ${m.month}.`,
+        contributingFactors: [
+          { name: 'Event Category', value: ev.category, description: 'Classification' },
+          { name: 'Transaction Type', value: ev.type, description: 'Type identifier' },
+          { name: 'Description', value: ev.description || ev.title, description: 'Operational note' }
+        ],
         legalCitation: ev.type === SpecialEventType.TaxReturnRefund
           ? 'EStG § 26b (Einkommensteuererstattung)'
           : ev.type === SpecialEventType.AnnualSalaryBonus
@@ -398,6 +570,13 @@ export function getSpecialEventFieldExplanation(
         explanation: isCost
           ? `A one-off expenditure of ${formatCurrency(Math.abs(ev.amount as number))} reduces the monthly net inflow and cumulative total.`
           : `A one-off payment of ${formatCurrency(ev.amount as number)} increases the monthly net inflow and cumulative total.`,
+        contributingFactors: [
+          { name: 'Transaction Amount', value: formatCurrency(ev.amount as number), description: isCost ? 'Direct expenditure (Outflow)' : 'Direct income (Inflow)' },
+          { name: 'Ledger Direction', value: isCost ? 'Debit (-)' : 'Credit (+)', description: 'Balance movement' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Apply transaction to monthly net inflow', formula: `${isCost ? '-' : '+'}${formatCurrency(Math.abs(ev.amount as number))}`, result: formatCurrency(ev.amount as number) }
+        ],
         legalCitation: ev.type === SpecialEventType.TaxReturnRefund ? 'EStG § 26b (Zusammenveranlagung)' : undefined,
         legalRuleKey: ev.type === SpecialEventType.TaxReturnRefund ? LegalRuleKey.EStG_TaxSplitting : undefined
       };
@@ -409,6 +588,13 @@ export function getSpecialEventFieldExplanation(
         valueFormatted: formatCurrency(evCumulated),
         derivationFormula: 'Previous Month Cumulative Balance + Prior Events in Month + This Event Amount',
         explanation: `Progressive cumulative total balance immediately after applying this fiscal transaction is ${formatCurrency(evCumulated)}.`,
+        contributingFactors: [
+          { name: 'Balance Prior to Event', value: formatCurrency(evCumulated - (ev.amount as number)), description: 'Prior progressive total' },
+          { name: 'Event Transaction Value', value: `${(ev.amount as number) >= 0 ? '+' : ''}${formatCurrency(ev.amount as number)}`, description: 'Credit or debit' }
+        ],
+        calculationSteps: [
+          { stepNumber: 1, description: 'Update cumulative progressive total', formula: `${formatCurrency(evCumulated - (ev.amount as number))} + ${formatCurrency(ev.amount as number)}`, result: formatCurrency(evCumulated) }
+        ],
         diffVsBFormatted: diffEvCumulated !== 0 ? `${diffEvCumulated > 0 ? '+' : ''}${formatCurrency(diffEvCumulated)} vs B` : undefined
       };
 

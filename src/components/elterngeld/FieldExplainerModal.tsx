@@ -21,8 +21,8 @@ export default function FieldExplainerModal({
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(4px)',
+        background: 'rgba(15, 23, 42, 0.80)',
+        backdropFilter: 'blur(5px)',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
@@ -37,9 +37,11 @@ export default function FieldExplainerModal({
           border: '1px solid #38bdf8',
           borderRadius: '12px',
           padding: '24px',
-          maxWidth: '560px',
+          maxWidth: '620px',
           width: '100%',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 25px 30px -5px rgba(0, 0, 0, 0.6), 0 10px 15px -5px rgba(0, 0, 0, 0.5)',
           display: 'flex',
           flexDirection: 'column',
           gap: '16px',
@@ -51,7 +53,7 @@ export default function FieldExplainerModal({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #334155', paddingBottom: '12px' }}>
           <div>
             <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Field Calculation &amp; Legal Audit
+              Field Calculation &amp; Statutory Audit
             </div>
             <h3 style={{ margin: '4px 0 0 0', fontSize: '1.2rem', color: '#f8fafc', fontWeight: 800 }}>
               {explanation.fieldTitle}
@@ -83,19 +85,111 @@ export default function FieldExplainerModal({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '12px 16px', borderRadius: '8px', border: '1px solid #334155' }}>
           <span style={{ fontSize: '0.84rem', color: '#94a3b8', fontWeight: 600 }}>Active Value:</span>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '1.25rem', fontFamily: 'monospace', fontWeight: 800, color: '#5eead4' }}>
+            <span style={{ fontSize: '1.35rem', fontFamily: 'monospace', fontWeight: 800, color: '#5eead4' }}>
               {explanation.valueFormatted}
             </span>
             {explanation.diffVsBFormatted && (
-              <div style={{ fontSize: '0.72rem', color: '#4ade80', fontWeight: 600 }}>
+              <div style={{ fontSize: '0.74rem', color: '#4ade80', fontWeight: 700 }}>
                 {explanation.diffVsBFormatted}
               </div>
             )}
           </div>
         </div>
 
-        {/* Derivation / Formula Step */}
-        {explanation.derivationFormula && (
+        {/* Contributing Factors & Input Parameters */}
+        {explanation.contributingFactors && explanation.contributingFactors.length > 0 && (
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#38bdf8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              🧩 Contributing Fields &amp; Variables:
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {explanation.contributingFactors.map((factor, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: '#111827',
+                    border: '1px solid #1f2937',
+                    padding: '8px 12px',
+                    borderRadius: '6px'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#f8fafc' }}>
+                      {factor.name}
+                    </div>
+                    {factor.description && (
+                      <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                        {factor.description}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', fontWeight: 700, color: '#fbcfe8' }}>
+                    {factor.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step-by-Step Actual Calculation Breakdown */}
+        {explanation.calculationSteps && explanation.calculationSteps.length > 0 && (
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#a78bfa', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              🧮 Step-by-Step Actual Calculation:
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {explanation.calculationSteps.map((step) => (
+                <div
+                  key={step.stepNumber}
+                  style={{
+                    background: '#111827',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{
+                        background: '#6366f1',
+                        color: '#ffffff',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {step.stepNumber}
+                      </span>
+                      <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f8fafc' }}>
+                        {step.description}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.80rem', fontFamily: 'monospace', fontWeight: 800, color: '#5eead4' }}>
+                      {step.result}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace', background: '#0a0f1d', padding: '4px 8px', borderRadius: '4px', border: '1px solid #1e293b' }}>
+                    {step.formula}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Derivation / Formula Step (Fallback if no steps) */}
+        {(!explanation.calculationSteps || explanation.calculationSteps.length === 0) && explanation.derivationFormula && (
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', marginBottom: '6px' }}>
               🧮 Mathematical Derivation:

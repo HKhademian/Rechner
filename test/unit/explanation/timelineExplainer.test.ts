@@ -115,20 +115,51 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
       }
     });
 
-    it('provides exact mathematical formula for ElterngeldPlus column', () => {
+    it('provides exact mathematical formula and step-by-step calculation for ElterngeldPlus column', () => {
       const m14C = simC.months[13];
       const exp = getFieldExplanation('wifeElterngeld', m14C, undefined, ScenarioId.C);
       assert.equal(exp.valueFormatted, '900\u00a0€');
       assert.ok(exp.derivationFormula?.includes('65%'));
       assert.ok(exp.explanation.includes('Class III'));
+      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 4);
+      assert.ok(exp.contributingFactors.some(f => f.name.includes('Pre-Birth Assessment Net')));
+      assert.ok(exp.contributingFactors.some(f => f.name.includes('Statutory Replacement Rate')));
+      assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 3);
+      assert.equal(exp.calculationSteps[0].stepNumber, 1);
+      assert.ok(exp.calculationSteps[0].formula.includes('-'));
     });
 
-    it('provides exact mathematical formula for Mutterschutz column during protection window', () => {
+    it('provides contributing factors and calculation steps for Father Partner Months (+150 €)', () => {
+      const m14C = simC.months[13];
+      const exp = getFieldExplanation('husbandElterngeld', m14C, undefined, ScenarioId.C);
+      assert.equal(exp.valueFormatted, '150\u00a0€');
+      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
+      assert.ok(exp.contributingFactors.some(f => f.name.includes('Father Post-Birth Hours')));
+      assert.ok(exp.contributingFactors.some(f => f.name.includes('Statutory Minimum Allowance Floor')));
+      assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 2);
+      assert.ok(exp.calculationSteps[1].formula.includes('Max(150'));
+    });
+
+    it('provides exact mathematical formula and steps for Mutterschutz column during protection window', () => {
       const m12C = simC.months[11]; // Delivery month
       const exp = getFieldExplanation('mutterschutz', m12C, undefined, ScenarioId.C);
       assert.ok((m12C.mutterschutz as number) > 0);
       assert.ok(exp.derivationFormula?.includes('100% Net'));
       assert.ok(exp.legalCitation?.includes('MuSchG'));
+      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
+      assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 2);
+    });
+
+    it('provides contributing factors and calculation steps for Net Inflow and Cumulative Total', () => {
+      const m14C = simC.months[13];
+      const m14B = simB.months[13];
+      const netExp = getFieldExplanation('netInflow', m14C, m14B, ScenarioId.C);
+      assert.ok(netExp.contributingFactors && netExp.contributingFactors.length >= 4);
+      assert.ok(netExp.calculationSteps && netExp.calculationSteps.length >= 3);
+
+      const cumExp = getFieldExplanation('cumulativeTotal', m14C, m14B, ScenarioId.C);
+      assert.ok(cumExp.contributingFactors && cumExp.contributingFactors.length >= 2);
+      assert.ok(cumExp.calculationSteps && cumExp.calculationSteps.length >= 2);
     });
   });
 
