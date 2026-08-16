@@ -90,19 +90,19 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
     it('calculates exact annual tax refunds for Year 1 (+3.050 €) and Year 3 (+4.060 €)', () => {
       const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.C });
 
-      // Month 15: Year 1 Return = 8 * 275 (2200) + 850 = 3050 €
+      // Month 15: Year 1 Return = 8 * 275 (2200) + 850 + 31 (Prorated Günstigerprüfung for Dec birth) = 3081 €
       const m15 = res.months[14];
-      assert.equal(m15.taxRefund, 3050);
+      assert.equal(m15.taxRefund, 3081);
 
-      // Month 27: Year 2 Return = 0 deficit + 850 = 850 €
+      // Month 27: Year 2 Return = 0 deficit + 850 + 8 (Günstigerprüfung Child 1) = 858 €
       const m27 = res.months[26];
-      assert.equal(m27.taxRefund, 850);
+      assert.equal(m27.taxRefund, 858);
 
-      // Month 39: Year 3 Return = 6 * 535 (3210) + 850 = 4060 €
+      // Month 39: Year 3 Return = 6 * 535 (3210) + 850 + 8 (Günstigerprüfung Child 1) = 4068 €
       const m39 = res.months[38];
-      assert.equal(m39.taxRefund, 4060);
+      assert.equal(m39.taxRefund, 4068);
 
-      // Month 51: Year 4 Return = 2 * 535 (1070) + 850 = 1920 €
+      // Month 51: Year 4 Return = 2 * 535 (1070) + 850 (Kindergeld floor protected) = 1920 €
       const m51 = res.months[50];
       assert.equal(m51.taxRefund, 1920);
     });
