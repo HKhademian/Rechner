@@ -356,5 +356,129 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       assert.equal(grandTotal, sumSalaries + sumBenefits + sumTax);
       assert.ok(grandTotal > 300000, `5-year grand total (${grandTotal} €) must exceed 300.000 €`);
     });
+
+    it('dynamically processes custom user-added 3rd child pregnancy, custom swap, and merit raises', () => {
+      // 3 Pregnancies: Child 1 (M12), Child 2 (M36), Child 3 (M60)
+      const pregnancies: PregnancyAction[] = [
+        {
+          pregnancyId: 'PREG-1',
+          childIndex: 1,
+          positiveTestCalendarMonth: toCalendarMonth(4),
+          positiveTestCalendarYear: 2026,
+          positiveTestSimulationMonth: toSimulationMonth(4),
+          calculatedDeliverySimulationMonth: toSimulationMonth(12),
+          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          fatherPartnerMonthsCount: 4
+        },
+        {
+          pregnancyId: 'PREG-2',
+          childIndex: 2,
+          positiveTestCalendarMonth: toCalendarMonth(4),
+          positiveTestCalendarYear: 2028,
+          positiveTestSimulationMonth: toSimulationMonth(28),
+          calculatedDeliverySimulationMonth: toSimulationMonth(36),
+          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          fatherPartnerMonthsCount: 4
+        },
+        {
+          pregnancyId: 'PREG-3',
+          childIndex: 3,
+          positiveTestCalendarMonth: toCalendarMonth(4),
+          positiveTestCalendarYear: 2030,
+          positiveTestSimulationMonth: toSimulationMonth(52),
+          calculatedDeliverySimulationMonth: toSimulationMonth(60),
+          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          fatherPartnerMonthsCount: 4
+        }
+      ];
+
+      // 3 Custom Swaps
+      const taxClassSwitches: TaxClassSwitchAction[] = [
+        {
+          switchId: 'SWAP-1',
+          effectiveSimulationMonth: toSimulationMonth(4),
+          effectiveCalendarMonth: toCalendarMonth(4),
+          effectiveCalendarYear: 2026,
+          targetHusbandTaxClass: TaxClass.V,
+          targetWifeTaxClass: TaxClass.III,
+          statutoryReason: 'Swap 1 (§ 2b BEEG)',
+          revertSimulationMonth: toSimulationMonth(12)
+        },
+        {
+          switchId: 'SWAP-2',
+          effectiveSimulationMonth: toSimulationMonth(28),
+          effectiveCalendarMonth: toCalendarMonth(4),
+          effectiveCalendarYear: 2028,
+          targetHusbandTaxClass: TaxClass.V,
+          targetWifeTaxClass: TaxClass.III,
+          statutoryReason: 'Swap 2 (§ 2b BEEG)',
+          revertSimulationMonth: toSimulationMonth(36)
+        },
+        {
+          switchId: 'SWAP-3',
+          effectiveSimulationMonth: toSimulationMonth(52),
+          effectiveCalendarMonth: toCalendarMonth(4),
+          effectiveCalendarYear: 2030,
+          targetHusbandTaxClass: TaxClass.V,
+          targetWifeTaxClass: TaxClass.III,
+          statutoryReason: 'Swap 3 (§ 2b BEEG)',
+          revertSimulationMonth: toSimulationMonth(60)
+        }
+      ];
+
+      // Custom Raises
+      const salaryRaises: SalaryRaiseAction[] = [
+        {
+          raiseId: 'RAISE-HUSBAND-PROMOTION',
+          effectiveSimulationMonth: toSimulationMonth(25),
+          effectiveCalendarMonth: toCalendarMonth(1),
+          effectiveCalendarYear: 2028,
+          targetPerson: 'husband',
+          percentageIncrease: 0.10, // +10% Husband Promotion
+          reason: 'Senior Staff Promotion'
+        },
+        {
+          raiseId: 'RAISE-WIFE-PROMOTION',
+          effectiveSimulationMonth: toSimulationMonth(40),
+          effectiveCalendarMonth: toCalendarMonth(4),
+          effectiveCalendarYear: 2029,
+          targetPerson: 'wife',
+          percentageIncrease: 0.08, // +8% Wife Merit Step
+          reason: 'Wife Merit Step'
+        }
+      ];
+
+      const res = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies,
+        taxClassSwitches,
+        salaryRaises
+      });
+
+      assert.equal(res.months.length, 60);
+
+      // Verify Month 12 is Delivery 1
+      assert.equal(res.months[11].relativeBirthLabel, 'M+8 (Birth 1)');
+
+      // Verify Month 25 husband salary has +10% raise
+      const m24Husband = res.months[23].husbandSalary as number;
+      const m25Husband = res.months[24].husbandSalary as number;
+      assert.equal(m25Husband, Math.round(m24Husband * 1.10));
+
+      // Verify Month 52 is Swap 3 active
+      assert.equal(res.months[51].isSwapActive, true);
+      assert.match(res.months[51].taxClassLabel, /H: V/);
+      assert.match(res.months[51].taxClassLabel, /W: III/);
+
+      // Verify Month 60 is Delivery 3
+      assert.equal(res.months[59].isMutterschutz, true);
+    });
   });
 });

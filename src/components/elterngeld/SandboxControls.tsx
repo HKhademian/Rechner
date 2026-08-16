@@ -25,8 +25,24 @@ import {
   birthSpacingMonths,
   swapLeadMonths,
   setPregnancy1PositiveDate,
+  customPregnancies,
+  customTaxClassSwitches,
+  customSalaryRaises,
+  addPregnancyAction,
+  removePregnancyAction,
+  addTaxClassSwitchAction,
+  removeTaxClassSwitchAction,
+  addSalaryRaiseAction,
+  removeSalaryRaiseAction,
   resetToDefaults
 } from '#store/elterngeldStore';
+import {
+  TaxClass,
+  toSimulationMonth,
+  toCalendarMonth,
+  toEuroAmount,
+  toNetSalary
+} from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
@@ -386,90 +402,157 @@ export default function SandboxControls(): JSX.Element {
                   1. Pregnancy Positive Decisions
                 </span>
                 <span style={{ fontSize: '0.68rem', color: '#fbcfe8', background: '#831843', padding: '2px 6px', borderRadius: '4px' }}>
-                  2 Pregnancies Active
+                  {customPregnancies.value.length} Pregnancies Active
                 </span>
               </div>
 
-              {/* Child 1 Pregnancy Milestone */}
-              <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
-                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '6px' }}>
-                  Child 1 Positive Pregnancy Test Date:
-                </div>
+              {/* Dynamic Pregnancies List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+                {customPregnancies.value.map((preg, idx) => {
+                  const pSimMonth = preg.positiveTestSimulationMonth as number;
+                  const dSimMonth = preg.calculatedDeliverySimulationMonth as number;
+                  const isFirst = idx === 0;
 
-                {/* Year & Month Selectors */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                  <div>
-                    <label style={{ fontSize: '0.70rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
-                      Positive Month:
-                    </label>
-                    <select
-                      value={((startCalendarMonth.value - 1 + preg1SimMonth - 1) % 12) + 1}
-                      onChange={(e) => {
-                        const m = Number((e.target as HTMLSelectElement).value);
-                        const curY = startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (preg1SimMonth - 1)) / 12);
-                        setPregnancy1PositiveDate(curY, m);
-                      }}
-                      style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '4px 6px', fontSize: '0.75rem', fontWeight: 700 }}
+                  return (
+                    <div
+                      key={preg.pregnancyId || `preg-${idx}`}
+                      style={{ background: '#1e293b', padding: '10px', borderRadius: '6px', border: '1px solid #334155' }}
                     >
-                      {MONTH_NAMES.map((name, idx) => (
-                        <option key={idx + 1} value={idx + 1}>{name.slice(0, 15)}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.70rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
-                      Positive Year:
-                    </label>
-                    <select
-                      value={startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (preg1SimMonth - 1)) / 12)}
-                      onChange={(e) => {
-                        const y = Number((e.target as HTMLSelectElement).value);
-                        const curM = ((startCalendarMonth.value - 1 + preg1SimMonth - 1) % 12) + 1;
-                        setPregnancy1PositiveDate(y, curM);
-                      }}
-                      style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '4px 6px', fontSize: '0.75rem', fontWeight: 700 }}
-                    >
-                      {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f472b6' }}>
+                          Child #{preg.childIndex} Pregnancy
+                        </span>
+                        {customPregnancies.value.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removePregnancyAction(preg.pregnancyId)}
+                            style={{
+                              background: '#7f1d1d',
+                              color: '#fca5a5',
+                              border: 'none',
+                              borderRadius: '3px',
+                              padding: '2px 6px',
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✕ Remove
+                          </button>
+                        )}
+                      </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '4px' }}>
-                  <span>Positive: <strong style={{ color: '#f472b6' }}>{getCalDate(preg1SimMonth)}</strong> (M0)</span>
-                  <span>Birth 1: <strong style={{ color: '#5eead4' }}>{getCalDate(b1SimMonth)}</strong> (M+{b1SimMonth - preg1SimMonth})</span>
-                </div>
-                <div style={{ fontSize: '0.68rem', color: '#94a3b8', background: '#0f172a', padding: '4px 6px', borderRadius: '3px' }}>
-                  ↳ Sim Start: <strong>01.{startCalendarYear.value}</strong> ({prePregnancyPlanningMonths.value}M before preg, snapped from -3M)
-                </div>
+                      {isFirst ? (
+                        <div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '6px' }}>
+                            <div>
+                              <label style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                                Positive Month:
+                              </label>
+                              <select
+                                value={((startCalendarMonth.value - 1 + pSimMonth - 1) % 12) + 1}
+                                onChange={(e) => {
+                                  const m = Number((e.target as HTMLSelectElement).value);
+                                  const curY = startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (pSimMonth - 1)) / 12);
+                                  setPregnancy1PositiveDate(curY, m);
+                                }}
+                                style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '3px 4px', fontSize: '0.72rem', fontWeight: 700 }}
+                              >
+                                {MONTH_NAMES.map((name, mIdx) => (
+                                  <option key={mIdx + 1} value={mIdx + 1}>{name.slice(0, 14)}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                                Positive Year:
+                              </label>
+                              <select
+                                value={startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (pSimMonth - 1)) / 12)}
+                                onChange={(e) => {
+                                  const y = Number((e.target as HTMLSelectElement).value);
+                                  const curM = ((startCalendarMonth.value - 1 + pSimMonth - 1) % 12) + 1;
+                                  setPregnancy1PositiveDate(y, curM);
+                                }}
+                                style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '3px 4px', fontSize: '0.72rem', fontWeight: 700 }}
+                              >
+                                {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
+                                  <option key={y} value={y}>{y}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                            <span>Positive: <strong style={{ color: '#f472b6' }}>{getCalDate(pSimMonth)}</strong> (M0)</span>
+                            <span>Birth 1: <strong style={{ color: '#5eead4' }}>{getCalDate(dSimMonth)}</strong> (M+{dSimMonth - pSimMonth})</span>
+                          </div>
+                          <div style={{ fontSize: '0.65rem', color: '#94a3b8', background: '#0f172a', padding: '3px 5px', borderRadius: '3px' }}>
+                            ↳ Sim Start: <strong>01.{startCalendarYear.value}</strong> ({prePregnancyPlanningMonths.value}M before preg)
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                            <span>Positive: <strong style={{ color: '#f472b6' }}>{getCalDate(pSimMonth)}</strong> (M{pSimMonth})</span>
+                            <span>Birth #{preg.childIndex}: <strong style={{ color: '#5eead4' }}>{getCalDate(dSimMonth)}</strong> (M{dSimMonth})</span>
+                          </div>
+                          <div style={{ fontSize: '0.66rem', color: (dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)) < 36 ? '#4ade80' : '#fbbf24' }}>
+                            {(dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)) < 36
+                              ? `✓ Sibling Bonus (+10%) eligible (${dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)}M spacing)`
+                              : `✗ Sibling bonus expired (${dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)}M spacing)`}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Child 2 Pregnancy Milestone & Spacing */}
-              <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
-                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '4px' }}>
-                  Child 2 Pregnancy & Spacing:
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1' }}>
-                  <span>Birth 2 Date: <strong>{getCalDate(b2SimMonth)}</strong> (M{b2SimMonth})</span>
-                  <span>Spacing: <strong>{birthSpacingMonths.value}M</strong></span>
-                </div>
-                <input
-                  type="range"
-                  min="12"
-                  max="42"
-                  step="1"
-                  value={birthSpacingMonths.value}
-                  onInput={(e) => { birthSpacingMonths.value = Number((e.target as HTMLInputElement).value); }}
-                />
-                <div style={{ fontSize: '0.68rem', color: birthSpacingMonths.value < 36 ? '#4ade80' : '#fbbf24', marginTop: '2px' }}>
-                  {birthSpacingMonths.value < 36 ? '✓ Sibling Bonus (+10%) eligible' : '✗ Sibling bonus expired (≥36M)'}
-                </div>
-              </div>
+              {/* Add Pregnancy Action Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const count = customPregnancies.value.length;
+                  const lastPreg = customPregnancies.value[count - 1];
+                  const lastDelivery = (lastPreg?.calculatedDeliverySimulationMonth as number) || 17;
+                  const newDelivery = lastDelivery + 24;
+                  const newPositive = newDelivery - 8;
+                  const totalElapsed = (startCalendarMonth.value - 1) + (newPositive - 1);
+                  const pMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                  const pYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                  addPregnancyAction({
+                    pregnancyId: `PREG-CHILD-${count + 1}`,
+                    childIndex: count + 1,
+                    positiveTestCalendarMonth: pMonth,
+                    positiveTestCalendarYear: pYear,
+                    positiveTestSimulationMonth: toSimulationMonth(newPositive),
+                    calculatedDeliverySimulationMonth: toSimulationMonth(newDelivery),
+                    motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+                    motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+                    motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+                    fatherPartnerMonthsCount: 4
+                  });
+                }}
+                style={{
+                  width: '100%',
+                  padding: '7px',
+                  background: '#831843',
+                  color: '#fbcfe8',
+                  border: '1px solid #be185d',
+                  borderRadius: '5px',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  marginBottom: '10px'
+                }}
+              >
+                ➕ Add Pregnancy (Child #{customPregnancies.value.length + 1})
+              </button>
 
               {/* Wife Post-Birth Part-Time Net */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', marginBottom: '2px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
                   <span style={{ color: '#cbd5e1' }}>Post-Birth Part-Time (24h Net):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
                     {formatCurrency(wifeClass5PartTimeNet.value)}
@@ -508,55 +591,98 @@ export default function SandboxControls(): JSX.Element {
                   2. Tax Class Switches
                 </span>
                 <span style={{ fontSize: '0.68rem', color: '#86efac', background: '#14532d', padding: '2px 6px', borderRadius: '4px' }}>
-                  § 2b BEEG
+                  {customTaxClassSwitches.value.length} Switches Active
                 </span>
               </div>
 
-              {/* Active Swap Schedule Badge */}
-              <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
-                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#86efac', marginBottom: '4px' }}>
-                  Active Tax Class Switch Windows:
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '3px' }}>
-                  <span>Swap 1 (Child 1):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
-                    {getCalDate(Math.max(1, (child1BirthMonth.value - 1) - swapLeadMonths.value))} (M{Math.max(1, (child1BirthMonth.value - 1) - swapLeadMonths.value)}) → {getCalDate(child1BirthMonth.value)} (M{child1BirthMonth.value})
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1' }}>
-                  <span>Swap 2 (Child 2):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
-                    {getCalDate(Math.max(child1BirthMonth.value + 2, (child1BirthMonth.value + birthSpacingMonths.value - 1) - swapLeadMonths.value))} (M{Math.max(child1BirthMonth.value + 2, (child1BirthMonth.value + birthSpacingMonths.value - 1) - swapLeadMonths.value)}) → {getCalDate(child1BirthMonth.value + birthSpacingMonths.value)} (M{child1BirthMonth.value + birthSpacingMonths.value})
-                  </span>
-                </div>
+              {/* Dynamic Tax Class Switches List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                {customTaxClassSwitches.value.map((sw, idx) => {
+                  const sMonth = sw.effectiveSimulationMonth as number;
+                  const rMonth = sw.revertSimulationMonth as number;
+
+                  return (
+                    <div
+                      key={sw.switchId || `switch-${idx}`}
+                      style={{ background: '#1e293b', padding: '8px 10px', borderRadius: '5px', border: '1px solid #334155' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#4ade80' }}>
+                          Switch #{idx + 1}: H: {sw.targetHusbandTaxClass} | W: {sw.targetWifeTaxClass}
+                        </span>
+                        {customTaxClassSwitches.value.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeTaxClassSwitchAction(sw.switchId)}
+                            style={{
+                              background: '#7f1d1d',
+                              color: '#fca5a5',
+                              border: 'none',
+                              borderRadius: '3px',
+                              padding: '2px 5px',
+                              fontSize: '0.62rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '2px' }}>
+                        <span>Effective: <strong style={{ color: '#86efac' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
+                        <span>Revert: <strong style={{ color: '#fbbf24' }}>{getCalDate(rMonth)}</strong> (M{rMonth})</span>
+                      </div>
+                      <div style={{ fontSize: '0.64rem', color: '#94a3b8' }}>
+                        ↳ {sw.statutoryReason}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Swap Lead Time */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Proactive Switch Lead Time:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
-                    {swapLeadMonths.value} Months pre-maternity
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="12"
-                  step="1"
-                  value={swapLeadMonths.value}
-                  onInput={(e) => { swapLeadMonths.value = Number((e.target as HTMLInputElement).value); }}
-                />
-                <div style={{ fontSize: '0.68rem', color: swapLeadMonths.value >= 7 ? '#4ade80' : '#ef4444', marginTop: '2px' }}>
-                  {swapLeadMonths.value >= 7
-                    ? '✓ 7+ months guarantee Class III dominance (*Überwiegende Steuerklasse*)'
-                    : '⚠ <7 months risks default to Class V under § 2b BEEG'}
-                </div>
-              </div>
+              {/* Add Tax Class Switch Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const count = customTaxClassSwitches.value.length;
+                  const nextChild = customPregnancies.value[count] || customPregnancies.value[customPregnancies.value.length - 1];
+                  const delivery = (nextChild?.calculatedDeliverySimulationMonth as number) || 44;
+                  const start = Math.max(1, delivery - 8);
+                  const totalElapsed = (startCalendarMonth.value - 1) + (start - 1);
+                  const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                  const sYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                  addTaxClassSwitchAction({
+                    switchId: `SWAP-CHILD-${count + 1}`,
+                    effectiveSimulationMonth: toSimulationMonth(start),
+                    effectiveCalendarMonth: sMonth,
+                    effectiveCalendarYear: sYear,
+                    targetHusbandTaxClass: TaxClass.V,
+                    targetWifeTaxClass: TaxClass.III,
+                    statutoryReason: `Optimize Child ${count + 1} Elterngeld assessment baseline (§ 2b BEEG)`,
+                    revertSimulationMonth: toSimulationMonth(delivery)
+                  });
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px',
+                  background: '#14532d',
+                  color: '#86efac',
+                  border: '1px solid #16a34a',
+                  borderRadius: '4px',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  marginBottom: '10px'
+                }}
+              >
+                ➕ Add Tax Class Switch (Swap #{customTaxClassSwitches.value.length + 1})
+              </button>
 
               {/* Wife Optimized Class III FT Net */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
                   <span style={{ color: '#cbd5e1' }}>Wife Net in Class III (Full-Time):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
                     {formatCurrency(wifeClass3FullTimeNet.value)}
@@ -573,8 +699,8 @@ export default function SandboxControls(): JSX.Element {
               </div>
 
               {/* Husband Class V Net during Swap */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '2px' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
                   <span style={{ color: '#cbd5e1' }}>Husband Net in Class V (Swap):</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fbbf24' }}>
                     {formatCurrency(husbandClass5Net.value)}
@@ -588,10 +714,6 @@ export default function SandboxControls(): JSX.Element {
                   value={husbandClass5Net.value}
                   onInput={(e) => { husbandClass5Net.value = Number((e.target as HTMLInputElement).value); }}
                 />
-              </div>
-
-              <div style={{ fontSize: '0.7rem', color: '#94a3b8', background: '#1e293b', padding: '6px 8px', borderRadius: '4px' }}>
-                Interim withholding deficit: -{formatCurrency(husbandClass3Net.value - husbandClass5Net.value)}/mo (reconciled in March tax return).
               </div>
             </div>
 
@@ -616,57 +738,86 @@ export default function SandboxControls(): JSX.Element {
                 <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#fbbf24' }}>
                   3. Salary Raises & Career
                 </span>
-                <button
-                  type="button"
-                  onClick={() => { enableSalaryRaises.value = !enableSalaryRaises.value; }}
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    border: enableSalaryRaises.value ? '1px solid #f59e0b' : '1px solid #334155',
-                    background: enableSalaryRaises.value ? '#78350f' : '#1e293b',
-                    color: enableSalaryRaises.value ? '#fde68a' : '#94a3b8',
-                    fontSize: '0.68rem',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {enableSalaryRaises.value ? 'Enabled' : 'Disabled'}
-                </button>
+                <span style={{ fontSize: '0.68rem', color: '#fde68a', background: '#78350f', padding: '2px 6px', borderRadius: '4px' }}>
+                  {customSalaryRaises.value.length} Raises Active
+                </span>
               </div>
 
-              {/* Annual Raise Percentage Selector */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Annual Wage Growth Rate:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fde68a' }}>
-                    +{annualSalaryRaisePercent.value}% / year
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                  {[0, 2, 3, 5].map((pct) => (
-                    <button
-                      key={`pct-btn-${pct}`}
-                      type="button"
-                      onClick={() => {
-                        enableSalaryRaises.value = pct > 0;
-                        annualSalaryRaisePercent.value = pct;
-                      }}
-                      style={{
-                        padding: '3px 8px',
-                        borderRadius: '3px',
-                        border: annualSalaryRaisePercent.value === pct ? '1px solid #f59e0b' : '1px solid #334155',
-                        background: annualSalaryRaisePercent.value === pct ? '#78350f' : '#0f172a',
-                        color: annualSalaryRaisePercent.value === pct ? '#fde68a' : '#94a3b8',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
+              {/* Dynamic Salary Raises List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                {customSalaryRaises.value.map((sr, idx) => {
+                  const sMonth = sr.effectiveSimulationMonth as number;
+
+                  return (
+                    <div
+                      key={sr.raiseId || `raise-${idx}`}
+                      style={{ background: '#1e293b', padding: '8px 10px', borderRadius: '5px', border: '1px solid #334155' }}
                     >
-                      {pct === 0 ? 'Static (0%)' : `+${pct}% / yr`}
-                    </button>
-                  ))}
-                </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#fbbf24' }}>
+                          Raise #{idx + 1}: {sr.targetPerson.toUpperCase()} (+{((sr.percentageIncrease || 0) * 100).toFixed(0)}%)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeSalaryRaiseAction(sr.raiseId)}
+                          style={{
+                            background: '#7f1d1d',
+                            color: '#fca5a5',
+                            border: 'none',
+                            borderRadius: '3px',
+                            padding: '2px 5px',
+                            fontSize: '0.62rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1' }}>
+                        <span>Effective: <strong style={{ color: '#fde68a' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{sr.reason}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+
+              {/* Add Career Raise Action Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const count = customSalaryRaises.value.length;
+                  const newSimMonth = (count + 2) * 12 + 1;
+                  const totalElapsed = (startCalendarMonth.value - 1) + (newSimMonth - 1);
+                  const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                  const sYear = startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                  addSalaryRaiseAction({
+                    raiseId: `RAISE-CUSTOM-${count + 1}`,
+                    effectiveSimulationMonth: toSimulationMonth(Math.min(simulationDurationMonths.value, newSimMonth)),
+                    effectiveCalendarMonth: sMonth,
+                    effectiveCalendarYear: sYear,
+                    targetPerson: 'both',
+                    percentageIncrease: 0.05,
+                    reason: `Merit Promotion / Tariff Adjustment (+5%)`
+                  });
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px',
+                  background: '#78350f',
+                  color: '#fde68a',
+                  border: '1px solid #d97706',
+                  borderRadius: '4px',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  marginBottom: '10px'
+                }}
+              >
+                ➕ Add Career Raise / Promotion
+              </button>
 
               {/* 13th Salary Toggle & Controls */}
               <div style={{ borderTop: '1px solid #334155', paddingTop: '10px' }}>
