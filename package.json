@@ -13,12 +13,12 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "sim": "node src/cli/runner.ts",
-    "test": "node --test 'test/**/*.test.ts'"
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro preview",
+    "astro": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro",
+    "sim": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node src/cli/runner.ts",
+    "test": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node --test 'test/**/*.test.ts'"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.1",

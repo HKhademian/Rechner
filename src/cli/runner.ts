@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
+// Universal Telemetry & Analytics Opt-Out
+process.env.ASTRO_TELEMETRY_DISABLED = '1';
+process.env.DO_NOT_TRACK = '1';
+process.env.NEXT_TELEMETRY_DISABLED = '1';
+process.env.VITE_TELEMETRY_DISABLED = '1';
+process.env.CHECKPOINT_DISABLE = '1';
+
 /**
  * Headless CLI Scenario Runner for German Elterngeld Financial Simulator
  *
- * Runs deterministic multi-year scenarios (Batches 0..3) directly in Node.js
+ * Runs deterministic multi-year scenarios (Batches 0..4) directly in Node.js
  * without requiring web browser rendering or DOM captures.
  */
 
