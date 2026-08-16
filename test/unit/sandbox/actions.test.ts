@@ -12,10 +12,13 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toFinancialEventId,
+  FinancialEventCategory,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
-  type SalaryRaiseAction
+  type SalaryRaiseAction,
+  type FinancialEventAction
 } from '#engine/types';
 
 describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
@@ -500,6 +503,142 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // Month 25 has Husband Merit Promotion
       assert.ok(res.months[24].startingActions && res.months[24].startingActions.length >= 1);
       assert.ok(res.months[24].startingActions![0].title.includes('Salary Raise Effective (HUSBAND +10%)'));
+    });
+  });
+
+  describe('Batch 4: Financial Events (One-Off Costs, Expenses & Inflows)', () => {
+    it('injects one-off family expense event into specialEvents and reduces monthlyTotal and grandTotal', () => {
+      const financialEvents: FinancialEventAction[] = [
+        {
+          eventId: toFinancialEventId('FIN-EQUIPMENT-1'),
+          effectiveSimulationMonth: toSimulationMonth(17),
+          effectiveCalendarMonth: toCalendarMonth(5),
+          effectiveCalendarYear: 2027,
+          title: 'Baby Initial Equipment',
+          amount: toEuroAmount(-1500),
+          category: FinancialEventCategory.BabyEquipment,
+          description: 'Nursery crib and stroller'
+        }
+      ];
+
+      const resBaseline = runScenarioBatches({
+        scenarioKey: ScenarioId.B,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents: []
+      });
+
+      const resWithCost = runScenarioBatches({
+        scenarioKey: ScenarioId.B,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents
+      });
+
+      const m17Baseline = resBaseline.months[16];
+      const m17Cost = resWithCost.months[16];
+
+      // Verify Special Event Item in Month 17
+      assert.ok(m17Cost.specialEvents.some(e => e.eventId === 'FIN-EQUIPMENT-1'));
+      const ev = m17Cost.specialEvents.find(e => e.eventId === 'FIN-EQUIPMENT-1')!;
+      assert.equal(ev.amount, -1500);
+
+      // Verify monthly total is exactly -1500 less than baseline
+      assert.equal((m17Cost.monthlyTotal as number), (m17Baseline.monthlyTotal as number) - 1500);
+
+      // Verify 60-month grandTotal is reduced by 1500
+      assert.equal((resWithCost.summary.grandTotal as number), (resBaseline.summary.grandTotal as number) - 1500);
+    });
+
+    it('injects one-off inflow grant event into specialEvents and increases monthlyTotal and grandTotal', () => {
+      const financialEvents: FinancialEventAction[] = [
+        {
+          eventId: toFinancialEventId('FIN-BONUS-GRANT'),
+          effectiveSimulationMonth: toSimulationMonth(12),
+          effectiveCalendarMonth: toCalendarMonth(12),
+          effectiveCalendarYear: 2026,
+          title: 'Employer Family Inflow Grant',
+          amount: toEuroAmount(2500),
+          category: FinancialEventCategory.CareerBonus,
+          description: 'Performance bonus grant'
+        }
+      ];
+
+      const resBaseline = runScenarioBatches({
+        scenarioKey: ScenarioId.B,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents: []
+      });
+
+      const resWithIncome = runScenarioBatches({
+        scenarioKey: ScenarioId.B,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents
+      });
+
+      const m12Baseline = resBaseline.months[11];
+      const m12Income = resWithIncome.months[11];
+
+      // Verify Special Event Item in Month 12
+      assert.ok(m12Income.specialEvents.some(e => e.eventId === 'FIN-BONUS-GRANT'));
+      const ev = m12Income.specialEvents.find(e => e.eventId === 'FIN-BONUS-GRANT')!;
+      assert.equal(ev.amount, 2500);
+
+      // Verify monthly total is exactly +2500 greater than baseline
+      assert.equal((m12Income.monthlyTotal as number), (m12Baseline.monthlyTotal as number) + 2500);
+
+      // Verify 60-month grandTotal is increased by 2500
+      assert.equal((resWithIncome.summary.grandTotal as number), (resBaseline.summary.grandTotal as number) + 2500);
+    });
+
+    it('supports scenario-specific financial events scoping when appliesToScenarios is set', () => {
+      const financialEvents: FinancialEventAction[] = [
+        {
+          eventId: toFinancialEventId('FIN-SCENARIO-C-ONLY'),
+          effectiveSimulationMonth: toSimulationMonth(20),
+          effectiveCalendarMonth: toCalendarMonth(8),
+          effectiveCalendarYear: 2027,
+          title: 'Scenario C Specific Investment',
+          amount: toEuroAmount(-3000),
+          category: FinancialEventCategory.CustomSpecial,
+          description: 'Private childcare fund',
+          appliesToScenarios: [ScenarioId.C]
+        }
+      ];
+
+      const resB = runScenarioBatches({
+        scenarioKey: ScenarioId.B,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents
+      });
+
+      const resC = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        financialEvents
+      });
+
+      // Scenario B should NOT have the event
+      assert.ok(!resB.months[19].specialEvents.some(e => e.eventId === 'FIN-SCENARIO-C-ONLY'));
+
+      // Scenario C SHOULD have the event
+      assert.ok(resC.months[19].specialEvents.some(e => e.eventId === 'FIN-SCENARIO-C-ONLY'));
     });
   });
 });

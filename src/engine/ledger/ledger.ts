@@ -72,7 +72,13 @@ export function buildMonthlyLedgerEntry(
   const taxRefund = input.taxRefund as number;
 
   const regularMonthlyTotal = hSalary + wSalary + mutterschutz + wElterngeld + hElterngeld + kindergeld;
-  const specialEventsTotal = specialBonusTotal + taxRefund;
+  
+  // Dynamically sum all financial special events (13th salaries, tax returns, and custom costs/income)
+  const specialEventsSum = (input.specialEvents && input.specialEvents.length > 0)
+    ? input.specialEvents.reduce((sum, ev) => sum + (ev.amount as number), 0)
+    : (specialBonusTotal + taxRefund);
+
+  const specialEventsTotal = specialEventsSum;
   const monthlyTotal = regularMonthlyTotal + specialEventsTotal;
 
   const earnedSalaries = hSalary + wSalary + specialBonusTotal;

@@ -16,11 +16,13 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toFinancialEventId,
   toTaxClass,
   toScenarioId,
   toActionCategory,
   toActionType,
   toTargetPerson,
+  toFinancialEventCategory,
   TaxClass,
   ScenarioId,
   TransactionType,
@@ -29,6 +31,7 @@ import {
   SpecialEventCategory,
   ActionCategory,
   ActionType,
+  FinancialEventCategory,
   TargetPerson
 } from '#engine/types';
 
@@ -240,7 +243,7 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.throws(() => toTargetPerson('other'), TypeError);
     });
 
-    it('toActionId, toPregnancyId, toSwitchId, and toRaiseId brand valid strings and reject invalid inputs', () => {
+    it('toActionId, toPregnancyId, toSwitchId, toRaiseId, and toFinancialEventId brand valid strings and reject invalid inputs', () => {
       assert.equal(toActionId('ACT-1'), 'ACT-1');
       assert.throws(() => toActionId(''), TypeError);
 
@@ -252,6 +255,18 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
 
       assert.equal(toRaiseId('RAISE-1'), 'RAISE-1');
       assert.throws(() => toRaiseId(''), TypeError);
+
+      assert.equal(toFinancialEventId('FIN-1'), 'FIN-1');
+      assert.throws(() => toFinancialEventId(''), TypeError);
+    });
+
+    it('FinancialEventCategory const enum and guard validate known categories', () => {
+      assert.equal(FinancialEventCategory.BabyEquipment, 'Baby Equipment (*Erstausstattung*)');
+      assert.equal(FinancialEventCategory.ChildcareFees, 'Childcare (*Kita/Betreuung*)');
+      assert.equal(FinancialEventCategory.CareerBonus, 'Career & Bonus (*Sonderzahlung*)');
+
+      assert.equal(toFinancialEventCategory('Baby Equipment (*Erstausstattung*)'), FinancialEventCategory.BabyEquipment);
+      assert.throws(() => toFinancialEventCategory('invalid-cat'), TypeError);
     });
   });
 });

@@ -86,5 +86,152 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
         assert.equal(entry.monthlyTotal, expectedTotal);
       }
     });
+
+    it('correctly handles costing/expense events (negative amounts) reducing monthlyTotal and cumulatedTotal', () => {
+      const sMonth = toSimulationMonth(17);
+      const cy = toCalendarYear(2);
+      const cm = toCalendarMonth(5);
+
+      const hSalary = toEuroAmount(2895);
+      const wSalary = toEuroAmount(0);
+      const mutterschutz = toEuroAmount(2603);
+      const kindergeld = toEuroAmount(259);
+
+      // One-off baby equipment cost (-1500 €)
+      const costEvent = {
+        eventId: 'EVENT-M17-EQUIPMENT' as any,
+        month: sMonth,
+        year: cy,
+        calendarYearNum: 2027,
+        calendarMonthNum: cm,
+        calendarLabel: '05.2027',
+        relativeBirthLabel: 'Birth M0',
+        type: 'custom_cost' as any,
+        title: 'Child #1 Initial Equipment',
+        category: 'Baby Equipment (*Erstausstattung*)' as any,
+        statutory: 'Out-of-Pocket Expense' as any,
+        taxClassLabel: 'H: V | W: III',
+        amount: toEuroAmount(-1500),
+        description: 'Baby nursery and stroller'
+      };
+
+      const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
+        {
+          month: sMonth,
+          year: cy,
+          monthInYear: cm,
+          calendarYearNum: 2027,
+          calendarMonthNum: cm,
+          calendarLabel: '05.2027',
+          relativeBirthLabel: 'Birth M0',
+          husbandSalary: hSalary,
+          wifeSalary: wSalary,
+          mutterschutz,
+          wifeElterngeld: toEuroAmount(0),
+          husbandElterngeld: toEuroAmount(0),
+          kindergeld,
+          taxRefund: toEuroAmount(0),
+          bonus40Amount: toEuroAmount(0),
+          bonus60Amount: toEuroAmount(0),
+          specialEvents: [costEvent],
+          taxClassLabel: 'H: V | W: III',
+          phaseLabel: 'Post-Birth Mutterschutz',
+          eventTag: null,
+          eventType: null,
+          isSwapActive: true,
+          isMutterschutz: true,
+          isPartnerschaftsbonus: false,
+          hasSiblingBonus: false,
+          transactions: []
+        },
+        50000,
+        10000,
+        850,
+        60850
+      );
+
+      const regularTotal = 2895 + 2603 + 259; // 5738 €
+      const expectedSpecial = -1500;
+      const expectedMonthly = regularTotal - 1500; // 4238 €
+
+      assert.equal(entry.regularMonthlyTotal, regularTotal);
+      assert.equal(entry.specialEventsTotal, expectedSpecial);
+      assert.equal(entry.monthlyTotal, expectedMonthly);
+      assert.equal(nextCumulatedTotal, 60850 + expectedMonthly);
+      assert.equal(entry.cumulatedTotal, 60850 + expectedMonthly);
+    });
+
+    it('correctly handles generating/inflow events (positive amounts) increasing monthlyTotal and cumulatedTotal', () => {
+      const sMonth = toSimulationMonth(12);
+      const cy = toCalendarYear(1);
+      const cm = toCalendarMonth(12);
+
+      const hSalary = toEuroAmount(2895);
+      const wSalary = toEuroAmount(1975);
+      const kindergeld = toEuroAmount(0);
+
+      // One-off bonus grant (+2000 €)
+      const grantEvent = {
+        eventId: 'EVENT-M12-GRANT' as any,
+        month: sMonth,
+        year: cy,
+        calendarYearNum: 2026,
+        calendarMonthNum: cm,
+        calendarLabel: '12.2026',
+        relativeBirthLabel: 'M-5',
+        type: 'custom_income' as any,
+        title: 'Employer Family Grant',
+        category: 'Career & Bonus (*Sonderzahlung*)' as any,
+        statutory: 'Special Financial Inflow' as any,
+        taxClassLabel: 'H: III | W: V',
+        amount: toEuroAmount(2000),
+        description: 'Employer one-off family grant'
+      };
+
+      const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
+        {
+          month: sMonth,
+          year: cy,
+          monthInYear: cm,
+          calendarYearNum: 2026,
+          calendarMonthNum: cm,
+          calendarLabel: '12.2026',
+          relativeBirthLabel: 'M-5',
+          husbandSalary: hSalary,
+          wifeSalary: wSalary,
+          mutterschutz: toEuroAmount(0),
+          wifeElterngeld: toEuroAmount(0),
+          husbandElterngeld: toEuroAmount(0),
+          kindergeld,
+          taxRefund: toEuroAmount(0),
+          bonus40Amount: toEuroAmount(0),
+          bonus60Amount: toEuroAmount(0),
+          specialEvents: [grantEvent],
+          taxClassLabel: 'H: III | W: V',
+          phaseLabel: 'Pre-Pregnancy Planning',
+          eventTag: null,
+          eventType: null,
+          isSwapActive: false,
+          isMutterschutz: false,
+          isPartnerschaftsbonus: false,
+          hasSiblingBonus: false,
+          transactions: []
+        },
+        60000,
+        0,
+        0,
+        60000
+      );
+
+      const regularTotal = 2895 + 1975; // 6125 €
+      const expectedSpecial = 2000;
+      const expectedMonthly = regularTotal + expectedSpecial; // 6935 €
+
+      assert.equal(entry.regularMonthlyTotal, regularTotal);
+      assert.equal(entry.specialEventsTotal, expectedSpecial);
+      assert.equal(entry.monthlyTotal, expectedMonthly);
+      assert.equal(nextCumulatedTotal, 60000 + expectedMonthly);
+      assert.equal(entry.cumulatedTotal, 60000 + expectedMonthly);
+    });
   });
 });

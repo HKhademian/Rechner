@@ -41,12 +41,14 @@ export type ActionId = Brand<string, 'ActionId'>;
 export type PregnancyId = Brand<string, 'PregnancyId'>;
 export type SwitchId = Brand<string, 'SwitchId'>;
 export type RaiseId = Brand<string, 'RaiseId'>;
+export type FinancialEventId = Brand<string, 'FinancialEventId'>;
 
 // Discrete Batch Action Enums (Strict Const Enums)
 export const ActionCategory = {
   Pregnancy: 'PREGNANCY',
   TaxSwitch: 'TAX_SWITCH',
-  SalaryRaise: 'SALARY_RAISE'
+  SalaryRaise: 'SALARY_RAISE',
+  FinancialEvent: 'FINANCIAL_EVENT'
 } as const;
 export type ActionCategory = (typeof ActionCategory)[keyof typeof ActionCategory];
 
@@ -55,9 +57,22 @@ export const ActionType = {
   ChildDelivery: 'CHILD_DELIVERY',
   TaxClassSwitchEffective: 'TAX_CLASS_SWITCH_EFFECTIVE',
   TaxClassSwitchRevert: 'TAX_CLASS_SWITCH_REVERT',
-  SalaryRaiseEffective: 'SALARY_RAISE_EFFECTIVE'
+  SalaryRaiseEffective: 'SALARY_RAISE_EFFECTIVE',
+  FinancialCostOutflow: 'FINANCIAL_COST_OUTFLOW',
+  FinancialIncomeInflow: 'FINANCIAL_INCOME_INFLOW'
 } as const;
 export type ActionType = (typeof ActionType)[keyof typeof ActionType];
+
+export const FinancialEventCategory = {
+  BabyEquipment: 'Baby Equipment (*Erstausstattung*)',
+  ChildcareFees: 'Childcare (*Kita/Betreuung*)',
+  CareerBonus: 'Career & Bonus (*Sonderzahlung*)',
+  HousingNursery: 'Housing & Nursery (*Wohnen/Umzug*)',
+  HealthcareFamily: 'Healthcare & Family (*Familienleistung*)',
+  TaxAdjustment: 'Tax Office (*Finanzamt*)',
+  CustomSpecial: 'Custom Financial Event (*Sonderposten*)'
+} as const;
+export type FinancialEventCategory = (typeof FinancialEventCategory)[keyof typeof FinancialEventCategory];
 
 export const TargetPerson = {
   Both: 'BOTH',
@@ -70,13 +85,21 @@ export type TargetPerson = (typeof TargetPerson)[keyof typeof TargetPerson];
 export const SpecialEventType = {
   Bonus40: 'bonus_40',
   Bonus60: 'bonus_60',
-  TaxReturn: 'tax_return'
+  TaxReturn: 'tax_return',
+  CustomCost: 'custom_cost',
+  CustomIncome: 'custom_income'
 } as const;
 export type SpecialEventType = (typeof SpecialEventType)[keyof typeof SpecialEventType];
 
 export const SpecialEventCategory = {
   ThirteenthSalary: '13th Salary (*13. Monatsgehalt*)',
-  TaxOffice: 'Tax Office (*Finanzamt*)'
+  TaxOffice: 'Tax Office (*Finanzamt*)',
+  BabyEquipment: 'Baby Equipment (*Erstausstattung*)',
+  ChildcareFees: 'Childcare (*Kita/Betreuung*)',
+  CareerBonus: 'Career & Bonus (*Sonderzahlung*)',
+  HousingNursery: 'Housing & Nursery (*Wohnen/Umzug*)',
+  HealthcareFamily: 'Healthcare & Family (*Familienleistung*)',
+  CustomSpecial: 'Custom Financial Event (*Sonderposten*)'
 } as const;
 export type SpecialEventCategory = (typeof SpecialEventCategory)[keyof typeof SpecialEventCategory];
 
@@ -90,7 +113,9 @@ export const TransactionType = {
   BenefitElterngeldPlusFather: 'BENEFIT_ELTERNGELD_PLUS_FATHER',
   BenefitPartnerschaftsbonus: 'BENEFIT_PARTNERSCHAFTSBONUS',
   BenefitKindergeld: 'BENEFIT_KINDERGELD',
-  TaxReconciliationRefund: 'TAX_RECONCILIATION_REFUND'
+  TaxReconciliationRefund: 'TAX_RECONCILIATION_REFUND',
+  ExpenseOutflow: 'EXPENSE_OUTFLOW',
+  SpecialIncome: 'SPECIAL_INCOME'
 } as const;
 export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType];
 
@@ -204,6 +229,21 @@ export function toRaiseId(val: string): RaiseId {
     throw new TypeError(`Invalid RaiseId: ${val}. Must be non-empty string.`);
   }
   return val as RaiseId;
+}
+
+export function toFinancialEventId(val: string): FinancialEventId {
+  if (!val || typeof val !== 'string') {
+    throw new TypeError(`Invalid FinancialEventId: ${val}. Must be non-empty string.`);
+  }
+  return val as FinancialEventId;
+}
+
+export function toFinancialEventCategory(val: string): FinancialEventCategory {
+  const values = Object.values(FinancialEventCategory) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid FinancialEventCategory: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as FinancialEventCategory;
 }
 
 export function toActionCategory(val: string): ActionCategory {
@@ -438,6 +478,21 @@ export interface SalaryRaiseAction {
 }
 
 /**
+ * Batch 4: Financial Events (One-Off Costs, Expenses, Grants & Extra Income)
+ */
+export interface FinancialEventAction {
+  readonly eventId: FinancialEventId;
+  readonly effectiveSimulationMonth: SimulationMonth;
+  readonly effectiveCalendarMonth: CalendarMonth;
+  readonly effectiveCalendarYear: number;
+  readonly title: string;
+  readonly amount: EuroAmount; // Positive = Income/Grant/Bonus, Negative = Expense/Cost
+  readonly category: FinancialEventCategory;
+  readonly description: string;
+  readonly appliesToScenarios?: readonly ScenarioId[];
+}
+
+/**
  * Combined Scenario Action Batches Input
  */
 export interface ScenarioActionBatches {
@@ -446,4 +501,5 @@ export interface ScenarioActionBatches {
   readonly pregnancies: readonly PregnancyAction[];
   readonly taxClassSwitches: readonly TaxClassSwitchAction[];
   readonly salaryRaises: readonly SalaryRaiseAction[];
+  readonly financialEvents?: readonly FinancialEventAction[];
 }

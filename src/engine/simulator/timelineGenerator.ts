@@ -27,7 +27,9 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
+  type FinancialEventAction,
   type ScenarioActionBatches,
+  FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
@@ -38,6 +40,7 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toFinancialEventId,
   toStatutoryCitation
 } from '#engine/types';
 import { createTransaction } from '#engine/ledger/transaction';
@@ -114,7 +117,7 @@ export function calculateSimulationStartDate(
  * 3. Salary raises and career progression events
  */
 export function runScenarioBatches(batches: ScenarioActionBatches): SimulationResult {
-  const { scenarioKey, preexisting, pregnancies, taxClassSwitches, salaryRaises } = batches;
+  const { scenarioKey, preexisting, pregnancies, taxClassSwitches, salaryRaises, financialEvents = [] } = batches;
 
   const startYear = preexisting.startCalendarYear;
   const startMonth = preexisting.startCalendarMonth as number;
@@ -677,6 +680,47 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
           : `Standard annual income tax reconciliation and statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
       });
     }
+
+    // Batch 4: Custom Financial Events (One-Off Costs, Expenses, Grants & Extra Income)
+    financialEvents.forEach((fe) => {
+      const effM = fe.effectiveSimulationMonth as number;
+      if (effM === m) {
+        if (!fe.appliesToScenarios || fe.appliesToScenarios.includes(scenarioKey)) {
+          const amt = fe.amount as number;
+          const isCost = amt < 0;
+
+          specialEvents.push({
+            eventId: toEventId(fe.eventId),
+            month: rm.month,
+            year,
+            calendarYearNum: rm.calendarYearNum,
+            calendarMonthNum: rm.calendarMonthNum,
+            calendarLabel: rm.calendarLabel,
+            relativeBirthLabel: rm.relativeBirthLabel,
+            type: isCost ? SpecialEventType.CustomCost : SpecialEventType.CustomIncome,
+            title: fe.title,
+            category: fe.category as unknown as SpecialEventCategory,
+            statutory: toStatutoryCitation(isCost ? 'Out-of-Pocket Expense' : 'Special Financial Inflow'),
+            taxClassLabel: rm.taxClassLabel,
+            amount: fe.amount,
+            description: fe.description || (isCost ? 'One-off family expense / out-of-pocket cost' : 'One-off family income / benefit / bonus')
+          });
+
+          txs.push(createTransaction({
+            transactionId: `TX-M${m}-${fe.eventId}`,
+            month: rm.month,
+            year,
+            type: isCost ? TransactionType.ExpenseOutflow : TransactionType.SpecialIncome,
+            direction: isCost ? TransactionDirection.Outflow : TransactionDirection.Inflow,
+            amount: toEuroAmount(Math.abs(amt)),
+            statutoryCitation: isCost ? 'One-off Household Cost' : 'Special Inflow',
+            taxClassLabel: rm.taxClassLabel,
+            description: `${fe.title} (${rm.calendarLabel})`,
+            auditTrail: fe.description || `Financial Event ${fe.eventId}`
+          }));
+        }
+      }
+    });
 
     // Build Starting Actions for Month m (Action Milestone Rows placed before Month m)
     const startingActions: ActionRowItem[] = [];
