@@ -46,7 +46,13 @@ import {
 } from '#engine/types';
 import { createTransaction } from '#engine/ledger/transaction';
 import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
-import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '#engine/tax/jointAssessment';
+import {
+  computeMonthlySwapWithholdingVariance,
+  computeAnnualTaxReconciliation,
+  computeKinderfreibetragGuenstigerpruefung,
+  type ChildYearPresence,
+  type AnnualTaxReconciliationResult
+} from '#engine/tax/jointAssessment';
 import { computeElterngeldBenefits, isElterngeldHoursEligible, isPartnerschaftsbonusEligible } from '#engine/benefits/elterngeldPlus';
 import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
 import { computeGrossToNetBreakdown } from '#engine/tax/wageTax';
@@ -454,20 +460,89 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
     deficitsByCalYear[cy].push(rm.monthlyWithholdingDeficit);
   });
 
+  const taxRefundReconByMonth: Record<number, AnnualTaxReconciliationResult> = {};
   const taxRefundByMonth: Record<number, EuroAmount> = {};
   const tMonth = (preexisting.taxReturnMonth as number) ?? 3;
   const baseStandardRefund = toEuroAmount(850);
+  const monthlyKg = preexisting.kindergeldPerChild ? (preexisting.kindergeldPerChild as number) : 259;
 
   rawMonths.forEach(rm => {
     if ((rm.calendarMonthNum as number) === tMonth) {
       const reconciledCalYear = rm.calendarYearNum - 1;
       const deficits = deficitsByCalYear[reconciledCalYear] || [];
+
+      // Calculate annual taxable income in reconciledCalYear
+      const husbandGrossMonthly = preexisting.husbandGross ? (preexisting.husbandGross as number) : 4500;
+      const husbandBreakdown = computeGrossToNetBreakdown(
+        toGrossSalary(husbandGrossMonthly),
+        TaxClass.III,
+        preexisting.existingChildrenCount
+      );
+      const husbandAnnualZvE = (husbandBreakdown.taxableIncomeZvE as number) * 12;
+
+      // Calculate wife annual earned gross based on pre-birth FT / post-birth PT status in that calendar year
+      const wifeFTGross = preexisting.wifeGross ? (preexisting.wifeGross as number) : 3000;
+      const wifeHoursPT = preexisting.wifePostBirthWeeklyHours ? (preexisting.wifePostBirthWeeklyHours as number) : 24;
+      const wifeHoursFT = preexisting.wifeWeeklyHours ? (preexisting.wifeWeeklyHours as number) : 40;
+      const wifePTGross = Math.round(wifeFTGross * (wifeHoursPT / wifeHoursFT));
+
+      let wifeEarnedGrossInYear = 0;
+      rawMonths.filter(r => r.calendarYearNum === reconciledCalYear).forEach(r => {
+        if (r.month > child1Delivery) {
+          wifeEarnedGrossInYear += wifePTGross;
+        } else {
+          wifeEarnedGrossInYear += wifeFTGross;
+        }
+      });
+      const wifeMonthlyAvgGross = Math.round(wifeEarnedGrossInYear / 12);
+      const wifeBreakdown = computeGrossToNetBreakdown(
+        toGrossSalary(wifeMonthlyAvgGross),
+        TaxClass.V,
+        preexisting.existingChildrenCount
+      );
+      const wifeAnnualZvE = (wifeBreakdown.taxableIncomeZvE as number) * 12;
+      const jointAnnualZvE = husbandAnnualZvE + wifeAnnualZvE;
+
+      // Identify children present in the reconciled calendar year
+      const childrenInYear: ChildYearPresence[] = [];
+      // Any preexisting children
+      for (let c = 0; c < preexisting.existingChildrenCount; c++) {
+        childrenInYear.push({
+          childIndex: c + 1,
+          birthCalendarYear: reconciledCalYear - 1,
+          birthCalendarMonth: 1
+        });
+      }
+      // Pregnancies delivered on or before reconciledCalYear
+      pregnancies.forEach((preg) => {
+        const delSimMonth = preg.calculatedDeliverySimulationMonth as number;
+        const delRm = rawMonths.find(r => (r.month as number) === delSimMonth);
+        if (delRm && delRm.calendarYearNum <= reconciledCalYear) {
+          childrenInYear.push({
+            childIndex: preg.childIndex,
+            birthCalendarYear: delRm.calendarYearNum,
+            birthCalendarMonth: delRm.calendarMonthNum as number
+          });
+        }
+      });
+
+      // Compute Günstigerprüfung (§ 31, § 32 Abs. 6 EStG)
+      const guenstiger = computeKinderfreibetragGuenstigerpruefung(
+        jointAnnualZvE,
+        childrenInYear,
+        reconciledCalYear,
+        monthlyKg
+      );
+
       const recon = computeAnnualTaxReconciliation(
         toCalendarYear(Math.min(10, Math.max(1, rm.year as number))),
         rm.month,
         deficits,
-        baseStandardRefund
+        baseStandardRefund,
+        guenstiger
       );
+
+      taxRefundReconByMonth[rm.month as number] = recon;
       taxRefundByMonth[rm.month as number] = recon.totalRefundAmount;
     }
   });
@@ -626,6 +701,21 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
     }
 
     if ((taxRefund as number) > 0) {
+      const recon = taxRefundReconByMonth[m];
+      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund ? (recon.guenstigerpruefung.extraTaxRefund as number) : 0;
+      const swapDeficit = recon?.accumulatedSwapDeficit ? (recon.accumulatedSwapDeficit as number) : 0;
+      const isDeficitRefund = swapDeficit > 0;
+      const reconciledCalYear = rm.calendarYearNum - 1;
+
+      const descParts: string[] = [];
+      if (isDeficitRefund) {
+        descParts.push(`Full refund of Tax Class V wage withholding deficit (+${swapDeficit.toLocaleString('de-DE')} €)`);
+      }
+      descParts.push(`statutory deductions return (+${((recon?.baseDeductionsRefund as number) || 850).toLocaleString('de-DE')} €)`);
+      if (extraGuenstiger > 0) {
+        descParts.push(`§ 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+${extraGuenstiger.toLocaleString('de-DE')} € over Kindergeld)`);
+      }
+
       txs.push(createTransaction({
         transactionId: `TX-M${m}-TAX-REFUND`,
         month: rm.month,
@@ -633,10 +723,12 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
         type: TransactionType.TaxReconciliationRefund,
         direction: TransactionDirection.Inflow,
         amount: taxRefund,
-        statutoryCitation: 'EStG § 26b (*Ehegatten-Splitting*) & § 46 Abs. 2 Nr. 3a',
+        statutoryCitation: extraGuenstiger > 0
+          ? 'EStG § 26b, § 31 (*Günstigerprüfung*), § 46'
+          : 'EStG § 26b (*Ehegatten-Splitting*) & § 46 Abs. 2 Nr. 3a',
         taxClassLabel: 'Joint Assessment (*Splitting*)',
         description: `Annual Tax Assessment Refund (${rm.calendarLabel})`,
-        auditTrail: 'Full refund of Class V interim withholding deficit + statutory standard deductions return'
+        auditTrail: descParts.join(' + ')
       }));
     }
 
@@ -710,8 +802,21 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
     }
 
     if ((taxRefund as number) > 0) {
-      const isDeficitRefund = (taxRefund as number) > 850;
+      const recon = taxRefundReconByMonth[m];
+      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund ? (recon.guenstigerpruefung.extraTaxRefund as number) : 0;
+      const swapDeficit = recon?.accumulatedSwapDeficit ? (recon.accumulatedSwapDeficit as number) : 0;
+      const isDeficitRefund = swapDeficit > 0;
       const reconciledCalYear = rm.calendarYearNum - 1;
+
+      const descParts: string[] = [];
+      if (isDeficitRefund) {
+        descParts.push(`Full refund of Tax Class V wage withholding deficit (+${swapDeficit.toLocaleString('de-DE')} €)`);
+      }
+      descParts.push(`statutory deductions return (+${((recon?.baseDeductionsRefund as number) || 850).toLocaleString('de-DE')} €)`);
+      if (extraGuenstiger > 0) {
+        descParts.push(`§ 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+${extraGuenstiger.toLocaleString('de-DE')} € over Kindergeld)`);
+      }
+
       specialEvents.push({
         eventId: toEventId(`EVENT-M${m}-TAX-REFUND`),
         month: rm.month,
@@ -721,14 +826,14 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
         type: SpecialEventType.TaxReturn,
-        title: `Annual Tax Return (Tax Year ${reconciledCalYear} Return in ${rm.calendarLabel})`,
+        title: extraGuenstiger > 0
+          ? `Annual Tax Return (Tax Year ${reconciledCalYear}: Incl. +${extraGuenstiger.toLocaleString('de-DE')} € Child Allowance Bonus)`
+          : `Annual Tax Return (Tax Year ${reconciledCalYear} Return in ${rm.calendarLabel})`,
         category: SpecialEventCategory.TaxOffice,
-        statutory: toStatutoryCitation('§ 26b EStG (*Ehegatten-Splitting*)'),
+        statutory: toStatutoryCitation(extraGuenstiger > 0 ? '§ 26b & § 31 EStG (*Günstigerprüfung*)' : '§ 26b EStG (*Ehegatten-Splitting*)'),
         taxClassLabel: 'Joint Assessment (*Splitting*)',
         amount: taxRefund,
-        description: isDeficitRefund
-          ? `Full refund of Tax Class V wage withholding deficit (+${((taxRefund as number) - 850).toLocaleString('de-DE')} €) plus statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
-          : `Standard annual income tax reconciliation and statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
+        description: `${descParts.join(' plus ')} for Tax Year ${reconciledCalYear}`
       });
     }
 
