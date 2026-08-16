@@ -24,6 +24,7 @@ import {
   child1BirthMonth,
   birthSpacingMonths,
   swapLeadMonths,
+  setPregnancy1PositiveDate,
   resetToDefaults
 } from '#store/elterngeldStore';
 
@@ -391,30 +392,56 @@ export default function SandboxControls(): JSX.Element {
 
               {/* Child 1 Pregnancy Milestone */}
               <div style={{ marginBottom: '12px', background: '#1e293b', padding: '8px 10px', borderRadius: '4px' }}>
-                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '4px' }}>
-                  Child 1 Pregnancy & Delivery:
+                <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '6px' }}>
+                  Child 1 Positive Pregnancy Test Date:
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1' }}>
-                  <span>Positive Test: <strong>{getCalDate(preg1SimMonth)}</strong> (M{preg1SimMonth})</span>
-                  <span>Birth 1: <strong>{getCalDate(b1SimMonth)}</strong> (M{b1SimMonth})</span>
-                </div>
-                <div style={{ marginTop: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8' }}>
-                    <span>Pre-Pregnancy Buffer:</span>
-                    <span>{prePregnancyPlanningMonths.value} Months</span>
+
+                {/* Year & Month Selectors */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.70rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                      Positive Month:
+                    </label>
+                    <select
+                      value={((startCalendarMonth.value - 1 + preg1SimMonth - 1) % 12) + 1}
+                      onChange={(e) => {
+                        const m = Number((e.target as HTMLSelectElement).value);
+                        const curY = startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (preg1SimMonth - 1)) / 12);
+                        setPregnancy1PositiveDate(curY, m);
+                      }}
+                      style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '4px 6px', fontSize: '0.75rem', fontWeight: 700 }}
+                    >
+                      {MONTH_NAMES.map((name, idx) => (
+                        <option key={idx + 1} value={idx + 1}>{name.slice(0, 15)}</option>
+                      ))}
+                    </select>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="12"
-                    step="1"
-                    value={prePregnancyPlanningMonths.value}
-                    onInput={(e) => {
-                      const val = Number((e.target as HTMLInputElement).value);
-                      prePregnancyPlanningMonths.value = val;
-                      child1BirthMonth.value = val + 9;
-                    }}
-                  />
+                  <div>
+                    <label style={{ fontSize: '0.70rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                      Positive Year:
+                    </label>
+                    <select
+                      value={startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (preg1SimMonth - 1)) / 12)}
+                      onChange={(e) => {
+                        const y = Number((e.target as HTMLSelectElement).value);
+                        const curM = ((startCalendarMonth.value - 1 + preg1SimMonth - 1) % 12) + 1;
+                        setPregnancy1PositiveDate(y, curM);
+                      }}
+                      style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '4px 6px', fontSize: '0.75rem', fontWeight: 700 }}
+                    >
+                      {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                  <span>Positive: <strong style={{ color: '#f472b6' }}>{getCalDate(preg1SimMonth)}</strong> (M0)</span>
+                  <span>Birth 1: <strong style={{ color: '#5eead4' }}>{getCalDate(b1SimMonth)}</strong> (M+{b1SimMonth - preg1SimMonth})</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8', background: '#0f172a', padding: '4px 6px', borderRadius: '3px' }}>
+                  ↳ Sim Start: <strong>01.{startCalendarYear.value}</strong> ({prePregnancyPlanningMonths.value}M before preg, snapped from -3M)
                 </div>
               </div>
 

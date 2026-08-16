@@ -1,18 +1,18 @@
 import { signal, computed } from '@preact/signals';
-import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
 import {
+  type ScenarioId as ScenarioIdType,
+  ScenarioId,
+  TaxClass,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
-  TaxClass,
-  ScenarioId,
-  type ScenarioId as ScenarioIdType,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction
 } from '#engine/types';
+import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 
 // Default Financial Parameters (The Sandbox)
 export const husbandClass3Net = signal(2895);
@@ -55,6 +55,19 @@ export const activeScenario = signal<string>(ScenarioId.C); // 'A', 'B', 'C', or
 export const chartMode = signal<string>('stacked_bar'); // 'stacked_bar', 'lines', 'area', 'compare'
 export const timeRangeFilter = signal<string>('all'); // 'all', 'child1', 'child2', 'post'
 export const hoveredMonth = signal<number | null>(null);
+
+/**
+ * Sets the pregnancy 1 positive calendar date (year and month), automatically
+ * calibrating the simulation start date (-3 months snapped to January of resulting year)
+ * per statutory rules.
+ */
+export function setPregnancy1PositiveDate(year: number, month: number) {
+  const result = calculateSimulationStartDate(year, month);
+  startCalendarYear.value = result.startCalendarYear;
+  startCalendarMonth.value = result.startCalendarMonth;
+  prePregnancyPlanningMonths.value = result.prePregnancyPlanningMonths;
+  child1BirthMonth.value = result.pregnancySimulationMonth + 8; // 9 months of pregnancy (delivery at Month + 8)
+}
 
 export function resetToDefaults() {
   husbandClass3Net.value = 2895;

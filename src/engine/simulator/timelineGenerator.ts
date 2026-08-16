@@ -57,6 +57,44 @@ export interface TimelineSimulationParams {
 }
 
 /**
+ * Calculates the statutory simulation start calendar date based on the first pregnancy positive test:
+ * 1. Subtract at least 3 months prior to pregnancy positive test date.
+ * 2. Snap to the first month (January) of that resulting calendar year.
+ *
+ * Example 1: Positive in 09.2026 -> 09.2026 - 3M = 06.2026 -> First month of 2026 is 01.2026 (prePregBuffer = 8 months, pregSimMonth = 9).
+ * Example 2: Positive in 02.2028 -> 02.2028 - 3M = 11.2027 -> First month of 2027 is 01.2027 (prePregBuffer = 13 months, pregSimMonth = 14).
+ */
+export function calculateSimulationStartDate(
+  pregPositiveYear: number,
+  pregPositiveMonth: number
+): {
+  startCalendarYear: number;
+  startCalendarMonth: number;
+  prePregnancyPlanningMonths: number;
+  pregnancySimulationMonth: number;
+} {
+  // 1. Subtract 3 months
+  const totalMonths = pregPositiveYear * 12 + (pregPositiveMonth - 1) - 3;
+  const resultYear = Math.floor(totalMonths / 12);
+
+  // 2. First month of the resulting year (January)
+  const startCalendarYear = resultYear;
+  const startCalendarMonth = 1;
+
+  // 3. Pre-pregnancy buffer months in the simulation (simulation months before pregnancy positive)
+  const pregnancySimulationMonth =
+    (pregPositiveYear - startCalendarYear) * 12 + (pregPositiveMonth - startCalendarMonth) + 1;
+  const prePregnancyPlanningMonths = pregnancySimulationMonth - 1;
+
+  return {
+    startCalendarYear,
+    startCalendarMonth,
+    prePregnancyPlanningMonths,
+    pregnancySimulationMonth
+  };
+}
+
+/**
  * Executes a simulation scenario from discrete action batches:
  * 0. Preexisting conditions (baseline tax classes, salaries, children, dates)
  * 1. Pregnancy positive decisions (positive test date, delivery date, parental leave)
@@ -98,10 +136,13 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
 
   const rawMonths: RawMonth[] = [];
 
-  // Identify Child 1 delivery for relative delivery notation
+  // Identify Child 1 and Child 2 deliveries for relative notation
   const child1Delivery = pregnancies.length > 0
     ? (pregnancies[0].calculatedDeliverySimulationMonth as number)
     : 12;
+  const child2Delivery = pregnancies.length > 1
+    ? (pregnancies[1].calculatedDeliverySimulationMonth as number)
+    : 999;
 
   for (let m = 1; m <= duration; m++) {
     const sMonth = toSimulationMonth(m);
@@ -112,14 +153,22 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
     const year = toCalendarYear(Math.min(10, Math.ceil(m / 12)));
     const monthInYear = toCalendarMonth(((m - 1) % 12) + 1);
 
-    // Relative delivery milestone notation
+    // Mx counter relative to first pregnancy positive test (M0 = Positive Test)
+    const preg1PositiveMonth = (pregnancies[0]?.positiveTestSimulationMonth as number) ?? Math.max(1, child1Delivery - 8);
     let relativeBirthLabel: string;
-    if (m < child1Delivery) {
-      relativeBirthLabel = `M-${child1Delivery - m}`;
-    } else if (m === child1Delivery) {
-      relativeBirthLabel = 'M0 (Birth)';
+    if (m < preg1PositiveMonth) {
+      relativeBirthLabel = `M-${preg1PositiveMonth - m}`;
+    } else if (m === preg1PositiveMonth) {
+      relativeBirthLabel = 'M0 (Pregnancy Positive)';
     } else {
-      relativeBirthLabel = `M+${m - child1Delivery}`;
+      const offset = m - preg1PositiveMonth;
+      if (m === child1Delivery) {
+        relativeBirthLabel = `M+${offset} (Birth 1)`;
+      } else if (m === child2Delivery) {
+        relativeBirthLabel = `M+${offset} (Birth 2)`;
+      } else {
+        relativeBirthLabel = `M+${offset}`;
+      }
     }
 
     // --- Batch 3: Evaluate Active Salaries from Baseline + Raises ---

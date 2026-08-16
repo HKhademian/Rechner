@@ -7,7 +7,7 @@
  * without requiring web browser rendering or DOM captures.
  */
 
-import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
+import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 import {
   TaxClass,
   ScenarioId,
@@ -45,6 +45,8 @@ interface CliOptions {
   format: 'table' | 'summary' | 'milestones' | 'json';
   enable13th: boolean;
   taxReturnMonth: number;
+  pregYear?: number;
+  pregMonth?: number;
 }
 
 function parseArgs(args: string[]): CliOptions {
@@ -79,6 +81,10 @@ function parseArgs(args: string[]): CliOptions {
       opts.duration = Number(args[++i]) || 60;
     } else if (arg === '--preg-start') {
       opts.pregStartSimMonth = Number(args[++i]) || 9;
+    } else if (arg === '--preg-year') {
+      opts.pregYear = Number(args[++i]);
+    } else if (arg === '--preg-month') {
+      opts.pregMonth = Number(args[++i]);
     } else if (arg === '--spacing') {
       opts.birthSpacing = Number(args[++i]) || 27;
     } else if (arg === '--raise' || arg === '-r') {
@@ -93,6 +99,14 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === '--tax-month') {
       opts.taxReturnMonth = Number(args[++i]) || 3;
     }
+  }
+
+  // Auto-calibrate start date if pregYear & pregMonth are passed
+  if (opts.pregYear && opts.pregMonth) {
+    const cal = calculateSimulationStartDate(opts.pregYear, opts.pregMonth);
+    opts.startYear = cal.startCalendarYear;
+    opts.startMonth = cal.startCalendarMonth;
+    opts.pregStartSimMonth = cal.pregnancySimulationMonth;
   }
 
   return opts;
