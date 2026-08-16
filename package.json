@@ -18,5 +18,8 @@
     "astro": "^7.1.2",
     "lohnsteuer": "^1.0.0",
     "preact": "^10.29.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
   }
 }
