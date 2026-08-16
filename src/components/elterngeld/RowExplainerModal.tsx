@@ -1,5 +1,6 @@
 import type { JSX } from 'preact';
 import { type RowExplanation } from '#engine/explanation/timelineExplainer';
+import { ExplainerRowType } from '#engine/types';
 import { scrollToLegalRule } from '#store/elterngeldStore';
 
 export interface RowExplainerModalProps {
@@ -12,6 +13,9 @@ export default function RowExplainerModal({
   onClose
 }: RowExplainerModalProps): JSX.Element | null {
   if (!explanation) return null;
+
+  const isMonth = explanation.rowType === ExplainerRowType.Month;
+  const isAction = explanation.rowType === ExplainerRowType.Action;
 
   return (
     <div
@@ -54,7 +58,7 @@ export default function RowExplainerModal({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{
-                background: explanation.rowType === 'month' ? '#4f46e5' : explanation.rowType === 'action' ? '#be185d' : '#0284c7',
+                background: isMonth ? '#4f46e5' : isAction ? '#be185d' : '#0284c7',
                 color: '#ffffff',
                 fontSize: '0.68rem',
                 fontWeight: 800,
@@ -62,7 +66,7 @@ export default function RowExplainerModal({
                 borderRadius: '4px',
                 textTransform: 'uppercase'
               }}>
-                {explanation.rowType === 'month' ? '📅 Monthly Audit' : explanation.rowType === 'action' ? '⚡ Lifecycle Action' : '💰 Fiscal Event'}
+                {isMonth ? '📅 Monthly Audit' : isAction ? '⚡ Lifecycle Action' : '💰 Fiscal Event'}
               </span>
               <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 600 }}>
                 {explanation.phaseOrCategory}
@@ -166,7 +170,7 @@ export default function RowExplainerModal({
         )}
 
         {/* Row Totals Scorecard */}
-        {explanation.rowType === 'month' && (
+        {isMonth && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', background: '#1e293b', padding: '14px', borderRadius: '8px', border: '1px solid #334155' }}>
             <div>
               <div style={{ fontSize: '0.70rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>

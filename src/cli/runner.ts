@@ -19,6 +19,8 @@ import {
   TaxClass,
   ScenarioId,
   TargetPerson,
+  CliOutputFormat,
+  toCliOutputFormat,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
@@ -45,15 +47,34 @@ const BLUE = '\x1b[34m';
 const MAGENTA = '\x1b[35m';
 const GRAY = '\x1b[90m';
 
+export const CliScenarioTarget = {
+  A: ScenarioId.A,
+  B: ScenarioId.B,
+  C: ScenarioId.C,
+  Compare: 'compare'
+} as const;
+export type CliScenarioTarget = (typeof CliScenarioTarget)[keyof typeof CliScenarioTarget];
+
+export function toCliScenarioTarget(val: string): CliScenarioTarget {
+  const upper = val.toUpperCase();
+  if (upper === 'A' || upper === 'B' || upper === 'C') {
+    return upper as CliScenarioTarget;
+  }
+  if (upper === 'COMPARE') {
+    return CliScenarioTarget.Compare;
+  }
+  throw new TypeError(`Invalid CLI scenario target: ${val}. Expected 'A', 'B', 'C', or 'compare'.`);
+}
+
 interface CliOptions {
-  scenario: 'A' | 'B' | 'C' | 'compare';
+  scenario: CliScenarioTarget;
   startYear: number;
   startMonth: number;
   duration: number;
   pregStartSimMonth: number;
   birthSpacing: number;
   annualRaise: number;
-  format: 'table' | 'summary' | 'milestones' | 'json';
+  format: CliOutputFormat;
   enable13th: boolean;
   taxReturnMonth: number;
   pregYear?: number;
@@ -62,14 +83,14 @@ interface CliOptions {
 
 function parseArgs(args: string[]): CliOptions {
   const opts: CliOptions = {
-    scenario: 'compare',
+    scenario: CliScenarioTarget.Compare,
     startYear: 2026,
     startMonth: 1,
     duration: 60,
     pregStartSimMonth: 9, // September 2026
     birthSpacing: 27,
     annualRaise: 0,
-    format: 'table',
+    format: CliOutputFormat.Table,
     enable13th: true,
     taxReturnMonth: 3
   };
@@ -80,10 +101,7 @@ function parseArgs(args: string[]): CliOptions {
       printHelp();
       process.exit(0);
     } else if (arg === '--scenario' || arg === '-s') {
-      const val = (args[++i] || 'compare').toUpperCase();
-      if (['A', 'B', 'C', 'COMPARE'].includes(val)) {
-        opts.scenario = (val === 'COMPARE' ? 'compare' : val) as any;
-      }
+      opts.scenario = toCliScenarioTarget(args[++i] || 'compare');
     } else if (arg === '--start-year') {
       opts.startYear = Number(args[++i]) || 2026;
     } else if (arg === '--start-month') {
@@ -101,10 +119,7 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === '--raise' || arg === '-r') {
       opts.annualRaise = Number(args[++i]) || 0;
     } else if (arg === '--format' || arg === '-f') {
-      const val = (args[++i] || 'table').toLowerCase();
-      if (['table', 'summary', 'milestones', 'json'].includes(val)) {
-        opts.format = val as any;
-      }
+      opts.format = toCliOutputFormat(args[++i] || 'table');
     } else if (arg === '--no-13th') {
       opts.enable13th = false;
     } else if (arg === '--tax-month') {
@@ -447,7 +462,7 @@ function printMilestones(res: SimulationResult) {
 // Main Execution
 const opts = parseArgs(process.argv.slice(2));
 
-if (opts.format === 'json') {
+if (opts.format === CliOutputFormat.Json) {
   const resA = buildSimulation(ScenarioId.A, opts);
   const resB = buildSimulation(ScenarioId.B, opts);
   const resC = buildSimulation(ScenarioId.C, opts);
@@ -459,10 +474,10 @@ if (opts.format === 'json') {
 
   printSummaryScorecard(resA, resB, resC);
 
-  if (opts.format === 'milestones') {
+  if (opts.format === CliOutputFormat.Milestones) {
     printMilestones(resC);
-  } else if (opts.format === 'table') {
-    const target = opts.scenario === 'A' ? resA : (opts.scenario === 'B' ? resB : resC);
-    printLedgerTable(target, opts.scenario === 'compare' || opts.scenario === 'C' ? resB : undefined);
+  } else if (opts.format === CliOutputFormat.Table) {
+    const target = opts.scenario === CliScenarioTarget.A ? resA : (opts.scenario === CliScenarioTarget.B ? resB : resC);
+    printLedgerTable(target, opts.scenario === CliScenarioTarget.Compare || opts.scenario === CliScenarioTarget.C ? resB : undefined);
   }
 }

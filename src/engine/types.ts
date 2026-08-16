@@ -125,6 +125,56 @@ export const TransactionDirection = {
 } as const;
 export type TransactionDirection = (typeof TransactionDirection)[keyof typeof TransactionDirection];
 
+// Ledger Column & Explanation Enums (Strict Const Enums)
+export const FieldColumnKey = {
+  Month: 'month',
+  Phase: 'phase',
+  TaxClass: 'taxClass',
+  HusbandSalary: 'husbandSalary',
+  WifeSalary: 'wifeSalary',
+  Mutterschutz: 'mutterschutz',
+  WifeElterngeld: 'wifeElterngeld',
+  HusbandElterngeld: 'husbandElterngeld',
+  Kindergeld: 'kindergeld',
+  SpecialEvents: 'specialEvents',
+  NetInflow: 'netInflow',
+  CumulativeTotal: 'cumulativeTotal'
+} as const;
+export type FieldColumnKey = (typeof FieldColumnKey)[keyof typeof FieldColumnKey];
+
+export const ExplanationFieldKey = {
+  Month: 'month',
+  Phase: 'phase',
+  TaxClass: 'taxClass',
+  HusbandSalary: 'husbandSalary',
+  WifeSalary: 'wifeSalary',
+  Mutterschutz: 'mutterschutz',
+  WifeElterngeld: 'wifeElterngeld',
+  HusbandElterngeld: 'husbandElterngeld',
+  Kindergeld: 'kindergeld',
+  SpecialEvents: 'specialEvents',
+  NetInflow: 'netInflow',
+  CumulativeTotal: 'cumulativeTotal',
+  Title: 'title',
+  Amount: 'amount'
+} as const;
+export type ExplanationFieldKey = (typeof ExplanationFieldKey)[keyof typeof ExplanationFieldKey];
+
+export const ExplainerRowType = {
+  Month: 'MONTH',
+  Action: 'ACTION',
+  SpecialEvent: 'SPECIAL_EVENT'
+} as const;
+export type ExplainerRowType = (typeof ExplainerRowType)[keyof typeof ExplainerRowType];
+
+export const CliOutputFormat = {
+  Table: 'table',
+  Summary: 'summary',
+  Milestones: 'milestones',
+  Json: 'json'
+} as const;
+export type CliOutputFormat = (typeof CliOutputFormat)[keyof typeof CliOutputFormat];
+
 // Type Constructors & Validation Helpers
 export function toSimulationMonth(val: number): SimulationMonth {
   if (!Number.isInteger(val) || val < 1 || val > 120) {
@@ -284,6 +334,39 @@ export function toScenarioId(val: string): ScenarioId {
     throw new TypeError(`Invalid ScenarioId: ${val}. Expected one of: ${values.join(', ')}.`);
   }
   return val as ScenarioId;
+}
+
+export function toFieldColumnKey(val: string): FieldColumnKey {
+  const values = Object.values(FieldColumnKey) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid FieldColumnKey: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as FieldColumnKey;
+}
+
+export function toExplanationFieldKey(val: string): ExplanationFieldKey {
+  const values = Object.values(ExplanationFieldKey) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ExplanationFieldKey: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ExplanationFieldKey;
+}
+
+export function toExplainerRowType(val: string): ExplainerRowType {
+  const values = Object.values(ExplainerRowType) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ExplainerRowType: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ExplainerRowType;
+}
+
+export function toCliOutputFormat(val: string): CliOutputFormat {
+  const normalized = val.toLowerCase();
+  const values = Object.values(CliOutputFormat) as string[];
+  if (!values.includes(normalized)) {
+    throw new TypeError(`Invalid CliOutputFormat: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return normalized as CliOutputFormat;
 }
 
 /**

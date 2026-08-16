@@ -7,7 +7,17 @@ import {
   ActionType,
   ActionCategory,
   SpecialEventType,
-  SpecialEventCategory
+  SpecialEventCategory,
+  FieldColumnKey,
+  ExplanationFieldKey,
+  ExplainerRowType,
+  toFieldColumnKey,
+  toExplanationFieldKey,
+  toExplainerRowType,
+  toStatutoryCitation,
+  toEuroAmount,
+  type StatutoryCitation,
+  type EuroAmount
 } from '#engine/types';
 import { LegalRuleKey, type LegalRuleKeyType } from '#store/elterngeldStore';
 
@@ -18,20 +28,6 @@ function formatCurrency(amount: number): string {
     maximumFractionDigits: 0
   }).format(amount || 0);
 }
-
-export type FieldColumnKey =
-  | 'month'
-  | 'phase'
-  | 'taxClass'
-  | 'husbandSalary'
-  | 'wifeSalary'
-  | 'mutterschutz'
-  | 'wifeElterngeld'
-  | 'husbandElterngeld'
-  | 'kindergeld'
-  | 'specialEvents'
-  | 'netInflow'
-  | 'cumulativeTotal';
 
 export interface CalculationFactor {
   readonly name: string;
@@ -47,44 +43,44 @@ export interface CalculationStep {
 }
 
 export interface FieldExplanation {
-  readonly fieldKey: string;
+  readonly fieldKey: ExplanationFieldKey;
   readonly fieldTitle: string;
   readonly valueFormatted: string;
   readonly derivationFormula?: string;
   readonly explanation: string;
   readonly contributingFactors?: readonly CalculationFactor[];
   readonly calculationSteps?: readonly CalculationStep[];
-  readonly legalCitation?: string;
+  readonly legalCitation?: StatutoryCitation;
   readonly legalRuleKey?: LegalRuleKeyType;
   readonly diffVsBFormatted?: string;
 }
 
 export interface RowItemStream {
   readonly label: string;
-  readonly value: number;
+  readonly value: EuroAmount;
   readonly valueFormatted: string;
   readonly formula?: string;
   readonly notes?: string;
 }
 
 export interface RowExplanation {
-  readonly rowType: 'month' | 'action' | 'special_event';
+  readonly rowType: ExplainerRowType;
   readonly title: string;
   readonly subtitle: string;
   readonly phaseOrCategory: string;
   readonly taxClasses?: string;
   readonly summaryDescription: string;
   readonly streams: readonly RowItemStream[];
-  readonly totalNetInflow: number;
+  readonly totalNetInflow: EuroAmount;
   readonly totalNetInflowFormatted: string;
-  readonly cumulatedTotal: number;
+  readonly cumulatedTotal: EuroAmount;
   readonly cumulatedTotalFormatted: string;
-  readonly diffVsB?: number;
+  readonly diffVsB?: EuroAmount;
   readonly diffVsBFormatted?: string;
-  readonly legalCitation?: string;
+  readonly legalCitation?: StatutoryCitation;
   readonly legalRuleKey?: LegalRuleKeyType;
   readonly actionDetails?: {
-    readonly category: string;
+    readonly category: ActionCategory;
     readonly targetPerson?: string;
     readonly effectiveMonth: number;
     readonly details: Record<string, string>;
@@ -100,6 +96,7 @@ export function getFieldExplanation(
   bMonth?: TimelineMonth,
   scenarioId: ScenarioId = ScenarioId.C
 ): FieldExplanation {
+  const validatedKey = toFieldColumnKey(columnKey);
   const hSalary = m.husbandSalary as number;
   const wSalary = m.wifeSalary as number;
   const mutterschutzVal = m.mutterschutz as number;
@@ -114,10 +111,10 @@ export function getFieldExplanation(
   const diffNet = netInflow - bNetInflow;
   const diffNetStr = diffNet !== 0 ? `${diffNet > 0 ? '+' : ''}${formatCurrency(diffNet)} vs Scenario B` : 'Identical to Scenario B';
 
-  switch (columnKey) {
-    case 'month':
+  switch (validatedKey) {
+    case FieldColumnKey.Month:
       return {
-        fieldKey: 'month',
+        fieldKey: ExplanationFieldKey.Month,
         fieldTitle: `Simulation Month ${m.month} (${m.calendarLabel})`,
         valueFormatted: `Month ${m.month} · Year ${m.year}`,
         derivationFormula: `Start Year + (${m.month} - 1) div 12 $\\rightarrow$ Calendar Date`,
@@ -131,12 +128,12 @@ export function getFieldExplanation(
           { stepNumber: 1, description: 'Compute calendar year offset', formula: `2026 + floor((${m.month} - 1) / 12)`, result: `Year ${m.year}` },
           { stepNumber: 2, description: 'Compute calendar month', formula: `((${m.month} - 1) % 12) + 1`, result: m.calendarLabel }
         ],
-        legalCitation: 'BEEG § 2b (Bemessungszeitraum nach Lebens- & Kalendermonaten)'
+        legalCitation: toStatutoryCitation('BEEG § 2b (Bemessungszeitraum nach Lebens- & Kalendermonaten)')
       };
 
-    case 'phase':
+    case FieldColumnKey.Phase:
       return {
-        fieldKey: 'phase',
+        fieldKey: ExplanationFieldKey.Phase,
         fieldTitle: 'Lifecycle / Employment Phase',
         valueFormatted: m.eventTag || m.phaseLabel,
         derivationFormula: 'Determined by pregnancy delivery offset and parental leave schedule',
@@ -145,12 +142,12 @@ export function getFieldExplanation(
           { name: 'Active Phase', value: m.phaseLabel, description: 'Statutory benefit or employment phase' },
           { name: 'Mother Work Status', value: wSalary === 0 && mutterschutzVal > 0 ? 'Maternity Protection (100% leave)' : wSalary > 0 ? 'Part-Time Work (24h/wk)' : 'Parental Leave', description: 'Gainful employment status' }
         ],
-        legalCitation: 'BEEG § 4 (Basiselterngeld) & § 4a (ElterngeldPlus)'
+        legalCitation: toStatutoryCitation('BEEG § 4 (Basiselterngeld) & § 4a (ElterngeldPlus)')
       };
 
-    case 'taxClass':
+    case FieldColumnKey.TaxClass:
       return {
-        fieldKey: 'taxClass',
+        fieldKey: ExplanationFieldKey.TaxClass,
         fieldTitle: 'Spousal Tax Class Combination (§ 38b EStG)',
         valueFormatted: m.taxClassLabel,
         derivationFormula: m.taxClassLabel.includes('III') ? 'Husband: Tax Class III / Wife: Tax Class V (or III swap)' : 'Standard baseline tax class assignment',
@@ -163,16 +160,16 @@ export function getFieldExplanation(
           { stepNumber: 1, description: 'Determine spousal monthly withholding class', formula: 'EStG § 38b table mapping', result: m.taxClassLabel },
           { stepNumber: 2, description: 'Reconcile spousal splitting tariff variance', formula: 'Joint Assessment (§ 26b EStG)', result: 'Excess withholding fully refunded annually' }
         ],
-        legalCitation: 'EStG § 38b (Lohnsteuerklassen) & § 26b (Zusammenveranlagung)',
+        legalCitation: toStatutoryCitation('EStG § 38b (Lohnsteuerklassen) & § 26b (Zusammenveranlagung)'),
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting
       };
 
-    case 'husbandSalary': {
+    case FieldColumnKey.HusbandSalary: {
       const bHusband = bMonth ? (bMonth.husbandSalary as number) : hSalary;
       const diffH = hSalary - bHusband;
       const activeClass = m.taxClassLabel.split('/')[0] || 'Class III';
       return {
-        fieldKey: 'husbandSalary',
+        fieldKey: ExplanationFieldKey.HusbandSalary,
         fieldTitle: "Husband's Monthly Net Salary",
         valueFormatted: formatCurrency(hSalary),
         derivationFormula: `Gross Salary $\\rightarrow$ § 38b Wage Tax (${activeClass}) $\\rightarrow$ Social Contributions $\\rightarrow$ Net`,
@@ -188,19 +185,19 @@ export function getFieldExplanation(
           { stepNumber: 2, description: `Compute wage tax withholding for ${activeClass}`, formula: '§ 32a progressive tariff formula', result: activeClass.includes('III') ? '~1.200 €' : '~2.195 €' },
           { stepNumber: 3, description: 'Compute net take-home salary', formula: 'Gross - Social Security - Wage Tax', result: formatCurrency(hSalary) }
         ],
-        legalCitation: 'EStG § 38b (Lohnsteuerabzug) & § 32a (Einkommensteuertarif)',
+        legalCitation: toStatutoryCitation('EStG § 38b (Lohnsteuerabzug) & § 32a (Einkommensteuertarif)'),
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         diffVsBFormatted: diffH !== 0 ? `${diffH > 0 ? '+' : ''}${formatCurrency(diffH)} vs B` : undefined
       };
     }
 
-    case 'wifeSalary': {
+    case FieldColumnKey.WifeSalary: {
       const bWife = bMonth ? (bMonth.wifeSalary as number) : wSalary;
       const diffW = wSalary - bWife;
       const isFullLeave = wSalary === 0;
       const ftBase = 1975;
       return {
-        fieldKey: 'wifeSalary',
+        fieldKey: ExplanationFieldKey.WifeSalary,
         fieldTitle: "Wife's Earned Net Salary",
         valueFormatted: formatCurrency(wSalary),
         derivationFormula: isFullLeave
@@ -219,18 +216,18 @@ export function getFieldExplanation(
           { stepNumber: 1, description: 'Determine working time ratio', formula: isFullLeave ? '0h / 40h' : '24h / 40h', result: isFullLeave ? '0.0' : '0.60' },
           { stepNumber: 2, description: 'Scale full-time net salary', formula: `${formatCurrency(ftBase)} × ${isFullLeave ? '0.0' : '0.60'}`, result: formatCurrency(wSalary) }
         ],
-        legalCitation: 'BEEG § 1 Abs. 1 Nr. 4 (Zulässige Teilzeit bis 32h/Woche)',
+        legalCitation: toStatutoryCitation('BEEG § 1 Abs. 1 Nr. 4 (Zulässige Teilzeit bis 32h/Woche)'),
         legalRuleKey: LegalRuleKey.BEEG_SyntheticNet,
         diffVsBFormatted: diffW !== 0 ? `${diffW > 0 ? '+' : ''}${formatCurrency(diffW)} vs B` : undefined
       };
     }
 
-    case 'mutterschutz': {
+    case FieldColumnKey.Mutterschutz: {
       const bMutterschutz = bMonth ? (bMonth.mutterschutz as number) : mutterschutzVal;
       const diffM = mutterschutzVal - bMutterschutz;
       const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
       return {
-        fieldKey: 'mutterschutz',
+        fieldKey: ExplanationFieldKey.Mutterschutz,
         fieldTitle: 'Maternity Protection Allowance (Mutterschaftsgeld & AG-Zuschuss)',
         valueFormatted: formatCurrency(mutterschutzVal),
         derivationFormula: mutterschutzVal > 0
@@ -254,13 +251,13 @@ export function getFieldExplanation(
         ] : [
           { stepNumber: 1, description: 'Check statutory maternity window', formula: 'Month in [delivery - 1, delivery, delivery + 1]', result: '0 € (Outside protection window)' }
         ],
-        legalCitation: 'MuSchG § 19, § 20 & BEEG § 3 Abs. 1',
+        legalCitation: toStatutoryCitation('MuSchG § 19, § 20 & BEEG § 3 Abs. 1'),
         legalRuleKey: LegalRuleKey.MuSchG_Maternity,
         diffVsBFormatted: diffM !== 0 ? `${diffM > 0 ? '+' : ''}${formatCurrency(diffM)} vs B` : undefined
       };
     }
 
-    case 'wifeElterngeld': {
+    case FieldColumnKey.WifeElterngeld: {
       const bWifeEg = bMonth ? (bMonth.wifeElterngeld as number) : wElterngeld;
       const diffWeg = wElterngeld - bWifeEg;
       const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
@@ -268,7 +265,7 @@ export function getFieldExplanation(
       const netLoss = Math.max(0, preNet - ptNet);
       const rawBenefit = Math.round(netLoss * 0.65);
       return {
-        fieldKey: 'wifeElterngeld',
+        fieldKey: ExplanationFieldKey.WifeElterngeld,
         fieldTitle: "Mother's ElterngeldPlus / Parental Allowance",
         valueFormatted: formatCurrency(wElterngeld),
         derivationFormula: wElterngeld > 0
@@ -293,17 +290,17 @@ export function getFieldExplanation(
         ] : [
           { stepNumber: 1, description: 'Evaluate statutory eligibility (§ 1 & § 4 BEEG)', formula: 'Check active leave phase and working hours (<= 32h)', result: '0 € (Ineligible in this month)' }
         ],
-        legalCitation: 'BEEG § 2 (Ersatzrate), § 2b (Bemessungszeitraum), § 4a (ElterngeldPlus)',
+        legalCitation: toStatutoryCitation('BEEG § 2 (Ersatzrate), § 2b (Bemessungszeitraum), § 4a (ElterngeldPlus)'),
         legalRuleKey: LegalRuleKey.BEEG_SyntheticNet,
         diffVsBFormatted: diffWeg !== 0 ? `${diffWeg > 0 ? '+' : ''}${formatCurrency(diffWeg)} vs B` : undefined
       };
     }
 
-    case 'husbandElterngeld': {
+    case FieldColumnKey.HusbandElterngeld: {
       const bHusbandEg = bMonth ? (bMonth.husbandElterngeld as number) : hElterngeld;
       const diffHeg = hElterngeld - bHusbandEg;
       return {
-        fieldKey: 'husbandElterngeld',
+        fieldKey: ExplanationFieldKey.HusbandElterngeld,
         fieldTitle: "Father's Partner Months / Partnership Bonus Allowance",
         valueFormatted: formatCurrency(hElterngeld),
         derivationFormula: hElterngeld > 0
@@ -325,16 +322,16 @@ export function getFieldExplanation(
         ] : [
           { stepNumber: 1, description: 'Check father claim schedule', formula: 'Month in Partner Months or Partnership Bonus window', result: '0 € (Inactive)' }
         ],
-        legalCitation: 'BEEG § 4 Abs. 3 (Partnermonate) & § 4b (Partnerschaftsbonus)',
+        legalCitation: toStatutoryCitation('BEEG § 4 Abs. 3 (Partnermonate) & § 4b (Partnerschaftsbonus)'),
         legalRuleKey: LegalRuleKey.BEEG_PartnershipBonus,
         diffVsBFormatted: diffHeg !== 0 ? `${diffHeg > 0 ? '+' : ''}${formatCurrency(diffHeg)} vs B` : undefined
       };
     }
 
-    case 'kindergeld': {
+    case FieldColumnKey.Kindergeld: {
       const childCount = Math.max(1, Math.round(kg / 250));
       return {
-        fieldKey: 'kindergeld',
+        fieldKey: ExplanationFieldKey.Kindergeld,
         fieldTitle: 'Statutory Child Benefit (Kindergeld § 66 EStG)',
         valueFormatted: formatCurrency(kg),
         derivationFormula: `${childCount} Child(ren) × 250 € / month = ${formatCurrency(kg)}`,
@@ -346,16 +343,16 @@ export function getFieldExplanation(
         calculationSteps: [
           { stepNumber: 1, description: 'Multiply child count by statutory rate', formula: `${childCount} × 250 €`, result: formatCurrency(kg) }
         ],
-        legalCitation: 'EStG § 66 (Höhe des Kindergeldes) & BKGG',
+        legalCitation: toStatutoryCitation('EStG § 66 (Höhe des Kindergeldes) & BKGG'),
         legalRuleKey: LegalRuleKey.EStG_Kindergeld
       };
     }
 
-    case 'specialEvents': {
+    case FieldColumnKey.SpecialEvents: {
       const bSpecial = bMonth ? (bMonth.specialEventsTotal as number) : spTotal;
       const diffSp = spTotal - bSpecial;
       return {
-        fieldKey: 'specialEvents',
+        fieldKey: ExplanationFieldKey.SpecialEvents,
         fieldTitle: 'Special Payments, Bonuses & Tax Returns',
         valueFormatted: formatCurrency(spTotal),
         derivationFormula: 'Sum of all special fiscal events in this month (13th Salary + Tax Return + One-Off Inflows/Costs)',
@@ -369,15 +366,15 @@ export function getFieldExplanation(
         calculationSteps: [
           { stepNumber: 1, description: 'Aggregate special transactions for month', formula: 'Sum(Credits) - Sum(Debits)', result: formatCurrency(spTotal) }
         ],
-        legalCitation: 'EStG § 26b (Steuererstattung) & § 2c BEEG (Sonstige Bezüge)',
+        legalCitation: toStatutoryCitation('EStG § 26b (Steuererstattung) & § 2c BEEG (Sonstige Bezüge)'),
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         diffVsBFormatted: diffSp !== 0 ? `${diffSp > 0 ? '+' : ''}${formatCurrency(diffSp)} vs B` : undefined
       };
     }
 
-    case 'netInflow': {
+    case FieldColumnKey.NetInflow: {
       return {
-        fieldKey: 'netInflow',
+        fieldKey: ExplanationFieldKey.NetInflow,
         fieldTitle: 'Total Monthly Net Household Inflow',
         valueFormatted: formatCurrency(netInflow),
         derivationFormula: 'Husband Salary + Wife Salary + Mutterschutz + Wife EG + Husband EG + Kindergeld + Special Payments',
@@ -394,17 +391,17 @@ export function getFieldExplanation(
           { stepNumber: 2, description: 'Sum statutory parental benefits', formula: `${formatCurrency(wElterngeld + hElterngeld)} + ${formatCurrency(kg)}`, result: formatCurrency(wElterngeld + hElterngeld + kg) },
           { stepNumber: 3, description: 'Add special payments / one-off events', formula: `${formatCurrency(hSalary + wSalary + mutterschutzVal + wElterngeld + hElterngeld + kg)} + ${formatCurrency(spTotal)}`, result: formatCurrency(netInflow) }
         ],
-        legalCitation: 'EStG, MuSchG, BEEG Gesamtliquiditätsrechnung',
+        legalCitation: toStatutoryCitation('EStG, MuSchG, BEEG Gesamtliquiditätsrechnung'),
         diffVsBFormatted: diffNet !== 0 ? `${diffNet > 0 ? '+' : ''}${formatCurrency(diffNet)} vs B` : undefined
       };
     }
 
-    case 'cumulativeTotal': {
+    case FieldColumnKey.CumulativeTotal: {
       const bCum = bMonth ? (bMonth.cumulatedTotal as number) : cumTotal;
       const diffCum = cumTotal - bCum;
       const prevBal = cumTotal - netInflow;
       return {
-        fieldKey: 'cumulativeTotal',
+        fieldKey: ExplanationFieldKey.CumulativeTotal,
         fieldTitle: 'Progressive Cumulative 5-Year Total',
         valueFormatted: formatCurrency(cumTotal),
         derivationFormula: 'Previous Month Cumulative Balance + Current Month Net Inflow',
@@ -418,7 +415,7 @@ export function getFieldExplanation(
           { stepNumber: 1, description: 'Add current monthly net inflow to prior balance', formula: `${formatCurrency(prevBal)} + ${formatCurrency(netInflow)}`, result: formatCurrency(cumTotal) },
           { stepNumber: 2, description: 'Calculate cumulative advantage vs Scenario B', formula: `${formatCurrency(cumTotal)} - ${bMonth ? formatCurrency(bMonth.cumulatedTotal as number) : '0 €'}`, result: diffCum !== 0 ? `${diffCum > 0 ? '+' : ''}${formatCurrency(diffCum)}` : '0 €' }
         ],
-        legalCitation: '5-Year Multi-Scenario Financial Trajectory',
+        legalCitation: toStatutoryCitation('5-Year Multi-Scenario Financial Trajectory'),
         diffVsBFormatted: diffCum !== 0 ? `${diffCum > 0 ? '+' : ''}${formatCurrency(diffCum)} vs B` : undefined
       };
     }
@@ -429,18 +426,19 @@ export function getFieldExplanation(
  * Builds a field-level explanation for an action milestone row.
  */
 export function getActionFieldExplanation(
-  fieldKey: string,
+  fieldKey: ExplanationFieldKey | string,
   act: ActionRowItem,
   m: TimelineMonth
 ): FieldExplanation {
   const isDelivery = act.type === ActionType.ChildDelivery;
   const isPregnancy = act.type === ActionType.PregnancyPositive;
   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
+  const key = toExplanationFieldKey(fieldKey);
 
-  switch (fieldKey) {
-    case 'month':
+  switch (key) {
+    case ExplanationFieldKey.Month:
       return {
-        fieldKey: 'month',
+        fieldKey: ExplanationFieldKey.Month,
         fieldTitle: `Action Milestone Event (Month ${m.month})`,
         valueFormatted: `↳ M${m.month} Event (${m.calendarLabel})`,
         derivationFormula: `Lifecycle action scheduled before Month ${m.month}`,
@@ -453,13 +451,13 @@ export function getActionFieldExplanation(
         calculationSteps: [
           { stepNumber: 1, description: 'Evaluate lifecycle trigger', formula: 'Execute action before month cash flow', result: 'Preconditions updated' }
         ],
-        legalCitation: 'BEEG & EStG Lifecycle Trigger'
+        legalCitation: toStatutoryCitation('BEEG & EStG Lifecycle Trigger')
       };
 
-    case 'title':
-    case 'phase':
+    case ExplanationFieldKey.Title:
+    case ExplanationFieldKey.Phase:
       return {
-        fieldKey: 'title',
+        fieldKey: ExplanationFieldKey.Title,
         fieldTitle: act.title,
         valueFormatted: act.title,
         derivationFormula: `Action Type: ${act.type} (${act.category})`,
@@ -469,13 +467,15 @@ export function getActionFieldExplanation(
           { name: 'Action Type', value: act.type, description: 'Discrete lifecycle behavior' },
           { name: 'Parameters', value: act.description, description: 'User-specified settings' }
         ],
-        legalCitation: isTaxSwitch
-          ? 'EStG § 38b & BFH Decision VI R 2/13 (Steuerklassenwechsel)'
-          : isDelivery
-          ? 'MuSchG § 3 Abs. 2 & BEEG § 4 (Geburt & Schutzfrist)'
-          : isPregnancy
-          ? 'MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)'
-          : 'BGB § 611a (Gehaltsanpassung)',
+        legalCitation: toStatutoryCitation(
+          isTaxSwitch
+            ? 'EStG § 38b & BFH Decision VI R 2/13 (Steuerklassenwechsel)'
+            : isDelivery
+            ? 'MuSchG § 3 Abs. 2 & BEEG § 4 (Geburt & Schutzfrist)'
+            : isPregnancy
+            ? 'MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)'
+            : 'BGB § 611a (Gehaltsanpassung)'
+        ),
         legalRuleKey: isTaxSwitch
           ? LegalRuleKey.BEEG_TaxSwap
           : isDelivery || isPregnancy
@@ -483,9 +483,9 @@ export function getActionFieldExplanation(
           : undefined
       };
 
-    case 'taxClass':
+    case ExplanationFieldKey.TaxClass:
       return {
-        fieldKey: 'taxClass',
+        fieldKey: ExplanationFieldKey.TaxClass,
         fieldTitle: 'Tax Class Configuration',
         valueFormatted: act.taxClassLabel || '—',
         derivationFormula: act.taxClassLabel || 'No tax class change',
@@ -495,17 +495,17 @@ export function getActionFieldExplanation(
         contributingFactors: [
           { name: 'Updated Combination', value: act.taxClassLabel || 'Unchanged', description: 'Assigned wage tax classes' }
         ],
-        legalCitation: 'EStG § 38b',
+        legalCitation: toStatutoryCitation('EStG § 38b'),
         legalRuleKey: LegalRuleKey.BEEG_TaxSwap
       };
 
     default:
       return {
-        fieldKey,
+        fieldKey: key,
         fieldTitle: 'Non-Monetary Action Row',
         valueFormatted: '—',
         explanation: `This is a non-monetary lifecycle milestone. It establishes status and timelines without directly altering monthly cash inflows on this specific event line.`,
-        legalCitation: 'Statutory Milestone Precondition'
+        legalCitation: toStatutoryCitation('Statutory Milestone Precondition')
       };
   }
 }
@@ -514,18 +514,19 @@ export function getActionFieldExplanation(
  * Builds a field-level explanation for a special fiscal event row.
  */
 export function getSpecialEventFieldExplanation(
-  fieldKey: string,
+  fieldKey: ExplanationFieldKey | string,
   ev: SpecialEventItem,
   m: TimelineMonth,
   evCumulated: number,
   diffEvCumulated: number
 ): FieldExplanation {
   const isCost = (ev.amount as number) < 0;
+  const key = toExplanationFieldKey(fieldKey);
 
-  switch (fieldKey) {
-    case 'month':
+  switch (key) {
+    case ExplanationFieldKey.Month:
       return {
-        fieldKey: 'month',
+        fieldKey: ExplanationFieldKey.Month,
         fieldTitle: `Special Fiscal Event (Month ${m.month})`,
         valueFormatted: `↳ M${m.month} Event (${m.calendarLabel})`,
         derivationFormula: `Fiscal event triggering in Month ${m.month}`,
@@ -535,13 +536,13 @@ export function getSpecialEventFieldExplanation(
           { name: 'Transaction Category', value: ev.category, description: 'Fiscal classification' },
           { name: 'Transaction Amount', value: formatCurrency(ev.amount as number), description: isCost ? 'Expense' : 'Income' }
         ],
-        legalCitation: 'Fiscal Ledger Transaction'
+        legalCitation: toStatutoryCitation('Fiscal Ledger Transaction')
       };
 
-    case 'title':
-    case 'phase':
+    case ExplanationFieldKey.Title:
+    case ExplanationFieldKey.Phase:
       return {
-        fieldKey: 'title',
+        fieldKey: ExplanationFieldKey.Title,
         fieldTitle: ev.title,
         valueFormatted: ev.title,
         derivationFormula: `Event ID: ${ev.eventId} · Category: ${ev.category}`,
@@ -551,19 +552,21 @@ export function getSpecialEventFieldExplanation(
           { name: 'Transaction Type', value: ev.type, description: 'Type identifier' },
           { name: 'Description', value: ev.description || ev.title, description: 'Operational note' }
         ],
-        legalCitation: ev.type === SpecialEventType.TaxReturnRefund
-          ? 'EStG § 26b (Einkommensteuererstattung)'
-          : ev.type === SpecialEventType.AnnualSalaryBonus
-          ? 'EStG § 38a (Sonstige Bezüge)'
-          : 'BGB § 241 (Sonderzahlung / Aufwand)',
+        legalCitation: toStatutoryCitation(
+          ev.type === SpecialEventType.TaxReturnRefund
+            ? 'EStG § 26b (Einkommensteuererstattung)'
+            : ev.type === SpecialEventType.AnnualSalaryBonus
+            ? 'EStG § 38a (Sonstige Bezüge)'
+            : 'BGB § 241 (Sonderzahlung / Aufwand)'
+        ),
         legalRuleKey: ev.type === SpecialEventType.TaxReturnRefund ? LegalRuleKey.EStG_TaxSplitting : undefined
       };
 
-    case 'amount':
-    case 'specialEvents':
-    case 'netInflow':
+    case ExplanationFieldKey.Amount:
+    case ExplanationFieldKey.SpecialEvents:
+    case ExplanationFieldKey.NetInflow:
       return {
-        fieldKey: 'amount',
+        fieldKey: ExplanationFieldKey.Amount,
         fieldTitle: isCost ? 'Fiscal Outflow / Expense' : 'Fiscal Inflow / Income',
         valueFormatted: formatCurrency(ev.amount as number),
         derivationFormula: `${isCost ? 'Debit (-)' : 'Credit (+)'} ${formatCurrency(Math.abs(ev.amount as number))}`,
@@ -577,13 +580,13 @@ export function getSpecialEventFieldExplanation(
         calculationSteps: [
           { stepNumber: 1, description: 'Apply transaction to monthly net inflow', formula: `${isCost ? '-' : '+'}${formatCurrency(Math.abs(ev.amount as number))}`, result: formatCurrency(ev.amount as number) }
         ],
-        legalCitation: ev.type === SpecialEventType.TaxReturnRefund ? 'EStG § 26b (Zusammenveranlagung)' : undefined,
+        legalCitation: ev.type === SpecialEventType.TaxReturnRefund ? toStatutoryCitation('EStG § 26b (Zusammenveranlagung)') : undefined,
         legalRuleKey: ev.type === SpecialEventType.TaxReturnRefund ? LegalRuleKey.EStG_TaxSplitting : undefined
       };
 
-    case 'cumulativeTotal':
+    case ExplanationFieldKey.CumulativeTotal:
       return {
-        fieldKey: 'cumulativeTotal',
+        fieldKey: ExplanationFieldKey.CumulativeTotal,
         fieldTitle: 'Progressive Cumulative Balance at Event',
         valueFormatted: formatCurrency(evCumulated),
         derivationFormula: 'Previous Month Cumulative Balance + Prior Events in Month + This Event Amount',
@@ -600,11 +603,11 @@ export function getSpecialEventFieldExplanation(
 
     default:
       return {
-        fieldKey,
+        fieldKey: key,
         fieldTitle: 'Fiscal Event Detail',
         valueFormatted: '—',
         explanation: 'Event transaction parameter.',
-        legalCitation: 'Fiscal Ledger Item'
+        legalCitation: toStatutoryCitation('Fiscal Ledger Item')
       };
   }
 }
@@ -637,7 +640,7 @@ export function getRowExplanation(
   if (hSalary > 0) {
     streams.push({
       label: "Husband's Salary",
-      value: hSalary,
+      value: toEuroAmount(hSalary),
       valueFormatted: formatCurrency(hSalary),
       formula: `Tax Class ${m.taxClassLabel.split('/')[0] || 'III'} Net Salary`,
       notes: 'Monthly employment wage'
@@ -647,7 +650,7 @@ export function getRowExplanation(
   if (wSalary > 0) {
     streams.push({
       label: "Wife's Salary",
-      value: wSalary,
+      value: toEuroAmount(wSalary),
       valueFormatted: formatCurrency(wSalary),
       formula: 'Part-Time Proportional Net',
       notes: 'Part-time employment earnings'
@@ -657,7 +660,7 @@ export function getRowExplanation(
   if (mutterschutzVal > 0) {
     streams.push({
       label: 'Maternity Protection (Mutterschaftsgeld)',
-      value: mutterschutzVal,
+      value: toEuroAmount(mutterschutzVal),
       valueFormatted: formatCurrency(mutterschutzVal),
       formula: '100% Net Wage Guarantee (Health Insurance + Employer)',
       notes: '§§ 19, 20 MuSchG'
@@ -667,7 +670,7 @@ export function getRowExplanation(
   if (wElterngeld > 0) {
     streams.push({
       label: "Mother's ElterngeldPlus",
-      value: wElterngeld,
+      value: toEuroAmount(wElterngeld),
       valueFormatted: formatCurrency(wElterngeld),
       formula: '65% of Pre-Birth vs Post-Birth Net Loss (Capped at 900 € / mo)',
       notes: '§ 4a BEEG'
@@ -677,7 +680,7 @@ export function getRowExplanation(
   if (hElterngeld > 0) {
     streams.push({
       label: "Father's Elterngeld / Partner Bonus",
-      value: hElterngeld,
+      value: toEuroAmount(hElterngeld),
       valueFormatted: formatCurrency(hElterngeld),
       formula: '150 € / mo Statutory Minimum (or 65% loss replacement)',
       notes: '§ 4 Abs. 3 / § 4b BEEG'
@@ -687,7 +690,7 @@ export function getRowExplanation(
   if (kg > 0) {
     streams.push({
       label: 'Kindergeld',
-      value: kg,
+      value: toEuroAmount(kg),
       valueFormatted: formatCurrency(kg),
       formula: `${Math.round(kg / 250)} Child(ren) × 250 € / mo`,
       notes: '§ 66 EStG'
@@ -697,7 +700,7 @@ export function getRowExplanation(
   if (spTotal !== 0) {
     streams.push({
       label: 'Special Fiscal Payments / Tax Returns',
-      value: spTotal,
+      value: toEuroAmount(spTotal),
       valueFormatted: formatCurrency(spTotal),
       formula: 'One-off transaction sum',
       notes: 'Bonuses, Refunds, or Custom Costs'
@@ -705,20 +708,20 @@ export function getRowExplanation(
   }
 
   return {
-    rowType: 'month',
+    rowType: ExplainerRowType.Month,
     title: `Month ${m.month} (${m.calendarLabel}) · Year ${m.year}`,
     subtitle: `${m.relativeBirthLabel} · Spousal Tax Classes: ${m.taxClassLabel}`,
     phaseOrCategory: m.phaseLabel,
     taxClasses: m.taxClassLabel,
     summaryDescription: `Detailed cash flow and statutory audit for Simulation Month ${m.month}. Total household net inflow for this month is ${formatCurrency(netInflow)}, bringing the progressive 5-year total to ${formatCurrency(cumTotal)}.`,
     streams,
-    totalNetInflow: netInflow,
+    totalNetInflow: toEuroAmount(netInflow),
     totalNetInflowFormatted: formatCurrency(netInflow),
-    cumulatedTotal: cumTotal,
+    cumulatedTotal: toEuroAmount(cumTotal),
     cumulatedTotalFormatted: formatCurrency(cumTotal),
-    diffVsB: diffNet,
+    diffVsB: toEuroAmount(diffNet),
     diffVsBFormatted: diffNet !== 0 ? `${diffNet > 0 ? '+' : ''}${formatCurrency(diffNet)}` : '0 €',
-    legalCitation: 'EStG, MuSchG & BEEG Statutory Framework',
+    legalCitation: toStatutoryCitation('EStG, MuSchG & BEEG Statutory Framework'),
     legalRuleKey: m.isSwapActive ? LegalRuleKey.BEEG_TaxSwap : LegalRuleKey.BEEG_SyntheticNet
   };
 }
@@ -736,22 +739,24 @@ export function getActionRowExplanation(
   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
 
   return {
-    rowType: 'action',
+    rowType: ExplainerRowType.Action,
     title: act.title,
     subtitle: `Scheduled prior to Month ${m.month} (${m.calendarLabel})`,
     phaseOrCategory: act.category,
     taxClasses: act.taxClassLabel || undefined,
     summaryDescription: `${act.description} This lifecycle milestone establishes the statutory preconditions for parental leave rights, wage replacement calculation periods, and tax class assignments.`,
     streams: [],
-    totalNetInflow: 0,
+    totalNetInflow: toEuroAmount(0),
     totalNetInflowFormatted: '— (Non-Monetary Action)',
-    cumulatedTotal: 0,
+    cumulatedTotal: toEuroAmount(0),
     cumulatedTotalFormatted: '—',
-    legalCitation: isTaxSwitch
-      ? 'EStG § 38b & BFH VI R 2/13 (Steuerklassenwahl)'
-      : isDelivery
-      ? 'MuSchG § 3 Abs. 2 (Schutzfrist nach der Entbindung)'
-      : 'MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)',
+    legalCitation: toStatutoryCitation(
+      isTaxSwitch
+        ? 'EStG § 38b & BFH VI R 2/13 (Steuerklassenwahl)'
+        : isDelivery
+        ? 'MuSchG § 3 Abs. 2 (Schutzfrist nach der Entbindung)'
+        : 'MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)'
+    ),
     legalRuleKey: isTaxSwitch
       ? LegalRuleKey.BEEG_TaxSwap
       : LegalRuleKey.MuSchG_Maternity,
@@ -790,7 +795,7 @@ export function getSpecialEventRowExplanation(
   const evCumulated = prevMonthCumulated + evAmount;
 
   return {
-    rowType: 'special_event',
+    rowType: ExplainerRowType.SpecialEvent,
     title: ev.title,
     subtitle: `Fiscal Event in Month ${m.month} (${m.calendarLabel})`,
     phaseOrCategory: ev.category,
@@ -798,19 +803,23 @@ export function getSpecialEventRowExplanation(
     streams: [
       {
         label: ev.title,
-        value: evAmount,
+        value: toEuroAmount(evAmount),
         valueFormatted: formatCurrency(evAmount),
         formula: `${isCost ? 'Deduction' : 'Credit'} of ${formatCurrency(Math.abs(evAmount))}`,
         notes: ev.category
       }
     ],
-    totalNetInflow: evAmount,
+    totalNetInflow: toEuroAmount(evAmount),
     totalNetInflowFormatted: formatCurrency(evAmount),
-    cumulatedTotal: evCumulated,
+    cumulatedTotal: toEuroAmount(evCumulated),
     cumulatedTotalFormatted: formatCurrency(evCumulated),
-    diffVsB: diffEv,
+    diffVsB: toEuroAmount(diffEv),
     diffVsBFormatted: diffEv !== 0 ? `${diffEv > 0 ? '+' : ''}${formatCurrency(diffEv)}` : '0 €',
-    legalCitation: ev.type === SpecialEventType.TaxReturnRefund ? 'EStG § 26b (Zusammenveranlagung)' : 'Fiscal Ledger Event',
+    legalCitation: toStatutoryCitation(
+      ev.type === SpecialEventType.TaxReturnRefund
+        ? 'EStG § 26b (Zusammenveranlagung)'
+        : 'Fiscal Ledger Event'
+    ),
     legalRuleKey: ev.type === SpecialEventType.TaxReturnRefund ? LegalRuleKey.EStG_TaxSplitting : undefined
   };
 }

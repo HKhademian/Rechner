@@ -6,8 +6,7 @@ import {
   getSpecialEventFieldExplanation,
   getRowExplanation,
   getActionRowExplanation,
-  getSpecialEventRowExplanation,
-  type FieldColumnKey
+  getSpecialEventRowExplanation
 } from '#engine/explanation/timelineExplainer';
 import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
 import {
@@ -17,17 +16,24 @@ import {
   ActionCategory,
   SpecialEventType,
   SpecialEventCategory,
+  FieldColumnKey,
+  ExplanationFieldKey,
+  ExplainerRowType,
+  CliOutputFormat,
+  toFieldColumnKey,
+  toExplanationFieldKey,
+  toExplainerRowType,
+  toCliOutputFormat,
   toNetSalary,
   toEuroAmount,
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
+  toCalendarYear,
   toPregnancyId,
   toSwitchId,
-  toFinancialEventId,
   type PreexistingConditions,
   type PregnancyAction,
-  type TaxClassSwitchAction,
   type ActionRowItem,
   type SpecialEventItem
 } from '#engine/types';
@@ -86,20 +92,47 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
     financialEvents: []
   });
 
+  describe('Const Enums & Type Constructors (Rules 10, 11, 12)', () => {
+    it('validates and constructs FieldColumnKey values', () => {
+      assert.equal(toFieldColumnKey('month'), FieldColumnKey.Month);
+      assert.equal(toFieldColumnKey('wifeElterngeld'), FieldColumnKey.WifeElterngeld);
+      assert.throws(() => toFieldColumnKey('invalid_column'), /Invalid FieldColumnKey/);
+    });
+
+    it('validates and constructs ExplanationFieldKey values', () => {
+      assert.equal(toExplanationFieldKey('title'), ExplanationFieldKey.Title);
+      assert.equal(toExplanationFieldKey('amount'), ExplanationFieldKey.Amount);
+      assert.throws(() => toExplanationFieldKey('invalid_field'), /Invalid ExplanationFieldKey/);
+    });
+
+    it('validates and constructs ExplainerRowType values', () => {
+      assert.equal(toExplainerRowType('MONTH'), ExplainerRowType.Month);
+      assert.equal(toExplainerRowType('ACTION'), ExplainerRowType.Action);
+      assert.equal(toExplainerRowType('SPECIAL_EVENT'), ExplainerRowType.SpecialEvent);
+      assert.throws(() => toExplainerRowType('invalid_row_type'), /Invalid ExplainerRowType/);
+    });
+
+    it('validates and constructs CliOutputFormat values', () => {
+      assert.equal(toCliOutputFormat('table'), CliOutputFormat.Table);
+      assert.equal(toCliOutputFormat('JSON'), CliOutputFormat.Json);
+      assert.throws(() => toCliOutputFormat('invalid_format'), /Invalid CliOutputFormat/);
+    });
+  });
+
   describe('getFieldExplanation - All 12 Column Keys', () => {
     const allKeys: FieldColumnKey[] = [
-      'month',
-      'phase',
-      'taxClass',
-      'husbandSalary',
-      'wifeSalary',
-      'mutterschutz',
-      'wifeElterngeld',
-      'husbandElterngeld',
-      'kindergeld',
-      'specialEvents',
-      'netInflow',
-      'cumulativeTotal'
+      FieldColumnKey.Month,
+      FieldColumnKey.Phase,
+      FieldColumnKey.TaxClass,
+      FieldColumnKey.HusbandSalary,
+      FieldColumnKey.WifeSalary,
+      FieldColumnKey.Mutterschutz,
+      FieldColumnKey.WifeElterngeld,
+      FieldColumnKey.HusbandElterngeld,
+      FieldColumnKey.Kindergeld,
+      FieldColumnKey.SpecialEvents,
+      FieldColumnKey.NetInflow,
+      FieldColumnKey.CumulativeTotal
     ];
 
     it('generates valid explanations with formulas and citations for every column key in month 14 (ElterngeldPlus)', () => {
@@ -117,7 +150,7 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
 
     it('provides exact mathematical formula and step-by-step calculation for ElterngeldPlus column', () => {
       const m14C = simC.months[13];
-      const exp = getFieldExplanation('wifeElterngeld', m14C, undefined, ScenarioId.C);
+      const exp = getFieldExplanation(FieldColumnKey.WifeElterngeld, m14C, undefined, ScenarioId.C);
       assert.equal(exp.valueFormatted, '900\u00a0€');
       assert.ok(exp.derivationFormula?.includes('65%'));
       assert.ok(exp.explanation.includes('Class III'));
@@ -131,7 +164,7 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
 
     it('provides contributing factors and calculation steps for Father Partner Months (+150 €)', () => {
       const m14C = simC.months[13];
-      const exp = getFieldExplanation('husbandElterngeld', m14C, undefined, ScenarioId.C);
+      const exp = getFieldExplanation(FieldColumnKey.HusbandElterngeld, m14C, undefined, ScenarioId.C);
       assert.equal(exp.valueFormatted, '150\u00a0€');
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
       assert.ok(exp.contributingFactors.some(f => f.name.includes('Father Post-Birth Hours')));
@@ -142,7 +175,7 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
 
     it('provides exact mathematical formula and steps for Mutterschutz column during protection window', () => {
       const m12C = simC.months[11]; // Delivery month
-      const exp = getFieldExplanation('mutterschutz', m12C, undefined, ScenarioId.C);
+      const exp = getFieldExplanation(FieldColumnKey.Mutterschutz, m12C, undefined, ScenarioId.C);
       assert.ok((m12C.mutterschutz as number) > 0);
       assert.ok(exp.derivationFormula?.includes('100% Net'));
       assert.ok(exp.legalCitation?.includes('MuSchG'));
@@ -153,11 +186,11 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
     it('provides contributing factors and calculation steps for Net Inflow and Cumulative Total', () => {
       const m14C = simC.months[13];
       const m14B = simB.months[13];
-      const netExp = getFieldExplanation('netInflow', m14C, m14B, ScenarioId.C);
+      const netExp = getFieldExplanation(FieldColumnKey.NetInflow, m14C, m14B, ScenarioId.C);
       assert.ok(netExp.contributingFactors && netExp.contributingFactors.length >= 4);
       assert.ok(netExp.calculationSteps && netExp.calculationSteps.length >= 3);
 
-      const cumExp = getFieldExplanation('cumulativeTotal', m14C, m14B, ScenarioId.C);
+      const cumExp = getFieldExplanation(FieldColumnKey.CumulativeTotal, m14C, m14B, ScenarioId.C);
       assert.ok(cumExp.contributingFactors && cumExp.contributingFactors.length >= 2);
       assert.ok(cumExp.calculationSteps && cumExp.calculationSteps.length >= 2);
     });
@@ -174,12 +207,12 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
       };
 
       const m4 = simC.months[3];
-      const fieldExp = getActionFieldExplanation('title', act, m4);
+      const fieldExp = getActionFieldExplanation(ExplanationFieldKey.Title, act, m4);
       assert.ok(fieldExp.fieldTitle.includes('Positive Pregnancy Test'));
       assert.ok(fieldExp.explanation.includes('preconditions'));
 
       const rowExp = getActionRowExplanation(act, m4, ScenarioId.C);
-      assert.equal(rowExp.rowType, 'action');
+      assert.equal(rowExp.rowType, ExplainerRowType.Action);
       assert.ok(rowExp.title.includes('Positive Pregnancy Test'));
       assert.ok(rowExp.legalRuleKey);
     });
@@ -195,7 +228,7 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
       };
 
       const m4 = simC.months[3];
-      const fieldExp = getActionFieldExplanation('taxClass', act, m4);
+      const fieldExp = getActionFieldExplanation(ExplanationFieldKey.TaxClass, act, m4);
       assert.equal(fieldExp.valueFormatted, 'III (Wife) / V (Husband)');
       assert.ok(fieldExp.legalCitation?.includes('EStG § 38b'));
 
@@ -210,20 +243,27 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
       const ev: SpecialEventItem = {
         eventId: 'EV-TAX-REFUND-1',
         type: SpecialEventType.TaxReturnRefund,
-        category: SpecialEventCategory.TaxReconciliation,
+        category: SpecialEventCategory.TaxOffice,
         title: 'Tax Return Refund (Year 1)',
         description: 'Splitting tariff refund from joint tax assessment.',
         amount: toEuroAmount(3200),
-        taxClassLabel: 'III / V'
+        taxClassLabel: 'III / V',
+        month: toSimulationMonth(15),
+        year: toCalendarYear(2),
+        calendarYearNum: 2027,
+        calendarMonthNum: toCalendarMonth(3),
+        calendarLabel: 'Mar 2027',
+        relativeBirthLabel: 'M+3',
+        statutory: 'EStG § 26b' as any
       };
 
       const m15 = simC.months[14];
-      const fieldExp = getSpecialEventFieldExplanation('amount', ev, m15, 50000, 3200);
+      const fieldExp = getSpecialEventFieldExplanation(ExplanationFieldKey.Amount, ev, m15, 50000, 3200);
       assert.equal(fieldExp.valueFormatted, '3.200\u00a0€');
       assert.ok(fieldExp.derivationFormula?.includes('Credit (+)'));
 
       const rowExp = getSpecialEventRowExplanation(ev, m15, undefined, 50000, ScenarioId.C);
-      assert.equal(rowExp.rowType, 'special_event');
+      assert.equal(rowExp.rowType, ExplainerRowType.SpecialEvent);
       assert.equal(rowExp.totalNetInflow, 3200);
       assert.equal(rowExp.cumulatedTotal, 50000);
       assert.ok(rowExp.legalCitation?.includes('EStG § 26b'));
@@ -236,7 +276,7 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
       const m14B = simB.months[13];
 
       const rowExp = getRowExplanation(m14C, m14B, ScenarioId.C);
-      assert.equal(rowExp.rowType, 'month');
+      assert.equal(rowExp.rowType, ExplainerRowType.Month);
       assert.ok(rowExp.streams.length >= 4, 'Must include multiple income streams');
       assert.ok(rowExp.totalNetInflow > 0);
       assert.ok(rowExp.cumulatedTotal > 0);
