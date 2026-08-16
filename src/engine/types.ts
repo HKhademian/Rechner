@@ -124,6 +124,22 @@ export interface AccountingTransaction {
 }
 
 /**
+ * Special Event Item Representation (Table sub-row & visual marker)
+ */
+export interface SpecialEventItem {
+  readonly id: string;
+  readonly month: SimulationMonth;
+  readonly year: CalendarYear;
+  readonly type: string;
+  readonly title: string;
+  readonly category: string;
+  readonly statutory: string;
+  readonly taxClassLabel: string;
+  readonly amount: EuroAmount;
+  readonly description: string;
+}
+
+/**
  * Monthly Chronological Ledger State
  */
 export interface MonthlyLedgerEntry {
@@ -141,6 +157,7 @@ export interface MonthlyLedgerEntry {
   readonly bonus60Amount: EuroAmount;
   readonly specialBonusTotal: EuroAmount;
   readonly specialEventsTotal: EuroAmount;
+  readonly specialEvents: readonly SpecialEventItem[];
   readonly regularMonthlyTotal: EuroAmount;
   readonly monthlyTotal: EuroAmount;
   readonly earnedSalaries: EuroAmount;

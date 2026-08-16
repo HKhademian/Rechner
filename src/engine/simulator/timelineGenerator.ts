@@ -8,18 +8,19 @@ import {
   type SimulationResult,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
+  type SpecialEventItem,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
   toEuroAmount,
   toNetSalary
-} from '../types';
-import { createTransaction } from '../ledger/transaction';
-import { buildMonthlyLedgerEntry } from '../ledger/ledger';
-import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '../tax/jointAssessment';
-import { computeElterngeldBenefits } from '../benefits/elterngeldPlus';
-import { computeSiblingBonus } from '../benefits/siblingBonus';
-import { computeKindergeld } from '../benefits/kindergeld';
+} from '../types.ts';
+import { createTransaction } from '../ledger/transaction.ts';
+import { buildMonthlyLedgerEntry } from '../ledger/ledger.ts';
+import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '../tax/jointAssessment.ts';
+import { computeElterngeldBenefits } from '../benefits/elterngeldPlus.ts';
+import { computeSiblingBonus } from '../benefits/siblingBonus.ts';
+import { computeKindergeld } from '../benefits/kindergeld.ts';
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
@@ -71,10 +72,10 @@ export function generateTimelineSimulation(
 
   const lead = params.swapLeadMonths;
   const swap1Start = Math.max(1, preM1 - lead);
-  const swap1End = preM1;
+  const swap1End = preM1 - 1;
 
   const swap2Start = Math.max(b1 + 2, preM2 - lead);
-  const swap2End = preM2;
+  const swap2End = preM2 - 1;
 
   // Parental Allowance Windows
   const eg1Start = b1 + 2;
@@ -590,6 +591,56 @@ export function generateTimelineSimulation(
       eventType = 'bonus_end';
     }
 
+    // Build Special Events for UI display (table sub-rows)
+    const specialEvents: SpecialEventItem[] = [];
+    if ((bonus40Amount as number) > 0) {
+      specialEvents.push({
+        id: `bonus40-m${m}`,
+        month: rm.month,
+        year,
+        type: 'bonus_40',
+        title: '13th Month Salary: 40% Vacation Bonus (*Urlaubsgeld*)',
+        category: '13th Salary (*13. Monatsgehalt*)',
+        statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
+        taxClassLabel: rm.taxClassLabel,
+        amount: bonus40Amount,
+        description: '40% mid-year bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
+      });
+    }
+
+    if ((bonus60Amount as number) > 0) {
+      specialEvents.push({
+        id: `bonus60-m${m}`,
+        month: rm.month,
+        year,
+        type: 'bonus_60',
+        title: '13th Month Salary: 60% Christmas Bonus (*Weihnachtsgeld*)',
+        category: '13th Salary (*13. Monatsgehalt*)',
+        statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
+        taxClassLabel: rm.taxClassLabel,
+        amount: bonus60Amount,
+        description: '60% year-end special payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
+      });
+    }
+
+    if ((taxRefund as number) > 0) {
+      const isDeficitRefund = (taxRefund as number) > 850;
+      specialEvents.push({
+        id: `tax-return-m${m}`,
+        month: rm.month,
+        year,
+        type: 'tax_return',
+        title: `Annual Tax Assessment Refund (Year ${Math.max(1, (year as number) - 1)} Return)`,
+        category: 'Tax Office (*Finanzamt*)',
+        statutory: '§ 26b EStG (*Ehegatten-Splitting*)',
+        taxClassLabel: 'Joint Assessment (*Splitting*)',
+        amount: taxRefund,
+        description: isDeficitRefund
+          ? `Full refund of Tax Class V wage withholding deficit (+${((taxRefund as number) - 850).toLocaleString('de-DE')} €) plus statutory deductions return (+850 €)`
+          : 'Standard annual income tax reconciliation and statutory deductions return (+850 €)'
+      });
+    }
+
     const {
       entry,
       nextCumulatedSalaries,
@@ -610,6 +661,7 @@ export function generateTimelineSimulation(
         taxRefund,
         bonus40Amount,
         bonus60Amount,
+        specialEvents,
         taxClassLabel: rm.taxClassLabel,
         phaseLabel: rm.phaseLabel,
         eventTag,

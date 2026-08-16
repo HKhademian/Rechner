@@ -6,7 +6,7 @@ import {
   toEuroAmount,
   toNetSalary,
   toStatutoryCitation
-} from '../types';
+} from '../types.ts';
 
 /**
  * Statutory Income Tax Tariff (§ 32a Abs. 1 EStG) - 2024–2026 Tariff Formula

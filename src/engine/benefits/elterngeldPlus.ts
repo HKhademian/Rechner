@@ -3,7 +3,7 @@ import {
   type EuroAmount,
   toEuroAmount,
   toStatutoryCitation
-} from '../types';
+} from '../types.ts';
 
 /**
  * Statutory Wage Replacement Rate (§ 2 Abs. 1 & 2 BEEG)

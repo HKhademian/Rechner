@@ -5,11 +5,12 @@ import {
   type EuroAmount,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
+  type SpecialEventItem,
   toEuroAmount,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth
-} from '../types';
+} from '../types.ts';
 
 export interface LedgerMonthInput {
   readonly month: SimulationMonth;
@@ -24,6 +25,7 @@ export interface LedgerMonthInput {
   readonly taxRefund: EuroAmount;
   readonly bonus40Amount: EuroAmount;
   readonly bonus60Amount: EuroAmount;
+  readonly specialEvents: readonly SpecialEventItem[];
   readonly taxClassLabel: string;
   readonly phaseLabel: string;
   readonly eventTag: string | null;
@@ -90,6 +92,7 @@ export function buildMonthlyLedgerEntry(
     bonus60Amount: input.bonus60Amount,
     specialBonusTotal: toEuroAmount(specialBonusTotal),
     specialEventsTotal: toEuroAmount(specialEventsTotal),
+    specialEvents: input.specialEvents,
     regularMonthlyTotal: toEuroAmount(regularMonthlyTotal),
     monthlyTotal: toEuroAmount(monthlyTotal),
     earnedSalaries: toEuroAmount(earnedSalaries),

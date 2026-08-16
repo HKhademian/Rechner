@@ -5,7 +5,7 @@ import {
   toEuroAmount,
   toNetSalary,
   toStatutoryCitation
-} from '../types';
+} from '../types.ts';
 
 /**
  * Monthly Record in the 12-Month Assessment Period (Bemessungszeitraum § 2b BEEG)

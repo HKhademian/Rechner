@@ -9,7 +9,7 @@ import {
   type AccountingTransaction,
   toTransactionId,
   toStatutoryCitation
-} from '../types';
+} from '../types.ts';
 
 export interface CreateTransactionParams {
   readonly id: string;
