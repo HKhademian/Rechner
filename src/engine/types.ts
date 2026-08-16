@@ -70,6 +70,7 @@ export const FinancialEventCategory = {
   HousingNursery: 'Housing & Nursery (*Wohnen/Umzug*)',
   HealthcareFamily: 'Healthcare & Family (*Familienleistung*)',
   TaxAdjustment: 'Tax Office (*Finanzamt*)',
+  InvestmentReturn: 'Investment & Capital (*Kapitalertrag*)',
   CustomSpecial: 'Custom Financial Event (*Sonderposten*)'
 } as const;
 export type FinancialEventCategory = (typeof FinancialEventCategory)[keyof typeof FinancialEventCategory];
@@ -99,6 +100,7 @@ export const SpecialEventCategory = {
   CareerBonus: 'Career & Bonus (*Sonderzahlung*)',
   HousingNursery: 'Housing & Nursery (*Wohnen/Umzug*)',
   HealthcareFamily: 'Healthcare & Family (*Familienleistung*)',
+  InvestmentReturn: 'Investment & Capital (*Kapitalertrag*)',
   CustomSpecial: 'Custom Financial Event (*Sonderposten*)'
 } as const;
 export type SpecialEventCategory = (typeof SpecialEventCategory)[keyof typeof SpecialEventCategory];
@@ -629,6 +631,10 @@ export interface PreexistingConditions {
   readonly wifeInitialPartTimeClass5Net: NetSalary;
   readonly wifeInitialPartTimeClass3Net: NetSalary;
   readonly wifeWeeklyHours: WorkingHours;
+  readonly wifePostBirthWeeklyHours?: WorkingHours;
+  readonly annualBonusGross?: EuroAmount;
+  readonly annualBonusMonth?: CalendarMonth;
+  readonly investmentReturnMonthly?: EuroAmount;
   readonly existingChildrenCount: number;
   readonly kindergeldPerChild: EuroAmount;
   readonly enable13thSalary: boolean;
