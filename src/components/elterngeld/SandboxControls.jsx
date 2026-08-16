@@ -10,6 +10,10 @@ import {
   wifeInitialHours,
   wifePostBirthHours,
   kindergeldPerChild,
+  enable13thSalary,
+  bonus40Month,
+  bonus60Month,
+  taxReturnMonth,
   prePregnancyPlanningMonths,
   child1BirthMonth,
   birthSpacingMonths,
@@ -452,7 +456,7 @@ export default function SandboxControls() {
               </div>
 
               {/* Swap Lead Time (Months before Mutterschutz) */}
-              <div>
+              <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '4px' }}>
                   <span style={{ color: '#cbd5e1' }}>Tax Class Swap Lead Time:</span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
@@ -471,6 +475,117 @@ export default function SandboxControls() {
                   {swapLeadMonths.value >= 7
                     ? '7+ months guarantee Tax Class III dominance during the 12-month Elterngeld assessment period (*Überwiegende Steuerklasse* § 2b BEEG)'
                     : '<7 months risks default to Tax Class V under BEEG § 2b'}
+                </div>
+              </div>
+
+              {/* 13th Month Salary Controls (Sonderzahlung / Jahressonderzahlung) */}
+              <div style={{
+                marginTop: '12px',
+                paddingTop: '12px',
+                borderTop: '1px solid #334155'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fbbf24' }}>
+                    13th Month Salary (*13. Monatsgehalt*):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { enable13thSalary.value = !enable13thSalary.value; }}
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      border: enable13thSalary.value ? '1px solid #b45309' : '1px solid #334155',
+                      background: enable13thSalary.value ? '#b45309' : '#1e293b',
+                      color: '#ffffff',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {enable13thSalary.value ? 'Enabled' : 'Disabled'}
+                  </button>
+                </div>
+
+                {enable13thSalary.value && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* 40% Vacation Bonus Month (M4 vs M5) */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem' }}>
+                      <span style={{ color: '#cbd5e1' }}>Part 1: 40% Vacation Bonus (*Urlaubsgeld*):</span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        {[4, 5].map((mNum) => (
+                          <button
+                            key={`bonus40-opt-${mNum}`}
+                            type="button"
+                            onClick={() => { bonus40Month.value = mNum; }}
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '3px',
+                              border: bonus40Month.value === mNum ? '1px solid #f59e0b' : '1px solid #334155',
+                              background: bonus40Month.value === mNum ? '#78350f' : '#0f172a',
+                              color: bonus40Month.value === mNum ? '#fde68a' : '#94a3b8',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Month {mNum}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 60% Christmas Bonus Month (M10 vs M11) */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem' }}>
+                      <span style={{ color: '#cbd5e1' }}>Part 2: 60% Christmas Bonus (*Weihnachtsgeld*):</span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        {[10, 11].map((mNum) => (
+                          <button
+                            key={`bonus60-opt-${mNum}`}
+                            type="button"
+                            onClick={() => { bonus60Month.value = mNum; }}
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '3px',
+                              border: bonus60Month.value === mNum ? '1px solid #f59e0b' : '1px solid #334155',
+                              background: bonus60Month.value === mNum ? '#78350f' : '#0f172a',
+                              color: bonus60Month.value === mNum ? '#fde68a' : '#94a3b8',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Month {mNum}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tax Return Month (M2 vs M3) */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem', marginTop: '10px' }}>
+                  <span style={{ color: '#5eead4', fontWeight: 600 }}>Annual Tax Return (*Finanzamt*):</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[2, 3].map((mNum) => (
+                      <button
+                        key={`tax-opt-${mNum}`}
+                        type="button"
+                        onClick={() => { taxReturnMonth.value = mNum; }}
+                        style={{
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          border: taxReturnMonth.value === mNum ? '1px solid #0f766e' : '1px solid #334155',
+                          background: taxReturnMonth.value === mNum ? '#134e4a' : '#0f172a',
+                          color: taxReturnMonth.value === mNum ? '#99f6e4' : '#94a3b8',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Month {mNum}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

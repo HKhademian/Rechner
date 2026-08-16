@@ -64,8 +64,15 @@ export default function KpiScorecard() {
             </svg>
           </div>
         </div>
-        <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '6px' }}>
-          Husband (32h) & Wife (40h pre-birth / 24h part-time)
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#93c5fd', border: '1px solid #334155' }}>
+            Base Net: {formatCurrency(current.summary.totalSalaries - (current.summary.total13thSalaries || 0))}
+          </span>
+          {current.summary.total13thSalaries > 0 && (
+            <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#fbbf24', border: '1px solid #b45309' }}>
+              13th Month (*Sonderzahlung*): +{formatCurrency(current.summary.total13thSalaries)}
+            </span>
+          )}
         </div>
       </div>
 

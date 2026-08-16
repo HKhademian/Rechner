@@ -14,6 +14,13 @@ export const wifePostBirthHours = signal(24);
 
 export const kindergeldPerChild = signal(259);
 
+// Special Annual Events (13th Month Salary & Tax Return Timing)
+export const enable13thSalary = signal(true);
+export const bonus40Month = signal(5); // Month 4 or 5 of each year (40% Vacation Bonus / Urlaubsgeld)
+export const bonus60Month = signal(11); // Month 10 or 11 of each year (60% Christmas Bonus / Weihnachtsgeld)
+export const taxReturnMonth = signal(3); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
+export const showSpecialEventRows = signal(true); // Table display toggle
+
 // Timeline & Spacing Controls
 export const prePregnancyPlanningMonths = signal(3); // Start 3 months before pregnancy
 export const child1BirthMonth = signal(12); // Month 12 (3M pre-preg + 9M pregnancy)
@@ -24,7 +31,7 @@ export const postMutterschutzMonths = signal(2); // 8 weeks
 
 // UI & View State
 export const activeScenario = signal('C'); // 'A', 'B', 'C', or 'compare'
-export const chartMode = signal('stacked_bar'); // 'stacked_bar', 'area', 'compare'
+export const chartMode = signal('stacked_bar'); // 'stacked_bar', 'lines', 'area', 'compare'
 export const timeRangeFilter = signal('all'); // 'all', 'child1', 'child2', 'post'
 export const hoveredMonth = signal(null);
 
@@ -41,6 +48,12 @@ export function resetToDefaults() {
   wifePostBirthHours.value = 24;
 
   kindergeldPerChild.value = 259;
+  enable13thSalary.value = true;
+  bonus40Month.value = 5;
+  bonus60Month.value = 11;
+  taxReturnMonth.value = 3;
+  showSpecialEventRows.value = true;
+
   prePregnancyPlanningMonths.value = 3;
   child1BirthMonth.value = 12;
   birthSpacingMonths.value = 27;
@@ -341,7 +354,7 @@ export function computeTimelineData(scenarioKey) {
           phaseLabel = 'Partnerschaftsbonus 2 (Both 24-32h)';
         }
       }
-      // Gap or post-leave periods
+      // GAP or post-leave periods
       else if (m > b1) {
         husbandSalary = h3Net;
         wifeSalary = w5PT;
@@ -353,24 +366,107 @@ export function computeTimelineData(scenarioKey) {
         wifeSalary = w5FT;
         phaseLabel = 'Pre-Birth Full-Time';
       }
+    }
 
-      // Annual Tax Reconciliation Refund (Finanzamt reconciliation):
-      // Swap 1 refund realized at Month 12 (Year 1 annual tax return)
-      if (m === 12) {
-        const swap1MonthsCount = (preM1 - swap1Start + 1); // 7-8 months
-        const monthlyWithholdingDeficit1 = (h3Net + w5FT) - (h5Net + w3FT); // €6,125 - €5,850 = €275
-        taxRefund = swap1MonthsCount * monthlyWithholdingDeficit1;
+    const monthInYear = ((m - 1) % 12) + 1;
+    const year = Math.ceil(m / 12);
+
+    // 1. 13th Month Salary Events (Husband Sonderzahlung):
+    // Part 1: 40% (Vacation Bonus / Urlaubsgeld) at bonus40Month (e.g. Month 4 or 5)
+    // Part 2: 60% (Christmas Bonus / Weihnachtsgeld) at bonus60Month (e.g. Month 10 or 11)
+    let bonus40Amount = 0;
+    let bonus60Amount = 0;
+    const currentHusbandBaseNet = isSwapActive ? h5Net : h3Net;
+
+    if (enable13thSalary.value) {
+      if (monthInYear === bonus40Month.value) {
+        bonus40Amount = Math.round(0.40 * currentHusbandBaseNet);
       }
-      // Swap 2 refund realized at Month 39 (Year 3/4 annual tax return)
-      if (m === b2) {
-        const swap2MonthsCount = (preM2 - swap2Start + 1); // 7-8 months
-        const monthlyWithholdingDeficit2 = (h3Net + w5PT) - (h5Net + w3PT); // €5,355 - €4,820 = €535
-        taxRefund = swap2MonthsCount * monthlyWithholdingDeficit2;
+      if (monthInYear === bonus60Month.value) {
+        bonus60Amount = Math.round(0.60 * currentHusbandBaseNet);
       }
     }
 
-    const monthlyTotal = husbandSalary + wifeSalary + mutterschutz + wifeElterngeld + husbandElterngeld + kindergeld + taxRefund;
-    const earnedSalaries = husbandSalary + wifeSalary;
+    // 2. Annual Tax Return Reconciliation (Finanzamt-Erstattung § 26b EStG):
+    // Standard annual tax refund occurs at taxReturnMonth (e.g. Month 2 or 3 of each year)
+    let baseAnnualTaxRefund = 0;
+    let swapReconciliationRefund = 0;
+
+    if (monthInYear === taxReturnMonth.value) {
+      baseAnnualTaxRefund = 850; // Standard annual deduction return
+
+      if (scenarioKey === 'C') {
+        // Swap 1 refund realized in Year 2 annual return (M15 if taxReturnMonth=3)
+        if (year === 2) {
+          const swap1MonthsCount = (preM1 - swap1Start + 1); // 7-8 months
+          const monthlyWithholdingDeficit1 = (h3Net + w5FT) - (h5Net + w3FT);
+          swapReconciliationRefund = swap1MonthsCount * monthlyWithholdingDeficit1;
+        }
+        // Swap 2 refund realized in Year 4 annual return (M39 if taxReturnMonth=3)
+        else if (year === 4) {
+          const swap2MonthsCount = (preM2 - swap2Start + 1); // 7-8 months
+          const monthlyWithholdingDeficit2 = (h3Net + w5PT) - (h5Net + w3PT);
+          swapReconciliationRefund = swap2MonthsCount * monthlyWithholdingDeficit2;
+        }
+      }
+
+      taxRefund = baseAnnualTaxRefund + swapReconciliationRefund;
+    }
+
+    // Build Special Event entries for this month
+    const specialEvents = [];
+    if (bonus40Amount > 0) {
+      specialEvents.push({
+        id: `bonus40-m${m}`,
+        month: m,
+        year,
+        type: 'bonus_40',
+        title: '13th Month Salary: 40% Vacation Bonus (*Urlaubsgeld*)',
+        category: '13th Salary (*13. Monatsgehalt*)',
+        statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
+        taxClassLabel,
+        amount: bonus40Amount,
+        description: '40% mid-year bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
+      });
+    }
+
+    if (bonus60Amount > 0) {
+      specialEvents.push({
+        id: `bonus60-m${m}`,
+        month: m,
+        year,
+        type: 'bonus_60',
+        title: '13th Month Salary: 60% Christmas Bonus (*Weihnachtsgeld*)',
+        category: '13th Salary (*13. Monatsgehalt*)',
+        statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
+        taxClassLabel,
+        amount: bonus60Amount,
+        description: '60% year-end special payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
+      });
+    }
+
+    if (taxRefund > 0) {
+      specialEvents.push({
+        id: `tax-return-m${m}`,
+        month: m,
+        year,
+        type: 'tax_return',
+        title: 'Annual Tax Assessment Refund (*Finanzamt-Erstattung*)',
+        category: 'Tax Office (*Finanzamt*)',
+        statutory: '§ 26b EStG (*Ehegatten-Splitting*)',
+        taxClassLabel: 'Joint Assessment',
+        amount: taxRefund,
+        description: swapReconciliationRefund > 0
+          ? `Includes full refund of Tax Class V wage withholding deficit (+${swapReconciliationRefund.toLocaleString('de-DE')} €) plus annual deductions return`
+          : 'Standard annual income tax reconciliation and deductions return'
+      });
+    }
+
+    const specialBonusTotal = bonus40Amount + bonus60Amount;
+    const specialEventsTotal = specialBonusTotal + taxRefund;
+    const regularMonthlyTotal = husbandSalary + wifeSalary + mutterschutz + wifeElterngeld + husbandElterngeld + kindergeld;
+    const monthlyTotal = regularMonthlyTotal + specialEventsTotal;
+    const earnedSalaries = husbandSalary + wifeSalary + specialBonusTotal;
     const stateBenefits = mutterschutz + wifeElterngeld + husbandElterngeld + kindergeld;
 
     cumulatedSalaries += earnedSalaries;
@@ -382,35 +478,35 @@ export function computeTimelineData(scenarioKey) {
     let eventTag = null;
     let eventType = null;
     if (m === 1) {
-      eventTag = 'Start Vorbereitungsphase (3M vor Schwangerschaft)';
+      eventTag = 'Planning Phase Start (*Vorbereitung*)';
       eventType = 'planning';
     } else if (m === preg1Start && scenarioKey === 'C') {
-      eventTag = 'Schwangerschaft 1 & Steuerklassenwechsel (H: V / W: III)';
+      eventTag = 'Pregnancy 1 & Tax Swap (*Steuerklassenwechsel* III/V)';
       eventType = 'swap';
     } else if (m === preg1Start && scenarioKey !== 'A') {
-      eventTag = 'Schwangerschaft 1 (Beginn)';
+      eventTag = 'Pregnancy 1 Start (*Beginn*)';
       eventType = 'preg';
     } else if (m === b1 && scenarioKey !== 'A') {
-      eventTag = 'Geburt Kind 1';
+      eventTag = 'Child 1 Birth (*Geburt Kind 1*)';
       eventType = 'birth';
     } else if (m === preg2Start && scenarioKey !== 'A') {
-      eventTag = 'Schwangerschaft 2 (18M Abstand)';
+      eventTag = 'Pregnancy 2 Start (18M Gap)';
       eventType = 'preg';
     } else if (m === swap2Start && scenarioKey === 'C') {
-      eventTag = 'Steuerklassenwechsel 2 (H: V / W: III)';
+      eventTag = 'Tax Swap 2 (*Steuerklassenwechsel 2* III/V)';
       eventType = 'swap';
     } else if (m === b2 && scenarioKey !== 'A') {
-      eventTag = 'Geburt Kind 2';
+      eventTag = 'Child 2 Birth (*Geburt Kind 2*)';
       eventType = 'birth';
     } else if (m === siblingBonusEndMonth && scenarioKey !== 'A') {
-      eventTag = 'Kind 1 vollendet 3. Lbj. (Geschwisterbonus endet)';
+      eventTag = 'Child 1 Age 3 (*Geschwisterbonus* Ends)';
       eventType = 'bonus_end';
     }
 
     months.push({
       month: m,
-      year: Math.ceil(m / 12),
-      monthInYear: ((m - 1) % 12) + 1,
+      year,
+      monthInYear,
       husbandSalary,
       wifeSalary,
       mutterschutz,
@@ -418,6 +514,12 @@ export function computeTimelineData(scenarioKey) {
       husbandElterngeld,
       kindergeld,
       taxRefund,
+      bonus40Amount,
+      bonus60Amount,
+      specialBonusTotal,
+      specialEventsTotal,
+      specialEvents,
+      regularMonthlyTotal,
       monthlyTotal,
       earnedSalaries,
       stateBenefits,
@@ -448,6 +550,7 @@ export function computeTimelineData(scenarioKey) {
       totalWifeElterngeld: months.reduce((acc, m) => acc + m.wifeElterngeld, 0),
       totalHusbandElterngeld: months.reduce((acc, m) => acc + m.husbandElterngeld, 0),
       totalKindergeld: months.reduce((acc, m) => acc + m.kindergeld, 0),
+      total13thSalaries: months.reduce((acc, m) => acc + m.specialBonusTotal, 0)
     }
   };
 }
