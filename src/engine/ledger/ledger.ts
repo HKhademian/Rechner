@@ -30,6 +30,7 @@ export interface LedgerMonthInput {
   readonly bonus40Amount: EuroAmount;
   readonly bonus60Amount: EuroAmount;
   readonly specialEvents: readonly SpecialEventItem[];
+  readonly startingActions?: readonly import('#engine/types').ActionRowItem[];
   readonly taxClassLabel: string;
   readonly phaseLabel: string;
   readonly eventTag: string | null;
@@ -101,6 +102,7 @@ export function buildMonthlyLedgerEntry(
     specialBonusTotal: toEuroAmount(specialBonusTotal),
     specialEventsTotal: toEuroAmount(specialEventsTotal),
     specialEvents: input.specialEvents,
+    startingActions: input.startingActions,
     regularMonthlyTotal: toEuroAmount(regularMonthlyTotal),
     monthlyTotal: toEuroAmount(monthlyTotal),
     earnedSalaries: toEuroAmount(earnedSalaries),

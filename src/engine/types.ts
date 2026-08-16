@@ -203,6 +203,20 @@ export interface SpecialEventItem {
 }
 
 /**
+ * Action Milestone Item (Non-value structural event row placed before the triggering month)
+ */
+export interface ActionRowItem {
+  readonly actionId: string;
+  readonly month: SimulationMonth;
+  readonly calendarLabel: string;
+  readonly relativeBirthLabel: string;
+  readonly title: string;
+  readonly description: string;
+  readonly category: 'pregnancy' | 'tax_switch' | 'salary_raise';
+  readonly taxClassLabel?: string;
+}
+
+/**
  * Monthly Chronological Ledger State
  */
 export interface MonthlyLedgerEntry {
@@ -225,6 +239,7 @@ export interface MonthlyLedgerEntry {
   readonly specialBonusTotal: EuroAmount;
   readonly specialEventsTotal: EuroAmount;
   readonly specialEvents: readonly SpecialEventItem[];
+  readonly startingActions?: readonly ActionRowItem[];
   readonly regularMonthlyTotal: EuroAmount;
   readonly monthlyTotal: EuroAmount;
   readonly earnedSalaries: EuroAmount;

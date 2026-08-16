@@ -479,6 +479,23 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
       // Verify Month 60 is Delivery 3
       assert.equal(res.months[59].isMutterschutz, true);
+
+      // Verify Action Milestone Rows placed immediately before the triggering month
+      // Month 4 has Pregnancy 1 Positive and Swap 1 Effective
+      assert.ok(res.months[3].startingActions && res.months[3].startingActions.length >= 2);
+      const m4ActionTitles = res.months[3].startingActions!.map(a => a.title);
+      assert.ok(m4ActionTitles.some(t => t.includes('Positive Pregnancy Test (Child #1)')));
+      assert.ok(m4ActionTitles.some(t => t.includes('Tax Class Switch Active')));
+
+      // Month 12 has Delivery 1 and Swap 1 Reversion
+      assert.ok(res.months[11].startingActions && res.months[11].startingActions.length >= 2);
+      const m12ActionTitles = res.months[11].startingActions!.map(a => a.title);
+      assert.ok(m12ActionTitles.some(t => t.includes('Delivery & Birth')));
+      assert.ok(m12ActionTitles.some(t => t.includes('Tax Class Reversion')));
+
+      // Month 25 has Husband Merit Promotion
+      assert.ok(res.months[24].startingActions && res.months[24].startingActions.length >= 1);
+      assert.ok(res.months[24].startingActions![0].title.includes('Salary Raise Effective (HUSBAND +10%)'));
     });
   });
 });

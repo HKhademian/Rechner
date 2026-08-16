@@ -15,6 +15,7 @@ import {
   type MonthlyLedgerEntry,
   type AccountingTransaction,
   type SpecialEventItem,
+  type ActionRowItem,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -666,6 +667,86 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
       });
     }
 
+    // Build Starting Actions for Month m (Action Milestone Rows placed before Month m)
+    const startingActions: ActionRowItem[] = [];
+
+    // Batch 1: Pregnancies starting at Month m (Positive test or Delivery)
+    pregnancies.forEach((preg) => {
+      const pTest = preg.positiveTestSimulationMonth as number;
+      const del = preg.calculatedDeliverySimulationMonth as number;
+      if (m === pTest) {
+        startingActions.push({
+          actionId: `${preg.pregnancyId}-POSITIVE`,
+          month: rm.month,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          title: `ACTION: Positive Pregnancy Test (Child #${preg.childIndex})`,
+          description: `Positive pregnancy test confirmed for Child #${preg.childIndex}. Pre-pregnancy baseline lock initiated (§ 2b BEEG).`,
+          category: 'pregnancy',
+          taxClassLabel: rm.taxClassLabel
+        });
+      }
+      if (m === del) {
+        startingActions.push({
+          actionId: `${preg.pregnancyId}-DELIVERY`,
+          month: rm.month,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          title: `ACTION: Child #${preg.childIndex} Delivery & Birth`,
+          description: `Child #${preg.childIndex} born. Statutory Mutterschutz & ElterngeldPlus benefit eligibility begins.`,
+          category: 'pregnancy',
+          taxClassLabel: rm.taxClassLabel
+        });
+      }
+    });
+
+    // Batch 2: Tax Class Switches starting at Month m (Effective or Revert)
+    taxClassSwitches.forEach((sw, sIdx) => {
+      const eff = sw.effectiveSimulationMonth as number;
+      const rev = sw.revertSimulationMonth as number;
+      if (m === eff && scenarioKey === ScenarioId.C) {
+        startingActions.push({
+          actionId: `${sw.switchId}-EFFECTIVE`,
+          month: rm.month,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          title: `ACTION: Tax Class Switch Active (H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass})`,
+          description: sw.statutoryReason || `Proactive tax class switch to optimize Elterngeld assessment baseline (§ 2b BEEG).`,
+          category: 'tax_switch',
+          taxClassLabel: `H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass}`
+        });
+      }
+      if (m === rev && scenarioKey === ScenarioId.C) {
+        startingActions.push({
+          actionId: `${sw.switchId}-REVERT`,
+          month: rm.month,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          title: `ACTION: Tax Class Reversion (H: ${preexisting.husbandInitialTaxClass} | W: ${preexisting.wifeInitialTaxClass})`,
+          description: `Reverting tax classes post-delivery back to baseline (${preexisting.husbandInitialTaxClass}/${preexisting.wifeInitialTaxClass}) to maximize family take-home pay.`,
+          category: 'tax_switch',
+          taxClassLabel: `H: ${preexisting.husbandInitialTaxClass} | W: ${preexisting.wifeInitialTaxClass}`
+        });
+      }
+    });
+
+    // Batch 3: Salary Raises starting at Month m
+    salaryRaises.forEach((sr) => {
+      const eff = sr.effectiveSimulationMonth as number;
+      if (m === eff) {
+        startingActions.push({
+          actionId: `${sr.raiseId}-EFFECTIVE`,
+          month: rm.month,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          title: `ACTION: Salary Raise Effective (${sr.targetPerson.toUpperCase()} +${((sr.percentageIncrease || 0) * 100).toFixed(0)}%)`,
+          description: sr.reason || `Annual wage progression / tariff merit step adjustment.`,
+          category: 'salary_raise',
+          taxClassLabel: rm.taxClassLabel
+        });
+      }
+    });
+
     const {
       entry,
       nextCumulatedSalaries,
@@ -691,6 +772,7 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
         bonus40Amount,
         bonus60Amount,
         specialEvents,
+        startingActions,
         taxClassLabel: rm.taxClassLabel,
         phaseLabel: rm.phaseLabel,
         eventTag,

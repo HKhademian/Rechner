@@ -305,6 +305,29 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     const diffTotal = bMonth ? (m.monthlyTotal as number) - (bMonth.monthlyTotal as number) : 0;
     const diffStr = bMonth && diffTotal !== 0 ? ` (${diffTotal > 0 ? '+' : ''}${diffTotal}€)` : '';
 
+    // Print Action Milestone Rows immediately BEFORE Month m
+    if (m.startingActions && m.startingActions.length > 0) {
+      m.startingActions.forEach((act) => {
+        const actTitle = `⚡ ${act.title}`;
+        const actRow = [
+          `M${String(m.month).padEnd(2)} [Act]`,
+          m.calendarLabel.padEnd(8),
+          `${MAGENTA}${actTitle.slice(0, 30)}${RESET}`.padEnd(30 + MAGENTA.length + RESET.length),
+          (act.taxClassLabel || '—').slice(0, 11).padEnd(11),
+          '—'.padStart(11),
+          '—'.padStart(9),
+          '—'.padStart(8),
+          '—'.padStart(10),
+          '—'.padStart(10),
+          '—'.padStart(7),
+          '—'.padStart(10),
+          '—'.padStart(15),
+          '—'.padStart(10)
+        ].join(' | ');
+        console.log(`| ${actRow} |`);
+      });
+    }
+
     const row = [
       `M${String(m.month).padEnd(4)}`,
       m.calendarLabel.padEnd(8),
@@ -331,6 +354,14 @@ function printMilestones(res: SimulationResult) {
   console.log(`\n${BOLD}${CYAN}Key Life Milestones & Special Events Timeline (${res.months.length} Months):${RESET}\n`);
 
   res.months.forEach((m) => {
+    // Print starting actions before month
+    if (m.startingActions && m.startingActions.length > 0) {
+      m.startingActions.forEach((act) => {
+        console.log(`  ${BOLD}${MAGENTA}⚡ ${act.title}${RESET} [Triggered before ${m.calendarLabel} / M${m.month}]`);
+        console.log(`    ↳ ${DIM}${act.description}${RESET}`);
+      });
+    }
+
     const events: string[] = [];
     if (m.isMutterschutz) events.push(`${MAGENTA}Mutterschutz (${formatEuro(m.mutterschutz as number)})${RESET}`);
     if ((m.wifeElterngeld as number) > 0) events.push(`${CYAN}ElterngeldPlus (${formatEuro(m.wifeElterngeld as number)})${RESET}`);

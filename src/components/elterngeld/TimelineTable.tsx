@@ -93,7 +93,21 @@ export default function TimelineTable(): JSX.Element {
       const diffKindergeld = (m.kindergeld as number) - (bMonth ? (bMonth.kindergeld as number) : 0);
       const diffSpecialEvents = (m.specialEventsTotal as number) - (bMonth ? (bMonth.specialEventsTotal as number) : 0);
       const diffNetInflow = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
-      const diffCumulated = (m.cumulatedTotal as number) - (bMonth ? (bMonth.cumulatedTotal as number) : 0);
+      // Action Milestone Rows (Placed immediately BEFORE month m)
+      if (m.startingActions && m.startingActions.length > 0) {
+        m.startingActions.forEach((act) => {
+          rows.push([
+            'Action Milestone',
+            `Month ${m.month} (Action)`,
+            m.calendarLabel,
+            m.relativeBirthLabel,
+            `Year ${m.year}`,
+            `"${act.title}"`,
+            `"${act.taxClassLabel || ''}"`,
+            '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—'
+          ]);
+        });
+      }
 
       // Base monthly row
       rows.push([
@@ -467,6 +481,59 @@ export default function TimelineTable(): JSX.Element {
               const hasEvents = isSpecialRowsActive && m.specialEvents && m.specialEvents.length > 0;
 
               return [
+                /* 0. Action Milestone Rows (Pre-Month Actions) */
+                m.startingActions && m.startingActions.map((act) => (
+                  <tr
+                    key={`action-${act.actionId}-m${m.month}`}
+                    style={{
+                      background: 'rgba(59, 7, 100, 0.40)',
+                      borderBottom: '1px solid #7e22ce',
+                      borderTop: '1px solid #7e22ce'
+                    }}
+                  >
+                    <td style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: '#c084fc', fontFamily: 'monospace' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>M{m.month}</span>
+                        <span style={{ fontSize: '0.65rem', color: '#f3e8ff', background: '#581c87', padding: '1px 5px', borderRadius: '3px', fontWeight: 800 }}>
+                          ACTION
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.66rem', color: '#c084fc' }}>
+                        {m.calendarLabel}
+                      </div>
+                    </td>
+                    <td style={{ padding: '6px 12px', textAlign: 'left' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        background: '#581c87',
+                        color: '#f3e8ff',
+                        border: '1px solid #9333ea'
+                      }}>
+                        ⚡ {act.title}
+                      </span>
+                      <div style={{ fontSize: '0.68rem', color: '#e2e8f0', marginTop: '2px' }}>
+                        {act.description}
+                      </div>
+                    </td>
+                    <td style={{ padding: '6px 12px', textAlign: 'left', color: '#c084fc', fontWeight: 600 }}>
+                      {act.taxClassLabel || '—'}
+                    </td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                    <td style={{ padding: '6px 12px', color: '#64748b', fontSize: '0.72rem' }}>—</td>
+                  </tr>
+                )),
+
                 /* 1. Base Monthly Row */
                 <tr
                   key={`month-${m.month}`}
