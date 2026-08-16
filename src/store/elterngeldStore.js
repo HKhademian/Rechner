@@ -1,5 +1,13 @@
 import { signal, computed } from '@preact/signals';
 
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0
+  }).format(amount || 0);
+}
+
 // Default Financial Parameters (The Sandbox)
 export const husbandClass3Net = signal(2895);
 export const husbandClass5Net = signal(2191);
@@ -145,11 +153,7 @@ export function computeTimelineData(scenarioKey) {
   const siblingBonusAmountC = Math.max(75, baseEgPlusChild2C * 0.10);
   const egPlusChild2WithSiblingC = Math.min(900, baseEgPlusChild2C + siblingBonusAmountC);
 
-  const months = [];
-  let cumulatedSalaries = 0;
-  let cumulatedBenefits = 0;
-  let cumulatedTaxRefunds = 0;
-  let cumulatedTotal = 0;
+  const rawMonths = [];
 
   for (let m = 1; m <= 60; m++) {
     let husbandSalary = 0;
@@ -360,23 +364,98 @@ export function computeTimelineData(scenarioKey) {
         wifeSalary = w5PT;
         phaseLabel = 'Family Part-Time (Post-Leave)';
       }
-      // Default
-      else {
-        husbandSalary = h3Net;
-        wifeSalary = w5FT;
-        phaseLabel = 'Pre-Birth Full-Time';
-      }
     }
 
     const monthInYear = ((m - 1) % 12) + 1;
     const year = Math.ceil(m / 12);
 
+    // Calculate exact wage tax withholding deficit during active tax class swap (Steuerklassenwechsel III/V)
+    // When husband is in Class V (paying extra tax) and wife is in Class III (paying less tax),
+    // the net household withholding variance is: (Husband Extra Withholding) - (Wife Relief).
+    let monthlyWithholdingDeficit = 0;
+    if (scenarioKey === 'C' && isSwapActive) {
+      const husbandExtraWithholding = Math.max(0, h3Net - h5Net); // e.g. 2895 - 2191 = 995 €
+      const wifeRelief = (m > b1 || phaseLabel.includes('Part-Time'))
+        ? Math.max(0, w3PT - w5PT) // e.g. 1648 - 1328 = 460 €
+        : Math.max(0, w3FT - w5FT); // e.g. 2603 - 1975 = 720 €
+      monthlyWithholdingDeficit = Math.max(0, husbandExtraWithholding - wifeRelief);
+    }
+
+    rawMonths.push({
+      month: m,
+      year,
+      monthInYear,
+      husbandSalary,
+      wifeSalary,
+      mutterschutz,
+      wifeElterngeld,
+      husbandElterngeld,
+      kindergeld,
+      taxClassLabel,
+      phaseLabel,
+      isSwapActive,
+      isMutterschutz,
+      isPartnerschaftsbonus,
+      hasSiblingBonus,
+      monthlyWithholdingDeficit
+    });
+  }
+
+  // PASS 2: Aggregate annual withholding deficits by calendar year (Years 1 to 5)
+  // Under § 26b EStG (Ehegatten-Splitting), 100% of the interim wage withholding deficit
+  // accumulated during calendar Year Y is refunded via the annual tax return filed in Year Y+1.
+  const yearlyDeficits = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  rawMonths.forEach(rm => {
+    yearlyDeficits[rm.year] = (yearlyDeficits[rm.year] || 0) + rm.monthlyWithholdingDeficit;
+  });
+
+  // Determine the refund month for each tax year (filed in Year Y+1 in taxReturnMonth)
+  const taxRefundByMonth = {};
+  const taxRefundDetailsByMonth = {};
+
+  const tMonth = taxReturnMonth.value; // e.g. 2 (Feb) or 3 (Mar)
+  const baseAnnualTaxRefund = 850; // Standard annual deduction return (§ 9a, § 10, § 32 EStG)
+
+  for (let yr = 1; yr <= 4; yr++) {
+    const refundMonth = yr * 12 + tMonth; // e.g. Yr 1 return in M15 (or M14), Yr 2 in M27, Yr 3 in M39, Yr 4 in M51
+    if (refundMonth <= 60) {
+      const swapDeficit = yearlyDeficits[yr] || 0;
+      taxRefundByMonth[refundMonth] = baseAnnualTaxRefund + swapDeficit;
+      taxRefundDetailsByMonth[refundMonth] = {
+        taxYear: yr,
+        swapDeficit,
+        baseDeductionsRefund: baseAnnualTaxRefund,
+        totalRefund: baseAnnualTaxRefund + swapDeficit
+      };
+    }
+  }
+
+  // Also include Year 1 initial refund in month tMonth (M2 or M3) for pre-simulation baseline year
+  taxRefundByMonth[tMonth] = baseAnnualTaxRefund;
+  taxRefundDetailsByMonth[tMonth] = {
+    taxYear: 0,
+    swapDeficit: 0,
+    baseDeductionsRefund: baseAnnualTaxRefund,
+    totalRefund: baseAnnualTaxRefund
+  };
+
+  // PASS 3: Assemble final ledger items, special events, and running cumulative totals
+  const months = [];
+  let cumulatedSalaries = 0;
+  let cumulatedBenefits = 0;
+  let cumulatedTaxRefunds = 0;
+  let cumulatedTotal = 0;
+
+  for (let i = 0; i < rawMonths.length; i++) {
+    const rm = rawMonths[i];
+    const m = rm.month;
+    const monthInYear = rm.monthInYear;
+    const year = rm.year;
+
     // 1. 13th Month Salary Events (Husband Sonderzahlung):
-    // Part 1: 40% (Vacation Bonus / Urlaubsgeld) at bonus40Month (e.g. Month 4 or 5)
-    // Part 2: 60% (Christmas Bonus / Weihnachtsgeld) at bonus60Month (e.g. Month 10 or 11)
     let bonus40Amount = 0;
     let bonus60Amount = 0;
-    const currentHusbandBaseNet = isSwapActive ? h5Net : h3Net;
+    const currentHusbandBaseNet = rm.isSwapActive ? h5Net : h3Net;
 
     if (enable13thSalary.value) {
       if (monthInYear === bonus40Month.value) {
@@ -387,31 +466,9 @@ export function computeTimelineData(scenarioKey) {
       }
     }
 
-    // 2. Annual Tax Return Reconciliation (Finanzamt-Erstattung § 26b EStG):
-    // Standard annual tax refund occurs at taxReturnMonth (e.g. Month 2 or 3 of each year)
-    let baseAnnualTaxRefund = 0;
-    let swapReconciliationRefund = 0;
-
-    if (monthInYear === taxReturnMonth.value) {
-      baseAnnualTaxRefund = 850; // Standard annual deduction return
-
-      if (scenarioKey === 'C') {
-        // Swap 1 refund realized in Year 2 annual return (M15 if taxReturnMonth=3)
-        if (year === 2) {
-          const swap1MonthsCount = (preM1 - swap1Start + 1); // 7-8 months
-          const monthlyWithholdingDeficit1 = (h3Net + w5FT) - (h5Net + w3FT);
-          swapReconciliationRefund = swap1MonthsCount * monthlyWithholdingDeficit1;
-        }
-        // Swap 2 refund realized in Year 4 annual return (M39 if taxReturnMonth=3)
-        else if (year === 4) {
-          const swap2MonthsCount = (preM2 - swap2Start + 1); // 7-8 months
-          const monthlyWithholdingDeficit2 = (h3Net + w5PT) - (h5Net + w3PT);
-          swapReconciliationRefund = swap2MonthsCount * monthlyWithholdingDeficit2;
-        }
-      }
-
-      taxRefund = baseAnnualTaxRefund + swapReconciliationRefund;
-    }
+    // 2. Annual Tax Return Refund:
+    const taxRefund = taxRefundByMonth[m] || 0;
+    const taxDetails = taxRefundDetailsByMonth[m] || null;
 
     // Build Special Event entries for this month
     const specialEvents = [];
@@ -424,7 +481,7 @@ export function computeTimelineData(scenarioKey) {
         title: '13th Month Salary: 40% Vacation Bonus (*Urlaubsgeld*)',
         category: '13th Salary (*13. Monatsgehalt*)',
         statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
-        taxClassLabel,
+        taxClassLabel: rm.taxClassLabel,
         amount: bonus40Amount,
         description: '40% mid-year bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
       });
@@ -439,7 +496,7 @@ export function computeTimelineData(scenarioKey) {
         title: '13th Month Salary: 60% Christmas Bonus (*Weihnachtsgeld*)',
         category: '13th Salary (*13. Monatsgehalt*)',
         statutory: '§ 9a / § 19 EStG (BEEG § 2c exempt)',
-        taxClassLabel,
+        taxClassLabel: rm.taxClassLabel,
         amount: bonus60Amount,
         description: '60% year-end special payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)'
       });
@@ -451,23 +508,23 @@ export function computeTimelineData(scenarioKey) {
         month: m,
         year,
         type: 'tax_return',
-        title: 'Annual Tax Assessment Refund (*Finanzamt-Erstattung*)',
+        title: `Annual Tax Assessment Refund (Year ${taxDetails && taxDetails.taxYear > 0 ? taxDetails.taxYear : 1} Return)`,
         category: 'Tax Office (*Finanzamt*)',
         statutory: '§ 26b EStG (*Ehegatten-Splitting*)',
-        taxClassLabel: 'Joint Assessment',
+        taxClassLabel: 'Joint Assessment (*Splitting*)',
         amount: taxRefund,
-        description: swapReconciliationRefund > 0
-          ? `Includes full refund of Tax Class V wage withholding deficit (+${swapReconciliationRefund.toLocaleString('de-DE')} €) plus annual deductions return`
-          : 'Standard annual income tax reconciliation and deductions return'
+        description: taxDetails && taxDetails.swapDeficit > 0
+          ? `Full refund of Tax Class V wage withholding deficit (+${formatCurrency(taxDetails.swapDeficit)}) plus statutory deductions return (+${formatCurrency(taxDetails.baseDeductionsRefund)})`
+          : `Standard annual income tax reconciliation and statutory deductions return (+${formatCurrency(baseAnnualTaxRefund)})`
       });
     }
 
     const specialBonusTotal = bonus40Amount + bonus60Amount;
     const specialEventsTotal = specialBonusTotal + taxRefund;
-    const regularMonthlyTotal = husbandSalary + wifeSalary + mutterschutz + wifeElterngeld + husbandElterngeld + kindergeld;
+    const regularMonthlyTotal = rm.husbandSalary + rm.wifeSalary + rm.mutterschutz + rm.wifeElterngeld + rm.husbandElterngeld + rm.kindergeld;
     const monthlyTotal = regularMonthlyTotal + specialEventsTotal;
-    const earnedSalaries = husbandSalary + wifeSalary + specialBonusTotal;
-    const stateBenefits = mutterschutz + wifeElterngeld + husbandElterngeld + kindergeld;
+    const earnedSalaries = rm.husbandSalary + rm.wifeSalary + specialBonusTotal;
+    const stateBenefits = rm.mutterschutz + rm.wifeElterngeld + rm.husbandElterngeld + rm.kindergeld;
 
     cumulatedSalaries += earnedSalaries;
     cumulatedBenefits += stateBenefits;
@@ -507,13 +564,14 @@ export function computeTimelineData(scenarioKey) {
       month: m,
       year,
       monthInYear,
-      husbandSalary,
-      wifeSalary,
-      mutterschutz,
-      wifeElterngeld,
-      husbandElterngeld,
-      kindergeld,
+      husbandSalary: rm.husbandSalary,
+      wifeSalary: rm.wifeSalary,
+      mutterschutz: rm.mutterschutz,
+      wifeElterngeld: rm.wifeElterngeld,
+      husbandElterngeld: rm.husbandElterngeld,
+      kindergeld: rm.kindergeld,
       taxRefund,
+      taxDetails,
       bonus40Amount,
       bonus60Amount,
       specialBonusTotal,
@@ -527,14 +585,14 @@ export function computeTimelineData(scenarioKey) {
       cumulatedBenefits,
       cumulatedTaxRefunds,
       cumulatedTotal,
-      taxClassLabel,
-      phaseLabel,
+      taxClassLabel: rm.taxClassLabel,
+      phaseLabel: rm.phaseLabel,
       eventTag,
       eventType,
-      isSwapActive,
-      isMutterschutz,
-      isPartnerschaftsbonus,
-      hasSiblingBonus
+      isSwapActive: rm.isSwapActive,
+      isMutterschutz: rm.isMutterschutz,
+      isPartnerschaftsbonus: rm.isPartnerschaftsbonus,
+      hasSiblingBonus: rm.hasSiblingBonus
     });
   }
 
