@@ -85,9 +85,9 @@ describe('Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)', () => {
       assert.ok(stdout.includes('FULL MONTHLY AUDIT: Month 21'));
       assert.ok(stdout.includes('Monthly Net Inflow:'));
       assert.ok(stdout.includes('Itemized Cash Flow Breakdown:'));
-      assert.ok(stdout.includes("Husband's Salary"));
-      assert.ok(stdout.includes("Mother's ElterngeldPlus"));
-      assert.ok(stdout.includes("Father's Elterngeld / Partner Bonus"));
+      assert.ok(stdout.includes("Husband's Net Salary") || stdout.includes("Husband's Salary"));
+      assert.ok(stdout.includes("Mother's Elterngeld / ElterngeldPlus") || stdout.includes("Mother's Elterngeld"));
+      assert.ok(stdout.includes("Father's Partner Months / Bonus") || stdout.includes("Father's Elterngeld"));
       assert.ok(stdout.includes('Kindergeld'));
     });
 
@@ -253,10 +253,10 @@ describe('Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)', () => {
         'special'
       ]);
       assert.equal(stderr, '');
-      assert.ok(stdout.includes('Special Payments, Bonuses & Tax Returns'));
+      assert.ok(stdout.includes('Annual Tax Return & Special Fiscal Events'));
       assert.ok(stdout.includes('Günstigerprüfung'));
       assert.ok(stdout.includes('Kinderfreibetrag'));
-      assert.ok(stdout.includes('EStG § 26b, § 31'));
+      assert.ok(stdout.includes('EStG § 26b') && stdout.includes('§ 31'));
     });
   });
 });

@@ -222,7 +222,7 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
         actionId: 'ACT-SWAP-1',
         title: 'ACTION: Tax Class Switch (III / V Swap)',
         category: ActionCategory.TaxSwitch,
-        type: ActionType.TaxClassSwitchSwap,
+        type: ActionType.TaxClassSwitchEffective,
         description: 'Prenatal spousal tax class optimization switch.',
         taxClassLabel: 'III (Wife) / V (Husband)'
       };
@@ -238,35 +238,101 @@ describe('Timeline Explanation Engine (Field-Level & Full-Row Audits)', () => {
     });
   });
 
-  describe('getSpecialEventFieldExplanation & getSpecialEventRowExplanation', () => {
-    it('generates valid explanations for tax return refund special event', () => {
+  describe('getSpecialEventFieldExplanation & getSpecialEventRowExplanation (Tax Return Comprehensive Audit)', () => {
+    it('generates complete 4-step calculation and itemized contributing factors for Tax Return field explanation', () => {
       const ev: SpecialEventItem = {
         eventId: 'EV-TAX-REFUND-1',
-        type: SpecialEventType.TaxReturnRefund,
+        type: SpecialEventType.TaxReturn,
         category: SpecialEventCategory.TaxOffice,
-        title: 'Tax Return Refund (Year 1)',
-        description: 'Splitting tariff refund from joint tax assessment.',
-        amount: toEuroAmount(3200),
-        taxClassLabel: 'III / V',
+        title: 'Annual Tax Return (Tax Year 2026)',
+        description: 'Full refund of Tax Class V wage withholding deficit (+2.200 €) plus statutory deductions return (+850 €) plus § 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+104 € over Kindergeld) for Tax Year 2026',
+        amount: toEuroAmount(3154),
+        taxClassLabel: 'Joint Assessment (*Splitting*)',
         month: toSimulationMonth(15),
         year: toCalendarYear(2),
         calendarYearNum: 2027,
         calendarMonthNum: toCalendarMonth(3),
         calendarLabel: 'Mar 2027',
         relativeBirthLabel: 'M+3',
-        statutory: 'EStG § 26b' as any
+        statutory: '§ 26b & § 31 EStG (*Günstigerprüfung*)' as any
       };
 
       const m15 = simC.months[14];
-      const fieldExp = getSpecialEventFieldExplanation(ExplanationFieldKey.Amount, ev, m15, 50000, 3200);
-      assert.equal(fieldExp.valueFormatted, '3.200\u00a0€');
-      assert.ok(fieldExp.derivationFormula?.includes('Credit (+)'));
+      const fieldExp = getSpecialEventFieldExplanation(ExplanationFieldKey.Amount, ev, m15, 50000, 3154);
 
+      assert.equal(fieldExp.valueFormatted, '3.154\u00a0€');
+      assert.ok(fieldExp.fieldTitle.includes('Tax Return Refund'));
+      assert.ok(fieldExp.explanation.includes('Einkommensteuererklärung'));
+      assert.ok(fieldExp.explanation.includes('Günstigerprüfung'));
+
+      // Check all 6 contributing factors
+      assert.ok(fieldExp.contributingFactors);
+      assert.equal(fieldExp.contributingFactors.length, 6);
+      assert.equal(fieldExp.contributingFactors[0].name, 'Assessed Tax Year');
+      assert.equal(fieldExp.contributingFactors[0].value, 'Tax Year 2026');
+      assert.equal(fieldExp.contributingFactors[1].name, 'Assessment Method & Tariff');
+      assert.equal(fieldExp.contributingFactors[2].name, 'Wage Tax Swap Recovery (§ 38b EStG)');
+      assert.equal(fieldExp.contributingFactors[2].value, '+2.200 €');
+      assert.equal(fieldExp.contributingFactors[3].name, 'Statutory Base Deductions Return');
+      assert.equal(fieldExp.contributingFactors[3].value, '+850 €');
+      assert.equal(fieldExp.contributingFactors[4].name, 'Child Allowance Günstigerprüfung (§ 31 EStG)');
+      assert.ok(fieldExp.contributingFactors[4].value.includes('+104 €'));
+      assert.equal(fieldExp.contributingFactors[5].name, 'Total Liquid Tax Return Refund');
+
+      // Check all 4 calculation steps
+      assert.ok(fieldExp.calculationSteps);
+      assert.equal(fieldExp.calculationSteps.length, 4);
+      assert.equal(fieldExp.calculationSteps[0].stepNumber, 1);
+      assert.equal(fieldExp.calculationSteps[0].result, '+2.200 €');
+      assert.equal(fieldExp.calculationSteps[1].stepNumber, 2);
+      assert.equal(fieldExp.calculationSteps[1].result, '+850 €');
+      assert.equal(fieldExp.calculationSteps[2].stepNumber, 3);
+      assert.equal(fieldExp.calculationSteps[2].result, '+104 €');
+      assert.equal(fieldExp.calculationSteps[3].stepNumber, 4);
+      assert.equal(fieldExp.calculationSteps[3].result, '3.154\u00a0€');
+
+      assert.ok(fieldExp.legalCitation?.includes('EStG § 26b'));
+      assert.ok(fieldExp.legalCitation?.includes('§ 31'));
+    });
+
+    it('generates itemized streams and statutory breakdown for Tax Return row explanation', () => {
+      const ev: SpecialEventItem = {
+        eventId: 'EV-TAX-REFUND-1',
+        type: SpecialEventType.TaxReturn,
+        category: SpecialEventCategory.TaxOffice,
+        title: 'Annual Tax Return (Tax Year 2026)',
+        description: 'Full refund of Tax Class V wage withholding deficit (+1.100 €) plus statutory deductions return (+850 €) for Tax Year 2026',
+        amount: toEuroAmount(1950),
+        taxClassLabel: 'Joint Assessment (*Splitting*)',
+        month: toSimulationMonth(15),
+        year: toCalendarYear(2),
+        calendarYearNum: 2027,
+        calendarMonthNum: toCalendarMonth(3),
+        calendarLabel: 'Mar 2027',
+        relativeBirthLabel: 'M+3',
+        statutory: '§ 26b EStG' as any
+      };
+
+      const m15 = simC.months[14];
       const rowExp = getSpecialEventRowExplanation(ev, m15, undefined, 50000, ScenarioId.C);
       assert.equal(rowExp.rowType, ExplainerRowType.SpecialEvent);
-      assert.equal(rowExp.totalNetInflow, 3200);
-      assert.equal(rowExp.cumulatedTotal, 50000);
+      assert.equal(rowExp.totalNetInflow, 1950);
+      assert.ok(rowExp.streams.length >= 2);
+      assert.equal(rowExp.streams[0].label, 'Wage Tax Swap Recovery (Class V Reconciliation)');
+      assert.equal(rowExp.streams[0].value, 1100);
+      assert.equal(rowExp.streams[1].label, 'Statutory Base Deductions & Werbungskosten Return');
+      assert.equal(rowExp.streams[1].value, 850);
       assert.ok(rowExp.legalCitation?.includes('EStG § 26b'));
+    });
+
+    it('generates complete Tax Return explanation when getFieldExplanation is called on SpecialEvents column in refund month', () => {
+      const m15 = simC.months[14];
+      const exp = getFieldExplanation(FieldColumnKey.SpecialEvents, m15, undefined, ScenarioId.C);
+      assert.ok(exp.fieldTitle.includes('Annual Tax Return'));
+      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 5);
+      assert.ok(exp.calculationSteps && exp.calculationSteps.length === 4);
+      assert.ok(exp.explanation.includes('Einkommensteuererklärung'));
+      assert.ok(exp.legalCitation?.includes('EStG § 26b'));
     });
   });
 
