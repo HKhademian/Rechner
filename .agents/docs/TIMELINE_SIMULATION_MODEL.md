@@ -59,3 +59,29 @@ For each month $m \in [1, 60]$:
 $$\text{Total Inflow}(m) = \text{Salary}_{\text{Husband}}(m) + \text{Salary}_{\text{Wife}}(m) + \text{Mutterschutz}(m) + \text{Elterngeld}_{\text{Wife}}(m) + \text{Elterngeld}_{\text{Husband}}(m) + \text{Kindergeld}(m) + \text{TaxRefund}(m)$$
 
 $$\text{Cumulative Wealth}(M) = \sum_{m=1}^{M} \text{Total Inflow}(m)$$
+
+---
+
+## 4. Architectural Rules & Lifecycle Constraints
+
+### A. Relative Pregnancy Counter Origin ($M0$)
+- The relative month counter (`Mx`) starts from the **first positive pregnancy test** (`M0 (Pregnancy Positive)`), NOT the birth of the child.
+- Pre-pregnancy planning months are negative (`M-1`, `M-2`, ..., `M-8`).
+- Child delivery milestone occurs at `M+8 (Birth 1)`.
+
+### B. Simulation Start Auto-Calibration
+- Simulation start date must be at least **3 months before the positive pregnancy test** and snap to the **first month (January / 01) of the resulting calendar year**.
+- Example: Positive test at `09.2026` $\rightarrow$ 3 months prior is `06.2026` $\rightarrow$ Start is `01.2026`.
+- Example: Positive test at `02.2028` $\rightarrow$ 3 months prior is `11.2027` $\rightarrow$ Start is `01.2027`.
+
+### C. Discrete 4-Batch Architecture
+The simulator ingests state in 4 modular batches:
+1. **Batch 0 (Preexisting Conditions)**: Initial tax classes, salaries, hours, baseline children, bonus months, duration.
+2. **Batch 1 (Pregnancy Actions)**: Positive test dates, calculated delivery dates, child index, post-birth part-time earnings, partner months.
+3. **Batch 2 (Tax Class Switches)**: Start month, target classes (V/III), statutory rationale (§ 2b BEEG), revert month.
+4. **Batch 3 (Salary Raises)**: Effective month, percentage increase, target person (`Both`, `Husband`, `Wife`), reason.
+
+### D. Action Milestone Rows Placement
+- Non-financial life and tax actions carry zero monetary values and render dashes (`—`).
+- Every action taking effect at simulation month $M$ must be placed as a milestone row **immediately before** month $M$'s monthly cash flow row: `M(M-1) -> M(M) [Action Row] -> M(M) [Cash Flow Row]`.
+
