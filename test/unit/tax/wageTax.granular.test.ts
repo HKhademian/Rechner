@@ -6,7 +6,7 @@ import {
   computeMonthlySocialSecurity,
   computeMonthlyNetSalary
 } from '../../../src/engine/tax/wageTax.ts';
-import { toGrossSalary, toEuroAmount } from '../../../src/engine/types.ts';
+import { toGrossSalary, toEuroAmount, TaxClass } from '../../../src/engine/types.ts';
 
 describe('Granular Wage Tax Unit Tests (300 Individual Assertions)', () => {
   // Test 100 distinct taxable income levels from 0 € to 100.000 € in 1.000 € steps
@@ -27,8 +27,8 @@ describe('Granular Wage Tax Unit Tests (300 Individual Assertions)', () => {
   for (let gross = 500; gross <= 10400; gross += 100) {
     it(`evaluates Tax Class III net > Tax Class V net for monthly gross ${gross.toLocaleString('de-DE')} €`, () => {
       const g = toGrossSalary(gross);
-      const net3 = computeMonthlyNetSalary(g, 'III', 0) as number;
-      const net5 = computeMonthlyNetSalary(g, 'V', 0) as number;
+      const net3 = computeMonthlyNetSalary(g, TaxClass.III, 0) as number;
+      const net5 = computeMonthlyNetSalary(g, TaxClass.V, 0) as number;
 
       assert.ok(net3 > 0);
       assert.ok(net5 >= 0);

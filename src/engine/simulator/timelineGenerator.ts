@@ -4,7 +4,9 @@ import {
   type CalendarMonth,
   type NetSalary,
   type EuroAmount,
-  type ScenarioId,
+  ScenarioId,
+  TransactionType,
+  TransactionDirection,
   type SimulationResult,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -143,12 +145,12 @@ export function generateTimelineSimulation(
     let hasSiblingBonus = false;
     const transactions: AccountingTransaction[] = [];
 
-    if (scenarioKey === 'A') {
+    if (scenarioKey === ScenarioId.A) {
       husbandSalary = toEuroAmount(h3Net as number);
       wifeSalary = toEuroAmount(w5FT as number);
       phaseLabel = 'Standard Career (No Leave)';
       taxClassLabel = 'H: III | W: V';
-    } else if (scenarioKey === 'B') {
+    } else if (scenarioKey === ScenarioId.B) {
       husbandSalary = toEuroAmount(h3Net as number);
       taxClassLabel = 'H: III | W: V';
 
@@ -213,7 +215,7 @@ export function generateTimelineSimulation(
         wifeSalary = toEuroAmount(w5FT as number);
         phaseLabel = 'Pre-Birth Full-Time';
       }
-    } else if (scenarioKey === 'C') {
+    } else if (scenarioKey === ScenarioId.C) {
       // Kindergeld
       if (m >= b1 && m < b2) {
         kindergeld = toEuroAmount(kgRate as number);
@@ -335,7 +337,7 @@ export function generateTimelineSimulation(
 
     // Exact Wage Withholding Deficit during active swap
     let monthlyWithholdingDeficit = toEuroAmount(0);
-    if (scenarioKey === 'C' && isSwapActive) {
+    if (scenarioKey === ScenarioId.C && isSwapActive) {
       const isPT = m > b1 || phaseLabel.includes('Part-Time');
       monthlyWithholdingDeficit = computeMonthlySwapWithholdingVariance(
         h3Net,
@@ -431,8 +433,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-HUSBAND-SALARY`,
         month: rm.month,
         year,
-        type: 'SALARY_BASE',
-        direction: 'INFLOW',
+        type: TransactionType.SalaryBase,
+        direction: TransactionDirection.Inflow,
         amount: rm.husbandSalary,
         statutoryCitation: '§ 19 EStG (Einkünfte aus nichtselbständiger Arbeit)',
         taxClassLabel: rm.taxClassLabel,
@@ -446,8 +448,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-WIFE-SALARY`,
         month: rm.month,
         year,
-        type: 'SALARY_BASE',
-        direction: 'INFLOW',
+        type: TransactionType.SalaryBase,
+        direction: TransactionDirection.Inflow,
         amount: rm.wifeSalary,
         statutoryCitation: '§ 19 EStG (Einkünfte aus nichtselbständiger Arbeit)',
         taxClassLabel: rm.taxClassLabel,
@@ -461,8 +463,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-BONUS-40`,
         month: rm.month,
         year,
-        type: 'SALARY_BONUS_13TH_VACATION',
-        direction: 'INFLOW',
+        type: TransactionType.SalaryBonus13thVacation,
+        direction: TransactionDirection.Inflow,
         amount: bonus40Amount,
         statutoryCitation: '§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)',
         taxClassLabel: rm.taxClassLabel,
@@ -476,8 +478,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-BONUS-60`,
         month: rm.month,
         year,
-        type: 'SALARY_BONUS_13TH_CHRISTMAS',
-        direction: 'INFLOW',
+        type: TransactionType.SalaryBonus13thChristmas,
+        direction: TransactionDirection.Inflow,
         amount: bonus60Amount,
         statutoryCitation: '§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)',
         taxClassLabel: rm.taxClassLabel,
@@ -491,8 +493,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-MUTTERSCHUTZ`,
         month: rm.month,
         year,
-        type: 'BENEFIT_MUTTERSCHUTZ',
-        direction: 'INFLOW',
+        type: TransactionType.BenefitMutterschutz,
+        direction: TransactionDirection.Inflow,
         amount: rm.mutterschutz,
         statutoryCitation: 'MuSchG § 19 & § 20 (100% Net Wage Replacement)',
         taxClassLabel: rm.taxClassLabel,
@@ -506,8 +508,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-WIFE-ELTERNGELD`,
         month: rm.month,
         year,
-        type: 'BENEFIT_ELTERNGELD_PLUS_MOTHER',
-        direction: 'INFLOW',
+        type: TransactionType.BenefitElterngeldPlusMother,
+        direction: TransactionDirection.Inflow,
         amount: rm.wifeElterngeld,
         statutoryCitation: 'BEEG § 4a (ElterngeldPlus)',
         taxClassLabel: rm.taxClassLabel,
@@ -521,8 +523,10 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-HUSBAND-ELTERNGELD`,
         month: rm.month,
         year,
-        type: rm.isPartnerschaftsbonus ? 'BENEFIT_PARTNERSCHAFTSBONUS' : 'BENEFIT_ELTERNGELD_PLUS_FATHER',
-        direction: 'INFLOW',
+        type: rm.isPartnerschaftsbonus
+          ? TransactionType.BenefitPartnerschaftsbonus
+          : TransactionType.BenefitElterngeldPlusFather,
+        direction: TransactionDirection.Inflow,
         amount: rm.husbandElterngeld,
         statutoryCitation: 'BEEG § 4b (Partnermonate / Partnerschaftsbonus)',
         taxClassLabel: rm.taxClassLabel,
@@ -536,8 +540,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-KINDERGELD`,
         month: rm.month,
         year,
-        type: 'BENEFIT_KINDERGELD',
-        direction: 'INFLOW',
+        type: TransactionType.BenefitKindergeld,
+        direction: TransactionDirection.Inflow,
         amount: rm.kindergeld,
         statutoryCitation: 'EStG § 66 (Kindergeld)',
         taxClassLabel: rm.taxClassLabel,
@@ -551,8 +555,8 @@ export function generateTimelineSimulation(
         id: `TX-M${m}-TAX-REFUND`,
         month: rm.month,
         year,
-        type: 'TAX_RECONCILIATION_REFUND',
-        direction: 'INFLOW',
+        type: TransactionType.TaxReconciliationRefund,
+        direction: TransactionDirection.Inflow,
         amount: taxRefund,
         statutoryCitation: 'EStG § 26b (*Ehegatten-Splitting*) & § 46 Abs. 2 Nr. 3a',
         taxClassLabel: 'Joint Assessment (*Splitting*)',

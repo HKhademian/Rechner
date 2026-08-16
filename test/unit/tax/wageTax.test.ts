@@ -6,7 +6,7 @@ import {
   computeMonthlySocialSecurity,
   computeMonthlyNetSalary
 } from '../../../src/engine/tax/wageTax.ts';
-import { toGrossSalary, toEuroAmount } from '../../../src/engine/types.ts';
+import { toGrossSalary, toEuroAmount, TaxClass } from '../../../src/engine/types.ts';
 
 describe('German Wage Tax Withholding Engine (§ 32a, § 38b EStG)', () => {
   describe('computeAnnualIncomeTax - § 32a EStG Progressive Tariff', () => {
@@ -116,9 +116,9 @@ describe('German Wage Tax Withholding Engine (§ 32a, § 38b EStG)', () => {
     it('produces higher net for Tax Class III than Class IV and Class V at identical gross', () => {
       for (let gross = 2500; gross <= 8000; gross += 500) {
         const g = toGrossSalary(gross);
-        const net3 = computeMonthlyNetSalary(g, 'III', 0) as number;
-        const net4 = computeMonthlyNetSalary(g, 'IV', 0) as number;
-        const net5 = computeMonthlyNetSalary(g, 'V', 0) as number;
+        const net3 = computeMonthlyNetSalary(g, TaxClass.III, 0) as number;
+        const net4 = computeMonthlyNetSalary(g, TaxClass.IV, 0) as number;
+        const net5 = computeMonthlyNetSalary(g, TaxClass.V, 0) as number;
 
         assert.ok(net3 > net4, `Class III net (${net3}) must be greater than Class IV (${net4}) at ${gross} € gross`);
         assert.ok(net4 > net5, `Class IV net (${net4}) must be greater than Class V (${net5}) at ${gross} € gross`);
@@ -126,7 +126,7 @@ describe('German Wage Tax Withholding Engine (§ 32a, § 38b EStG)', () => {
     });
 
     it('calculates 0 net for 0 gross income', () => {
-      const net = computeMonthlyNetSalary(toGrossSalary(0), 'I', 0);
+      const net = computeMonthlyNetSalary(toGrossSalary(0), TaxClass.I, 0);
       assert.equal(net, 0);
     });
   });

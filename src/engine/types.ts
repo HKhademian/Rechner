@@ -16,25 +16,46 @@ export type EuroCents = Brand<number, 'EuroCents'>;             // Integer cents
 export type GrossSalary = Brand<number, 'GrossSalary'>;         // Pre-tax gross salary in EUR
 export type NetSalary = Brand<number, 'NetSalary'>;             // Post-withholding net salary in EUR
 
-// Tax & Legal Categorization Types
-export type TaxClass = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI';
-export type ScenarioId = 'A' | 'B' | 'C';
+// Tax & Legal Categorization Enums (Strict Const Enums)
+export const TaxClass = {
+  I: 'I',
+  II: 'II',
+  III: 'III',
+  IV: 'IV',
+  V: 'V',
+  VI: 'VI'
+} as const;
+export type TaxClass = (typeof TaxClass)[keyof typeof TaxClass];
+
+export const ScenarioId = {
+  A: 'A',
+  B: 'B',
+  C: 'C'
+} as const;
+export type ScenarioId = (typeof ScenarioId)[keyof typeof ScenarioId];
+
 export type StatutoryCitation = Brand<string, 'StatutoryCitation'>;
 export type TransactionId = Brand<string, 'TransactionId'>;
 
-// Accounting Transaction Types
-export type TransactionType =
-  | 'SALARY_BASE'
-  | 'SALARY_BONUS_13TH_VACATION'
-  | 'SALARY_BONUS_13TH_CHRISTMAS'
-  | 'BENEFIT_MUTTERSCHUTZ'
-  | 'BENEFIT_ELTERNGELD_PLUS_MOTHER'
-  | 'BENEFIT_ELTERNGELD_PLUS_FATHER'
-  | 'BENEFIT_PARTNERSCHAFTSBONUS'
-  | 'BENEFIT_KINDERGELD'
-  | 'TAX_RECONCILIATION_REFUND';
+// Accounting Transaction Enums (Strict Const Enums)
+export const TransactionType = {
+  SalaryBase: 'SALARY_BASE',
+  SalaryBonus13thVacation: 'SALARY_BONUS_13TH_VACATION',
+  SalaryBonus13thChristmas: 'SALARY_BONUS_13TH_CHRISTMAS',
+  BenefitMutterschutz: 'BENEFIT_MUTTERSCHUTZ',
+  BenefitElterngeldPlusMother: 'BENEFIT_ELTERNGELD_PLUS_MOTHER',
+  BenefitElterngeldPlusFather: 'BENEFIT_ELTERNGELD_PLUS_FATHER',
+  BenefitPartnerschaftsbonus: 'BENEFIT_PARTNERSCHAFTSBONUS',
+  BenefitKindergeld: 'BENEFIT_KINDERGELD',
+  TaxReconciliationRefund: 'TAX_RECONCILIATION_REFUND'
+} as const;
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType];
 
-export type TransactionDirection = 'INFLOW' | 'OUTFLOW';
+export const TransactionDirection = {
+  Inflow: 'INFLOW',
+  Outflow: 'OUTFLOW'
+} as const;
+export type TransactionDirection = (typeof TransactionDirection)[keyof typeof TransactionDirection];
 
 // Type Constructors & Validation Helpers
 export function toSimulationMonth(val: number): SimulationMonth {
@@ -105,6 +126,22 @@ export function toTransactionId(val: string): TransactionId {
     throw new TypeError(`Invalid TransactionId: ${val}. Must be non-empty string.`);
   }
   return val as TransactionId;
+}
+
+export function toTaxClass(val: string): TaxClass {
+  const values = Object.values(TaxClass) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid TaxClass: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as TaxClass;
+}
+
+export function toScenarioId(val: string): ScenarioId {
+  const values = Object.values(ScenarioId) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ScenarioId: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ScenarioId;
 }
 
 /**

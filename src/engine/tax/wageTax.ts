@@ -1,7 +1,7 @@
 import {
   type GrossSalary,
   type NetSalary,
-  type TaxClass,
+  TaxClass,
   type EuroAmount,
   toEuroAmount,
   toNetSalary,
@@ -143,26 +143,26 @@ export function computeMonthlyNetSalary(
   let annualWageTax = 0;
 
   switch (taxClass) {
-    case 'I':
-    case 'IV':
+    case TaxClass.I:
+    case TaxClass.IV:
       annualWageTax = computeAnnualIncomeTax(approxZvE) as number;
       break;
-    case 'II':
+    case TaxClass.II:
       // Relief for single parents (§ 24b EStG: Entlastungsbetrag für Alleinerziehende 4.260 €)
       approxZvE = Math.max(0, approxZvE - 4260);
       annualWageTax = computeAnnualIncomeTax(approxZvE) as number;
       break;
-    case 'III':
+    case TaxClass.III:
       // Tax Class III: Doubled basic allowance / applies splitting formula as sole earner (§ 38b Abs. 1 Nr. 3 EStG)
       annualWageTax = Math.floor((computeAnnualIncomeTax(approxZvE / 2) as number) * 2);
       break;
-    case 'V':
+    case TaxClass.V:
       // Tax Class V: No basic allowance, higher progressive rate to offset Class III (§ 38b Abs. 1 Nr. 5 EStG)
       const baseTax = computeAnnualIncomeTax(approxZvE) as number;
       const progressiveSurcharge = Math.floor(approxZvE * 0.12);
       annualWageTax = baseTax + progressiveSurcharge;
       break;
-    case 'VI':
+    case TaxClass.VI:
       // Tax Class VI: Second job, zero basic allowance (§ 38b Abs. 1 Nr. 6 EStG)
       annualWageTax = Math.floor(computeAnnualIncomeTax(approxZvE + 11784) as number);
       break;

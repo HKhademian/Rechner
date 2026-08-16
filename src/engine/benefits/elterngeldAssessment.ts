@@ -1,6 +1,6 @@
 import {
   type NetSalary,
-  type TaxClass,
+  TaxClass,
   type EuroAmount,
   toEuroAmount,
   toNetSalary,
@@ -31,7 +31,7 @@ export function determinePredominantTaxClass(
 } {
   if (!records || records.length === 0) {
     return {
-      dominantClass: 'IV',
+      dominantClass: TaxClass.IV,
       dominantClassCount: 0,
       isSyntheticClassApplied: false,
       legalCitation: 'BEEG § 2b Abs. 1'
@@ -40,19 +40,19 @@ export function determinePredominantTaxClass(
 
   // Count months per tax class
   const counts: Record<TaxClass, number> = {
-    I: 0,
-    II: 0,
-    III: 0,
-    IV: 0,
-    V: 0,
-    VI: 0
+    [TaxClass.I]: 0,
+    [TaxClass.II]: 0,
+    [TaxClass.III]: 0,
+    [TaxClass.IV]: 0,
+    [TaxClass.V]: 0,
+    [TaxClass.VI]: 0
   };
 
   records.forEach(r => {
     counts[r.taxClass] = (counts[r.taxClass] || 0) + 1;
   });
 
-  let dominantClass: TaxClass = 'IV';
+  let dominantClass: TaxClass = TaxClass.IV;
   let maxCount = 0;
 
   (Object.keys(counts) as TaxClass[]).forEach(tc => {
@@ -63,7 +63,7 @@ export function determinePredominantTaxClass(
   });
 
   // Statutory 7-Month Rule (§ 2b Abs. 1 Satz 3 BEEG)
-  const isSyntheticClassApplied = dominantClass === 'III' && maxCount >= 7;
+  const isSyntheticClassApplied = dominantClass === TaxClass.III && maxCount >= 7;
 
   return {
     dominantClass,

@@ -5,7 +5,8 @@ import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
-  toCalendarMonth
+  toCalendarMonth,
+  ScenarioId
 } from '../../src/engine/types.ts';
 
 describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variations)', () => {
@@ -29,7 +30,7 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
   describe('Scenario A - Baseline Career (No Children)', () => {
     it('produces constant regular monthly income and 13th month bonuses without parental leave or benefits', () => {
-      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: 'A' });
+      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.A });
       assert.equal(res.months.length, 60);
 
       res.months.forEach(m => {
@@ -48,7 +49,7 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
   describe('Scenario B - Unoptimized (Static Class III/V)', () => {
     it('accurately models Mutterschutz at Class V and unoptimized ElterngeldPlus', () => {
-      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: 'B' });
+      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.B });
       assert.equal(res.months.length, 60);
 
       // Mutterschutz 1 (M11, M12, M13) at Class V FT (€1.975)
@@ -69,7 +70,7 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
   describe('Scenario C - Optimized Proactive Tax Class Swap (III/V)', () => {
     it('accurately models Swap 1, Mutterschutz at Class III FT (€2.603), and maxed €900 ElterngeldPlus', () => {
-      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: 'C' });
+      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.C });
       assert.equal(res.months.length, 60);
 
       // Mutterschutz 1 (M11, M12, M13) at Class III FT (€2.603)
@@ -87,7 +88,7 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
     });
 
     it('calculates exact annual tax refunds for Year 1 (+3.050 €) and Year 3 (+4.060 €)', () => {
-      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: 'C' });
+      const res = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.C });
 
       // Month 15: Year 1 Return = 8 * 275 (2200) + 850 = 3050 €
       const m15 = res.months[14];
@@ -109,8 +110,8 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
   describe('Optimization Advantage Audit (Scenario C vs Scenario B)', () => {
     it('proves Scenario C provides substantial net financial gain over Scenario B', () => {
-      const b = generateTimelineSimulation({ ...defaultParams, scenarioKey: 'B' });
-      const c = generateTimelineSimulation({ ...defaultParams, scenarioKey: 'C' });
+      const b = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.B });
+      const c = generateTimelineSimulation({ ...defaultParams, scenarioKey: ScenarioId.C });
 
       const netGain = (c.summary.grandTotal as number) - (b.summary.grandTotal as number);
       const benefitsGain = (c.summary.totalBenefits as number) - (b.summary.totalBenefits as number);

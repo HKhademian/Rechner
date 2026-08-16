@@ -5,7 +5,8 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
-  type ScenarioId
+  ScenarioId,
+  type ScenarioId as ScenarioIdType
 } from '../engine/types.ts';
 
 // Default Financial Parameters (The Sandbox)
@@ -38,7 +39,7 @@ export const preMutterschutzMonths = signal(1.5); // 6 weeks
 export const postMutterschutzMonths = signal(2); // 8 weeks
 
 // UI & View State
-export const activeScenario = signal<string>('C'); // 'A', 'B', 'C', or 'compare'
+export const activeScenario = signal<string>(ScenarioId.C); // 'A', 'B', 'C', or 'compare'
 export const chartMode = signal<string>('stacked_bar'); // 'stacked_bar', 'lines', 'area', 'compare'
 export const timeRangeFilter = signal<string>('all'); // 'all', 'child1', 'child2', 'post'
 export const hoveredMonth = signal<number | null>(null);
@@ -71,7 +72,7 @@ export function resetToDefaults() {
 }
 
 // 60-Month Cash Flow Engine for a given scenario ('A', 'B', or 'C')
-export function computeTimelineData(scenarioKey: ScenarioId) {
+export function computeTimelineData(scenarioKey: ScenarioIdType) {
   return generateTimelineSimulation({
     scenarioKey,
     husbandClass3Net: toNetSalary(husbandClass3Net.value),
@@ -93,15 +94,15 @@ export function computeTimelineData(scenarioKey: ScenarioId) {
 }
 
 // Computed results for all 3 scenarios
-export const scenarioAData = computed(() => computeTimelineData('A'));
-export const scenarioBData = computed(() => computeTimelineData('B'));
-export const scenarioCData = computed(() => computeTimelineData('C'));
+export const scenarioAData = computed(() => computeTimelineData(ScenarioId.A));
+export const scenarioBData = computed(() => computeTimelineData(ScenarioId.B));
+export const scenarioCData = computed(() => computeTimelineData(ScenarioId.C));
 
 // Current active scenario data
 export const currentScenarioData = computed(() => {
   const key = activeScenario.value;
-  if (key === 'A') return scenarioAData.value;
-  if (key === 'B') return scenarioBData.value;
+  if (key === ScenarioId.A) return scenarioAData.value;
+  if (key === ScenarioId.B) return scenarioBData.value;
   return scenarioCData.value;
 });
 

@@ -6,7 +6,9 @@ import {
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
-  toEuroAmount
+  toEuroAmount,
+  TransactionType,
+  TransactionDirection
 } from '../../../src/engine/types.ts';
 
 describe('Atomic Ledger & Transaction Integrity Engine', () => {
@@ -16,8 +18,8 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
         id: 'TX-M1-TEST',
         month: toSimulationMonth(1),
         year: toCalendarYear(1),
-        type: 'SALARY_BASE',
-        direction: 'INFLOW',
+        type: TransactionType.SalaryBase,
+        direction: TransactionDirection.Inflow,
         amount: toEuroAmount(2895),
         statutoryCitation: '§ 19 EStG',
         taxClassLabel: 'H: III',

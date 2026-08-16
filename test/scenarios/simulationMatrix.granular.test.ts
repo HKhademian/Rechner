@@ -5,7 +5,8 @@ import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
-  toCalendarMonth
+  toCalendarMonth,
+  ScenarioId
 } from '../../src/engine/types.ts';
 
 describe('Granular Simulation Matrix Tests (250 Individual Scenario Assertions)', () => {
@@ -17,7 +18,7 @@ describe('Granular Simulation Matrix Tests (250 Individual Scenario Assertions)'
 
     it(`simulates 60-month multi-year financial timeline for configuration #${s} (spacing: ${spacing}M, H3: ${h3Net} €)`, () => {
       const sim = generateTimelineSimulation({
-        scenarioKey: 'C',
+        scenarioKey: ScenarioId.C,
         husbandClass3Net: toNetSalary(h3Net),
         husbandClass5Net: toNetSalary(h3Net - 950),
         wifeClass5FullTimeNet: toNetSalary(w3Net - 720),

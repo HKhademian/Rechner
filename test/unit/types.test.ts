@@ -10,7 +10,13 @@ import {
   toGrossSalary,
   toNetSalary,
   toStatutoryCitation,
-  toTransactionId
+  toTransactionId,
+  toTaxClass,
+  toScenarioId,
+  TaxClass,
+  ScenarioId,
+  TransactionType,
+  TransactionDirection
 } from '../../src/engine/types.ts';
 
 describe('Strongly-Typed Domain Types & Constructors', () => {
@@ -125,6 +131,56 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     it('rejects empty or non-string citations and IDs', () => {
       assert.throws(() => toStatutoryCitation(''), TypeError);
       assert.throws(() => toTransactionId(''), TypeError);
+    });
+  });
+
+  describe('Const Enums and Guards (TaxClass, ScenarioId, TransactionType, TransactionDirection)', () => {
+    it('TaxClass contains all statutory tax classes I through VI', () => {
+      assert.equal(TaxClass.I, 'I');
+      assert.equal(TaxClass.II, 'II');
+      assert.equal(TaxClass.III, 'III');
+      assert.equal(TaxClass.IV, 'IV');
+      assert.equal(TaxClass.V, 'V');
+      assert.equal(TaxClass.VI, 'VI');
+    });
+
+    it('toTaxClass validates known tax classes and rejects invalid strings', () => {
+      assert.equal(toTaxClass('I'), TaxClass.I);
+      assert.equal(toTaxClass('III'), TaxClass.III);
+      assert.equal(toTaxClass('V'), TaxClass.V);
+      assert.throws(() => toTaxClass('VII'), TypeError);
+      assert.throws(() => toTaxClass('invalid'), TypeError);
+    });
+
+    it('ScenarioId contains scenarios A, B, and C', () => {
+      assert.equal(ScenarioId.A, 'A');
+      assert.equal(ScenarioId.B, 'B');
+      assert.equal(ScenarioId.C, 'C');
+    });
+
+    it('toScenarioId validates known scenario IDs and rejects invalid strings', () => {
+      assert.equal(toScenarioId('A'), ScenarioId.A);
+      assert.equal(toScenarioId('B'), ScenarioId.B);
+      assert.equal(toScenarioId('C'), ScenarioId.C);
+      assert.throws(() => toScenarioId('D'), TypeError);
+      assert.throws(() => toScenarioId(''), TypeError);
+    });
+
+    it('TransactionType const enum provides distinct transaction keys', () => {
+      assert.equal(TransactionType.SalaryBase, 'SALARY_BASE');
+      assert.equal(TransactionType.SalaryBonus13thVacation, 'SALARY_BONUS_13TH_VACATION');
+      assert.equal(TransactionType.SalaryBonus13thChristmas, 'SALARY_BONUS_13TH_CHRISTMAS');
+      assert.equal(TransactionType.BenefitMutterschutz, 'BENEFIT_MUTTERSCHUTZ');
+      assert.equal(TransactionType.BenefitElterngeldPlusMother, 'BENEFIT_ELTERNGELD_PLUS_MOTHER');
+      assert.equal(TransactionType.BenefitElterngeldPlusFather, 'BENEFIT_ELTERNGELD_PLUS_FATHER');
+      assert.equal(TransactionType.BenefitPartnerschaftsbonus, 'BENEFIT_PARTNERSCHAFTSBONUS');
+      assert.equal(TransactionType.BenefitKindergeld, 'BENEFIT_KINDERGELD');
+      assert.equal(TransactionType.TaxReconciliationRefund, 'TAX_RECONCILIATION_REFUND');
+    });
+
+    it('TransactionDirection const enum provides Inflow and Outflow directions', () => {
+      assert.equal(TransactionDirection.Inflow, 'INFLOW');
+      assert.equal(TransactionDirection.Outflow, 'OUTFLOW');
     });
   });
 });

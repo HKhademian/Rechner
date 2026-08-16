@@ -5,7 +5,8 @@ import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
-  toCalendarMonth
+  toCalendarMonth,
+  ScenarioId
 } from '../../src/engine/types.ts';
 
 describe('Combinatorial Parameter Grid Sweep & Invariance Tests', () => {
@@ -35,7 +36,7 @@ describe('Combinatorial Parameter Grid Sweep & Invariance Tests', () => {
             scenarioCount++;
 
             const simParams = {
-              scenarioKey: 'C' as const,
+              scenarioKey: ScenarioId.C,
               husbandClass3Net: toNetSalary(h.h3),
               husbandClass5Net: toNetSalary(h.h5),
               wifeClass5FullTimeNet: toNetSalary(w.w5FT),
