@@ -34,6 +34,7 @@ import {
   toCalendarYear,
   toCalendarMonth,
   toEuroAmount,
+  toGrossSalary,
   toNetSalary,
   toEventId,
   toActionId,
@@ -48,6 +49,7 @@ import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
 import { computeMonthlySwapWithholdingVariance, computeAnnualTaxReconciliation } from '#engine/tax/jointAssessment';
 import { computeElterngeldBenefits, isElterngeldHoursEligible, isPartnerschaftsbonusEligible } from '#engine/benefits/elterngeldPlus';
 import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
+import { computeGrossToNetBreakdown } from '#engine/tax/wageTax';
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
@@ -728,6 +730,88 @@ export function runScenarioBatches(batches: ScenarioActionBatches): SimulationRe
           ? `Full refund of Tax Class V wage withholding deficit (+${((taxRefund as number) - 850).toLocaleString('de-DE')} €) plus statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
           : `Standard annual income tax reconciliation and statutory deductions return (+850 €) for Tax Year ${reconciledCalYear}`
       });
+    }
+
+    // Preexisting: Annual Recurring Performance Bonus (Gross taxed under § 39b EStG)
+    const annualBonusMonth = (preexisting.annualBonusMonth as number) || 12;
+    if (preexisting.annualBonusGross && (preexisting.annualBonusGross as number) > 0 && calMonth === annualBonusMonth) {
+      const grossBonus = preexisting.annualBonusGross as number;
+      const hGrossMonthly = preexisting.husbandGross ? (preexisting.husbandGross as number) : 6000;
+      const hTaxClass = rm.isSwapActive ? TaxClass.V : TaxClass.III;
+      const breakdown = computeGrossToNetBreakdown(
+        toGrossSalary(hGrossMonthly),
+        hTaxClass,
+        preexisting.existingChildrenCount,
+        toEuroAmount(grossBonus)
+      );
+      const netBonus = breakdown.bonusTaxDeduction
+        ? Math.max(0, Math.round(grossBonus - (breakdown.bonusTaxDeduction as number) - (grossBonus * ((breakdown.totalSocialSecurity as number) / (breakdown.monthlyGross as number)))))
+        : Math.round(grossBonus * 0.58);
+      const netBonusEuro = toEuroAmount(netBonus);
+
+      specialEvents.push({
+        eventId: toEventId(`EVENT-M${m}-ANNUAL-BONUS`),
+        month: rm.month,
+        year,
+        calendarYearNum: rm.calendarYearNum,
+        calendarMonthNum: rm.calendarMonthNum,
+        calendarLabel: rm.calendarLabel,
+        relativeBirthLabel: rm.relativeBirthLabel,
+        type: SpecialEventType.CustomIncome,
+        title: `Annual Performance Bonus (${grossBonus.toLocaleString('de-DE')} € Gross → +${netBonusEuro.toLocaleString('de-DE')} € Net)`,
+        category: SpecialEventCategory.CareerBonus,
+        statutory: toStatutoryCitation('§ 39b Abs. 3 EStG (Sonstige Bezüge)'),
+        taxClassLabel: rm.taxClassLabel,
+        amount: netBonusEuro,
+        description: `Annual recurring performance bonus (${grossBonus.toLocaleString('de-DE')} € gross, taxed under § 39b EStG differential method)`
+      });
+
+      txs.push(createTransaction({
+        transactionId: `TX-M${m}-ANNUAL-BONUS`,
+        month: rm.month,
+        year,
+        type: TransactionType.SpecialIncome,
+        direction: TransactionDirection.Inflow,
+        amount: netBonusEuro,
+        statutoryCitation: '§ 39b Abs. 3 EStG',
+        taxClassLabel: rm.taxClassLabel,
+        description: `Annual Performance Bonus (${rm.calendarLabel})`,
+        auditTrail: `${grossBonus} € gross taxed via § 39b differential calculation`
+      }));
+    }
+
+    // Preexisting: Monthly Investment Returns & Capital Income (§ 20 EStG)
+    if (preexisting.investmentReturnMonthly && (preexisting.investmentReturnMonthly as number) > 0) {
+      const invNet = preexisting.investmentReturnMonthly;
+      specialEvents.push({
+        eventId: toEventId(`EVENT-M${m}-INVESTMENT-RETURN`),
+        month: rm.month,
+        year,
+        calendarYearNum: rm.calendarYearNum,
+        calendarMonthNum: rm.calendarMonthNum,
+        calendarLabel: rm.calendarLabel,
+        relativeBirthLabel: rm.relativeBirthLabel,
+        type: SpecialEventType.CustomIncome,
+        title: `Investment & Capital Return (+${(invNet as number).toLocaleString('de-DE')} €)`,
+        category: SpecialEventCategory.InvestmentReturn,
+        statutory: toStatutoryCitation('§ 20 EStG (Kapitalerträge)'),
+        taxClassLabel: 'Capital Yield',
+        amount: invNet,
+        description: `Monthly capital return, dividend distribution, or net investment cash flow`
+      });
+
+      txs.push(createTransaction({
+        transactionId: `TX-M${m}-INVESTMENT-RETURN`,
+        month: rm.month,
+        year,
+        type: TransactionType.SpecialIncome,
+        direction: TransactionDirection.Inflow,
+        amount: invNet,
+        statutoryCitation: '§ 20 EStG',
+        taxClassLabel: 'Capital Yield',
+        description: `Investment Return (${rm.calendarLabel})`,
+        auditTrail: `${invNet} € monthly capital returns`
+      }));
     }
 
     // Batch 4: Custom Financial Events (One-Off Costs, Expenses, Grants & Extra Income)
