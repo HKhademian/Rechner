@@ -93,7 +93,7 @@ export default function TimelineTable(): JSX.Element {
       const diffKindergeld = (m.kindergeld as number) - (bMonth ? (bMonth.kindergeld as number) : 0);
       const diffSpecialEvents = (m.specialEventsTotal as number) - (bMonth ? (bMonth.specialEventsTotal as number) : 0);
       const diffNetInflow = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
-      // Action Milestone Rows (Placed immediately BEFORE month m)
+      // 1. Action Milestone Rows (Placed immediately BEFORE month m)
       if (m.startingActions && m.startingActions.length > 0) {
         m.startingActions.forEach((act) => {
           rows.push([
@@ -109,7 +109,31 @@ export default function TimelineTable(): JSX.Element {
         });
       }
 
-      // Base monthly row
+      // 2. Special Event Rows (Placed immediately BEFORE month m)
+      if (m.specialEvents && m.specialEvents.length > 0) {
+        m.specialEvents.forEach((ev: SpecialEventItem) => {
+          const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
+          const bEvAmount = bEv ? (bEv.amount as number) : 0;
+          const evDiff = (ev.amount as number) - bEvAmount;
+          rows.push([
+            'Special Event',
+            `Month ${m.month} (Event)`,
+            ev.calendarLabel,
+            ev.relativeBirthLabel,
+            `Year ${m.year}`,
+            `"${ev.title}"`,
+            `"${ev.taxClassLabel}"`,
+            '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—',
+            ev.amount as number,
+            evDiff,
+            ev.amount as number,
+            evDiff,
+            '—', '—'
+          ]);
+        });
+      }
+
+      // 3. Base Monthly Row
       rows.push([
         'Monthly Base',
         `Month ${m.month}`,
@@ -137,42 +161,6 @@ export default function TimelineTable(): JSX.Element {
         m.cumulatedTotal as number,
         diffCumulated
       ]);
-
-      // Special Event Rows
-      if (m.specialEvents && m.specialEvents.length > 0) {
-        m.specialEvents.forEach((ev: SpecialEventItem) => {
-          const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
-          const bEvAmount = bEv ? (bEv.amount as number) : 0;
-          const evDiff = (ev.amount as number) - bEvAmount;
-          rows.push([
-            'Special Event',
-            `Month ${m.month} (Event)`,
-            ev.calendarLabel,
-            ev.relativeBirthLabel,
-            `Year ${m.year}`,
-            `"${ev.title}"`,
-            `"${ev.taxClassLabel}"`,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            ev.amount as number,
-            evDiff,
-            ev.amount as number,
-            evDiff,
-            m.cumulatedTotal as number,
-            diffCumulated
-          ]);
-        });
-      }
     });
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -481,7 +469,7 @@ export default function TimelineTable(): JSX.Element {
               const hasEvents = isSpecialRowsActive && m.specialEvents && m.specialEvents.length > 0;
 
               return [
-                /* 0. Action Milestone Rows (Pre-Month Actions) */
+                /* 1. Action Event Rows (Pre-Month Life & Decision Events) */
                 m.startingActions && m.startingActions.map((act) => (
                   <tr
                     key={`action-${act.actionId}-m${m.month}`}
@@ -534,11 +522,91 @@ export default function TimelineTable(): JSX.Element {
                   </tr>
                 )),
 
-                /* 1. Base Monthly Row */
+                /* 2. Special Fiscal Event Rows (Pre-Month 13th Salary Bonuses & Annual Tax Returns) */
+                hasEvents && m.specialEvents.map((ev: SpecialEventItem) => {
+                  const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
+                  const bEvAmount = bEv ? (bEv.amount as number) : 0;
+                  const evDiff = (ev.amount as number) - bEvAmount;
+                  return (
+                    <tr
+                      key={ev.eventId}
+                      style={{
+                        borderBottom: '1px dashed #334155',
+                        background: (ev.type as string).startsWith('bonus')
+                          ? 'rgba(180, 83, 9, 0.12)'
+                          : 'rgba(15, 118, 110, 0.15)',
+                        transition: 'background 0.15s ease'
+                      }}
+                      onMouseEnter={() => { hoveredMonth.value = m.month; }}
+                      onMouseLeave={() => { hoveredMonth.value = null; }}
+                    >
+                      <td style={{ padding: '6px 12px', textAlign: 'left', color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4', fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                        <div>↳ M{m.month} Event</div>
+                        <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
+                      </td>
+                      <td style={{ padding: '6px 12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '1px 6px',
+                            borderRadius: '3px',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            background: (ev.type as string).startsWith('bonus') ? '#b45309' : '#0f766e',
+                            color: '#ffffff'
+                          }}>
+                            {ev.category}
+                          </span>
+                          <span style={{ fontWeight: 600, color: (ev.type as string).startsWith('bonus') ? '#fde68a' : '#99f6e4', fontSize: '0.75rem' }}>
+                            {ev.title}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
+                          {ev.description}
+                        </div>
+                      </td>
+                      <td style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem' }}>
+                        <div>{ev.taxClassLabel}</div>
+                        {showDelta && scenario === 'C' && (
+                          <div style={{ fontSize: '0.66rem', color: '#64748b' }}>
+                            {evDiff !== 0 ? 'Splitting Reconciled' : 'Same as B'}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px' }}>
+                        {renderCell(
+                          ev.amount as number,
+                          evDiff,
+                          false,
+                          (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4',
+                          true
+                        )}
+                      </td>
+                      <td style={{ padding: '6px 12px' }}>
+                        {renderCell(
+                          ev.amount as number,
+                          evDiff,
+                          false,
+                          (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4',
+                          true
+                        )}
+                      </td>
+                      <td style={{ padding: '6px 12px', color: '#64748b', fontSize: '0.72rem' }}>—</td>
+                    </tr>
+                  );
+                }),
+
+                /* 3. Base Monthly Row */
                 <tr
                   key={`month-${m.month}`}
                   style={{
-                    borderBottom: hasEvents ? '1px dashed #334155' : '1px solid #334155',
+                    borderBottom: '1px solid #334155',
                     background: isHovered
                       ? 'rgba(30, 64, 175, 0.15)'
                       : m.eventTag
@@ -632,11 +700,15 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td style={{ padding: '8px 12px' }}>
-                    {renderCell(
-                      !isSpecialRowsActive ? (m.specialEventsTotal as number) : 0,
-                      !isSpecialRowsActive ? diffSpecialEvents : 0,
-                      true,
-                      '#fbbf24'
+                    {isSpecialRowsActive ? (
+                      <span style={{ color: '#475569', fontStyle: 'italic' }}>—</span>
+                    ) : (
+                      renderCell(
+                        (m.specialEventsTotal as number),
+                        diffSpecialEvents,
+                        true,
+                        '#fbbf24'
+                      )
                     )}
                   </td>
                   <td style={{ padding: '8px 12px' }}>
@@ -656,94 +728,7 @@ export default function TimelineTable(): JSX.Element {
                       '#cbd5e1'
                     )}
                   </td>
-                </tr>,
-
-                /* 2. Special Event Rows (13th Month Salary Chunks & Annual Tax Returns) */
-                hasEvents && m.specialEvents.map((ev: SpecialEventItem) => {
-                  const bEv = bMonth?.specialEvents?.find((bItem: SpecialEventItem) => bItem.type === ev.type);
-                  const bEvAmount = bEv ? (bEv.amount as number) : 0;
-                  const evDiff = (ev.amount as number) - bEvAmount;
-                  return (
-                    <tr
-                      key={ev.eventId}
-                      style={{
-                        borderBottom: '1px solid #334155',
-                        background: (ev.type as string).startsWith('bonus')
-                          ? 'rgba(180, 83, 9, 0.12)'
-                          : 'rgba(15, 118, 110, 0.15)',
-                        transition: 'background 0.15s ease'
-                      }}
-                      onMouseEnter={() => { hoveredMonth.value = m.month; }}
-                      onMouseLeave={() => { hoveredMonth.value = null; }}
-                    >
-                      <td style={{ padding: '6px 12px', textAlign: 'left', color: (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4', fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                        <div>↳ M{m.month} Event</div>
-                        <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
-                      </td>
-                      <td style={{ padding: '6px 12px', textAlign: 'left' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '1px 6px',
-                            borderRadius: '3px',
-                            fontSize: '0.68rem',
-                            fontWeight: 800,
-                            background: (ev.type as string).startsWith('bonus') ? '#b45309' : '#0f766e',
-                            color: '#ffffff'
-                          }}>
-                            {ev.category}
-                          </span>
-                          <span style={{ fontWeight: 600, color: (ev.type as string).startsWith('bonus') ? '#fde68a' : '#99f6e4', fontSize: '0.75rem' }}>
-                            {ev.title}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
-                          {ev.description}
-                        </div>
-                      </td>
-                      <td style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem' }}>
-                        <div>{ev.taxClassLabel}</div>
-                        {showDelta && scenario === 'C' && (
-                          <div style={{ fontSize: '0.66rem', color: '#64748b' }}>
-                            {evDiff !== 0 ? 'Splitting Reconciled' : 'Same as B'}
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ padding: '6px 12px' }}>{renderCell(0, 0, true)}</td>
-                      <td style={{ padding: '6px 12px' }}>{renderCell(0, 0, true)}</td>
-                      <td style={{ padding: '6px 12px' }}>{renderCell(0, 0, true)}</td>
-                      <td style={{ padding: '6px 12px' }}>{renderCell(0, 0, true)}</td>
-                      <td style={{ padding: '6px 12px' }}>{renderCell(0, 0, true)}</td>
-                      <td style={{ padding: '6px 12px' }}>{renderCell(0, 0, true)}</td>
-                      <td style={{ padding: '6px 12px' }}>
-                        {renderCell(
-                          ev.amount as number,
-                          evDiff,
-                          false,
-                          (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4',
-                          true
-                        )}
-                      </td>
-                      <td style={{ padding: '6px 12px' }}>
-                        {renderCell(
-                          ev.amount as number,
-                          evDiff,
-                          false,
-                          (ev.type as string).startsWith('bonus') ? '#fbbf24' : '#5eead4',
-                          true
-                        )}
-                      </td>
-                      <td style={{ padding: '6px 12px' }}>
-                        {renderCell(
-                          m.cumulatedTotal as number,
-                          diffCumulated,
-                          false,
-                          '#94a3b8'
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
+                </tr>
               ];
             })}
           </tbody>

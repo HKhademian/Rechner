@@ -332,6 +332,31 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
       });
     }
 
+    // Print Special Fiscal Event Rows immediately BEFORE Month m
+    if (m.specialEvents && m.specialEvents.length > 0) {
+      m.specialEvents.forEach((ev) => {
+        const isBonus = (ev.type as string).startsWith('bonus');
+        const color = isBonus ? YELLOW : CYAN;
+        const evTitle = `↳ ${ev.category}: ${ev.title}`;
+        const evRow = [
+          `M${String(m.month).padEnd(2)} [Evt]`,
+          ev.calendarLabel.padEnd(8),
+          `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(30 + color.length + RESET.length),
+          (ev.taxClassLabel || '—').slice(0, 11).padEnd(11),
+          '—'.padStart(11),
+          '—'.padStart(9),
+          '—'.padStart(8),
+          '—'.padStart(10),
+          '—'.padStart(10),
+          isBonus ? String(ev.amount).padStart(7) : '—'.padStart(7),
+          !isBonus ? String(ev.amount).padStart(10) : '—'.padStart(10),
+          `${String(ev.amount).padStart(7)}${''.padStart(8)}`,
+          '—'.padStart(10)
+        ].join(' | ');
+        console.log(`| ${evRow} |`);
+      });
+    }
+
     const row = [
       `M${String(m.month).padEnd(4)}`,
       m.calendarLabel.padEnd(8),
