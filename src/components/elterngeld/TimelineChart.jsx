@@ -22,6 +22,17 @@ export default function TimelineChart() {
   const containerRef = useRef(null);
   const [tooltipState, setTooltipState] = useState(null);
 
+  // Series visibility state for interactive on/off toggling
+  const [visibleSeries, setVisibleSeries] = useState({
+    husbandSalary: true,
+    wifeSalary: true,
+    mutterschutz: true,
+    wifeElterngeld: true,
+    husbandElterngeld: true,
+    kindergeld: true,
+    taxRefund: true
+  });
+
   const scenarioKey = activeScenario.value;
   const mode = chartMode.value;
   const filter = timeRangeFilter.value;
@@ -30,6 +41,27 @@ export default function TimelineChart() {
   const aData = scenarioAData.value;
   const bData = scenarioBData.value;
   const cData = scenarioCData.value;
+
+  // Toggle single series
+  const toggleSeries = (key) => {
+    setVisibleSeries(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  // Toggle all series
+  const setAllSeries = (val) => {
+    setVisibleSeries({
+      husbandSalary: val,
+      wifeSalary: val,
+      mutterschutz: val,
+      wifeElterngeld: val,
+      husbandElterngeld: val,
+      kindergeld: val,
+      taxRefund: val
+    });
+  };
 
   // Filter months according to active time range
   let displayedMonths = currentData.months;
@@ -41,6 +73,19 @@ export default function TimelineChart() {
     displayedMonths = currentData.months.filter(m => m.month >= 49);
   }
 
+  // Calculate dynamic active sum for each month based on visible series
+  const getMonthActiveTotal = (m) => {
+    let total = 0;
+    if (visibleSeries.husbandSalary) total += (m.husbandSalary || 0);
+    if (visibleSeries.wifeSalary) total += (m.wifeSalary || 0);
+    if (visibleSeries.mutterschutz) total += (m.mutterschutz || 0);
+    if (visibleSeries.wifeElterngeld) total += (m.wifeElterngeld || 0);
+    if (visibleSeries.husbandElterngeld) total += (m.husbandElterngeld || 0);
+    if (visibleSeries.kindergeld) total += (m.kindergeld || 0);
+    if (visibleSeries.taxRefund) total += (m.taxRefund || 0);
+    return total;
+  };
+
   // Dimensions
   const svgWidth = 1050;
   const svgHeight = 440;
@@ -48,13 +93,13 @@ export default function TimelineChart() {
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
-  // Max scale Y calculation
+  // Max scale Y calculation based on active series and modes
   const maxMonthValue = Math.max(
-    8000,
-    ...displayedMonths.map(m => m.monthlyTotal),
+    6000,
+    ...displayedMonths.map(m => getMonthActiveTotal(m)),
     ...cData.months.map(m => m.monthlyTotal)
   );
-  const yMax = Math.ceil(maxMonthValue / 1000) * 1000 + 500;
+  const yMax = Math.max(2000, Math.ceil(maxMonthValue / 1000) * 1000 + 500);
 
   // X scale mapping
   const numBars = displayedMonths.length;
@@ -74,6 +119,16 @@ export default function TimelineChart() {
     kindergeld: '#991b1b',        // Dark Crimson Red
     taxRefund: '#0f766e'          // Petrol Teal
   };
+
+  const seriesMeta = [
+    { key: 'husbandSalary', label: 'Husband Salary', statutory: 'Gehalt Mann', color: colors.husbandSalary },
+    { key: 'wifeSalary', label: 'Wife Salary', statutory: 'Gehalt Frau', color: colors.wifeSalary },
+    { key: 'mutterschutz', label: 'Maternity (*Mutterschutz*)', statutory: 'MuSchG', color: colors.mutterschutz },
+    { key: 'wifeElterngeld', label: 'ElterngeldPlus (Mother)', statutory: '§ 4 BEEG', color: colors.wifeElterngeld },
+    { key: 'husbandElterngeld', label: 'Partner Months (*Partnermonate*)', statutory: '§ 4 BEEG', color: colors.husbandElterngeld },
+    { key: 'kindergeld', label: 'Child Benefit (*Kindergeld*)', statutory: '§ 66 EStG', color: colors.kindergeld },
+    { key: 'taxRefund', label: 'Tax Office Refund (*Finanzamt*)', statutory: '§ 26b EStG', color: colors.taxRefund }
+  ];
 
   // Handle Mouse Move for Tooltip
   const handleMouseMove = (e) => {
@@ -100,6 +155,17 @@ export default function TimelineChart() {
   const handleMouseLeave = () => {
     setTooltipState(null);
     hoveredMonth.value = null;
+  };
+
+  // Individual Field Line Path Generator
+  const getFieldLinePath = (fieldKey) => {
+    if (!visibleSeries[fieldKey]) return '';
+    return displayedMonths.reduce((acc, m, i) => {
+      const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
+      const val = m[fieldKey] || 0;
+      const y = margin.top + scaleY(val);
+      return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }, '');
   };
 
   // Comparison curves path generator for Compare mode
@@ -148,7 +214,7 @@ export default function TimelineChart() {
             Monthly Cash Inflow & Benefits Timeline (60 Months)
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
-            Interactive breakdown of working salaries, maternity pay, ElterngeldPlus, child benefits, and tax refunds.
+            Interactive timeline with visible line curves, stacked cash flow, and toggleable statutory benefit series.
           </p>
         </div>
 
@@ -159,7 +225,8 @@ export default function TimelineChart() {
           padding: '3px',
           borderRadius: '6px',
           border: '1px solid #334155',
-          gap: '4px'
+          gap: '4px',
+          flexWrap: 'wrap'
         }}>
           <button
             type="button"
@@ -176,6 +243,22 @@ export default function TimelineChart() {
             }}
           >
             Stacked Bar
+          </button>
+          <button
+            type="button"
+            onClick={() => chartMode.value = 'lines'}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '4px',
+              border: 'none',
+              background: mode === 'lines' ? '#1e40af' : 'transparent',
+              color: mode === 'lines' ? '#ffffff' : '#94a3b8',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Multi-Line Series
           </button>
           <button
             type="button"
@@ -208,6 +291,103 @@ export default function TimelineChart() {
             }}
           >
             Scenario Compare
+          </button>
+        </div>
+      </div>
+
+      {/* Series Visibility Toolbar (On/Off Controls) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '8px',
+        padding: '10px 14px',
+        background: '#0f172a',
+        borderRadius: '6px',
+        border: '1px solid #334155',
+        marginBottom: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Series Toggles:
+          </span>
+          {seriesMeta.map((s) => {
+            const isVisible = visibleSeries[s.key];
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => toggleSeries(s.key)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  border: isVisible ? `1px solid ${s.color}` : '1px solid #334155',
+                  background: isVisible ? '#1e293b' : 'transparent',
+                  color: isVisible ? '#f8fafc' : '#64748b',
+                  fontSize: '0.74rem',
+                  fontWeight: isVisible ? 600 : 400,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: isVisible ? s.color : '#475569'
+                }}></span>
+                <span>{s.label}</span>
+                <span style={{
+                  fontSize: '0.66rem',
+                  padding: '0 4px',
+                  borderRadius: '2px',
+                  background: isVisible ? s.color : '#334155',
+                  color: '#ffffff',
+                  fontWeight: 700
+                }}>
+                  {isVisible ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            type="button"
+            onClick={() => setAllSeries(true)}
+            style={{
+              padding: '3px 8px',
+              borderRadius: '4px',
+              border: '1px solid #334155',
+              background: '#1e293b',
+              color: '#93c5fd',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            All On
+          </button>
+          <button
+            type="button"
+            onClick={() => setAllSeries(false)}
+            style={{
+              padding: '3px 8px',
+              borderRadius: '4px',
+              border: '1px solid #334155',
+              background: '#1e293b',
+              color: '#cbd5e1',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            All Off
           </button>
         </div>
       </div>
@@ -276,7 +456,7 @@ export default function TimelineChart() {
             ) : null;
           })}
 
-          {/* Render Mode: STACKED BAR */}
+          {/* Render Mode 1: STACKED BAR */}
           {mode === 'stacked_bar' && displayedMonths.map((m, i) => {
             const x = margin.left + i * barSlotWidth + (barSlotWidth - barWidth) / 2;
             const isHovered = tooltipState && tooltipState.month.month === m.month;
@@ -284,13 +464,13 @@ export default function TimelineChart() {
             let currentY = 0;
 
             const segments = [
-              { key: 'husbandSalary', val: m.husbandSalary, fill: colors.husbandSalary },
-              { key: 'wifeSalary', val: m.wifeSalary, fill: colors.wifeSalary },
-              { key: 'mutterschutz', val: m.mutterschutz, fill: colors.mutterschutz },
-              { key: 'wifeElterngeld', val: m.wifeElterngeld, fill: colors.wifeElterngeld },
-              { key: 'husbandElterngeld', val: m.husbandElterngeld, fill: colors.husbandElterngeld },
-              { key: 'kindergeld', val: m.kindergeld, fill: colors.kindergeld },
-              { key: 'taxRefund', val: m.taxRefund, fill: colors.taxRefund }
+              { key: 'husbandSalary', val: visibleSeries.husbandSalary ? m.husbandSalary : 0, fill: colors.husbandSalary },
+              { key: 'wifeSalary', val: visibleSeries.wifeSalary ? m.wifeSalary : 0, fill: colors.wifeSalary },
+              { key: 'mutterschutz', val: visibleSeries.mutterschutz ? m.mutterschutz : 0, fill: colors.mutterschutz },
+              { key: 'wifeElterngeld', val: visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0, fill: colors.wifeElterngeld },
+              { key: 'husbandElterngeld', val: visibleSeries.husbandElterngeld ? m.husbandElterngeld : 0, fill: colors.husbandElterngeld },
+              { key: 'kindergeld', val: visibleSeries.kindergeld ? m.kindergeld : 0, fill: colors.kindergeld },
+              { key: 'taxRefund', val: visibleSeries.taxRefund ? m.taxRefund : 0, fill: colors.taxRefund }
             ];
 
             return (
@@ -327,78 +507,146 @@ export default function TimelineChart() {
             );
           })}
 
-          {/* Render Mode: AREA TREND */}
+          {/* Render Mode 2: MULTI-LINE SERIES (Dedicated Visible Lines per Field) */}
+          {mode === 'lines' && (
+            <g>
+              {seriesMeta.map((s) => {
+                const pathData = getFieldLinePath(s.key);
+                if (!pathData) return null;
+                return (
+                  <g key={`line-series-${s.key}`}>
+                    <path
+                      d={pathData}
+                      fill="none"
+                      stroke={s.color}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    {/* Points on each month */}
+                    {displayedMonths.map((m, i) => {
+                      const val = m[s.key] || 0;
+                      if (val <= 0) return null;
+                      const cx = margin.left + i * barSlotWidth + barSlotWidth / 2;
+                      const cy = margin.top + scaleY(val);
+                      const isHovered = tooltipState && tooltipState.month.month === m.month;
+                      return (
+                        <circle
+                          key={`point-${s.key}-${m.month}`}
+                          cx={cx}
+                          cy={cy}
+                          r={isHovered ? 4.5 : 2.5}
+                          fill={s.color}
+                          stroke="#0f172a"
+                          strokeWidth="1.5"
+                        />
+                      );
+                    })}
+                  </g>
+                );
+              })}
+
+              {/* Active Total Top Trend Line */}
+              <path
+                d={displayedMonths.reduce((acc, m, i) => {
+                  const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
+                  const y = margin.top + scaleY(getMonthActiveTotal(m));
+                  return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                }, '')}
+                fill="none"
+                stroke="#38bdf8"
+                strokeWidth="2.5"
+                strokeDasharray="4 2"
+              />
+            </g>
+          )}
+
+          {/* Render Mode 3: AREA TREND */}
           {mode === 'area' && (
             <g>
               {/* Layer 1: Husband Salary */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary,
-                  () => 0
-                )}
-                fill={colors.husbandSalary}
-                opacity="0.85"
-              />
+              {visibleSeries.husbandSalary && (
+                <path
+                  d={getStackedAreaPath(
+                    m => m.husbandSalary,
+                    () => 0
+                  )}
+                  fill={colors.husbandSalary}
+                  opacity="0.85"
+                />
+              )}
               {/* Layer 2: Wife Salary */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary,
-                  m => m.husbandSalary
-                )}
-                fill={colors.wifeSalary}
-                opacity="0.85"
-              />
+              {visibleSeries.wifeSalary && (
+                <path
+                  d={getStackedAreaPath(
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + m.wifeSalary,
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0)
+                  )}
+                  fill={colors.wifeSalary}
+                  opacity="0.85"
+                />
+              )}
               {/* Layer 3: Mutterschutz */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz,
-                  m => m.husbandSalary + m.wifeSalary
-                )}
-                fill={colors.mutterschutz}
-                opacity="0.85"
-              />
+              {visibleSeries.mutterschutz && (
+                <path
+                  d={getStackedAreaPath(
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + m.mutterschutz,
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0)
+                  )}
+                  fill={colors.mutterschutz}
+                  opacity="0.85"
+                />
+              )}
               {/* Layer 4: Wife Elterngeld */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz
-                )}
-                fill={colors.wifeElterngeld}
-                opacity="0.85"
-              />
+              {visibleSeries.wifeElterngeld && (
+                <path
+                  d={getStackedAreaPath(
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + (visibleSeries.mutterschutz ? m.mutterschutz : 0) + m.wifeElterngeld,
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + (visibleSeries.mutterschutz ? m.mutterschutz : 0)
+                  )}
+                  fill={colors.wifeElterngeld}
+                  opacity="0.85"
+                />
+              )}
               {/* Layer 5: Husband Elterngeld */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld
-                )}
-                fill={colors.husbandElterngeld}
-                opacity="0.85"
-              />
+              {visibleSeries.husbandElterngeld && (
+                <path
+                  d={getStackedAreaPath(
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + (visibleSeries.mutterschutz ? m.mutterschutz : 0) + (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0) + m.husbandElterngeld,
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + (visibleSeries.mutterschutz ? m.mutterschutz : 0) + (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0)
+                  )}
+                  fill={colors.husbandElterngeld}
+                  opacity="0.85"
+                />
+              )}
               {/* Layer 6: Kindergeld */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld
-                )}
-                fill={colors.kindergeld}
-                opacity="0.85"
-              />
+              {visibleSeries.kindergeld && (
+                <path
+                  d={getStackedAreaPath(
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + (visibleSeries.mutterschutz ? m.mutterschutz : 0) + (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0) + (visibleSeries.husbandElterngeld ? m.husbandElterngeld : 0) + m.kindergeld,
+                    m => (visibleSeries.husbandSalary ? m.husbandSalary : 0) + (visibleSeries.wifeSalary ? m.wifeSalary : 0) + (visibleSeries.mutterschutz ? m.mutterschutz : 0) + (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0) + (visibleSeries.husbandElterngeld ? m.husbandElterngeld : 0)
+                  )}
+                  fill={colors.kindergeld}
+                  opacity="0.85"
+                />
+              )}
               {/* Layer 7: Tax Refund */}
-              <path
-                d={getStackedAreaPath(
-                  m => m.monthlyTotal,
-                  m => m.husbandSalary + m.wifeSalary + m.mutterschutz + m.wifeElterngeld + m.husbandElterngeld + m.kindergeld
-                )}
-                fill={colors.taxRefund}
-                opacity="0.85"
-              />
+              {visibleSeries.taxRefund && (
+                <path
+                  d={getStackedAreaPath(
+                    m => getMonthActiveTotal(m),
+                    m => getMonthActiveTotal(m) - m.taxRefund
+                  )}
+                  fill={colors.taxRefund}
+                  opacity="0.85"
+                />
+              )}
 
               {/* Total Line Top Border */}
               <path
                 d={displayedMonths.reduce((acc, m, i) => {
                   const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-                  const y = margin.top + scaleY(m.monthlyTotal);
+                  const y = margin.top + scaleY(getMonthActiveTotal(m));
                   return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                 }, '')}
                 fill="none"
@@ -408,7 +656,7 @@ export default function TimelineChart() {
             </g>
           )}
 
-          {/* Render Mode: COMPARE SCENARIOS OVERLAY */}
+          {/* Render Mode 4: COMPARE SCENARIOS OVERLAY */}
           {mode === 'compare' && (
             <g>
               {/* Scenario A (No Kids) */}
@@ -423,14 +671,14 @@ export default function TimelineChart() {
               <path
                 d={getComparePath(bData)}
                 fill="none"
-                stroke="#f59e0b"
+                stroke="#b45309"
                 strokeWidth="2.5"
               />
               {/* Scenario C (Fully Optimized) */}
               <path
                 d={getComparePath(cData)}
                 fill="none"
-                stroke="#10b981"
+                stroke="#15803d"
                 strokeWidth="3.5"
               />
             </g>
@@ -503,7 +751,7 @@ export default function TimelineChart() {
             border: '1px solid #334155',
             borderRadius: '6px',
             padding: '12px 16px',
-            minWidth: '240px',
+            minWidth: '250px',
             pointerEvents: 'none',
             zIndex: 30
           }}>
@@ -512,7 +760,7 @@ export default function TimelineChart() {
                 Month {tooltipState.month.month} ({tooltipState.month.dateFormatted})
               </span>
               <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#60a5fa', fontSize: '0.95rem' }}>
-                {formatCurrency(tooltipState.month.monthlyTotal)}
+                {formatCurrency(getMonthActiveTotal(tooltipState.month))}
               </span>
             </div>
 
@@ -535,7 +783,7 @@ export default function TimelineChart() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.75rem' }}>
-              {tooltipState.month.husbandSalary > 0 && (
+              {visibleSeries.husbandSalary && tooltipState.month.husbandSalary > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandSalary }}></span>
@@ -544,7 +792,7 @@ export default function TimelineChart() {
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandSalary)}</span>
                 </div>
               )}
-              {tooltipState.month.wifeSalary > 0 && (
+              {visibleSeries.wifeSalary && tooltipState.month.wifeSalary > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeSalary }}></span>
@@ -553,7 +801,7 @@ export default function TimelineChart() {
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeSalary)}</span>
                 </div>
               )}
-              {tooltipState.month.mutterschutz > 0 && (
+              {visibleSeries.mutterschutz && tooltipState.month.mutterschutz > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#93c5fd' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.mutterschutz }}></span>
@@ -562,7 +810,7 @@ export default function TimelineChart() {
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.mutterschutz)}</span>
                 </div>
               )}
-              {tooltipState.month.wifeElterngeld > 0 && (
+              {visibleSeries.wifeElterngeld && tooltipState.month.wifeElterngeld > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6ee7b7' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeElterngeld }}></span>
@@ -571,7 +819,7 @@ export default function TimelineChart() {
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.wifeElterngeld)}</span>
                 </div>
               )}
-              {tooltipState.month.husbandElterngeld > 0 && (
+              {visibleSeries.husbandElterngeld && tooltipState.month.husbandElterngeld > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fde68a' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandElterngeld }}></span>
@@ -580,7 +828,7 @@ export default function TimelineChart() {
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.husbandElterngeld)}</span>
                 </div>
               )}
-              {tooltipState.month.kindergeld > 0 && (
+              {visibleSeries.kindergeld && tooltipState.month.kindergeld > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fda4af' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.kindergeld }}></span>
@@ -589,7 +837,7 @@ export default function TimelineChart() {
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.kindergeld)}</span>
                 </div>
               )}
-              {tooltipState.month.taxRefund > 0 && (
+              {visibleSeries.taxRefund && tooltipState.month.taxRefund > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#67e8f9' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.taxRefund }}></span>
@@ -603,45 +851,47 @@ export default function TimelineChart() {
         )}
       </div>
 
-      {/* Chart Legend */}
+      {/* Interactive Legend Bar with Click-to-Toggle Actions */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexWrap: 'wrap',
-        gap: '16px',
-        marginTop: '16px',
+        gap: '14px',
+        marginTop: '18px',
         fontSize: '0.78rem',
         color: '#cbd5e1'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandSalary }}></span>
-          <span>Husband Salary</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeSalary }}></span>
-          <span>Wife Salary</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.mutterschutz }}></span>
-          <span>Maternity (*Mutterschutz* MuSchG)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.wifeElterngeld }}></span>
-          <span>ElterngeldPlus (Mother / § 4 BEEG)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.husbandElterngeld }}></span>
-          <span>Partner Months (*Partnermonate*)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.kindergeld }}></span>
-          <span>Child Benefit (*Kindergeld* €259 / child)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: colors.taxRefund }}></span>
-          <span>Tax Office Refund (*Finanzamt-Erstattung*)</span>
-        </div>
+        {seriesMeta.map((s) => {
+          const isVisible = visibleSeries[s.key];
+          return (
+            <button
+              key={`legend-${s.key}`}
+              type="button"
+              onClick={() => toggleSeries(s.key)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'transparent',
+                border: 'none',
+                color: isVisible ? '#cbd5e1' : '#64748b',
+                cursor: 'pointer',
+                opacity: isVisible ? 1 : 0.45,
+                transition: 'opacity 0.15s ease',
+                textDecoration: isVisible ? 'none' : 'line-through'
+              }}
+            >
+              <span style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '3px',
+                background: s.color
+              }}></span>
+              <span>{s.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
