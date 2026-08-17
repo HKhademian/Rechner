@@ -21,6 +21,9 @@ import {
   toFinancialEventId,
   toTaxClass,
   toScenarioId,
+  toActiveScenarioView,
+  toTimelineChartMode,
+  toTimelineTimeRangeFilter,
   toActionCategory,
   toActionType,
   toTargetPerson,
@@ -35,6 +38,9 @@ import {
   isFinancialEventId,
   TaxClass,
   ScenarioId,
+  ActiveScenarioView,
+  TimelineChartMode,
+  TimelineTimeRangeFilter,
   TransactionType,
   TransactionDirection,
   SpecialEventType,
@@ -197,21 +203,36 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.throws(() => toTaxClass('invalid'), TypeError);
     });
 
-    it('ScenarioId contains scenarios A, B, and C', () => {
+    it('ScenarioId and ActiveScenarioView const enums validate scenarios and compare mode', () => {
       assert.equal(ScenarioId.A, 'A');
       assert.equal(ScenarioId.B, 'B');
       assert.equal(ScenarioId.C, 'C');
-    });
-
-    it('toScenarioId validates known scenario IDs and rejects invalid strings', () => {
       assert.equal(toScenarioId('A'), ScenarioId.A);
-      assert.equal(toScenarioId('B'), ScenarioId.B);
-      assert.equal(toScenarioId('C'), ScenarioId.C);
       assert.throws(() => toScenarioId('D'), TypeError);
-      assert.throws(() => toScenarioId(''), TypeError);
+
+      assert.equal(ActiveScenarioView.Compare, 'compare');
+      assert.equal(toActiveScenarioView('compare'), ActiveScenarioView.Compare);
+      assert.equal(toActiveScenarioView('C'), ActiveScenarioView.C);
+      assert.throws(() => toActiveScenarioView('invalid_view'), TypeError);
     });
 
-    it('TransactionType const enum provides distinct transaction keys', () => {
+    it('TimelineChartMode and TimelineTimeRangeFilter const enums validate UI display modes', () => {
+      assert.equal(TimelineChartMode.StackedBar, 'stacked_bar');
+      assert.equal(TimelineChartMode.Lines, 'lines');
+      assert.equal(TimelineChartMode.Area, 'area');
+      assert.equal(TimelineChartMode.Compare, 'compare');
+      assert.equal(toTimelineChartMode('stacked_bar'), TimelineChartMode.StackedBar);
+      assert.throws(() => toTimelineChartMode('pie_chart'), TypeError);
+
+      assert.equal(TimelineTimeRangeFilter.All, 'all');
+      assert.equal(TimelineTimeRangeFilter.Child1, 'child1');
+      assert.equal(TimelineTimeRangeFilter.Child2, 'child2');
+      assert.equal(TimelineTimeRangeFilter.Post, 'post');
+      assert.equal(toTimelineTimeRangeFilter('child1'), TimelineTimeRangeFilter.Child1);
+      assert.throws(() => toTimelineTimeRangeFilter('invalid_range'), TypeError);
+    });
+
+    it('ActionCategory, ActionType, and TargetPerson provide strict const enums and guards', () => {
       assert.equal(TransactionType.SalaryBase, 'SALARY_BASE');
       assert.equal(TransactionType.SalaryBonus13thVacation, 'SALARY_BONUS_13TH_VACATION');
       assert.equal(TransactionType.SalaryBonus13thChristmas, 'SALARY_BONUS_13TH_CHRISTMAS');

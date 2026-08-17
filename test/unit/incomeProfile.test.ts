@@ -13,6 +13,7 @@ import {
   toEuroAmount,
   toCalendarMonth,
   toSimulationMonth,
+  toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction
 } from '#engine/types';
@@ -79,7 +80,7 @@ describe('Unified Household Gross Income & Compensation Profile', () => {
 
     const dummyPregnancies: PregnancyAction[] = [
       {
-        pregnancyId: 'PREG-1' as any,
+        pregnancyId: toPregnancyId('PREG-1'),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(9),
         positiveTestCalendarYear: 2026,

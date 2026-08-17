@@ -11,7 +11,22 @@ import {
   clearStorage,
   type ElterngeldPersistedState
 } from '#engine/storage/persistence';
-import { SalaryInputMode, SalaryPeriod, ScenarioId, TaxClass, FinancialEventCategory, toEuroAmount, toSimulationMonth, toCalendarMonth, toFinancialEventId } from '#engine/types';
+import {
+  SalaryInputMode,
+  SalaryPeriod,
+  ActiveScenarioView,
+  TimelineChartMode,
+  TimelineTimeRangeFilter,
+  TaxClass,
+  FinancialEventCategory,
+  toEuroAmount,
+  toGrossSalary,
+  toNetSalary,
+  toWorkingHours,
+  toSimulationMonth,
+  toCalendarMonth,
+  toFinancialEventId
+} from '#engine/types';
 
 describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
   it('returns valid statutory default state with complete batch collections', () => {
@@ -30,21 +45,26 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
     assert.equal(defaults.customPregnancies.length, 2);
     assert.equal(defaults.customTaxClassSwitches.length, 2);
     assert.equal(defaults.customFinancialEvents.length, 2);
-    assert.equal(defaults.activeScenario, ScenarioId.C);
+    assert.equal(defaults.activeScenario, ActiveScenarioView.C);
+    assert.equal(defaults.chartMode, TimelineChartMode.StackedBar);
+    assert.equal(defaults.timeRangeFilter, TimelineTimeRangeFilter.All);
   });
 
   it('performs lossless roundtrip serialization and deserialization of complete state', () => {
     const original = getDefaultPersistedState();
     const modified: ElterngeldPersistedState = {
       ...original,
-      husbandGross: 7500,
-      wifeGross: 4200,
-      wifePostBirthHours: 28,
-      annualBonusGross: 5000,
-      annualBonusMonth: 6,
-      investmentReturnMonthly: 250,
+      husbandGross: toGrossSalary(7500),
+      wifeGross: toGrossSalary(4200),
+      wifePostBirthHours: toWorkingHours(28),
+      annualBonusGross: toGrossSalary(5000),
+      annualBonusMonth: toCalendarMonth(6),
+      investmentReturnMonthly: toEuroAmount(250),
       annualSalaryRaisePercent: 3,
       enableSalaryRaises: true,
+      activeScenario: ActiveScenarioView.B,
+      chartMode: TimelineChartMode.Area,
+      timeRangeFilter: TimelineTimeRangeFilter.Child1,
       customFinancialEvents: [
         ...original.customFinancialEvents,
         {
@@ -54,7 +74,7 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
           effectiveCalendarYear: 2028,
           title: 'Family Summer Vacation',
           amount: toEuroAmount(-2500),
-          category: FinancialEventCategory.Vacation,
+          category: FinancialEventCategory.CustomSpecial,
           description: 'Special summer family trip'
         }
       ]
@@ -72,9 +92,13 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
     assert.equal(deserialized.investmentReturnMonthly, 250);
     assert.equal(deserialized.annualSalaryRaisePercent, 3);
     assert.equal(deserialized.enableSalaryRaises, true);
+    assert.equal(deserialized.activeScenario, ActiveScenarioView.B);
+    assert.equal(deserialized.chartMode, TimelineChartMode.Area);
+    assert.equal(deserialized.timeRangeFilter, TimelineTimeRangeFilter.Child1);
     assert.equal(deserialized.customFinancialEvents.length, 3);
     assert.equal(deserialized.customFinancialEvents[2].title, 'Family Summer Vacation');
     assert.equal(deserialized.customFinancialEvents[2].amount, -2500);
+    assert.equal(deserialized.customFinancialEvents[2].category, FinancialEventCategory.CustomSpecial);
   });
 
   it('recovers gracefully from corrupted JSON strings by returning statutory defaults', () => {
@@ -85,7 +109,8 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
     assert.equal(corrupt2.wifeGross, 3000);
 
     const corrupt3 = deserializeState('null');
-    assert.equal(corrupt3.activeScenario, ScenarioId.C);
+    assert.equal(corrupt3.activeScenario, ActiveScenarioView.C);
+    assert.equal(corrupt3.chartMode, TimelineChartMode.StackedBar);
   });
 
   it('sanitizes and validates malformed or partial objects with missing fields and type mismatches', () => {
@@ -94,7 +119,7 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
       wifeGross: 4800,
       salaryInputMode: 'INVALID_MODE',
       salaryPeriod: 'YEARLY',
-      wifePostBirthHours: -10, // out of bounds
+      wifePostBirthHours: -10, // out of bounds -> clamped to 0
       customPregnancies: 'not_an_array',
       unknownExtraField: 'ignored'
     };
@@ -141,8 +166,8 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
       const state = getDefaultPersistedState();
       const updated: ElterngeldPersistedState = {
         ...state,
-        husbandGross: 8000,
-        wifeGross: 4000
+        husbandGross: toGrossSalary(8000),
+        wifeGross: toGrossSalary(4000)
       };
 
       const saved = saveToStorage(updated);

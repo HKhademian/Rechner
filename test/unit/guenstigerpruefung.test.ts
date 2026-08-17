@@ -12,6 +12,7 @@ import {
   toEuroAmount,
   toCalendarMonth,
   toSimulationMonth,
+  toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction
 } from '#engine/types';
@@ -144,7 +145,7 @@ describe('Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
 
     const dummyPregnancies: PregnancyAction[] = [
       {
-        pregnancyId: 'PREG-1' as any,
+        pregnancyId: toPregnancyId('PREG-1'),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(9),
         positiveTestCalendarYear: 2026,

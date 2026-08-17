@@ -6,7 +6,13 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
-  ScenarioId
+  toWorkingHours,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
+  ScenarioId,
+  TaxClass,
+  TargetPerson
 } from '#engine/types';
 
 describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variations)', () => {
@@ -203,13 +209,13 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         husbandInitialTaxClass: TaxClass.III,
         husbandInitialNet: toNetSalary(4000),
         husbandInitialClass5Net: toNetSalary(3000),
-        husbandWeeklyHours: toEuroAmount(32) as unknown as import('#engine/types').WorkingHours,
+        husbandWeeklyHours: toWorkingHours(32),
         wifeInitialTaxClass: TaxClass.V,
         wifeInitialFullTimeNet: toNetSalary(2000),
         wifeInitialClass3FullTimeNet: toNetSalary(2800),
         wifeInitialPartTimeClass5Net: toNetSalary(1200),
         wifeInitialPartTimeClass3Net: toNetSalary(1600),
-        wifeWeeklyHours: toEuroAmount(40) as unknown as import('#engine/types').WorkingHours,
+        wifeWeeklyHours: toWorkingHours(40),
         existingChildrenCount: 0,
         kindergeldPerChild: toEuroAmount(250),
         enable13thSalary: true,
@@ -220,13 +226,13 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
       const pregnancies = [
         {
-          pregnancyId: 'PREG-1',
+          pregnancyId: toPregnancyId('PREG-1'),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(9),
           positiveTestCalendarYear: 2026,
           positiveTestSimulationMonth: toSimulationMonth(9),
           calculatedDeliverySimulationMonth: toSimulationMonth(18),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1200),
           motherPostBirthPartTimeClass3Net: toNetSalary(1600),
           fatherPartnerMonthsCount: 4
@@ -235,7 +241,7 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
       const taxClassSwitches = [
         {
-          switchId: 'SWAP-1',
+          switchId: toSwitchId('SWAP-1'),
           effectiveSimulationMonth: toSimulationMonth(10),
           effectiveCalendarMonth: toCalendarMonth(10),
           effectiveCalendarYear: 2026,
@@ -248,11 +254,11 @@ describe('End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
 
       const salaryRaises = [
         {
-          raiseId: 'RAISE-Y2',
+          raiseId: toRaiseId('RAISE-Y2'),
           effectiveSimulationMonth: toSimulationMonth(13),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2027,
-          targetPerson: 'both' as const,
+          targetPerson: TargetPerson.Both,
           percentageIncrease: 0.05, // +5% raise in Year 2
           reason: 'Annual Tariff / Promotion'
         }
