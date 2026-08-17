@@ -22,8 +22,9 @@ export type ActionSubBrand<ParentBrand, SubTag extends string> = ParentBrand & {
 export type SimulationMonth = Brand<number, "SimulationMonth">; // M1..M120
 export type CalendarYear = Brand<number, "CalendarYear">; // Y1..Y10
 export type CalendarMonth = Brand<number, "CalendarMonth">; // M1..M12 (1=Jan, 12=Dec)
-export type MonthId = SubBrand<EntityId, "MonthId">; // Immutable absolute calendar month identifier (e.g. 'M092026')
-export type MonthRef = SubBrand<EntityId, "MonthRef">; // Statutory pregnancy-relative month reference (e.g. 'M1 (Pregnancy Positive)', 'M-8', 'M9 (Birth 1)')
+export type MonthId = SubBrand<EntityId, "MonthId">; // Immutable absolute calendar month identifier (e.g. 'M09.2027')
+export type MonthRef = SubBrand<EntityId, "MonthRef">; // Statutory pregnancy-relative month reference (e.g. 'M1 (Pregnancy Positive)', 'M-8', 'M12')
+export type MonthSimRef = SubBrand<EntityId, "MonthSimRef">; // Simulation start relative reference (e.g. 'Sim1', 'Sim21', 'Sim60')
 export type WorkingHours = Brand<number, "WorkingHours">; // e.g. 24, 32, 40
 export type TaxFactor = Brand<number, "TaxFactor">; // § 39f EStG factor ratio (0.001..1.000)
 
@@ -466,8 +467,12 @@ export function toEntityId(val: string): EntityId {
 }
 
 /**
- * Constructs an immutable, absolute MonthId from (month, year) numbers or validated 'MMMYYYY' string.
- * Example: toMonthId(9, 2026) -> 'M092026'
+ * Constructs an immutable, absolute MonthId from (month, year) numbers or validated 'M<MM>.<YYYY>' string.
+ * Examples:
+ * - toMonthId(9, 2027) -> 'M09.2027'
+ * - toMonthId(1, 2026) -> 'M01.2026'
+ * - toMonthId("M09.2027") -> 'M09.2027'
+ * - toMonthId("M092027") -> 'M09.2027'
  */
 export function toMonthId(
   calendarMonthOrStr: number | string,
@@ -475,12 +480,13 @@ export function toMonthId(
 ): MonthId {
   if (typeof calendarMonthOrStr === "string") {
     const cleaned = calendarMonthOrStr.trim().toUpperCase();
-    if (!/^M(0[1-9]|1[0-2])\d{4}$/.test(cleaned)) {
+    const match = cleaned.match(/^M(0[1-9]|1[0-2])\.?(\d{4})$/);
+    if (!match) {
       throw new TypeError(
-        `Invalid MonthId string format: ${calendarMonthOrStr}. Expected format 'MMMYYYY' (e.g. 'M092026').`,
+        `Invalid MonthId string format: "${calendarMonthOrStr}". Expected format 'M<MM>.<YYYY>' (e.g. 'M09.2027').`,
       );
     }
-    return cleaned as MonthId;
+    return `M${match[1]}.${match[2]}` as MonthId;
   }
   const m = Number(calendarMonthOrStr);
   const y = Number(calendarYear);
@@ -496,17 +502,18 @@ export function toMonthId(
       `Invalid MonthId parameters: month=${calendarMonthOrStr}, year=${calendarYear}. Must be integer month 1..12 and 4-digit year.`,
     );
   }
-  return `M${String(m).padStart(2, "0")}${y}` as MonthId;
+  return `M${String(m).padStart(2, "0")}.${y}` as MonthId;
 }
 
 export function isMonthId(val: unknown): val is MonthId {
-  return typeof val === "string" && /^M(0[1-9]|1[0-2])\d{4}$/.test(val);
+  return typeof val === "string" && /^M(0[1-9]|1[0-2])\.\d{4}$/.test(val);
 }
 
 /**
  * Constructs an immutable, nominal MonthRef representing statutory relative month notation
- * anchored to the pregnancy positive test (M1).
+ * anchored to the first pregnancy positive test (M1).
  * Examples:
+ * - toMonthRef(12) -> 'M12'
  * - toMonthRef(1, "Pregnancy Positive") -> 'M1 (Pregnancy Positive)'
  * - toMonthRef(-8) -> 'M-8'
  * - toMonthRef(9, "Birth 1") -> 'M9 (Birth 1)'
@@ -533,7 +540,7 @@ export function toMonthRef(
   const trimmed = monthRefOrIndex.trim();
   if (!/^M-?\d+(\s*\(.*\))?$/i.test(trimmed)) {
     throw new TypeError(
-      `Invalid MonthRef string format: "${monthRefOrIndex}". Expected format 'M<signed_int>' or 'M<signed_int> (<label>)' (e.g. 'M1', 'M-8', 'M1 (Pregnancy Positive)').`,
+      `Invalid MonthRef string format: "${monthRefOrIndex}". Expected format 'M<signed_int>' or 'M<signed_int> (<label>)' (e.g. 'M12', 'M-8', 'M1 (Pregnancy Positive)').`,
     );
   }
   return trimmed as MonthRef;
@@ -541,6 +548,52 @@ export function toMonthRef(
 
 export function isMonthRef(val: unknown): val is MonthRef {
   return typeof val === "string" && /^M-?\d+(\s*\(.*\))?$/i.test(val.trim());
+}
+
+/**
+ * Constructs an immutable, nominal MonthSimRef representing chronological simulation month reference
+ * anchored to simulation start (Sim1..Sim120).
+ * Examples:
+ * - toMonthSimRef(1) -> 'Sim1'
+ * - toMonthSimRef(21) -> 'Sim21'
+ * - toMonthSimRef("Sim21") -> 'Sim21'
+ * - toMonthSimRef("21") -> 'Sim21'
+ */
+export function toMonthSimRef(simMonthOrStr: number | string): MonthSimRef {
+  if (typeof simMonthOrStr === "number") {
+    if (
+      !Number.isInteger(simMonthOrStr) ||
+      simMonthOrStr < 1 ||
+      simMonthOrStr > 120
+    ) {
+      throw new TypeError(
+        `Invalid MonthSimRef integer: ${simMonthOrStr}. Must be integer between 1 and 120.`,
+      );
+    }
+    return `Sim${simMonthOrStr}` as MonthSimRef;
+  }
+  if (!simMonthOrStr || typeof simMonthOrStr !== "string") {
+    throw new TypeError(
+      `Invalid MonthSimRef: ${simMonthOrStr}. Must be non-empty string or integer.`,
+    );
+  }
+  const trimmed = simMonthOrStr.trim();
+  const match = trimmed.match(/^(?:Sim|[Mm])?(\d+)$/i);
+  if (match) {
+    const num = parseInt(match[1], 10);
+    if (num >= 1 && num <= 120) {
+      return `Sim${num}` as MonthSimRef;
+    }
+  }
+  throw new TypeError(
+    `Invalid MonthSimRef string format: "${simMonthOrStr}". Expected format 'Sim<1..120>' (e.g. 'Sim1', 'Sim21', 'Sim60').`,
+  );
+}
+
+export function isMonthSimRef(val: unknown): val is MonthSimRef {
+  return (
+    typeof val === "string" && /^Sim([1-9]\d?|1[01]\d|120)$/.test(val.trim())
+  );
 }
 
 export function toKinderfreibetragAnnualAmount(
@@ -791,6 +844,7 @@ export interface AccountingTransaction {
   readonly transactionId: TransactionId;
   readonly monthId: MonthId;
   readonly monthRef?: MonthRef;
+  readonly monthSimRef?: MonthSimRef;
   readonly relativeMonthLabel?: MonthRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
@@ -810,6 +864,7 @@ export interface SpecialEventItem {
   readonly eventId: EventId;
   readonly monthId: MonthId;
   readonly monthRef?: MonthRef;
+  readonly monthSimRef?: MonthSimRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly calendarYearNum: number;
@@ -833,6 +888,7 @@ export interface ActionRowItem {
   readonly actionId: ActionId;
   readonly monthId: MonthId;
   readonly monthRef?: MonthRef;
+  readonly monthSimRef?: MonthSimRef;
   readonly month: SimulationMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
@@ -850,6 +906,7 @@ export interface ActionRowItem {
 export interface MonthlyLedgerEntry {
   readonly monthId: MonthId;
   readonly monthRef: MonthRef;
+  readonly monthSimRef: MonthSimRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
