@@ -342,5 +342,16 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Kinderfreibetrag"));
       assert.ok(stdout.includes("EStG § 26b") && stdout.includes("§ 31"));
     });
+
+    it("executes quality audit runner cleanly and verifies repo integrity", async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/qualityAudit.ts",
+      ]);
+      assert.equal(stderr, "");
+      assert.ok(stdout.includes("CODE QUALITY AUDIT"));
+      assert.ok(stdout.includes("Prettier Code Style & Formatting"));
+      assert.ok(stdout.includes("TypeScript Compiler Diagnostics"));
+      assert.ok(stdout.includes("Quality Audit PASSED"));
+    });
   });
 });
