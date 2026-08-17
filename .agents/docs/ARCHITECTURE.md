@@ -129,3 +129,42 @@ State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-
 - **Zero Runtime Dependencies**: The charting engine is built with native SVG math, avoiding heavy bundle footprints from third-party charting libraries.
 - **Microsecond Signal Computations**: The 60-month cash flow calculation executes in < 2 milliseconds upon any slider movement.
 - **Complete Isolation & Privacy**: No user financial data is transmitted to external servers or cloud endpoints.
+
+---
+
+## 5. Testing Platform Architecture (Domain-Driven Hybrid)
+
+The repository employs a **Domain-Driven Hybrid Testing Strategy** that balances unit-level cohesion with cross-cutting scenario scalability:
+
+```
+├── src/                                  # 1:1 Co-located Unit & Logic Tests
+│   ├── engine/
+│   │   ├── tax/
+│   │   │   ├── wageTax.ts
+│   │   │   ├── wageTax.test.ts          # Pure unit tests adjacent to source
+│   │   │   ├── jointAssessment.ts
+│   │   │   └── jointAssessment.test.ts  # Pure unit tests adjacent to source
+│   │   ├── benefits/
+│   │   │   ├── elterngeldPlus.ts
+│   │   │   └── elterngeldPlus.test.ts   # Pure unit tests adjacent to source
+│   │   └── simulator/
+│   │       ├── timelineGenerator.ts
+│   │       └── actions.test.ts          # Action batch execution unit tests
+│   └── cli/
+│       ├── runner.ts
+│       └── runner.test.ts               # CLI runner unit tests
+│
+└── test/                                 # Dedicated Cross-Cutting Suites
+    ├── scenario/                        # 60-Month multi-year Scenario A/B/C lifecycles
+    ├── combination/                     # Combinatorial parameter grid sweeps
+    ├── benchmark/                       # High-throughput calculation benchmarks
+    └── fixture/                         # Shared statutory test data & standard households
+```
+
+### Test Suite Execution Matrix:
+- `npm run test`: Master runner across all `src/**/*.test.ts` and `test/**/*.test.ts`.
+- `npm run test:unit`: In-source 1:1 unit tests.
+- `npm run test:scenario`: 60-Month multi-year lifecycle simulation assertions.
+- `npm run test:combination`: 180-permutation combinatorial slider sweeps.
+- `npm run test:benchmark`: Microsecond throughput and calculation speed metrics.
+
