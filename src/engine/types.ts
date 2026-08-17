@@ -22,6 +22,7 @@ export type ActionSubBrand<ParentBrand, SubTag extends string> = ParentBrand & {
 export type SimulationMonth = Brand<number, "SimulationMonth">; // M1..M120
 export type CalendarYear = Brand<number, "CalendarYear">; // Y1..Y10
 export type CalendarMonth = Brand<number, "CalendarMonth">; // M1..M12 (1=Jan, 12=Dec)
+export type MonthId = SubBrand<EntityId, "MonthId">; // Immutable absolute calendar month identifier (e.g. 'M092026')
 export type WorkingHours = Brand<number, "WorkingHours">; // e.g. 24, 32, 40
 export type TaxFactor = Brand<number, "TaxFactor">; // § 39f EStG factor ratio (0.001..1.000)
 
@@ -463,6 +464,44 @@ export function toEntityId(val: string): EntityId {
   return val as EntityId;
 }
 
+/**
+ * Constructs an immutable, absolute MonthId from (month, year) numbers or validated 'MMMYYYY' string.
+ * Example: toMonthId(9, 2026) -> 'M092026'
+ */
+export function toMonthId(
+  calendarMonthOrStr: number | string,
+  calendarYear?: number,
+): MonthId {
+  if (typeof calendarMonthOrStr === "string") {
+    const cleaned = calendarMonthOrStr.trim().toUpperCase();
+    if (!/^M(0[1-9]|1[0-2])\d{4}$/.test(cleaned)) {
+      throw new TypeError(
+        `Invalid MonthId string format: ${calendarMonthOrStr}. Expected format 'MMMYYYY' (e.g. 'M092026').`,
+      );
+    }
+    return cleaned as MonthId;
+  }
+  const m = Number(calendarMonthOrStr);
+  const y = Number(calendarYear);
+  if (
+    !Number.isInteger(m) ||
+    m < 1 ||
+    m > 12 ||
+    !Number.isInteger(y) ||
+    y < 1900 ||
+    y > 2200
+  ) {
+    throw new TypeError(
+      `Invalid MonthId parameters: month=${calendarMonthOrStr}, year=${calendarYear}. Must be integer month 1..12 and 4-digit year.`,
+    );
+  }
+  return `M${String(m).padStart(2, "0")}${y}` as MonthId;
+}
+
+export function isMonthId(val: unknown): val is MonthId {
+  return typeof val === "string" && /^M(0[1-9]|1[0-2])\d{4}$/.test(val);
+}
+
 export function toKinderfreibetragAnnualAmount(
   val: number,
 ): KinderfreibetragAnnualAmount {
@@ -709,6 +748,7 @@ export function toBonusTaxMethod(val: string): BonusTaxMethod {
  */
 export interface AccountingTransaction {
   readonly transactionId: TransactionId;
+  readonly monthId: MonthId;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly type: TransactionType;
@@ -725,12 +765,14 @@ export interface AccountingTransaction {
  */
 export interface SpecialEventItem {
   readonly eventId: EventId;
+  readonly monthId: MonthId;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly calendarYearNum: number;
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
+  readonly relativeMonthLabel?: string;
   readonly type: SpecialEventType;
   readonly title: string;
   readonly category: SpecialEventCategory;
@@ -745,9 +787,11 @@ export interface SpecialEventItem {
  */
 export interface ActionRowItem {
   readonly actionId: ActionId;
+  readonly monthId: MonthId;
   readonly month: SimulationMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
+  readonly relativeMonthLabel?: string;
   readonly title: string;
   readonly description: string;
   readonly category: ActionCategory;
@@ -759,6 +803,7 @@ export interface ActionRowItem {
  * Monthly Chronological Ledger State
  */
 export interface MonthlyLedgerEntry {
+  readonly monthId: MonthId;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
@@ -766,6 +811,8 @@ export interface MonthlyLedgerEntry {
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
+  readonly relativeMonthLabel: string;
+  readonly relativeMonthIndex: number;
   readonly husbandSalary: EuroAmount;
   readonly wifeSalary: EuroAmount;
   readonly mutterschutz: EuroAmount;

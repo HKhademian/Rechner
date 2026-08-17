@@ -4,6 +4,7 @@ import {
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
+  toMonthId,
   toWorkingHours,
   toEuroAmount,
   toEuroCents,
@@ -39,6 +40,7 @@ import {
   isSwitchId,
   isRaiseId,
   isFinancialEventId,
+  isMonthId,
   TaxClass,
   ScenarioId,
   ActiveScenarioView,
@@ -55,6 +57,7 @@ import {
   type SimulationMonth,
   type CalendarYear,
   type CalendarMonth,
+  type MonthId,
   type WorkingHours,
   type EuroAmount,
   type EuroCents,
@@ -129,6 +132,42 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.throws(() => toCalendarMonth(13), TypeError);
       assert.throws(() => toCalendarMonth(-1), TypeError);
       assert.throws(() => toCalendarMonth(6.2), TypeError);
+    });
+  });
+
+  describe("MonthId (Feature Test)", () => {
+    it("constructs valid MonthId from month and year numbers", () => {
+      const m1: MonthId = toMonthId(9, 2026);
+      const m2: MonthId = toMonthId(1, 2026);
+      const m3: MonthId = toMonthId(12, 2030);
+
+      assert.equal(m1, "M092026");
+      assert.equal(m2, "M012026");
+      assert.equal(m3, "M122030");
+      assert.equal(isMonthId(m1), true);
+      assert.equal(isMonthId(m2), true);
+      assert.equal(isMonthId(m3), true);
+    });
+
+    it("constructs and validates MonthId from valid string representation", () => {
+      const m: MonthId = toMonthId("M092026");
+      assert.equal(m, "M092026");
+      assert.equal(isMonthId("M092026"), true);
+      assert.equal(isMonthId("M012026"), true);
+      assert.equal(isMonthId("M122030"), true);
+    });
+
+    it("rejects invalid month numbers or invalid string formats", () => {
+      assert.throws(() => toMonthId(0, 2026), TypeError);
+      assert.throws(() => toMonthId(13, 2026), TypeError);
+      assert.throws(() => toMonthId(9, 1800), TypeError);
+      assert.throws(() => toMonthId(9, 2500), TypeError);
+      assert.throws(() => toMonthId("M92026"), TypeError);
+      assert.throws(() => toMonthId("M002026"), TypeError);
+      assert.throws(() => toMonthId("invalid"), TypeError);
+      assert.equal(isMonthId("invalid"), false);
+      assert.equal(isMonthId(123), false);
+      assert.equal(isMonthId(null), false);
     });
   });
 
