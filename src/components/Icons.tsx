@@ -5,8 +5,12 @@ export interface IconProps {
   className?: string;
 }
 
-// 1. Basic Action Icons
-export const PlusIcon = ({
+// ============================================================================
+// 1. User Action & Configuration Icons (Intention: CRUD & Settings Actions)
+// ============================================================================
+
+/** Intention: Add a new milestone, child pregnancy, tax switch, or custom financial event */
+export const AddActionIcon = ({
   size = 20,
   className = "",
 }: IconProps): JSX.Element => (
@@ -22,12 +26,13 @@ export const PlusIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
 
-export const DownloadIcon = ({
+/** Intention: Export timeline simulation ledger and transactions to a CSV data file */
+export const ExportDataIcon = ({
   size = 18,
   className = "",
 }: IconProps): JSX.Element => (
@@ -43,13 +48,14 @@ export const DownloadIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-    <polyline points="7 10 12 15 17 10"></polyline>
-    <line x1="12" y1="15" x2="12" y2="3"></line>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
 
-export const XIcon = ({
+/** Intention: Dismiss an explainer modal or remove an active configuration item */
+export const DismissIcon = ({
   size = 18,
   className = "",
 }: IconProps): JSX.Element => (
@@ -65,14 +71,16 @@ export const XIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
-export const CloseIcon = XIcon;
+/** Semantic alias for item removal */
+export const RemoveItemIcon = DismissIcon;
 
-export const SaveIcon = ({
+/** Intention: Persist and save custom simulation presets or parameters */
+export const SaveConfigurationIcon = ({
   size = 16,
   className = "",
 }: IconProps): JSX.Element => (
@@ -88,13 +96,14 @@ export const SaveIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <polyline points="17 21 17 13 7 13 7 21" />
+    <polyline points="7 3 7 8 15 8" />
   </svg>
 );
 
-export const SettingsIcon = ({
+/** Intention: Configure sandbox batches, parameters, and interactive controls */
+export const ConfigureSandboxIcon = ({
   size = 18,
   className = "",
 }: IconProps): JSX.Element => (
@@ -110,12 +119,13 @@ export const SettingsIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </svg>
 );
 
-export const EditIcon = ({
+/** Intention: Edit numerical inputs, salary figures, or tax class selections */
+export const EditSettingsIcon = ({
   size = 16,
   className = "",
 }: IconProps): JSX.Element => (
@@ -131,13 +141,63 @@ export const EditIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <path d="M12 20h9"></path>
-    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
   </svg>
 );
 
-// 2. Theme & Display Mode Icons
-export const SunIcon = ({
+/** Intention: Delete an item or custom action permanently */
+export const DeleteActionIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+);
+
+/** Intention: Reset simulation parameters back to statutory default baseline */
+export const ResetDefaultsIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M16 21h5v-5" />
+  </svg>
+);
+
+// ============================================================================
+// 2. Theme & Display Mode Icons (Intention: Theme Selection)
+// ============================================================================
+
+/** Intention: Switch UI theme to Institutional Light Mode */
+export const LightThemeIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -165,7 +225,8 @@ export const SunIcon = ({
   </svg>
 );
 
-export const MoonIcon = ({
+/** Intention: Switch UI theme to Institutional Dark Mode */
+export const DarkThemeIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -185,7 +246,8 @@ export const MoonIcon = ({
   </svg>
 );
 
-export const MonitorIcon = ({
+/** Intention: Synchronize UI theme with operating system system preference */
+export const SystemThemeIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -207,10 +269,12 @@ export const MonitorIcon = ({
   </svg>
 );
 
-export const AutoThemeIcon = MonitorIcon;
+// ============================================================================
+// 3. Navigation & App Feature View Icons (Intention: Section Navigation)
+// ============================================================================
 
-// 3. Navigation & App Feature Tab Icons
-export const CalculatorTabIcon = ({
+/** Intention: Navigate to Single-Income Gross-to-Net Tax Calculator */
+export const CalculatorNavigationIcon = ({
   size = 15,
   className = "",
 }: IconProps): JSX.Element => (
@@ -240,7 +304,8 @@ export const CalculatorTabIcon = ({
   </svg>
 );
 
-export const TimelineSimulatorTabIcon = ({
+/** Intention: Navigate to 5-Year Elterngeld Multi-Child Timeline Simulator & Chart Visualizer */
+export const SimulatorNavigationIcon = ({
   size = 15,
   className = "",
 }: IconProps): JSX.Element => (
@@ -261,8 +326,12 @@ export const TimelineSimulatorTabIcon = ({
   </svg>
 );
 
-// 4. Domain Life-Cycle, Fiscal & Legal Symbol Icons
-export const CalendarIcon = ({
+// ============================================================================
+// 4. Domain Life-Cycle, Fiscal & Milestone Icons (Intention: Domain Semantics)
+// ============================================================================
+
+/** Intention: Represent simulation time duration, monthly schedule, or calendar date */
+export const SimulationPeriodIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -285,7 +354,8 @@ export const CalendarIcon = ({
   </svg>
 );
 
-export const LightningIcon = ({
+/** Intention: Indicate special financial trigger action, annual bonus, or tax refund payout */
+export const SpecialEventTriggerIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -305,9 +375,8 @@ export const LightningIcon = ({
   </svg>
 );
 
-export const ActionLightningIcon = LightningIcon;
-
-export const CoinsIcon = ({
+/** Intention: Represent financial cash inflow, one-off benefit, or monetary expense amount */
+export const FinancialInflowIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -330,9 +399,11 @@ export const CoinsIcon = ({
   </svg>
 );
 
-export const MoneyBagIcon = CoinsIcon;
+/** Semantic alias for financial event items */
+export const FinancialEventIcon = FinancialInflowIcon;
 
-export const BabyIcon = ({
+/** Intention: Represent childbirth milestone or positive pregnancy decision */
+export const ChildBirthMilestoneIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -356,7 +427,11 @@ export const BabyIcon = ({
   </svg>
 );
 
-export const BriefcaseIcon = ({
+/** Semantic alias for pregnancy decision milestone */
+export const PregnancyMilestoneIcon = ChildBirthMilestoneIcon;
+
+/** Intention: Represent parental employment wage compensation or job role */
+export const EmploymentCompensationIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -377,9 +452,8 @@ export const BriefcaseIcon = ({
   </svg>
 );
 
-export const CareerRaiseIcon = BriefcaseIcon;
-
-export const TaxSwitchIcon = ({
+/** Intention: Represent statutory tax class swap milestone (§ 2b BEEG optimization) */
+export const TaxClassSwapMilestoneIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -402,9 +476,35 @@ export const TaxSwitchIcon = ({
   </svg>
 );
 
-export const RefreshIcon = TaxSwitchIcon;
+/** Intention: Represent career promotion or tariff salary raise milestone */
+export const CareerPromotionMilestoneIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M18 20V10" />
+    <path d="M12 20V4" />
+    <path d="M6 20v-6" />
+  </svg>
+);
 
-export const ScrollDocIcon = ({
+// ============================================================================
+// 5. Legal, Statutory & Explainer Icons (Intention: Legal Documentation)
+// ============================================================================
+
+/** Intention: View official statutory legislation documentation / decree */
+export const LegalStatuteDocumentationIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -427,7 +527,8 @@ export const ScrollDocIcon = ({
   </svg>
 );
 
-export const LightbulbIcon = ({
+/** Intention: Highlight tactical optimization advice or strategic rule tip */
+export const OptimizationInsightIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -449,7 +550,8 @@ export const LightbulbIcon = ({
   </svg>
 );
 
-export const LinkChainIcon = ({
+/** Intention: Reference linked legal statute, court ruling, or interconnected tax rule */
+export const CitationReferenceIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -470,7 +572,8 @@ export const LinkChainIcon = ({
   </svg>
 );
 
-export const SearchIcon = ({
+/** Intention: Search or inspect line-by-line financial audit ledger */
+export const AuditInspectionIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -491,49 +594,29 @@ export const SearchIcon = ({
   </svg>
 );
 
-export const CheckmarkIcon = ({
-  size = 14,
+/** Intention: Render statutory paragraph (§) chapter marker */
+export const StatutorySectionIcon = ({
+  size = 16,
   className = "",
 }: IconProps): JSX.Element => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
+  <span
     class={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    style={{
+      fontSize: `${size}px`,
+      fontWeight: 800,
+      fontFamily: "serif",
+      lineHeight: 1,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
   >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
+    §
+  </span>
 );
 
-export const WarningTriangleIcon = ({
-  size = 14,
-  className = "",
-}: IconProps): JSX.Element => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    class={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-    <line x1="12" x2="12" y1="9" y2="13" />
-    <line x1="12" x2="12.01" y1="17" y2="17" />
-  </svg>
-);
-
-export const ExternalLinkIcon = ({
+/** Intention: Open official external German federal law text (gesetze-im-internet.de) */
+export const ExternalLegalSourceIcon = ({
   size = 13,
   className = "",
 }: IconProps): JSX.Element => (
@@ -555,92 +638,8 @@ export const ExternalLinkIcon = ({
   </svg>
 );
 
-export const ArrowUpRightIcon = ExternalLinkIcon;
-
-export const ArrowRightIcon = ({
-  size = 14,
-  className = "",
-}: IconProps): JSX.Element => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    class={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="5" x2="19" y1="12" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-
-export const ChevronDownIcon = ({
-  size = 14,
-  className = "",
-}: IconProps): JSX.Element => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    class={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
-);
-
-export const ChevronUpIcon = ({
-  size = 14,
-  className = "",
-}: IconProps): JSX.Element => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    class={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="18 15 12 9 6 15" />
-  </svg>
-);
-
-export const ParagraphSymbolIcon = ({
-  size = 16,
-  className = "",
-}: IconProps): JSX.Element => (
-  <span
-    class={className}
-    style={{
-      fontSize: `${size}px`,
-      fontWeight: 800,
-      fontFamily: "serif",
-      lineHeight: 1,
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    §
-  </span>
-);
-
-export const LegalSectionIcon = ParagraphSymbolIcon;
-
-export const InfoIcon = ({
+/** Intention: Display informational statutory note or parameter explanation */
+export const InformationalNoticeIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -662,7 +661,36 @@ export const InfoIcon = ({
   </svg>
 );
 
-export const TrashIcon = ({
+// ============================================================================
+// 6. Status, Workflow & Accordion Icons (Intention: State & Flow Indicators)
+// ============================================================================
+
+/** Intention: Confirm statutory eligibility, verified bonus status, or active rule */
+export const EligibilityConfirmedIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+/** Semantic alias for confirmed status */
+export const SuccessStatusIcon = EligibilityConfirmedIcon;
+
+/** Intention: Alert when statutory limit is exceeded or requirement is violated */
+export const StatutoryLimitationWarningIcon = ({
   size = 14,
   className = "",
 }: IconProps): JSX.Element => (
@@ -678,7 +706,72 @@ export const TrashIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+    <line x1="12" x2="12" y1="9" y2="13" />
+    <line x1="12" x2="12.01" y1="17" y2="17" />
+  </svg>
+);
+
+/** Intention: Indicate calculation flow or step transition */
+export const StepTransitionIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="5" x2="19" y1="12" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+
+/** Intention: Expand collapsed accordion or details drawer */
+export const ExpandSectionIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+/** Intention: Collapse open accordion or details drawer */
+export const CollapseSectionIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="18 15 12 9 6 15" />
   </svg>
 );
