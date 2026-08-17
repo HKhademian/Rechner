@@ -1039,3 +1039,54 @@ export interface ScenarioActionBatches {
   readonly workingHoursChanges?: readonly WorkingHoursChangeAction[];
   readonly financialEvents?: readonly FinancialEventAction[];
 }
+
+// ==========================================
+// User Data Export & Import Interfaces
+// ==========================================
+
+export const ExportFormat = {
+  Json: "JSON",
+  Text: "TEXT",
+  Pdf: "PDF",
+  Zip: "ZIP",
+  Csv: "CSV",
+} as const;
+export type ExportFormat = (typeof ExportFormat)[keyof typeof ExportFormat];
+
+export function toExportFormat(val: string): ExportFormat {
+  const values = Object.values(ExportFormat) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(
+      `Invalid ExportFormat: ${val}. Expected one of: ${values.join(", ")}.`,
+    );
+  }
+  return val as ExportFormat;
+}
+
+export interface SimulationExportMetadata {
+  readonly version: number;
+  readonly exportedAt: string;
+  readonly application: string;
+  readonly format: ExportFormat;
+  readonly checksum?: string;
+}
+
+export interface SimulationExportEnvelope<TState = unknown> {
+  readonly metadata: SimulationExportMetadata;
+  readonly simulationState: TState;
+}
+
+export interface ImportValidationSuccess<TState> {
+  readonly success: true;
+  readonly state: TState;
+  readonly warnings: readonly string[];
+}
+
+export interface ImportValidationFailure {
+  readonly success: false;
+  readonly error: string;
+  readonly details?: readonly string[];
+}
+
+export type ImportValidationResult<TState> =
+  ImportValidationSuccess<TState> | ImportValidationFailure;
