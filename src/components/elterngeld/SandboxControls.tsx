@@ -16,6 +16,7 @@ import {
   setWifePostBirthHours,
   husbandInitialTaxClass,
   wifeInitialTaxClass,
+  useInitialTaxFactor,
   setInitialTaxClasses,
   annualBonusGross,
   annualBonusMonth,
@@ -58,6 +59,7 @@ import {
   addPregnancyAction,
   removePregnancyAction,
   addTaxClassSwitchAction,
+  updateTaxClassSwitchAction,
   removeTaxClassSwitchAction,
   addSalaryRaiseAction,
   removeSalaryRaiseAction,
@@ -73,6 +75,7 @@ import {
 } from "#store/elterngeldStore";
 import {
   TaxClass,
+  toTaxClass,
   TargetPerson,
   FinancialEventCategory,
   SalaryInputMode,
@@ -88,6 +91,7 @@ import {
   toHoursChangeId,
   toFinancialEventId,
   type WorkingHoursChangeAction,
+  type TaxClassSwitchAction,
 } from "#engine/types";
 import {
   ConfigureSandboxIcon,
@@ -1530,24 +1534,27 @@ export default function SandboxControls(): JSX.Element {
                       <button
                         type="button"
                         onClick={() =>
-                          setInitialTaxClasses(TaxClass.III, TaxClass.V)
+                          setInitialTaxClasses(TaxClass.III, TaxClass.V, false)
                         }
                         style={{
                           padding: "5px 8px",
                           borderRadius: "4px",
                           border:
                             husbandInitialTaxClass.value === TaxClass.III &&
-                            wifeInitialTaxClass.value === TaxClass.V
+                            wifeInitialTaxClass.value === TaxClass.V &&
+                            !useInitialTaxFactor.value
                               ? "1px solid var(--color-gain)"
                               : "1px solid var(--border-subtle)",
                           background:
                             husbandInitialTaxClass.value === TaxClass.III &&
-                            wifeInitialTaxClass.value === TaxClass.V
+                            wifeInitialTaxClass.value === TaxClass.V &&
+                            !useInitialTaxFactor.value
                               ? "var(--color-gain-bg)"
                               : "var(--bg-surface)",
                           color:
                             husbandInitialTaxClass.value === TaxClass.III &&
-                            wifeInitialTaxClass.value === TaxClass.V
+                            wifeInitialTaxClass.value === TaxClass.V &&
+                            !useInitialTaxFactor.value
                               ? "var(--color-gain)"
                               : "var(--text-secondary)",
                           fontSize: "0.70rem",
@@ -1556,11 +1563,13 @@ export default function SandboxControls(): JSX.Element {
                           textAlign: "left",
                           display: "flex",
                           justifyContent: "space-between",
+                          alignItems: "center",
                         }}
                       >
                         <span>H: Class III / W: Class V (Standard)</span>
                         {husbandInitialTaxClass.value === TaxClass.III &&
-                          wifeInitialTaxClass.value === TaxClass.V && (
+                          wifeInitialTaxClass.value === TaxClass.V &&
+                          !useInitialTaxFactor.value && (
                             <EligibilityConfirmedIcon size={12} />
                           )}
                       </button>
@@ -1568,24 +1577,27 @@ export default function SandboxControls(): JSX.Element {
                       <button
                         type="button"
                         onClick={() =>
-                          setInitialTaxClasses(TaxClass.IV, TaxClass.IV)
+                          setInitialTaxClasses(TaxClass.IV, TaxClass.IV, false)
                         }
                         style={{
                           padding: "5px 8px",
                           borderRadius: "4px",
                           border:
                             husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            !useInitialTaxFactor.value
                               ? "1px solid var(--color-gain)"
                               : "1px solid var(--border-subtle)",
                           background:
                             husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            !useInitialTaxFactor.value
                               ? "var(--color-gain-bg)"
                               : "var(--bg-surface)",
                           color:
                             husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            !useInitialTaxFactor.value
                               ? "var(--color-gain)"
                               : "var(--text-secondary)",
                           fontSize: "0.70rem",
@@ -1594,11 +1606,13 @@ export default function SandboxControls(): JSX.Element {
                           textAlign: "left",
                           display: "flex",
                           justifyContent: "space-between",
+                          alignItems: "center",
                         }}
                       >
                         <span>H: Class IV / W: Class IV (Equal)</span>
                         {husbandInitialTaxClass.value === TaxClass.IV &&
-                          wifeInitialTaxClass.value === TaxClass.IV && (
+                          wifeInitialTaxClass.value === TaxClass.IV &&
+                          !useInitialTaxFactor.value && (
                             <EligibilityConfirmedIcon size={12} />
                           )}
                       </button>
@@ -1606,24 +1620,27 @@ export default function SandboxControls(): JSX.Element {
                       <button
                         type="button"
                         onClick={() =>
-                          setInitialTaxClasses(TaxClass.V, TaxClass.III)
+                          setInitialTaxClasses(TaxClass.IV, TaxClass.IV, true)
                         }
                         style={{
                           padding: "5px 8px",
                           borderRadius: "4px",
                           border:
-                            husbandInitialTaxClass.value === TaxClass.V &&
-                            wifeInitialTaxClass.value === TaxClass.III
+                            husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            useInitialTaxFactor.value
                               ? "1px solid var(--color-gain)"
                               : "1px solid var(--border-subtle)",
                           background:
-                            husbandInitialTaxClass.value === TaxClass.V &&
-                            wifeInitialTaxClass.value === TaxClass.III
+                            husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            useInitialTaxFactor.value
                               ? "var(--color-gain-bg)"
                               : "var(--bg-surface)",
                           color:
-                            husbandInitialTaxClass.value === TaxClass.V &&
-                            wifeInitialTaxClass.value === TaxClass.III
+                            husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            useInitialTaxFactor.value
                               ? "var(--color-gain)"
                               : "var(--text-secondary)",
                           fontSize: "0.70rem",
@@ -1632,11 +1649,80 @@ export default function SandboxControls(): JSX.Element {
                           textAlign: "left",
                           display: "flex",
                           justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span>H: IV / W: IV + Factor (§ 39f)</span>
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "0.60rem",
+                              background: "var(--bg-surface-secondary)",
+                              padding: "1px 4px",
+                              borderRadius: "3px",
+                              border: "1px solid var(--border-subtle)",
+                              color: "var(--text-muted)",
+                              fontWeight: 600,
+                            }}
+                          >
+                            F ={" "}
+                            {(derivedSpousalSet.value.taxFactor ?? 1.0).toFixed(
+                              3,
+                            )}
+                          </span>
+                          {husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV &&
+                            useInitialTaxFactor.value && (
+                              <EligibilityConfirmedIcon size={12} />
+                            )}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInitialTaxClasses(TaxClass.V, TaxClass.III, false)
+                        }
+                        style={{
+                          padding: "5px 8px",
+                          borderRadius: "4px",
+                          border:
+                            husbandInitialTaxClass.value === TaxClass.V &&
+                            wifeInitialTaxClass.value === TaxClass.III &&
+                            !useInitialTaxFactor.value
+                              ? "1px solid var(--color-gain)"
+                              : "1px solid var(--border-subtle)",
+                          background:
+                            husbandInitialTaxClass.value === TaxClass.V &&
+                            wifeInitialTaxClass.value === TaxClass.III &&
+                            !useInitialTaxFactor.value
+                              ? "var(--color-gain-bg)"
+                              : "var(--bg-surface)",
+                          color:
+                            husbandInitialTaxClass.value === TaxClass.V &&
+                            wifeInitialTaxClass.value === TaxClass.III &&
+                            !useInitialTaxFactor.value
+                              ? "var(--color-gain)"
+                              : "var(--text-secondary)",
+                          fontSize: "0.70rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
                         }}
                       >
                         <span>H: Class V / W: Class III (Inverted)</span>
                         {husbandInitialTaxClass.value === TaxClass.V &&
-                          wifeInitialTaxClass.value === TaxClass.III && (
+                          wifeInitialTaxClass.value === TaxClass.III &&
+                          !useInitialTaxFactor.value && (
                             <EligibilityConfirmedIcon size={12} />
                           )}
                       </button>
@@ -1658,6 +1744,9 @@ export default function SandboxControls(): JSX.Element {
                 {customTaxClassSwitches.value.map((sw, idx) => {
                   const sMonth = sw.effectiveSimulationMonth as number;
                   const rMonth = sw.revertSimulationMonth as number;
+                  const targetH = sw.targetHusbandTaxClass;
+                  const targetW = sw.targetWifeTaxClass;
+                  const useFac = sw.targetUseTaxFactor ?? false;
 
                   return (
                     <div
@@ -1670,6 +1759,7 @@ export default function SandboxControls(): JSX.Element {
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
+                        gap: "8px",
                       }}
                     >
                       <div>
@@ -1678,7 +1768,7 @@ export default function SandboxControls(): JSX.Element {
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
-                            marginBottom: "6px",
+                            marginBottom: "8px",
                           }}
                         >
                           <span
@@ -1686,10 +1776,20 @@ export default function SandboxControls(): JSX.Element {
                               fontSize: "0.78rem",
                               fontWeight: 800,
                               color: "var(--color-gain)",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
                             }}
                           >
-                            Switch #{idx + 1}: H: {sw.targetHusbandTaxClass} |
-                            W: {sw.targetWifeTaxClass}
+                            <TaxClassSwapMilestoneIcon size={13} />
+                            <span>
+                              Switch #{idx + 1}: H: {targetH}
+                              {useFac && targetH === TaxClass.IV
+                                ? " (F)"
+                                : ""}{" "}
+                              | W: {targetW}
+                              {useFac && targetW === TaxClass.IV ? " (F)" : ""}
+                            </span>
                           </span>
                           {customTaxClassSwitches.value.length > 1 && (
                             <button
@@ -1715,39 +1815,280 @@ export default function SandboxControls(): JSX.Element {
                             </button>
                           )}
                         </div>
+
+                        {/* Quick Presets for Target Tax Class Combination */}
                         <div
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "0.72rem",
-                            color: "var(--text-secondary)",
-                            marginBottom: "4px",
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "4px",
+                            marginBottom: "8px",
                           }}
                         >
-                          <span>
-                            Effective:{" "}
-                            <strong style={{ color: "var(--color-gain)" }}>
-                              {getCalDate(sMonth)}
-                            </strong>{" "}
-                            (M{sMonth})
-                          </span>
-                          <span>
-                            Revert:{" "}
-                            <strong style={{ color: "var(--color-warning)" }}>
-                              {getCalDate(rMonth)}
-                            </strong>{" "}
-                            (M{rMonth})
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTaxClassSwitchAction(sw.switchId, {
+                                targetHusbandTaxClass: TaxClass.V,
+                                targetWifeTaxClass: TaxClass.III,
+                                targetUseTaxFactor: false,
+                              })
+                            }
+                            style={{
+                              padding: "4px 6px",
+                              borderRadius: "3px",
+                              border:
+                                targetH === TaxClass.V &&
+                                targetW === TaxClass.III &&
+                                !useFac
+                                  ? "1px solid var(--color-gain)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                targetH === TaxClass.V &&
+                                targetW === TaxClass.III &&
+                                !useFac
+                                  ? "var(--color-gain-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                targetH === TaxClass.V &&
+                                targetW === TaxClass.III &&
+                                !useFac
+                                  ? "var(--color-gain)"
+                                  : "var(--text-secondary)",
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              textAlign: "center",
+                            }}
+                          >
+                            V / III (Swap Boost)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTaxClassSwitchAction(sw.switchId, {
+                                targetHusbandTaxClass: TaxClass.IV,
+                                targetWifeTaxClass: TaxClass.IV,
+                                targetUseTaxFactor: false,
+                              })
+                            }
+                            style={{
+                              padding: "4px 6px",
+                              borderRadius: "3px",
+                              border:
+                                targetH === TaxClass.IV &&
+                                targetW === TaxClass.IV &&
+                                !useFac
+                                  ? "1px solid var(--color-gain)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                targetH === TaxClass.IV &&
+                                targetW === TaxClass.IV &&
+                                !useFac
+                                  ? "var(--color-gain-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                targetH === TaxClass.IV &&
+                                targetW === TaxClass.IV &&
+                                !useFac
+                                  ? "var(--color-gain)"
+                                  : "var(--text-secondary)",
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              textAlign: "center",
+                            }}
+                          >
+                            IV / IV (Equal)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTaxClassSwitchAction(sw.switchId, {
+                                targetHusbandTaxClass: TaxClass.IV,
+                                targetWifeTaxClass: TaxClass.IV,
+                                targetUseTaxFactor: true,
+                                targetTaxFactor:
+                                  derivedSpousalSet.value.taxFactor,
+                              })
+                            }
+                            style={{
+                              padding: "4px 6px",
+                              borderRadius: "3px",
+                              border:
+                                targetH === TaxClass.IV &&
+                                targetW === TaxClass.IV &&
+                                useFac
+                                  ? "1px solid var(--color-gain)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                targetH === TaxClass.IV &&
+                                targetW === TaxClass.IV &&
+                                useFac
+                                  ? "var(--color-gain-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                targetH === TaxClass.IV &&
+                                targetW === TaxClass.IV &&
+                                useFac
+                                  ? "var(--color-gain)"
+                                  : "var(--text-secondary)",
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              textAlign: "center",
+                            }}
+                          >
+                            IV / IV + Factor (§ 39f)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTaxClassSwitchAction(sw.switchId, {
+                                targetHusbandTaxClass: TaxClass.III,
+                                targetWifeTaxClass: TaxClass.V,
+                                targetUseTaxFactor: false,
+                              })
+                            }
+                            style={{
+                              padding: "4px 6px",
+                              borderRadius: "3px",
+                              border:
+                                targetH === TaxClass.III &&
+                                targetW === TaxClass.V &&
+                                !useFac
+                                  ? "1px solid var(--color-gain)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                targetH === TaxClass.III &&
+                                targetW === TaxClass.V &&
+                                !useFac
+                                  ? "var(--color-gain-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                targetH === TaxClass.III &&
+                                targetW === TaxClass.V &&
+                                !useFac
+                                  ? "var(--color-gain)"
+                                  : "var(--text-secondary)",
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              textAlign: "center",
+                            }}
+                          >
+                            III / V (Standard)
+                          </button>
+                        </div>
+
+                        {/* Timing Controls */}
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "8px",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <div>
+                            <label
+                              style={{
+                                fontSize: "0.64rem",
+                                color: "var(--text-muted)",
+                                display: "block",
+                                marginBottom: "2px",
+                              }}
+                            >
+                              Effective (M{sMonth}):
+                            </label>
+                            <input
+                              type="range"
+                              min="1"
+                              max="60"
+                              value={sMonth}
+                              onChange={(e) => {
+                                const newM = parseInt(
+                                  (e.target as HTMLInputElement).value,
+                                  10,
+                                );
+                                const totalElapsed =
+                                  startCalendarMonth.value - 1 + (newM - 1);
+                                updateTaxClassSwitchAction(sw.switchId, {
+                                  effectiveSimulationMonth:
+                                    toSimulationMonth(newM),
+                                  effectiveCalendarMonth: toCalendarMonth(
+                                    (totalElapsed % 12) + 1,
+                                  ),
+                                  effectiveCalendarYear:
+                                    startCalendarYear.value +
+                                    Math.floor(totalElapsed / 12),
+                                });
+                              }}
+                              style={{
+                                width: "100%",
+                                accentColor: "var(--color-gain)",
+                              }}
+                            />
+                            <div
+                              style={{
+                                fontSize: "0.68rem",
+                                color: "var(--color-gain)",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {getCalDate(sMonth)} (M{sMonth})
+                            </div>
+                          </div>
+                          <div>
+                            <label
+                              style={{
+                                fontSize: "0.64rem",
+                                color: "var(--text-muted)",
+                                display: "block",
+                                marginBottom: "2px",
+                              }}
+                            >
+                              Revert (M{rMonth}):
+                            </label>
+                            <input
+                              type="range"
+                              min="1"
+                              max="60"
+                              value={rMonth}
+                              onChange={(e) => {
+                                const newM = parseInt(
+                                  (e.target as HTMLInputElement).value,
+                                  10,
+                                );
+                                updateTaxClassSwitchAction(sw.switchId, {
+                                  revertSimulationMonth:
+                                    toSimulationMonth(newM),
+                                });
+                              }}
+                              style={{
+                                width: "100%",
+                                accentColor: "var(--color-warning)",
+                              }}
+                            />
+                            <div
+                              style={{
+                                fontSize: "0.68rem",
+                                color: "var(--color-warning)",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {getCalDate(rMonth)} (M{rMonth})
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div
                         style={{
-                          fontSize: "0.65rem",
+                          fontSize: "0.64rem",
                           color: "var(--text-muted)",
                           background: "var(--bg-surface)",
                           padding: "4px 6px",
                           borderRadius: "3px",
-                          marginTop: "6px",
                         }}
                       >
                         ↳ {sw.statutoryReason}
@@ -1756,7 +2097,7 @@ export default function SandboxControls(): JSX.Element {
                   );
                 })}
 
-                {/* Pure Derived Display: Automatic Tax Swap Take-Home (§ 38b EStG) */}
+                {/* Pure Derived Display: Automatic Tax Swap Take-Home (§ 38b, § 39f EStG) */}
                 <div
                   style={{
                     background: "var(--bg-surface-secondary)",
@@ -1782,7 +2123,9 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
-                      <span>Automatic Tax Swap Take-Home (§ 38b EStG)</span>
+                      <span>
+                        Automatic Tax Take-Home & Factor (§ 38b, § 39f EStG)
+                      </span>
                     </div>
                     <div
                       style={{
@@ -1792,7 +2135,7 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       Derived automatically from Batch 3 Gross Compensations via
-                      German progressive tax formulas.
+                      German progressive wage tax formulas.
                     </div>
 
                     {/* Wife Optimized Class III FT Net */}
@@ -1882,6 +2225,7 @@ export default function SandboxControls(): JSX.Element {
                         border: "1px solid rgba(245, 158, 11, 0.25)",
                         borderRadius: "5px",
                         padding: "6px 8px",
+                        marginBottom: "6px",
                       }}
                     >
                       <div
@@ -1935,15 +2279,79 @@ export default function SandboxControls(): JSX.Element {
                             : "/mo"}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Class IV Equal vs Class IV + Factor Reference */}
+                    <div
+                      style={{
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "5px",
+                        padding: "6px 8px",
+                      }}
+                    >
                       <div
                         style={{
-                          fontSize: "0.62rem",
-                          color: "var(--text-muted)",
-                          marginTop: "2px",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          fontSize: "0.68rem",
+                          color: "var(--text-secondary)",
+                          marginBottom: "3px",
                         }}
                       >
-                        ↳ Withholding difference recovered via annual tax
-                        return.
+                        <span>Class IV / IV (Standard Equal):</span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            fontSize: "0.70rem",
+                          }}
+                        >
+                          H:{" "}
+                          {formatCurrency(
+                            derivedSpousalSet.value.husbandClass4Net as number,
+                          )}{" "}
+                          · W:{" "}
+                          {formatCurrency(
+                            derivedSpousalSet.value
+                              .wifeClass4FullTimeNet as number,
+                          )}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          fontSize: "0.68rem",
+                          color: "var(--color-gain)",
+                        }}
+                      >
+                        <span>
+                          Class IV + Factor (§ 39f · F ={" "}
+                          {(derivedSpousalSet.value.taxFactor ?? 1.0).toFixed(
+                            3,
+                          )}
+                          ):
+                        </span>
+                        <strong
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontSize: "0.72rem",
+                          }}
+                        >
+                          H:{" "}
+                          {formatCurrency(
+                            derivedSpousalSet.value
+                              .husbandClass4WithFactorNet as number,
+                          )}{" "}
+                          · W:{" "}
+                          {formatCurrency(
+                            derivedSpousalSet.value
+                              .wifeClass4WithFactorNet as number,
+                          )}
+                        </strong>
                       </div>
                     </div>
                   </div>
@@ -1962,7 +2370,7 @@ export default function SandboxControls(): JSX.Element {
                     }}
                   >
                     <span style={{ color: "var(--text-secondary)" }}>
-                      Combined Net Shift:
+                      Combined Net Shift (Swap vs III/V):
                     </span>
                     <strong
                       style={{
