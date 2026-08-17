@@ -1634,7 +1634,8 @@ export default function TimelineTable(): JSX.Element {
                             fontWeight: 500,
                           }}
                         >
-                          {m.monthId} · Sim M{m.month} · Y{m.year}
+                          {m.monthId} · {m.monthSimRef || `Sim${m.month}`} · Y
+                          {m.year}
                         </div>
                       </div>
                       <button

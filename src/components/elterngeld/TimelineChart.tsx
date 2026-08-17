@@ -1140,8 +1140,9 @@ export default function TimelineChart(): JSX.Element {
                 <div
                   style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}
                 >
-                  Sim M{tooltipState.month.month} · Year{" "}
-                  {tooltipState.month.year}
+                  {tooltipState.month.monthSimRef ||
+                    `Sim${tooltipState.month.month}`}{" "}
+                  · Year {tooltipState.month.year}
                 </div>
               </div>
               <span
