@@ -14,6 +14,9 @@ import {
   setHusbandHours,
   setWifeInitialHours,
   setWifePostBirthHours,
+  husbandInitialTaxClass,
+  wifeInitialTaxClass,
+  setInitialTaxClasses,
   annualBonusGross,
   annualBonusMonth,
   investmentReturnMonthly,
@@ -106,6 +109,13 @@ function formatCurrency(amount: number): string {
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(amount || 0);
+}
+
+function formatWorkingTime(hours: number): string {
+  const h = Math.max(0, hours || 0);
+  const days = (h / 8).toFixed(1).replace(/\.0$/, "");
+  const fte = Math.round((h / 40) * 100);
+  return `${h} h/week (${days} d/wk · ${fte}% FTE)`;
 }
 
 const MONTH_NAMES = [
@@ -347,24 +357,23 @@ export default function SandboxControls(): JSX.Element {
             </button>
           </div>
 
-          {/* 4-Batch Grid Layout */}
+          {/* Discrete Batches: Full-Width Rows Layout with Auto-Wrapping Column Entries */}
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))",
+              display: "flex",
+              flexDirection: "column",
               gap: "20px",
             }}
           >
             {/* ======================================================== */}
-            {/* BATCH 0: PREEXISTING CONDITIONS & BASELINE INCOMES */}
+            {/* BATCH 0: PREEXISTING CONDITIONS & SIMULATION PARAMETERS */}
             {/* ======================================================== */}
             <div
               style={{
                 background: "var(--bg-surface)",
-                padding: "16px",
+                padding: "16px 18px",
                 borderRadius: "var(--border-radius)",
                 border: "1px solid var(--border-subtle)",
-                gridColumn: "span 1",
               }}
             >
               <div
@@ -372,1007 +381,108 @@ export default function SandboxControls(): JSX.Element {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: "12px",
+                  marginBottom: "14px",
                   borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "8px",
+                  paddingBottom: "10px",
+                  flexWrap: "wrap",
+                  gap: "8px",
                 }}
               >
-                <span
-                  style={{
-                    fontWeight: 800,
-                    fontSize: "0.88rem",
-                    color: "var(--color-primary)",
-                  }}
-                >
-                  0. Preexisting Conditions
-                </span>
-                <span
-                  style={{
-                    fontSize: "0.68rem",
-                    color: "var(--text-muted)",
-                    background: "var(--bg-surface-secondary)",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                  }}
-                >
-                  Start: {getCalDate(1)}
-                </span>
-              </div>
-
-              {/* Simulation Start Date & Duration */}
-              <div style={{ marginBottom: "12px" }}>
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "0.78rem",
-                    marginBottom: "4px",
+                    alignItems: "center",
+                    gap: "8px",
                   }}
                 >
-                  <span style={{ color: "var(--text-secondary)" }}>
-                    Sim Start & Horizon:
-                  </span>
                   <span
                     style={{
-                      fontVariantNumeric: "tabular-nums",
-                      fontWeight: 700,
+                      fontWeight: 800,
+                      fontSize: "0.92rem",
                       color: "var(--color-primary)",
                     }}
                   >
-                    {getCalDate(1)} → {getCalDate(endSimMonth)} (
-                    {simulationDurationMonths.value}M)
+                    0. Preexisting Conditions &amp; Simulation Parameters
                   </span>
                 </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1fr",
-                    gap: "6px",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <select
-                    value={startCalendarMonth.value}
-                    onChange={(e) => {
-                      startCalendarMonth.value = toCalendarMonth(
-                        Number((e.target as HTMLSelectElement).value),
-                      );
-                    }}
-                    style={{
-                      background: "var(--bg-surface-secondary)",
-                      color: "var(--text-primary)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "4px",
-                      padding: "3px 6px",
-                      fontSize: "0.74rem",
-                    }}
-                  >
-                    {MONTH_NAMES.map((name, idx) => (
-                      <option key={`start-m-${idx + 1}`} value={idx + 1}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={startCalendarYear.value}
-                    onChange={(e) => {
-                      startCalendarYear.value = Number(
-                        (e.target as HTMLSelectElement).value,
-                      );
-                    }}
-                    style={{
-                      background: "var(--bg-surface-secondary)",
-                      color: "var(--text-primary)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "4px",
-                      padding: "3px 6px",
-                      fontSize: "0.74rem",
-                    }}
-                  >
-                    {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map((yr) => (
-                      <option key={`start-y-${yr}`} value={yr}>
-                        Year {yr}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                  {[12, 24, 36, 48, 60, 72].map((dur) => (
-                    <button
-                      key={`dur-btn-${dur}`}
-                      type="button"
-                      onClick={() => {
-                        simulationDurationMonths.value = dur;
-                      }}
-                      style={{
-                        padding: "2px 6px",
-                        borderRadius: "3px",
-                        border:
-                          simulationDurationMonths.value === dur
-                            ? "1px solid var(--color-primary)"
-                            : "1px solid var(--border-subtle)",
-                        background:
-                          simulationDurationMonths.value === dur
-                            ? "var(--color-primary)"
-                            : "var(--bg-surface-secondary)",
-                        color:
-                          simulationDurationMonths.value === dur
-                            ? "#ffffff"
-                            : "var(--text-secondary)",
-                        fontSize: "0.68rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {dur}M
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cadence Switcher (Monthly vs Yearly) */}
-              <div
-                style={{
-                  background: "var(--bg-surface-secondary)",
-                  padding: "5px 8px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--border-subtle)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                }}
-              >
                 <span
                   style={{
-                    fontSize: "0.72rem",
+                    fontSize: "0.70rem",
                     color: "var(--text-muted)",
+                    background: "var(--bg-surface-secondary)",
+                    padding: "3px 8px",
+                    borderRadius: "4px",
                     fontWeight: 600,
                   }}
                 >
-                  Salary Cadence:
+                  Start: {getCalDate(1)} ({simulationDurationMonths.value}M)
                 </span>
-                <div style={{ display: "flex", gap: "4px" }}>
-                  <button
-                    type="button"
-                    onClick={() => setSalaryPeriod(SalaryPeriod.Monthly)}
-                    style={{
-                      padding: "2px 8px",
-                      borderRadius: "3px",
-                      border:
-                        salaryPeriod.value === SalaryPeriod.Monthly
-                          ? "1px solid var(--color-primary)"
-                          : "1px solid transparent",
-                      background:
-                        salaryPeriod.value === SalaryPeriod.Monthly
-                          ? "var(--color-primary-bg)"
-                          : "transparent",
-                      color:
-                        salaryPeriod.value === SalaryPeriod.Monthly
-                          ? "var(--color-primary)"
-                          : "var(--text-muted)",
-                      fontSize: "0.68rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <SimulationPeriodIcon size={11} />
-                    <span>Monthly (€/mo)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSalaryPeriod(SalaryPeriod.Yearly)}
-                    style={{
-                      padding: "2px 8px",
-                      borderRadius: "3px",
-                      border:
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? "1px solid var(--color-primary)"
-                          : "1px solid transparent",
-                      background:
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? "var(--color-primary-bg)"
-                          : "transparent",
-                      color:
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? "var(--color-primary)"
-                          : "var(--text-muted)",
-                      fontSize: "0.68rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <SimulationPeriodIcon size={11} />
-                    <span>Yearly (€/yr)</span>
-                  </button>
-                </div>
               </div>
 
-              {/* SECTION: PRIMARY HUSBAND GROSS COMPENSATION */}
+              {/* Entries Grid: Columns with Auto-Wrap */}
               <div
                 style={{
-                  background: "var(--bg-surface-secondary)",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border-subtle)",
-                  marginBottom: "10px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
+                  gap: "14px",
                 }}
               >
+                {/* ENTRY 1: Simulation Start Date & Horizon */}
                 <div
                   style={{
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    color: "var(--color-primary)",
-                    marginBottom: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <EmploymentCompensationIcon size={13} />
-                  <span>Husband Gross Compensation</span>
-                </div>
-                {/* Gross Amount Slider */}
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.74rem",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      Gross Salary:
-                    </span>
-                    <span
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--color-primary)",
-                      }}
-                    >
-                      {salaryPeriod.value === SalaryPeriod.Yearly
-                        ? `${formatCurrency(husbandGrossYearly.value)} / yr (${formatCurrency(husbandGross.value)} / mo)`
-                        : `${formatCurrency(husbandGross.value)} / mo`}
-                    </span>
-                  </div>
-                  {salaryPeriod.value === SalaryPeriod.Yearly ? (
-                    <input
-                      type="range"
-                      min="30000"
-                      max="150000"
-                      step="500"
-                      value={husbandGrossYearly.value}
-                      onInput={(e) => {
-                        setHusbandGrossYearly(
-                          Number((e.target as HTMLInputElement).value),
-                        );
-                      }}
-                    />
-                  ) : (
-                    <input
-                      type="range"
-                      min="2500"
-                      max="12000"
-                      step="50"
-                      value={husbandGross.value}
-                      onInput={(e) => {
-                        setHusbandGross(
-                          Number((e.target as HTMLInputElement).value),
-                        );
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Husband Working Hours Slider */}
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.72rem",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-muted)" }}>
-                      Weekly Working Hours:
-                    </span>
-                    <span
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--color-primary)",
-                      }}
-                    >
-                      {husbandHours.value} hours / week
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="10"
-                    max="40"
-                    step="1"
-                    value={husbandHours.value}
-                    onInput={(e) => {
-                      setHusbandHours(
-                        Number((e.target as HTMLInputElement).value),
-                      );
-                    }}
-                  />
-                </div>
-
-                {/* Husband Tax Class Badges */}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "4px",
-                    fontSize: "0.66rem",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span className="badge-brand">
-                    Class III:{" "}
-                    <strong>
-                      {formatCurrency(
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? (derivedSpousalSet.value
-                              .husbandClass3Net as number) * 12
-                          : (derivedSpousalSet.value
-                              .husbandClass3Net as number),
-                      )}
-                    </strong>
-                    {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
-                  </span>
-                  <span className="badge-warning">
-                    Class V:{" "}
-                    <strong>
-                      {formatCurrency(
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? (derivedSpousalSet.value
-                              .husbandClass5Net as number) * 12
-                          : (derivedSpousalSet.value
-                              .husbandClass5Net as number),
-                      )}
-                    </strong>
-                    {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
-                  </span>
-                  <span className="badge-muted">
-                    Class IV:{" "}
-                    {formatCurrency(
-                      salaryPeriod.value === SalaryPeriod.Yearly
-                        ? (derivedSpousalSet.value.husbandClass4Net as number) *
-                            12
-                        : (derivedSpousalSet.value.husbandClass4Net as number),
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              {/* SECTION: WIFE FULL-TIME PRE-PREGNANCY COMPENSATION */}
-              <div
-                style={{
-                  background: "var(--bg-surface-secondary)",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border-subtle)",
-                  marginBottom: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    color: "var(--series-indigo)",
-                    marginBottom: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <EmploymentCompensationIcon size={13} />
-                  <span>Wife Pre-Pregnancy Full-Time Compensation</span>
-                </div>
-                {/* Gross Amount Slider */}
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.74rem",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      Full-Time Gross:
-                    </span>
-                    <span
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--series-indigo)",
-                      }}
-                    >
-                      {salaryPeriod.value === SalaryPeriod.Yearly
-                        ? `${formatCurrency(wifeGrossYearly.value)} / yr (${formatCurrency(wifeGross.value)} / mo)`
-                        : `${formatCurrency(wifeGross.value)} / mo`}
-                    </span>
-                  </div>
-                  {salaryPeriod.value === SalaryPeriod.Yearly ? (
-                    <input
-                      type="range"
-                      min="18000"
-                      max="100000"
-                      step="500"
-                      value={wifeGrossYearly.value}
-                      onInput={(e) => {
-                        setWifeGrossYearly(
-                          Number((e.target as HTMLInputElement).value),
-                        );
-                      }}
-                    />
-                  ) : (
-                    <input
-                      type="range"
-                      min="1500"
-                      max="8000"
-                      step="50"
-                      value={wifeGross.value}
-                      onInput={(e) => {
-                        setWifeGross(
-                          Number((e.target as HTMLInputElement).value),
-                        );
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Wife Pre-Pregnancy Hours */}
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.72rem",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-muted)" }}>
-                      Full-Time Working Hours:
-                    </span>
-                    <span
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--series-indigo)",
-                      }}
-                    >
-                      {wifeInitialHours.value} hours / week
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="20"
-                    max="40"
-                    step="1"
-                    value={wifeInitialHours.value}
-                    onInput={(e) => {
-                      setWifeInitialHours(
-                        Number((e.target as HTMLInputElement).value),
-                      );
-                    }}
-                  />
-                </div>
-
-                {/* Wife FT Tax Class Badges */}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "4px",
-                    fontSize: "0.66rem",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span className="badge-warning">
-                    Class V:{" "}
-                    <strong>
-                      {formatCurrency(
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? (derivedSpousalSet.value
-                              .wifeClass5FullTimeNet as number) * 12
-                          : (derivedSpousalSet.value
-                              .wifeClass5FullTimeNet as number),
-                      )}
-                    </strong>
-                    {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
-                  </span>
-                  <span className="badge-gain">
-                    Class III:{" "}
-                    <strong>
-                      {formatCurrency(
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? (derivedSpousalSet.value
-                              .wifeClass3FullTimeNet as number) * 12
-                          : (derivedSpousalSet.value
-                              .wifeClass3FullTimeNet as number),
-                      )}
-                    </strong>{" "}
-                    (Booster!)
-                  </span>
-                </div>
-              </div>
-
-              {/* SECTION: WIFE POST-BIRTH PART-TIME RETURN TO WORK */}
-              <div
-                style={{
-                  background: "var(--bg-surface-secondary)",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border-subtle)",
-                  marginBottom: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    color: "var(--series-cyan)",
-                    marginBottom: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <ChildBirthMilestoneIcon size={13} />
-                  <span>Wife Post-Birth Part-Time Return to Work</span>
-                </div>
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.72rem",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      Post-Birth Part-Time Hours:
-                    </span>
-                    <span
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--series-cyan)",
-                      }}
-                    >
-                      {wifePostBirthHours.value} hours / week{" "}
-                      {wifePostBirthHours.value >= 24 &&
-                      wifePostBirthHours.value <= 32
-                        ? "(PB Eligible)"
-                        : ""}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="40"
-                    step="1"
-                    value={wifePostBirthHours.value}
-                    onInput={(e) => {
-                      setWifePostBirthHours(
-                        Number((e.target as HTMLInputElement).value),
-                      );
-                    }}
-                  />
-
-                  {/* Statutory Elterngeld & Partnership Bonus (§ 1 & § 4b BEEG) Indicators */}
-                  {wifePostBirthHours.value > 32 ? (
-                    <div
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        fontSize: "0.66rem",
-                        color: "var(--color-loss)",
-                        background: "var(--color-loss-bg)",
-                        padding: "4px 6px",
-                        borderRadius: "4px",
-                        marginTop: "4px",
-                        fontWeight: 600,
-                        border: "1px solid var(--color-loss-border)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      <StatutoryLimitationWarningIcon size={12} />
-                      <span>
-                        Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours
-                        &gt; 32h / week disqualify from all Elterngeld (0 €
-                        benefit paid).
-                      </span>
-                    </div>
-                  ) : wifePostBirthHours.value >= 24 &&
-                    wifePostBirthHours.value <= 32 ? (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)
-                      }
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        fontSize: "0.66rem",
-                        color: "var(--color-gain)",
-                        background: "var(--color-gain-bg)",
-                        padding: "3px 6px",
-                        borderRadius: "4px",
-                        marginTop: "4px",
-                        fontWeight: 600,
-                        border: "1px solid var(--color-gain-border)",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                      title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
-                    >
-                      <EligibilityConfirmedIcon size={12} />
-                      <span>
-                        ElterngeldPlus &amp; Partnerschaftsbonus (§ 4b BEEG)
-                        corridor (24–32h / week)
-                      </span>
-                      <ExternalLegalSourceIcon size={10} />
-                    </button>
-                  ) : wifePostBirthHours.value === 0 ? (
-                    <div
-                      style={{
-                        fontSize: "0.66rem",
-                        color: "var(--color-primary)",
-                        background: "var(--color-primary-bg)",
-                        padding: "3px 6px",
-                        borderRadius: "4px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      ℹ Full Parental Leave (0h / week · 100% leave)
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)
-                      }
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        fontSize: "0.66rem",
-                        color: "var(--color-warning)",
-                        background: "var(--color-warning-bg)",
-                        padding: "3px 6px",
-                        borderRadius: "4px",
-                        marginTop: "4px",
-                        fontWeight: 600,
-                        border: "1px solid var(--color-warning-border)",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                      title="Click to view § 4b BEEG corridor requirements"
-                    >
-                      <InformationalNoticeIcon size={11} />
-                      <span>
-                        Eligible for ElterngeldPlus (≤ 32h), but outside
-                        Partnerschaftsbonus corridor (must be 24–32h for +4
-                        bonus months)
-                      </span>
-                      <ExternalLegalSourceIcon size={10} />
-                    </button>
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "4px",
-                    fontSize: "0.66rem",
-                    flexWrap: "wrap",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <span className="badge-warning">
-                    PT Gross:{" "}
-                    {formatCurrency(
-                      salaryPeriod.value === SalaryPeriod.Yearly
-                        ? (derivedSpousalSet.value
-                            .wifeGrossPartTime as number) * 12
-                        : (derivedSpousalSet.value.wifeGrossPartTime as number),
-                    )}
-                  </span>
-                  <span className="badge-muted">
-                    PT Net (Class V):{" "}
-                    <strong>
-                      {formatCurrency(
-                        salaryPeriod.value === SalaryPeriod.Yearly
-                          ? (derivedSpousalSet.value
-                              .wifeClass5PartTimeNet as number) * 12
-                          : (derivedSpousalSet.value
-                              .wifeClass5PartTimeNet as number),
-                      )}
-                    </strong>
-                  </span>
-                </div>
-
-                {/* Statutory ElterngeldPlus Replacement Calculation */}
-                <div
-                  style={{
-                    background: "var(--bg-surface)",
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
                     border: "1px solid var(--border-subtle)",
-                    borderRadius: "5px",
-                    padding: "6px 8px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "3px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.68rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)
-                      }
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-secondary)",
-                        padding: 0,
-                        cursor: "pointer",
-                        fontSize: "0.68rem",
-                        textAlign: "left",
-                        textDecoration: "underline",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "2px",
-                      }}
-                      title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
-                    >
-                      <span>Statutory ElterngeldPlus (65% loss)</span>
-                      <ExternalLegalSourceIcon size={10} />:
-                    </button>
-                    <strong
-                      style={{
-                        color: "var(--color-gain)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      +
-                      {formatCurrency(
-                        Math.min(
-                          900,
-                          Math.max(
-                            150,
-                            Math.round(
-                              Math.max(
-                                0,
-                                (derivedSpousalSet.value
-                                  .wifeClass3FullTimeNet as number) -
-                                  (derivedSpousalSet.value
-                                    .wifeClass5PartTimeNet as number),
-                              ) * 0.65,
-                            ),
-                          ),
-                        ),
-                      )}
-                    </strong>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.70rem",
-                      color: "var(--text-primary)",
-                      borderTop: "1px solid var(--border-subtle)",
-                      paddingTop: "3px",
-                      fontWeight: 700,
-                    }}
-                  >
-                    <span>Total Monthly Mother Inflow:</span>
-                    <span
-                      style={{
-                        color: "var(--color-gain)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {formatCurrency(
-                        (derivedSpousalSet.value
-                          .wifeClass5PartTimeNet as number) +
-                          Math.min(
-                            900,
-                            Math.max(
-                              150,
-                              Math.round(
-                                Math.max(
-                                  0,
-                                  (derivedSpousalSet.value
-                                    .wifeClass3FullTimeNet as number) -
-                                    (derivedSpousalSet.value
-                                      .wifeClass5PartTimeNet as number),
-                                ) * 0.65,
-                              ),
-                            ),
-                          ),
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION: ADDITIONAL INCOME & INFLOW CHANNELS */}
-              <div
-                style={{
-                  background: "var(--bg-surface-secondary)",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border-subtle)",
-                  marginBottom: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    color: "var(--series-emerald)",
-                    marginBottom: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <FinancialInflowIcon size={13} />
-                  <span>Additional Income &amp; Inflow Channels</span>
-                </div>
-
-                {/* 13th Month Salary Toggle */}
-                <div
-                  style={{
-                    display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "8px",
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    13th Month Salary:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      enable13thSalary.value = !enable13thSalary.value;
-                    }}
-                    style={{
-                      padding: "2px 6px",
-                      borderRadius: "3px",
-                      border: enable13thSalary.value
-                        ? "1px solid var(--color-warning-border)"
-                        : "1px solid var(--border-subtle)",
-                      background: enable13thSalary.value
-                        ? "var(--color-warning-bg)"
-                        : "var(--bg-surface)",
-                      color: enable13thSalary.value
-                        ? "var(--color-warning)"
-                        : "var(--text-muted)",
-                      fontSize: "0.66rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    {enable13thSalary.value ? (
-                      <>
-                        <EligibilityConfirmedIcon size={11} />
-                        <span>Active (May &amp; Nov)</span>
-                      </>
-                    ) : (
-                      <>
-                        <RemoveItemIcon size={11} />
-                        <span>Disabled</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                {enable13thSalary.value && (
-                  <div
-                    style={{
-                      fontSize: "0.65rem",
-                      color: "var(--text-muted)",
-                      marginBottom: "8px",
-                      padding: "3px 5px",
-                      background: "var(--bg-surface)",
-                      borderRadius: "3px",
-                    }}
-                  >
-                    ↳ 40% Vacation Bonus in May + 60% Christmas Bonus in Nov (§
-                    2c BEEG exempt).
-                  </div>
-                )}
-
-                {/* Annual Performance Bonus Slider */}
-                <div style={{ marginBottom: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.72rem",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      Annual Performance Bonus:
-                    </span>
-                    <span
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--color-warning)",
-                      }}
-                    >
-                      {formatCurrency(annualBonusGross.value)} gross / yr
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30000"
-                    step="500"
-                    value={annualBonusGross.value}
-                    onInput={(e) => {
-                      setAnnualBonusGross(
-                        Number((e.target as HTMLInputElement).value),
-                      );
-                    }}
-                  />
-                  {annualBonusGross.value > 0 && (
+                  <div>
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "center",
-                        marginTop: "2px",
+                        fontSize: "0.76rem",
+                        marginBottom: "6px",
                       }}
                     >
                       <span
                         style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
+                          color: "var(--text-secondary)",
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
                         }}
                       >
-                        Payout Month:
+                        <SimulationPeriodIcon size={12} />
+                        <span>Sim Start &amp; Horizon:</span>
                       </span>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-primary)",
+                        }}
+                      >
+                        {getCalDate(1)} → {getCalDate(endSimMonth)} (
+                        {simulationDurationMonths.value}M)
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "2fr 1fr",
+                        gap: "6px",
+                        marginBottom: "8px",
+                      }}
+                    >
                       <select
-                        value={annualBonusMonth.value}
+                        value={startCalendarMonth.value}
                         onChange={(e) => {
-                          setAnnualBonusMonth(
+                          startCalendarMonth.value = toCalendarMonth(
                             Number((e.target as HTMLSelectElement).value),
                           );
                         }}
@@ -1380,319 +490,446 @@ export default function SandboxControls(): JSX.Element {
                           background: "var(--bg-surface)",
                           color: "var(--text-primary)",
                           border: "1px solid var(--border-subtle)",
-                          borderRadius: "3px",
-                          padding: "1px 4px",
-                          fontSize: "0.68rem",
+                          borderRadius: "4px",
+                          padding: "4px 6px",
+                          fontSize: "0.74rem",
                         }}
                       >
-                        {MONTH_NAMES.map((mName, idx) => (
-                          <option key={`bonus-m-${idx + 1}`} value={idx + 1}>
-                            {mName}
+                        {MONTH_NAMES.map((name, idx) => (
+                          <option key={`start-m-${idx + 1}`} value={idx + 1}>
+                            {name}
                           </option>
                         ))}
                       </select>
+                      <select
+                        value={startCalendarYear.value}
+                        onChange={(e) => {
+                          startCalendarYear.value = Number(
+                            (e.target as HTMLSelectElement).value,
+                          );
+                        }}
+                        style={{
+                          background: "var(--bg-surface)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "4px",
+                          padding: "4px 6px",
+                          fontSize: "0.74rem",
+                        }}
+                      >
+                        {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(
+                          (yr) => (
+                            <option key={`start-y-${yr}`} value={yr}>
+                              Year {yr}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     </div>
-                  )}
-                </div>
-
-                {/* Monthly Investment Returns & Capital Income */}
-                <div>
+                  </div>
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.72rem",
-                      marginBottom: "2px",
+                      gap: "4px",
+                      flexWrap: "wrap",
                     }}
                   >
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      Investment & Capital Returns:
-                    </span>
-                    <span
+                    {[12, 24, 36, 48, 60, 72].map((dur) => (
+                      <button
+                        key={`dur-btn-${dur}`}
+                        type="button"
+                        onClick={() => {
+                          simulationDurationMonths.value = dur;
+                        }}
+                        style={{
+                          padding: "3px 8px",
+                          borderRadius: "3px",
+                          border:
+                            simulationDurationMonths.value === dur
+                              ? "1px solid var(--color-primary)"
+                              : "1px solid var(--border-subtle)",
+                          background:
+                            simulationDurationMonths.value === dur
+                              ? "var(--color-primary)"
+                              : "var(--bg-surface)",
+                          color:
+                            simulationDurationMonths.value === dur
+                              ? "#ffffff"
+                              : "var(--text-secondary)",
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {dur}M
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ENTRY 2: Preconditions Baseline Summary Card */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
                       style={{
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 700,
-                        color: "var(--color-gain)",
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--color-primary)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
-                      {formatCurrency(investmentReturnMonthly.value)} / mo
-                    </span>
+                      <InformationalNoticeIcon size={13} />
+                      <span>Preconditions Baseline ($M1$ / $t=0$)</span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "3px",
+                        fontSize: "0.68rem",
+                        color: "var(--text-secondary)",
+                        background: "var(--bg-surface)",
+                        padding: "6px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div>
+                        <strong>Husband:</strong>{" "}
+                        {formatCurrency(husbandGross.value)}/mo (
+                        {formatWorkingTime(husbandHours.value)}) · Class{" "}
+                        {husbandInitialTaxClass.value}
+                      </div>
+                      <div>
+                        <strong>Wife:</strong> {formatCurrency(wifeGross.value)}
+                        /mo ({formatWorkingTime(wifeInitialHours.value)}) ·
+                        Class {wifeInitialTaxClass.value}
+                      </div>
+                      <div>
+                        <strong>Children:</strong> 0 prior children · Kindergeld{" "}
+                        {formatCurrency(kindergeldPerChild.value)}/mo
+                      </div>
+                    </div>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="5000"
-                    step="50"
-                    value={investmentReturnMonthly.value}
-                    onInput={(e) => {
-                      setInvestmentReturnMonthly(
-                        Number((e.target as HTMLInputElement).value),
-                      );
-                    }}
-                  />
                   <div
                     style={{
                       fontSize: "0.64rem",
                       color: "var(--text-muted)",
-                      marginTop: "1px",
+                      marginTop: "6px",
                     }}
                   >
-                    ↳ Net dividend, rental return, or ETF capital cash flow (§
-                    20 EStG).
+                    ↳ Precondition: baseline status at simulation start ($M1$).
+                    Defaults to 0 if unreported.
                   </div>
                 </div>
-              </div>
 
-              {/* Deductions Breakdown Toggle */}
-              <div style={{ marginBottom: "10px" }}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowDeductionsBreakdown(!showDeductionsBreakdown)
-                  }
+                {/* ENTRY 3: Kindergeld Rate */}
+                <div
                   style={{
-                    width: "100%",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid var(--border-subtle)",
                     background: "var(--bg-surface-secondary)",
-                    color: "var(--text-secondary)",
-                    fontSize: "0.68rem",
-                    cursor: "pointer",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
                     display: "flex",
-                    alignItems: "center",
+                    flexDirection: "column",
                     justifyContent: "space-between",
                   }}
                 >
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <SimulatorNavigationIcon size={12} />
-                    <span>Statutory Tax &amp; Social Deductions Breakdown</span>
-                  </span>
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    {showDeductionsBreakdown ? (
-                      <>
-                        <CollapseSectionIcon size={11} />
-                        <span>Hide</span>
-                      </>
-                    ) : (
-                      <>
-                        <ExpandSectionIcon size={11} />
-                        <span>Expand</span>
-                      </>
-                    )}
-                  </span>
-                </button>
-                {showDeductionsBreakdown && (
-                  <div
-                    style={{
-                      background: "var(--bg-surface)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "4px",
-                      padding: "8px",
-                      marginTop: "4px",
-                      fontSize: "0.68rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
+                  <div>
                     <div
                       style={{
-                        fontWeight: 700,
-                        color: "var(--color-primary)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.76rem",
                         marginBottom: "4px",
                       }}
                     >
-                      Husband (Class III): Deductions{" "}
-                      {formatCurrency(
-                        ((derivedSpousalSet.value.husbandBreakdownClass3
-                          .monthlyGross as number) -
-                          (derivedSpousalSet.value.husbandBreakdownClass3
-                            .monthlyNetTakeHome as number)) *
-                          (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1),
-                      )}{" "}
-                      (
-                      {
-                        derivedSpousalSet.value.husbandBreakdownClass3
-                          .effectiveTotalDeductionRatePercent
-                      }
-                      %)
+                      <button
+                        type="button"
+                        onClick={() =>
+                          scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-secondary)",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontSize: "0.74rem",
+                          fontWeight: 700,
+                          textAlign: "left",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                        title="Click to view § 66 EStG Kindergeld legal rule & example"
+                      >
+                        <span>Kindergeld</span>
+                        <span
+                          style={{
+                            color: "var(--color-primary)",
+                            textDecoration: "underline",
+                            fontSize: "0.72rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "2px",
+                          }}
+                        >
+                          <span>(§ 66 EStG)</span>
+                          <ExternalLegalSourceIcon size={10} />
+                        </span>
+                        :
+                      </button>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-loss)",
+                        }}
+                      >
+                        {formatCurrency(kindergeldPerChild.value)} / mo
+                      </span>
                     </div>
-                    <div
+                    <input
+                      type="range"
+                      min="200"
+                      max="350"
+                      step="5"
+                      value={kindergeldPerChild.value}
+                      onInput={(e) => {
+                        kindergeldPerChild.value = toEuroAmount(
+                          Number((e.target as HTMLInputElement).value),
+                        );
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.64rem",
+                      color: "var(--text-muted)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ↳ Reconciled in tax return (
+                    <span
+                      style={{ color: "var(--color-primary)", fontWeight: 600 }}
+                    >
+                      Günstigerprüfung § 31 EStG
+                    </span>
+                    ).
+                  </div>
+                </div>
+
+                {/* ENTRY 4: Deductions Breakdown */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowDeductionsBreakdown(!showDeductionsBreakdown)
+                      }
                       style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "4px",
+                        width: "100%",
+                        padding: "4px 6px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                        background: "var(--bg-surface)",
+                        color: "var(--text-secondary)",
+                        fontSize: "0.70rem",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
                         marginBottom: "6px",
                       }}
                     >
-                      <span>
-                        • Social:{" "}
-                        {formatCurrency(
-                          (derivedSpousalSet.value.husbandBreakdownClass3
-                            .totalSocialSecurity as number) *
-                            (salaryPeriod.value === SalaryPeriod.Yearly
-                              ? 12
-                              : 1),
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        <SimulatorNavigationIcon size={12} />
+                        <span>Tax &amp; Social Deductions</span>
+                      </span>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "3px",
+                        }}
+                      >
+                        {showDeductionsBreakdown ? (
+                          <>
+                            <CollapseSectionIcon size={11} />
+                            <span>Hide</span>
+                          </>
+                        ) : (
+                          <>
+                            <ExpandSectionIcon size={11} />
+                            <span>Expand</span>
+                          </>
                         )}
                       </span>
-                      <span>
-                        • Tax:{" "}
-                        {formatCurrency(
-                          (derivedSpousalSet.value.husbandBreakdownClass3
-                            .monthlyWageTax as number) *
-                            (salaryPeriod.value === SalaryPeriod.Yearly
-                              ? 12
-                              : 1),
-                        )}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        color: "var(--series-indigo)",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      Wife FT (Class V): Deductions{" "}
-                      {formatCurrency(
-                        ((derivedSpousalSet.value.wifeBreakdownClass5FT
-                          .monthlyGross as number) -
-                          (derivedSpousalSet.value.wifeBreakdownClass5FT
-                            .monthlyNetTakeHome as number)) *
-                          (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1),
-                      )}{" "}
-                      (
-                      {
-                        derivedSpousalSet.value.wifeBreakdownClass5FT
-                          .effectiveTotalDeductionRatePercent
-                      }
-                      %)
-                    </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "4px",
-                      }}
-                    >
-                      <span>
-                        • Social:{" "}
-                        {formatCurrency(
-                          (derivedSpousalSet.value.wifeBreakdownClass5FT
-                            .totalSocialSecurity as number) *
-                            (salaryPeriod.value === SalaryPeriod.Yearly
-                              ? 12
-                              : 1),
-                        )}
-                      </span>
-                      <span>
-                        • Tax:{" "}
-                        {formatCurrency(
-                          (derivedSpousalSet.value.wifeBreakdownClass5FT
-                            .monthlyWageTax as number) *
-                            (salaryPeriod.value === SalaryPeriod.Yearly
-                              ? 12
-                              : 1),
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
+                    </button>
 
-              {/* Kindergeld */}
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "0.78rem",
-                    marginBottom: "2px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)
-                    }
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--text-secondary)",
-                      padding: 0,
-                      cursor: "pointer",
-                      fontSize: "0.72rem",
-                      textAlign: "left",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                    title="Click to view § 66 EStG Kindergeld legal rule & example"
-                  >
-                    <span>Kindergeld</span>
-                    <span
-                      style={{
-                        color: "var(--color-primary)",
-                        textDecoration: "underline",
-                        fontSize: "0.72rem",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "2px",
-                      }}
-                    >
-                      <span>(§ 66 EStG)</span>
-                      <ExternalLegalSourceIcon size={10} />
-                    </span>
-                    :
-                  </button>
-                  <span
-                    style={{
-                      fontVariantNumeric: "tabular-nums",
-                      fontWeight: 700,
-                      color: "var(--color-loss)",
-                    }}
-                  >
-                    {formatCurrency(kindergeldPerChild.value)} / mo
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="200"
-                  max="350"
-                  step="5"
-                  value={kindergeldPerChild.value}
-                  onInput={(e) => {
-                    kindergeldPerChild.value = toEuroAmount(
-                      Number((e.target as HTMLInputElement).value),
-                    );
-                  }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.64rem",
-                    color: "var(--text-muted)",
-                    marginTop: "2px",
-                  }}
-                >
-                  ↳ Reconciled against Kinderfreibetrag (9.540 €/child § 32 Abs.
-                  6) in annual tax return (
-                  <span
-                    style={{ color: "var(--color-primary)", fontWeight: 600 }}
-                  >
-                    Günstigerprüfung § 31 EStG
-                  </span>
-                  ).
+                    {showDeductionsBreakdown ? (
+                      <div
+                        style={{
+                          background: "var(--bg-surface)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "4px",
+                          padding: "6px 8px",
+                          fontSize: "0.66rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: "var(--color-primary)",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Husband (Class III):{" "}
+                          {formatCurrency(
+                            ((derivedSpousalSet.value.husbandBreakdownClass3
+                              .monthlyGross as number) -
+                              (derivedSpousalSet.value.husbandBreakdownClass3
+                                .monthlyNetTakeHome as number)) *
+                              (salaryPeriod.value === SalaryPeriod.Yearly
+                                ? 12
+                                : 1),
+                          )}{" "}
+                          (
+                          {
+                            derivedSpousalSet.value.husbandBreakdownClass3
+                              .effectiveTotalDeductionRatePercent
+                          }
+                          %)
+                        </div>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "2px",
+                            marginBottom: "4px",
+                            fontSize: "0.64rem",
+                          }}
+                        >
+                          <span>
+                            • Social:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.husbandBreakdownClass3
+                                .totalSocialSecurity as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                          <span>
+                            • Tax:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.husbandBreakdownClass3
+                                .monthlyWageTax as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: "var(--series-indigo)",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Wife FT (Class V):{" "}
+                          {formatCurrency(
+                            ((derivedSpousalSet.value.wifeBreakdownClass5FT
+                              .monthlyGross as number) -
+                              (derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .monthlyNetTakeHome as number)) *
+                              (salaryPeriod.value === SalaryPeriod.Yearly
+                                ? 12
+                                : 1),
+                          )}{" "}
+                          (
+                          {
+                            derivedSpousalSet.value.wifeBreakdownClass5FT
+                              .effectiveTotalDeductionRatePercent
+                          }
+                          %)
+                        </div>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "2px",
+                            fontSize: "0.64rem",
+                          }}
+                        >
+                          <span>
+                            • Social:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .totalSocialSecurity as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                          <span>
+                            • Tax:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .monthlyWageTax as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          color: "var(--text-muted)",
+                          padding: "2px 0",
+                        }}
+                      >
+                        View granular statutory social insurance (BBG) and wage
+                        tax allocations.
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1703,10 +940,9 @@ export default function SandboxControls(): JSX.Element {
             <div
               style={{
                 background: "var(--bg-surface)",
-                padding: "16px",
+                padding: "16px 18px",
                 borderRadius: "var(--border-radius)",
                 border: "1px solid var(--border-subtle)",
-                gridColumn: "span 1",
               }}
             >
               <div
@@ -1714,32 +950,96 @@ export default function SandboxControls(): JSX.Element {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: "12px",
+                  marginBottom: "14px",
                   borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "8px",
+                  paddingBottom: "10px",
+                  flexWrap: "wrap",
+                  gap: "10px",
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontWeight: 800,
-                    fontSize: "0.88rem",
-                    color: "var(--color-loss)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
                   }}
                 >
-                  1. Pregnancy Positive Decisions
-                </span>
-                <span className="badge-loss">
-                  {customPregnancies.value.length} Pregnancies Active
-                </span>
+                  <span
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "0.92rem",
+                      color: "var(--color-loss)",
+                    }}
+                  >
+                    1. Pregnancy Positive Decisions &amp; Milestones
+                  </span>
+                  <span className="badge-loss">
+                    {customPregnancies.value.length} Pregnancies Active
+                  </span>
+                </div>
+
+                {/* Add Pregnancy Action Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const count = customPregnancies.value.length;
+                    const lastPreg = customPregnancies.value[count - 1];
+                    const lastDeliv =
+                      lastPreg.calculatedDeliverySimulationMonth as number;
+                    const newSimMonth = Math.min(
+                      simulationDurationMonths.value - 10,
+                      lastDeliv + 19,
+                    );
+
+                    addPregnancyAction({
+                      pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
+                      childIndex: count + 1,
+                      positiveTestCalendarMonth: toCalendarMonth(1),
+                      positiveTestCalendarYear: 2026,
+                      positiveTestSimulationMonth:
+                        toSimulationMonth(newSimMonth),
+                      calculatedDeliverySimulationMonth: toSimulationMonth(
+                        newSimMonth + 8,
+                      ),
+                      motherPostBirthPartTimeHours: toWorkingHours(
+                        wifePostBirthHours.value ?? 24,
+                      ),
+                      motherPostBirthPartTimeClass5Net: toNetSalary(
+                        wifeClass5PartTimeNet.value,
+                      ),
+                      motherPostBirthPartTimeClass3Net: toNetSalary(
+                        wifeClass3PartTimeNet.value,
+                      ),
+                      fatherPartnerMonthsCount: 4,
+                    });
+                  }}
+                  style={{
+                    padding: "5px 12px",
+                    background: "var(--color-loss-bg)",
+                    color: "var(--color-loss)",
+                    border: "1px solid var(--color-loss-border)",
+                    borderRadius: "var(--border-radius-sm)",
+                    fontSize: "0.74rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <AddActionIcon size={12} />
+                  <span>
+                    Add Pregnancy (Child #{customPregnancies.value.length + 1})
+                  </span>
+                </button>
               </div>
 
-              {/* Dynamic Pregnancies List */}
+              {/* Dynamic Pregnancies Auto-Wrapping Columns */}
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                  marginBottom: "12px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+                  gap: "14px",
                 }}
               >
                 {customPregnancies.value.map((preg, idx) => {
@@ -1753,34 +1053,1821 @@ export default function SandboxControls(): JSX.Element {
                       key={preg.pregnancyId || `preg-${idx}`}
                       style={{
                         background: "var(--bg-surface-secondary)",
-                        padding: "10px",
-                        borderRadius: "6px",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
                         border: "1px solid var(--border-subtle)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
                       }}
                     >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "0.80rem",
+                              fontWeight: 800,
+                              color: "var(--color-loss)",
+                            }}
+                          >
+                            Child #{preg.childIndex} Pregnancy
+                          </span>
+                          {customPregnancies.value.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removePregnancyAction(preg.pregnancyId)
+                              }
+                              style={{
+                                background: "var(--color-loss-bg)",
+                                color: "var(--color-loss)",
+                                border: "1px solid var(--color-loss-border)",
+                                borderRadius: "3px",
+                                padding: "2px 6px",
+                                fontSize: "0.65rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <RemoveItemIcon size={11} />
+                              <span>Remove</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {isFirst ? (
+                          <div>
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: "6px",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.68rem",
+                                    color: "var(--text-muted)",
+                                    display: "block",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Positive Month:
+                                </label>
+                                <select
+                                  value={
+                                    ((startCalendarMonth.value -
+                                      1 +
+                                      pSimMonth -
+                                      1) %
+                                      12) +
+                                    1
+                                  }
+                                  onChange={(e) => {
+                                    const m = Number(
+                                      (e.target as HTMLSelectElement).value,
+                                    );
+                                    const curY =
+                                      startCalendarYear.value +
+                                      Math.floor(
+                                        (startCalendarMonth.value -
+                                          1 +
+                                          (pSimMonth - 1)) /
+                                          12,
+                                      );
+                                    setPregnancy1PositiveDate(curY, m);
+                                  }}
+                                  style={{
+                                    width: "100%",
+                                    background: "var(--bg-surface)",
+                                    color: "var(--text-primary)",
+                                    border: "1px solid var(--border-subtle)",
+                                    borderRadius: "4px",
+                                    padding: "4px 5px",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {MONTH_NAMES.map((name, mIdx) => (
+                                    <option key={mIdx + 1} value={mIdx + 1}>
+                                      {name.slice(0, 14)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.68rem",
+                                    color: "var(--text-muted)",
+                                    display: "block",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Positive Year:
+                                </label>
+                                <select
+                                  value={
+                                    startCalendarYear.value +
+                                    Math.floor(
+                                      (startCalendarMonth.value -
+                                        1 +
+                                        (pSimMonth - 1)) /
+                                        12,
+                                    )
+                                  }
+                                  onChange={(e) => {
+                                    const y = Number(
+                                      (e.target as HTMLSelectElement).value,
+                                    );
+                                    const curM =
+                                      ((startCalendarMonth.value -
+                                        1 +
+                                        pSimMonth -
+                                        1) %
+                                        12) +
+                                      1;
+                                    setPregnancy1PositiveDate(y, curM);
+                                  }}
+                                  style={{
+                                    width: "100%",
+                                    background: "var(--bg-surface)",
+                                    color: "var(--text-primary)",
+                                    border: "1px solid var(--border-subtle)",
+                                    borderRadius: "4px",
+                                    padding: "4px 5px",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {[
+                                    2024, 2025, 2026, 2027, 2028, 2029, 2030,
+                                  ].map((y) => (
+                                    <option key={y} value={y}>
+                                      {y}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                fontSize: "0.72rem",
+                                color: "var(--text-secondary)",
+                                marginBottom: "6px",
+                              }}
+                            >
+                              <span>
+                                Positive:{" "}
+                                <strong style={{ color: "var(--color-loss)" }}>
+                                  {getCalDate(pSimMonth)}
+                                </strong>{" "}
+                                (M0)
+                              </span>
+                              <span>
+                                Birth 1:{" "}
+                                <strong
+                                  style={{ color: "var(--color-primary)" }}
+                                >
+                                  {getCalDate(dSimMonth)}
+                                </strong>{" "}
+                                (M+{dSimMonth - pSimMonth})
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                fontSize: "0.72rem",
+                                color: "var(--text-secondary)",
+                                marginBottom: "6px",
+                              }}
+                            >
+                              <span>
+                                Positive:{" "}
+                                <strong style={{ color: "var(--color-loss)" }}>
+                                  {getCalDate(pSimMonth)}
+                                </strong>{" "}
+                                (M{pSimMonth})
+                              </span>
+                              <span>
+                                Birth #{preg.childIndex}:{" "}
+                                <strong
+                                  style={{ color: "var(--color-primary)" }}
+                                >
+                                  {getCalDate(dSimMonth)}
+                                </strong>{" "}
+                                (M{dSimMonth})
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "0.66rem",
+                                color:
+                                  dSimMonth -
+                                    ((customPregnancies.value[idx - 1]
+                                      ?.calculatedDeliverySimulationMonth as number) ||
+                                      0) <
+                                  36
+                                    ? "var(--color-gain)"
+                                    : "var(--color-warning)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {dSimMonth -
+                                ((customPregnancies.value[idx - 1]
+                                  ?.calculatedDeliverySimulationMonth as number) ||
+                                  0) <
+                              36 ? (
+                                <>
+                                  <EligibilityConfirmedIcon size={11} />
+                                  <span>
+                                    Sibling Bonus (+10%) eligible (
+                                    {dSimMonth -
+                                      ((customPregnancies.value[idx - 1]
+                                        ?.calculatedDeliverySimulationMonth as number) ||
+                                        0)}
+                                    M spacing)
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <RemoveItemIcon size={11} />
+                                  <span>
+                                    Sibling bonus expired (
+                                    {dSimMonth -
+                                      ((customPregnancies.value[idx - 1]
+                                        ?.calculatedDeliverySimulationMonth as number) ||
+                                        0)}
+                                    M spacing)
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          color: "var(--text-muted)",
+                          background: "var(--bg-surface)",
+                          padding: "3px 6px",
+                          borderRadius: "3px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {isFirst ? (
+                          <>
+                            ↳ Sim Start:{" "}
+                            <strong>01.{startCalendarYear.value}</strong> (
+                            {prePregnancyPlanningMonths.value}M planning before
+                            pregnancy)
+                          </>
+                        ) : (
+                          <>
+                            ↳ Assessment period based on prior 12-month net
+                            earnings (§ 2b BEEG).
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* BATCH 2: TAX CLASSES & STRATEGY (§ 2b BEEG) */}
+            {/* ======================================================== */}
+            <div
+              style={{
+                background: "var(--bg-surface)",
+                padding: "16px 18px",
+                borderRadius: "var(--border-radius)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "14px",
+                  borderBottom: "1px solid var(--border-subtle)",
+                  paddingBottom: "10px",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_TaxSwap)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      fontWeight: 800,
+                      fontSize: "0.92rem",
+                      color: "var(--color-gain)",
+                      textAlign: "left",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                    title="Click to view § 2b BEEG & BFH VI R 2/13 tax optimization rules"
+                  >
+                    <span>2. Tax Classes &amp; Strategy</span>
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        textDecoration: "underline",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "2px",
+                      }}
+                    >
+                      <span>(§ 2b BEEG)</span>
+                      <ExternalLegalSourceIcon size={10} />
+                    </span>
+                  </button>
+                  <span className="badge-gain">
+                    {customTaxClassSwitches.value.length} Switches Active
+                  </span>
+                </div>
+
+                {/* Add Tax Class Switch Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const count = customTaxClassSwitches.value.length;
+                    const nextChild =
+                      customPregnancies.value[count] ||
+                      customPregnancies.value[
+                        customPregnancies.value.length - 1
+                      ];
+                    const delivery =
+                      (nextChild?.calculatedDeliverySimulationMonth as number) ||
+                      44;
+                    const start = Math.max(1, delivery - 8);
+                    const totalElapsed =
+                      startCalendarMonth.value - 1 + (start - 1);
+                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                    const sYear =
+                      startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                    addTaxClassSwitchAction({
+                      switchId: toSwitchId(`SWAP-CHILD-${count + 1}`),
+                      effectiveSimulationMonth: toSimulationMonth(start),
+                      effectiveCalendarMonth: sMonth,
+                      effectiveCalendarYear: sYear,
+                      targetHusbandTaxClass: TaxClass.V,
+                      targetWifeTaxClass: TaxClass.III,
+                      statutoryReason: `Optimize Child ${count + 1} Elterngeld assessment baseline (§ 2b BEEG)`,
+                      revertSimulationMonth: toSimulationMonth(delivery),
+                    });
+                  }}
+                  style={{
+                    padding: "5px 12px",
+                    background: "var(--color-gain-bg)",
+                    color: "var(--color-gain)",
+                    border: "1px solid var(--color-gain-border)",
+                    borderRadius: "var(--border-radius-sm)",
+                    fontSize: "0.74rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <AddActionIcon size={12} />
+                  <span>
+                    Add Tax Class Switch (Swap #
+                    {customTaxClassSwitches.value.length + 1})
+                  </span>
+                </button>
+              </div>
+
+              {/* Dynamic Tax Class Switches Auto-Wrapping Columns */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+                  gap: "14px",
+                }}
+              >
+                {/* ENTRY 1: Initial Baseline Tax Class Selection ($M1$ Precondition) */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--color-gain)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <TaxClassSwapMilestoneIcon size={13} />
+                      <span>Initial Baseline Tax Class ($M1$)</span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInitialTaxClasses(TaxClass.III, TaxClass.V)
+                        }
+                        style={{
+                          padding: "5px 8px",
+                          borderRadius: "4px",
+                          border:
+                            husbandInitialTaxClass.value === TaxClass.III &&
+                            wifeInitialTaxClass.value === TaxClass.V
+                              ? "1px solid var(--color-gain)"
+                              : "1px solid var(--border-subtle)",
+                          background:
+                            husbandInitialTaxClass.value === TaxClass.III &&
+                            wifeInitialTaxClass.value === TaxClass.V
+                              ? "var(--color-gain-bg)"
+                              : "var(--bg-surface)",
+                          color:
+                            husbandInitialTaxClass.value === TaxClass.III &&
+                            wifeInitialTaxClass.value === TaxClass.V
+                              ? "var(--color-gain)"
+                              : "var(--text-secondary)",
+                          fontSize: "0.70rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>H: Class III / W: Class V (Standard)</span>
+                        {husbandInitialTaxClass.value === TaxClass.III &&
+                          wifeInitialTaxClass.value === TaxClass.V && (
+                            <EligibilityConfirmedIcon size={12} />
+                          )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInitialTaxClasses(TaxClass.IV, TaxClass.IV)
+                        }
+                        style={{
+                          padding: "5px 8px",
+                          borderRadius: "4px",
+                          border:
+                            husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV
+                              ? "1px solid var(--color-gain)"
+                              : "1px solid var(--border-subtle)",
+                          background:
+                            husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV
+                              ? "var(--color-gain-bg)"
+                              : "var(--bg-surface)",
+                          color:
+                            husbandInitialTaxClass.value === TaxClass.IV &&
+                            wifeInitialTaxClass.value === TaxClass.IV
+                              ? "var(--color-gain)"
+                              : "var(--text-secondary)",
+                          fontSize: "0.70rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>H: Class IV / W: Class IV (Equal)</span>
+                        {husbandInitialTaxClass.value === TaxClass.IV &&
+                          wifeInitialTaxClass.value === TaxClass.IV && (
+                            <EligibilityConfirmedIcon size={12} />
+                          )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInitialTaxClasses(TaxClass.V, TaxClass.III)
+                        }
+                        style={{
+                          padding: "5px 8px",
+                          borderRadius: "4px",
+                          border:
+                            husbandInitialTaxClass.value === TaxClass.V &&
+                            wifeInitialTaxClass.value === TaxClass.III
+                              ? "1px solid var(--color-gain)"
+                              : "1px solid var(--border-subtle)",
+                          background:
+                            husbandInitialTaxClass.value === TaxClass.V &&
+                            wifeInitialTaxClass.value === TaxClass.III
+                              ? "var(--color-gain-bg)"
+                              : "var(--bg-surface)",
+                          color:
+                            husbandInitialTaxClass.value === TaxClass.V &&
+                            wifeInitialTaxClass.value === TaxClass.III
+                              ? "var(--color-gain)"
+                              : "var(--text-secondary)",
+                          fontSize: "0.70rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>H: Class V / W: Class III (Inverted)</span>
+                        {husbandInitialTaxClass.value === TaxClass.V &&
+                          wifeInitialTaxClass.value === TaxClass.III && (
+                            <EligibilityConfirmedIcon size={12} />
+                          )}
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.64rem",
+                      color: "var(--text-muted)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ↳ Precondition: baseline tax class pairing before pregnancy
+                    switches.
+                  </div>
+                </div>
+
+                {/* Dynamic Switch Cards */}
+                {customTaxClassSwitches.value.map((sw, idx) => {
+                  const sMonth = sw.effectiveSimulationMonth as number;
+                  const rMonth = sw.revertSimulationMonth as number;
+
+                  return (
+                    <div
+                      key={sw.switchId || `switch-${idx}`}
+                      style={{
+                        background: "var(--bg-surface-secondary)",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
+                        border: "1px solid var(--border-subtle)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "0.78rem",
+                              fontWeight: 800,
+                              color: "var(--color-gain)",
+                            }}
+                          >
+                            Switch #{idx + 1}: H: {sw.targetHusbandTaxClass} |
+                            W: {sw.targetWifeTaxClass}
+                          </span>
+                          {customTaxClassSwitches.value.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeTaxClassSwitchAction(sw.switchId)
+                              }
+                              style={{
+                                background: "var(--color-loss-bg)",
+                                color: "var(--color-loss)",
+                                border: "1px solid var(--color-loss-border)",
+                                borderRadius: "3px",
+                                padding: "2px 6px",
+                                fontSize: "0.65rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <RemoveItemIcon size={11} />
+                            </button>
+                          )}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "0.72rem",
+                            color: "var(--text-secondary)",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          <span>
+                            Effective:{" "}
+                            <strong style={{ color: "var(--color-gain)" }}>
+                              {getCalDate(sMonth)}
+                            </strong>{" "}
+                            (M{sMonth})
+                          </span>
+                          <span>
+                            Revert:{" "}
+                            <strong style={{ color: "var(--color-warning)" }}>
+                              {getCalDate(rMonth)}
+                            </strong>{" "}
+                            (M{rMonth})
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          color: "var(--text-muted)",
+                          background: "var(--bg-surface)",
+                          padding: "4px 6px",
+                          borderRadius: "3px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        ↳ {sw.statutoryReason}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Net Salary Calibration Card */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "0.76rem",
+                      fontWeight: 800,
+                      color: "var(--color-gain)",
+                      marginBottom: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <TaxClassSwapMilestoneIcon size={13} />
+                    <span>Tax Swap Net Take-Home Calibration</span>
+                  </div>
+
+                  {/* Wife Optimized Class III FT Net */}
+                  <div style={{ marginBottom: "6px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.72rem",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      <span style={{ color: "var(--text-secondary)" }}>
+                        Wife Net in Class III (Full-Time):
+                      </span>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-gain)",
+                        }}
+                      >
+                        {formatCurrency(wifeClass3FullTimeNet.value)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1600"
+                      max="5500"
+                      step="25"
+                      value={wifeClass3FullTimeNet.value}
+                      onInput={(e) => {
+                        wifeClass3FullTimeNet.value = toNetSalary(
+                          Number((e.target as HTMLInputElement).value),
+                        );
+                      }}
+                    />
+                  </div>
+
+                  {/* Husband Class V Net during Swap */}
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.72rem",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      <span style={{ color: "var(--text-secondary)" }}>
+                        Husband Net in Class V (Swap):
+                      </span>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-warning)",
+                        }}
+                      >
+                        {formatCurrency(husbandClass5Net.value)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1500"
+                      max="5500"
+                      step="25"
+                      value={husbandClass5Net.value}
+                      onInput={(e) => {
+                        husbandClass5Net.value = toNetSalary(
+                          Number((e.target as HTMLInputElement).value),
+                        );
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* BATCH 3: SALARIES, WORKING TIMES & CAREER PROGRESSION */}
+            {/* ======================================================== */}
+            <div
+              style={{
+                background: "var(--bg-surface)",
+                padding: "16px 18px",
+                borderRadius: "var(--border-radius)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "14px",
+                  borderBottom: "1px solid var(--border-subtle)",
+                  paddingBottom: "10px",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "0.92rem",
+                      color: "var(--color-warning)",
+                    }}
+                  >
+                    3. Salaries, Working Times &amp; Career Progression
+                  </span>
+                  <span className="badge-warning">
+                    {customSalaryRaises.value.length} Raises Active
+                  </span>
+                </div>
+
+                {/* Add Career Raise Action Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const count = customSalaryRaises.value.length;
+                    const newSimMonth = (count + 2) * 12 + 1;
+                    const totalElapsed =
+                      startCalendarMonth.value - 1 + (newSimMonth - 1);
+                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                    const sYear =
+                      startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                    addSalaryRaiseAction({
+                      raiseId: toRaiseId(`RAISE-CUSTOM-${count + 1}`),
+                      effectiveSimulationMonth: toSimulationMonth(
+                        Math.min(simulationDurationMonths.value, newSimMonth),
+                      ),
+                      effectiveCalendarMonth: sMonth,
+                      effectiveCalendarYear: sYear,
+                      targetPerson: TargetPerson.Both,
+                      percentageIncrease: 0.05,
+                      reason: `Merit Promotion / Tariff Adjustment (+5%)`,
+                    });
+                  }}
+                  style={{
+                    padding: "5px 12px",
+                    background: "var(--color-warning-bg)",
+                    color: "var(--color-warning)",
+                    border: "1px solid var(--color-warning-border)",
+                    borderRadius: "var(--border-radius-sm)",
+                    fontSize: "0.74rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <AddActionIcon size={12} />
+                  <span>Add Career Raise / Promotion</span>
+                </button>
+              </div>
+
+              {/* Dynamic Salaries & Career Controls Grid: Columns with Auto-Wrap */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
+                  gap: "14px",
+                }}
+              >
+                {/* ENTRY 1: Salary Cadence Switcher */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.76rem",
+                        color: "var(--text-secondary)",
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "5px",
+                      }}
+                    >
+                      <SimulationPeriodIcon size={12} />
+                      <span>Salary Cadence Mode:</span>
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "6px",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSalaryPeriod(SalaryPeriod.Monthly)}
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: "4px",
+                        border:
+                          salaryPeriod.value === SalaryPeriod.Monthly
+                            ? "1px solid var(--color-primary)"
+                            : "1px solid var(--border-subtle)",
+                        background:
+                          salaryPeriod.value === SalaryPeriod.Monthly
+                            ? "var(--color-primary-bg)"
+                            : "var(--bg-surface)",
+                        color:
+                          salaryPeriod.value === SalaryPeriod.Monthly
+                            ? "var(--color-primary)"
+                            : "var(--text-muted)",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      <SimulationPeriodIcon size={11} />
+                      <span>Monthly (€/mo)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSalaryPeriod(SalaryPeriod.Yearly)}
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: "4px",
+                        border:
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "1px solid var(--color-primary)"
+                            : "1px solid var(--border-subtle)",
+                        background:
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "var(--color-primary-bg)"
+                            : "var(--bg-surface)",
+                        color:
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "var(--color-primary)"
+                            : "var(--text-muted)",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      <SimulationPeriodIcon size={11} />
+                      <span>Yearly (€/yr)</span>
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.65rem",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    Controls slider units across husband and wife salaries.
+                  </div>
+                </div>
+
+                {/* ENTRY 2: PRIMARY HUSBAND GROSS COMPENSATION & WORKING TIMES */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--color-primary)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <EmploymentCompensationIcon size={13} />
+                      <span>Husband Gross Compensation</span>
+                    </div>
+                    {/* Gross Amount Slider */}
+                    <div style={{ marginBottom: "6px" }}>
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "6px",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
                         }}
                       >
+                        <span style={{ color: "var(--text-secondary)" }}>
+                          Gross Salary:
+                        </span>
                         <span
                           style={{
-                            fontSize: "0.78rem",
-                            fontWeight: 800,
-                            color: "var(--color-loss)",
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--color-primary)",
                           }}
                         >
-                          Child #{preg.childIndex} Pregnancy
+                          {salaryPeriod.value === SalaryPeriod.Yearly
+                            ? `${formatCurrency(husbandGrossYearly.value)} / yr (${formatCurrency(husbandGross.value)} / mo)`
+                            : `${formatCurrency(husbandGross.value)} / mo`}
                         </span>
-                        {customPregnancies.value.length > 1 && (
+                      </div>
+                      {salaryPeriod.value === SalaryPeriod.Yearly ? (
+                        <input
+                          type="range"
+                          min="0"
+                          max="150000"
+                          step="500"
+                          value={husbandGrossYearly.value}
+                          onInput={(e) => {
+                            setHusbandGrossYearly(
+                              Number((e.target as HTMLInputElement).value),
+                            );
+                          }}
+                        />
+                      ) : (
+                        <input
+                          type="range"
+                          min="0"
+                          max="12000"
+                          step="50"
+                          value={husbandGross.value}
+                          onInput={(e) => {
+                            setHusbandGross(
+                              Number((e.target as HTMLInputElement).value),
+                            );
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Husband Working Hours Slider */}
+                    <div style={{ marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span style={{ color: "var(--text-muted)" }}>
+                          Working Time:
+                        </span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--color-primary)",
+                          }}
+                        >
+                          {formatWorkingTime(husbandHours.value)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="60"
+                        step="1"
+                        value={husbandHours.value}
+                        onInput={(e) => {
+                          setHusbandHours(
+                            Number((e.target as HTMLInputElement).value),
+                          );
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "3px",
+                          marginTop: "3px",
+                        }}
+                      >
+                        {[
+                          { label: "40h (5d)", val: 40 },
+                          { label: "32h (4d)", val: 32 },
+                          { label: "24h (3d)", val: 24 },
+                          { label: "0h (Leave)", val: 0 },
+                        ].map((pill) => (
+                          <button
+                            key={`h-pill-${pill.val}`}
+                            type="button"
+                            onClick={() => setHusbandHours(pill.val)}
+                            style={{
+                              padding: "1px 5px",
+                              fontSize: "0.62rem",
+                              borderRadius: "3px",
+                              border:
+                                husbandHours.value === pill.val
+                                  ? "1px solid var(--color-primary)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                husbandHours.value === pill.val
+                                  ? "var(--color-primary-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                husbandHours.value === pill.val
+                                  ? "var(--color-primary)"
+                                  : "var(--text-muted)",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {pill.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Husband Tax Class Badges */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "4px",
+                      fontSize: "0.66rem",
+                      flexWrap: "wrap",
+                      marginTop: "4px",
+                    }}
+                  >
+                    <span className="badge-brand">
+                      Class III:{" "}
+                      <strong>
+                        {formatCurrency(
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? (derivedSpousalSet.value
+                                .husbandClass3Net as number) * 12
+                            : (derivedSpousalSet.value
+                                .husbandClass3Net as number),
+                        )}
+                      </strong>
+                      {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
+                    </span>
+                    <span className="badge-warning">
+                      Class V:{" "}
+                      <strong>
+                        {formatCurrency(
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? (derivedSpousalSet.value
+                                .husbandClass5Net as number) * 12
+                            : (derivedSpousalSet.value
+                                .husbandClass5Net as number),
+                        )}
+                      </strong>
+                      {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
+                    </span>
+                    <span className="badge-muted">
+                      Class IV:{" "}
+                      {formatCurrency(
+                        salaryPeriod.value === SalaryPeriod.Yearly
+                          ? (derivedSpousalSet.value
+                              .husbandClass4Net as number) * 12
+                          : (derivedSpousalSet.value
+                              .husbandClass4Net as number),
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* ENTRY 3: WIFE FULL-TIME PRE-PREGNANCY COMPENSATION & WORKING TIMES */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--series-indigo)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <EmploymentCompensationIcon size={13} />
+                      <span>Wife Pre-Pregnancy Full-Time Compensation</span>
+                    </div>
+                    {/* Gross Amount Slider */}
+                    <div style={{ marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span style={{ color: "var(--text-secondary)" }}>
+                          Full-Time Gross:
+                        </span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--series-indigo)",
+                          }}
+                        >
+                          {salaryPeriod.value === SalaryPeriod.Yearly
+                            ? `${formatCurrency(wifeGrossYearly.value)} / yr (${formatCurrency(wifeGross.value)} / mo)`
+                            : `${formatCurrency(wifeGross.value)} / mo`}
+                        </span>
+                      </div>
+                      {salaryPeriod.value === SalaryPeriod.Yearly ? (
+                        <input
+                          type="range"
+                          min="0"
+                          max="100000"
+                          step="500"
+                          value={wifeGrossYearly.value}
+                          onInput={(e) => {
+                            setWifeGrossYearly(
+                              Number((e.target as HTMLInputElement).value),
+                            );
+                          }}
+                        />
+                      ) : (
+                        <input
+                          type="range"
+                          min="0"
+                          max="8000"
+                          step="50"
+                          value={wifeGross.value}
+                          onInput={(e) => {
+                            setWifeGross(
+                              Number((e.target as HTMLInputElement).value),
+                            );
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Wife Pre-Pregnancy Hours */}
+                    <div style={{ marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span style={{ color: "var(--text-muted)" }}>
+                          Pre-Pregnancy Working Time:
+                        </span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--series-indigo)",
+                          }}
+                        >
+                          {formatWorkingTime(wifeInitialHours.value)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="60"
+                        step="1"
+                        value={wifeInitialHours.value}
+                        onInput={(e) => {
+                          setWifeInitialHours(
+                            Number((e.target as HTMLInputElement).value),
+                          );
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "3px",
+                          marginTop: "3px",
+                        }}
+                      >
+                        {[
+                          { label: "40h (5d)", val: 40 },
+                          { label: "32h (4d)", val: 32 },
+                          { label: "24h (3d)", val: 24 },
+                          { label: "0h (Leave)", val: 0 },
+                        ].map((pill) => (
+                          <button
+                            key={`w-pill-${pill.val}`}
+                            type="button"
+                            onClick={() => setWifeInitialHours(pill.val)}
+                            style={{
+                              padding: "1px 5px",
+                              fontSize: "0.62rem",
+                              borderRadius: "3px",
+                              border:
+                                wifeInitialHours.value === pill.val
+                                  ? "1px solid var(--series-indigo)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                wifeInitialHours.value === pill.val
+                                  ? "var(--color-primary-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                wifeInitialHours.value === pill.val
+                                  ? "var(--series-indigo)"
+                                  : "var(--text-muted)",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {pill.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Wife FT Tax Class Badges */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "4px",
+                      fontSize: "0.66rem",
+                      flexWrap: "wrap",
+                      marginTop: "4px",
+                    }}
+                  >
+                    <span className="badge-warning">
+                      Class V:{" "}
+                      <strong>
+                        {formatCurrency(
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? (derivedSpousalSet.value
+                                .wifeClass5FullTimeNet as number) * 12
+                            : (derivedSpousalSet.value
+                                .wifeClass5FullTimeNet as number),
+                        )}
+                      </strong>
+                      {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
+                    </span>
+                    <span className="badge-gain">
+                      Class III:{" "}
+                      <strong>
+                        {formatCurrency(
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? (derivedSpousalSet.value
+                                .wifeClass3FullTimeNet as number) * 12
+                            : (derivedSpousalSet.value
+                                .wifeClass3FullTimeNet as number),
+                        )}
+                      </strong>{" "}
+                      (Booster!)
+                    </span>
+                  </div>
+                </div>
+
+                {/* ENTRY 4: WIFE POST-BIRTH PART-TIME RETURN TO WORK */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--series-cyan)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <ChildBirthMilestoneIcon size={13} />
+                      <span>Wife Post-Birth Part-Time Return</span>
+                    </div>
+                    <div style={{ marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span style={{ color: "var(--text-secondary)" }}>
+                          Post-Birth PT Time:
+                        </span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--series-cyan)",
+                          }}
+                        >
+                          {formatWorkingTime(wifePostBirthHours.value)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="40"
+                        step="1"
+                        value={wifePostBirthHours.value}
+                        onInput={(e) => {
+                          setWifePostBirthHours(
+                            Number((e.target as HTMLInputElement).value),
+                          );
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "3px",
+                          marginTop: "3px",
+                        }}
+                      >
+                        {[
+                          { label: "32h (4d PB)", val: 32 },
+                          { label: "24h (3d PB)", val: 24 },
+                          { label: "16h (2d)", val: 16 },
+                          { label: "0h (Leave)", val: 0 },
+                        ].map((pill) => (
+                          <button
+                            key={`pb-pill-${pill.val}`}
+                            type="button"
+                            onClick={() => setWifePostBirthHours(pill.val)}
+                            style={{
+                              padding: "1px 5px",
+                              fontSize: "0.62rem",
+                              borderRadius: "3px",
+                              border:
+                                wifePostBirthHours.value === pill.val
+                                  ? "1px solid var(--series-cyan)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                wifePostBirthHours.value === pill.val
+                                  ? "var(--color-primary-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                wifePostBirthHours.value === pill.val
+                                  ? "var(--series-cyan)"
+                                  : "var(--text-muted)",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {pill.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Statutory Elterngeld & Partnership Bonus Indicators */}
+                      {wifePostBirthHours.value > 32 ? (
+                        <div
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            fontSize: "0.65rem",
+                            color: "var(--color-loss)",
+                            background: "var(--color-loss-bg)",
+                            padding: "3px 5px",
+                            borderRadius: "4px",
+                            marginTop: "4px",
+                            fontWeight: 600,
+                            border: "1px solid var(--color-loss-border)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <StatutoryLimitationWarningIcon size={11} />
+                          <span>
+                            &gt; 32h/week disqualifies from Elterngeld (§ 1
+                            BEEG).
+                          </span>
+                        </div>
+                      ) : wifePostBirthHours.value >= 24 &&
+                        wifePostBirthHours.value <= 32 ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            scrollToLegalRule(
+                              LegalRuleKey.BEEG_PartnershipBonus,
+                            )
+                          }
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            fontSize: "0.65rem",
+                            color: "var(--color-gain)",
+                            background: "var(--color-gain-bg)",
+                            padding: "3px 5px",
+                            borderRadius: "4px",
+                            marginTop: "4px",
+                            fontWeight: 600,
+                            border: "1px solid var(--color-gain-border)",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                          title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
+                        >
+                          <EligibilityConfirmedIcon size={11} />
+                          <span>
+                            Partnerschaftsbonus (§ 4b BEEG) OK (24–32h / 3–4d)
+                          </span>
+                          <ExternalLegalSourceIcon size={10} />
+                        </button>
+                      ) : wifePostBirthHours.value === 0 ? (
+                        <div
+                          style={{
+                            fontSize: "0.65rem",
+                            color: "var(--color-primary)",
+                            background: "var(--color-primary-bg)",
+                            padding: "3px 5px",
+                            borderRadius: "4px",
+                            marginTop: "4px",
+                          }}
+                        >
+                          ℹ Full Parental Leave (0h / week · 100% leave)
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            scrollToLegalRule(
+                              LegalRuleKey.BEEG_PartnershipBonus,
+                            )
+                          }
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            fontSize: "0.65rem",
+                            color: "var(--color-warning)",
+                            background: "var(--color-warning-bg)",
+                            padding: "3px 5px",
+                            borderRadius: "4px",
+                            marginTop: "4px",
+                            fontWeight: 600,
+                            border: "1px solid var(--color-warning-border)",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                          title="Click to view § 4b BEEG corridor requirements"
+                        >
+                          <InformationalNoticeIcon size={11} />
+                          <span>
+                            ElterngeldPlus eligible, outside PB corridor
+                            (24–32h)
+                          </span>
+                          <ExternalLegalSourceIcon size={10} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "4px",
+                        fontSize: "0.66rem",
+                        flexWrap: "wrap",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span className="badge-warning">
+                        PT Gross:{" "}
+                        {formatCurrency(
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? (derivedSpousalSet.value
+                                .wifeGrossPartTime as number) * 12
+                            : (derivedSpousalSet.value
+                                .wifeGrossPartTime as number),
+                        )}
+                      </span>
+                      <span className="badge-muted">
+                        PT Net (Cl. V):{" "}
+                        <strong>
+                          {formatCurrency(
+                            salaryPeriod.value === SalaryPeriod.Yearly
+                              ? (derivedSpousalSet.value
+                                  .wifeClass5PartTimeNet as number) * 12
+                              : (derivedSpousalSet.value
+                                  .wifeClass5PartTimeNet as number),
+                          )}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Statutory ElterngeldPlus Replacement Calculation */}
+                  <div
+                    style={{
+                      background: "var(--bg-surface)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "5px",
+                      padding: "5px 7px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.66rem",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-secondary)",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontSize: "0.66rem",
+                          textAlign: "left",
+                          textDecoration: "underline",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "2px",
+                        }}
+                        title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
+                      >
+                        <span>ElterngeldPlus (65% loss)</span>
+                        <ExternalLegalSourceIcon size={9} />:
+                      </button>
+                      <strong
+                        style={{
+                          color: "var(--color-gain)",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        +
+                        {formatCurrency(
+                          wifePostBirthHours.value > 32
+                            ? 0
+                            : Math.min(
+                                900,
+                                Math.max(
+                                  150,
+                                  Math.round(
+                                    Math.max(
+                                      0,
+                                      (derivedSpousalSet.value
+                                        .wifeClass3FullTimeNet as number) -
+                                        (derivedSpousalSet.value
+                                          .wifeClass5PartTimeNet as number),
+                                    ) * 0.65,
+                                  ),
+                                ),
+                              ),
+                        )}
+                      </strong>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.68rem",
+                        color: "var(--text-primary)",
+                        borderTop: "1px solid var(--border-subtle)",
+                        paddingTop: "2px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      <span>Total Mother Inflow:</span>
+                      <span
+                        style={{
+                          color: "var(--color-gain)",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        {formatCurrency(
+                          (derivedSpousalSet.value
+                            .wifeClass5PartTimeNet as number) +
+                            (wifePostBirthHours.value > 32
+                              ? 0
+                              : Math.min(
+                                  900,
+                                  Math.max(
+                                    150,
+                                    Math.round(
+                                      Math.max(
+                                        0,
+                                        (derivedSpousalSet.value
+                                          .wifeClass3FullTimeNet as number) -
+                                          (derivedSpousalSet.value
+                                            .wifeClass5PartTimeNet as number),
+                                      ) * 0.65,
+                                    ),
+                                  ),
+                                )),
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ENTRY 5: Career Raises & Promotions Cards */}
+                {customSalaryRaises.value.map((sr, idx) => {
+                  const sMonth = sr.effectiveSimulationMonth as number;
+
+                  return (
+                    <div
+                      key={sr.raiseId || `raise-${idx}`}
+                      style={{
+                        background: "var(--bg-surface-secondary)",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
+                        border: "1px solid var(--border-subtle)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "0.78rem",
+                              fontWeight: 800,
+                              color: "var(--color-warning)",
+                            }}
+                          >
+                            Raise #{idx + 1}: {sr.targetPerson.toUpperCase()} (+
+                            {((sr.percentageIncrease || 0) * 100).toFixed(0)}%)
+                          </span>
                           <button
                             type="button"
-                            onClick={() =>
-                              removePregnancyAction(preg.pregnancyId)
-                            }
+                            onClick={() => removeSalaryRaiseAction(sr.raiseId)}
                             style={{
                               background: "var(--color-loss-bg)",
                               color: "var(--color-loss)",
@@ -1792,604 +2879,57 @@ export default function SandboxControls(): JSX.Element {
                               cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            <RemoveItemIcon size={11} />
-                            <span>Remove</span>
-                          </button>
-                        )}
-                      </div>
-
-                      {isFirst ? (
-                        <div>
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "1fr 1fr",
-                              gap: "6px",
-                              marginBottom: "6px",
-                            }}
-                          >
-                            <div>
-                              <label
-                                style={{
-                                  fontSize: "0.68rem",
-                                  color: "var(--text-muted)",
-                                  display: "block",
-                                  marginBottom: "2px",
-                                }}
-                              >
-                                Positive Month:
-                              </label>
-                              <select
-                                value={
-                                  ((startCalendarMonth.value -
-                                    1 +
-                                    pSimMonth -
-                                    1) %
-                                    12) +
-                                  1
-                                }
-                                onChange={(e) => {
-                                  const m = Number(
-                                    (e.target as HTMLSelectElement).value,
-                                  );
-                                  const curY =
-                                    startCalendarYear.value +
-                                    Math.floor(
-                                      (startCalendarMonth.value -
-                                        1 +
-                                        (pSimMonth - 1)) /
-                                        12,
-                                    );
-                                  setPregnancy1PositiveDate(curY, m);
-                                }}
-                                style={{
-                                  width: "100%",
-                                  background: "var(--bg-surface)",
-                                  color: "var(--text-primary)",
-                                  border: "1px solid var(--border-subtle)",
-                                  borderRadius: "4px",
-                                  padding: "3px 4px",
-                                  fontSize: "0.72rem",
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {MONTH_NAMES.map((name, mIdx) => (
-                                  <option key={mIdx + 1} value={mIdx + 1}>
-                                    {name.slice(0, 14)}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div>
-                              <label
-                                style={{
-                                  fontSize: "0.68rem",
-                                  color: "var(--text-muted)",
-                                  display: "block",
-                                  marginBottom: "2px",
-                                }}
-                              >
-                                Positive Year:
-                              </label>
-                              <select
-                                value={
-                                  startCalendarYear.value +
-                                  Math.floor(
-                                    (startCalendarMonth.value -
-                                      1 +
-                                      (pSimMonth - 1)) /
-                                      12,
-                                  )
-                                }
-                                onChange={(e) => {
-                                  const y = Number(
-                                    (e.target as HTMLSelectElement).value,
-                                  );
-                                  const curM =
-                                    ((startCalendarMonth.value -
-                                      1 +
-                                      pSimMonth -
-                                      1) %
-                                      12) +
-                                    1;
-                                  setPregnancy1PositiveDate(y, curM);
-                                }}
-                                style={{
-                                  width: "100%",
-                                  background: "var(--bg-surface)",
-                                  color: "var(--text-primary)",
-                                  border: "1px solid var(--border-subtle)",
-                                  borderRadius: "4px",
-                                  padding: "3px 4px",
-                                  fontSize: "0.72rem",
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(
-                                  (y) => (
-                                    <option key={y} value={y}>
-                                      {y}
-                                    </option>
-                                  ),
-                                )}
-                              </select>
-                            </div>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              fontSize: "0.70rem",
-                              color: "var(--text-secondary)",
-                              marginBottom: "4px",
-                            }}
-                          >
-                            <span>
-                              Positive:{" "}
-                              <strong style={{ color: "var(--color-loss)" }}>
-                                {getCalDate(pSimMonth)}
-                              </strong>{" "}
-                              (M0)
-                            </span>
-                            <span>
-                              Birth 1:{" "}
-                              <strong style={{ color: "var(--color-primary)" }}>
-                                {getCalDate(dSimMonth)}
-                              </strong>{" "}
-                              (M+{dSimMonth - pSimMonth})
-                            </span>
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.65rem",
-                              color: "var(--text-muted)",
-                              background: "var(--bg-surface)",
-                              padding: "3px 5px",
-                              borderRadius: "3px",
-                            }}
-                          >
-                            ↳ Sim Start:{" "}
-                            <strong>01.{startCalendarYear.value}</strong> (
-                            {prePregnancyPlanningMonths.value}M before preg)
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              fontSize: "0.70rem",
-                              color: "var(--text-secondary)",
-                              marginBottom: "4px",
-                            }}
-                          >
-                            <span>
-                              Positive:{" "}
-                              <strong style={{ color: "var(--color-loss)" }}>
-                                {getCalDate(pSimMonth)}
-                              </strong>{" "}
-                              (M{pSimMonth})
-                            </span>
-                            <span>
-                              Birth #{preg.childIndex}:{" "}
-                              <strong style={{ color: "var(--color-primary)" }}>
-                                {getCalDate(dSimMonth)}
-                              </strong>{" "}
-                              (M{dSimMonth})
-                            </span>
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.66rem",
-                              color:
-                                dSimMonth -
-                                  ((customPregnancies.value[idx - 1]
-                                    ?.calculatedDeliverySimulationMonth as number) ||
-                                    0) <
-                                36
-                                  ? "var(--color-gain)"
-                                  : "var(--color-warning)",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            {dSimMonth -
-                              ((customPregnancies.value[idx - 1]
-                                ?.calculatedDeliverySimulationMonth as number) ||
-                                0) <
-                            36 ? (
-                              <>
-                                <EligibilityConfirmedIcon size={11} />
-                                <span>
-                                  Sibling Bonus (+10%) eligible (
-                                  {dSimMonth -
-                                    ((customPregnancies.value[idx - 1]
-                                      ?.calculatedDeliverySimulationMonth as number) ||
-                                      0)}
-                                  M spacing)
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <RemoveItemIcon size={11} />
-                                <span>
-                                  Sibling bonus expired (
-                                  {dSimMonth -
-                                    ((customPregnancies.value[idx - 1]
-                                      ?.calculatedDeliverySimulationMonth as number) ||
-                                      0)}
-                                  M spacing)
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Add Pregnancy Action Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  const count = customPregnancies.value.length;
-                  const lastPreg = customPregnancies.value[count - 1];
-                  const lastDeliv =
-                    lastPreg.calculatedDeliverySimulationMonth as number;
-                  const newSimMonth = Math.min(
-                    simulationDurationMonths.value - 10,
-                    lastDeliv + 19,
-                  );
-
-                  addPregnancyAction({
-                    pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
-                    childIndex: count + 1,
-                    positiveTestCalendarMonth: toCalendarMonth(1),
-                    positiveTestCalendarYear: 2026,
-                    positiveTestSimulationMonth: toSimulationMonth(newSimMonth),
-                    calculatedDeliverySimulationMonth: toSimulationMonth(
-                      newSimMonth + 8,
-                    ),
-                    motherPostBirthPartTimeHours: toWorkingHours(24),
-                    motherPostBirthPartTimeClass5Net: toNetSalary(
-                      wifeClass5PartTimeNet.value,
-                    ),
-                    motherPostBirthPartTimeClass3Net: toNetSalary(
-                      wifeClass3PartTimeNet.value,
-                    ),
-                    fatherPartnerMonthsCount: 4,
-                  });
-                }}
-                style={{
-                  width: "100%",
-                  padding: "6px",
-                  background: "var(--color-loss-bg)",
-                  color: "var(--color-loss)",
-                  border: "1px solid var(--color-loss-border)",
-                  borderRadius: "var(--border-radius-sm)",
-                  fontSize: "0.74rem",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  marginBottom: "10px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                <AddActionIcon size={12} />
-                <span>
-                  Add Pregnancy (Child #{customPregnancies.value.length + 1})
-                </span>
-              </button>
-            </div>
-
-            {/* ======================================================== */}
-            {/* BATCH 2: TAX CLASS SWITCHES (§ 2b BEEG) */}
-            {/* ======================================================== */}
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-                gridColumn: "span 1",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "8px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_TaxSwap)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    fontWeight: 800,
-                    fontSize: "0.88rem",
-                    color: "var(--color-gain)",
-                    textAlign: "left",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                  title="Click to view § 2b BEEG & BFH VI R 2/13 tax optimization rules"
-                >
-                  <span>2. Tax Class Switches</span>
-                  <span
-                    style={{
-                      fontSize: "0.72rem",
-                      textDecoration: "underline",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "2px",
-                    }}
-                  >
-                    <span>(§ 2b BEEG)</span>
-                    <ExternalLegalSourceIcon size={10} />
-                  </span>
-                </button>
-                <span className="badge-gain">
-                  {customTaxClassSwitches.value.length} Switches Active
-                </span>
-              </div>
-
-              {/* Dynamic Tax Class Switches List */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  marginBottom: "12px",
-                }}
-              >
-                {customTaxClassSwitches.value.map((sw, idx) => {
-                  const sMonth = sw.effectiveSimulationMonth as number;
-                  const rMonth = sw.revertSimulationMonth as number;
-
-                  return (
-                    <div
-                      key={sw.switchId || `switch-${idx}`}
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "8px 10px",
-                        borderRadius: "5px",
-                        border: "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "0.74rem",
-                            fontWeight: 800,
-                            color: "var(--color-gain)",
-                          }}
-                        >
-                          Switch #{idx + 1}: H: {sw.targetHusbandTaxClass} | W:{" "}
-                          {sw.targetWifeTaxClass}
-                        </span>
-                        {customTaxClassSwitches.value.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeTaxClassSwitchAction(sw.switchId)
-                            }
-                            style={{
-                              background: "var(--color-loss-bg)",
-                              color: "var(--color-loss)",
-                              border: "1px solid var(--color-loss-border)",
-                              borderRadius: "3px",
-                              padding: "2px 5px",
-                              fontSize: "0.62rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
                               justifyContent: "center",
                             }}
                           >
                             <RemoveItemIcon size={11} />
                           </button>
-                        )}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "0.72rem",
+                            color: "var(--text-secondary)",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          <span>
+                            Effective:{" "}
+                            <strong style={{ color: "var(--color-warning)" }}>
+                              {getCalDate(sMonth)}
+                            </strong>{" "}
+                            (M{sMonth})
+                          </span>
+                        </div>
                       </div>
                       <div
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.70rem",
-                          color: "var(--text-secondary)",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span>
-                          Effective:{" "}
-                          <strong style={{ color: "var(--color-gain)" }}>
-                            {getCalDate(sMonth)}
-                          </strong>{" "}
-                          (M{sMonth})
-                        </span>
-                        <span>
-                          Revert:{" "}
-                          <strong style={{ color: "var(--color-warning)" }}>
-                            {getCalDate(rMonth)}
-                          </strong>{" "}
-                          (M{rMonth})
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.64rem",
+                          fontSize: "0.65rem",
                           color: "var(--text-muted)",
+                          background: "var(--bg-surface)",
+                          padding: "4px 6px",
+                          borderRadius: "3px",
+                          marginTop: "6px",
                         }}
                       >
-                        ↳ {sw.statutoryReason}
+                        ↳ {sr.reason}
                       </div>
                     </div>
                   );
                 })}
               </div>
-
-              {/* Add Tax Class Switch Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  const count = customTaxClassSwitches.value.length;
-                  const nextChild =
-                    customPregnancies.value[count] ||
-                    customPregnancies.value[customPregnancies.value.length - 1];
-                  const delivery =
-                    (nextChild?.calculatedDeliverySimulationMonth as number) ||
-                    44;
-                  const start = Math.max(1, delivery - 8);
-                  const totalElapsed =
-                    startCalendarMonth.value - 1 + (start - 1);
-                  const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                  const sYear =
-                    startCalendarYear.value + Math.floor(totalElapsed / 12);
-
-                  addTaxClassSwitchAction({
-                    switchId: toSwitchId(`SWAP-CHILD-${count + 1}`),
-                    effectiveSimulationMonth: toSimulationMonth(start),
-                    effectiveCalendarMonth: sMonth,
-                    effectiveCalendarYear: sYear,
-                    targetHusbandTaxClass: TaxClass.V,
-                    targetWifeTaxClass: TaxClass.III,
-                    statutoryReason: `Optimize Child ${count + 1} Elterngeld assessment baseline (§ 2b BEEG)`,
-                    revertSimulationMonth: toSimulationMonth(delivery),
-                  });
-                }}
-                style={{
-                  width: "100%",
-                  padding: "6px",
-                  background: "var(--color-gain-bg)",
-                  color: "var(--color-gain)",
-                  border: "1px solid var(--color-gain-border)",
-                  borderRadius: "var(--border-radius-sm)",
-                  fontSize: "0.74rem",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  marginBottom: "10px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                <AddActionIcon size={12} />
-                <span>
-                  Add Tax Class Switch (Swap #
-                  {customTaxClassSwitches.value.length + 1})
-                </span>
-              </button>
-
-              {/* Wife Optimized Class III FT Net */}
-              <div style={{ marginBottom: "8px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "0.74rem",
-                    marginBottom: "2px",
-                  }}
-                >
-                  <span style={{ color: "var(--text-secondary)" }}>
-                    Wife Net in Class III (Full-Time):
-                  </span>
-                  <span
-                    style={{
-                      fontVariantNumeric: "tabular-nums",
-                      fontWeight: 700,
-                      color: "var(--color-gain)",
-                    }}
-                  >
-                    {formatCurrency(wifeClass3FullTimeNet.value)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1600"
-                  max="5500"
-                  step="25"
-                  value={wifeClass3FullTimeNet.value}
-                  onInput={(e) => {
-                    wifeClass3FullTimeNet.value = toNetSalary(
-                      Number((e.target as HTMLInputElement).value),
-                    );
-                  }}
-                />
-              </div>
-
-              {/* Husband Class V Net during Swap */}
-              <div style={{ marginBottom: "8px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "0.74rem",
-                    marginBottom: "2px",
-                  }}
-                >
-                  <span style={{ color: "var(--text-secondary)" }}>
-                    Husband Net in Class V (Swap):
-                  </span>
-                  <span
-                    style={{
-                      fontVariantNumeric: "tabular-nums",
-                      fontWeight: 700,
-                      color: "var(--color-warning)",
-                    }}
-                  >
-                    {formatCurrency(husbandClass5Net.value)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1500"
-                  max="5500"
-                  step="25"
-                  value={husbandClass5Net.value}
-                  onInput={(e) => {
-                    husbandClass5Net.value = toNetSalary(
-                      Number((e.target as HTMLInputElement).value),
-                    );
-                  }}
-                />
-              </div>
             </div>
 
             {/* ======================================================== */}
-            {/* BATCH 3: SALARY RAISES & CAREER PROGRESSION */}
+            {/* BATCH 4: FINANCIAL EVENTS, RECURRING INFLOWS & COSTS */}
             {/* ======================================================== */}
             <div
               style={{
                 background: "var(--bg-surface)",
-                padding: "16px",
+                padding: "16px 18px",
                 borderRadius: "var(--border-radius)",
                 border: "1px solid var(--border-subtle)",
-                gridColumn: "span 1",
               }}
             >
               <div
@@ -2397,206 +2937,356 @@ export default function SandboxControls(): JSX.Element {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: "12px",
+                  marginBottom: "14px",
                   borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "8px",
+                  paddingBottom: "10px",
+                  flexWrap: "wrap",
+                  gap: "10px",
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontWeight: 800,
-                    fontSize: "0.88rem",
-                    color: "var(--color-warning)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
                   }}
                 >
-                  3. Salary Raises & Career
-                </span>
-                <span className="badge-warning">
-                  {customSalaryRaises.value.length} Raises Active
-                </span>
+                  <span
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "0.92rem",
+                      color: "var(--color-loss)",
+                    }}
+                  >
+                    4. Financial Events, Recurring Inflows &amp; Costs
+                  </span>
+                  <span className="badge-loss">
+                    {customFinancialEvents.value.length} Events Active
+                  </span>
+                </div>
+
+                {/* Add Cost and Inflow Buttons */}
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const count = customFinancialEvents.value.length;
+                      const defaultMonth = Math.min(
+                        simulationDurationMonths.value,
+                        child1BirthMonth.value + count * 6,
+                      );
+                      const totalElapsed =
+                        startCalendarMonth.value - 1 + (defaultMonth - 1);
+                      const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                      const sYear =
+                        startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                      addFinancialEventAction({
+                        eventId: toFinancialEventId(
+                          `FIN-CUSTOM-COST-${count + 1}`,
+                        ),
+                        effectiveSimulationMonth:
+                          toSimulationMonth(defaultMonth),
+                        effectiveCalendarMonth: sMonth,
+                        effectiveCalendarYear: sYear,
+                        title: `Child Expense / Equipment #${count + 1}`,
+                        amount: toEuroAmount(-1000),
+                        category: FinancialEventCategory.BabyEquipment,
+                        description:
+                          "Custom family nursery or childcare expense",
+                      });
+                    }}
+                    style={{
+                      padding: "5px 10px",
+                      background: "var(--color-loss-bg)",
+                      color: "var(--color-loss)",
+                      border: "1px solid var(--color-loss-border)",
+                      borderRadius: "4px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
+                    }}
+                  >
+                    <AddActionIcon size={12} />
+                    <span>Add Cost (-1.000 €)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const count = customFinancialEvents.value.length;
+                      const defaultMonth = Math.min(
+                        simulationDurationMonths.value,
+                        12 + count * 6,
+                      );
+                      const totalElapsed =
+                        startCalendarMonth.value - 1 + (defaultMonth - 1);
+                      const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                      const sYear =
+                        startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                      addFinancialEventAction({
+                        eventId: toFinancialEventId(
+                          `FIN-CUSTOM-INCOME-${count + 1}`,
+                        ),
+                        effectiveSimulationMonth:
+                          toSimulationMonth(defaultMonth),
+                        effectiveCalendarMonth: sMonth,
+                        effectiveCalendarYear: sYear,
+                        title: `Family Bonus / Grant #${count + 1}`,
+                        amount: toEuroAmount(1500),
+                        category: FinancialEventCategory.CareerBonus,
+                        description: "Special employer bonus or one-off grant",
+                      });
+                    }}
+                    style={{
+                      padding: "5px 10px",
+                      background: "var(--color-gain-bg)",
+                      color: "var(--color-gain)",
+                      border: "1px solid var(--color-gain-border)",
+                      borderRadius: "4px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
+                    }}
+                  >
+                    <AddActionIcon size={12} />
+                    <span>Add Inflow (+1.500 €)</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Dynamic Salary Raises List */}
+              {/* Dynamic Financial Events Auto-Wrapping Columns */}
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  marginBottom: "12px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+                  gap: "14px",
                 }}
               >
-                {customSalaryRaises.value.map((sr, idx) => {
-                  const sMonth = sr.effectiveSimulationMonth as number;
-
-                  return (
+                {/* ENTRY 1: Standing Recurring Inflows (13th Month, Bonus, Capital Returns) */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
                     <div
-                      key={sr.raiseId || `raise-${idx}`}
                       style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "8px 10px",
-                        borderRadius: "5px",
-                        border: "1px solid var(--border-subtle)",
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--series-emerald)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
+                      <FinancialInflowIcon size={13} />
+                      <span>Standing Recurring Inflow Channels</span>
+                    </div>
+
+                    {/* 13th Month Salary Toggle */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.70rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        13th Month Salary:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          enable13thSalary.value = !enable13thSalary.value;
+                        }}
+                        style={{
+                          padding: "2px 6px",
+                          borderRadius: "3px",
+                          border: enable13thSalary.value
+                            ? "1px solid var(--color-warning-border)"
+                            : "1px solid var(--border-subtle)",
+                          background: enable13thSalary.value
+                            ? "var(--color-warning-bg)"
+                            : "var(--bg-surface)",
+                          color: enable13thSalary.value
+                            ? "var(--color-warning)"
+                            : "var(--text-muted)",
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        {enable13thSalary.value ? (
+                          <>
+                            <EligibilityConfirmedIcon size={10} />
+                            <span>Active (May &amp; Nov)</span>
+                          </>
+                        ) : (
+                          <>
+                            <RemoveItemIcon size={10} />
+                            <span>Disabled</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Annual Performance Bonus Slider */}
+                    <div style={{ marginBottom: "6px" }}>
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "3px",
+                          fontSize: "0.70rem",
+                          marginBottom: "2px",
                         }}
                       >
+                        <span style={{ color: "var(--text-secondary)" }}>
+                          Performance Bonus:
+                        </span>
                         <span
                           style={{
-                            fontSize: "0.74rem",
-                            fontWeight: 800,
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
                             color: "var(--color-warning)",
                           }}
                         >
-                          Raise #{idx + 1}: {sr.targetPerson.toUpperCase()} (+
-                          {((sr.percentageIncrease || 0) * 100).toFixed(0)}%)
+                          {formatCurrency(annualBonusGross.value)} gross/yr
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => removeSalaryRaiseAction(sr.raiseId)}
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="30000"
+                        step="500"
+                        value={annualBonusGross.value}
+                        onInput={(e) => {
+                          setAnnualBonusGross(
+                            Number((e.target as HTMLInputElement).value),
+                          );
+                        }}
+                      />
+                      {annualBonusGross.value > 0 && (
+                        <div
                           style={{
-                            background: "var(--color-loss-bg)",
-                            color: "var(--color-loss)",
-                            border: "1px solid var(--color-loss-border)",
-                            borderRadius: "3px",
-                            padding: "2px 5px",
-                            fontSize: "0.62rem",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            display: "inline-flex",
+                            display: "flex",
+                            justifyContent: "space-between",
                             alignItems: "center",
-                            justifyContent: "center",
+                            marginTop: "2px",
                           }}
                         >
-                          <RemoveItemIcon size={11} />
-                        </button>
-                      </div>
+                          <span
+                            style={{
+                              fontSize: "0.64rem",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            Payout Month:
+                          </span>
+                          <select
+                            value={annualBonusMonth.value}
+                            onChange={(e) => {
+                              setAnnualBonusMonth(
+                                Number((e.target as HTMLSelectElement).value),
+                              );
+                            }}
+                            style={{
+                              background: "var(--bg-surface)",
+                              color: "var(--text-primary)",
+                              border: "1px solid var(--border-subtle)",
+                              borderRadius: "3px",
+                              padding: "1px 4px",
+                              fontSize: "0.66rem",
+                            }}
+                          >
+                            {MONTH_NAMES.map((mName, idx) => (
+                              <option
+                                key={`bonus-m-${idx + 1}`}
+                                value={idx + 1}
+                              >
+                                {mName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Monthly Investment Returns & Capital Income */}
+                    <div>
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
                           fontSize: "0.70rem",
-                          color: "var(--text-secondary)",
                           marginBottom: "2px",
                         }}
                       >
-                        <span>
-                          Effective:{" "}
-                          <strong style={{ color: "var(--color-warning)" }}>
-                            {getCalDate(sMonth)}
-                          </strong>{" "}
-                          (M{sMonth})
+                        <span style={{ color: "var(--text-secondary)" }}>
+                          Investment Returns:
                         </span>
                         <span
                           style={{
-                            color: "var(--text-muted)",
-                            fontSize: "0.65rem",
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--color-gain)",
                           }}
                         >
-                          {sr.reason}
+                          {formatCurrency(investmentReturnMonthly.value)} / mo
                         </span>
                       </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="5000"
+                        step="50"
+                        value={investmentReturnMonthly.value}
+                        onInput={(e) => {
+                          setInvestmentReturnMonthly(
+                            Number((e.target as HTMLInputElement).value),
+                          );
+                        }}
+                      />
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.64rem",
+                      color: "var(--text-muted)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ↳ Precondition channels: dividend, rental, ETF cash flow (§
+                    20 EStG).
+                  </div>
+                </div>
 
-              {/* Add Career Raise Action Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  const count = customSalaryRaises.value.length;
-                  const newSimMonth = (count + 2) * 12 + 1;
-                  const totalElapsed =
-                    startCalendarMonth.value - 1 + (newSimMonth - 1);
-                  const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                  const sYear =
-                    startCalendarYear.value + Math.floor(totalElapsed / 12);
-
-                  addSalaryRaiseAction({
-                    raiseId: toRaiseId(`RAISE-CUSTOM-${count + 1}`),
-                    effectiveSimulationMonth: toSimulationMonth(
-                      Math.min(simulationDurationMonths.value, newSimMonth),
-                    ),
-                    effectiveCalendarMonth: sMonth,
-                    effectiveCalendarYear: sYear,
-                    targetPerson: TargetPerson.Both,
-                    percentageIncrease: 0.05,
-                    reason: `Merit Promotion / Tariff Adjustment (+5%)`,
-                  });
-                }}
-                style={{
-                  width: "100%",
-                  padding: "6px",
-                  background: "var(--color-warning-bg)",
-                  color: "var(--color-warning)",
-                  border: "1px solid var(--color-warning-border)",
-                  borderRadius: "var(--border-radius-sm)",
-                  fontSize: "0.74rem",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  marginBottom: "10px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                <AddActionIcon size={12} />
-                <span>Add Career Raise / Promotion</span>
-              </button>
-            </div>
-
-            {/* ======================================================== */}
-            {/* BATCH 4: FINANCIAL EVENTS (ONE-OFF COSTS & INFLOWS) */}
-            {/* ======================================================== */}
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-                gridColumn: "span 1",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "8px",
-                }}
-              >
-                <span
-                  style={{
-                    fontWeight: 800,
-                    fontSize: "0.88rem",
-                    color: "var(--color-loss)",
-                  }}
-                >
-                  4. Financial Events & Costs
-                </span>
-                <span className="badge-loss">
-                  {customFinancialEvents.value.length} Events Active
-                </span>
-              </div>
-
-              {/* Dynamic Financial Events List */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  marginBottom: "12px",
-                }}
-              >
+                {/* One-Off Events List */}
                 {customFinancialEvents.value.map((fe, idx) => {
                   const sMonth = fe.effectiveSimulationMonth as number;
                   const isCost = (fe.amount as number) < 0;
@@ -2606,128 +3296,137 @@ export default function SandboxControls(): JSX.Element {
                       key={fe.eventId || `fe-${idx}`}
                       style={{
                         background: "var(--bg-surface-secondary)",
-                        padding: "8px 10px",
-                        borderRadius: "5px",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
                         border: isCost
                           ? "1px solid var(--color-loss-border)"
                           : "1px solid var(--color-gain-border)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
                       }}
                     >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "3px",
-                        }}
-                      >
+                      <div>
                         <div
                           style={{
                             display: "flex",
+                            justifyContent: "space-between",
                             alignItems: "center",
-                            gap: "5px",
+                            marginBottom: "6px",
                           }}
                         >
-                          <span
-                            className={isCost ? "badge-loss" : "badge-gain"}
+                          <div
                             style={{
-                              display: "inline-flex",
+                              display: "flex",
                               alignItems: "center",
-                              gap: "3px",
+                              gap: "6px",
                             }}
                           >
-                            <FinancialInflowIcon size={11} />
-                            <span>{isCost ? "COST" : "INFLOW"}</span>
-                          </span>
-                          <span
+                            <span
+                              className={isCost ? "badge-loss" : "badge-gain"}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "3px",
+                              }}
+                            >
+                              <FinancialInflowIcon size={11} />
+                              <span>{isCost ? "COST" : "INFLOW"}</span>
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "0.76rem",
+                                fontWeight: 800,
+                                color: isCost
+                                  ? "var(--color-loss)"
+                                  : "var(--color-gain)",
+                              }}
+                            >
+                              {fe.title}
+                            </span>
+                          </div>
+                          <div
                             style={{
-                              fontSize: "0.74rem",
-                              fontWeight: 800,
-                              color: isCost
-                                ? "var(--color-loss)"
-                                : "var(--color-gain)",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
                             }}
                           >
-                            {fe.title}
-                          </span>
+                            <span
+                              style={{
+                                fontVariantNumeric: "tabular-nums",
+                                fontWeight: 800,
+                                fontSize: "0.80rem",
+                                color: isCost
+                                  ? "var(--color-loss)"
+                                  : "var(--color-gain)",
+                              }}
+                            >
+                              {formatCurrency(fe.amount as number)}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeFinancialEventAction(fe.eventId)
+                              }
+                              style={{
+                                background: "var(--color-loss-bg)",
+                                color: "var(--color-loss)",
+                                border: "1px solid var(--color-loss-border)",
+                                borderRadius: "3px",
+                                padding: "2px 6px",
+                                fontSize: "0.65rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <RemoveItemIcon size={11} />
+                            </button>
+                          </div>
                         </div>
                         <div
                           style={{
                             display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
+                            justifyContent: "space-between",
+                            fontSize: "0.72rem",
+                            color: "var(--text-secondary)",
+                            marginBottom: "4px",
                           }}
                         >
+                          <span>
+                            Effective:{" "}
+                            <strong
+                              style={{
+                                color: isCost
+                                  ? "var(--color-loss)"
+                                  : "var(--color-gain)",
+                              }}
+                            >
+                              {getCalDate(sMonth)}
+                            </strong>{" "}
+                            (M{sMonth})
+                          </span>
                           <span
                             style={{
-                              fontVariantNumeric: "tabular-nums",
-                              fontWeight: 800,
-                              fontSize: "0.78rem",
-                              color: isCost
-                                ? "var(--color-loss)"
-                                : "var(--color-gain)",
+                              color: "var(--text-muted)",
+                              fontSize: "0.66rem",
                             }}
                           >
-                            {formatCurrency(fe.amount as number)}
+                            {fe.category}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeFinancialEventAction(fe.eventId)
-                            }
-                            style={{
-                              background: "var(--color-loss-bg)",
-                              color: "var(--color-loss)",
-                              border: "1px solid var(--color-loss-border)",
-                              borderRadius: "3px",
-                              padding: "2px 5px",
-                              fontSize: "0.62rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <RemoveItemIcon size={11} />
-                          </button>
                         </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.70rem",
-                          color: "var(--text-secondary)",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span>
-                          Effective:{" "}
-                          <strong
-                            style={{
-                              color: isCost
-                                ? "var(--color-loss)"
-                                : "var(--color-gain)",
-                            }}
-                          >
-                            {getCalDate(sMonth)}
-                          </strong>{" "}
-                          (M{sMonth})
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--text-muted)",
-                            fontSize: "0.65rem",
-                          }}
-                        >
-                          {fe.category}
-                        </span>
                       </div>
                       <div
                         style={{
                           fontSize: "0.65rem",
                           color: "var(--text-muted)",
+                          background: "var(--bg-surface)",
+                          padding: "4px 6px",
+                          borderRadius: "3px",
+                          marginTop: "6px",
                         }}
                       >
                         {fe.description}
@@ -2735,107 +3434,6 @@ export default function SandboxControls(): JSX.Element {
                     </div>
                   );
                 })}
-              </div>
-
-              {/* Add Financial Cost Button */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "6px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    const count = customFinancialEvents.value.length;
-                    const defaultMonth = Math.min(
-                      simulationDurationMonths.value,
-                      child1BirthMonth.value + count * 6,
-                    );
-                    const totalElapsed =
-                      startCalendarMonth.value - 1 + (defaultMonth - 1);
-                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                    const sYear =
-                      startCalendarYear.value + Math.floor(totalElapsed / 12);
-
-                    addFinancialEventAction({
-                      eventId: toFinancialEventId(
-                        `FIN-CUSTOM-COST-${count + 1}`,
-                      ),
-                      effectiveSimulationMonth: toSimulationMonth(defaultMonth),
-                      effectiveCalendarMonth: sMonth,
-                      effectiveCalendarYear: sYear,
-                      title: `Child Expense / Equipment #${count + 1}`,
-                      amount: toEuroAmount(-1000),
-                      category: FinancialEventCategory.BabyEquipment,
-                      description: "Custom family nursery or childcare expense",
-                    });
-                  }}
-                  style={{
-                    padding: "6px",
-                    background: "var(--color-loss-bg)",
-                    color: "var(--color-loss)",
-                    border: "1px solid var(--color-loss-border)",
-                    borderRadius: "4px",
-                    fontSize: "0.72rem",
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <AddActionIcon size={12} />
-                  <span>Add Cost (-1.000 €)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const count = customFinancialEvents.value.length;
-                    const defaultMonth = Math.min(
-                      simulationDurationMonths.value,
-                      12 + count * 6,
-                    );
-                    const totalElapsed =
-                      startCalendarMonth.value - 1 + (defaultMonth - 1);
-                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                    const sYear =
-                      startCalendarYear.value + Math.floor(totalElapsed / 12);
-
-                    addFinancialEventAction({
-                      eventId: toFinancialEventId(
-                        `FIN-CUSTOM-INCOME-${count + 1}`,
-                      ),
-                      effectiveSimulationMonth: toSimulationMonth(defaultMonth),
-                      effectiveCalendarMonth: sMonth,
-                      effectiveCalendarYear: sYear,
-                      title: `Family Bonus / Grant #${count + 1}`,
-                      amount: toEuroAmount(1500),
-                      category: FinancialEventCategory.CareerBonus,
-                      description: "Special employer bonus or one-off grant",
-                    });
-                  }}
-                  style={{
-                    padding: "6px",
-                    background: "var(--color-gain-bg)",
-                    color: "var(--color-gain)",
-                    border: "1px solid var(--color-gain-border)",
-                    borderRadius: "4px",
-                    fontSize: "0.72rem",
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <AddActionIcon size={12} />
-                  <span>Add Inflow (+1.500 €)</span>
-                </button>
               </div>
             </div>
           </div>
