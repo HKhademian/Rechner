@@ -165,17 +165,23 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       });
 
       assert.equal(res.months.length, 12);
+      assert.equal(res.months[0].monthId, "M092026");
       assert.equal(res.months[0].calendarLabel, "09.2026");
       assert.equal(res.months[0].calendarMonthNum, 9);
       assert.equal(res.months[0].calendarYearNum, 2026);
       assert.equal(res.months[0].relativeBirthLabel, "M-3");
+      assert.equal(res.months[0].relativeMonthLabel, "M-3");
 
-      assert.equal(res.months[3].relativeBirthLabel, "M0 (Pregnancy Positive)");
+      assert.equal(res.months[3].monthId, "M122026");
+      assert.equal(res.months[3].relativeBirthLabel, "M1 (Pregnancy Positive)");
+      assert.equal(res.months[3].relativeMonthLabel, "M1 (Pregnancy Positive)");
 
+      assert.equal(res.months[11].monthId, "M082027");
       assert.equal(res.months[11].calendarLabel, "08.2027");
       assert.equal(res.months[11].calendarMonthNum, 8);
       assert.equal(res.months[11].calendarYearNum, 2027);
-      assert.equal(res.months[11].relativeBirthLabel, "M+8 (Birth 1)");
+      assert.equal(res.months[11].relativeBirthLabel, "M9 (Birth 1)");
+      assert.equal(res.months[11].relativeMonthLabel, "M9 (Birth 1)");
     });
 
     it("accurately positions 13th month bonuses based on real calendar months", () => {

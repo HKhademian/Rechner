@@ -257,14 +257,14 @@ describe("User Data Export & Import Engine", () => {
       assert.ok(typeof csv === "string");
       assert.ok(
         csv.startsWith(
-          "Simulation Month;Calendar Date;Calendar Year;Calendar Month;",
+          "Month ID;Relative Month;Simulation Month;Calendar Date;Calendar Year;Calendar Month;",
         ),
       );
 
       const lines = csv.split("\r\n");
       assert.equal(lines.length, 61); // 1 Header + 60 Months
-      assert.ok(lines[1].startsWith("M1;"));
-      assert.ok(lines[60].startsWith("M60;"));
+      assert.ok(lines[1].startsWith('"M012026";'));
+      assert.ok(lines[60].startsWith('"M122030";'));
     });
   });
 

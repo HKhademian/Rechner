@@ -30,6 +30,7 @@ import {
   toSimulationMonth,
   toCalendarMonth,
   toCalendarYear,
+  toMonthId,
   toPregnancyId,
   toSwitchId,
   toActionId,
@@ -269,6 +270,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     it("generates valid explanations for pregnancy positive action row", () => {
       const act: ActionRowItem = {
         actionId: toActionId("ACT-PREG-1"),
+        monthId: toMonthId(4, 2026),
         month: toSimulationMonth(4),
         calendarLabel: "Apr 2026",
         relativeBirthLabel: "M0",
@@ -296,6 +298,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     it("generates valid explanations for tax class switch action row", () => {
       const act: ActionRowItem = {
         actionId: toActionId("ACT-SWAP-1"),
+        monthId: toMonthId(4, 2026),
         month: toSimulationMonth(4),
         calendarLabel: "Apr 2026",
         relativeBirthLabel: "M0",
@@ -325,6 +328,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     it("generates complete 4-step calculation and itemized contributing factors for Tax Return field explanation", () => {
       const ev: SpecialEventItem = {
         eventId: toEventId("EV-TAX-REFUND-1"),
+        monthId: toMonthId(3, 2027),
         type: SpecialEventType.TaxReturn,
         category: SpecialEventCategory.TaxOffice,
         statutory: toStatutoryCitation(
@@ -379,6 +383,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     it("generates itemized streams and statutory breakdown for Tax Return row explanation", () => {
       const ev: SpecialEventItem = {
         eventId: toEventId("EV-TAX-REFUND-1"),
+        monthId: toMonthId(3, 2027),
         type: SpecialEventType.TaxReturn,
         category: SpecialEventCategory.TaxOffice,
         title: "Annual Tax Return (Tax Year 2026)",

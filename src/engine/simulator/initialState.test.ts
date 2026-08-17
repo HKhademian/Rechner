@@ -252,15 +252,20 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
       });
 
       // M1 (01.2026): M-8
+      assert.equal(res.months[0].monthId, "M012026");
       assert.equal(res.months[0].relativeBirthLabel, "M-8");
       // M8 (08.2026): M-1
+      assert.equal(res.months[7].monthId, "M082026");
       assert.equal(res.months[7].relativeBirthLabel, "M-1");
-      // M9 (09.2026): M0 (Pregnancy Positive)
-      assert.equal(res.months[8].relativeBirthLabel, "M0 (Pregnancy Positive)");
-      // M10 (10.2026): M+1
-      assert.equal(res.months[9].relativeBirthLabel, "M+1");
-      // M17 (05.2027): M+8 (Birth 1)
-      assert.equal(res.months[16].relativeBirthLabel, "M+8 (Birth 1)");
+      // M9 (09.2026): M1 (Pregnancy Positive)
+      assert.equal(res.months[8].monthId, "M092026");
+      assert.equal(res.months[8].relativeBirthLabel, "M1 (Pregnancy Positive)");
+      // M10 (10.2026): M2
+      assert.equal(res.months[9].monthId, "M102026");
+      assert.equal(res.months[9].relativeBirthLabel, "M2");
+      // M17 (05.2027): M9 (Birth 1)
+      assert.equal(res.months[16].monthId, "M052027");
+      assert.equal(res.months[16].relativeBirthLabel, "M9 (Birth 1)");
     });
   });
 

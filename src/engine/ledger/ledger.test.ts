@@ -6,6 +6,7 @@ import {
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
+  toMonthId,
   toEuroAmount,
   TransactionType,
   TransactionDirection,
@@ -15,7 +16,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
   describe("createTransaction", () => {
     it("creates immutable, validly branded transaction records", () => {
       const tx = createTransaction({
-        transactionId: "TX-M1-TEST",
+        transactionId: "TX-M012026-TEST",
+        monthId: toMonthId(1, 2026),
         month: toSimulationMonth(1),
         year: toCalendarYear(1),
         type: TransactionType.SalaryBase,
@@ -27,7 +29,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         auditTrail: "Monthly net salary",
       });
 
-      assert.equal(tx.transactionId, "TX-M1-TEST");
+      assert.equal(tx.transactionId, "TX-M012026-TEST");
+      assert.equal(tx.monthId, "M012026");
       assert.equal(tx.amount, 2895);
       assert.equal(tx.statutoryCitation, "§ 19 EStG");
     });
@@ -39,6 +42,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const sMonth = toSimulationMonth(m);
         const cy = toCalendarYear(Math.ceil(m / 12));
         const cm = toCalendarMonth(((m - 1) % 12) + 1);
+        const calYearNum = 2026 + (cy as number) - 1;
+        const mId = toMonthId(cm, calYearNum);
 
         const hSalary = toEuroAmount(4000);
         const wSalary = toEuroAmount(2000);
@@ -48,13 +53,16 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
         const { entry } = buildMonthlyLedgerEntry(
           {
+            monthId: mId,
             month: sMonth,
             year: cy,
             monthInYear: cm,
-            calendarYearNum: 2026 + (cy as number) - 1,
+            calendarYearNum: calYearNum,
             calendarMonthNum: cm,
             calendarLabel: `M${sMonth}`,
             relativeBirthLabel: `M${sMonth}`,
+            relativeMonthLabel: `M${sMonth}`,
+            relativeMonthIndex: m,
             husbandSalary: hSalary,
             wifeSalary: wSalary,
             mutterschutz: toEuroAmount(0),
@@ -86,6 +94,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
           (bonus40 as number) + (bonus60 as number) + (taxRefund as number);
         const expectedTotal = expectedRegular + expectedSpecial;
 
+        assert.equal(entry.monthId, mId);
         assert.equal(entry.regularMonthlyTotal, expectedRegular);
         assert.equal(entry.specialEventsTotal, expectedSpecial);
         assert.equal(entry.monthlyTotal, expectedTotal);
@@ -96,6 +105,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const sMonth = toSimulationMonth(17);
       const cy = toCalendarYear(2);
       const cm = toCalendarMonth(5);
+      const mId = toMonthId(5, 2027);
 
       const hSalary = toEuroAmount(2895);
       const wSalary = toEuroAmount(0);
@@ -104,7 +114,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
       // One-off baby equipment cost (-1500 €)
       const costEvent = {
-        eventId: "EVENT-M17-EQUIPMENT" as any,
+        eventId: "EVENT-M052027-EQUIPMENT" as any,
+        monthId: mId,
         month: sMonth,
         year: cy,
         calendarYearNum: 2027,
@@ -122,6 +133,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
       const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
         {
+          monthId: mId,
           month: sMonth,
           year: cy,
           monthInYear: cm,
@@ -159,6 +171,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const expectedSpecial = -1500;
       const expectedMonthly = regularTotal - 1500; // 4238 €
 
+      assert.equal(entry.monthId, "M052027");
       assert.equal(entry.regularMonthlyTotal, regularTotal);
       assert.equal(entry.specialEventsTotal, expectedSpecial);
       assert.equal(entry.monthlyTotal, expectedMonthly);
@@ -170,6 +183,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const sMonth = toSimulationMonth(12);
       const cy = toCalendarYear(1);
       const cm = toCalendarMonth(12);
+      const mId = toMonthId(12, 2026);
 
       const hSalary = toEuroAmount(2895);
       const wSalary = toEuroAmount(1975);
@@ -177,7 +191,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
       // One-off bonus grant (+2000 €)
       const grantEvent = {
-        eventId: "EVENT-M12-GRANT" as any,
+        eventId: "EVENT-M122026-GRANT" as any,
+        monthId: mId,
         month: sMonth,
         year: cy,
         calendarYearNum: 2026,
@@ -195,6 +210,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
       const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
         {
+          monthId: mId,
           month: sMonth,
           year: cy,
           monthInYear: cm,
@@ -232,6 +248,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const expectedSpecial = 2000;
       const expectedMonthly = regularTotal + expectedSpecial; // 6935 €
 
+      assert.equal(entry.monthId, "M122026");
       assert.equal(entry.regularMonthlyTotal, regularTotal);
       assert.equal(entry.specialEventsTotal, expectedSpecial);
       assert.equal(entry.monthlyTotal, expectedMonthly);

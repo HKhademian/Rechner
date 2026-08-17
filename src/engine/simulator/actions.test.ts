@@ -598,7 +598,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(res.months.length, 60);
 
       // Verify Month 12 is Delivery 1
-      assert.equal(res.months[11].relativeBirthLabel, "M+8 (Birth 1)");
+      assert.equal(res.months[11].monthId, "M122026");
+      assert.equal(res.months[11].relativeBirthLabel, "M9 (Birth 1)");
 
       // Verify Month 25 husband salary has +10% raise
       const m24Husband = res.months[23].husbandSalary as number;
