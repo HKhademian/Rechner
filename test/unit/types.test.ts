@@ -20,6 +20,7 @@ import {
   toRaiseId,
   toHoursChangeId,
   toFinancialEventId,
+  toTaxFactor,
   toTaxClass,
   toScenarioId,
   toActiveScenarioView,
@@ -32,6 +33,7 @@ import {
   isEuroAmount,
   isGrossSalary,
   isNetSalary,
+  isTaxFactor,
   isActionId,
   isPregnancyId,
   isSwitchId,
@@ -204,6 +206,25 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
 
     it("rejects empty or non-string citations", () => {
       assert.throws(() => toStatutoryCitation(""), TypeError);
+    });
+  });
+
+  describe("TaxFactor (Feature Test)", () => {
+    it("accepts valid tax factors between 0.001 and 1.0", () => {
+      const validFactors = [0.001, 0.5, 0.885, 0.905, 1.0];
+      for (const f of validFactors) {
+        const factor = toTaxFactor(f);
+        assert.equal(factor as number, Math.round(f * 1000) / 1000);
+        assert.ok(isTaxFactor(factor));
+      }
+    });
+
+    it("rejects invalid, negative, 0, or out-of-range tax factors", () => {
+      assert.throws(() => toTaxFactor(0), TypeError);
+      assert.throws(() => toTaxFactor(-0.5), TypeError);
+      assert.throws(() => toTaxFactor(1.001), TypeError);
+      assert.throws(() => toTaxFactor(NaN), TypeError);
+      assert.throws(() => toTaxFactor(Infinity), TypeError);
     });
   });
 

@@ -15,6 +15,7 @@ import {
   toRaiseId,
   toHoursChangeId,
   toFinancialEventId,
+  toTaxFactor,
   FinancialEventCategory,
   type PreexistingConditions,
   type PregnancyAction,
@@ -957,7 +958,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           husbandInitialTaxClass: TaxClass.IV,
           wifeInitialTaxClass: TaxClass.IV,
           initialUseTaxFactor: true,
-          initialTaxFactor: 0.905,
+          initialTaxFactor: toTaxFactor(0.905),
         };
 
         const res = runScenarioBatches({
@@ -981,7 +982,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           husbandInitialTaxClass: TaxClass.IV,
           wifeInitialTaxClass: TaxClass.IV,
           initialUseTaxFactor: true,
-          initialTaxFactor: 0.905,
+          initialTaxFactor: toTaxFactor(0.905),
         };
 
         const taxClassSwitches: TaxClassSwitchAction[] = [
