@@ -51,6 +51,8 @@ import {
   type FinancialEventAction,
 } from "#engine/types";
 
+import defaultScenarioData from "../../data/defaultScenario.json" with { type: "json" };
+
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
 
 /**
@@ -113,9 +115,10 @@ export interface ElterngeldPersistedState {
 }
 
 /**
- * Returns the statutory default persisted state with branded domain types and const enum members.
+ * Hardcoded statutory baseline state used as the ultimate fallback
+ * if defaultScenario.json is corrupted or unparseable.
  */
-export function getDefaultPersistedState(): ElterngeldPersistedState {
+export function getHardcodedFallbackState(): ElterngeldPersistedState {
   return {
     salaryInputMode: SalaryInputMode.Gross,
     salaryPeriod: SalaryPeriod.Monthly,
@@ -264,18 +267,39 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
 }
 
 /**
+ * Returns the project default persisted state loaded from src/data/defaultScenario.json
+ * validated and sanitized against statutory domain constraints.
+ */
+export function getDefaultPersistedState(): ElterngeldPersistedState {
+  try {
+    return validateAndSanitizePersistedState(
+      defaultScenarioData,
+      getHardcodedFallbackState(),
+    );
+  } catch {
+    return getHardcodedFallbackState();
+  }
+}
+
+/**
  * Validates and sanitizes a raw object loaded from JSON storage into a complete ElterngeldPersistedState.
  * If any fields are invalid, missing, or corrupted, it gracefully substitutes the statutory default.
  */
 export function validateAndSanitizePersistedState(
   raw: unknown,
+  fallback?: ElterngeldPersistedState,
+  warnings?: string[],
 ): ElterngeldPersistedState {
-  const defaults = getDefaultPersistedState();
+  const defaults = fallback ?? getHardcodedFallbackState();
   if (!raw || typeof raw !== "object") {
     return defaults;
   }
 
-  const obj = raw as Record<string, unknown>;
+  const root = raw as Record<string, unknown>;
+  const obj =
+    typeof root.simulationState === "object" && root.simulationState !== null
+      ? (root.simulationState as Record<string, unknown>)
+      : root;
 
   // Validate salaryInputMode const enum
   let salaryInputModeVal: SalaryInputMode = defaults.salaryInputMode;
@@ -327,10 +351,54 @@ export function validateAndSanitizePersistedState(
     }
   }
 
-  const num = (v: unknown, def: number, min?: number, max?: number): number => {
-    if (typeof v !== "number" || isNaN(v)) return def;
-    if (min !== undefined && v < min) return min;
-    if (max !== undefined && v > max) return max;
+  const num = (
+    v: unknown,
+    def: number,
+    min?: number,
+    max?: number,
+    fieldName?: string,
+  ): number => {
+    if (typeof v !== "number" || isNaN(v)) {
+      if (typeof v === "string") {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed)) {
+          if (min !== undefined && parsed < min) {
+            if (warnings) {
+              warnings.push(
+                `${fieldName || "Field"} clamped from ${parsed} to [${min}, ${max}]`,
+              );
+            }
+            return min;
+          }
+          if (max !== undefined && parsed > max) {
+            if (warnings) {
+              warnings.push(
+                `${fieldName || "Field"} clamped from ${parsed} to [${min}, ${max}]`,
+              );
+            }
+            return max;
+          }
+          return parsed;
+        }
+      }
+      return def;
+    }
+    if (min !== undefined && v < min) {
+      if (warnings) {
+        warnings.push(
+          `${fieldName || "Field"} clamped from ${v} to [${min}, ${max}]`,
+        );
+      }
+      return min;
+    }
+    if (max !== undefined && v > max) {
+      if (warnings) {
+        warnings.push(
+          `${fieldName || "Field"} clamped from ${v} to [${min}, ${max}]`,
+        );
+      }
+      return max;
+    }
     return v;
   };
 
@@ -498,6 +566,13 @@ export function validateAndSanitizePersistedState(
             tp = TargetPerson.Both;
           }
         }
+        let rawPct = num(rObj.percentageIncrease, 0.02, 0, 100);
+        // Normalize percentage: if entered as e.g. 5 or 3 (meaning 5% or 3%), convert to 0.05 or 0.03
+        if (rawPct > 1) {
+          rawPct = rawPct / 100;
+        }
+        rawPct = Math.min(1.0, Math.max(0, rawPct));
+
         return {
           raiseId: toRaiseId(
             typeof rObj.raiseId === "string"
@@ -517,7 +592,7 @@ export function validateAndSanitizePersistedState(
             2050,
           ),
           targetPerson: tp,
-          percentageIncrease: num(rObj.percentageIncrease, 0.02, 0, 1),
+          percentageIncrease: rawPct,
           reason: str(rObj.reason, "Annual Merit / Tariff Raise"),
         };
       })
@@ -611,31 +686,67 @@ export function validateAndSanitizePersistedState(
     salaryInputMode: salaryInputModeVal,
     salaryPeriod: salaryPeriodVal,
     husbandGross: toGrossSalary(
-      num(obj.husbandGross, defaults.husbandGross, 0, 1000000),
+      num(obj.husbandGross, defaults.husbandGross, 0, 1000000, "husbandGross"),
     ),
     wifeGross: toGrossSalary(
-      num(obj.wifeGross, defaults.wifeGross, 0, 1000000),
+      num(obj.wifeGross, defaults.wifeGross, 0, 1000000, "wifeGross"),
     ),
     husbandHours: toWorkingHours(
-      num(obj.husbandHours, defaults.husbandHours, 0, 60),
+      num(obj.husbandHours, defaults.husbandHours, 0, 60, "husbandHours"),
     ),
     wifeInitialHours: toWorkingHours(
-      num(obj.wifeInitialHours, defaults.wifeInitialHours, 0, 60),
+      num(
+        obj.wifeInitialHours,
+        defaults.wifeInitialHours,
+        0,
+        60,
+        "wifeInitialHours",
+      ),
     ),
     wifePostBirthHours: toWorkingHours(
-      num(obj.wifePostBirthHours, defaults.wifePostBirthHours, 0, 60),
+      num(
+        obj.wifePostBirthHours,
+        defaults.wifePostBirthHours,
+        0,
+        60,
+        "wifePostBirthHours",
+      ),
     ),
     husbandClass3Net: toNetSalary(
-      num(obj.husbandClass3Net, defaults.husbandClass3Net, 0, 100000),
+      num(
+        obj.husbandClass3Net,
+        defaults.husbandClass3Net,
+        0,
+        100000,
+        "husbandClass3Net",
+      ),
     ),
     husbandClass5Net: toNetSalary(
-      num(obj.husbandClass5Net, defaults.husbandClass5Net, 0, 100000),
+      num(
+        obj.husbandClass5Net,
+        defaults.husbandClass5Net,
+        0,
+        100000,
+        "husbandClass5Net",
+      ),
     ),
     wifeClass5FullTimeNet: toNetSalary(
-      num(obj.wifeClass5FullTimeNet, defaults.wifeClass5FullTimeNet, 0, 100000),
+      num(
+        obj.wifeClass5FullTimeNet,
+        defaults.wifeClass5FullTimeNet,
+        0,
+        100000,
+        "wifeClass5FullTimeNet",
+      ),
     ),
     wifeClass3FullTimeNet: toNetSalary(
-      num(obj.wifeClass3FullTimeNet, defaults.wifeClass3FullTimeNet, 0, 100000),
+      num(
+        obj.wifeClass3FullTimeNet,
+        defaults.wifeClass3FullTimeNet,
+        0,
+        100000,
+        "wifeClass3FullTimeNet",
+      ),
     ),
     husbandInitialTaxClass:
       typeof obj.husbandInitialTaxClass === "string"
@@ -663,10 +774,22 @@ export function validateAndSanitizePersistedState(
     ),
 
     annualBonusGross: toGrossSalary(
-      num(obj.annualBonusGross, defaults.annualBonusGross, 0, 1000000),
+      num(
+        obj.annualBonusGross,
+        defaults.annualBonusGross,
+        0,
+        1000000,
+        "annualBonusGross",
+      ),
     ),
     annualBonusMonth: toCalendarMonth(
-      num(obj.annualBonusMonth, defaults.annualBonusMonth, 1, 12),
+      num(
+        obj.annualBonusMonth,
+        defaults.annualBonusMonth,
+        1,
+        12,
+        "annualBonusMonth",
+      ),
     ),
     investmentReturnMonthly: toEuroAmount(
       num(
@@ -674,21 +797,28 @@ export function validateAndSanitizePersistedState(
         defaults.investmentReturnMonthly,
         0,
         1000000,
+        "investmentReturnMonthly",
       ),
     ),
 
     kindergeldPerChild: toEuroAmount(
-      num(obj.kindergeldPerChild, defaults.kindergeldPerChild, 0, 10000),
+      num(
+        obj.kindergeldPerChild,
+        defaults.kindergeldPerChild,
+        0,
+        10000,
+        "kindergeldPerChild",
+      ),
     ),
     enable13thSalary: bool(obj.enable13thSalary, defaults.enable13thSalary),
     bonus40Month: toCalendarMonth(
-      num(obj.bonus40Month, defaults.bonus40Month, 1, 12),
+      num(obj.bonus40Month, defaults.bonus40Month, 1, 12, "bonus40Month"),
     ),
     bonus60Month: toCalendarMonth(
-      num(obj.bonus60Month, defaults.bonus60Month, 1, 12),
+      num(obj.bonus60Month, defaults.bonus60Month, 1, 12, "bonus60Month"),
     ),
     taxReturnMonth: toCalendarMonth(
-      num(obj.taxReturnMonth, defaults.taxReturnMonth, 1, 12),
+      num(obj.taxReturnMonth, defaults.taxReturnMonth, 1, 12, "taxReturnMonth"),
     ),
     showSpecialEventRows: bool(
       obj.showSpecialEventRows,
