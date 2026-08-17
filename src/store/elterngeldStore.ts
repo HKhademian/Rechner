@@ -331,239 +331,60 @@ export function setPregnancy1PositiveDate(year: number, month: number) {
 }
 
 export function createDefaultPregnancies(): PregnancyAction[] {
-  const startYear = startCalendarYear.value;
-  const startMonth = startCalendarMonth.value;
-  const b1 = child1BirthMonth.value;
-  const spacing = birthSpacingMonths.value;
-  const b2 = b1 + spacing;
-
-  return [
-    {
-      pregnancyId: toPregnancyId("PREG-CHILD-1"),
-      childIndex: 1,
-      positiveTestCalendarMonth: toCalendarMonth(
-        ((startMonth - 1 + prePregnancyPlanningMonths.value) % 12) + 1,
-      ),
-      positiveTestCalendarYear:
-        startYear +
-        Math.floor((startMonth - 1 + prePregnancyPlanningMonths.value) / 12),
-      positiveTestSimulationMonth: toSimulationMonth(
-        prePregnancyPlanningMonths.value + 1,
-      ),
-      calculatedDeliverySimulationMonth: toSimulationMonth(b1),
-      motherPostBirthPartTimeHours: toWorkingHours(wifePostBirthHours.value),
-      motherPostBirthPartTimeClass5Net: toNetSalary(
-        wifeClass5PartTimeNet.value,
-      ),
-      motherPostBirthPartTimeClass3Net: toNetSalary(
-        wifeClass3PartTimeNet.value,
-      ),
-      fatherPartnerMonthsCount: 4,
-    },
-    {
-      pregnancyId: toPregnancyId("PREG-CHILD-2"),
-      childIndex: 2,
-      positiveTestCalendarMonth: toCalendarMonth(
-        ((startMonth - 1 + (b2 - 9)) % 12) + 1,
-      ),
-      positiveTestCalendarYear:
-        startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
-      positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
-      calculatedDeliverySimulationMonth: toSimulationMonth(b2),
-      motherPostBirthPartTimeHours: toWorkingHours(wifePostBirthHours.value),
-      motherPostBirthPartTimeClass5Net: toNetSalary(
-        wifeClass5PartTimeNet.value,
-      ),
-      motherPostBirthPartTimeClass3Net: toNetSalary(
-        wifeClass3PartTimeNet.value,
-      ),
-      fatherPartnerMonthsCount: 4,
-    },
-  ];
+  return [...getDefaultPersistedState().customPregnancies];
 }
 
 export function createDefaultTaxClassSwitches(): TaxClassSwitchAction[] {
-  const startYear = startCalendarYear.value;
-  const startMonth = startCalendarMonth.value;
-  const b1 = child1BirthMonth.value;
-  const spacing = birthSpacingMonths.value;
-  const b2 = b1 + spacing;
-  const lead = swapLeadMonths.value;
-
-  const preM1 = b1 - 1;
-  const swap1Start = Math.max(1, preM1 - lead);
-  const preM2 = b2 - 1;
-  const swap2Start = Math.max(b1 + 2, preM2 - lead);
-
-  return [
-    {
-      switchId: toSwitchId("SWAP-CHILD-1"),
-      effectiveSimulationMonth: toSimulationMonth(swap1Start),
-      effectiveCalendarMonth: toCalendarMonth(
-        ((startMonth - 1 + swap1Start - 1) % 12) + 1,
-      ),
-      effectiveCalendarYear:
-        startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
-      targetHusbandTaxClass: TaxClass.V,
-      targetWifeTaxClass: TaxClass.III,
-      statutoryReason:
-        "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
-      revertSimulationMonth: toSimulationMonth(b1),
-    },
-    {
-      switchId: toSwitchId("SWAP-CHILD-2"),
-      effectiveSimulationMonth: toSimulationMonth(swap2Start),
-      effectiveCalendarMonth: toCalendarMonth(
-        ((startMonth - 1 + swap2Start - 1) % 12) + 1,
-      ),
-      effectiveCalendarYear:
-        startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),
-      targetHusbandTaxClass: TaxClass.V,
-      targetWifeTaxClass: TaxClass.III,
-      statutoryReason:
-        "Optimize Child 2 Part-Time Elterngeld baseline (§ 2b BEEG)",
-      revertSimulationMonth: toSimulationMonth(b2),
-    },
-  ];
+  return [...getDefaultPersistedState().customTaxClassSwitches];
 }
 
 export function createDefaultSalaryRaises(): SalaryRaiseAction[] {
-  const duration = simulationDurationMonths.value;
-  const startYear = startCalendarYear.value;
-  const salaryRaises: SalaryRaiseAction[] = [];
-  if (enableSalaryRaises.value && annualSalaryRaisePercent.value > 0) {
-    const rate = annualSalaryRaisePercent.value / 100;
-    for (let yr = 2; yr <= 5; yr++) {
-      const raiseSimMonth = (yr - 1) * 12 + 1;
-      if (raiseSimMonth <= duration) {
-        salaryRaises.push({
-          raiseId: toRaiseId(`RAISE-Y${yr}`),
-          effectiveSimulationMonth: toSimulationMonth(raiseSimMonth),
-          effectiveCalendarMonth: toCalendarMonth(1),
-          effectiveCalendarYear: startYear + (yr - 1),
-          targetPerson: TargetPerson.Both,
-          percentageIncrease: rate,
-          reason: `Annual Tariff / Merit Increase (+${annualSalaryRaisePercent.value}%)`,
-        });
-      }
-    }
-  }
-  return salaryRaises;
+  return [...getDefaultPersistedState().customSalaryRaises];
 }
+
 export function createDefaultWorkingHoursChanges(): WorkingHoursChangeAction[] {
-  const b1 = child1BirthMonth.value;
-  const startYear = startCalendarYear.value;
-  const startMonth = startCalendarMonth.value;
-
-  const m19 = b1 + 2; // Wife post-birth part-time return
-  const totalElapsed19 = startMonth - 1 + (m19 - 1);
-  const calM19 = toCalendarMonth((totalElapsed19 % 12) + 1);
-  const calY19 = startYear + Math.floor(totalElapsed19 / 12);
-
-  const m31 = b1 + 14; // Husband parental hours (Partnerschaftsbonus window)
-  const totalElapsed31 = startMonth - 1 + (m31 - 1);
-  const calM31 = toCalendarMonth((totalElapsed31 % 12) + 1);
-  const calY31 = startYear + Math.floor(totalElapsed31 / 12);
-
-  return [
-    {
-      changeId: toHoursChangeId("HOURS-WIFE-RETURN"),
-      effectiveSimulationMonth: toSimulationMonth(m19),
-      effectiveCalendarMonth: calM19,
-      effectiveCalendarYear: calY19,
-      targetPerson: TargetPerson.Wife,
-      weeklyHours: toWorkingHours(wifePostBirthHours.value ?? 24),
-      reason:
-        "Post-birth Part-time return (Partnerschaftsbonus § 4b BEEG eligible)",
-    },
-    {
-      changeId: toHoursChangeId("HOURS-HUSBAND-BONUS"),
-      effectiveSimulationMonth: toSimulationMonth(m31),
-      effectiveCalendarMonth: calM31,
-      effectiveCalendarYear: calY31,
-      targetPerson: TargetPerson.Husband,
-      weeklyHours: toWorkingHours(32),
-      reason: "Parental leave reduction (24-32h Partnerschaftsbonus § 4b BEEG)",
-    },
-  ];
+  return [...(getDefaultPersistedState().customWorkingHoursChanges || [])];
 }
 
 export function createDefaultFinancialEvents(): FinancialEventAction[] {
-  const b1 = child1BirthMonth.value;
-  const startYear = startCalendarYear.value;
-  const startMonth = startCalendarMonth.value;
-
-  const m17 = b1;
-  const totalElapsed17 = startMonth - 1 + (m17 - 1);
-  const calM17 = toCalendarMonth((totalElapsed17 % 12) + 1);
-  const calY17 = startYear + Math.floor(totalElapsed17 / 12);
-
-  const m26 = b1 + 9; // e.g. Kita entry
-  const totalElapsed26 = startMonth - 1 + (m26 - 1);
-  const calM26 = toCalendarMonth((totalElapsed26 % 12) + 1);
-  const calY26 = startYear + Math.floor(totalElapsed26 / 12);
-
-  return [
-    {
-      eventId: toFinancialEventId("FIN-CHILD1-EQUIPMENT"),
-      effectiveSimulationMonth: toSimulationMonth(m17),
-      effectiveCalendarMonth: calM17,
-      effectiveCalendarYear: calY17,
-      title: "Child #1 Initial Equipment (*Erstausstattung*)",
-      amount: toEuroAmount(-1500),
-      category: FinancialEventCategory.BabyEquipment,
-      description:
-        "Crib, stroller, car seat, changing table, and initial newborn essentials",
-    },
-    {
-      eventId: toFinancialEventId("FIN-CHILD1-KITA-DEPOSIT"),
-      effectiveSimulationMonth: toSimulationMonth(26),
-      effectiveCalendarMonth: calM26,
-      effectiveCalendarYear: calY26,
-      title: "Kita Childcare Enrollment & Equipment (*Kita-Start*)",
-      amount: toEuroAmount(-600),
-      category: FinancialEventCategory.ChildcareFees,
-      description:
-        "One-off daycare entrance fee, activity deposit, and outdoor gear",
-    },
-  ];
+  return [...getDefaultPersistedState().customFinancialEvents];
 }
 
 // User-Defined Dynamic Action Collections (Initialized with persisted state or defaults)
-export const customPregnancies = signal<PregnancyAction[]>(
-  initialPersisted.customPregnancies &&
-    initialPersisted.customPregnancies.length > 0
+export const customPregnancies = signal<PregnancyAction[]>([
+  ...(initialPersisted.customPregnancies &&
+  initialPersisted.customPregnancies.length > 0
     ? (initialPersisted.customPregnancies as PregnancyAction[])
-    : createDefaultPregnancies(),
-);
+    : getDefaultPersistedState().customPregnancies),
+]);
 
-export const customTaxClassSwitches = signal<TaxClassSwitchAction[]>(
-  initialPersisted.customTaxClassSwitches &&
-    initialPersisted.customTaxClassSwitches.length > 0
+export const customTaxClassSwitches = signal<TaxClassSwitchAction[]>([
+  ...(initialPersisted.customTaxClassSwitches &&
+  initialPersisted.customTaxClassSwitches.length > 0
     ? (initialPersisted.customTaxClassSwitches as TaxClassSwitchAction[])
-    : createDefaultTaxClassSwitches(),
-);
+    : getDefaultPersistedState().customTaxClassSwitches),
+]);
 
-export const customSalaryRaises = signal<SalaryRaiseAction[]>(
-  initialPersisted.customSalaryRaises &&
-    initialPersisted.customSalaryRaises.length > 0
+export const customSalaryRaises = signal<SalaryRaiseAction[]>([
+  ...(initialPersisted.customSalaryRaises &&
+  initialPersisted.customSalaryRaises.length > 0
     ? (initialPersisted.customSalaryRaises as SalaryRaiseAction[])
-    : createDefaultSalaryRaises(),
-);
+    : getDefaultPersistedState().customSalaryRaises),
+]);
 
-export const customWorkingHoursChanges = signal<WorkingHoursChangeAction[]>(
-  initialPersisted.customWorkingHoursChanges &&
-    initialPersisted.customWorkingHoursChanges.length > 0
+export const customWorkingHoursChanges = signal<WorkingHoursChangeAction[]>([
+  ...(initialPersisted.customWorkingHoursChanges &&
+  initialPersisted.customWorkingHoursChanges.length > 0
     ? (initialPersisted.customWorkingHoursChanges as WorkingHoursChangeAction[])
-    : createDefaultWorkingHoursChanges(),
-);
+    : getDefaultPersistedState().customWorkingHoursChanges || []),
+]);
 
-export const customFinancialEvents = signal<FinancialEventAction[]>(
-  initialPersisted.customFinancialEvents &&
-    initialPersisted.customFinancialEvents.length > 0
+export const customFinancialEvents = signal<FinancialEventAction[]>([
+  ...(initialPersisted.customFinancialEvents &&
+  initialPersisted.customFinancialEvents.length > 0
     ? (initialPersisted.customFinancialEvents as FinancialEventAction[])
-    : createDefaultFinancialEvents(),
-);
+    : getDefaultPersistedState().customFinancialEvents),
+]);
 
 // Batch 1 Mutation Helpers
 export function addPregnancyAction(action: PregnancyAction) {

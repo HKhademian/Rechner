@@ -248,9 +248,6 @@ export default function SandboxControls(): JSX.Element {
   ): void => {
     if (presetName === "default") {
       resetToDefaults();
-      setSalaryInputMode(SalaryInputMode.Gross);
-      setHusbandGross(4500);
-      setWifeGross(3000);
     } else if (presetName === "high_earner") {
       setSalaryInputMode(SalaryInputMode.Gross);
       setHusbandGross(8200);

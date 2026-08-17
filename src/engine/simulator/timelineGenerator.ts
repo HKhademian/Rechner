@@ -56,6 +56,11 @@ import {
 import { createTransaction } from "#engine/ledger/transaction";
 import { buildMonthlyLedgerEntry } from "#engine/ledger/ledger";
 import {
+  computeGrossToNetBreakdown,
+  computeMonthlyNetSalary,
+} from "#engine/tax/wageTax";
+import { getDefaultPersistedState } from "#engine/storage/persistence";
+import {
   computeMonthlySwapWithholdingVariance,
   computeAnnualTaxReconciliation,
   computeKinderfreibetragGuenstigerpruefung,
@@ -68,10 +73,6 @@ import {
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import { computeSiblingBonus } from "#engine/benefits/siblingBonus";
-import {
-  computeGrossToNetBreakdown,
-  computeMonthlyNetSalary,
-} from "#engine/tax/wageTax";
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
@@ -685,9 +686,10 @@ export function runScenarioBatches(
   const taxRefundByMonth: Record<number, EuroAmount> = {};
   const tMonth = (preexisting.taxReturnMonth as number) ?? 3;
   const baseStandardRefund = toEuroAmount(850);
+  const defaultState = getDefaultPersistedState();
   const monthlyKg = preexisting.kindergeldPerChild
     ? (preexisting.kindergeldPerChild as number)
-    : 259;
+    : (defaultState.kindergeldPerChild as number);
 
   rawMonths.forEach((rm) => {
     if ((rm.calendarMonthNum as number) === tMonth) {
@@ -697,7 +699,7 @@ export function runScenarioBatches(
       // Calculate annual taxable income in reconciledCalYear
       const husbandGrossMonthly = preexisting.husbandGross
         ? (preexisting.husbandGross as number)
-        : 4500;
+        : (defaultState.husbandGross as number);
       const husbandBreakdown = computeGrossToNetBreakdown(
         toGrossSalary(husbandGrossMonthly),
         TaxClass.III,
@@ -709,14 +711,16 @@ export function runScenarioBatches(
       // Calculate wife annual earned gross based on pre-birth FT / post-birth PT status in that calendar year
       const wifeFTGross = preexisting.wifeGross
         ? (preexisting.wifeGross as number)
-        : 3000;
+        : (defaultState.wifeGross as number);
       const wifeHoursPT = preexisting.wifePostBirthWeeklyHours
         ? (preexisting.wifePostBirthWeeklyHours as number)
-        : 24;
+        : (defaultState.wifePostBirthHours as number);
       const wifeHoursFT = preexisting.wifeWeeklyHours
         ? (preexisting.wifeWeeklyHours as number)
-        : 40;
-      const wifePTGross = Math.round(wifeFTGross * (wifeHoursPT / wifeHoursFT));
+        : (defaultState.wifeInitialHours as number);
+      const wifePTGross = Math.round(
+        wifeFTGross * (wifeHoursPT / Math.max(1, wifeHoursFT)),
+      );
 
       let wifeEarnedGrossInYear = 0;
       rawMonths

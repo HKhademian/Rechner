@@ -132,7 +132,7 @@
       }
     ],
     "activeScenario": "C",
-    "chartMode": "STACKED_BAR",
-    "timeRangeFilter": "ALL"
+    "chartMode": "stacked_bar",
+    "timeRangeFilter": "all"
   }
 }

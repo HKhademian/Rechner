@@ -115,170 +115,358 @@ export interface ElterngeldPersistedState {
 }
 
 /**
- * Hardcoded statutory baseline state used as the ultimate fallback
- * if defaultScenario.json is corrupted or unparseable.
+ * Parses and validates raw scenario JSON (such as src/data/defaultScenario.json)
+ * into a strongly-typed ElterngeldPersistedState with zero hardcoded default values.
  */
-export function getHardcodedFallbackState(): ElterngeldPersistedState {
+export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
+  if (!raw || typeof raw !== "object") {
+    throw new TypeError("Scenario JSON payload must be a non-null object.");
+  }
+  const root = raw as Record<string, unknown>;
+  const obj =
+    typeof root.simulationState === "object" && root.simulationState !== null
+      ? (root.simulationState as Record<string, unknown>)
+      : root;
+
+  const salaryInputModeVal =
+    typeof obj.salaryInputMode === "string"
+      ? toSalaryInputMode(obj.salaryInputMode)
+      : SalaryInputMode.Gross;
+
+  const salaryPeriodVal =
+    typeof obj.salaryPeriod === "string"
+      ? toSalaryPeriod(obj.salaryPeriod)
+      : SalaryPeriod.Monthly;
+
+  const activeScenarioVal =
+    typeof obj.activeScenario === "string"
+      ? toActiveScenarioView(obj.activeScenario)
+      : ActiveScenarioView.C;
+
+  const chartModeVal =
+    typeof obj.chartMode === "string"
+      ? toTimelineChartMode(obj.chartMode)
+      : TimelineChartMode.StackedBar;
+
+  const timeRangeFilterVal =
+    typeof obj.timeRangeFilter === "string"
+      ? toTimelineTimeRangeFilter(obj.timeRangeFilter)
+      : TimelineTimeRangeFilter.All;
+
+  const husbandGross = toGrossSalary(Number(obj.husbandGross) || 0);
+  const wifeGross = toGrossSalary(Number(obj.wifeGross) || 0);
+  const husbandHours = toWorkingHours(Number(obj.husbandHours) || 0);
+  const wifeInitialHours = toWorkingHours(Number(obj.wifeInitialHours) || 0);
+  const wifePostBirthHours = toWorkingHours(
+    Number(obj.wifePostBirthHours) || 0,
+  );
+
+  const husbandClass3Net = toNetSalary(Number(obj.husbandClass3Net) || 0);
+  const husbandClass5Net = toNetSalary(Number(obj.husbandClass5Net) || 0);
+  const wifeClass5FullTimeNet = toNetSalary(
+    Number(obj.wifeClass5FullTimeNet) || 0,
+  );
+  const wifeClass3FullTimeNet = toNetSalary(
+    Number(obj.wifeClass3FullTimeNet) || 0,
+  );
+
+  const husbandInitialTaxClass =
+    typeof obj.husbandInitialTaxClass === "string"
+      ? toTaxClass(obj.husbandInitialTaxClass)
+      : TaxClass.III;
+
+  const wifeInitialTaxClass =
+    typeof obj.wifeInitialTaxClass === "string"
+      ? toTaxClass(obj.wifeInitialTaxClass)
+      : TaxClass.V;
+
+  const useInitialTaxFactor = Boolean(obj.useInitialTaxFactor);
+
+  const annualBonusGross = toGrossSalary(Number(obj.annualBonusGross) || 0);
+  const annualBonusMonth = toCalendarMonth(Number(obj.annualBonusMonth) || 12);
+  const investmentReturnMonthly = toEuroAmount(
+    Number(obj.investmentReturnMonthly) || 0,
+  );
+
+  const kindergeldPerChild = toEuroAmount(Number(obj.kindergeldPerChild) || 0);
+  const enable13thSalary = Boolean(obj.enable13thSalary);
+  const bonus40Month = toCalendarMonth(Number(obj.bonus40Month) || 5);
+  const bonus60Month = toCalendarMonth(Number(obj.bonus60Month) || 11);
+  const taxReturnMonth = toCalendarMonth(Number(obj.taxReturnMonth) || 3);
+  const showSpecialEventRows = Boolean(obj.showSpecialEventRows);
+  const enableSalaryRaises = Boolean(obj.enableSalaryRaises);
+  const annualSalaryRaisePercent = Number(obj.annualSalaryRaisePercent) || 0;
+
+  const startCalendarYear = Number(obj.startCalendarYear) || 2026;
+  const startCalendarMonth = toCalendarMonth(
+    Number(obj.startCalendarMonth) || 1,
+  );
+  const simulationDurationMonths = Number(obj.simulationDurationMonths) || 60;
+  const prePregnancyPlanningMonths =
+    Number(obj.prePregnancyPlanningMonths) || 0;
+  const child1BirthMonth = toSimulationMonth(Number(obj.child1BirthMonth) || 1);
+  const birthSpacingMonths = Number(obj.birthSpacingMonths) || 0;
+  const swapLeadMonths = Number(obj.swapLeadMonths) || 0;
+  const preMutterschutzMonths = Number(obj.preMutterschutzMonths) || 0;
+  const postMutterschutzMonths = Number(obj.postMutterschutzMonths) || 0;
+
+  const customPregnancies: readonly PregnancyAction[] = Array.isArray(
+    obj.customPregnancies,
+  )
+    ? obj.customPregnancies.map((p, idx) => {
+        const pObj = (p && typeof p === "object" ? p : {}) as Record<
+          string,
+          unknown
+        >;
+        return {
+          pregnancyId: toPregnancyId(
+            typeof pObj.pregnancyId === "string"
+              ? pObj.pregnancyId
+              : `PREG-CHILD-${idx + 1}`,
+          ),
+          childIndex: Number(pObj.childIndex) || idx + 1,
+          positiveTestCalendarMonth: toCalendarMonth(
+            Number(pObj.positiveTestCalendarMonth) || startCalendarMonth,
+          ),
+          positiveTestCalendarYear:
+            Number(pObj.positiveTestCalendarYear) || startCalendarYear,
+          positiveTestSimulationMonth: toSimulationMonth(
+            Number(pObj.positiveTestSimulationMonth) || 1,
+          ),
+          calculatedDeliverySimulationMonth: toSimulationMonth(
+            Number(pObj.calculatedDeliverySimulationMonth) || 1,
+          ),
+          motherPostBirthPartTimeHours: toWorkingHours(
+            Number(pObj.motherPostBirthPartTimeHours) || wifePostBirthHours,
+          ),
+          motherPostBirthPartTimeClass5Net: toNetSalary(
+            Number(pObj.motherPostBirthPartTimeClass5Net) || 0,
+          ),
+          motherPostBirthPartTimeClass3Net: toNetSalary(
+            Number(pObj.motherPostBirthPartTimeClass3Net) || 0,
+          ),
+          fatherPartnerMonthsCount: Number(pObj.fatherPartnerMonthsCount) || 0,
+        };
+      })
+    : [];
+
+  const customTaxClassSwitches: readonly TaxClassSwitchAction[] = Array.isArray(
+    obj.customTaxClassSwitches,
+  )
+    ? obj.customTaxClassSwitches.map((s, idx) => {
+        const sObj = (s && typeof s === "object" ? s : {}) as Record<
+          string,
+          unknown
+        >;
+        return {
+          switchId: toSwitchId(
+            typeof sObj.switchId === "string"
+              ? sObj.switchId
+              : `SWAP-CHILD-${idx + 1}`,
+          ),
+          effectiveSimulationMonth: toSimulationMonth(
+            Number(sObj.effectiveSimulationMonth) || 1,
+          ),
+          effectiveCalendarMonth: toCalendarMonth(
+            Number(sObj.effectiveCalendarMonth) || startCalendarMonth,
+          ),
+          effectiveCalendarYear:
+            Number(sObj.effectiveCalendarYear) || startCalendarYear,
+          targetHusbandTaxClass:
+            typeof sObj.targetHusbandTaxClass === "string"
+              ? toTaxClass(sObj.targetHusbandTaxClass)
+              : TaxClass.V,
+          targetWifeTaxClass:
+            typeof sObj.targetWifeTaxClass === "string"
+              ? toTaxClass(sObj.targetWifeTaxClass)
+              : TaxClass.III,
+          targetUseTaxFactor:
+            typeof sObj.targetUseTaxFactor === "boolean"
+              ? sObj.targetUseTaxFactor
+              : undefined,
+          targetTaxFactor:
+            typeof sObj.targetTaxFactor === "number" &&
+            sObj.targetTaxFactor > 0 &&
+            sObj.targetTaxFactor <= 1
+              ? toTaxFactor(sObj.targetTaxFactor)
+              : undefined,
+          revertHusbandTaxClass:
+            typeof sObj.revertHusbandTaxClass === "string"
+              ? toTaxClass(sObj.revertHusbandTaxClass)
+              : undefined,
+          revertWifeTaxClass:
+            typeof sObj.revertWifeTaxClass === "string"
+              ? toTaxClass(sObj.revertWifeTaxClass)
+              : undefined,
+          revertUseTaxFactor:
+            typeof sObj.revertUseTaxFactor === "boolean"
+              ? sObj.revertUseTaxFactor
+              : undefined,
+          statutoryReason:
+            typeof sObj.statutoryReason === "string"
+              ? sObj.statutoryReason
+              : "",
+          revertSimulationMonth:
+            sObj.revertSimulationMonth !== undefined
+              ? toSimulationMonth(Number(sObj.revertSimulationMonth) || 1)
+              : undefined,
+        };
+      })
+    : [];
+
+  const customSalaryRaises: readonly SalaryRaiseAction[] = Array.isArray(
+    obj.customSalaryRaises,
+  )
+    ? obj.customSalaryRaises.map((r, idx) => {
+        const rObj = (r && typeof r === "object" ? r : {}) as Record<
+          string,
+          unknown
+        >;
+        let rawPct = Number(rObj.percentageIncrease) || 0;
+        if (rawPct > 1) rawPct = rawPct / 100;
+        return {
+          raiseId: toRaiseId(
+            typeof rObj.raiseId === "string"
+              ? rObj.raiseId
+              : `RAISE-Y${idx + 2}`,
+          ),
+          effectiveSimulationMonth: toSimulationMonth(
+            Number(rObj.effectiveSimulationMonth) || (idx + 1) * 12 + 1,
+          ),
+          effectiveCalendarMonth: toCalendarMonth(
+            Number(rObj.effectiveCalendarMonth) || 1,
+          ),
+          effectiveCalendarYear:
+            Number(rObj.effectiveCalendarYear) || startCalendarYear + idx + 1,
+          targetPerson:
+            typeof rObj.targetPerson === "string"
+              ? toTargetPerson(rObj.targetPerson)
+              : TargetPerson.Both,
+          percentageIncrease: Math.min(1.0, Math.max(0, rawPct)),
+          reason: typeof rObj.reason === "string" ? rObj.reason : "",
+        };
+      })
+    : [];
+
+  const customWorkingHoursChanges: readonly WorkingHoursChangeAction[] =
+    Array.isArray(obj.customWorkingHoursChanges)
+      ? obj.customWorkingHoursChanges.map((h, idx) => {
+          const hObj = (h && typeof h === "object" ? h : {}) as Record<
+            string,
+            unknown
+          >;
+          return {
+            changeId: toHoursChangeId(
+              typeof hObj.changeId === "string"
+                ? hObj.changeId
+                : `HOURS-${idx + 1}`,
+            ),
+            effectiveSimulationMonth: toSimulationMonth(
+              Number(hObj.effectiveSimulationMonth) || 1,
+            ),
+            effectiveCalendarMonth: toCalendarMonth(
+              Number(hObj.effectiveCalendarMonth) || startCalendarMonth,
+            ),
+            effectiveCalendarYear:
+              Number(hObj.effectiveCalendarYear) || startCalendarYear,
+            targetPerson:
+              typeof hObj.targetPerson === "string"
+                ? toTargetPerson(hObj.targetPerson)
+                : TargetPerson.Wife,
+            weeklyHours: toWorkingHours(
+              Number(hObj.weeklyHours) || wifePostBirthHours,
+            ),
+            reason: typeof hObj.reason === "string" ? hObj.reason : "",
+          };
+        })
+      : [];
+
+  const customFinancialEvents: readonly FinancialEventAction[] = Array.isArray(
+    obj.customFinancialEvents,
+  )
+    ? obj.customFinancialEvents.map((e, idx) => {
+        const eObj = (e && typeof e === "object" ? e : {}) as Record<
+          string,
+          unknown
+        >;
+        return {
+          eventId: toFinancialEventId(
+            typeof eObj.eventId === "string" ? eObj.eventId : `FIN-${idx + 1}`,
+          ),
+          effectiveSimulationMonth: toSimulationMonth(
+            Number(eObj.effectiveSimulationMonth) || 1,
+          ),
+          effectiveCalendarMonth: toCalendarMonth(
+            Number(eObj.effectiveCalendarMonth) || startCalendarMonth,
+          ),
+          effectiveCalendarYear:
+            Number(eObj.effectiveCalendarYear) || startCalendarYear,
+          title:
+            typeof eObj.title === "string"
+              ? eObj.title
+              : `Custom Event #${idx + 1}`,
+          amount: toEuroAmount(Number(eObj.amount) || 0),
+          category:
+            typeof eObj.category === "string"
+              ? toFinancialEventCategory(eObj.category)
+              : FinancialEventCategory.CustomSpecial,
+          description:
+            typeof eObj.description === "string" ? eObj.description : "",
+        };
+      })
+    : [];
+
   return {
-    salaryInputMode: SalaryInputMode.Gross,
-    salaryPeriod: SalaryPeriod.Monthly,
-    husbandGross: toGrossSalary(4500),
-    wifeGross: toGrossSalary(3000),
-    husbandHours: toWorkingHours(32),
-    wifeInitialHours: toWorkingHours(40),
-    wifePostBirthHours: toWorkingHours(24),
-    husbandClass3Net: toNetSalary(3184),
-    husbandClass5Net: toNetSalary(2398),
-    wifeClass5FullTimeNet: toNetSalary(1975),
-    wifeClass3FullTimeNet: toNetSalary(2603),
-    husbandInitialTaxClass: TaxClass.III,
-    wifeInitialTaxClass: TaxClass.V,
-    useInitialTaxFactor: false,
-
-    annualBonusGross: toGrossSalary(0),
-    annualBonusMonth: toCalendarMonth(12),
-    investmentReturnMonthly: toEuroAmount(0),
-
-    kindergeldPerChild: toEuroAmount(259),
-    enable13thSalary: true,
-    bonus40Month: toCalendarMonth(5),
-    bonus60Month: toCalendarMonth(11),
-    taxReturnMonth: toCalendarMonth(3),
-    showSpecialEventRows: true,
-    enableSalaryRaises: false,
-    annualSalaryRaisePercent: 0,
-
-    startCalendarYear: 2026,
-    startCalendarMonth: toCalendarMonth(1),
-    simulationDurationMonths: 60,
-    prePregnancyPlanningMonths: 8,
-    child1BirthMonth: toSimulationMonth(17),
-    birthSpacingMonths: 27,
-    swapLeadMonths: 7,
-    preMutterschutzMonths: 1.5,
-    postMutterschutzMonths: 2,
-
-    customPregnancies: [
-      {
-        pregnancyId: toPregnancyId("PREG-CHILD-1"),
-        childIndex: 1,
-        positiveTestCalendarMonth: toCalendarMonth(9),
-        positiveTestCalendarYear: 2026,
-        positiveTestSimulationMonth: toSimulationMonth(9),
-        calculatedDeliverySimulationMonth: toSimulationMonth(17),
-        motherPostBirthPartTimeHours: toWorkingHours(24),
-        motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-        motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-        fatherPartnerMonthsCount: 4,
-      },
-      {
-        pregnancyId: toPregnancyId("PREG-CHILD-2"),
-        childIndex: 2,
-        positiveTestCalendarMonth: toCalendarMonth(12),
-        positiveTestCalendarYear: 2028,
-        positiveTestSimulationMonth: toSimulationMonth(36),
-        calculatedDeliverySimulationMonth: toSimulationMonth(44),
-        motherPostBirthPartTimeHours: toWorkingHours(24),
-        motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-        motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-        fatherPartnerMonthsCount: 4,
-      },
-    ],
-
-    customTaxClassSwitches: [
-      {
-        switchId: toSwitchId("SWAP-CHILD-1"),
-        effectiveSimulationMonth: toSimulationMonth(9),
-        effectiveCalendarMonth: toCalendarMonth(9),
-        effectiveCalendarYear: 2026,
-        targetHusbandTaxClass: TaxClass.V,
-        targetWifeTaxClass: TaxClass.III,
-        statutoryReason:
-          "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
-        revertSimulationMonth: toSimulationMonth(17),
-      },
-      {
-        switchId: toSwitchId("SWAP-CHILD-2"),
-        effectiveSimulationMonth: toSimulationMonth(36),
-        effectiveCalendarMonth: toCalendarMonth(12),
-        effectiveCalendarYear: 2028,
-        targetHusbandTaxClass: TaxClass.V,
-        targetWifeTaxClass: TaxClass.III,
-        statutoryReason:
-          "Optimize Child 2 Part-Time Elterngeld baseline (§ 2b BEEG)",
-        revertSimulationMonth: toSimulationMonth(44),
-      },
-    ],
-
-    customSalaryRaises: [],
-
-    customWorkingHoursChanges: [
-      {
-        changeId: toHoursChangeId("HOURS-WIFE-RETURN"),
-        effectiveSimulationMonth: toSimulationMonth(19),
-        effectiveCalendarMonth: toCalendarMonth(7),
-        effectiveCalendarYear: 2027,
-        targetPerson: TargetPerson.Wife,
-        weeklyHours: toWorkingHours(24),
-        reason:
-          "Post-birth Part-time return (Partnerschaftsbonus § 4b BEEG eligible)",
-      },
-      {
-        changeId: toHoursChangeId("HOURS-HUSBAND-BONUS"),
-        effectiveSimulationMonth: toSimulationMonth(31),
-        effectiveCalendarMonth: toCalendarMonth(7),
-        effectiveCalendarYear: 2028,
-        targetPerson: TargetPerson.Husband,
-        weeklyHours: toWorkingHours(32),
-        reason:
-          "Parental leave reduction (24-32h Partnerschaftsbonus § 4b BEEG)",
-      },
-    ],
-
-    customFinancialEvents: [
-      {
-        eventId: toFinancialEventId("FIN-CHILD1-EQUIPMENT"),
-        effectiveSimulationMonth: toSimulationMonth(17),
-        effectiveCalendarMonth: toCalendarMonth(5),
-        effectiveCalendarYear: 2027,
-        title: "Child #1 Initial Equipment (*Erstausstattung*)",
-        amount: toEuroAmount(-1500),
-        category: FinancialEventCategory.BabyEquipment,
-        description:
-          "Crib, stroller, car seat, changing table, and initial newborn essentials",
-      },
-      {
-        eventId: toFinancialEventId("FIN-CHILD1-KITA-DEPOSIT"),
-        effectiveSimulationMonth: toSimulationMonth(26),
-        effectiveCalendarMonth: toCalendarMonth(2),
-        effectiveCalendarYear: 2028,
-        title: "Kita Childcare Enrollment & Equipment (*Kita-Start*)",
-        amount: toEuroAmount(-600),
-        category: FinancialEventCategory.ChildcareFees,
-        description:
-          "One-off daycare entrance fee, activity deposit, and outdoor gear",
-      },
-    ],
-
-    activeScenario: ActiveScenarioView.C,
-    chartMode: TimelineChartMode.StackedBar,
-    timeRangeFilter: TimelineTimeRangeFilter.All,
+    salaryInputMode: salaryInputModeVal,
+    salaryPeriod: salaryPeriodVal,
+    husbandGross,
+    wifeGross,
+    husbandHours,
+    wifeInitialHours,
+    wifePostBirthHours,
+    husbandClass3Net,
+    husbandClass5Net,
+    wifeClass5FullTimeNet,
+    wifeClass3FullTimeNet,
+    husbandInitialTaxClass,
+    wifeInitialTaxClass,
+    useInitialTaxFactor,
+    annualBonusGross,
+    annualBonusMonth,
+    investmentReturnMonthly,
+    kindergeldPerChild,
+    enable13thSalary,
+    bonus40Month,
+    bonus60Month,
+    taxReturnMonth,
+    showSpecialEventRows,
+    enableSalaryRaises,
+    annualSalaryRaisePercent,
+    startCalendarYear,
+    startCalendarMonth,
+    simulationDurationMonths,
+    prePregnancyPlanningMonths,
+    child1BirthMonth,
+    birthSpacingMonths,
+    swapLeadMonths,
+    preMutterschutzMonths,
+    postMutterschutzMonths,
+    customPregnancies,
+    customTaxClassSwitches,
+    customSalaryRaises,
+    customWorkingHoursChanges,
+    customFinancialEvents,
+    activeScenario: activeScenarioVal,
+    chartMode: chartModeVal,
+    timeRangeFilter: timeRangeFilterVal,
   };
 }
 
 /**
- * Returns the project default persisted state loaded from src/data/defaultScenario.json
- * validated and sanitized against statutory domain constraints.
+ * Returns the project default persisted state loaded directly from src/data/defaultScenario.json.
  */
 export function getDefaultPersistedState(): ElterngeldPersistedState {
-  try {
-    return validateAndSanitizePersistedState(
-      defaultScenarioData,
-      getHardcodedFallbackState(),
-    );
-  } catch {
-    return getHardcodedFallbackState();
-  }
+  return parseRawScenarioData(defaultScenarioData);
 }
 
 /**
@@ -290,7 +478,7 @@ export function validateAndSanitizePersistedState(
   fallback?: ElterngeldPersistedState,
   warnings?: string[],
 ): ElterngeldPersistedState {
-  const defaults = fallback ?? getHardcodedFallbackState();
+  const defaults = fallback ?? getDefaultPersistedState();
   if (!raw || typeof raw !== "object") {
     return defaults;
   }
@@ -419,40 +607,74 @@ export function validateAndSanitizePersistedState(
           string,
           unknown
         >;
+        const defP = defaults.customPregnancies[idx];
         return {
           pregnancyId: toPregnancyId(
             typeof pObj.pregnancyId === "string"
               ? pObj.pregnancyId
-              : `PREG-CHILD-${idx + 1}`,
+              : defP?.pregnancyId || `PREG-CHILD-${idx + 1}`,
           ),
-          childIndex: num(pObj.childIndex, idx + 1, 1, 10),
+          childIndex: num(pObj.childIndex, defP?.childIndex ?? idx + 1, 1, 10),
           positiveTestCalendarMonth: toCalendarMonth(
-            num(pObj.positiveTestCalendarMonth, 9, 1, 12),
+            num(
+              pObj.positiveTestCalendarMonth,
+              defP?.positiveTestCalendarMonth ?? defaults.startCalendarMonth,
+              1,
+              12,
+            ),
           ),
           positiveTestCalendarYear: num(
             pObj.positiveTestCalendarYear,
-            2026,
-            2020,
-            2050,
+            defP?.positiveTestCalendarYear ?? defaults.startCalendarYear,
+            1900,
+            2100,
           ),
           positiveTestSimulationMonth: toSimulationMonth(
-            num(pObj.positiveTestSimulationMonth, 9, 1, 120),
+            num(
+              pObj.positiveTestSimulationMonth,
+              defP?.positiveTestSimulationMonth ?? 1,
+              1,
+              120,
+            ),
           ),
           calculatedDeliverySimulationMonth: toSimulationMonth(
-            num(pObj.calculatedDeliverySimulationMonth, 17, 1, 120),
+            num(
+              pObj.calculatedDeliverySimulationMonth,
+              defP?.calculatedDeliverySimulationMonth ??
+                (defP?.positiveTestSimulationMonth
+                  ? defP.positiveTestSimulationMonth + 8
+                  : 9),
+              1,
+              120,
+            ),
           ),
           motherPostBirthPartTimeHours: toWorkingHours(
-            num(pObj.motherPostBirthPartTimeHours, 24, 0, 60),
+            num(
+              pObj.motherPostBirthPartTimeHours,
+              defP?.motherPostBirthPartTimeHours ?? defaults.wifePostBirthHours,
+              0,
+              60,
+            ),
           ),
           motherPostBirthPartTimeClass5Net: toNetSalary(
-            num(pObj.motherPostBirthPartTimeClass5Net, 1328, 0, 100000),
+            num(
+              pObj.motherPostBirthPartTimeClass5Net,
+              defP?.motherPostBirthPartTimeClass5Net ?? 0,
+              0,
+              100000,
+            ),
           ),
           motherPostBirthPartTimeClass3Net: toNetSalary(
-            num(pObj.motherPostBirthPartTimeClass3Net, 1648, 0, 100000),
+            num(
+              pObj.motherPostBirthPartTimeClass3Net,
+              defP?.motherPostBirthPartTimeClass3Net ?? 0,
+              0,
+              100000,
+            ),
           ),
           fatherPartnerMonthsCount: num(
             pObj.fatherPartnerMonthsCount,
-            4,
+            defP?.fatherPartnerMonthsCount ?? 0,
             0,
             14,
           ),
@@ -469,82 +691,103 @@ export function validateAndSanitizePersistedState(
           string,
           unknown
         >;
-        let targetH: TaxClass = TaxClass.V;
+        const defS = defaults.customTaxClassSwitches[idx];
+        let targetH: TaxClass = defS?.targetHusbandTaxClass ?? TaxClass.V;
         if (typeof sObj.targetHusbandTaxClass === "string") {
           try {
             targetH = toTaxClass(sObj.targetHusbandTaxClass);
           } catch {
-            targetH = TaxClass.V;
+            targetH = defS?.targetHusbandTaxClass ?? TaxClass.V;
           }
         }
-        let targetW: TaxClass = TaxClass.III;
+        let targetW: TaxClass = defS?.targetWifeTaxClass ?? TaxClass.III;
         if (typeof sObj.targetWifeTaxClass === "string") {
           try {
             targetW = toTaxClass(sObj.targetWifeTaxClass);
           } catch {
-            targetW = TaxClass.III;
+            targetW = defS?.targetWifeTaxClass ?? TaxClass.III;
           }
         }
-        let revH: TaxClass | undefined = undefined;
+        let revH: TaxClass | undefined = defS?.revertHusbandTaxClass;
         if (typeof sObj.revertHusbandTaxClass === "string") {
           try {
             revH = toTaxClass(sObj.revertHusbandTaxClass);
           } catch {
-            revH = undefined;
+            revH = defS?.revertHusbandTaxClass;
           }
         }
-        let revW: TaxClass | undefined = undefined;
+        let revW: TaxClass | undefined = defS?.revertWifeTaxClass;
         if (typeof sObj.revertWifeTaxClass === "string") {
           try {
             revW = toTaxClass(sObj.revertWifeTaxClass);
           } catch {
-            revW = undefined;
+            revW = defS?.revertWifeTaxClass;
           }
         }
         return {
           switchId: toSwitchId(
             typeof sObj.switchId === "string"
               ? sObj.switchId
-              : `SWAP-CHILD-${idx + 1}`,
+              : defS?.switchId || `SWAP-CHILD-${idx + 1}`,
           ),
           effectiveSimulationMonth: toSimulationMonth(
-            num(sObj.effectiveSimulationMonth, 9, 1, 120),
+            num(
+              sObj.effectiveSimulationMonth,
+              defS?.effectiveSimulationMonth ?? 1,
+              1,
+              120,
+            ),
           ),
           effectiveCalendarMonth: toCalendarMonth(
-            num(sObj.effectiveCalendarMonth, 9, 1, 12),
+            num(
+              sObj.effectiveCalendarMonth,
+              defS?.effectiveCalendarMonth ?? defaults.startCalendarMonth,
+              1,
+              12,
+            ),
           ),
           effectiveCalendarYear: num(
             sObj.effectiveCalendarYear,
-            2026,
-            2020,
-            2050,
+            defS?.effectiveCalendarYear ?? defaults.startCalendarYear,
+            1900,
+            2100,
           ),
           targetHusbandTaxClass: targetH,
           targetWifeTaxClass: targetW,
           targetUseTaxFactor:
             typeof sObj.targetUseTaxFactor === "boolean"
               ? sObj.targetUseTaxFactor
-              : undefined,
+              : defS?.targetUseTaxFactor,
           targetTaxFactor:
             typeof sObj.targetTaxFactor === "number" &&
             sObj.targetTaxFactor > 0 &&
             sObj.targetTaxFactor <= 1
               ? toTaxFactor(sObj.targetTaxFactor)
-              : undefined,
+              : defS?.targetTaxFactor,
           revertHusbandTaxClass: revH,
           revertWifeTaxClass: revW,
           revertUseTaxFactor:
             typeof sObj.revertUseTaxFactor === "boolean"
               ? sObj.revertUseTaxFactor
-              : undefined,
+              : defS?.revertUseTaxFactor,
           statutoryReason: str(
             sObj.statutoryReason,
-            "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
+            defS?.statutoryReason ||
+              "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
           ),
           revertSimulationMonth:
             sObj.revertSimulationMonth !== undefined
-              ? toSimulationMonth(num(sObj.revertSimulationMonth, 17, 1, 120))
-              : undefined,
+              ? toSimulationMonth(
+                  num(
+                    sObj.revertSimulationMonth,
+                    defS?.revertSimulationMonth ??
+                      defS?.effectiveSimulationMonth ??
+                      1,
+                    1,
+                    120,
+                  ),
+                )
+              : defS?.revertSimulationMonth,
         };
       })
     : defaults.customTaxClassSwitches;
@@ -558,15 +801,21 @@ export function validateAndSanitizePersistedState(
           string,
           unknown
         >;
-        let tp: TargetPerson = TargetPerson.Both;
+        const defR = defaults.customSalaryRaises[idx];
+        let tp: TargetPerson = defR?.targetPerson ?? TargetPerson.Both;
         if (typeof rObj.targetPerson === "string") {
           try {
             tp = toTargetPerson(rObj.targetPerson);
           } catch {
-            tp = TargetPerson.Both;
+            tp = defR?.targetPerson ?? TargetPerson.Both;
           }
         }
-        let rawPct = num(rObj.percentageIncrease, 0.02, 0, 100);
+        let rawPct = num(
+          rObj.percentageIncrease,
+          defR?.percentageIncrease ?? 0,
+          0,
+          100,
+        );
         // Normalize percentage: if entered as e.g. 5 or 3 (meaning 5% or 3%), convert to 0.05 or 0.03
         if (rawPct > 1) {
           rawPct = rawPct / 100;
@@ -577,23 +826,36 @@ export function validateAndSanitizePersistedState(
           raiseId: toRaiseId(
             typeof rObj.raiseId === "string"
               ? rObj.raiseId
-              : `RAISE-Y${idx + 2}`,
+              : defR?.raiseId || `RAISE-Y${idx + 2}`,
           ),
           effectiveSimulationMonth: toSimulationMonth(
-            num(rObj.effectiveSimulationMonth, 13, 1, 120),
+            num(
+              rObj.effectiveSimulationMonth,
+              defR?.effectiveSimulationMonth ?? (idx + 1) * 12 + 1,
+              1,
+              120,
+            ),
           ),
           effectiveCalendarMonth: toCalendarMonth(
-            num(rObj.effectiveCalendarMonth, 1, 1, 12),
+            num(
+              rObj.effectiveCalendarMonth,
+              defR?.effectiveCalendarMonth ?? 1,
+              1,
+              12,
+            ),
           ),
           effectiveCalendarYear: num(
             rObj.effectiveCalendarYear,
-            2027,
-            2020,
-            2050,
+            defR?.effectiveCalendarYear ?? defaults.startCalendarYear + idx + 1,
+            1900,
+            2100,
           ),
           targetPerson: tp,
           percentageIncrease: rawPct,
-          reason: str(rObj.reason, "Annual Merit / Tariff Raise"),
+          reason: str(
+            rObj.reason,
+            defR?.reason || "Annual Merit / Tariff Raise",
+          ),
         };
       })
     : defaults.customSalaryRaises;
@@ -606,35 +868,53 @@ export function validateAndSanitizePersistedState(
             string,
             unknown
           >;
-          let tp: TargetPerson = TargetPerson.Wife;
+          const defH = defaults.customWorkingHoursChanges?.[idx];
+          let tp: TargetPerson = defH?.targetPerson ?? TargetPerson.Wife;
           if (typeof hObj.targetPerson === "string") {
             try {
               tp = toTargetPerson(hObj.targetPerson);
             } catch {
-              tp = TargetPerson.Wife;
+              tp = defH?.targetPerson ?? TargetPerson.Wife;
             }
           }
           return {
             changeId: toHoursChangeId(
               typeof hObj.changeId === "string" && hObj.changeId.length > 0
                 ? hObj.changeId
-                : `HOURS-CHANGE-${idx + 1}`,
+                : defH?.changeId || `HOURS-CHANGE-${idx + 1}`,
             ),
             effectiveSimulationMonth: toSimulationMonth(
-              num(hObj.effectiveSimulationMonth, 19, 1, 120),
+              num(
+                hObj.effectiveSimulationMonth,
+                defH?.effectiveSimulationMonth ?? 1,
+                1,
+                120,
+              ),
             ),
             effectiveCalendarMonth: toCalendarMonth(
-              num(hObj.effectiveCalendarMonth, 7, 1, 12),
+              num(
+                hObj.effectiveCalendarMonth,
+                defH?.effectiveCalendarMonth ?? defaults.startCalendarMonth,
+                1,
+                12,
+              ),
             ),
             effectiveCalendarYear: num(
               hObj.effectiveCalendarYear,
-              2027,
-              2020,
-              2050,
+              defH?.effectiveCalendarYear ?? defaults.startCalendarYear,
+              1900,
+              2100,
             ),
             targetPerson: tp,
-            weeklyHours: toWorkingHours(num(hObj.weeklyHours, 24, 0, 60)),
-            reason: str(hObj.reason, "Schedule adjustment"),
+            weeklyHours: toWorkingHours(
+              num(
+                hObj.weeklyHours,
+                defH?.weeklyHours ?? defaults.wifePostBirthHours,
+                0,
+                60,
+              ),
+            ),
+            reason: str(hObj.reason, defH?.reason || "Schedule adjustment"),
           };
         })
       : defaults.customWorkingHoursChanges || [];
@@ -648,36 +928,48 @@ export function validateAndSanitizePersistedState(
           string,
           unknown
         >;
-        let cat: FinancialEventCategory = FinancialEventCategory.CustomSpecial;
+        const defE = defaults.customFinancialEvents[idx];
+        let cat: FinancialEventCategory =
+          defE?.category ?? FinancialEventCategory.CustomSpecial;
         if (typeof eObj.category === "string") {
           try {
             cat = toFinancialEventCategory(eObj.category);
           } catch {
-            cat = FinancialEventCategory.CustomSpecial;
+            cat = defE?.category ?? FinancialEventCategory.CustomSpecial;
           }
         }
         return {
           eventId: toFinancialEventId(
             typeof eObj.eventId === "string"
               ? eObj.eventId
-              : `FIN-EVENT-${idx + 1}`,
+              : defE?.eventId || `FIN-EVENT-${idx + 1}`,
           ),
           effectiveSimulationMonth: toSimulationMonth(
-            num(eObj.effectiveSimulationMonth, 17, 1, 120),
+            num(
+              eObj.effectiveSimulationMonth,
+              defE?.effectiveSimulationMonth ?? 1,
+              1,
+              120,
+            ),
           ),
           effectiveCalendarMonth: toCalendarMonth(
-            num(eObj.effectiveCalendarMonth, 5, 1, 12),
+            num(
+              eObj.effectiveCalendarMonth,
+              defE?.effectiveCalendarMonth ?? defaults.startCalendarMonth,
+              1,
+              12,
+            ),
           ),
           effectiveCalendarYear: num(
             eObj.effectiveCalendarYear,
-            2027,
-            2020,
-            2050,
+            defE?.effectiveCalendarYear ?? defaults.startCalendarYear,
+            1900,
+            2100,
           ),
-          title: str(eObj.title, `Custom Event #${idx + 1}`),
-          amount: toEuroAmount(num(eObj.amount, 0)),
+          title: str(eObj.title, defE?.title || `Custom Event #${idx + 1}`),
+          amount: toEuroAmount(num(eObj.amount, defE?.amount ?? 0)),
           category: cat,
-          description: str(eObj.description, ""),
+          description: str(eObj.description, defE?.description || ""),
         };
       })
     : defaults.customFinancialEvents;

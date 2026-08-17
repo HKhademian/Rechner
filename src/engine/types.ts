@@ -657,13 +657,14 @@ export function isFinancialEventId(val: unknown): val is FinancialEventId {
 }
 
 export function toFinancialEventCategory(val: string): FinancialEventCategory {
-  const values = Object.values(FinancialEventCategory) as string[];
-  if (!values.includes(val)) {
-    throw new TypeError(
-      `Invalid FinancialEventCategory: ${val}. Expected one of: ${values.join(", ")}.`,
-    );
+  for (const [k, v] of Object.entries(FinancialEventCategory)) {
+    if (v === val) return v;
+    if (k.toLowerCase() === val.toLowerCase().replace(/_/g, "")) return v;
   }
-  return val as FinancialEventCategory;
+  const values = Object.values(FinancialEventCategory) as string[];
+  throw new TypeError(
+    `Invalid FinancialEventCategory: ${val}. Expected one of: ${values.join(", ")}.`,
+  );
 }
 
 export function toActionCategory(val: string): ActionCategory {
@@ -727,25 +728,31 @@ export function toActiveScenarioView(val: string): ActiveScenarioView {
 }
 
 export function toTimelineChartMode(val: string): TimelineChartMode {
-  const values = Object.values(TimelineChartMode) as string[];
-  if (!values.includes(val)) {
-    throw new TypeError(
-      `Invalid TimelineChartMode: ${val}. Expected one of: ${values.join(", ")}.`,
-    );
+  const norm = val.toLowerCase().replace(/_/g, "");
+  for (const v of Object.values(TimelineChartMode)) {
+    if (v.toLowerCase().replace(/_/g, "") === norm) {
+      return v;
+    }
   }
-  return val as TimelineChartMode;
+  const values = Object.values(TimelineChartMode) as string[];
+  throw new TypeError(
+    `Invalid TimelineChartMode: ${val}. Expected one of: ${values.join(", ")}.`,
+  );
 }
 
 export function toTimelineTimeRangeFilter(
   val: string,
 ): TimelineTimeRangeFilter {
-  const values = Object.values(TimelineTimeRangeFilter) as string[];
-  if (!values.includes(val)) {
-    throw new TypeError(
-      `Invalid TimelineTimeRangeFilter: ${val}. Expected one of: ${values.join(", ")}.`,
-    );
+  const norm = val.toLowerCase().replace(/_/g, "");
+  for (const v of Object.values(TimelineTimeRangeFilter)) {
+    if (v.toLowerCase().replace(/_/g, "") === norm) {
+      return v;
+    }
   }
-  return val as TimelineTimeRangeFilter;
+  const values = Object.values(TimelineTimeRangeFilter) as string[];
+  throw new TypeError(
+    `Invalid TimelineTimeRangeFilter: ${val}. Expected one of: ${values.join(", ")}.`,
+  );
 }
 
 export function toFieldColumnKey(val: string): FieldColumnKey {

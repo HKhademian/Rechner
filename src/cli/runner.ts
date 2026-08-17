@@ -58,6 +58,7 @@ import {
   type FieldExplanation,
   type RowExplanation,
 } from "#engine/explanation/timelineExplainer";
+import { getDefaultPersistedState } from "#engine/storage/persistence";
 
 // ANSI Color Codes
 const RESET = "\x1b[0m";
@@ -844,80 +845,83 @@ function buildSimulation(
   const lead = 7;
 
   // Calculate dynamic or default spousal nets (normalizing yearly inputs if provided)
+  const def = getDefaultPersistedState();
   const husbandGrossMonthly = opts.husbandGross
     ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
       ? Math.round(opts.husbandGross / 12)
       : opts.husbandGross
-    : undefined;
+    : (def.husbandGross as number);
   const wifeGrossMonthly = opts.wifeGross
     ? opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000
       ? Math.round(opts.wifeGross / 12)
       : opts.wifeGross
-    : undefined;
+    : (def.wifeGross as number);
 
-  const hasGrossInputs =
-    husbandGrossMonthly !== undefined || wifeGrossMonthly !== undefined;
-  const spousal = hasGrossInputs
-    ? deriveSpousalNetSalaries(
-        toGrossSalary(husbandGrossMonthly || 6000),
-        toGrossSalary(wifeGrossMonthly || 3000),
-        toWorkingHours(opts.wifeHours || 24),
-        toWorkingHours(40),
-        opts.childrenCount,
-      )
-    : null;
+  const spousal = deriveSpousalNetSalaries(
+    toGrossSalary(husbandGrossMonthly),
+    toGrossSalary(wifeGrossMonthly),
+    toWorkingHours(opts.wifeHours || (def.wifePostBirthHours as number)),
+    toWorkingHours(def.wifeInitialHours as number),
+    opts.childrenCount,
+  );
 
   // Batch 0: Preexisting conditions
   const preexisting: PreexistingConditions = {
     startCalendarYear: opts.startYear,
     startCalendarMonth: toCalendarMonth(opts.startMonth),
     simulationDurationMonths: opts.duration,
-    salaryInputMode: hasGrossInputs
-      ? SalaryInputMode.Gross
-      : SalaryInputMode.Net,
+    salaryInputMode: def.salaryInputMode,
     salaryPeriod: opts.period,
-    husbandGross: husbandGrossMonthly
-      ? toGrossSalary(husbandGrossMonthly)
-      : undefined,
-    wifeGross: wifeGrossMonthly ? toGrossSalary(wifeGrossMonthly) : undefined,
-    husbandInitialTaxClass: TaxClass.III,
-    husbandInitialNet: spousal ? spousal.husbandClass3Net : toNetSalary(2895),
+    husbandGross: toGrossSalary(husbandGrossMonthly),
+    wifeGross: toGrossSalary(wifeGrossMonthly),
+    husbandInitialTaxClass: def.husbandInitialTaxClass ?? TaxClass.III,
+    husbandInitialNet: spousal
+      ? spousal.husbandClass3Net
+      : def.husbandClass3Net,
     husbandInitialClass5Net: spousal
       ? spousal.husbandClass5Net
-      : toNetSalary(2191),
-    husbandWeeklyHours: toWorkingHours(opts.husbandHours || 32),
-    wifeInitialTaxClass: TaxClass.V,
+      : def.husbandClass5Net,
+    husbandWeeklyHours: toWorkingHours(
+      opts.husbandHours || (def.husbandHours as number),
+    ),
+    wifeInitialTaxClass: def.wifeInitialTaxClass ?? TaxClass.V,
     wifeInitialFullTimeNet: spousal
       ? spousal.wifeClass5FullTimeNet
-      : toNetSalary(1975),
+      : def.wifeClass5FullTimeNet,
     wifeInitialClass3FullTimeNet: spousal
       ? spousal.wifeClass3FullTimeNet
-      : toNetSalary(2603),
+      : def.wifeClass3FullTimeNet,
     wifeInitialPartTimeClass5Net: spousal
       ? spousal.wifeClass5PartTimeNet
-      : toNetSalary(1328),
+      : def.wifeClass5FullTimeNet,
     wifeInitialPartTimeClass3Net: spousal
       ? spousal.wifeClass3PartTimeNet
-      : toNetSalary(1648),
-    wifeWeeklyHours: toWorkingHours(40),
-    wifePostBirthWeeklyHours: toWorkingHours(opts.wifeHours || 24),
+      : def.wifeClass3FullTimeNet,
+    wifeWeeklyHours: toWorkingHours(def.wifeInitialHours as number),
+    wifePostBirthWeeklyHours: toWorkingHours(
+      opts.wifeHours || (def.wifePostBirthHours as number),
+    ),
     annualBonusGross: opts.annualBonusGross
       ? toEuroAmount(opts.annualBonusGross)
-      : undefined,
-    annualBonusMonth: toCalendarMonth(12),
+      : def.annualBonusGross,
+    annualBonusMonth: def.annualBonusMonth,
     investmentReturnMonthly: opts.investmentReturnMonthly
       ? toEuroAmount(opts.investmentReturnMonthly)
-      : undefined,
+      : def.investmentReturnMonthly,
     existingChildrenCount: opts.childrenCount,
-    kindergeldPerChild: toEuroAmount(259),
+    kindergeldPerChild: def.kindergeldPerChild,
     enable13thSalary: opts.enable13th,
-    bonus40Month: toCalendarMonth(5),
-    bonus60Month: toCalendarMonth(11),
+    bonus40Month: def.bonus40Month,
+    bonus60Month: def.bonus60Month,
     taxReturnMonth: toCalendarMonth(opts.taxReturnMonth),
   };
 
-  const ptNet5 = spousal ? spousal.wifeClass5PartTimeNet : toNetSalary(1328);
-  const ptNet3 = spousal ? spousal.wifeClass3PartTimeNet : toNetSalary(1648);
+  const ptNet5 = spousal
+    ? spousal.wifeClass5PartTimeNet
+    : def.wifeClass5FullTimeNet;
+  const ptNet3 = spousal
+    ? spousal.wifeClass3PartTimeNet
+    : def.wifeClass3FullTimeNet;
 
   // Batch 1: Pregnancy Actions
   const pregnancies: PregnancyAction[] = [
@@ -1169,22 +1173,23 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
   }
 
   if (opts.mode === CliMode.SpousalNet) {
+    const def = getDefaultPersistedState();
     const hGrossMonthly = opts.husbandGross
       ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
         ? Math.round(opts.husbandGross / 12)
         : opts.husbandGross
-      : 4500;
+      : (def.husbandGross as number);
     const wGrossMonthly = opts.wifeGross
       ? opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000
         ? Math.round(opts.wifeGross / 12)
         : opts.wifeGross
-      : 3000;
-    const wHours = opts.wifeHours || 24;
+      : (def.wifeGross as number);
+    const wHours = opts.wifeHours || (def.wifePostBirthHours as number);
     const spousal = deriveSpousalNetSalaries(
       toGrossSalary(hGrossMonthly),
       toGrossSalary(wGrossMonthly),
       toWorkingHours(wHours),
-      toWorkingHours(40),
+      toWorkingHours(def.wifeInitialHours as number),
       opts.childrenCount,
     );
 
