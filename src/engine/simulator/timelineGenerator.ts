@@ -31,10 +31,12 @@ import {
   type WorkingHoursChangeAction,
   type FinancialEventAction,
   type ScenarioActionBatches,
+  type MonthId,
   FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
+  toMonthId,
   toEuroAmount,
   toGrossSalary,
   toNetSalary,
@@ -156,6 +158,7 @@ export function runScenarioBatches(
 
   // PASS 1: Month-by-month state reduction across action batches
   interface RawMonth {
+    readonly monthId: MonthId;
     readonly month: SimulationMonth;
     readonly year: CalendarYear;
     readonly monthInYear: CalendarMonth;
@@ -163,6 +166,8 @@ export function runScenarioBatches(
     readonly calendarMonthNum: CalendarMonth;
     readonly calendarLabel: string;
     readonly relativeBirthLabel: string;
+    readonly relativeMonthLabel: string;
+    readonly relativeMonthIndex: number;
     readonly husbandSalary: EuroAmount;
     readonly wifeSalary: EuroAmount;
     readonly mutterschutz: EuroAmount;
@@ -197,26 +202,36 @@ export function runScenarioBatches(
     const calendarMonthNum = toCalendarMonth((totalElapsedMonths % 12) + 1);
     const calendarYearNum = startYear + Math.floor(totalElapsedMonths / 12);
     const calendarLabel = `${String(calendarMonthNum).padStart(2, "0")}.${calendarYearNum}`;
+    const monthId = toMonthId(calendarMonthNum, calendarYearNum);
     const year = toCalendarYear(Math.min(10, Math.ceil(m / 12)));
     const monthInYear = toCalendarMonth(((m - 1) % 12) + 1);
 
-    // Mx counter relative to first pregnancy positive test (M0 = Positive Test)
+    // Mx counter starting from first pregnancy positive test (M1 = Positive Test)
     const preg1PositiveMonth =
       (pregnancies[0]?.positiveTestSimulationMonth as number) ??
       Math.max(1, child1Delivery - 8);
+    let relativeMonthIndex: number;
     let relativeBirthLabel: string;
+    let relativeMonthLabel: string;
+
     if (m < preg1PositiveMonth) {
-      relativeBirthLabel = `M-${preg1PositiveMonth - m}`;
-    } else if (m === preg1PositiveMonth) {
-      relativeBirthLabel = "M0 (Pregnancy Positive)";
+      relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
+      relativeBirthLabel = `M${relativeMonthIndex}`;
+      relativeMonthLabel = `M${relativeMonthIndex}`;
     } else {
-      const offset = m - preg1PositiveMonth;
-      if (m === child1Delivery) {
-        relativeBirthLabel = `M+${offset} (Birth 1)`;
+      relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
+      if (m === preg1PositiveMonth) {
+        relativeBirthLabel = "M1 (Pregnancy Positive)";
+        relativeMonthLabel = "M1 (Pregnancy Positive)";
+      } else if (m === child1Delivery) {
+        relativeBirthLabel = `M${relativeMonthIndex} (Birth 1)`;
+        relativeMonthLabel = `M${relativeMonthIndex} (Birth 1)`;
       } else if (m === child2Delivery) {
-        relativeBirthLabel = `M+${offset} (Birth 2)`;
+        relativeBirthLabel = `M${relativeMonthIndex} (Birth 2)`;
+        relativeMonthLabel = `M${relativeMonthIndex} (Birth 2)`;
       } else {
-        relativeBirthLabel = `M+${offset}`;
+        relativeBirthLabel = `M${relativeMonthIndex}`;
+        relativeMonthLabel = `M${relativeMonthIndex}`;
       }
     }
 
@@ -619,6 +634,7 @@ export function runScenarioBatches(
     }
 
     rawMonths.push({
+      monthId,
       month: sMonth,
       year,
       monthInYear,
@@ -626,6 +642,8 @@ export function runScenarioBatches(
       calendarMonthNum,
       calendarLabel,
       relativeBirthLabel,
+      relativeMonthLabel,
+      relativeMonthIndex,
       husbandSalary,
       wifeSalary,
       mutterschutz,
@@ -790,7 +808,8 @@ export function runScenarioBatches(
     if ((rm.husbandSalary as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-HUSBAND-SALARY`,
+          transactionId: `TX-${rm.monthId}-HUSBAND-SALARY`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.SalaryBase,
@@ -808,7 +827,8 @@ export function runScenarioBatches(
     if ((rm.wifeSalary as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-WIFE-SALARY`,
+          transactionId: `TX-${rm.monthId}-WIFE-SALARY`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.SalaryBase,
@@ -826,7 +846,8 @@ export function runScenarioBatches(
     if ((bonus40Amount as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-BONUS-40`,
+          transactionId: `TX-${rm.monthId}-BONUS-40`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.SalaryBonus13thVacation,
@@ -844,7 +865,8 @@ export function runScenarioBatches(
     if ((bonus60Amount as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-BONUS-60`,
+          transactionId: `TX-${rm.monthId}-BONUS-60`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.SalaryBonus13thChristmas,
@@ -862,7 +884,8 @@ export function runScenarioBatches(
     if ((rm.mutterschutz as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-MUTTERSCHUTZ`,
+          transactionId: `TX-${rm.monthId}-MUTTERSCHUTZ`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.BenefitMutterschutz,
@@ -879,7 +902,8 @@ export function runScenarioBatches(
     if ((rm.wifeElterngeld as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-WIFE-ELTERNGELD`,
+          transactionId: `TX-${rm.monthId}-WIFE-ELTERNGELD`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.BenefitElterngeldPlusMother,
@@ -896,7 +920,8 @@ export function runScenarioBatches(
     if ((rm.husbandElterngeld as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-HUSBAND-ELTERNGELD`,
+          transactionId: `TX-${rm.monthId}-HUSBAND-ELTERNGELD`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: rm.isPartnerschaftsbonus
@@ -916,7 +941,8 @@ export function runScenarioBatches(
     if ((rm.kindergeld as number) > 0) {
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-KINDERGELD`,
+          transactionId: `TX-${rm.monthId}-KINDERGELD`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.BenefitKindergeld,
@@ -958,7 +984,8 @@ export function runScenarioBatches(
 
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-TAX-REFUND`,
+          transactionId: `TX-${rm.monthId}-TAX-REFUND`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.TaxReconciliationRefund,
@@ -1008,13 +1035,15 @@ export function runScenarioBatches(
     const specialEvents: SpecialEventItem[] = [];
     if ((bonus40Amount as number) > 0) {
       specialEvents.push({
-        eventId: toEventId(`EVENT-M${m}-BONUS40`),
+        eventId: toEventId(`EVENT-${rm.monthId}-BONUS40`),
+        monthId: rm.monthId,
         month: rm.month,
         year,
         calendarYearNum: rm.calendarYearNum,
         calendarMonthNum: rm.calendarMonthNum,
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
+        relativeMonthLabel: rm.relativeMonthLabel,
         type: SpecialEventType.Bonus40,
         title: `13th Month Salary: 40% Vacation Bonus (${rm.calendarLabel})`,
         category: SpecialEventCategory.ThirteenthSalary,
@@ -1028,13 +1057,15 @@ export function runScenarioBatches(
 
     if ((bonus60Amount as number) > 0) {
       specialEvents.push({
-        eventId: toEventId(`EVENT-M${m}-BONUS60`),
+        eventId: toEventId(`EVENT-${rm.monthId}-BONUS60`),
+        monthId: rm.monthId,
         month: rm.month,
         year,
         calendarYearNum: rm.calendarYearNum,
         calendarMonthNum: rm.calendarMonthNum,
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
+        relativeMonthLabel: rm.relativeMonthLabel,
         type: SpecialEventType.Bonus60,
         title: `13th Month Salary: 60% Christmas Bonus (${rm.calendarLabel})`,
         category: SpecialEventCategory.ThirteenthSalary,
@@ -1073,13 +1104,15 @@ export function runScenarioBatches(
       }
 
       specialEvents.push({
-        eventId: toEventId(`EVENT-M${m}-TAX-REFUND`),
+        eventId: toEventId(`EVENT-${rm.monthId}-TAX-REFUND`),
+        monthId: rm.monthId,
         month: rm.month,
         year,
         calendarYearNum: rm.calendarYearNum,
         calendarMonthNum: rm.calendarMonthNum,
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
+        relativeMonthLabel: rm.relativeMonthLabel,
         type: SpecialEventType.TaxReturn,
         title:
           extraGuenstiger > 0
@@ -1130,13 +1163,15 @@ export function runScenarioBatches(
       const netBonusEuro = toEuroAmount(netBonus);
 
       specialEvents.push({
-        eventId: toEventId(`EVENT-M${m}-ANNUAL-BONUS`),
+        eventId: toEventId(`EVENT-${rm.monthId}-ANNUAL-BONUS`),
+        monthId: rm.monthId,
         month: rm.month,
         year,
         calendarYearNum: rm.calendarYearNum,
         calendarMonthNum: rm.calendarMonthNum,
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
+        relativeMonthLabel: rm.relativeMonthLabel,
         type: SpecialEventType.CustomIncome,
         title: `Annual Performance Bonus (${grossBonus.toLocaleString("de-DE")} € Gross → +${netBonusEuro.toLocaleString("de-DE")} € Net)`,
         category: SpecialEventCategory.CareerBonus,
@@ -1148,7 +1183,8 @@ export function runScenarioBatches(
 
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-ANNUAL-BONUS`,
+          transactionId: `TX-${rm.monthId}-ANNUAL-BONUS`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.SpecialIncome,
@@ -1169,13 +1205,15 @@ export function runScenarioBatches(
     ) {
       const invNet = preexisting.investmentReturnMonthly;
       specialEvents.push({
-        eventId: toEventId(`EVENT-M${m}-INVESTMENT-RETURN`),
+        eventId: toEventId(`EVENT-${rm.monthId}-INVESTMENT-RETURN`),
+        monthId: rm.monthId,
         month: rm.month,
         year,
         calendarYearNum: rm.calendarYearNum,
         calendarMonthNum: rm.calendarMonthNum,
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
+        relativeMonthLabel: rm.relativeMonthLabel,
         type: SpecialEventType.CustomIncome,
         title: `Investment & Capital Return (+${(invNet as number).toLocaleString("de-DE")} €)`,
         category: SpecialEventCategory.InvestmentReturn,
@@ -1187,7 +1225,8 @@ export function runScenarioBatches(
 
       txs.push(
         createTransaction({
-          transactionId: `TX-M${m}-INVESTMENT-RETURN`,
+          transactionId: `TX-${rm.monthId}-INVESTMENT-RETURN`,
+          monthId: rm.monthId,
           month: rm.month,
           year,
           type: TransactionType.SpecialIncome,
@@ -1214,12 +1253,14 @@ export function runScenarioBatches(
 
           specialEvents.push({
             eventId: toEventId(fe.eventId),
+            monthId: rm.monthId,
             month: rm.month,
             year,
             calendarYearNum: rm.calendarYearNum,
             calendarMonthNum: rm.calendarMonthNum,
             calendarLabel: rm.calendarLabel,
             relativeBirthLabel: rm.relativeBirthLabel,
+            relativeMonthLabel: rm.relativeMonthLabel,
             type: isCost
               ? SpecialEventType.CustomCost
               : SpecialEventType.CustomIncome,
@@ -1239,7 +1280,8 @@ export function runScenarioBatches(
 
           txs.push(
             createTransaction({
-              transactionId: `TX-M${m}-${fe.eventId}`,
+              transactionId: `TX-${rm.monthId}-${fe.eventId}`,
+              monthId: rm.monthId,
               month: rm.month,
               year,
               type: isCost
@@ -1270,10 +1312,12 @@ export function runScenarioBatches(
       const del = preg.calculatedDeliverySimulationMonth as number;
       if (m === pTest) {
         startingActions.push({
-          actionId: toActionId(`${preg.pregnancyId}-POSITIVE`),
+          actionId: toActionId(`${preg.pregnancyId}-${rm.monthId}-POSITIVE`),
+          monthId: rm.monthId,
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
           title: `ACTION: Positive Pregnancy Test (Child #${preg.childIndex})`,
           description: `Positive pregnancy test confirmed for Child #${preg.childIndex}. Pre-pregnancy baseline lock initiated (§ 2b BEEG).`,
           category: ActionCategory.Pregnancy,
@@ -1283,10 +1327,12 @@ export function runScenarioBatches(
       }
       if (m === del) {
         startingActions.push({
-          actionId: toActionId(`${preg.pregnancyId}-DELIVERY`),
+          actionId: toActionId(`${preg.pregnancyId}-${rm.monthId}-DELIVERY`),
+          monthId: rm.monthId,
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
           title: `ACTION: Child #${preg.childIndex} Delivery & Birth`,
           description: `Child #${preg.childIndex} born. Statutory Mutterschutz & ElterngeldPlus benefit eligibility begins.`,
           category: ActionCategory.Pregnancy,
@@ -1320,10 +1366,12 @@ export function runScenarioBatches(
 
       if (m === eff && scenarioKey === ScenarioId.C) {
         startingActions.push({
-          actionId: toActionId(`${sw.switchId}-EFFECTIVE`),
+          actionId: toActionId(`${sw.switchId}-${rm.monthId}-EFFECTIVE`),
+          monthId: rm.monthId,
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
           title: `ACTION: Tax Class Switch Active (H: ${effH} | W: ${effW})`,
           description:
             sw.statutoryReason ||
@@ -1335,10 +1383,12 @@ export function runScenarioBatches(
       }
       if (m === rev && scenarioKey === ScenarioId.C) {
         startingActions.push({
-          actionId: toActionId(`${sw.switchId}-REVERT`),
+          actionId: toActionId(`${sw.switchId}-${rm.monthId}-REVERT`),
+          monthId: rm.monthId,
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
           title: `ACTION: Tax Class Reversion (H: ${revH} | W: ${revW})`,
           description: `Reverting tax classes post-delivery back to baseline (${revH}/${revW}) to maximize family take-home pay.`,
           category: ActionCategory.TaxSwitch,
@@ -1353,10 +1403,12 @@ export function runScenarioBatches(
       const eff = sr.effectiveSimulationMonth as number;
       if (m === eff) {
         startingActions.push({
-          actionId: toActionId(`${sr.raiseId}-EFFECTIVE`),
+          actionId: toActionId(`${sr.raiseId}-${rm.monthId}-EFFECTIVE`),
+          monthId: rm.monthId,
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
           title: `ACTION: Salary Raise Effective (${sr.targetPerson.toUpperCase()} +${((sr.percentageIncrease || 0) * 100).toFixed(0)}%)`,
           description:
             sr.reason ||
@@ -1373,10 +1425,12 @@ export function runScenarioBatches(
       const eff = whc.effectiveSimulationMonth as number;
       if (m === eff) {
         startingActions.push({
-          actionId: toActionId(`${whc.changeId}-EFFECTIVE`),
+          actionId: toActionId(`${whc.changeId}-${rm.monthId}-EFFECTIVE`),
+          monthId: rm.monthId,
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
           title: `ACTION: Working Hours Adjustment (${whc.targetPerson.toUpperCase()}: ${whc.weeklyHours} h/wk)`,
           description:
             whc.reason ||
@@ -1396,6 +1450,7 @@ export function runScenarioBatches(
       nextCumulatedTotal,
     } = buildMonthlyLedgerEntry(
       {
+        monthId: rm.monthId,
         month: rm.month,
         year,
         monthInYear: rm.monthInYear,
@@ -1403,6 +1458,8 @@ export function runScenarioBatches(
         calendarMonthNum: rm.calendarMonthNum,
         calendarLabel: rm.calendarLabel,
         relativeBirthLabel: rm.relativeBirthLabel,
+        relativeMonthLabel: rm.relativeMonthLabel,
+        relativeMonthIndex: rm.relativeMonthIndex,
         husbandSalary: rm.husbandSalary,
         wifeSalary: rm.wifeSalary,
         mutterschutz: rm.mutterschutz,

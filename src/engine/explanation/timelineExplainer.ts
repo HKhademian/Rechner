@@ -998,20 +998,26 @@ export function getActionFieldExplanation(
   const isPregnancy = act.type === ActionType.PregnancyPositive;
   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
   const key = toExplanationFieldKey(fieldKey);
+  const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
 
   switch (key) {
     case ExplanationFieldKey.Month:
       return {
         fieldKey: ExplanationFieldKey.Month,
-        fieldTitle: `Action Milestone Event (Month ${m.month})`,
-        valueFormatted: `↳ M${m.month} Event (${m.calendarLabel})`,
-        derivationFormula: `Lifecycle action scheduled before Month ${m.month}`,
-        explanation: `This row represents a discrete user action / lifecycle milestone occurring immediately prior to Month ${m.month} (${m.calendarLabel}).`,
+        fieldTitle: `Action Milestone Event (${relLabel} · ${m.calendarLabel})`,
+        valueFormatted: `↳ ${relLabel} Event (${m.calendarLabel}) · ${m.monthId}`,
+        derivationFormula: `Lifecycle action scheduled before ${relLabel} (${m.calendarLabel})`,
+        explanation: `This row represents a discrete user action / lifecycle milestone occurring immediately prior to ${relLabel} (${m.calendarLabel}) [ID: ${m.monthId}].`,
         contributingFactors: [
           {
             name: "Action ID",
             value: act.actionId,
             description: "Unique action identifier",
+          },
+          {
+            name: "Month ID",
+            value: m.monthId,
+            description: "Immutable calendar month identifier",
           },
           {
             name: "Milestone Type",
@@ -1020,7 +1026,7 @@ export function getActionFieldExplanation(
           },
           {
             name: "Trigger Month",
-            value: `Month ${m.month} (${m.calendarLabel})`,
+            value: `${relLabel} (${m.calendarLabel})`,
             description: "Scheduled timeline placement",
           },
         ],
@@ -1058,6 +1064,11 @@ export function getActionFieldExplanation(
             name: "Parameters",
             value: act.description,
             description: "User-specified settings",
+          },
+          {
+            name: "Action ID",
+            value: act.actionId,
+            description: "Unique action key",
           },
         ],
         legalCitation: toStatutoryCitation(
@@ -1099,19 +1110,19 @@ export function getActionFieldExplanation(
     default:
       return {
         fieldKey: key,
-        fieldTitle: "Non-Monetary Action Row",
-        valueFormatted: "—",
-        explanation: `This is a non-monetary lifecycle milestone. It establishes status and timelines without directly altering monthly cash inflows on this specific event line.`,
-        legalCitation: toStatutoryCitation("Statutory Milestone Precondition"),
+        fieldTitle: "Action Milestone",
+        valueFormatted: act.title,
+        explanation: act.description,
+        legalCitation: toStatutoryCitation("BEEG / EStG Lifecycle Trigger"),
       };
   }
 }
 
 /**
- * Builds a field-level explanation for a special fiscal event row.
+ * Derives comprehensive explanation for a special event / secondary row (13th Month bonus, tax return, custom cost)
  */
 export function getSpecialEventFieldExplanation(
-  fieldKey: ExplanationFieldKey | string,
+  fieldKey: string,
   ev: SpecialEventItem,
   m: TimelineMonth,
   evCumulated: number,
@@ -1120,6 +1131,7 @@ export function getSpecialEventFieldExplanation(
   const isCost = (ev.amount as number) < 0;
   const key = toExplanationFieldKey(fieldKey);
   const isTaxReturn = ev.type === SpecialEventType.TaxReturn;
+  const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
 
   if (isTaxReturn) {
     const taxDetails = parseTaxReturnDetails(ev, m);
@@ -1127,11 +1139,18 @@ export function getSpecialEventFieldExplanation(
       case ExplanationFieldKey.Month:
         return {
           fieldKey: ExplanationFieldKey.Month,
-          fieldTitle: `Annual Tax Return (Month ${m.month} · ${m.calendarLabel})`,
-          valueFormatted: `↳ M${m.month} Tax Return (${m.calendarLabel})`,
+          fieldTitle: `Annual Tax Return (${relLabel} · ${m.calendarLabel})`,
+          valueFormatted: `↳ ${relLabel} Tax Return (${m.calendarLabel}) · ${m.monthId}`,
           derivationFormula: `EStG § 26b, § 31 (*Günstigerprüfung*) for Tax Year ${taxDetails.taxYear}`,
           explanation: taxDetails.detailedExplanation,
-          contributingFactors: taxDetails.contributingFactors,
+          contributingFactors: [
+            ...taxDetails.contributingFactors,
+            {
+              name: "Month ID",
+              value: m.monthId,
+              description: "Immutable calendar month identifier",
+            },
+          ],
           calculationSteps: taxDetails.calculationSteps,
           legalCitation: toStatutoryCitation(
             "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
@@ -1228,10 +1247,10 @@ export function getSpecialEventFieldExplanation(
     case ExplanationFieldKey.Month:
       return {
         fieldKey: ExplanationFieldKey.Month,
-        fieldTitle: `Special Fiscal Event (Month ${m.month})`,
-        valueFormatted: `↳ M${m.month} Event (${m.calendarLabel})`,
-        derivationFormula: `Fiscal event triggering in Month ${m.month}`,
-        explanation: `This row represents a discrete monetary transaction occurring in Month ${m.month} (${m.calendarLabel}).`,
+        fieldTitle: `Special Fiscal Event (${relLabel} · ${m.calendarLabel})`,
+        valueFormatted: `↳ ${relLabel} Event (${m.calendarLabel}) · ${m.monthId}`,
+        derivationFormula: `Fiscal event triggering in ${relLabel} (${m.calendarLabel})`,
+        explanation: `This row represents a discrete monetary transaction occurring in ${relLabel} (${m.calendarLabel}) [ID: ${m.monthId}].`,
         contributingFactors: [
           {
             name: "Event ID",

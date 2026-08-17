@@ -1,5 +1,6 @@
 import {
   type TransactionId,
+  type MonthId,
   type SimulationMonth,
   type CalendarYear,
   type TransactionType,
@@ -9,10 +10,12 @@ import {
   type AccountingTransaction,
   toTransactionId,
   toStatutoryCitation,
+  toMonthId,
 } from "#engine/types";
 
 export interface CreateTransactionParams {
   readonly transactionId: string;
+  readonly monthId: MonthId | string;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly type: TransactionType;
@@ -32,6 +35,7 @@ export function createTransaction(
 ): AccountingTransaction {
   return {
     transactionId: toTransactionId(params.transactionId),
+    monthId: toMonthId(params.monthId),
     month: params.month,
     year: params.year,
     type: params.type,

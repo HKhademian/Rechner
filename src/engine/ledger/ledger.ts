@@ -2,6 +2,7 @@ import {
   type SimulationMonth,
   type CalendarYear,
   type CalendarMonth,
+  type MonthId,
   type EuroAmount,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -10,10 +11,12 @@ import {
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
+  toMonthId,
   type ActionRowItem,
 } from "#engine/types";
 
 export interface LedgerMonthInput {
+  readonly monthId: MonthId | string;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
@@ -21,6 +24,8 @@ export interface LedgerMonthInput {
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
+  readonly relativeMonthLabel?: string;
+  readonly relativeMonthIndex?: number;
   readonly husbandSalary: EuroAmount;
   readonly wifeSalary: EuroAmount;
   readonly mutterschutz: EuroAmount;
@@ -91,7 +96,14 @@ export function buildMonthlyLedgerEntry(
   const nextCumulatedTaxRefunds = runningCumulatedTaxRefunds + taxRefund;
   const nextCumulatedTotal = runningCumulatedTotal + monthlyTotal;
 
+  const relLabel = input.relativeMonthLabel || input.relativeBirthLabel;
+  const relIndex =
+    input.relativeMonthIndex !== undefined
+      ? input.relativeMonthIndex
+      : (input.month as number);
+
   const entry: MonthlyLedgerEntry = {
+    monthId: toMonthId(input.monthId),
     month: input.month,
     year: input.year,
     monthInYear: input.monthInYear,
@@ -99,6 +111,8 @@ export function buildMonthlyLedgerEntry(
     calendarMonthNum: input.calendarMonthNum,
     calendarLabel: input.calendarLabel,
     relativeBirthLabel: input.relativeBirthLabel,
+    relativeMonthLabel: relLabel,
+    relativeMonthIndex: relIndex,
     husbandSalary: input.husbandSalary,
     wifeSalary: input.wifeSalary,
     mutterschutz: input.mutterschutz,

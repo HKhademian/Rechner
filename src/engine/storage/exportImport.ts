@@ -944,6 +944,8 @@ export function exportStateToTextReport(
  */
 export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
   const headers = [
+    "Month ID",
+    "Relative Month",
     "Simulation Month",
     "Calendar Date",
     "Calendar Year",
@@ -974,6 +976,8 @@ export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
         : "";
 
       const row = [
+        `"${m.monthId}"`,
+        `"${m.relativeMonthLabel || m.relativeBirthLabel}"`,
         `M${m.month}`,
         `"${m.calendarLabel}"`,
         m.calendarYearNum,
