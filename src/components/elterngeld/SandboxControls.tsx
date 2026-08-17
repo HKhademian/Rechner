@@ -1756,7 +1756,7 @@ export default function SandboxControls(): JSX.Element {
                   );
                 })}
 
-                {/* Net Salary Calibration Card */}
+                {/* Pure Derived Display: Automatic Tax Swap Take-Home (§ 38b EStG) */}
                 <div
                   style={{
                     background: "var(--bg-surface-secondary)",
@@ -1766,95 +1766,221 @@ export default function SandboxControls(): JSX.Element {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
+                    gap: "8px",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "0.76rem",
-                      fontWeight: 800,
-                      color: "var(--color-gain)",
-                      marginBottom: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <TaxClassSwapMilestoneIcon size={13} />
-                    <span>Tax Swap Net Take-Home Calibration</span>
-                  </div>
-
-                  {/* Wife Optimized Class III FT Net */}
-                  <div style={{ marginBottom: "6px" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.72rem",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      <span style={{ color: "var(--text-secondary)" }}>
-                        Wife Net in Class III (Full-Time):
-                      </span>
-                      <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-gain)",
-                        }}
-                      >
-                        {formatCurrency(wifeClass3FullTimeNet.value)}
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1600"
-                      max="5500"
-                      step="25"
-                      value={wifeClass3FullTimeNet.value}
-                      onInput={(e) => {
-                        wifeClass3FullTimeNet.value = toNetSalary(
-                          Number((e.target as HTMLInputElement).value),
-                        );
-                      }}
-                    />
-                  </div>
-
-                  {/* Husband Class V Net during Swap */}
                   <div>
                     <div
                       style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--color-gain)",
+                        marginBottom: "3px",
                         display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.72rem",
-                        marginBottom: "2px",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
-                      <span style={{ color: "var(--text-secondary)" }}>
-                        Husband Net in Class V (Swap):
-                      </span>
-                      <span
+                      <TaxClassSwapMilestoneIcon size={13} />
+                      <span>Automatic Tax Swap Take-Home (§ 38b EStG)</span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.64rem",
+                        color: "var(--text-muted)",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Derived automatically from Batch 3 Gross Compensations via
+                      German progressive tax formulas.
+                    </div>
+
+                    {/* Wife Optimized Class III FT Net */}
+                    <div
+                      style={{
+                        background: "var(--bg-surface)",
+                        border: "1px solid rgba(16, 185, 129, 0.25)",
+                        borderRadius: "5px",
+                        padding: "6px 8px",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <div
                         style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-warning)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.70rem",
+                          color: "var(--text-secondary)",
+                          marginBottom: "2px",
                         }}
                       >
-                        {formatCurrency(husbandClass5Net.value)}
-                      </span>
+                        <span>Wife in Class III (Swap Boost):</span>
+                        <strong
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            color: "var(--color-gain)",
+                            fontSize: "0.76rem",
+                          }}
+                        >
+                          {formatCurrency(
+                            salaryPeriod.value === SalaryPeriod.Yearly
+                              ? (derivedSpousalSet.value
+                                  .wifeClass3FullTimeNet as number) * 12
+                              : (derivedSpousalSet.value
+                                  .wifeClass3FullTimeNet as number),
+                          )}
+                          {salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "/yr"
+                            : "/mo"}
+                        </strong>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.62rem",
+                          color: "var(--text-muted)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>Baseline in Class V:</span>
+                        <span>
+                          {formatCurrency(
+                            salaryPeriod.value === SalaryPeriod.Yearly
+                              ? (derivedSpousalSet.value
+                                  .wifeClass5FullTimeNet as number) * 12
+                              : (derivedSpousalSet.value
+                                  .wifeClass5FullTimeNet as number),
+                          )}
+                          {salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "/yr"
+                            : "/mo"}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.62rem",
+                          color: "var(--color-gain)",
+                          fontWeight: 600,
+                          marginTop: "2px",
+                        }}
+                      >
+                        ↳ +
+                        {formatCurrency(
+                          (derivedSpousalSet.value
+                            .wifeClass3FullTimeNet as number) -
+                            (derivedSpousalSet.value
+                              .wifeClass5FullTimeNet as number),
+                        )}
+                        /mo assessment booster!
+                      </div>
                     </div>
-                    <input
-                      type="range"
-                      min="1500"
-                      max="5500"
-                      step="25"
-                      value={husbandClass5Net.value}
-                      onInput={(e) => {
-                        husbandClass5Net.value = toNetSalary(
-                          Number((e.target as HTMLInputElement).value),
-                        );
+
+                    {/* Husband Class V Net during Swap */}
+                    <div
+                      style={{
+                        background: "var(--bg-surface)",
+                        border: "1px solid rgba(245, 158, 11, 0.25)",
+                        borderRadius: "5px",
+                        padding: "6px 8px",
                       }}
-                    />
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.70rem",
+                          color: "var(--text-secondary)",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span>Husband in Class V (During Swap):</span>
+                        <strong
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            color: "var(--color-warning)",
+                            fontSize: "0.76rem",
+                          }}
+                        >
+                          {formatCurrency(
+                            salaryPeriod.value === SalaryPeriod.Yearly
+                              ? (derivedSpousalSet.value
+                                  .husbandClass5Net as number) * 12
+                              : (derivedSpousalSet.value
+                                  .husbandClass5Net as number),
+                          )}
+                          {salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "/yr"
+                            : "/mo"}
+                        </strong>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.62rem",
+                          color: "var(--text-muted)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>Baseline in Class III:</span>
+                        <span>
+                          {formatCurrency(
+                            salaryPeriod.value === SalaryPeriod.Yearly
+                              ? (derivedSpousalSet.value
+                                  .husbandClass3Net as number) * 12
+                              : (derivedSpousalSet.value
+                                  .husbandClass3Net as number),
+                          )}
+                          {salaryPeriod.value === SalaryPeriod.Yearly
+                            ? "/yr"
+                            : "/mo"}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.62rem",
+                          color: "var(--text-muted)",
+                          marginTop: "2px",
+                        }}
+                      >
+                        ↳ Withholding difference recovered via annual tax
+                        return.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Net Family Monthly Shift */}
+                  <div
+                    style={{
+                      background: "var(--bg-surface)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "5px",
+                      padding: "5px 8px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: "0.66rem",
+                    }}
+                  >
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      Combined Net Shift:
+                    </span>
+                    <strong
+                      style={{
+                        fontVariantNumeric: "tabular-nums",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {formatCurrency(
+                        (derivedSpousalSet.value.husbandClass5Net as number) +
+                          (derivedSpousalSet.value
+                            .wifeClass3FullTimeNet as number) -
+                          ((derivedSpousalSet.value
+                            .husbandClass3Net as number) +
+                            (derivedSpousalSet.value
+                              .wifeClass5FullTimeNet as number)),
+                      )}
+                      /mo
+                    </strong>
                   </div>
                 </div>
               </div>
