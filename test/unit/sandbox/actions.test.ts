@@ -177,6 +177,85 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         }
       }
     });
+
+    it("dynamically shifts Child 2 Mutterschutz and delivery milestones when positive date is modified", () => {
+      const p1Delivery = 12;
+      const initialP2Positive = 14; // Delivery at M22 (spacing = 10M)
+      const updatedP2Positive = 24; // Delivery at M32 (spacing = 20M)
+
+      const basePregnancies: PregnancyAction[] = [
+        {
+          pregnancyId: toPregnancyId("PREG-1"),
+          childIndex: 1,
+          positiveTestCalendarMonth: toCalendarMonth(4),
+          positiveTestCalendarYear: 2026,
+          positiveTestSimulationMonth: toSimulationMonth(4),
+          calculatedDeliverySimulationMonth: toSimulationMonth(p1Delivery),
+          motherPostBirthPartTimeHours: toWorkingHours(24),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          fatherPartnerMonthsCount: 4,
+        },
+        {
+          pregnancyId: toPregnancyId("PREG-2"),
+          childIndex: 2,
+          positiveTestCalendarMonth: toCalendarMonth(2),
+          positiveTestCalendarYear: 2027,
+          positiveTestSimulationMonth: toSimulationMonth(initialP2Positive),
+          calculatedDeliverySimulationMonth: toSimulationMonth(
+            initialP2Positive + 8,
+          ),
+          motherPostBirthPartTimeHours: toWorkingHours(24),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          fatherPartnerMonthsCount: 4,
+        },
+      ];
+
+      // Run with initial Child 2 date (Delivery at M22)
+      const resInitial = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: { ...basePreexisting, simulationDurationMonths: 60 },
+        pregnancies: basePregnancies,
+        taxClassSwitches: [],
+        salaryRaises: [],
+      });
+
+      // Delivery 2 at M22 -> Mutterschutz at M21, M22, M23
+      assert.equal(resInitial.months[20].isMutterschutz, true);
+      assert.equal(resInitial.months[21].isMutterschutz, true);
+      assert.equal(resInitial.months[22].isMutterschutz, true);
+
+      // Now dynamically update Child 2 positive date to M24 (Delivery at M32)
+      const updatedPregnancies = basePregnancies.map((p) =>
+        p.pregnancyId === "PREG-2"
+          ? {
+              ...p,
+              positiveTestCalendarMonth: toCalendarMonth(12),
+              positiveTestCalendarYear: 2027,
+              positiveTestSimulationMonth: toSimulationMonth(updatedP2Positive),
+              calculatedDeliverySimulationMonth: toSimulationMonth(
+                updatedP2Positive + 8,
+              ),
+            }
+          : p,
+      );
+
+      const resUpdated = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: { ...basePreexisting, simulationDurationMonths: 60 },
+        pregnancies: updatedPregnancies,
+        taxClassSwitches: [],
+        salaryRaises: [],
+      });
+
+      // M21 is now regular part-time (not Mutterschutz)
+      assert.equal(resUpdated.months[20].isMutterschutz, false);
+      // New delivery at M32 -> Mutterschutz at M31, M32, M33
+      assert.equal(resUpdated.months[30].isMutterschutz, true);
+      assert.equal(resUpdated.months[31].isMutterschutz, true);
+      assert.equal(resUpdated.months[32].isMutterschutz, true);
+    });
   });
 
   describe("Batch 2: Tax Class Switch Actions (§ 2b BEEG & § 26b EStG)", () => {
