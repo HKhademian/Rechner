@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   toSimulationMonth,
   toCalendarYear,
@@ -66,16 +66,16 @@ import {
   type RaiseId,
   type FinancialEventId,
   type EntityId,
-  type KinderfreibetragAnnualAmount
-} from '#engine/types';
+  type KinderfreibetragAnnualAmount,
+} from "#engine/types";
 
-describe('Strongly-Typed Domain Types & Constructors', () => {
+describe("Strongly-Typed Domain Types & Constructors", () => {
   // =========================================================================
   // SECTION 1: ONE-BY-ONE FEATURE UNIT TESTS
   // =========================================================================
 
-  describe('SimulationMonth (Feature Test)', () => {
-    it('accepts valid simulation months between 1 and 120', () => {
+  describe("SimulationMonth (Feature Test)", () => {
+    it("accepts valid simulation months between 1 and 120", () => {
       const m1: SimulationMonth = toSimulationMonth(1);
       const m60: SimulationMonth = toSimulationMonth(60);
       const m120: SimulationMonth = toSimulationMonth(120);
@@ -85,7 +85,7 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(m120, 120);
     });
 
-    it('rejects out-of-bound or non-integer months', () => {
+    it("rejects out-of-bound or non-integer months", () => {
       assert.throws(() => toSimulationMonth(0), TypeError);
       assert.throws(() => toSimulationMonth(-5), TypeError);
       assert.throws(() => toSimulationMonth(121), TypeError);
@@ -94,8 +94,8 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     });
   });
 
-  describe('CalendarYear (Feature Test)', () => {
-    it('accepts valid calendar years 1 to 10', () => {
+  describe("CalendarYear (Feature Test)", () => {
+    it("accepts valid calendar years 1 to 10", () => {
       const y1: CalendarYear = toCalendarYear(1);
       const y5: CalendarYear = toCalendarYear(5);
       const y10: CalendarYear = toCalendarYear(10);
@@ -105,7 +105,7 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(y10, 10);
     });
 
-    it('rejects invalid calendar years', () => {
+    it("rejects invalid calendar years", () => {
       assert.throws(() => toCalendarYear(0), TypeError);
       assert.throws(() => toCalendarYear(11), TypeError);
       assert.throws(() => toCalendarYear(2.5), TypeError);
@@ -113,15 +113,15 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     });
   });
 
-  describe('CalendarMonth (Feature Test)', () => {
-    it('accepts valid calendar months 1 to 12', () => {
+  describe("CalendarMonth (Feature Test)", () => {
+    it("accepts valid calendar months 1 to 12", () => {
       for (let m = 1; m <= 12; m++) {
         const cm: CalendarMonth = toCalendarMonth(m);
         assert.equal(cm, m);
       }
     });
 
-    it('rejects invalid calendar months', () => {
+    it("rejects invalid calendar months", () => {
       assert.throws(() => toCalendarMonth(0), TypeError);
       assert.throws(() => toCalendarMonth(13), TypeError);
       assert.throws(() => toCalendarMonth(-1), TypeError);
@@ -129,8 +129,8 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     });
   });
 
-  describe('WorkingHours (Feature Test)', () => {
-    it('accepts valid working hours 0 to 60', () => {
+  describe("WorkingHours (Feature Test)", () => {
+    it("accepts valid working hours 0 to 60", () => {
       const h0: WorkingHours = toWorkingHours(0);
       const h24: WorkingHours = toWorkingHours(24);
       const h32: WorkingHours = toWorkingHours(32);
@@ -144,15 +144,15 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(h60, 60);
     });
 
-    it('rejects invalid working hours', () => {
+    it("rejects invalid working hours", () => {
       assert.throws(() => toWorkingHours(-1), TypeError);
       assert.throws(() => toWorkingHours(61), TypeError);
       assert.throws(() => toWorkingHours(NaN), TypeError);
     });
   });
 
-  describe('EuroAmount and EuroCents (Feature Test)', () => {
-    it('rounds and brands EuroAmount properly', () => {
+  describe("EuroAmount and EuroCents (Feature Test)", () => {
+    it("rounds and brands EuroAmount properly", () => {
       const a1: EuroAmount = toEuroAmount(100.4);
       const a2: EuroAmount = toEuroAmount(100.6);
       const a3: EuroAmount = toEuroAmount(-50);
@@ -164,7 +164,7 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.throws(() => toEuroAmount(Infinity), TypeError);
     });
 
-    it('brands integer EuroCents properly', () => {
+    it("brands integer EuroCents properly", () => {
       const c1: EuroCents = toEuroCents(10050);
       assert.equal(c1, 10050);
       assert.throws(() => toEuroCents(100.5), TypeError);
@@ -172,8 +172,8 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
     });
   });
 
-  describe('GrossSalary and NetSalary (Feature Test)', () => {
-    it('brands non-negative gross and net salaries', () => {
+  describe("GrossSalary and NetSalary (Feature Test)", () => {
+    it("brands non-negative gross and net salaries", () => {
       const g: GrossSalary = toGrossSalary(4500);
       const n: NetSalary = toNetSalary(2895);
 
@@ -181,260 +181,320 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(n, 2895);
     });
 
-    it('rejects negative salaries', () => {
+    it("rejects negative salaries", () => {
       assert.throws(() => toGrossSalary(-1), TypeError);
       assert.throws(() => toNetSalary(-500), TypeError);
     });
   });
 
-  describe('StatutoryCitation (Feature Test)', () => {
-    it('brands valid statutory citation strings', () => {
+  describe("StatutoryCitation (Feature Test)", () => {
+    it("brands valid statutory citation strings", () => {
       const citations = [
-        'BEEG § 2b Abs. 1',
-        'EStG § 38b',
-        'MuSchG § 19',
-        'BFH VI R 2/13',
-        '§ 31 EStG'
+        "BEEG § 2b Abs. 1",
+        "EStG § 38b",
+        "MuSchG § 19",
+        "BFH VI R 2/13",
+        "§ 31 EStG",
       ];
       for (const c of citations) {
         assert.equal(toStatutoryCitation(c), c);
       }
     });
 
-    it('rejects empty or non-string citations', () => {
-      assert.throws(() => toStatutoryCitation(''), TypeError);
+    it("rejects empty or non-string citations", () => {
+      assert.throws(() => toStatutoryCitation(""), TypeError);
     });
   });
 
-  describe('TaxClass (Feature Test)', () => {
-    it('TaxClass contains all statutory tax classes I through VI', () => {
-      assert.equal(TaxClass.I, 'I');
-      assert.equal(TaxClass.II, 'II');
-      assert.equal(TaxClass.III, 'III');
-      assert.equal(TaxClass.IV, 'IV');
-      assert.equal(TaxClass.V, 'V');
-      assert.equal(TaxClass.VI, 'VI');
+  describe("TaxClass (Feature Test)", () => {
+    it("TaxClass contains all statutory tax classes I through VI", () => {
+      assert.equal(TaxClass.I, "I");
+      assert.equal(TaxClass.II, "II");
+      assert.equal(TaxClass.III, "III");
+      assert.equal(TaxClass.IV, "IV");
+      assert.equal(TaxClass.V, "V");
+      assert.equal(TaxClass.VI, "VI");
     });
 
-    it('toTaxClass validates known tax classes', () => {
-      assert.equal(toTaxClass('I'), TaxClass.I);
-      assert.equal(toTaxClass('III'), TaxClass.III);
-      assert.equal(toTaxClass('V'), TaxClass.V);
+    it("toTaxClass validates known tax classes", () => {
+      assert.equal(toTaxClass("I"), TaxClass.I);
+      assert.equal(toTaxClass("III"), TaxClass.III);
+      assert.equal(toTaxClass("V"), TaxClass.V);
     });
 
-    it('toTaxClass rejects invalid strings', () => {
-      assert.throws(() => toTaxClass('VII'), TypeError);
-      assert.throws(() => toTaxClass('invalid'), TypeError);
-    });
-  });
-
-  describe('ScenarioId (Feature Test)', () => {
-    it('defines exact scenario members A, B, and C', () => {
-      assert.equal(ScenarioId.A, 'A');
-      assert.equal(ScenarioId.B, 'B');
-      assert.equal(ScenarioId.C, 'C');
-    });
-
-    it('toScenarioId validates valid scenario keys', () => {
-      assert.equal(toScenarioId('A'), ScenarioId.A);
-      assert.equal(toScenarioId('B'), ScenarioId.B);
-      assert.equal(toScenarioId('C'), ScenarioId.C);
-    });
-
-    it('toScenarioId rejects invalid scenario keys', () => {
-      assert.throws(() => toScenarioId('D'), TypeError);
-      assert.throws(() => toScenarioId('compare'), TypeError);
-      assert.throws(() => toScenarioId(''), TypeError);
+    it("toTaxClass rejects invalid strings", () => {
+      assert.throws(() => toTaxClass("VII"), TypeError);
+      assert.throws(() => toTaxClass("invalid"), TypeError);
     });
   });
 
-  describe('ActiveScenarioView (Feature Test)', () => {
-    it('defines individual scenarios and compare overlay mode', () => {
-      assert.equal(ActiveScenarioView.A, 'A');
-      assert.equal(ActiveScenarioView.B, 'B');
-      assert.equal(ActiveScenarioView.C, 'C');
-      assert.equal(ActiveScenarioView.Compare, 'compare');
+  describe("ScenarioId (Feature Test)", () => {
+    it("defines exact scenario members A, B, and C", () => {
+      assert.equal(ScenarioId.A, "A");
+      assert.equal(ScenarioId.B, "B");
+      assert.equal(ScenarioId.C, "C");
     });
 
-    it('toActiveScenarioView accepts scenario members and compare', () => {
-      assert.equal(toActiveScenarioView('A'), ActiveScenarioView.A);
-      assert.equal(toActiveScenarioView('B'), ActiveScenarioView.B);
-      assert.equal(toActiveScenarioView('C'), ActiveScenarioView.C);
-      assert.equal(toActiveScenarioView('compare'), ActiveScenarioView.Compare);
+    it("toScenarioId validates valid scenario keys", () => {
+      assert.equal(toScenarioId("A"), ScenarioId.A);
+      assert.equal(toScenarioId("B"), ScenarioId.B);
+      assert.equal(toScenarioId("C"), ScenarioId.C);
     });
 
-    it('toActiveScenarioView rejects invalid views', () => {
-      assert.throws(() => toActiveScenarioView('invalid_view'), TypeError);
-      assert.throws(() => toActiveScenarioView('D'), TypeError);
-    });
-  });
-
-  describe('TimelineChartMode (Feature Test)', () => {
-    it('defines chart modes stacked_bar, lines, area, and compare', () => {
-      assert.equal(TimelineChartMode.StackedBar, 'stacked_bar');
-      assert.equal(TimelineChartMode.Lines, 'lines');
-      assert.equal(TimelineChartMode.Area, 'area');
-      assert.equal(TimelineChartMode.Compare, 'compare');
-    });
-
-    it('toTimelineChartMode accepts valid chart modes', () => {
-      assert.equal(toTimelineChartMode('stacked_bar'), TimelineChartMode.StackedBar);
-      assert.equal(toTimelineChartMode('lines'), TimelineChartMode.Lines);
-      assert.equal(toTimelineChartMode('area'), TimelineChartMode.Area);
-      assert.equal(toTimelineChartMode('compare'), TimelineChartMode.Compare);
-    });
-
-    it('toTimelineChartMode rejects invalid chart modes', () => {
-      assert.throws(() => toTimelineChartMode('pie_chart'), TypeError);
-      assert.throws(() => toTimelineChartMode(''), TypeError);
+    it("toScenarioId rejects invalid scenario keys", () => {
+      assert.throws(() => toScenarioId("D"), TypeError);
+      assert.throws(() => toScenarioId("compare"), TypeError);
+      assert.throws(() => toScenarioId(""), TypeError);
     });
   });
 
-  describe('TimelineTimeRangeFilter (Feature Test)', () => {
-    it('defines time filters all, child1, child2, and post', () => {
-      assert.equal(TimelineTimeRangeFilter.All, 'all');
-      assert.equal(TimelineTimeRangeFilter.Child1, 'child1');
-      assert.equal(TimelineTimeRangeFilter.Child2, 'child2');
-      assert.equal(TimelineTimeRangeFilter.Post, 'post');
+  describe("ActiveScenarioView (Feature Test)", () => {
+    it("defines individual scenarios and compare overlay mode", () => {
+      assert.equal(ActiveScenarioView.A, "A");
+      assert.equal(ActiveScenarioView.B, "B");
+      assert.equal(ActiveScenarioView.C, "C");
+      assert.equal(ActiveScenarioView.Compare, "compare");
     });
 
-    it('toTimelineTimeRangeFilter accepts valid time range filters', () => {
-      assert.equal(toTimelineTimeRangeFilter('all'), TimelineTimeRangeFilter.All);
-      assert.equal(toTimelineTimeRangeFilter('child1'), TimelineTimeRangeFilter.Child1);
-      assert.equal(toTimelineTimeRangeFilter('child2'), TimelineTimeRangeFilter.Child2);
-      assert.equal(toTimelineTimeRangeFilter('post'), TimelineTimeRangeFilter.Post);
+    it("toActiveScenarioView accepts scenario members and compare", () => {
+      assert.equal(toActiveScenarioView("A"), ActiveScenarioView.A);
+      assert.equal(toActiveScenarioView("B"), ActiveScenarioView.B);
+      assert.equal(toActiveScenarioView("C"), ActiveScenarioView.C);
+      assert.equal(toActiveScenarioView("compare"), ActiveScenarioView.Compare);
     });
 
-    it('toTimelineTimeRangeFilter rejects invalid range strings', () => {
-      assert.throws(() => toTimelineTimeRangeFilter('invalid_range'), TypeError);
-      assert.throws(() => toTimelineTimeRangeFilter(''), TypeError);
-    });
-  });
-
-  describe('TransactionType (Feature Test)', () => {
-    it('defines all discrete transaction type identifiers', () => {
-      assert.equal(TransactionType.SalaryBase, 'SALARY_BASE');
-      assert.equal(TransactionType.SalaryBonus13thVacation, 'SALARY_BONUS_13TH_VACATION');
-      assert.equal(TransactionType.SalaryBonus13thChristmas, 'SALARY_BONUS_13TH_CHRISTMAS');
-      assert.equal(TransactionType.BenefitMutterschutz, 'BENEFIT_MUTTERSCHUTZ');
-      assert.equal(TransactionType.BenefitElterngeldPlusMother, 'BENEFIT_ELTERNGELD_PLUS_MOTHER');
-      assert.equal(TransactionType.BenefitElterngeldPlusFather, 'BENEFIT_ELTERNGELD_PLUS_FATHER');
-      assert.equal(TransactionType.BenefitPartnerschaftsbonus, 'BENEFIT_PARTNERSCHAFTSBONUS');
-      assert.equal(TransactionType.BenefitKindergeld, 'BENEFIT_KINDERGELD');
-      assert.equal(TransactionType.TaxReconciliationRefund, 'TAX_RECONCILIATION_REFUND');
+    it("toActiveScenarioView rejects invalid views", () => {
+      assert.throws(() => toActiveScenarioView("invalid_view"), TypeError);
+      assert.throws(() => toActiveScenarioView("D"), TypeError);
     });
   });
 
-  describe('TransactionDirection (Feature Test)', () => {
-    it('defines inflow and outflow directions', () => {
-      assert.equal(TransactionDirection.Inflow, 'INFLOW');
-      assert.equal(TransactionDirection.Outflow, 'OUTFLOW');
+  describe("TimelineChartMode (Feature Test)", () => {
+    it("defines chart modes stacked_bar, lines, area, and compare", () => {
+      assert.equal(TimelineChartMode.StackedBar, "stacked_bar");
+      assert.equal(TimelineChartMode.Lines, "lines");
+      assert.equal(TimelineChartMode.Area, "area");
+      assert.equal(TimelineChartMode.Compare, "compare");
+    });
+
+    it("toTimelineChartMode accepts valid chart modes", () => {
+      assert.equal(
+        toTimelineChartMode("stacked_bar"),
+        TimelineChartMode.StackedBar,
+      );
+      assert.equal(toTimelineChartMode("lines"), TimelineChartMode.Lines);
+      assert.equal(toTimelineChartMode("area"), TimelineChartMode.Area);
+      assert.equal(toTimelineChartMode("compare"), TimelineChartMode.Compare);
+    });
+
+    it("toTimelineChartMode rejects invalid chart modes", () => {
+      assert.throws(() => toTimelineChartMode("pie_chart"), TypeError);
+      assert.throws(() => toTimelineChartMode(""), TypeError);
     });
   });
 
-  describe('SpecialEventType and SpecialEventCategory (Feature Test)', () => {
-    it('defines bonus and tax return special event keys', () => {
-      assert.equal(SpecialEventType.Bonus40, 'bonus_40');
-      assert.equal(SpecialEventType.Bonus60, 'bonus_60');
-      assert.equal(SpecialEventType.TaxReturn, 'tax_return');
+  describe("TimelineTimeRangeFilter (Feature Test)", () => {
+    it("defines time filters all, child1, child2, and post", () => {
+      assert.equal(TimelineTimeRangeFilter.All, "all");
+      assert.equal(TimelineTimeRangeFilter.Child1, "child1");
+      assert.equal(TimelineTimeRangeFilter.Child2, "child2");
+      assert.equal(TimelineTimeRangeFilter.Post, "post");
     });
 
-    it('defines special event display categories', () => {
-      assert.equal(SpecialEventCategory.ThirteenthSalary, '13th Salary (*13. Monatsgehalt*)');
-      assert.equal(SpecialEventCategory.TaxOffice, 'Tax Office (*Finanzamt*)');
-    });
-  });
-
-  describe('ActionCategory (Feature Test)', () => {
-    it('defines action categories PREGNANCY, TAX_SWITCH, SALARY_RAISE', () => {
-      assert.equal(ActionCategory.Pregnancy, 'PREGNANCY');
-      assert.equal(ActionCategory.TaxSwitch, 'TAX_SWITCH');
-      assert.equal(ActionCategory.SalaryRaise, 'SALARY_RAISE');
-    });
-
-    it('toActionCategory validates valid categories and rejects invalid strings', () => {
-      assert.equal(toActionCategory('PREGNANCY'), ActionCategory.Pregnancy);
-      assert.equal(toActionCategory('TAX_SWITCH'), ActionCategory.TaxSwitch);
-      assert.equal(toActionCategory('SALARY_RAISE'), ActionCategory.SalaryRaise);
-      assert.throws(() => toActionCategory('invalid'), TypeError);
-    });
-  });
-
-  describe('ActionType (Feature Test)', () => {
-    it('defines milestone action type members', () => {
-      assert.equal(ActionType.PregnancyPositive, 'PREGNANCY_POSITIVE');
-      assert.equal(ActionType.ChildDelivery, 'CHILD_DELIVERY');
-      assert.equal(ActionType.TaxClassSwitchEffective, 'TAX_CLASS_SWITCH_EFFECTIVE');
-      assert.equal(ActionType.TaxClassSwitchRevert, 'TAX_CLASS_SWITCH_REVERT');
-      assert.equal(ActionType.SalaryRaiseEffective, 'SALARY_RAISE_EFFECTIVE');
+    it("toTimelineTimeRangeFilter accepts valid time range filters", () => {
+      assert.equal(
+        toTimelineTimeRangeFilter("all"),
+        TimelineTimeRangeFilter.All,
+      );
+      assert.equal(
+        toTimelineTimeRangeFilter("child1"),
+        TimelineTimeRangeFilter.Child1,
+      );
+      assert.equal(
+        toTimelineTimeRangeFilter("child2"),
+        TimelineTimeRangeFilter.Child2,
+      );
+      assert.equal(
+        toTimelineTimeRangeFilter("post"),
+        TimelineTimeRangeFilter.Post,
+      );
     });
 
-    it('toActionType validates valid action types and rejects invalid strings', () => {
-      assert.equal(toActionType('PREGNANCY_POSITIVE'), ActionType.PregnancyPositive);
-      assert.equal(toActionType('CHILD_DELIVERY'), ActionType.ChildDelivery);
-      assert.throws(() => toActionType('invalid'), TypeError);
+    it("toTimelineTimeRangeFilter rejects invalid range strings", () => {
+      assert.throws(
+        () => toTimelineTimeRangeFilter("invalid_range"),
+        TypeError,
+      );
+      assert.throws(() => toTimelineTimeRangeFilter(""), TypeError);
     });
   });
 
-  describe('TargetPerson (Feature Test)', () => {
-    it('defines BOTH, HUSBAND, and WIFE targets', () => {
-      assert.equal(TargetPerson.Both, 'BOTH');
-      assert.equal(TargetPerson.Husband, 'HUSBAND');
-      assert.equal(TargetPerson.Wife, 'WIFE');
-    });
-
-    it('toTargetPerson validates target persons and rejects invalid strings', () => {
-      assert.equal(toTargetPerson('BOTH'), TargetPerson.Both);
-      assert.equal(toTargetPerson('HUSBAND'), TargetPerson.Husband);
-      assert.equal(toTargetPerson('WIFE'), TargetPerson.Wife);
-      assert.throws(() => toTargetPerson('other'), TypeError);
+  describe("TransactionType (Feature Test)", () => {
+    it("defines all discrete transaction type identifiers", () => {
+      assert.equal(TransactionType.SalaryBase, "SALARY_BASE");
+      assert.equal(
+        TransactionType.SalaryBonus13thVacation,
+        "SALARY_BONUS_13TH_VACATION",
+      );
+      assert.equal(
+        TransactionType.SalaryBonus13thChristmas,
+        "SALARY_BONUS_13TH_CHRISTMAS",
+      );
+      assert.equal(TransactionType.BenefitMutterschutz, "BENEFIT_MUTTERSCHUTZ");
+      assert.equal(
+        TransactionType.BenefitElterngeldPlusMother,
+        "BENEFIT_ELTERNGELD_PLUS_MOTHER",
+      );
+      assert.equal(
+        TransactionType.BenefitElterngeldPlusFather,
+        "BENEFIT_ELTERNGELD_PLUS_FATHER",
+      );
+      assert.equal(
+        TransactionType.BenefitPartnerschaftsbonus,
+        "BENEFIT_PARTNERSCHAFTSBONUS",
+      );
+      assert.equal(TransactionType.BenefitKindergeld, "BENEFIT_KINDERGELD");
+      assert.equal(
+        TransactionType.TaxReconciliationRefund,
+        "TAX_RECONCILIATION_REFUND",
+      );
     });
   });
 
-  describe('FinancialEventCategory (Feature Test)', () => {
-    it('defines financial event categories', () => {
-      assert.equal(FinancialEventCategory.BabyEquipment, 'Baby Equipment (*Erstausstattung*)');
-      assert.equal(FinancialEventCategory.ChildcareFees, 'Childcare (*Kita/Betreuung*)');
-      assert.equal(FinancialEventCategory.CareerBonus, 'Career & Bonus (*Sonderzahlung*)');
-    });
-
-    it('toFinancialEventCategory validates categories and rejects invalid strings', () => {
-      assert.equal(toFinancialEventCategory('Baby Equipment (*Erstausstattung*)'), FinancialEventCategory.BabyEquipment);
-      assert.throws(() => toFinancialEventCategory('invalid-cat'), TypeError);
+  describe("TransactionDirection (Feature Test)", () => {
+    it("defines inflow and outflow directions", () => {
+      assert.equal(TransactionDirection.Inflow, "INFLOW");
+      assert.equal(TransactionDirection.Outflow, "OUTFLOW");
     });
   });
 
-  describe('Action and Event Identifiers (Feature Test)', () => {
-    it('toActionId brands valid action identifiers', () => {
-      assert.equal(toActionId('ACT-1'), 'ACT-1');
-      assert.throws(() => toActionId(''), TypeError);
+  describe("SpecialEventType and SpecialEventCategory (Feature Test)", () => {
+    it("defines bonus and tax return special event keys", () => {
+      assert.equal(SpecialEventType.Bonus40, "bonus_40");
+      assert.equal(SpecialEventType.Bonus60, "bonus_60");
+      assert.equal(SpecialEventType.TaxReturn, "tax_return");
     });
 
-    it('toPregnancyId brands valid pregnancy identifiers', () => {
-      assert.equal(toPregnancyId('PREG-1'), 'PREG-1');
-      assert.throws(() => toPregnancyId(''), TypeError);
+    it("defines special event display categories", () => {
+      assert.equal(
+        SpecialEventCategory.ThirteenthSalary,
+        "13th Salary (*13. Monatsgehalt*)",
+      );
+      assert.equal(SpecialEventCategory.TaxOffice, "Tax Office (*Finanzamt*)");
+    });
+  });
+
+  describe("ActionCategory (Feature Test)", () => {
+    it("defines action categories PREGNANCY, TAX_SWITCH, SALARY_RAISE", () => {
+      assert.equal(ActionCategory.Pregnancy, "PREGNANCY");
+      assert.equal(ActionCategory.TaxSwitch, "TAX_SWITCH");
+      assert.equal(ActionCategory.SalaryRaise, "SALARY_RAISE");
     });
 
-    it('toSwitchId brands valid tax switch identifiers', () => {
-      assert.equal(toSwitchId('SWAP-1'), 'SWAP-1');
-      assert.throws(() => toSwitchId(''), TypeError);
+    it("toActionCategory validates valid categories and rejects invalid strings", () => {
+      assert.equal(toActionCategory("PREGNANCY"), ActionCategory.Pregnancy);
+      assert.equal(toActionCategory("TAX_SWITCH"), ActionCategory.TaxSwitch);
+      assert.equal(
+        toActionCategory("SALARY_RAISE"),
+        ActionCategory.SalaryRaise,
+      );
+      assert.throws(() => toActionCategory("invalid"), TypeError);
+    });
+  });
+
+  describe("ActionType (Feature Test)", () => {
+    it("defines milestone action type members", () => {
+      assert.equal(ActionType.PregnancyPositive, "PREGNANCY_POSITIVE");
+      assert.equal(ActionType.ChildDelivery, "CHILD_DELIVERY");
+      assert.equal(
+        ActionType.TaxClassSwitchEffective,
+        "TAX_CLASS_SWITCH_EFFECTIVE",
+      );
+      assert.equal(ActionType.TaxClassSwitchRevert, "TAX_CLASS_SWITCH_REVERT");
+      assert.equal(ActionType.SalaryRaiseEffective, "SALARY_RAISE_EFFECTIVE");
     });
 
-    it('toRaiseId brands valid salary raise identifiers', () => {
-      assert.equal(toRaiseId('RAISE-1'), 'RAISE-1');
-      assert.throws(() => toRaiseId(''), TypeError);
+    it("toActionType validates valid action types and rejects invalid strings", () => {
+      assert.equal(
+        toActionType("PREGNANCY_POSITIVE"),
+        ActionType.PregnancyPositive,
+      );
+      assert.equal(toActionType("CHILD_DELIVERY"), ActionType.ChildDelivery);
+      assert.throws(() => toActionType("invalid"), TypeError);
+    });
+  });
+
+  describe("TargetPerson (Feature Test)", () => {
+    it("defines BOTH, HUSBAND, and WIFE targets", () => {
+      assert.equal(TargetPerson.Both, "BOTH");
+      assert.equal(TargetPerson.Husband, "HUSBAND");
+      assert.equal(TargetPerson.Wife, "WIFE");
     });
 
-    it('toFinancialEventId brands valid financial event identifiers', () => {
-      assert.equal(toFinancialEventId('FIN-1'), 'FIN-1');
-      assert.throws(() => toFinancialEventId(''), TypeError);
+    it("toTargetPerson validates target persons and rejects invalid strings", () => {
+      assert.equal(toTargetPerson("BOTH"), TargetPerson.Both);
+      assert.equal(toTargetPerson("HUSBAND"), TargetPerson.Husband);
+      assert.equal(toTargetPerson("WIFE"), TargetPerson.Wife);
+      assert.throws(() => toTargetPerson("other"), TypeError);
+    });
+  });
+
+  describe("FinancialEventCategory (Feature Test)", () => {
+    it("defines financial event categories", () => {
+      assert.equal(
+        FinancialEventCategory.BabyEquipment,
+        "Baby Equipment (*Erstausstattung*)",
+      );
+      assert.equal(
+        FinancialEventCategory.ChildcareFees,
+        "Childcare (*Kita/Betreuung*)",
+      );
+      assert.equal(
+        FinancialEventCategory.CareerBonus,
+        "Career & Bonus (*Sonderzahlung*)",
+      );
     });
 
-    it('toTransactionId and toEventId brand transaction and event identifiers', () => {
-      assert.equal(toTransactionId('TX-123'), 'TX-123');
-      assert.equal(toEventId('EV-456'), 'EV-456');
-      assert.throws(() => toTransactionId(''), TypeError);
-      assert.throws(() => toEventId(''), TypeError);
+    it("toFinancialEventCategory validates categories and rejects invalid strings", () => {
+      assert.equal(
+        toFinancialEventCategory("Baby Equipment (*Erstausstattung*)"),
+        FinancialEventCategory.BabyEquipment,
+      );
+      assert.throws(() => toFinancialEventCategory("invalid-cat"), TypeError);
+    });
+  });
+
+  describe("Action and Event Identifiers (Feature Test)", () => {
+    it("toActionId brands valid action identifiers", () => {
+      assert.equal(toActionId("ACT-1"), "ACT-1");
+      assert.throws(() => toActionId(""), TypeError);
+    });
+
+    it("toPregnancyId brands valid pregnancy identifiers", () => {
+      assert.equal(toPregnancyId("PREG-1"), "PREG-1");
+      assert.throws(() => toPregnancyId(""), TypeError);
+    });
+
+    it("toSwitchId brands valid tax switch identifiers", () => {
+      assert.equal(toSwitchId("SWAP-1"), "SWAP-1");
+      assert.throws(() => toSwitchId(""), TypeError);
+    });
+
+    it("toRaiseId brands valid salary raise identifiers", () => {
+      assert.equal(toRaiseId("RAISE-1"), "RAISE-1");
+      assert.throws(() => toRaiseId(""), TypeError);
+    });
+
+    it("toFinancialEventId brands valid financial event identifiers", () => {
+      assert.equal(toFinancialEventId("FIN-1"), "FIN-1");
+      assert.throws(() => toFinancialEventId(""), TypeError);
+    });
+
+    it("toTransactionId and toEventId brand transaction and event identifiers", () => {
+      assert.equal(toTransactionId("TX-123"), "TX-123");
+      assert.equal(toEventId("EV-456"), "EV-456");
+      assert.throws(() => toTransactionId(""), TypeError);
+      assert.throws(() => toEventId(""), TypeError);
     });
   });
 
@@ -442,11 +502,12 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
   // SECTION 2: COMBINATIONS & TYPE SYSTEM INTEGRATION TESTS
   // =========================================================================
 
-  describe('Combination & Type System Invariants', () => {
-    it('Monetary Hierarchy: GrossSalary and NetSalary are subtypes of EuroAmount', () => {
+  describe("Combination & Type System Invariants", () => {
+    it("Monetary Hierarchy: GrossSalary and NetSalary are subtypes of EuroAmount", () => {
       const gross: GrossSalary = toGrossSalary(4500);
       const net: NetSalary = toNetSalary(3184);
-      const kinderfreibetrag: KinderfreibetragAnnualAmount = toKinderfreibetragAnnualAmount(9540);
+      const kinderfreibetrag: KinderfreibetragAnnualAmount =
+        toKinderfreibetragAnnualAmount(9540);
 
       // Subtype assignability to EuroAmount (Polymorphic Monetary handling)
       const amountFromGross: EuroAmount = gross;
@@ -466,14 +527,14 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(isNetSalary(NaN), false);
     });
 
-    it('Action Hierarchy: PregnancyId, SwitchId, RaiseId, FinancialEventId are subtypes of ActionId and EntityId', () => {
-      const pregId: PregnancyId = toPregnancyId('PREG-1');
-      const switchId: SwitchId = toSwitchId('SWAP-1');
-      const raiseId: RaiseId = toRaiseId('RAISE-1');
-      const finId: FinancialEventId = toFinancialEventId('FEVENT-1');
-      const txId: TransactionId = toTransactionId('TX-1');
-      const evId: EventId = toEventId('EVENT-1');
-      const citation: StatutoryCitation = toStatutoryCitation('§ 31 EStG');
+    it("Action Hierarchy: PregnancyId, SwitchId, RaiseId, FinancialEventId are subtypes of ActionId and EntityId", () => {
+      const pregId: PregnancyId = toPregnancyId("PREG-1");
+      const switchId: SwitchId = toSwitchId("SWAP-1");
+      const raiseId: RaiseId = toRaiseId("RAISE-1");
+      const finId: FinancialEventId = toFinancialEventId("FEVENT-1");
+      const txId: TransactionId = toTransactionId("TX-1");
+      const evId: EventId = toEventId("EVENT-1");
+      const citation: StatutoryCitation = toStatutoryCitation("§ 31 EStG");
 
       // Subtype assignability to ActionId
       const action1: ActionId = pregId;
@@ -481,10 +542,10 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       const action3: ActionId = raiseId;
       const action4: ActionId = finId;
 
-      assert.equal(action1, 'PREG-1');
-      assert.equal(action2, 'SWAP-1');
-      assert.equal(action3, 'RAISE-1');
-      assert.equal(action4, 'FEVENT-1');
+      assert.equal(action1, "PREG-1");
+      assert.equal(action2, "SWAP-1");
+      assert.equal(action3, "RAISE-1");
+      assert.equal(action4, "FEVENT-1");
 
       // Subtype assignability to EntityId
       const entityFromPreg: EntityId = pregId;
@@ -493,11 +554,11 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       const entityFromEv: EntityId = evId;
       const entityFromCitation: EntityId = citation;
 
-      assert.equal(entityFromPreg, 'PREG-1');
-      assert.equal(entityFromSwitch, 'SWAP-1');
-      assert.equal(entityFromTx, 'TX-1');
-      assert.equal(entityFromEv, 'EVENT-1');
-      assert.equal(entityFromCitation, '§ 31 EStG');
+      assert.equal(entityFromPreg, "PREG-1");
+      assert.equal(entityFromSwitch, "SWAP-1");
+      assert.equal(entityFromTx, "TX-1");
+      assert.equal(entityFromEv, "EVENT-1");
+      assert.equal(entityFromCitation, "§ 31 EStG");
 
       // Verify identifier runtime type guards
       assert.equal(isActionId(pregId), true);
@@ -505,27 +566,34 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(isActionId(raiseId), true);
       assert.equal(isActionId(finId), true);
       assert.equal(isPregnancyId(pregId), true);
-      assert.equal(isPregnancyId('OTHER'), false);
+      assert.equal(isPregnancyId("OTHER"), false);
       assert.equal(isSwitchId(switchId), true);
-      assert.equal(isSwitchId('NOT_A_SWITCH'), false);
+      assert.equal(isSwitchId("NOT_A_SWITCH"), false);
       assert.equal(isRaiseId(raiseId), true);
       assert.equal(isFinancialEventId(finId), true);
     });
 
-    it('Scenario View Mapping: ActiveScenarioView translates cleanly to ScenarioId or fallback compare target', () => {
+    it("Scenario View Mapping: ActiveScenarioView translates cleanly to ScenarioId or fallback compare target", () => {
       const views: ActiveScenarioView[] = [
         ActiveScenarioView.A,
         ActiveScenarioView.B,
         ActiveScenarioView.C,
-        ActiveScenarioView.Compare
+        ActiveScenarioView.Compare,
       ];
 
-      const mapped = views.map((v) => (v === ActiveScenarioView.Compare ? ScenarioId.C : toScenarioId(v)));
+      const mapped = views.map((v) =>
+        v === ActiveScenarioView.Compare ? ScenarioId.C : toScenarioId(v),
+      );
 
-      assert.deepEqual(mapped, [ScenarioId.A, ScenarioId.B, ScenarioId.C, ScenarioId.C]);
+      assert.deepEqual(mapped, [
+        ScenarioId.A,
+        ScenarioId.B,
+        ScenarioId.C,
+        ScenarioId.C,
+      ]);
     });
 
-    it('Combined Simulation State: constructs cohesive multi-dimensional domain record with full type safety', () => {
+    it("Combined Simulation State: constructs cohesive multi-dimensional domain record with full type safety", () => {
       const combinedRecord = {
         simulationMonth: toSimulationMonth(17),
         calendarYear: toCalendarYear(2),
@@ -533,20 +601,20 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
         workingHours: toWorkingHours(24),
         grossSalary: toGrossSalary(3000),
         netSalary: toNetSalary(1975),
-        taxClass: toTaxClass('III'),
-        scenario: toScenarioId('C'),
-        activeView: toActiveScenarioView('compare'),
-        chartMode: toTimelineChartMode('stacked_bar'),
-        timeFilter: toTimelineTimeRangeFilter('child1'),
-        actionId: toActionId('ACT-M17-DELIVERY'),
-        pregnancyId: toPregnancyId('PREG-1'),
-        switchId: toSwitchId('SWAP-1'),
-        raiseId: toRaiseId('RAISE-1'),
-        financialEventId: toFinancialEventId('FIN-1'),
-        actionCategory: toActionCategory('PREGNANCY'),
-        actionType: toActionType('CHILD_DELIVERY'),
-        targetPerson: toTargetPerson('WIFE'),
-        citation: toStatutoryCitation('BEEG § 2b')
+        taxClass: toTaxClass("III"),
+        scenario: toScenarioId("C"),
+        activeView: toActiveScenarioView("compare"),
+        chartMode: toTimelineChartMode("stacked_bar"),
+        timeFilter: toTimelineTimeRangeFilter("child1"),
+        actionId: toActionId("ACT-M17-DELIVERY"),
+        pregnancyId: toPregnancyId("PREG-1"),
+        switchId: toSwitchId("SWAP-1"),
+        raiseId: toRaiseId("RAISE-1"),
+        financialEventId: toFinancialEventId("FIN-1"),
+        actionCategory: toActionCategory("PREGNANCY"),
+        actionType: toActionType("CHILD_DELIVERY"),
+        targetPerson: toTargetPerson("WIFE"),
+        citation: toStatutoryCitation("BEEG § 2b"),
       };
 
       assert.equal(combinedRecord.simulationMonth, 17);
@@ -563,7 +631,7 @@ describe('Strongly-Typed Domain Types & Constructors', () => {
       assert.equal(combinedRecord.actionCategory, ActionCategory.Pregnancy);
       assert.equal(combinedRecord.actionType, ActionType.ChildDelivery);
       assert.equal(combinedRecord.targetPerson, TargetPerson.Wife);
-      assert.equal(combinedRecord.citation, 'BEEG § 2b');
+      assert.equal(combinedRecord.citation, "BEEG § 2b");
     });
   });
 });

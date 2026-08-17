@@ -1,91 +1,114 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   computeStatutoryReplacementRate,
   computeElterngeldBenefits,
   isElterngeldHoursEligible,
-  isPartnerschaftsbonusEligible
-} from '#engine/benefits/elterngeldPlus';
-import { toNetSalary } from '#engine/types';
+  isPartnerschaftsbonusEligible,
+} from "#engine/benefits/elterngeldPlus";
+import { toNetSalary } from "#engine/types";
 
-describe('Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)', () => {
-  describe('computeStatutoryReplacementRate - Sliding Replacement Scale (§ 2 BEEG)', () => {
-    it('applies 65% replacement rate for net incomes > 1.240 €', () => {
+describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)", () => {
+  describe("computeStatutoryReplacementRate - Sliding Replacement Scale (§ 2 BEEG)", () => {
+    it("applies 65% replacement rate for net incomes > 1.240 €", () => {
       for (let net = 1240; net <= 6000; net += 200) {
         const rate = computeStatutoryReplacementRate(toNetSalary(net));
         assert.equal(rate, 0.65, `Rate must be 0.65 for net ${net} €`);
       }
     });
 
-    it('applies 67% replacement rate for net incomes between 1.000 € and 1.200 €', () => {
+    it("applies 67% replacement rate for net incomes between 1.000 € and 1.200 €", () => {
       for (let net = 1000; net <= 1200; net += 50) {
         const rate = computeStatutoryReplacementRate(toNetSalary(net));
         assert.equal(rate, 0.67, `Rate must be 0.67 for net ${net} €`);
       }
     });
 
-    it('scales up replacement rate from 67% towards 100% for low incomes (< 1.000 €)', () => {
+    it("scales up replacement rate from 67% towards 100% for low incomes (< 1.000 €)", () => {
       let previousRate = 0.67;
       for (let net = 950; net >= 300; net -= 100) {
         const rate = computeStatutoryReplacementRate(toNetSalary(net));
-        assert.ok(rate > previousRate, `Rate must increase as income drops: at ${net} € rate is ${rate}`);
-        assert.ok(rate <= 1.00, `Rate must not exceed 100% at ${net} €`);
+        assert.ok(
+          rate > previousRate,
+          `Rate must increase as income drops: at ${net} € rate is ${rate}`,
+        );
+        assert.ok(rate <= 1.0, `Rate must not exceed 100% at ${net} €`);
         previousRate = rate;
       }
     });
   });
 
-  describe('computeElterngeldBenefits - Basiselterngeld & ElterngeldPlus Caps & Floors', () => {
-    it('caps Basiselterngeld at statutory maximum €1.800/month', () => {
+  describe("computeElterngeldBenefits - Basiselterngeld & ElterngeldPlus Caps & Floors", () => {
+    it("caps Basiselterngeld at statutory maximum €1.800/month", () => {
       const highEarners = [3000, 3000, 4000, 5000];
       for (const preNet of highEarners) {
-        const benefit = computeElterngeldBenefits(toNetSalary(preNet), toNetSalary(0));
+        const benefit = computeElterngeldBenefits(
+          toNetSalary(preNet),
+          toNetSalary(0),
+        );
         assert.equal(benefit.basiselterngeld, 1800);
       }
     });
 
-    it('caps ElterngeldPlus at statutory maximum €900/month', () => {
+    it("caps ElterngeldPlus at statutory maximum €900/month", () => {
       // Synthetic Class III Case: Pre-birth €2.603, Part-time €1.328 -> Delta €1.490 -> 65% = €968.50 -> Capped at €900
-      const benefit = computeElterngeldBenefits(toNetSalary(2603), toNetSalary(1328));
+      const benefit = computeElterngeldBenefits(
+        toNetSalary(2603),
+        toNetSalary(1328),
+      );
       assert.equal(benefit.elterngeldPlus, 900);
       assert.equal(benefit.isMaxCapped, true);
     });
 
-    it('applies statutory minimum floor of €150/month for ElterngeldPlus (§ 4a BEEG)', () => {
+    it("applies statutory minimum floor of €150/month for ElterngeldPlus (§ 4a BEEG)", () => {
       // Minimal income loss case
-      const benefit = computeElterngeldBenefits(toNetSalary(1500), toNetSalary(1400));
+      const benefit = computeElterngeldBenefits(
+        toNetSalary(1500),
+        toNetSalary(1400),
+      );
       assert.equal(benefit.elterngeldPlus, 150);
       assert.equal(benefit.isMinFloorApplied, true);
     });
 
-    it('computes exact benefit for unoptimized Scenario B', () => {
+    it("computes exact benefit for unoptimized Scenario B", () => {
       // Scenario B: Pre-birth Class V FT €1.975, Part-time Class V €1.328 -> Delta €770 -> 65% = €500.50 -> €501
-      const benefit = computeElterngeldBenefits(toNetSalary(1975), toNetSalary(1328));
+      const benefit = computeElterngeldBenefits(
+        toNetSalary(1975),
+        toNetSalary(1328),
+      );
       assert.equal(benefit.elterngeldPlus, 501);
       assert.equal(benefit.isMaxCapped, false);
       assert.equal(benefit.isMinFloorApplied, false);
     });
 
-    it('disqualifies from Elterngeld entirely when weekly working hours exceed 32h (§ 1 Abs. 1 Nr. 4 BEEG)', () => {
+    it("disqualifies from Elterngeld entirely when weekly working hours exceed 32h (§ 1 Abs. 1 Nr. 4 BEEG)", () => {
       for (const hours of [33, 35, 38, 40, 45]) {
-        const benefit = computeElterngeldBenefits(toNetSalary(2603), toNetSalary(1800), hours);
+        const benefit = computeElterngeldBenefits(
+          toNetSalary(2603),
+          toNetSalary(1800),
+          hours,
+        );
         assert.equal(benefit.elterngeldPlus, 0);
         assert.equal(benefit.basiselterngeld, 0);
         assert.equal(benefit.replacementRate, 0);
-        assert.ok(benefit.statutoryCitation.includes('Ausschluss'));
+        assert.ok(benefit.statutoryCitation.includes("Ausschluss"));
       }
     });
 
-    it('permits standard ElterngeldPlus when working between 0 and 32 hours per week (§ 1 Abs. 1 Nr. 4 BEEG)', () => {
+    it("permits standard ElterngeldPlus when working between 0 and 32 hours per week (§ 1 Abs. 1 Nr. 4 BEEG)", () => {
       for (const hours of [0, 10, 16, 20, 24, 30, 32]) {
-        const benefit = computeElterngeldBenefits(toNetSalary(2603), toNetSalary(1328), hours);
+        const benefit = computeElterngeldBenefits(
+          toNetSalary(2603),
+          toNetSalary(1328),
+          hours,
+        );
         assert.equal(benefit.elterngeldPlus, 900);
       }
     });
   });
 
-  describe('Statutory Working Hours Eligibility Helpers (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)', () => {
-    it('isElterngeldHoursEligible validates maximum 32 hours threshold', () => {
+  describe("Statutory Working Hours Eligibility Helpers (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)", () => {
+    it("isElterngeldHoursEligible validates maximum 32 hours threshold", () => {
       assert.equal(isElterngeldHoursEligible(0), true);
       assert.equal(isElterngeldHoursEligible(20), true);
       assert.equal(isElterngeldHoursEligible(24), true);
@@ -94,7 +117,7 @@ describe('Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
       assert.equal(isElterngeldHoursEligible(40), false);
     });
 
-    it('isPartnerschaftsbonusEligible enforces 24-32h simultaneous corridor (§ 4b BEEG)', () => {
+    it("isPartnerschaftsbonusEligible enforces 24-32h simultaneous corridor (§ 4b BEEG)", () => {
       assert.equal(isPartnerschaftsbonusEligible(24, 32), true);
       assert.equal(isPartnerschaftsbonusEligible(28, 28), true);
       assert.equal(isPartnerschaftsbonusEligible(32, 24), true);
@@ -104,7 +127,7 @@ describe('Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
       assert.equal(isPartnerschaftsbonusEligible(35, 30), false); // Mother > 32h
       assert.equal(isPartnerschaftsbonusEligible(28, 40), false); // Father > 32h
       assert.equal(isPartnerschaftsbonusEligible(28, 20), false); // Father < 24h
-      assert.equal(isPartnerschaftsbonusEligible(0, 32), false);  // Mother 0h
+      assert.equal(isPartnerschaftsbonusEligible(0, 32), false); // Mother 0h
     });
   });
 });

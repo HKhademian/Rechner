@@ -1,5 +1,5 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it, beforeEach, afterEach } from "node:test";
+import assert from "node:assert/strict";
 import {
   ELTERNGELD_STORAGE_KEY,
   getDefaultPersistedState,
@@ -9,8 +9,8 @@ import {
   saveToStorage,
   loadFromStorage,
   clearStorage,
-  type ElterngeldPersistedState
-} from '#engine/storage/persistence';
+  type ElterngeldPersistedState,
+} from "#engine/storage/persistence";
 import {
   SalaryInputMode,
   SalaryPeriod,
@@ -25,11 +25,11 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
-  toFinancialEventId
-} from '#engine/types';
+  toFinancialEventId,
+} from "#engine/types";
 
-describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
-  it('returns valid statutory default state with complete batch collections', () => {
+describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
+  it("returns valid statutory default state with complete batch collections", () => {
     const defaults = getDefaultPersistedState();
 
     assert.equal(defaults.salaryInputMode, SalaryInputMode.Gross);
@@ -50,7 +50,7 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
     assert.equal(defaults.timeRangeFilter, TimelineTimeRangeFilter.All);
   });
 
-  it('performs lossless roundtrip serialization and deserialization of complete state', () => {
+  it("performs lossless roundtrip serialization and deserialization of complete state", () => {
     const original = getDefaultPersistedState();
     const modified: ElterngeldPersistedState = {
       ...original,
@@ -68,20 +68,20 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
       customFinancialEvents: [
         ...original.customFinancialEvents,
         {
-          eventId: toFinancialEventId('FIN-CUSTOM-VACATION'),
+          eventId: toFinancialEventId("FIN-CUSTOM-VACATION"),
           effectiveSimulationMonth: toSimulationMonth(30),
           effectiveCalendarMonth: toCalendarMonth(6),
           effectiveCalendarYear: 2028,
-          title: 'Family Summer Vacation',
+          title: "Family Summer Vacation",
           amount: toEuroAmount(-2500),
           category: FinancialEventCategory.CustomSpecial,
-          description: 'Special summer family trip'
-        }
-      ]
+          description: "Special summer family trip",
+        },
+      ],
     };
 
     const serialized = serializeState(modified);
-    assert.ok(typeof serialized === 'string');
+    assert.ok(typeof serialized === "string");
 
     const deserialized = deserializeState(serialized);
     assert.equal(deserialized.husbandGross, 7500);
@@ -96,32 +96,38 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
     assert.equal(deserialized.chartMode, TimelineChartMode.Area);
     assert.equal(deserialized.timeRangeFilter, TimelineTimeRangeFilter.Child1);
     assert.equal(deserialized.customFinancialEvents.length, 3);
-    assert.equal(deserialized.customFinancialEvents[2].title, 'Family Summer Vacation');
+    assert.equal(
+      deserialized.customFinancialEvents[2].title,
+      "Family Summer Vacation",
+    );
     assert.equal(deserialized.customFinancialEvents[2].amount, -2500);
-    assert.equal(deserialized.customFinancialEvents[2].category, FinancialEventCategory.CustomSpecial);
+    assert.equal(
+      deserialized.customFinancialEvents[2].category,
+      FinancialEventCategory.CustomSpecial,
+    );
   });
 
-  it('recovers gracefully from corrupted JSON strings by returning statutory defaults', () => {
-    const corrupt1 = deserializeState('{ invalid json string ...');
+  it("recovers gracefully from corrupted JSON strings by returning statutory defaults", () => {
+    const corrupt1 = deserializeState("{ invalid json string ...");
     assert.equal(corrupt1.husbandGross, 4500);
 
-    const corrupt2 = deserializeState('');
+    const corrupt2 = deserializeState("");
     assert.equal(corrupt2.wifeGross, 3000);
 
-    const corrupt3 = deserializeState('null');
+    const corrupt3 = deserializeState("null");
     assert.equal(corrupt3.activeScenario, ActiveScenarioView.C);
     assert.equal(corrupt3.chartMode, TimelineChartMode.StackedBar);
   });
 
-  it('sanitizes and validates malformed or partial objects with missing fields and type mismatches', () => {
+  it("sanitizes and validates malformed or partial objects with missing fields and type mismatches", () => {
     const partialRaw = {
-      husbandGross: 'invalid_number',
+      husbandGross: "invalid_number",
       wifeGross: 4800,
-      salaryInputMode: 'INVALID_MODE',
-      salaryPeriod: 'YEARLY',
+      salaryInputMode: "INVALID_MODE",
+      salaryPeriod: "YEARLY",
       wifePostBirthHours: -10, // out of bounds -> clamped to 0
-      customPregnancies: 'not_an_array',
-      unknownExtraField: 'ignored'
+      customPregnancies: "not_an_array",
+      unknownExtraField: "ignored",
     };
 
     const sanitized = validateAndSanitizePersistedState(partialRaw);
@@ -142,7 +148,7 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
     assert.equal(sanitized.customFinancialEvents.length, 2);
   });
 
-  describe('Storage Mocking & Browser Environment Guards', () => {
+  describe("Storage Mocking & Browser Environment Guards", () => {
     let mockStorage: Record<string, string> = {};
 
     beforeEach(() => {
@@ -151,9 +157,15 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
       (globalThis as any).window = globalThis;
       (globalThis as any).localStorage = {
         getItem: (k: string) => mockStorage[k] ?? null,
-        setItem: (k: string, v: string) => { mockStorage[k] = v; },
-        removeItem: (k: string) => { delete mockStorage[k]; },
-        clear: () => { mockStorage = {}; }
+        setItem: (k: string, v: string) => {
+          mockStorage[k] = v;
+        },
+        removeItem: (k: string) => {
+          delete mockStorage[k];
+        },
+        clear: () => {
+          mockStorage = {};
+        },
       };
     });
 
@@ -162,12 +174,12 @@ describe('Storage Persistence Engine (Elterngeld State Persistence)', () => {
       delete (globalThis as any).localStorage;
     });
 
-    it('saves state, loads state, and clears state via localStorage adapter', () => {
+    it("saves state, loads state, and clears state via localStorage adapter", () => {
       const state = getDefaultPersistedState();
       const updated: ElterngeldPersistedState = {
         ...state,
         husbandGross: toGrossSalary(8000),
-        wifeGross: toGrossSalary(4000)
+        wifeGross: toGrossSalary(4000),
       };
 
       const saved = saveToStorage(updated);

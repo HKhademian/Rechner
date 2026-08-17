@@ -1,10 +1,10 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { computeSiblingBonus } from '#engine/benefits/siblingBonus';
-import { toEuroAmount, toSimulationMonth } from '#engine/types';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { computeSiblingBonus } from "#engine/benefits/siblingBonus";
+import { toEuroAmount, toSimulationMonth } from "#engine/types";
 
-describe('Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)', () => {
-  it('grants +10% bonus with statutory minimum of +€75/month when older child is under 36 months', () => {
+describe("Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)", () => {
+  it("grants +10% bonus with statutory minimum of +€75/month when older child is under 36 months", () => {
     const olderBirth = toSimulationMonth(12); // Child 1 born at M12 (turns 3 at M48)
 
     // Test months M39 to M47 (Older child is 27 to 35 months old)
@@ -20,7 +20,7 @@ describe('Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)', () =>
     }
   });
 
-  it('calculates +10% bonus when 10% exceeds statutory minimum +€75', () => {
+  it("calculates +10% bonus when 10% exceeds statutory minimum +€75", () => {
     const olderBirth = toSimulationMonth(12);
     const currentMonth = toSimulationMonth(40);
     const basePlus = toEuroAmount(800); // 10% is €80 (exceeds €75)
@@ -31,7 +31,7 @@ describe('Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)', () =>
     assert.equal(res.totalElterngeldPlusWithBonus, 880);
   });
 
-  it('caps total ElterngeldPlus with bonus at statutory max €900/month', () => {
+  it("caps total ElterngeldPlus with bonus at statutory max €900/month", () => {
     const olderBirth = toSimulationMonth(12);
     const currentMonth = toSimulationMonth(40);
     const basePlus = toEuroAmount(890);
@@ -41,7 +41,7 @@ describe('Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)', () =>
     assert.equal(res.totalElterngeldPlusWithBonus, 900);
   });
 
-  it('expires exactly when older child completes 36th month (3rd birthday at M48)', () => {
+  it("expires exactly when older child completes 36th month (3rd birthday at M48)", () => {
     const olderBirth = toSimulationMonth(12);
     const expiredMonth = toSimulationMonth(48); // Month 48 = Older child is 36 months old
     const basePlus = toEuroAmount(411);

@@ -1,40 +1,40 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { createTransaction } from '#engine/ledger/transaction';
-import { buildMonthlyLedgerEntry } from '#engine/ledger/ledger';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { createTransaction } from "#engine/ledger/transaction";
+import { buildMonthlyLedgerEntry } from "#engine/ledger/ledger";
 import {
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
   toEuroAmount,
   TransactionType,
-  TransactionDirection
-} from '#engine/types';
+  TransactionDirection,
+} from "#engine/types";
 
-describe('Atomic Ledger & Transaction Integrity Engine', () => {
-  describe('createTransaction', () => {
-    it('creates immutable, validly branded transaction records', () => {
+describe("Atomic Ledger & Transaction Integrity Engine", () => {
+  describe("createTransaction", () => {
+    it("creates immutable, validly branded transaction records", () => {
       const tx = createTransaction({
-        transactionId: 'TX-M1-TEST',
+        transactionId: "TX-M1-TEST",
         month: toSimulationMonth(1),
         year: toCalendarYear(1),
         type: TransactionType.SalaryBase,
         direction: TransactionDirection.Inflow,
         amount: toEuroAmount(2895),
-        statutoryCitation: '§ 19 EStG',
-        taxClassLabel: 'H: III',
-        description: 'Husband salary',
-        auditTrail: 'Monthly net salary'
+        statutoryCitation: "§ 19 EStG",
+        taxClassLabel: "H: III",
+        description: "Husband salary",
+        auditTrail: "Monthly net salary",
       });
 
-      assert.equal(tx.transactionId, 'TX-M1-TEST');
+      assert.equal(tx.transactionId, "TX-M1-TEST");
       assert.equal(tx.amount, 2895);
-      assert.equal(tx.statutoryCitation, '§ 19 EStG');
+      assert.equal(tx.statutoryCitation, "§ 19 EStG");
     });
   });
 
-  describe('buildMonthlyLedgerEntry - Conservation of Balance Audit', () => {
-    it('maintains strict accounting equality: MonthlyTotal == RegularTotal + SpecialEventsTotal', () => {
+  describe("buildMonthlyLedgerEntry - Conservation of Balance Audit", () => {
+    it("maintains strict accounting equality: MonthlyTotal == RegularTotal + SpecialEventsTotal", () => {
       for (let m = 1; m <= 60; m++) {
         const sMonth = toSimulationMonth(m);
         const cy = toCalendarYear(Math.ceil(m / 12));
@@ -65,24 +65,25 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
             bonus40Amount: bonus40,
             bonus60Amount: bonus60,
             specialEvents: [],
-            taxClassLabel: 'III/V',
-            phaseLabel: 'Test',
+            taxClassLabel: "III/V",
+            phaseLabel: "Test",
             eventTag: null,
             eventType: null,
             isSwapActive: false,
             isMutterschutz: false,
             isPartnerschaftsbonus: false,
             hasSiblingBonus: false,
-            transactions: []
+            transactions: [],
           },
           0,
           0,
           0,
-          0
+          0,
         );
 
         const expectedRegular = 4000 + 2000 + 259;
-        const expectedSpecial = (bonus40 as number) + (bonus60 as number) + (taxRefund as number);
+        const expectedSpecial =
+          (bonus40 as number) + (bonus60 as number) + (taxRefund as number);
         const expectedTotal = expectedRegular + expectedSpecial;
 
         assert.equal(entry.regularMonthlyTotal, expectedRegular);
@@ -91,7 +92,7 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
       }
     });
 
-    it('correctly handles costing/expense events (negative amounts) reducing monthlyTotal and cumulatedTotal', () => {
+    it("correctly handles costing/expense events (negative amounts) reducing monthlyTotal and cumulatedTotal", () => {
       const sMonth = toSimulationMonth(17);
       const cy = toCalendarYear(2);
       const cm = toCalendarMonth(5);
@@ -103,20 +104,20 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
 
       // One-off baby equipment cost (-1500 €)
       const costEvent = {
-        eventId: 'EVENT-M17-EQUIPMENT' as any,
+        eventId: "EVENT-M17-EQUIPMENT" as any,
         month: sMonth,
         year: cy,
         calendarYearNum: 2027,
         calendarMonthNum: cm,
-        calendarLabel: '05.2027',
-        relativeBirthLabel: 'Birth M0',
-        type: 'custom_cost' as any,
-        title: 'Child #1 Initial Equipment',
-        category: 'Baby Equipment (*Erstausstattung*)' as any,
-        statutory: 'Out-of-Pocket Expense' as any,
-        taxClassLabel: 'H: V | W: III',
+        calendarLabel: "05.2027",
+        relativeBirthLabel: "Birth M0",
+        type: "custom_cost" as any,
+        title: "Child #1 Initial Equipment",
+        category: "Baby Equipment (*Erstausstattung*)" as any,
+        statutory: "Out-of-Pocket Expense" as any,
+        taxClassLabel: "H: V | W: III",
         amount: toEuroAmount(-1500),
-        description: 'Baby nursery and stroller'
+        description: "Baby nursery and stroller",
       };
 
       const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
@@ -126,8 +127,8 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
           monthInYear: cm,
           calendarYearNum: 2027,
           calendarMonthNum: cm,
-          calendarLabel: '05.2027',
-          relativeBirthLabel: 'Birth M0',
+          calendarLabel: "05.2027",
+          relativeBirthLabel: "Birth M0",
           husbandSalary: hSalary,
           wifeSalary: wSalary,
           mutterschutz,
@@ -138,20 +139,20 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
           bonus40Amount: toEuroAmount(0),
           bonus60Amount: toEuroAmount(0),
           specialEvents: [costEvent],
-          taxClassLabel: 'H: V | W: III',
-          phaseLabel: 'Post-Birth Mutterschutz',
+          taxClassLabel: "H: V | W: III",
+          phaseLabel: "Post-Birth Mutterschutz",
           eventTag: null,
           eventType: null,
           isSwapActive: true,
           isMutterschutz: true,
           isPartnerschaftsbonus: false,
           hasSiblingBonus: false,
-          transactions: []
+          transactions: [],
         },
         50000,
         10000,
         850,
-        60850
+        60850,
       );
 
       const regularTotal = 2895 + 2603 + 259; // 5738 €
@@ -165,7 +166,7 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
       assert.equal(entry.cumulatedTotal, 60850 + expectedMonthly);
     });
 
-    it('correctly handles generating/inflow events (positive amounts) increasing monthlyTotal and cumulatedTotal', () => {
+    it("correctly handles generating/inflow events (positive amounts) increasing monthlyTotal and cumulatedTotal", () => {
       const sMonth = toSimulationMonth(12);
       const cy = toCalendarYear(1);
       const cm = toCalendarMonth(12);
@@ -176,20 +177,20 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
 
       // One-off bonus grant (+2000 €)
       const grantEvent = {
-        eventId: 'EVENT-M12-GRANT' as any,
+        eventId: "EVENT-M12-GRANT" as any,
         month: sMonth,
         year: cy,
         calendarYearNum: 2026,
         calendarMonthNum: cm,
-        calendarLabel: '12.2026',
-        relativeBirthLabel: 'M-5',
-        type: 'custom_income' as any,
-        title: 'Employer Family Grant',
-        category: 'Career & Bonus (*Sonderzahlung*)' as any,
-        statutory: 'Special Financial Inflow' as any,
-        taxClassLabel: 'H: III | W: V',
+        calendarLabel: "12.2026",
+        relativeBirthLabel: "M-5",
+        type: "custom_income" as any,
+        title: "Employer Family Grant",
+        category: "Career & Bonus (*Sonderzahlung*)" as any,
+        statutory: "Special Financial Inflow" as any,
+        taxClassLabel: "H: III | W: V",
         amount: toEuroAmount(2000),
-        description: 'Employer one-off family grant'
+        description: "Employer one-off family grant",
       };
 
       const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
@@ -199,8 +200,8 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
           monthInYear: cm,
           calendarYearNum: 2026,
           calendarMonthNum: cm,
-          calendarLabel: '12.2026',
-          relativeBirthLabel: 'M-5',
+          calendarLabel: "12.2026",
+          relativeBirthLabel: "M-5",
           husbandSalary: hSalary,
           wifeSalary: wSalary,
           mutterschutz: toEuroAmount(0),
@@ -211,20 +212,20 @@ describe('Atomic Ledger & Transaction Integrity Engine', () => {
           bonus40Amount: toEuroAmount(0),
           bonus60Amount: toEuroAmount(0),
           specialEvents: [grantEvent],
-          taxClassLabel: 'H: III | W: V',
-          phaseLabel: 'Pre-Pregnancy Planning',
+          taxClassLabel: "H: III | W: V",
+          phaseLabel: "Pre-Pregnancy Planning",
           eventTag: null,
           eventType: null,
           isSwapActive: false,
           isMutterschutz: false,
           isPartnerschaftsbonus: false,
           hasSiblingBonus: false,
-          transactions: []
+          transactions: [],
         },
         60000,
         0,
         0,
-        60000
+        60000,
       );
 
       const regularTotal = 2895 + 1975; // 6125 €

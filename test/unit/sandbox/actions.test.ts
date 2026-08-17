@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,
@@ -19,10 +19,10 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
-  type FinancialEventAction
-} from '#engine/types';
+  type FinancialEventAction,
+} from "#engine/types";
 
-describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
+describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
   const basePreexisting: PreexistingConditions = {
     startCalendarYear: 2026,
     startCalendarMonth: toCalendarMonth(1),
@@ -30,36 +30,42 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: toNetSalary(2895),
     husbandInitialClass5Net: toNetSalary(2191),
-    husbandWeeklyHours: toEuroAmount(32) as unknown as import('#engine/types').WorkingHours,
+    husbandWeeklyHours: toEuroAmount(
+      32,
+    ) as unknown as import("#engine/types").WorkingHours,
     wifeInitialTaxClass: TaxClass.V,
     wifeInitialFullTimeNet: toNetSalary(1975),
     wifeInitialClass3FullTimeNet: toNetSalary(2603),
     wifeInitialPartTimeClass5Net: toNetSalary(1328),
     wifeInitialPartTimeClass3Net: toNetSalary(1648),
-    wifeWeeklyHours: toEuroAmount(40) as unknown as import('#engine/types').WorkingHours,
+    wifeWeeklyHours: toEuroAmount(
+      40,
+    ) as unknown as import("#engine/types").WorkingHours,
     existingChildrenCount: 0,
     kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: true,
     bonus40Month: toCalendarMonth(5),
     bonus60Month: toCalendarMonth(11),
-    taxReturnMonth: toCalendarMonth(3)
+    taxReturnMonth: toCalendarMonth(3),
   };
 
-  describe('Batch 1: Pregnancy Positive Decisions & Life Milestones', () => {
-    it('accurately triggers Mutterschutz window 6 weeks pre-birth to 8 weeks post-birth', () => {
+  describe("Batch 1: Pregnancy Positive Decisions & Life Milestones", () => {
+    it("accurately triggers Mutterschutz window 6 weeks pre-birth to 8 weeks post-birth", () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: toPregnancyId('PREG-1'),
+          pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
-        }
+          fatherPartnerMonthsCount: 4,
+        },
       ];
 
       const res = runScenarioBatches({
@@ -67,15 +73,27 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         preexisting: basePreexisting,
         pregnancies,
         taxClassSwitches: [],
-        salaryRaises: []
+        salaryRaises: [],
       });
 
       // Mutterschutz months: M11 (pre-birth), M12 (delivery), M13 (post-birth)
       [11, 12, 13].forEach((mIdx) => {
         const m = res.months[mIdx - 1];
-        assert.equal(m.isMutterschutz, true, `Month ${mIdx} must be in Mutterschutz`);
-        assert.equal(m.mutterschutz, 1975, `Month ${mIdx} Mutterschutz in Scenario B must equal Class V FT Net`);
-        assert.equal(m.wifeSalary, 0, `Wife working salary during Mutterschutz must be 0`);
+        assert.equal(
+          m.isMutterschutz,
+          true,
+          `Month ${mIdx} must be in Mutterschutz`,
+        );
+        assert.equal(
+          m.mutterschutz,
+          1975,
+          `Month ${mIdx} Mutterschutz in Scenario B must equal Class V FT Net`,
+        );
+        assert.equal(
+          m.wifeSalary,
+          0,
+          `Wife working salary during Mutterschutz must be 0`,
+        );
       });
 
       // M14 onwards: ElterngeldPlus active
@@ -85,7 +103,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       assert.equal(m14.wifeElterngeld, 501);
     });
 
-    it('validates Sibling Bonus (+10%) eligibility for spacing < 36 months vs expiration at >= 36 months', () => {
+    it("validates Sibling Bonus (+10%) eligibility for spacing < 36 months vs expiration at >= 36 months", () => {
       const testCases = [
         { spacing: 18, expectBonus: true }, // b2 = 30, EG starts M32 -> Child 1 is 20M (<36)
         { spacing: 24, expectBonus: true }, // b2 = 36, EG starts M38 -> Child 1 is 26M (<36)
@@ -93,7 +111,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         { spacing: 33, expectBonus: true }, // b2 = 45, EG starts M47 -> Child 1 is 35M (<36)
         { spacing: 34, expectBonus: false }, // b2 = 46, EG starts M48 -> Child 1 is 36M (=36, expired)
         { spacing: 36, expectBonus: false }, // b2 = 48, EG starts M50 -> Child 1 is 38M (>36)
-        { spacing: 40, expectBonus: false }
+        { spacing: 40, expectBonus: false },
       ];
 
       for (const tc of testCases) {
@@ -102,29 +120,33 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
         const pregnancies: PregnancyAction[] = [
           {
-            pregnancyId: toPregnancyId('PREG-1'),
+            pregnancyId: toPregnancyId("PREG-1"),
             childIndex: 1,
             positiveTestCalendarMonth: toCalendarMonth(4),
             positiveTestCalendarYear: 2026,
             positiveTestSimulationMonth: toSimulationMonth(4),
             calculatedDeliverySimulationMonth: toSimulationMonth(b1),
-            motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+            motherPostBirthPartTimeHours: toEuroAmount(
+              24,
+            ) as unknown as import("#engine/types").WorkingHours,
             motherPostBirthPartTimeClass5Net: toNetSalary(1328),
             motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-            fatherPartnerMonthsCount: 4
+            fatherPartnerMonthsCount: 4,
           },
           {
-            pregnancyId: toPregnancyId('PREG-2'),
+            pregnancyId: toPregnancyId("PREG-2"),
             childIndex: 2,
             positiveTestCalendarMonth: toCalendarMonth(1),
             positiveTestCalendarYear: 2028,
             positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
             calculatedDeliverySimulationMonth: toSimulationMonth(b2),
-            motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+            motherPostBirthPartTimeHours: toEuroAmount(
+              24,
+            ) as unknown as import("#engine/types").WorkingHours,
             motherPostBirthPartTimeClass5Net: toNetSalary(1328),
             motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-            fatherPartnerMonthsCount: 4
-          }
+            fatherPartnerMonthsCount: 4,
+          },
         ];
 
         const res = runScenarioBatches({
@@ -132,7 +154,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
           preexisting: { ...basePreexisting, simulationDurationMonths: 72 },
           pregnancies,
           taxClassSwitches: [],
-          salaryRaises: []
+          salaryRaises: [],
         });
 
         // Check first month of Child 2 Elterngeld (b2 + 2)
@@ -141,47 +163,50 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
           assert.equal(
             child2EgFirstMonth.hasSiblingBonus,
             true,
-            `Spacing ${tc.spacing}M must qualify for Sibling Bonus at Month ${b2 + 2}`
+            `Spacing ${tc.spacing}M must qualify for Sibling Bonus at Month ${b2 + 2}`,
           );
         } else {
           assert.equal(
             child2EgFirstMonth.hasSiblingBonus,
             false,
-            `Spacing ${tc.spacing}M must NOT qualify for Sibling Bonus at Month ${b2 + 2}`
+            `Spacing ${tc.spacing}M must NOT qualify for Sibling Bonus at Month ${b2 + 2}`,
           );
         }
       }
     });
   });
 
-  describe('Batch 2: Tax Class Switch Actions (§ 2b BEEG & § 26b EStG)', () => {
-    it('accurately activates Tax Class III for Wife and Class V for Husband during swap window', () => {
+  describe("Batch 2: Tax Class Switch Actions (§ 2b BEEG & § 26b EStG)", () => {
+    it("accurately activates Tax Class III for Wife and Class V for Husband during swap window", () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: toPregnancyId('PREG-1'),
+          pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
-        }
+          fatherPartnerMonthsCount: 4,
+        },
       ];
 
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: toSwitchId('SWAP-1'),
+          switchId: toSwitchId("SWAP-1"),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)',
-          revertSimulationMonth: toSimulationMonth(12)
-        }
+          statutoryReason:
+            "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
+          revertSimulationMonth: toSimulationMonth(12),
+        },
       ];
 
       const res = runScenarioBatches({
@@ -189,7 +214,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         preexisting: basePreexisting,
         pregnancies,
         taxClassSwitches,
-        salaryRaises: []
+        salaryRaises: [],
       });
 
       // Months 1-3: Before Swap -> H: III (2895 €) | W: V (1975 €)
@@ -203,7 +228,11 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // Months 4-10: Swap Active -> H: V (2191 €) | W: III (2603 €)
       for (let m = 4; m <= 10; m++) {
         const entry = res.months[m - 1];
-        assert.equal(entry.isSwapActive, true, `Month ${m} must be swap active`);
+        assert.equal(
+          entry.isSwapActive,
+          true,
+          `Month ${m} must be swap active`,
+        );
         assert.equal(entry.husbandSalary, 2191);
         assert.equal(entry.wifeSalary, 2603);
       }
@@ -221,20 +250,22 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       assert.equal(m12.mutterschutz, 2603);
     });
 
-    it('correctly calculates annual tax return refund reconciling withholding deficits', () => {
+    it("correctly calculates annual tax return refund reconciling withholding deficits", () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: toPregnancyId('PREG-1'),
+          pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
-        }
+          fatherPartnerMonthsCount: 4,
+        },
       ];
 
       // 8 months of swap in 2026 (M4 to M11): net monthly deficit = (2895 - 2191) - (2603 - 1975) = 995 - 720 = 275 €/mo
@@ -242,15 +273,15 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       // Tax return in March 2027 (M15) = 2.200 € + 850 € = 3.050 €
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: toSwitchId('SWAP-1'),
+          switchId: toSwitchId("SWAP-1"),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: 'Optimize § 2b BEEG',
-          revertSimulationMonth: toSimulationMonth(12)
-        }
+          statutoryReason: "Optimize § 2b BEEG",
+          revertSimulationMonth: toSimulationMonth(12),
+        },
       ];
 
       const res = runScenarioBatches({
@@ -258,28 +289,28 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         preexisting: basePreexisting,
         pregnancies,
         taxClassSwitches,
-        salaryRaises: []
+        salaryRaises: [],
       });
 
       const m15 = res.months[14];
-      assert.equal(m15.calendarLabel, '03.2027');
+      assert.equal(m15.calendarLabel, "03.2027");
       // 2.200 € swap deficit + 850 € base refund + 31 € § 31 Günstigerprüfung (1 month Dec birth) = 3.081 €
       assert.equal(m15.taxRefund, 3081);
     });
   });
 
-  describe('Batch 3: Salary Raises & Career Progression', () => {
-    it('applies percentage salary raises from the effective month onwards', () => {
+  describe("Batch 3: Salary Raises & Career Progression", () => {
+    it("applies percentage salary raises from the effective month onwards", () => {
       const salaryRaises: SalaryRaiseAction[] = [
         {
-          raiseId: toRaiseId('RAISE-1'),
+          raiseId: toRaiseId("RAISE-1"),
           effectiveSimulationMonth: toSimulationMonth(13),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2027,
           targetPerson: TargetPerson.Both,
-          percentageIncrease: 0.10, // +10% raise
-          reason: 'Promotion to Staff Engineer'
-        }
+          percentageIncrease: 0.1, // +10% raise
+          reason: "Promotion to Staff Engineer",
+        },
       ];
 
       const res = runScenarioBatches({
@@ -287,7 +318,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         preexisting: basePreexisting,
         pregnancies: [],
         taxClassSwitches: [],
-        salaryRaises
+        salaryRaises,
       });
 
       // Months 1-12: Unadjusted salaries (2895 € and 1975 €)
@@ -305,45 +336,47 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       }
     });
 
-    it('accurately integrates all 4 batches concurrently (Preexisting + Pregnancies + Switches + Raises)', () => {
+    it("accurately integrates all 4 batches concurrently (Preexisting + Pregnancies + Switches + Raises)", () => {
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: toPregnancyId('PREG-1'),
+          pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
-        }
+          fatherPartnerMonthsCount: 4,
+        },
       ];
 
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: toSwitchId('SWAP-1'),
+          switchId: toSwitchId("SWAP-1"),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: '§ 2b BEEG',
-          revertSimulationMonth: toSimulationMonth(12)
-        }
+          statutoryReason: "§ 2b BEEG",
+          revertSimulationMonth: toSimulationMonth(12),
+        },
       ];
 
       const salaryRaises: SalaryRaiseAction[] = [
         {
-          raiseId: toRaiseId('RAISE-Y2'),
+          raiseId: toRaiseId("RAISE-Y2"),
           effectiveSimulationMonth: toSimulationMonth(13),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2027,
           targetPerson: TargetPerson.Both,
           percentageIncrease: 0.05, // +5% in Year 2
-          reason: 'Tariff increase'
-        }
+          reason: "Tariff increase",
+        },
       ];
 
       const res = runScenarioBatches({
@@ -351,7 +384,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         preexisting: basePreexisting,
         pregnancies,
         taxClassSwitches,
-        salaryRaises
+        salaryRaises,
       });
 
       assert.equal(res.months.length, 60);
@@ -363,104 +396,113 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       const grandTotal = res.summary.grandTotal as number;
 
       assert.equal(grandTotal, sumSalaries + sumBenefits + sumTax);
-      assert.ok(grandTotal > 300000, `5-year grand total (${grandTotal} €) must exceed 300.000 €`);
+      assert.ok(
+        grandTotal > 300000,
+        `5-year grand total (${grandTotal} €) must exceed 300.000 €`,
+      );
     });
 
-    it('dynamically processes custom user-added 3rd child pregnancy, custom swap, and merit raises', () => {
+    it("dynamically processes custom user-added 3rd child pregnancy, custom swap, and merit raises", () => {
       // 3 Pregnancies: Child 1 (M12), Child 2 (M36), Child 3 (M60)
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: toPregnancyId('PREG-1'),
+          pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2026,
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
+          fatherPartnerMonthsCount: 4,
         },
         {
-          pregnancyId: toPregnancyId('PREG-2'),
+          pregnancyId: toPregnancyId("PREG-2"),
           childIndex: 2,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2028,
           positiveTestSimulationMonth: toSimulationMonth(28),
           calculatedDeliverySimulationMonth: toSimulationMonth(36),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
+          fatherPartnerMonthsCount: 4,
         },
         {
-          pregnancyId: toPregnancyId('PREG-3'),
+          pregnancyId: toPregnancyId("PREG-3"),
           childIndex: 3,
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: 2030,
           positiveTestSimulationMonth: toSimulationMonth(52),
           calculatedDeliverySimulationMonth: toSimulationMonth(60),
-          motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+          motherPostBirthPartTimeHours: toEuroAmount(
+            24,
+          ) as unknown as import("#engine/types").WorkingHours,
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
-        }
+          fatherPartnerMonthsCount: 4,
+        },
       ];
 
       // 3 Custom Swaps
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
-          switchId: toSwitchId('SWAP-1'),
+          switchId: toSwitchId("SWAP-1"),
           effectiveSimulationMonth: toSimulationMonth(4),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2026,
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: 'Swap 1 (§ 2b BEEG)',
-          revertSimulationMonth: toSimulationMonth(12)
+          statutoryReason: "Swap 1 (§ 2b BEEG)",
+          revertSimulationMonth: toSimulationMonth(12),
         },
         {
-          switchId: toSwitchId('SWAP-2'),
+          switchId: toSwitchId("SWAP-2"),
           effectiveSimulationMonth: toSimulationMonth(28),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2028,
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: 'Swap 2 (§ 2b BEEG)',
-          revertSimulationMonth: toSimulationMonth(36)
+          statutoryReason: "Swap 2 (§ 2b BEEG)",
+          revertSimulationMonth: toSimulationMonth(36),
         },
         {
-          switchId: toSwitchId('SWAP-3'),
+          switchId: toSwitchId("SWAP-3"),
           effectiveSimulationMonth: toSimulationMonth(52),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2030,
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: 'Swap 3 (§ 2b BEEG)',
-          revertSimulationMonth: toSimulationMonth(60)
-        }
+          statutoryReason: "Swap 3 (§ 2b BEEG)",
+          revertSimulationMonth: toSimulationMonth(60),
+        },
       ];
 
       // Custom Raises
       const salaryRaises: SalaryRaiseAction[] = [
         {
-          raiseId: toRaiseId('RAISE-HUSBAND-PROMOTION'),
+          raiseId: toRaiseId("RAISE-HUSBAND-PROMOTION"),
           effectiveSimulationMonth: toSimulationMonth(25),
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: 2028,
           targetPerson: TargetPerson.Husband,
-          percentageIncrease: 0.10, // +10% Husband Promotion
-          reason: 'Senior Staff Promotion'
+          percentageIncrease: 0.1, // +10% Husband Promotion
+          reason: "Senior Staff Promotion",
         },
         {
-          raiseId: toRaiseId('RAISE-WIFE-PROMOTION'),
+          raiseId: toRaiseId("RAISE-WIFE-PROMOTION"),
           effectiveSimulationMonth: toSimulationMonth(40),
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: 2029,
           targetPerson: TargetPerson.Wife,
           percentageIncrease: 0.08, // +8% Wife Merit Step
-          reason: 'Wife Merit Step'
-        }
+          reason: "Wife Merit Step",
+        },
       ];
 
       const res = runScenarioBatches({
@@ -468,18 +510,18 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         preexisting: basePreexisting,
         pregnancies,
         taxClassSwitches,
-        salaryRaises
+        salaryRaises,
       });
 
       assert.equal(res.months.length, 60);
 
       // Verify Month 12 is Delivery 1
-      assert.equal(res.months[11].relativeBirthLabel, 'M+8 (Birth 1)');
+      assert.equal(res.months[11].relativeBirthLabel, "M+8 (Birth 1)");
 
       // Verify Month 25 husband salary has +10% raise
       const m24Husband = res.months[23].husbandSalary as number;
       const m25Husband = res.months[24].husbandSalary as number;
-      assert.equal(m25Husband, Math.round(m24Husband * 1.10));
+      assert.equal(m25Husband, Math.round(m24Husband * 1.1));
 
       // Verify Month 52 is Swap 3 active
       assert.equal(res.months[51].isSwapActive, true);
@@ -491,36 +533,57 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
 
       // Verify Action Milestone Rows placed immediately before the triggering month
       // Month 4 has Pregnancy 1 Positive and Swap 1 Effective
-      assert.ok(res.months[3].startingActions && res.months[3].startingActions.length >= 2);
-      const m4ActionTitles = res.months[3].startingActions!.map(a => a.title);
-      assert.ok(m4ActionTitles.some(t => t.includes('Positive Pregnancy Test (Child #1)')));
-      assert.ok(m4ActionTitles.some(t => t.includes('Tax Class Switch Active')));
+      assert.ok(
+        res.months[3].startingActions &&
+          res.months[3].startingActions.length >= 2,
+      );
+      const m4ActionTitles = res.months[3].startingActions!.map((a) => a.title);
+      assert.ok(
+        m4ActionTitles.some((t) =>
+          t.includes("Positive Pregnancy Test (Child #1)"),
+        ),
+      );
+      assert.ok(
+        m4ActionTitles.some((t) => t.includes("Tax Class Switch Active")),
+      );
 
       // Month 12 has Delivery 1 and Swap 1 Reversion
-      assert.ok(res.months[11].startingActions && res.months[11].startingActions.length >= 2);
-      const m12ActionTitles = res.months[11].startingActions!.map(a => a.title);
-      assert.ok(m12ActionTitles.some(t => t.includes('Delivery & Birth')));
-      assert.ok(m12ActionTitles.some(t => t.includes('Tax Class Reversion')));
+      assert.ok(
+        res.months[11].startingActions &&
+          res.months[11].startingActions.length >= 2,
+      );
+      const m12ActionTitles = res.months[11].startingActions!.map(
+        (a) => a.title,
+      );
+      assert.ok(m12ActionTitles.some((t) => t.includes("Delivery & Birth")));
+      assert.ok(m12ActionTitles.some((t) => t.includes("Tax Class Reversion")));
 
       // Month 25 has Husband Merit Promotion
-      assert.ok(res.months[24].startingActions && res.months[24].startingActions.length >= 1);
-      assert.ok(res.months[24].startingActions![0].title.includes('Salary Raise Effective (HUSBAND +10%)'));
+      assert.ok(
+        res.months[24].startingActions &&
+          res.months[24].startingActions.length >= 1,
+      );
+      assert.ok(
+        res.months[24].startingActions![0].title.includes(
+          "Salary Raise Effective (HUSBAND +10%)",
+        ),
+      );
     });
   });
 
-  describe('Batch 4: Financial Events (One-Off Costs, Expenses & Inflows)', () => {
-    it('injects one-off family expense event into specialEvents and reduces monthlyTotal and grandTotal', () => {
+  describe("Batch 4: Financial Events (One-Off Costs, Expenses & Inflows)", () => {
+    it("injects one-off family expense event into specialEvents and reduces monthlyTotal and grandTotal", () => {
       const financialEvents: FinancialEventAction[] = [
         {
-          eventId: toFinancialEventId('FIN-EQUIPMENT-1'),
+          eventId: toFinancialEventId("FIN-EQUIPMENT-1"),
           effectiveSimulationMonth: toSimulationMonth(17),
           effectiveCalendarMonth: toCalendarMonth(5),
           effectiveCalendarYear: 2027,
-          title: 'Baby Initial Equipment',
+          title: "Baby Initial Equipment",
           amount: toEuroAmount(-1500),
           category: FinancialEventCategory.BabyEquipment,
-          description: 'Nursery crib and stroller'
-        }
+          description: "Nursery crib and stroller",
+        },
       ];
 
       const resBaseline = runScenarioBatches({
@@ -529,7 +592,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents: []
+        financialEvents: [],
       });
 
       const resWithCost = runScenarioBatches({
@@ -538,36 +601,46 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents
+        financialEvents,
       });
 
       const m17Baseline = resBaseline.months[16];
       const m17Cost = resWithCost.months[16];
 
       // Verify Special Event Item in Month 17
-      assert.ok(m17Cost.specialEvents.some(e => e.eventId === 'FIN-EQUIPMENT-1'));
-      const ev = m17Cost.specialEvents.find(e => e.eventId === 'FIN-EQUIPMENT-1')!;
+      assert.ok(
+        m17Cost.specialEvents.some((e) => e.eventId === "FIN-EQUIPMENT-1"),
+      );
+      const ev = m17Cost.specialEvents.find(
+        (e) => e.eventId === "FIN-EQUIPMENT-1",
+      )!;
       assert.equal(ev.amount, -1500);
 
       // Verify monthly total is exactly -1500 less than baseline
-      assert.equal((m17Cost.monthlyTotal as number), (m17Baseline.monthlyTotal as number) - 1500);
+      assert.equal(
+        m17Cost.monthlyTotal as number,
+        (m17Baseline.monthlyTotal as number) - 1500,
+      );
 
       // Verify 60-month grandTotal is reduced by 1500
-      assert.equal((resWithCost.summary.grandTotal as number), (resBaseline.summary.grandTotal as number) - 1500);
+      assert.equal(
+        resWithCost.summary.grandTotal as number,
+        (resBaseline.summary.grandTotal as number) - 1500,
+      );
     });
 
-    it('injects one-off inflow grant event into specialEvents and increases monthlyTotal and grandTotal', () => {
+    it("injects one-off inflow grant event into specialEvents and increases monthlyTotal and grandTotal", () => {
       const financialEvents: FinancialEventAction[] = [
         {
-          eventId: toFinancialEventId('FIN-BONUS-GRANT'),
+          eventId: toFinancialEventId("FIN-BONUS-GRANT"),
           effectiveSimulationMonth: toSimulationMonth(12),
           effectiveCalendarMonth: toCalendarMonth(12),
           effectiveCalendarYear: 2026,
-          title: 'Employer Family Inflow Grant',
+          title: "Employer Family Inflow Grant",
           amount: toEuroAmount(2500),
           category: FinancialEventCategory.CareerBonus,
-          description: 'Performance bonus grant'
-        }
+          description: "Performance bonus grant",
+        },
       ];
 
       const resBaseline = runScenarioBatches({
@@ -576,7 +649,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents: []
+        financialEvents: [],
       });
 
       const resWithIncome = runScenarioBatches({
@@ -585,37 +658,47 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents
+        financialEvents,
       });
 
       const m12Baseline = resBaseline.months[11];
       const m12Income = resWithIncome.months[11];
 
       // Verify Special Event Item in Month 12
-      assert.ok(m12Income.specialEvents.some(e => e.eventId === 'FIN-BONUS-GRANT'));
-      const ev = m12Income.specialEvents.find(e => e.eventId === 'FIN-BONUS-GRANT')!;
+      assert.ok(
+        m12Income.specialEvents.some((e) => e.eventId === "FIN-BONUS-GRANT"),
+      );
+      const ev = m12Income.specialEvents.find(
+        (e) => e.eventId === "FIN-BONUS-GRANT",
+      )!;
       assert.equal(ev.amount, 2500);
 
       // Verify monthly total is exactly +2500 greater than baseline
-      assert.equal((m12Income.monthlyTotal as number), (m12Baseline.monthlyTotal as number) + 2500);
+      assert.equal(
+        m12Income.monthlyTotal as number,
+        (m12Baseline.monthlyTotal as number) + 2500,
+      );
 
       // Verify 60-month grandTotal is increased by 2500
-      assert.equal((resWithIncome.summary.grandTotal as number), (resBaseline.summary.grandTotal as number) + 2500);
+      assert.equal(
+        resWithIncome.summary.grandTotal as number,
+        (resBaseline.summary.grandTotal as number) + 2500,
+      );
     });
 
-    it('supports scenario-specific financial events scoping when appliesToScenarios is set', () => {
+    it("supports scenario-specific financial events scoping when appliesToScenarios is set", () => {
       const financialEvents: FinancialEventAction[] = [
         {
-          eventId: toFinancialEventId('FIN-SCENARIO-C-ONLY'),
+          eventId: toFinancialEventId("FIN-SCENARIO-C-ONLY"),
           effectiveSimulationMonth: toSimulationMonth(20),
           effectiveCalendarMonth: toCalendarMonth(8),
           effectiveCalendarYear: 2027,
-          title: 'Scenario C Specific Investment',
+          title: "Scenario C Specific Investment",
           amount: toEuroAmount(-3000),
           category: FinancialEventCategory.CustomSpecial,
-          description: 'Private childcare fund',
-          appliesToScenarios: [ScenarioId.C]
-        }
+          description: "Private childcare fund",
+          appliesToScenarios: [ScenarioId.C],
+        },
       ];
 
       const resB = runScenarioBatches({
@@ -624,7 +707,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents
+        financialEvents,
       });
 
       const resC = runScenarioBatches({
@@ -633,21 +716,29 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents
+        financialEvents,
       });
 
       // Scenario B should NOT have the event
-      assert.ok(!resB.months[19].specialEvents.some(e => e.eventId === 'FIN-SCENARIO-C-ONLY'));
+      assert.ok(
+        !resB.months[19].specialEvents.some(
+          (e) => e.eventId === "FIN-SCENARIO-C-ONLY",
+        ),
+      );
 
       // Scenario C SHOULD have the event
-      assert.ok(resC.months[19].specialEvents.some(e => e.eventId === 'FIN-SCENARIO-C-ONLY'));
+      assert.ok(
+        resC.months[19].specialEvents.some(
+          (e) => e.eventId === "FIN-SCENARIO-C-ONLY",
+        ),
+      );
     });
   });
 
-  describe('Statutory Working Hours & Benefit Qualification (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)', () => {
-    it('disqualifies mother from Elterngeld when part-time hours exceed 32h/week (0 € benefit paid)', () => {
+  describe("Statutory Working Hours & Benefit Qualification (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)", () => {
+    it("disqualifies mother from Elterngeld when part-time hours exceed 32h/week (0 € benefit paid)", () => {
       const highHoursPregnancy: PregnancyAction = {
-        pregnancyId: toPregnancyId('PREG-HIGH-HOURS'),
+        pregnancyId: toPregnancyId("PREG-HIGH-HOURS"),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: 2026,
@@ -656,7 +747,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         motherPostBirthPartTimeHours: toWorkingHours(35), // > 32h/week -> Disqualified under § 1 BEEG
         motherPostBirthPartTimeClass5Net: toNetSalary(1800),
         motherPostBirthPartTimeClass3Net: toNetSalary(2400),
-        fatherPartnerMonthsCount: 4
+        fatherPartnerMonthsCount: 4,
       };
 
       const res = runScenarioBatches({
@@ -665,21 +756,28 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [highHoursPregnancy],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents: []
+        financialEvents: [],
       });
 
       // Months 14..25 are post-Mutterschutz leave months
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
         // Zero Elterngeld for mother because hours > 32
-        assert.equal(month.wifeElterngeld as number, 0, `Month ${m} wifeElterngeld must be 0 for >32h`);
-        assert.ok(month.phaseLabel.includes('>32h: No EG'), `Phase label should indicate exclusion at month ${m}`);
+        assert.equal(
+          month.wifeElterngeld as number,
+          0,
+          `Month ${m} wifeElterngeld must be 0 for >32h`,
+        );
+        assert.ok(
+          month.phaseLabel.includes(">32h: No EG"),
+          `Phase label should indicate exclusion at month ${m}`,
+        );
       }
     });
 
-    it('denies Partnerschaftsbonus when mother works < 24h/week (outside 24-32h corridor § 4b BEEG)', () => {
+    it("denies Partnerschaftsbonus when mother works < 24h/week (outside 24-32h corridor § 4b BEEG)", () => {
       const lowHoursPregnancy: PregnancyAction = {
-        pregnancyId: toPregnancyId('PREG-LOW-HOURS'),
+        pregnancyId: toPregnancyId("PREG-LOW-HOURS"),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: 2026,
@@ -688,7 +786,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         motherPostBirthPartTimeHours: toWorkingHours(20), // 20h < 24h -> Qualifies for EG+, but NOT Partnerschaftsbonus
         motherPostBirthPartTimeClass5Net: toNetSalary(1045),
         motherPostBirthPartTimeClass3Net: toNetSalary(1405),
-        fatherPartnerMonthsCount: 4
+        fatherPartnerMonthsCount: 4,
       };
 
       const res = runScenarioBatches({
@@ -697,7 +795,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [lowHoursPregnancy],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents: []
+        financialEvents: [],
       });
 
       // Months 14..25: Standard EG+ is paid (€900)
@@ -710,15 +808,23 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
       for (let m = 26; m <= 29; m++) {
         const month = res.months[m - 1];
         assert.equal(month.isPartnerschaftsbonus, false);
-        assert.equal(month.wifeElterngeld as number, 0, `Month ${m} wifeElterngeld must be 0 for <24h during bonus window`);
-        assert.equal(month.husbandElterngeld as number, 0, `Month ${m} husbandElterngeld must be 0 for <24h during bonus window`);
-        assert.ok(month.phaseLabel.includes('<24h: No PB'));
+        assert.equal(
+          month.wifeElterngeld as number,
+          0,
+          `Month ${m} wifeElterngeld must be 0 for <24h during bonus window`,
+        );
+        assert.equal(
+          month.husbandElterngeld as number,
+          0,
+          `Month ${m} husbandElterngeld must be 0 for <24h during bonus window`,
+        );
+        assert.ok(month.phaseLabel.includes("<24h: No PB"));
       }
     });
 
-    it('grants full ElterngeldPlus AND Partnerschaftsbonus when working 24-32h/week', () => {
+    it("grants full ElterngeldPlus AND Partnerschaftsbonus when working 24-32h/week", () => {
       const optimalHoursPregnancy: PregnancyAction = {
-        pregnancyId: toPregnancyId('PREG-OPTIMAL-HOURS'),
+        pregnancyId: toPregnancyId("PREG-OPTIMAL-HOURS"),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: 2026,
@@ -727,7 +833,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         motherPostBirthPartTimeHours: toWorkingHours(24), // 24h -> in corridor 24-32h
         motherPostBirthPartTimeClass5Net: toNetSalary(1328),
         motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-        fatherPartnerMonthsCount: 4
+        fatherPartnerMonthsCount: 4,
       };
 
       const res = runScenarioBatches({
@@ -736,7 +842,7 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         pregnancies: [optimalHoursPregnancy],
         taxClassSwitches: [],
         salaryRaises: [],
-        financialEvents: []
+        financialEvents: [],
       });
 
       // Months 14..25: Standard EG+ is paid (€900)
@@ -751,7 +857,9 @@ describe('Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)', () => {
         assert.equal(month.isPartnerschaftsbonus, true);
         assert.equal(month.wifeElterngeld as number, 900);
         assert.equal(month.husbandElterngeld as number, 150);
-        assert.ok(month.phaseLabel.includes('Partnerschaftsbonus 1 (Both 24-32h)'));
+        assert.ok(
+          month.phaseLabel.includes("Partnerschaftsbonus 1 (Both 24-32h)"),
+        );
       }
     });
   });

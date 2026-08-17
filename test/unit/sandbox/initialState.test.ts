@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { runScenarioBatches } from '#engine/simulator/timelineGenerator';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,
@@ -13,11 +13,13 @@ import {
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
-  type SalaryRaiseAction
-} from '#engine/types';
+  type SalaryRaiseAction,
+} from "#engine/types";
 
-describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)', () => {
-  const createBasePreexisting = (overrides: Partial<PreexistingConditions> = {}): PreexistingConditions => ({
+describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)", () => {
+  const createBasePreexisting = (
+    overrides: Partial<PreexistingConditions> = {},
+  ): PreexistingConditions => ({
     startCalendarYear: 2026,
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: 24,
@@ -37,26 +39,26 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
     bonus40Month: toCalendarMonth(5),
     bonus60Month: toCalendarMonth(11),
     taxReturnMonth: toCalendarMonth(3),
-    ...overrides
+    ...overrides,
   });
 
   const emptyPregnancies: readonly PregnancyAction[] = [];
   const emptySwitches: readonly TaxClassSwitchAction[] = [];
   const emptyRaises: readonly SalaryRaiseAction[] = [];
 
-  describe('Initial Incomes & Tax Classes', () => {
-    it('accurately establishes Scenario A monthly inflow across various income levels', () => {
+  describe("Initial Incomes & Tax Classes", () => {
+    it("accurately establishes Scenario A monthly inflow across various income levels", () => {
       const salaryPairs = [
         { hNet: 3000, wNet: 1500, expected: 4500 },
         { hNet: 2895, wNet: 1975, expected: 6125 },
         { hNet: 5200, wNet: 2600, expected: 7800 },
-        { hNet: 5000, wNet: 3000, expected: 10000 }
+        { hNet: 5000, wNet: 3000, expected: 10000 },
       ];
 
       for (const pair of salaryPairs) {
         const preexisting = createBasePreexisting({
           husbandInitialNet: toNetSalary(pair.hNet),
-          wifeInitialFullTimeNet: toNetSalary(pair.wNet)
+          wifeInitialFullTimeNet: toNetSalary(pair.wNet),
         });
 
         const res = runScenarioBatches({
@@ -64,7 +66,7 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
           preexisting,
           pregnancies: emptyPregnancies,
           taxClassSwitches: emptySwitches,
-          salaryRaises: emptyRaises
+          salaryRaises: emptyRaises,
         });
 
         assert.equal(res.months.length, 24);
@@ -76,12 +78,12 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
       }
     });
 
-    it('correctly handles zero income boundary states without crashing', () => {
+    it("correctly handles zero income boundary states without crashing", () => {
       const preexisting = createBasePreexisting({
         husbandInitialNet: toNetSalary(0),
         husbandInitialClass5Net: toNetSalary(0),
         wifeInitialFullTimeNet: toNetSalary(0),
-        wifeInitialClass3FullTimeNet: toNetSalary(0)
+        wifeInitialClass3FullTimeNet: toNetSalary(0),
       });
 
       const res = runScenarioBatches({
@@ -89,7 +91,7 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
         preexisting,
         pregnancies: emptyPregnancies,
         taxClassSwitches: emptySwitches,
-        salaryRaises: emptyRaises
+        salaryRaises: emptyRaises,
       });
 
       res.months.forEach((m) => {
@@ -99,14 +101,14 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
     });
   });
 
-  describe('Preexisting Children & Kindergeld (§ 66 EStG)', () => {
-    it('pays Kindergeld from Month 1 if existing children are declared in initial state', () => {
+  describe("Preexisting Children & Kindergeld (§ 66 EStG)", () => {
+    it("pays Kindergeld from Month 1 if existing children are declared in initial state", () => {
       const childCounts = [1, 2, 3, 4];
 
       for (const count of childCounts) {
         const preexisting = createBasePreexisting({
           existingChildrenCount: count,
-          kindergeldPerChild: toEuroAmount(250)
+          kindergeldPerChild: toEuroAmount(250),
         });
 
         const res = runScenarioBatches({
@@ -114,7 +116,7 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
           preexisting,
           pregnancies: emptyPregnancies,
           taxClassSwitches: emptySwitches,
-          salaryRaises: emptyRaises
+          salaryRaises: emptyRaises,
         });
 
         const expectedKindergeld = count * 250;
@@ -125,13 +127,13 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
     });
   });
 
-  describe('Simulation Start Calendar Dates (Month & Year)', () => {
-    it('correctly sets calendar labels and years across all 12 starting calendar months', () => {
+  describe("Simulation Start Calendar Dates (Month & Year)", () => {
+    it("correctly sets calendar labels and years across all 12 starting calendar months", () => {
       for (let startM = 1; startM <= 12; startM++) {
         const preexisting = createBasePreexisting({
           startCalendarYear: 2026,
           startCalendarMonth: toCalendarMonth(startM),
-          simulationDurationMonths: 12
+          simulationDurationMonths: 12,
         });
 
         const res = runScenarioBatches({
@@ -139,7 +141,7 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
           preexisting,
           pregnancies: emptyPregnancies,
           taxClassSwitches: emptySwitches,
-          salaryRaises: emptyRaises
+          salaryRaises: emptyRaises,
         });
 
         assert.equal(res.months.length, 12);
@@ -147,26 +149,26 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
         // Month 1
         assert.equal(res.months[0].calendarMonthNum, startM);
         assert.equal(res.months[0].calendarYearNum, 2026);
-        const expectedM1Label = `${String(startM).padStart(2, '0')}.2026`;
+        const expectedM1Label = `${String(startM).padStart(2, "0")}.2026`;
         assert.equal(res.months[0].calendarLabel, expectedM1Label);
 
         // Month 12
-        const totalElapsed = (startM - 1) + 11;
+        const totalElapsed = startM - 1 + 11;
         const endMonthNum = (totalElapsed % 12) + 1;
         const endYearNum = 2026 + Math.floor(totalElapsed / 12);
-        const expectedM12Label = `${String(endMonthNum).padStart(2, '0')}.${endYearNum}`;
+        const expectedM12Label = `${String(endMonthNum).padStart(2, "0")}.${endYearNum}`;
         assert.equal(res.months[11].calendarLabel, expectedM12Label);
       }
     });
 
-    it('correctly shifts calendar years across start years 2024 to 2030', () => {
+    it("correctly shifts calendar years across start years 2024 to 2030", () => {
       const years = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
 
       for (const y of years) {
         const preexisting = createBasePreexisting({
           startCalendarYear: y,
           startCalendarMonth: toCalendarMonth(6), // June
-          simulationDurationMonths: 24
+          simulationDurationMonths: 24,
         });
 
         const res = runScenarioBatches({
@@ -174,7 +176,7 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
           preexisting,
           pregnancies: emptyPregnancies,
           taxClassSwitches: emptySwitches,
-          salaryRaises: emptyRaises
+          salaryRaises: emptyRaises,
         });
 
         assert.equal(res.months[0].calendarLabel, `06.${y}`);
@@ -183,8 +185,9 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
       }
     });
 
-    it('accurately calculates statutory simulation start date (-3M snapped to January) and Mx counter from pregnancy positive', async () => {
-      const { calculateSimulationStartDate } = await import('#engine/simulator/timelineGenerator');
+    it("accurately calculates statutory simulation start date (-3M snapped to January) and Mx counter from pregnancy positive", async () => {
+      const { calculateSimulationStartDate } =
+        await import("#engine/simulator/timelineGenerator");
 
       // Example 1: Pregnancy in 09.2026 -> 09.2026 - 3M = 06.2026 -> 01.2026
       const r1 = calculateSimulationStartDate(2026, 9);
@@ -218,22 +221,26 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
       const preexisting = createBasePreexisting({
         startCalendarYear: r1.startCalendarYear,
         startCalendarMonth: toCalendarMonth(r1.startCalendarMonth),
-        simulationDurationMonths: 24
+        simulationDurationMonths: 24,
       });
 
       const pregnancies: PregnancyAction[] = [
         {
-          pregnancyId: toPregnancyId('PREG-1'),
+          pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(9),
           positiveTestCalendarYear: 2026,
-          positiveTestSimulationMonth: toSimulationMonth(r1.pregnancySimulationMonth),
-          calculatedDeliverySimulationMonth: toSimulationMonth(r1.pregnancySimulationMonth + 8),
+          positiveTestSimulationMonth: toSimulationMonth(
+            r1.pregnancySimulationMonth,
+          ),
+          calculatedDeliverySimulationMonth: toSimulationMonth(
+            r1.pregnancySimulationMonth + 8,
+          ),
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4
-        }
+          fatherPartnerMonthsCount: 4,
+        },
       ];
 
       const res = runScenarioBatches({
@@ -241,26 +248,26 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
         preexisting,
         pregnancies,
         taxClassSwitches: [],
-        salaryRaises: []
+        salaryRaises: [],
       });
 
       // M1 (01.2026): M-8
-      assert.equal(res.months[0].relativeBirthLabel, 'M-8');
+      assert.equal(res.months[0].relativeBirthLabel, "M-8");
       // M8 (08.2026): M-1
-      assert.equal(res.months[7].relativeBirthLabel, 'M-1');
+      assert.equal(res.months[7].relativeBirthLabel, "M-1");
       // M9 (09.2026): M0 (Pregnancy Positive)
-      assert.equal(res.months[8].relativeBirthLabel, 'M0 (Pregnancy Positive)');
+      assert.equal(res.months[8].relativeBirthLabel, "M0 (Pregnancy Positive)");
       // M10 (10.2026): M+1
-      assert.equal(res.months[9].relativeBirthLabel, 'M+1');
+      assert.equal(res.months[9].relativeBirthLabel, "M+1");
       // M17 (05.2027): M+8 (Birth 1)
-      assert.equal(res.months[16].relativeBirthLabel, 'M+8 (Birth 1)');
+      assert.equal(res.months[16].relativeBirthLabel, "M+8 (Birth 1)");
     });
   });
 
-  describe('13th Month Salary Bonuses & Tax Return Timing', () => {
-    it('disables bonus rows when enable13thSalary is false', () => {
+  describe("13th Month Salary Bonuses & Tax Return Timing", () => {
+    it("disables bonus rows when enable13thSalary is false", () => {
       const preexisting = createBasePreexisting({
-        enable13thSalary: false
+        enable13thSalary: false,
       });
 
       const res = runScenarioBatches({
@@ -268,7 +275,7 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
         preexisting,
         pregnancies: emptyPregnancies,
         taxClassSwitches: emptySwitches,
-        salaryRaises: emptyRaises
+        salaryRaises: emptyRaises,
       });
 
       res.months.forEach((m) => {
@@ -279,13 +286,13 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
       assert.equal(res.summary.total13thSalaries, 0);
     });
 
-    it('places 40% Vacation Bonus and 60% Christmas Bonus on custom configured calendar months', () => {
+    it("places 40% Vacation Bonus and 60% Christmas Bonus on custom configured calendar months", () => {
       const preexisting = createBasePreexisting({
         enable13thSalary: true,
         startCalendarYear: 2026,
         startCalendarMonth: toCalendarMonth(1),
         bonus40Month: toCalendarMonth(6), // June
-        bonus60Month: toCalendarMonth(12) // December
+        bonus60Month: toCalendarMonth(12), // December
       });
 
       const res = runScenarioBatches({
@@ -293,28 +300,28 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
         preexisting,
         pregnancies: emptyPregnancies,
         taxClassSwitches: emptySwitches,
-        salaryRaises: emptyRaises
+        salaryRaises: emptyRaises,
       });
 
       // Month 6 (June 2026): 40% Vacation Bonus
       const m6 = res.months[5];
-      assert.equal(m6.calendarLabel, '06.2026');
-      assert.equal(m6.bonus40Amount, Math.round(0.40 * 2895));
+      assert.equal(m6.calendarLabel, "06.2026");
+      assert.equal(m6.bonus40Amount, Math.round(0.4 * 2895));
       assert.equal(m6.bonus60Amount, 0);
 
       // Month 12 (December 2026): 60% Christmas Bonus
       const m12 = res.months[11];
-      assert.equal(m12.calendarLabel, '12.2026');
+      assert.equal(m12.calendarLabel, "12.2026");
       assert.equal(m12.bonus40Amount, 0);
-      assert.equal(m12.bonus60Amount, Math.round(0.60 * 2895));
+      assert.equal(m12.bonus60Amount, Math.round(0.6 * 2895));
     });
 
-    it('places Annual Tax Return refunds on custom configured filing month', () => {
+    it("places Annual Tax Return refunds on custom configured filing month", () => {
       const preexisting = createBasePreexisting({
         startCalendarYear: 2026,
         startCalendarMonth: toCalendarMonth(1),
         taxReturnMonth: toCalendarMonth(4), // April
-        simulationDurationMonths: 24
+        simulationDurationMonths: 24,
       });
 
       const res = runScenarioBatches({
@@ -322,17 +329,17 @@ describe('Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)',
         preexisting,
         pregnancies: emptyPregnancies,
         taxClassSwitches: emptySwitches,
-        salaryRaises: emptyRaises
+        salaryRaises: emptyRaises,
       });
 
       // Month 4 (April 2026) -> Receives refund for 2025
       const m4 = res.months[3];
-      assert.equal(m4.calendarLabel, '04.2026');
+      assert.equal(m4.calendarLabel, "04.2026");
       assert.equal(m4.taxRefund, 850);
 
       // Month 16 (April 2027) -> Receives refund for 2026
       const m16 = res.months[15];
-      assert.equal(m16.calendarLabel, '04.2027');
+      assert.equal(m16.calendarLabel, "04.2027");
       assert.equal(m16.taxRefund, 850);
 
       // Other months have 0 tax refund

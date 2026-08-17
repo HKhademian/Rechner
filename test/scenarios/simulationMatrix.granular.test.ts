@@ -1,15 +1,15 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { generateTimelineSimulation } from '#engine/simulator/timelineGenerator';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { generateTimelineSimulation } from "#engine/simulator/timelineGenerator";
 import {
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
-  ScenarioId
-} from '#engine/types';
+  ScenarioId,
+} from "#engine/types";
 
-describe('Granular Simulation Matrix Tests (250 Individual Scenario Assertions)', () => {
+describe("Granular Simulation Matrix Tests (250 Individual Scenario Assertions)", () => {
   // Test 250 distinct timeline configurations
   for (let s = 1; s <= 250; s++) {
     const spacing = 18 + (s % 24); // Spacings 18 to 41 months
@@ -33,7 +33,7 @@ describe('Granular Simulation Matrix Tests (250 Individual Scenario Assertions)'
         enable13thSalary: true,
         bonus40Month: toCalendarMonth(5),
         bonus60Month: toCalendarMonth(11),
-        taxReturnMonth: toCalendarMonth(3)
+        taxReturnMonth: toCalendarMonth(3),
       });
 
       assert.equal(sim.months.length, 60);

@@ -1,23 +1,26 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   computeJointTaxLiability,
-  computeMonthlySwapWithholdingVariance
-} from '#engine/tax/jointAssessment';
-import { toNetSalary } from '#engine/types';
+  computeMonthlySwapWithholdingVariance,
+} from "#engine/tax/jointAssessment";
+import { toNetSalary } from "#engine/types";
 
-describe('Granular Joint Assessment & Withholding Swap Tests (200 Individual Assertions)', () => {
+describe("Granular Joint Assessment & Withholding Swap Tests (200 Individual Assertions)", () => {
   // Test 100 distinct joint assessment spouse income combinations
   for (let step = 0; step < 100; step++) {
     const husbandIncome = 20000 + step * 800; // 20k to 99.2k
-    const wifeIncome = 10000 + step * 400;    // 10k to 49.6k
+    const wifeIncome = 10000 + step * 400; // 10k to 49.6k
 
-    it(`verifies splitting advantage and symmetry for couple (${husbandIncome.toLocaleString('de-DE')} € / ${wifeIncome.toLocaleString('de-DE')} €)`, () => {
+    it(`verifies splitting advantage and symmetry for couple (${husbandIncome.toLocaleString("de-DE")} € / ${wifeIncome.toLocaleString("de-DE")} €)`, () => {
       const joint = computeJointTaxLiability(husbandIncome, wifeIncome);
       const reversed = computeJointTaxLiability(wifeIncome, husbandIncome);
 
       assert.equal(joint.jointTax, reversed.jointTax);
-      assert.equal(joint.jointSolidaritySurcharge, reversed.jointSolidaritySurcharge);
+      assert.equal(
+        joint.jointSolidaritySurcharge,
+        reversed.jointSolidaritySurcharge,
+      );
       assert.equal(joint.totalTaxLiability, reversed.totalTaxLiability);
     });
   }
@@ -34,7 +37,7 @@ describe('Granular Joint Assessment & Withholding Swap Tests (200 Individual Ass
         toNetSalary(h3Net),
         toNetSalary(h5Net),
         toNetSalary(w3Net),
-        toNetSalary(w5Net)
+        toNetSalary(w5Net),
       );
 
       const hDelta = h3Net - h5Net;
