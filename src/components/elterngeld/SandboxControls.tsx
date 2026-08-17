@@ -241,8 +241,9 @@ export default function SandboxControls(): JSX.Element {
                 margin: "2px 0 0 0",
               }}
             >
-              Configured via discrete batches: 0. Preexisting Baseline → 1.
-              Pregnancy Decisions → 2. Tax Switches → 3. Salary Raises
+              Configured via discrete batches: 1. Pregnancy Decisions → 2. Tax
+              Switches → 3. Salary Raises → 4. Financial Events → 0. Preexisting
+              Baseline &amp; Parameters
             </p>
           </div>
         </div>
@@ -426,575 +427,6 @@ export default function SandboxControls(): JSX.Element {
               gap: "20px",
             }}
           >
-            {/* ======================================================== */}
-            {/* BATCH 0: PREEXISTING CONDITIONS & SIMULATION PARAMETERS */}
-            {/* ======================================================== */}
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px 18px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "14px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "10px",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: "var(--color-primary)",
-                    }}
-                  >
-                    0. Preexisting Conditions &amp; Simulation Parameters
-                  </span>
-                </div>
-                <span
-                  style={{
-                    fontSize: "0.70rem",
-                    color: "var(--text-muted)",
-                    background: "var(--bg-surface-secondary)",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    fontWeight: 600,
-                  }}
-                >
-                  Start: {getCalDate(1)} ({simulationDurationMonths.value}M)
-                </span>
-              </div>
-
-              {/* Entries Grid: Columns with Auto-Wrap */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
-                  gap: "14px",
-                }}
-              >
-                {/* ENTRY 1: Simulation Start Date & Horizon */}
-                <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--text-secondary)",
-                          fontWeight: 700,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                        }}
-                      >
-                        <SimulationPeriodIcon size={12} />
-                        <span>Sim Start &amp; Horizon:</span>
-                      </span>
-                      <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-primary)",
-                        }}
-                      >
-                        {getCalDate(1)} → {getCalDate(endSimMonth)} (
-                        {simulationDurationMonths.value}M)
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "2fr 1fr",
-                        gap: "6px",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <select
-                        value={startCalendarMonth.value}
-                        onChange={(e) => {
-                          startCalendarMonth.value = toCalendarMonth(
-                            Number((e.target as HTMLSelectElement).value),
-                          );
-                        }}
-                        style={{
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "4px 6px",
-                          fontSize: "0.74rem",
-                        }}
-                      >
-                        {MONTH_NAMES.map((name, idx) => (
-                          <option key={`start-m-${idx + 1}`} value={idx + 1}>
-                            {name}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={startCalendarYear.value}
-                        onChange={(e) => {
-                          startCalendarYear.value = Number(
-                            (e.target as HTMLSelectElement).value,
-                          );
-                        }}
-                        style={{
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "4px 6px",
-                          fontSize: "0.74rem",
-                        }}
-                      >
-                        {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(
-                          (yr) => (
-                            <option key={`start-y-${yr}`} value={yr}>
-                              Year {yr}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "4px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {[12, 24, 36, 48, 60, 72].map((dur) => (
-                      <button
-                        key={`dur-btn-${dur}`}
-                        type="button"
-                        onClick={() => {
-                          simulationDurationMonths.value = dur;
-                        }}
-                        style={{
-                          padding: "3px 8px",
-                          borderRadius: "3px",
-                          border:
-                            simulationDurationMonths.value === dur
-                              ? "1px solid var(--color-primary)"
-                              : "1px solid var(--border-subtle)",
-                          background:
-                            simulationDurationMonths.value === dur
-                              ? "var(--color-primary)"
-                              : "var(--bg-surface)",
-                          color:
-                            simulationDurationMonths.value === dur
-                              ? "#ffffff"
-                              : "var(--text-secondary)",
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >
-                        {dur}M
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ENTRY 2: Preconditions Baseline Summary Card */}
-                <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--color-primary)",
-                        marginBottom: "6px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
-                    >
-                      <InformationalNoticeIcon size={13} />
-                      <span>Preconditions Baseline ($M1$ / $t=0$)</span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "3px",
-                        fontSize: "0.68rem",
-                        color: "var(--text-secondary)",
-                        background: "var(--bg-surface)",
-                        padding: "6px 8px",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <div>
-                        <strong>Husband:</strong>{" "}
-                        {formatCurrency(husbandGross.value)}/mo (
-                        {formatWorkingTime(husbandHours.value)}) · Class{" "}
-                        {husbandInitialTaxClass.value}
-                      </div>
-                      <div>
-                        <strong>Wife:</strong> {formatCurrency(wifeGross.value)}
-                        /mo ({formatWorkingTime(wifeInitialHours.value)}) ·
-                        Class {wifeInitialTaxClass.value}
-                      </div>
-                      <div>
-                        <strong>Children:</strong> 0 prior children · Kindergeld{" "}
-                        {formatCurrency(kindergeldPerChild.value)}/mo
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color: "var(--text-muted)",
-                      marginTop: "6px",
-                    }}
-                  >
-                    ↳ Precondition: baseline status at simulation start ($M1$).
-                    Defaults to 0 if unreported.
-                  </div>
-                </div>
-
-                {/* ENTRY 3: Kindergeld Rate */}
-                <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)
-                        }
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "var(--text-secondary)",
-                          padding: 0,
-                          cursor: "pointer",
-                          fontSize: "0.74rem",
-                          fontWeight: 700,
-                          textAlign: "left",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                        title="Click to view § 66 EStG Kindergeld legal rule & example"
-                      >
-                        <span>Kindergeld</span>
-                        <span
-                          style={{
-                            color: "var(--color-primary)",
-                            textDecoration: "underline",
-                            fontSize: "0.72rem",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "2px",
-                          }}
-                        >
-                          <span>(§ 66 EStG)</span>
-                          <ExternalLegalSourceIcon size={10} />
-                        </span>
-                        :
-                      </button>
-                      <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-loss)",
-                        }}
-                      >
-                        {formatCurrency(kindergeldPerChild.value)} / mo
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="200"
-                      max="350"
-                      step="5"
-                      value={kindergeldPerChild.value}
-                      onInput={(e) => {
-                        kindergeldPerChild.value = toEuroAmount(
-                          Number((e.target as HTMLInputElement).value),
-                        );
-                      }}
-                    />
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color: "var(--text-muted)",
-                      marginTop: "4px",
-                    }}
-                  >
-                    ↳ Reconciled in tax return (
-                    <span
-                      style={{ color: "var(--color-primary)", fontWeight: 600 }}
-                    >
-                      Günstigerprüfung § 31 EStG
-                    </span>
-                    ).
-                  </div>
-                </div>
-
-                {/* ENTRY 4: Deductions Breakdown */}
-                <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowDeductionsBreakdown(!showDeductionsBreakdown)
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "4px 6px",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-subtle)",
-                        background: "var(--bg-surface)",
-                        color: "var(--text-secondary)",
-                        fontSize: "0.70rem",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        <SimulatorNavigationIcon size={12} />
-                        <span>Tax &amp; Social Deductions</span>
-                      </span>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "3px",
-                        }}
-                      >
-                        {showDeductionsBreakdown ? (
-                          <>
-                            <CollapseSectionIcon size={11} />
-                            <span>Hide</span>
-                          </>
-                        ) : (
-                          <>
-                            <ExpandSectionIcon size={11} />
-                            <span>Expand</span>
-                          </>
-                        )}
-                      </span>
-                    </button>
-
-                    {showDeductionsBreakdown ? (
-                      <div
-                        style={{
-                          background: "var(--bg-surface)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "6px 8px",
-                          fontSize: "0.66rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: 700,
-                            color: "var(--color-primary)",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          Husband (Class III):{" "}
-                          {formatCurrency(
-                            ((derivedSpousalSet.value.husbandBreakdownClass3
-                              .monthlyGross as number) -
-                              (derivedSpousalSet.value.husbandBreakdownClass3
-                                .monthlyNetTakeHome as number)) *
-                              (salaryPeriod.value === SalaryPeriod.Yearly
-                                ? 12
-                                : 1),
-                          )}{" "}
-                          (
-                          {
-                            derivedSpousalSet.value.husbandBreakdownClass3
-                              .effectiveTotalDeductionRatePercent
-                          }
-                          %)
-                        </div>
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "2px",
-                            marginBottom: "4px",
-                            fontSize: "0.64rem",
-                          }}
-                        >
-                          <span>
-                            • Social:{" "}
-                            {formatCurrency(
-                              (derivedSpousalSet.value.husbandBreakdownClass3
-                                .totalSocialSecurity as number) *
-                                (salaryPeriod.value === SalaryPeriod.Yearly
-                                  ? 12
-                                  : 1),
-                            )}
-                          </span>
-                          <span>
-                            • Tax:{" "}
-                            {formatCurrency(
-                              (derivedSpousalSet.value.husbandBreakdownClass3
-                                .monthlyWageTax as number) *
-                                (salaryPeriod.value === SalaryPeriod.Yearly
-                                  ? 12
-                                  : 1),
-                            )}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            fontWeight: 700,
-                            color: "var(--series-indigo)",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          Wife FT (Class V):{" "}
-                          {formatCurrency(
-                            ((derivedSpousalSet.value.wifeBreakdownClass5FT
-                              .monthlyGross as number) -
-                              (derivedSpousalSet.value.wifeBreakdownClass5FT
-                                .monthlyNetTakeHome as number)) *
-                              (salaryPeriod.value === SalaryPeriod.Yearly
-                                ? 12
-                                : 1),
-                          )}{" "}
-                          (
-                          {
-                            derivedSpousalSet.value.wifeBreakdownClass5FT
-                              .effectiveTotalDeductionRatePercent
-                          }
-                          %)
-                        </div>
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "2px",
-                            fontSize: "0.64rem",
-                          }}
-                        >
-                          <span>
-                            • Social:{" "}
-                            {formatCurrency(
-                              (derivedSpousalSet.value.wifeBreakdownClass5FT
-                                .totalSocialSecurity as number) *
-                                (salaryPeriod.value === SalaryPeriod.Yearly
-                                  ? 12
-                                  : 1),
-                            )}
-                          </span>
-                          <span>
-                            • Tax:{" "}
-                            {formatCurrency(
-                              (derivedSpousalSet.value.wifeBreakdownClass5FT
-                                .monthlyWageTax as number) *
-                                (salaryPeriod.value === SalaryPeriod.Yearly
-                                  ? 12
-                                  : 1),
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
-                          padding: "2px 0",
-                        }}
-                      >
-                        View granular statutory social insurance (BBG) and wage
-                        tax allocations.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* ======================================================== */}
             {/* BATCH 1: PREGNANCY POSITIVE DECISIONS & MILESTONES */}
             {/* ======================================================== */}
@@ -4438,6 +3870,575 @@ export default function SandboxControls(): JSX.Element {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* BATCH 0: PREEXISTING CONDITIONS & SIMULATION PARAMETERS */}
+            {/* ======================================================== */}
+            <div
+              style={{
+                background: "var(--bg-surface)",
+                padding: "16px 18px",
+                borderRadius: "var(--border-radius)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "14px",
+                  borderBottom: "1px solid var(--border-subtle)",
+                  paddingBottom: "10px",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "0.92rem",
+                      color: "var(--color-primary)",
+                    }}
+                  >
+                    0. Preexisting Conditions &amp; Simulation Parameters
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: "0.70rem",
+                    color: "var(--text-muted)",
+                    background: "var(--bg-surface-secondary)",
+                    padding: "3px 8px",
+                    borderRadius: "4px",
+                    fontWeight: 600,
+                  }}
+                >
+                  Start: {getCalDate(1)} ({simulationDurationMonths.value}M)
+                </span>
+              </div>
+
+              {/* Entries Grid: Columns with Auto-Wrap */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
+                  gap: "14px",
+                }}
+              >
+                {/* ENTRY 1: Simulation Start Date & Horizon */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.76rem",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--text-secondary)",
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        <SimulationPeriodIcon size={12} />
+                        <span>Sim Start &amp; Horizon:</span>
+                      </span>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-primary)",
+                        }}
+                      >
+                        {getCalDate(1)} → {getCalDate(endSimMonth)} (
+                        {simulationDurationMonths.value}M)
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "2fr 1fr",
+                        gap: "6px",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <select
+                        value={startCalendarMonth.value}
+                        onChange={(e) => {
+                          startCalendarMonth.value = toCalendarMonth(
+                            Number((e.target as HTMLSelectElement).value),
+                          );
+                        }}
+                        style={{
+                          background: "var(--bg-surface)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "4px",
+                          padding: "4px 6px",
+                          fontSize: "0.74rem",
+                        }}
+                      >
+                        {MONTH_NAMES.map((name, idx) => (
+                          <option key={`start-m-${idx + 1}`} value={idx + 1}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={startCalendarYear.value}
+                        onChange={(e) => {
+                          startCalendarYear.value = Number(
+                            (e.target as HTMLSelectElement).value,
+                          );
+                        }}
+                        style={{
+                          background: "var(--bg-surface)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "4px",
+                          padding: "4px 6px",
+                          fontSize: "0.74rem",
+                        }}
+                      >
+                        {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(
+                          (yr) => (
+                            <option key={`start-y-${yr}`} value={yr}>
+                              Year {yr}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "4px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {[12, 24, 36, 48, 60, 72].map((dur) => (
+                      <button
+                        key={`dur-btn-${dur}`}
+                        type="button"
+                        onClick={() => {
+                          simulationDurationMonths.value = dur;
+                        }}
+                        style={{
+                          padding: "3px 8px",
+                          borderRadius: "3px",
+                          border:
+                            simulationDurationMonths.value === dur
+                              ? "1px solid var(--color-primary)"
+                              : "1px solid var(--border-subtle)",
+                          background:
+                            simulationDurationMonths.value === dur
+                              ? "var(--color-primary)"
+                              : "var(--bg-surface)",
+                          color:
+                            simulationDurationMonths.value === dur
+                              ? "#ffffff"
+                              : "var(--text-secondary)",
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {dur}M
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ENTRY 2: Preconditions Baseline Summary Card */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--color-primary)",
+                        marginBottom: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <InformationalNoticeIcon size={13} />
+                      <span>Preconditions Baseline ($M1$ / $t=0$)</span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "3px",
+                        fontSize: "0.68rem",
+                        color: "var(--text-secondary)",
+                        background: "var(--bg-surface)",
+                        padding: "6px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div>
+                        <strong>Husband:</strong>{" "}
+                        {formatCurrency(husbandGross.value)}/mo (
+                        {formatWorkingTime(husbandHours.value)}) · Class{" "}
+                        {husbandInitialTaxClass.value}
+                      </div>
+                      <div>
+                        <strong>Wife:</strong> {formatCurrency(wifeGross.value)}
+                        /mo ({formatWorkingTime(wifeInitialHours.value)}) ·
+                        Class {wifeInitialTaxClass.value}
+                      </div>
+                      <div>
+                        <strong>Children:</strong> 0 prior children · Kindergeld{" "}
+                        {formatCurrency(kindergeldPerChild.value)}/mo
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.64rem",
+                      color: "var(--text-muted)",
+                      marginTop: "6px",
+                    }}
+                  >
+                    ↳ Precondition: baseline status at simulation start ($M1$).
+                    Defaults to 0 if unreported.
+                  </div>
+                </div>
+
+                {/* ENTRY 3: Kindergeld Rate */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.76rem",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-secondary)",
+                          padding: 0,
+                          cursor: "pointer",
+                          fontSize: "0.74rem",
+                          fontWeight: 700,
+                          textAlign: "left",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                        title="Click to view § 66 EStG Kindergeld legal rule & example"
+                      >
+                        <span>Kindergeld</span>
+                        <span
+                          style={{
+                            color: "var(--color-primary)",
+                            textDecoration: "underline",
+                            fontSize: "0.72rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "2px",
+                          }}
+                        >
+                          <span>(§ 66 EStG)</span>
+                          <ExternalLegalSourceIcon size={10} />
+                        </span>
+                        :
+                      </button>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-loss)",
+                        }}
+                      >
+                        {formatCurrency(kindergeldPerChild.value)} / mo
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="200"
+                      max="350"
+                      step="5"
+                      value={kindergeldPerChild.value}
+                      onInput={(e) => {
+                        kindergeldPerChild.value = toEuroAmount(
+                          Number((e.target as HTMLInputElement).value),
+                        );
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.64rem",
+                      color: "var(--text-muted)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ↳ Reconciled in tax return (
+                    <span
+                      style={{ color: "var(--color-primary)", fontWeight: 600 }}
+                    >
+                      Günstigerprüfung § 31 EStG
+                    </span>
+                    ).
+                  </div>
+                </div>
+
+                {/* ENTRY 4: Deductions Breakdown */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowDeductionsBreakdown(!showDeductionsBreakdown)
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "4px 6px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                        background: "var(--bg-surface)",
+                        color: "var(--text-secondary)",
+                        fontSize: "0.70rem",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        <SimulatorNavigationIcon size={12} />
+                        <span>Tax &amp; Social Deductions</span>
+                      </span>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "3px",
+                        }}
+                      >
+                        {showDeductionsBreakdown ? (
+                          <>
+                            <CollapseSectionIcon size={11} />
+                            <span>Hide</span>
+                          </>
+                        ) : (
+                          <>
+                            <ExpandSectionIcon size={11} />
+                            <span>Expand</span>
+                          </>
+                        )}
+                      </span>
+                    </button>
+
+                    {showDeductionsBreakdown ? (
+                      <div
+                        style={{
+                          background: "var(--bg-surface)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "4px",
+                          padding: "6px 8px",
+                          fontSize: "0.66rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: "var(--color-primary)",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Husband (Class III):{" "}
+                          {formatCurrency(
+                            ((derivedSpousalSet.value.husbandBreakdownClass3
+                              .monthlyGross as number) -
+                              (derivedSpousalSet.value.husbandBreakdownClass3
+                                .monthlyNetTakeHome as number)) *
+                              (salaryPeriod.value === SalaryPeriod.Yearly
+                                ? 12
+                                : 1),
+                          )}{" "}
+                          (
+                          {
+                            derivedSpousalSet.value.husbandBreakdownClass3
+                              .effectiveTotalDeductionRatePercent
+                          }
+                          %)
+                        </div>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "2px",
+                            marginBottom: "4px",
+                            fontSize: "0.64rem",
+                          }}
+                        >
+                          <span>
+                            • Social:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.husbandBreakdownClass3
+                                .totalSocialSecurity as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                          <span>
+                            • Tax:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.husbandBreakdownClass3
+                                .monthlyWageTax as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: "var(--series-indigo)",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Wife FT (Class V):{" "}
+                          {formatCurrency(
+                            ((derivedSpousalSet.value.wifeBreakdownClass5FT
+                              .monthlyGross as number) -
+                              (derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .monthlyNetTakeHome as number)) *
+                              (salaryPeriod.value === SalaryPeriod.Yearly
+                                ? 12
+                                : 1),
+                          )}{" "}
+                          (
+                          {
+                            derivedSpousalSet.value.wifeBreakdownClass5FT
+                              .effectiveTotalDeductionRatePercent
+                          }
+                          %)
+                        </div>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "2px",
+                            fontSize: "0.64rem",
+                          }}
+                        >
+                          <span>
+                            • Social:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .totalSocialSecurity as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                          <span>
+                            • Tax:{" "}
+                            {formatCurrency(
+                              (derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .monthlyWageTax as number) *
+                                (salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? 12
+                                  : 1),
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          color: "var(--text-muted)",
+                          padding: "2px 0",
+                        }}
+                      >
+                        View granular statutory social insurance (BBG) and wage
+                        tax allocations.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

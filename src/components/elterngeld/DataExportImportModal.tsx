@@ -3,7 +3,6 @@ import {
   isExportImportModalOpen,
   exportImportActiveTab,
   closeExportImportModal,
-  openExportImportModal,
   exportSimulationJson,
   exportSimulationText,
   exportSimulationZip,
@@ -11,7 +10,6 @@ import {
   printSimulationReport,
   importSimulationState,
   getCurrentPersistedState,
-  currentScenarioData,
 } from "#store/elterngeldStore";
 import {
   importStateFromJson,
@@ -38,7 +36,8 @@ import {
 } from "#components/Icons";
 
 export function DataExportImportModal() {
-  if (!isExportImportModalOpen.value) return null;
+  const isOpen = isExportImportModalOpen.value;
+  if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState<"export" | "import">(
     exportImportActiveTab.value,
@@ -125,27 +124,87 @@ export function DataExportImportModal() {
 
   return (
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
+      id="data-export-import-modal"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(15, 23, 42, 0.75)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        animation: "fadeIn 0.15s ease-out",
+      }}
       onClick={closeExportImportModal}
       role="dialog"
       aria-modal="true"
-      id="data-export-import-modal"
     >
       <div
-        class="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden text-slate-100"
+        style={{
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: "var(--border-radius-lg)",
+          maxWidth: "880px",
+          width: "100%",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "var(--shadow-lg)",
+          color: "var(--text-primary)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        {/* Modal Header */}
+        <div
+          style={{
+            padding: "18px 24px",
+            borderBottom: "1px solid var(--border-subtle)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "var(--bg-surface-secondary)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                padding: "8px",
+                borderRadius: "var(--border-radius-sm)",
+                background: "var(--color-primary-bg)",
+                color: "var(--color-primary)",
+                border: "1px solid var(--color-primary-border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <ImportDataIcon size={20} />
             </div>
             <div>
-              <h2 class="text-lg font-bold text-white tracking-wide">
-                Simulation Data Portability &amp; Reports
+              <h2
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 800,
+                  color: "var(--text-primary)",
+                  margin: 0,
+                }}
+              >
+                Simulation Data Portability &amp; Audit Reports
               </h2>
-              <p class="text-xs text-slate-400">
+              <p
+                style={{
+                  fontSize: "0.76rem",
+                  color: "var(--text-muted)",
+                  margin: "2px 0 0 0",
+                }}
+              >
                 Export comprehensive audit reports or import JSON presets with
                 100% client-side data privacy
               </p>
@@ -154,7 +213,17 @@ export function DataExportImportModal() {
           <button
             type="button"
             onClick={closeExportImportModal}
-            class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              padding: "6px",
+              borderRadius: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
             title="Close modal"
           >
             <CloseIcon size={18} />
@@ -162,224 +231,605 @@ export function DataExportImportModal() {
         </div>
 
         {/* Tab Navigation */}
-        <div class="px-6 pt-4 flex gap-2 border-b border-slate-800 bg-slate-900/60">
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            padding: "12px 24px 0 24px",
+            borderBottom: "1px solid var(--border-subtle)",
+            background: "var(--bg-surface)",
+          }}
+        >
           <button
             type="button"
             onClick={() => setActiveTab("export")}
-            class={`px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
-              activeTab === "export"
-                ? "text-indigo-400 border-indigo-500 bg-slate-800/60"
-                : "text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/30"
-            }`}
+            style={{
+              padding: "8px 16px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              border: "none",
+              borderBottom:
+                activeTab === "export"
+                  ? "2px solid var(--color-primary)"
+                  : "2px solid transparent",
+              background:
+                activeTab === "export"
+                  ? "var(--bg-surface-secondary)"
+                  : "transparent",
+              color:
+                activeTab === "export"
+                  ? "var(--color-primary)"
+                  : "var(--text-secondary)",
+              borderTopLeftRadius: "6px",
+              borderTopRightRadius: "6px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "all 0.15s ease",
+            }}
           >
-            <DownloadFileIcon size={16} />
-            Export Data &amp; Reports
+            <DownloadFileIcon size={14} />
+            <span>Export Data &amp; Reports</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("import")}
-            class={`px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
-              activeTab === "import"
-                ? "text-indigo-400 border-indigo-500 bg-slate-800/60"
-                : "text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/30"
-            }`}
+            style={{
+              padding: "8px 16px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              border: "none",
+              borderBottom:
+                activeTab === "import"
+                  ? "2px solid var(--color-primary)"
+                  : "2px solid transparent",
+              background:
+                activeTab === "import"
+                  ? "var(--bg-surface-secondary)"
+                  : "transparent",
+              color:
+                activeTab === "import"
+                  ? "var(--color-primary)"
+                  : "var(--text-secondary)",
+              borderTopLeftRadius: "6px",
+              borderTopRightRadius: "6px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "all 0.15s ease",
+            }}
           >
-            <UploadFileIcon size={16} />
-            Import &amp; Restore Simulation
+            <UploadFileIcon size={14} />
+            <span>Import &amp; Restore Simulation</span>
           </button>
         </div>
 
-        {/* Content Area */}
-        <div class="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+        {/* Tab Content */}
+        <div
+          style={{
+            padding: "24px",
+            overflowY: "auto",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
           {activeTab === "export" ? (
-            <div class="space-y-6">
-              {/* Primary Export Cards Grid */}
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 1. Full ZIP Package (Recommended) */}
-                <div class="p-5 rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/30 via-slate-900 to-slate-950 flex flex-col justify-between group hover:border-indigo-500/60 transition-all shadow-lg">
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "18px" }}
+            >
+              {/* Primary 4 Export Cards Grid */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+                  gap: "14px",
+                }}
+              >
+                {/* 1. Full ZIP Bundle */}
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "var(--border-radius)",
+                    border: "1px solid var(--color-primary-border)",
+                    background: "var(--bg-surface-secondary)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                  }}
+                >
                   <div>
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center gap-2.5">
-                        <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ color: "var(--color-primary)" }}>
                           <ZipExportIcon size={20} />
                         </div>
-                        <span class="font-bold text-white text-base">
+                        <strong
+                          style={{
+                            fontSize: "0.95rem",
+                            color: "var(--text-primary)",
+                          }}
+                        >
                           Multi-Format ZIP Bundle
-                        </span>
+                        </strong>
                       </div>
-                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
-                        Complete Package
+                      <span
+                        style={{
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          background: "var(--color-primary-bg)",
+                          color: "var(--color-primary)",
+                          border: "1px solid var(--color-primary-border)",
+                        }}
+                      >
+                        Complete Archive
                       </span>
                     </div>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                      Bundles JSON configuration, plaintext financial audit
-                      report, and CSV monthly ledgers for Scenarios A, B, and C
-                      into a single zero-dependency client ZIP file.
+                    <p
+                      style={{
+                        fontSize: "0.76rem",
+                        color: "var(--text-secondary)",
+                        margin: 0,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Bundles JSON configuration, plaintext audit report, and
+                      CSV monthly ledgers for Scenarios A, B, and C into a
+                      standalone pure TypeScript ZIP archive.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={exportSimulationZip}
-                    class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-900/40 flex items-center justify-center gap-2 group-hover:scale-[1.01]"
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "6px",
+                      border: "none",
+                      background: "var(--color-primary)",
+                      color: "#ffffff",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
                   >
-                    <DownloadFileIcon size={15} />
+                    <DownloadFileIcon size={14} />
                     Download ZIP Archive (.zip)
                   </button>
                 </div>
 
-                {/* 2. Structured JSON State */}
-                <div class="p-5 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-slate-950 flex flex-col justify-between group hover:border-emerald-500/60 transition-all shadow-lg">
+                {/* 2. JSON State Envelope */}
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "var(--border-radius)",
+                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg-surface-secondary)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                  }}
+                >
                   <div>
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center gap-2.5">
-                        <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ color: "var(--color-success)" }}>
                           <JsonExportIcon size={20} />
                         </div>
-                        <span class="font-bold text-white text-base">
+                        <strong
+                          style={{
+                            fontSize: "0.95rem",
+                            color: "var(--text-primary)",
+                          }}
+                        >
                           JSON State Envelope
-                        </span>
+                        </strong>
                       </div>
-                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      <span
+                        style={{
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          background: "var(--color-gain-bg)",
+                          color: "var(--color-gain)",
+                          border: "1px solid var(--color-gain-border)",
+                        }}
+                      >
                         Machine Readable
                       </span>
                     </div>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    <p
+                      style={{
+                        fontSize: "0.76rem",
+                        color: "var(--text-secondary)",
+                        margin: 0,
+                        lineHeight: 1.5,
+                      }}
+                    >
                       Full machine-readable state export containing all Batches
-                      0–4 parameters, nominal types, and simulation
-                      preconditions for easy backup and re-importing.
+                      0–4 parameters, nominal types, and preconditions for
+                      backup and instant re-importing.
                     </p>
                   </div>
-                  <div class="flex gap-2">
+                  <div style={{ display: "flex", gap: "8px" }}>
                     <button
                       type="button"
                       onClick={exportSimulationJson}
-                      class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-900/40 flex items-center justify-center gap-1.5"
+                      style={{
+                        flex: 1,
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "none",
+                        background: "var(--color-success)",
+                        color: "#ffffff",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                      }}
                     >
-                      <DownloadFileIcon size={15} />
+                      <DownloadFileIcon size={14} />
                       Download JSON
                     </button>
                     <button
                       type="button"
                       onClick={handleCopyJson}
-                      class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--border-subtle)",
+                        background: "var(--bg-surface)",
+                        color: "var(--text-primary)",
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                      }}
                       title="Copy JSON directly to clipboard"
                     >
                       {copySuccess ? (
-                        <CheckmarkIcon size={15} className="text-emerald-400" />
+                        <CheckmarkIcon size={14} className="text-emerald-400" />
                       ) : (
-                        <ClipboardCopyIcon size={15} />
+                        <ClipboardCopyIcon size={14} />
                       )}
                       {copySuccess ? "Copied!" : "Copy"}
                     </button>
                   </div>
                 </div>
 
-                {/* 3. Text / Markdown Financial Audit Report */}
-                <div class="p-5 rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-950/30 via-slate-900 to-slate-950 flex flex-col justify-between group hover:border-sky-500/60 transition-all shadow-lg">
+                {/* 3. Text / Markdown Audit Report */}
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "var(--border-radius)",
+                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg-surface-secondary)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                  }}
+                >
                   <div>
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center gap-2.5">
-                        <div class="p-2 rounded-lg bg-sky-500/20 text-sky-400">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ color: "var(--series-sky)" }}>
                           <TextReportIcon size={20} />
                         </div>
-                        <span class="font-bold text-white text-base">
+                        <strong
+                          style={{
+                            fontSize: "0.95rem",
+                            color: "var(--text-primary)",
+                          }}
+                        >
                           Financial Audit Report
-                        </span>
+                        </strong>
                       </div>
-                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                      <span
+                        style={{
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          background: "var(--bg-surface)",
+                          color: "var(--text-secondary)",
+                          border: "1px solid var(--border-subtle)",
+                        }}
+                      >
                         Plaintext / Markdown
                       </span>
                     </div>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    <p
+                      style={{
+                        fontSize: "0.76rem",
+                        color: "var(--text-secondary)",
+                        margin: 0,
+                        lineHeight: 1.5,
+                      }}
+                    >
                       Executive audit report with household starting profile,
                       scenario comparison matrix, 5-year annual schedule,
-                      milestone actions, and statutory BEEG/EStG legal
-                      citations.
+                      milestone logs, and statutory citations.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={exportSimulationText}
-                    class="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all shadow-md shadow-sky-900/40 flex items-center justify-center gap-2"
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border-subtle)",
+                      background: "var(--bg-surface)",
+                      color: "var(--text-primary)",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
                   >
-                    <DownloadFileIcon size={15} />
+                    <DownloadFileIcon size={14} />
                     Download Text Report (.txt)
                   </button>
                 </div>
 
                 {/* 4. Executive Printable PDF View */}
-                <div class="p-5 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-950 flex flex-col justify-between group hover:border-amber-500/60 transition-all shadow-lg">
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "var(--border-radius)",
+                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg-surface-secondary)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                  }}
+                >
                   <div>
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center gap-2.5">
-                        <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ color: "var(--color-warning)" }}>
                           <PdfExportIcon size={20} />
                         </div>
-                        <span class="font-bold text-white text-base">
+                        <strong
+                          style={{
+                            fontSize: "0.95rem",
+                            color: "var(--text-primary)",
+                          }}
+                        >
                           Printable Executive PDF
-                        </span>
+                        </strong>
                       </div>
-                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      <span
+                        style={{
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          background: "var(--color-warning-bg)",
+                          color: "var(--color-warning)",
+                          border: "1px solid var(--color-warning-border)",
+                        }}
+                      >
                         Browser Print
                       </span>
                     </div>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                      Opens an executive print-formatted report in a clean,
-                      minimal window and triggers the browser system print
-                      dialog for direct "Save as PDF".
+                    <p
+                      style={{
+                        fontSize: "0.76rem",
+                        color: "var(--text-secondary)",
+                        margin: 0,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Opens an executive print-formatted report in a clean
+                      window and triggers the browser system print dialog for
+                      direct &quot;Save as PDF&quot;.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={printSimulationReport}
-                    class="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all shadow-md shadow-amber-900/40 flex items-center justify-center gap-2"
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border-subtle)",
+                      background: "var(--bg-surface)",
+                      color: "var(--text-primary)",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
                   >
-                    <PrintReportIcon size={15} />
+                    <PrintReportIcon size={14} />
                     Print / Save as PDF
                   </button>
                 </div>
               </div>
 
               {/* Individual Scenario CSV Downloads */}
-              <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <CsvExportIcon size={18} className="text-slate-400" />
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">
-                      Export Individual Scenario CSV Ledgers (Excel / Numbers)
-                    </h3>
-                  </div>
+              <div
+                style={{
+                  padding: "14px 16px",
+                  borderRadius: "var(--border-radius)",
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg-surface-secondary)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <CsvExportIcon size={16} />
+                  <span
+                    style={{
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      color: "var(--text-secondary)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Export Individual Scenario CSV Ledgers (Excel / Numbers)
+                  </span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gap: "8px",
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => exportSimulationCsv(ScenarioId.A)}
-                    class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/60 flex items-center justify-center gap-1.5 transition-colors"
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "4px",
+                      border: "1px solid var(--border-subtle)",
+                      background: "var(--bg-surface)",
+                      color: "var(--text-secondary)",
+                      fontSize: "0.74rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
                   >
-                    <DownloadFileIcon size={13} />
+                    <DownloadFileIcon size={12} />
                     Scenario A (Baseline)
                   </button>
                   <button
                     type="button"
                     onClick={() => exportSimulationCsv(ScenarioId.B)}
-                    class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/60 flex items-center justify-center gap-1.5 transition-colors"
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "4px",
+                      border: "1px solid var(--border-subtle)",
+                      background: "var(--bg-surface)",
+                      color: "var(--text-secondary)",
+                      fontSize: "0.74rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
                   >
-                    <DownloadFileIcon size={13} />
+                    <DownloadFileIcon size={12} />
                     Scenario B (Tax Swap)
                   </button>
                   <button
                     type="button"
                     onClick={() => exportSimulationCsv(ScenarioId.C)}
-                    class="py-2 px-3 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/60 text-indigo-300 text-xs font-medium border border-indigo-800/60 flex items-center justify-center gap-1.5 transition-colors"
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "4px",
+                      border: "1px solid var(--color-primary-border)",
+                      background: "var(--color-primary-bg)",
+                      color: "var(--color-primary)",
+                      fontSize: "0.74rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
                   >
-                    <DownloadFileIcon size={13} />
+                    <DownloadFileIcon size={12} />
                     Scenario C (Maximum Strategy)
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div class="space-y-5">
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+            >
               {/* Dropzone */}
               <div
                 onDragOver={(e) => {
@@ -388,29 +838,70 @@ export function DataExportImportModal() {
                 }}
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={handleFileDrop}
-                class={`p-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center transition-all ${
-                  isDragOver
-                    ? "border-indigo-400 bg-indigo-950/30"
-                    : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
-                }`}
+                style={{
+                  padding: "24px",
+                  border: isDragOver
+                    ? "2px dashed var(--color-primary)"
+                    : "2px dashed var(--border-subtle)",
+                  borderRadius: "var(--border-radius)",
+                  background: isDragOver
+                    ? "var(--color-primary-bg)"
+                    : "var(--bg-surface-secondary)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  transition: "all 0.15s ease",
+                }}
               >
-                <div class="p-3 rounded-full bg-slate-800 text-slate-400 mb-2">
-                  <UploadFileIcon size={24} />
+                <div
+                  style={{ color: "var(--text-muted)", marginBottom: "8px" }}
+                >
+                  <UploadFileIcon size={28} />
                 </div>
-                <p class="text-sm font-semibold text-slate-200 mb-1">
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    color: "var(--text-primary)",
+                    marginBottom: "4px",
+                  }}
+                >
                   Drag &amp; drop a simulator{" "}
-                  <code class="text-indigo-400">.json</code> file here
-                </p>
-                <p class="text-xs text-slate-400 mb-3">
+                  <code style={{ color: "var(--color-primary)" }}>.json</code>{" "}
+                  file here
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.74rem",
+                    color: "var(--text-muted)",
+                    marginBottom: "12px",
+                  }}
+                >
                   or select a file from your computer
-                </p>
-                <label class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold cursor-pointer transition-colors inline-flex items-center gap-2">
-                  <UploadFileIcon size={14} />
+                </div>
+                <label
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "6px",
+                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    fontSize: "0.74rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <UploadFileIcon size={13} />
                   Choose File
                   <input
                     type="file"
                     accept=".json,application/json"
-                    class="hidden"
+                    style={{ display: "none" }}
                     onChange={handleFileInputChange}
                   />
                 </label>
@@ -418,26 +909,53 @@ export function DataExportImportModal() {
 
               {/* Direct Paste Area */}
               <div>
-                <div class="flex items-center justify-between mb-2">
-                  <label class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "0.76rem",
+                      fontWeight: 700,
+                      color: "var(--text-secondary)",
+                      textTransform: "uppercase",
+                    }}
+                  >
                     Or Paste Simulation JSON Directly
                   </label>
                   {importResult && (
                     <span
-                      class={`text-xs px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1 border ${
-                        importResult.success
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                          : "bg-rose-500/20 text-rose-300 border-rose-500/40"
-                      }`}
+                      style={{
+                        fontSize: "0.70rem",
+                        padding: "2px 8px",
+                        borderRadius: "4px",
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        background: importResult.success
+                          ? "var(--color-gain-bg)"
+                          : "var(--color-loss-bg)",
+                        color: importResult.success
+                          ? "var(--color-gain)"
+                          : "var(--color-loss)",
+                        border: importResult.success
+                          ? "1px solid var(--color-gain-border)"
+                          : "1px solid var(--color-loss-border)",
+                      }}
                     >
                       {importResult.success ? (
                         <>
-                          <CheckmarkIcon size={13} />
+                          <CheckmarkIcon size={12} />
                           Valid Simulation State
                         </>
                       ) : (
                         <>
-                          <WarningIcon size={13} />
+                          <WarningIcon size={12} />
                           Invalid JSON
                         </>
                       )}
@@ -450,75 +968,218 @@ export function DataExportImportModal() {
                     handleJsonChange((e.target as HTMLTextAreaElement).value)
                   }
                   placeholder='Paste JSON simulation state envelope here (e.g. { "simulationState": { ... } })...'
-                  rows={6}
-                  class="w-full p-3 text-xs font-mono bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 custom-scrollbar"
+                  rows={5}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    fontSize: "0.74rem",
+                    fontFamily: "monospace",
+                    background: "var(--bg-surface-secondary)",
+                    border: "1px solid var(--border-subtle)",
+                    borderRadius: "var(--border-radius-sm)",
+                    color: "var(--text-primary)",
+                    boxSizing: "border-box",
+                  }}
                 />
               </div>
 
               {/* Pre-Import Inspection Preview Card */}
               {importResult && importResult.success && (
-                <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: "var(--border-radius)",
+                    border: "1px solid var(--color-gain-border)",
+                    background: "var(--color-gain-bg)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.76rem",
+                        fontWeight: 800,
+                        color: "var(--color-gain)",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Detected Simulation Parameters
                     </span>
-                    <span class="text-[11px] text-slate-400">
+                    <span
+                      style={{
+                        fontSize: "0.70rem",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
                       {importResult.state.simulationDurationMonths} Months
                       Horizon
                     </span>
                   </div>
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-                      <div class="text-[10px] text-slate-400">
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: "4px",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.68rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
                         Husband Gross
                       </div>
-                      <div class="font-bold text-white">
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 800,
+                          color: "var(--text-primary)",
+                        }}
+                      >
                         {new Intl.NumberFormat("de-DE", {
                           style: "currency",
                           currency: "EUR",
                           maximumFractionDigits: 0,
                         }).format(importResult.state.husbandGross as number)}
                       </div>
-                      <div class="text-[10px] text-slate-400">
+                      <div
+                        style={{
+                          fontSize: "0.66rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
                         Class{" "}
                         {importResult.state.husbandInitialTaxClass ?? "III"}
                       </div>
                     </div>
-                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-                      <div class="text-[10px] text-slate-400">Wife Gross</div>
-                      <div class="font-bold text-white">
+
+                    <div
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: "4px",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.68rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
+                        Wife Gross
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 800,
+                          color: "var(--text-primary)",
+                        }}
+                      >
                         {new Intl.NumberFormat("de-DE", {
                           style: "currency",
                           currency: "EUR",
                           maximumFractionDigits: 0,
                         }).format(importResult.state.wifeGross as number)}
                       </div>
-                      <div class="text-[10px] text-slate-400">
+                      <div
+                        style={{
+                          fontSize: "0.66rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
                         Class {importResult.state.wifeInitialTaxClass ?? "V"}
                       </div>
                     </div>
-                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-                      <div class="text-[10px] text-slate-400">
+
+                    <div
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: "4px",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.68rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
                         Batches Config
                       </div>
-                      <div class="font-bold text-white">
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 800,
+                          color: "var(--text-primary)",
+                        }}
+                      >
                         {importResult.state.customPregnancies.length} Children
                       </div>
-                      <div class="text-[10px] text-slate-400">
+                      <div
+                        style={{
+                          fontSize: "0.66rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
                         {importResult.state.customTaxClassSwitches.length} Swaps
-                        • {importResult.state.customSalaryRaises.length} Raises
+                        · {importResult.state.customSalaryRaises.length} Raises
                       </div>
                     </div>
-                    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-                      <div class="text-[10px] text-slate-400">
+
+                    <div
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: "4px",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.68rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
                         Dynamic Actions
                       </div>
-                      <div class="font-bold text-white">
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 800,
+                          color: "var(--text-primary)",
+                        }}
+                      >
                         {importResult.state.customWorkingHoursChanges?.length ||
                           0}{" "}
                         Hours
                       </div>
-                      <div class="text-[10px] text-slate-400">
+                      <div
+                        style={{
+                          fontSize: "0.66rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
                         {importResult.state.customFinancialEvents?.length || 0}{" "}
                         Events
                       </div>
@@ -527,7 +1188,16 @@ export function DataExportImportModal() {
 
                   {importResult.warnings &&
                     importResult.warnings.length > 0 && (
-                      <div class="p-2 rounded bg-amber-950/30 border border-amber-800/40 text-[11px] text-amber-300">
+                      <div
+                        style={{
+                          padding: "6px 8px",
+                          borderRadius: "4px",
+                          background: "var(--color-warning-bg)",
+                          border: "1px solid var(--color-warning-border)",
+                          fontSize: "0.70rem",
+                          color: "var(--color-warning)",
+                        }}
+                      >
                         <strong>Adjustments:</strong>{" "}
                         {importResult.warnings.join(", ")}
                       </div>
@@ -536,7 +1206,21 @@ export function DataExportImportModal() {
                   <button
                     type="button"
                     onClick={handleExecuteImport}
-                    class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-900/40 flex items-center justify-center gap-2"
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: "6px",
+                      border: "none",
+                      background: "var(--color-gain)",
+                      color: "#ffffff",
+                      fontSize: "0.82rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      marginTop: "4px",
+                    }}
                   >
                     <CheckmarkIcon size={16} />
                     Apply &amp; Hydrate Simulation State
@@ -546,22 +1230,42 @@ export function DataExportImportModal() {
 
               {/* Error Message */}
               {importResult && !importResult.success && (
-                <div class="p-3 rounded-xl border border-rose-500/30 bg-rose-950/20 text-xs text-rose-300 flex items-start gap-2">
-                  <WarningIcon
-                    size={16}
-                    className="text-rose-400 shrink-0 mt-0.5"
-                  />
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--color-loss-border)",
+                    background: "var(--color-loss-bg)",
+                    color: "var(--color-loss)",
+                    fontSize: "0.74rem",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "6px",
+                  }}
+                >
+                  <WarningIcon size={15} />
                   <div>
-                    <strong class="font-bold">Validation Error:</strong>{" "}
-                    {importResult.error}
+                    <strong>Validation Error:</strong> {importResult.error}
                   </div>
                 </div>
               )}
 
               {/* Success Toast */}
               {importSuccessMessage && (
-                <div class="p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/30 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
-                  <CheckmarkIcon size={16} className="text-emerald-400" />
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--color-gain-border)",
+                    background: "var(--color-gain-bg)",
+                    color: "var(--color-gain)",
+                    fontSize: "0.74rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <CheckmarkIcon size={15} />
                   <span>{importSuccessMessage}</span>
                 </div>
               )}
@@ -569,15 +1273,35 @@ export function DataExportImportModal() {
           )}
         </div>
 
-        {/* Footer */}
-        <div class="px-6 py-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 bg-slate-950/40">
+        {/* Modal Footer */}
+        <div
+          style={{
+            padding: "12px 24px",
+            borderTop: "1px solid var(--border-subtle)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "var(--bg-surface-secondary)",
+            fontSize: "0.72rem",
+            color: "var(--text-muted)",
+          }}
+        >
           <span>
-            {APPLICATION_NAME} • v{EXPORT_SCHEMA_VERSION}.0
+            {APPLICATION_NAME} · v{EXPORT_SCHEMA_VERSION}.0
           </span>
           <button
             type="button"
             onClick={closeExportImportModal}
-            class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors"
+            style={{
+              padding: "5px 14px",
+              borderRadius: "4px",
+              border: "1px solid var(--border-subtle)",
+              background: "var(--bg-surface)",
+              color: "var(--text-secondary)",
+              fontSize: "0.74rem",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
           >
             Close
           </button>
