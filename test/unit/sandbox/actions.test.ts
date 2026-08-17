@@ -949,5 +949,88 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         ),
       );
     });
+
+    describe("Batch 2: Arbitrary Tax Classes & Faktorverfahren (§ 39f EStG)", () => {
+      it("simulates baseline Class IV / IV with Factor and formats labels accordingly", () => {
+        const preexistingWithFactor: PreexistingConditions = {
+          ...basePreexisting,
+          husbandInitialTaxClass: TaxClass.IV,
+          wifeInitialTaxClass: TaxClass.IV,
+          initialUseTaxFactor: true,
+          initialTaxFactor: 0.905,
+        };
+
+        const res = runScenarioBatches({
+          scenarioKey: ScenarioId.A,
+          preexisting: preexistingWithFactor,
+          pregnancies: [],
+          taxClassSwitches: [],
+          salaryRaises: [],
+          workingHoursChanges: [],
+          financialEvents: [],
+        });
+
+        // Verify that Month 1 has the Factor tax class label
+        const m1 = res.months[0];
+        assert.equal(m1.taxClassLabel, "H: IV (F) | W: IV (F)");
+      });
+
+      it("handles switch from Class IV/IV with Factor to V/III and reversion", () => {
+        const preexistingWithFactor: PreexistingConditions = {
+          ...basePreexisting,
+          husbandInitialTaxClass: TaxClass.IV,
+          wifeInitialTaxClass: TaxClass.IV,
+          initialUseTaxFactor: true,
+          initialTaxFactor: 0.905,
+        };
+
+        const taxClassSwitches: TaxClassSwitchAction[] = [
+          {
+            switchId: toSwitchId("SWAP-1"),
+            effectiveSimulationMonth: toSimulationMonth(5),
+            effectiveCalendarMonth: toCalendarMonth(5),
+            effectiveCalendarYear: 2026,
+            targetHusbandTaxClass: TaxClass.V,
+            targetWifeTaxClass: TaxClass.III,
+            targetUseTaxFactor: false,
+            revertHusbandTaxClass: TaxClass.IV,
+            revertWifeTaxClass: TaxClass.IV,
+            revertUseTaxFactor: true,
+            statutoryReason:
+              "Strategic pregnancy swap to Class III (§ 2b BEEG)",
+            revertSimulationMonth: toSimulationMonth(12),
+          },
+        ];
+
+        const res = runScenarioBatches({
+          scenarioKey: ScenarioId.C,
+          preexisting: preexistingWithFactor,
+          pregnancies: [],
+          taxClassSwitches,
+          salaryRaises: [],
+          workingHoursChanges: [],
+          financialEvents: [],
+        });
+
+        // Month 1-4: Baseline IV (F)
+        assert.equal(res.months[0].taxClassLabel, "H: IV (F) | W: IV (F)");
+
+        // Month 5: Switch active V / III
+        assert.equal(res.months[4].taxClassLabel, "H: V | W: III");
+        assert.ok(
+          res.months[4].startingActions!.some((a) =>
+            a.title.includes("ACTION: Tax Class Switch Active"),
+          ),
+        );
+
+        // Month 12: Revert back to IV (F)
+        assert.equal(res.months[11].taxClassLabel, "H: IV (F) | W: IV (F)");
+        assert.ok(
+          res.months[11].startingActions!.some((a) =>
+            a.title.includes("ACTION: Tax Class Reversion"),
+          ),
+        );
+      });
+    });
   });
 });

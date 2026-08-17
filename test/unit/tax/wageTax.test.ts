@@ -5,6 +5,7 @@ import {
   computeSolidaritySurcharge,
   computeMonthlySocialSecurity,
   computeMonthlyNetSalary,
+  computeTaxFactor,
 } from "#engine/tax/wageTax";
 import { toGrossSalary, toEuroAmount, TaxClass } from "#engine/types";
 
@@ -158,6 +159,52 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
     it("calculates 0 net for 0 gross income", () => {
       const net = computeMonthlyNetSalary(toGrossSalary(0), TaxClass.I, 0);
       assert.equal(net, 0);
+    });
+  });
+
+  describe("computeTaxFactor - Faktorverfahren (§ 39f EStG)", () => {
+    it("computes factor F = 1.000 for identical spousal incomes (symmetric withholding)", () => {
+      const annualIncome = 60000;
+      const factor = computeTaxFactor(annualIncome, annualIncome, 0);
+      assert.equal(factor, 1.0);
+    });
+
+    it("computes factor F < 1.000 for asymmetric spousal gross incomes", () => {
+      const husbandAnnual = 4500 * 12; // 54.000 €
+      const wifeAnnual = 3000 * 12; // 36.000 €
+      const factor = computeTaxFactor(husbandAnnual, wifeAnnual, 0);
+
+      assert.ok(
+        factor > 0 && factor < 1.0,
+        `Factor should be between 0 and 1, got ${factor}`,
+      );
+      assert.ok(
+        Math.abs(factor - 0.9) < 0.1,
+        `Expected factor near ~0.90 for 4500/3000 split, got: ${factor}`,
+      );
+    });
+
+    it("applies factor F to reduce wage tax withholding in Tax Class IV", () => {
+      const hGross = toGrossSalary(4500);
+      const factor = 0.905;
+
+      const net4Standard = computeMonthlyNetSalary(
+        hGross,
+        TaxClass.IV,
+        0,
+      ) as number;
+      const net4Factor = computeMonthlyNetSalary(
+        hGross,
+        TaxClass.IV,
+        0,
+        undefined,
+        factor,
+      ) as number;
+
+      assert.ok(
+        net4Factor > net4Standard,
+        `Net with factor (${net4Factor}) must exceed standard Class IV net (${net4Standard})`,
+      );
     });
   });
 });
