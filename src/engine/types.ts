@@ -23,6 +23,7 @@ export type SimulationMonth = Brand<number, "SimulationMonth">; // M1..M120
 export type CalendarYear = Brand<number, "CalendarYear">; // Y1..Y10
 export type CalendarMonth = Brand<number, "CalendarMonth">; // M1..M12 (1=Jan, 12=Dec)
 export type WorkingHours = Brand<number, "WorkingHours">; // e.g. 24, 32, 40
+export type TaxFactor = Brand<number, "TaxFactor">; // § 39f EStG factor ratio (0.001..1.000)
 
 // Monetary Hierarchy (GrossSalary and NetSalary are nominal subtypes of EuroAmount)
 export type EuroAmount = Brand<number, "EuroAmount">; // Exact EUR rounded/scaled
@@ -367,7 +368,7 @@ export function toNetSalary(val: number): NetSalary {
   return Math.round(val) as NetSalary;
 }
 
-export function toTaxFactor(val: number): number {
+export function toTaxFactor(val: number): TaxFactor {
   if (
     typeof val !== "number" ||
     Number.isNaN(val) ||
@@ -379,7 +380,7 @@ export function toTaxFactor(val: number): number {
       `Invalid TaxFactor: ${val}. Must be a valid ratio between 0 and 1.0.`,
     );
   }
-  return Math.round(val * 1000) / 1000;
+  return (Math.round(val * 1000) / 1000) as TaxFactor;
 }
 
 export function toStatutoryCitation(val: string): StatutoryCitation {
@@ -484,6 +485,16 @@ export function isGrossSalary(val: unknown): val is GrossSalary {
 
 export function isNetSalary(val: unknown): val is NetSalary {
   return typeof val === "number" && !Number.isNaN(val) && val >= 0;
+}
+
+export function isTaxFactor(val: unknown): val is TaxFactor {
+  return (
+    typeof val === "number" &&
+    !Number.isNaN(val) &&
+    Number.isFinite(val) &&
+    val > 0 &&
+    val <= 1
+  );
 }
 
 export function isActionId(val: unknown): val is ActionId {
@@ -835,7 +846,7 @@ export interface GrossToNetBreakdown {
   readonly monthlyWageTax: EuroAmount;
   readonly monthlySolidaritySurcharge: EuroAmount;
   readonly totalTaxWithholding: EuroAmount;
-  readonly taxFactor?: number; // § 39f EStG (Faktorverfahren)
+  readonly taxFactor?: TaxFactor; // § 39f EStG (Faktorverfahren)
 
   // Non-Recurrent Bonus Accounting (§ 39b Abs. 3 EStG)
   readonly oneOffBonusAmount?: EuroAmount;
@@ -883,7 +894,7 @@ export interface SpousalGrossToNetSet {
   readonly wifeClass3PartTimeNet: NetSalary;
   readonly wifeClass4PartTimeNet: NetSalary;
   readonly wifeClass4WithFactorPartTimeNet: NetSalary;
-  readonly taxFactor: number;
+  readonly taxFactor: TaxFactor;
   readonly wifePartTimeWeeklyHours: WorkingHours;
   readonly husbandWeeklyHours: WorkingHours;
   readonly husbandBreakdownClass3: GrossToNetBreakdown;
@@ -922,7 +933,7 @@ export interface PreexistingConditions {
   readonly wifeWeeklyHours: WorkingHours;
   readonly wifePostBirthWeeklyHours?: WorkingHours;
   readonly initialUseTaxFactor?: boolean;
-  readonly initialTaxFactor?: number;
+  readonly initialTaxFactor?: TaxFactor;
   readonly annualBonusGross?: EuroAmount;
   readonly annualBonusMonth?: CalendarMonth;
   readonly investmentReturnMonthly?: EuroAmount;
@@ -961,7 +972,7 @@ export interface TaxClassSwitchAction {
   readonly targetHusbandTaxClass: TaxClass;
   readonly targetWifeTaxClass: TaxClass;
   readonly targetUseTaxFactor?: boolean;
-  readonly targetTaxFactor?: number;
+  readonly targetTaxFactor?: TaxFactor;
   readonly revertHusbandTaxClass?: TaxClass;
   readonly revertWifeTaxClass?: TaxClass;
   readonly revertUseTaxFactor?: boolean;
