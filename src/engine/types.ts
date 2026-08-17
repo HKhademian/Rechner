@@ -220,6 +220,21 @@ export const CliOutputFormat = {
 } as const;
 export type CliOutputFormat = (typeof CliOutputFormat)[keyof typeof CliOutputFormat];
 
+export const ThemeMode = {
+  Light: 'light',
+  Dark: 'dark',
+  System: 'system'
+} as const;
+export type ThemeMode = (typeof ThemeMode)[keyof typeof ThemeMode];
+
+export function toThemeMode(val: string): ThemeMode {
+  const values = Object.values(ThemeMode) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ThemeMode: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ThemeMode;
+}
+
 // Gross-to-Net & Bonus Architecture Enums (Strict Const Enums)
 export const SalaryInputMode = {
   Gross: 'GROSS',
