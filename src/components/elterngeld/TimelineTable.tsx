@@ -531,11 +531,11 @@ export default function TimelineTable(): JSX.Element {
             }}
           >
             <option value="all">All Years (1–5)</option>
-            <option value="1">Year 1 (M1–12)</option>
-            <option value="2">Year 2 (M13–24)</option>
-            <option value="3">Year 3 (M25–36)</option>
-            <option value="4">Year 4 (M37–48)</option>
-            <option value="5">Year 5 (M49–60)</option>
+            <option value="1">Year 1 (Sim Months 1–12)</option>
+            <option value="2">Year 2 (Sim Months 13–24)</option>
+            <option value="3">Year 3 (Sim Months 25–36)</option>
+            <option value="4">Year 4 (Sim Months 37–48)</option>
+            <option value="5">Year 5 (Sim Months 49–60)</option>
           </select>
 
           {/* Export CSV button */}

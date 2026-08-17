@@ -94,6 +94,8 @@ import {
   toFinancialEventId,
   type WorkingHoursChangeAction,
   type TaxClassSwitchAction,
+  type MonthId,
+  toMonthId,
 } from "#engine/types";
 import {
   ConfigureSandboxIcon,
@@ -152,12 +154,61 @@ export default function SandboxControls(): JSX.Element {
   const [showDeductionsBreakdown, setShowDeductionsBreakdown] =
     useState<boolean>(false);
 
-  // Helper to compute calendar date for simulation month offset
+  // Helper to compute calendar date for simulation month offset (e.g. 09.2026)
   const getCalDate = (simMonth: number): string => {
     const totalElapsed = startCalendarMonth.value - 1 + (simMonth - 1);
     const m = (totalElapsed % 12) + 1;
     const y = startCalendarYear.value + Math.floor(totalElapsed / 12);
     return `${String(m).padStart(2, "0")}.${y}`;
+  };
+
+  // Helper to compute statutory absolute MonthId (e.g. M092026)
+  const getMonthId = (simMonth: number): MonthId => {
+    const totalElapsed = startCalendarMonth.value - 1 + (simMonth - 1);
+    const m = (totalElapsed % 12) + 1;
+    const y = startCalendarYear.value + Math.floor(totalElapsed / 12);
+    return toMonthId(m, y);
+  };
+
+  // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1))
+  const getRelativeMonthLabel = (simMonth: number): string => {
+    const p1 =
+      (customPregnancies.value[0]?.positiveTestSimulationMonth as number) ??
+      Math.max(
+        1,
+        ((customPregnancies.value[0]
+          ?.calculatedDeliverySimulationMonth as number) ?? 12) - 8,
+      );
+    const d1 =
+      (customPregnancies.value[0]
+        ?.calculatedDeliverySimulationMonth as number) ?? 12;
+    const d2 =
+      (customPregnancies.value[1]
+        ?.calculatedDeliverySimulationMonth as number) ?? 999;
+
+    if (simMonth < p1) {
+      return `M${simMonth - p1}`;
+    }
+    const idx = simMonth - p1 + 1;
+    if (simMonth === p1) return `M${idx} (Pregnancy Positive)`;
+    if (simMonth === d1) return `M${idx} (Birth 1)`;
+    if (simMonth === d2) return `M${idx} (Birth 2)`;
+    return `M${idx}`;
+  };
+
+  // Helper for short relative month label (e.g. M-8, M1, M9)
+  const getShortMonthLabel = (simMonth: number): string => {
+    const p1 =
+      (customPregnancies.value[0]?.positiveTestSimulationMonth as number) ??
+      Math.max(
+        1,
+        ((customPregnancies.value[0]
+          ?.calculatedDeliverySimulationMonth as number) ?? 12) - 8,
+      );
+    if (simMonth < p1) {
+      return `M${simMonth - p1}`;
+    }
+    return `M${simMonth - p1 + 1}`;
   };
 
   // Preset Handlers
@@ -736,7 +787,8 @@ export default function SandboxControls(): JSX.Element {
                                 <strong style={{ color: "var(--color-loss)" }}>
                                   {getCalDate(pSimMonth)}
                                 </strong>{" "}
-                                (M0)
+                                ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
+                                {getMonthId(pSimMonth)}
                               </span>
                               <span>
                                 Birth 1:{" "}
@@ -745,7 +797,8 @@ export default function SandboxControls(): JSX.Element {
                                 >
                                   {getCalDate(dSimMonth)}
                                 </strong>{" "}
-                                (M+{dSimMonth - pSimMonth})
+                                ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
+                                {getMonthId(dSimMonth)}
                               </span>
                             </div>
                           </div>
@@ -913,7 +966,8 @@ export default function SandboxControls(): JSX.Element {
                                 <strong style={{ color: "var(--color-loss)" }}>
                                   {getCalDate(pSimMonth)}
                                 </strong>{" "}
-                                (M{pSimMonth})
+                                ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
+                                {getMonthId(pSimMonth)}
                               </span>
                               <span>
                                 Birth #{preg.childIndex}:{" "}
@@ -922,7 +976,8 @@ export default function SandboxControls(): JSX.Element {
                                 >
                                   {getCalDate(dSimMonth)}
                                 </strong>{" "}
-                                (M{dSimMonth})
+                                ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
+                                {getMonthId(dSimMonth)}
                               </span>
                             </div>
                             <div
@@ -1637,7 +1692,8 @@ export default function SandboxControls(): JSX.Element {
                                 marginBottom: "2px",
                               }}
                             >
-                              Effective (M{sMonth}):
+                              Effective ({getShortMonthLabel(sMonth)} ·{" "}
+                              {getMonthId(sMonth)}):
                             </label>
                             <input
                               type="range"
@@ -1674,7 +1730,9 @@ export default function SandboxControls(): JSX.Element {
                                 fontWeight: 700,
                               }}
                             >
-                              {getCalDate(sMonth)} (M{sMonth})
+                              {getCalDate(sMonth)} (
+                              {getRelativeMonthLabel(sMonth)}) ·{" "}
+                              {getMonthId(sMonth)}
                             </div>
                           </div>
                           <div>
@@ -1686,7 +1744,8 @@ export default function SandboxControls(): JSX.Element {
                                 marginBottom: "2px",
                               }}
                             >
-                              Revert (M{rMonth}):
+                              Revert ({getShortMonthLabel(rMonth)} ·{" "}
+                              {getMonthId(rMonth)}):
                             </label>
                             <input
                               type="range"
@@ -1715,7 +1774,9 @@ export default function SandboxControls(): JSX.Element {
                                 fontWeight: 700,
                               }}
                             >
-                              {getCalDate(rMonth)} (M{rMonth})
+                              {getCalDate(rMonth)} (
+                              {getRelativeMonthLabel(rMonth)}) ·{" "}
+                              {getMonthId(rMonth)}
                             </div>
                           </div>
                         </div>
@@ -2925,7 +2986,8 @@ export default function SandboxControls(): JSX.Element {
                                 (_, i) => i + 1,
                               ).map((m) => (
                                 <option key={`whc-m-${m}`} value={m}>
-                                  {getCalDate(m)} (M{m})
+                                  {getCalDate(m)} ({getRelativeMonthLabel(m)}) ·{" "}
+                                  {getMonthId(m)}
                                 </option>
                               ))}
                             </select>
@@ -3335,7 +3397,8 @@ export default function SandboxControls(): JSX.Element {
                             <strong style={{ color: "var(--color-warning)" }}>
                               {getCalDate(sMonth)}
                             </strong>{" "}
-                            (M{sMonth})
+                            ({getRelativeMonthLabel(sMonth)}) ·{" "}
+                            {getMonthId(sMonth)}
                           </span>
                         </div>
                       </div>
@@ -3843,7 +3906,8 @@ export default function SandboxControls(): JSX.Element {
                             >
                               {getCalDate(sMonth)}
                             </strong>{" "}
-                            (M{sMonth})
+                            ({getRelativeMonthLabel(sMonth)}) ·{" "}
+                            {getMonthId(sMonth)}
                           </span>
                           <span
                             style={{
@@ -3923,7 +3987,8 @@ export default function SandboxControls(): JSX.Element {
                     fontWeight: 600,
                   }}
                 >
-                  Start: {getCalDate(1)} ({simulationDurationMonths.value}M)
+                  Start: {getCalDate(1)} ({getRelativeMonthLabel(1)}) ·{" "}
+                  {getMonthId(1)} ({simulationDurationMonths.value}M)
                 </span>
               </div>
 
@@ -3975,7 +4040,10 @@ export default function SandboxControls(): JSX.Element {
                           color: "var(--color-primary)",
                         }}
                       >
-                        {getCalDate(1)} → {getCalDate(endSimMonth)} (
+                        {getCalDate(1)} ({getRelativeMonthLabel(1)}) ·{" "}
+                        {getMonthId(1)} → {getCalDate(endSimMonth)} (
+                        {getRelativeMonthLabel(endSimMonth)}) ·{" "}
+                        {getMonthId(endSimMonth)} (
                         {simulationDurationMonths.value}M)
                       </span>
                     </div>
