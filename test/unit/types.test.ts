@@ -18,6 +18,7 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toHoursChangeId,
   toFinancialEventId,
   toTaxClass,
   toScenarioId,
@@ -385,10 +386,11 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
   });
 
   describe("ActionCategory (Feature Test)", () => {
-    it("defines action categories PREGNANCY, TAX_SWITCH, SALARY_RAISE", () => {
+    it("defines action categories PREGNANCY, TAX_SWITCH, SALARY_RAISE, WORKING_HOURS", () => {
       assert.equal(ActionCategory.Pregnancy, "PREGNANCY");
       assert.equal(ActionCategory.TaxSwitch, "TAX_SWITCH");
       assert.equal(ActionCategory.SalaryRaise, "SALARY_RAISE");
+      assert.equal(ActionCategory.WorkingHours, "WORKING_HOURS");
     });
 
     it("toActionCategory validates valid categories and rejects invalid strings", () => {
@@ -397,6 +399,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(
         toActionCategory("SALARY_RAISE"),
         ActionCategory.SalaryRaise,
+      );
+      assert.equal(
+        toActionCategory("WORKING_HOURS"),
+        ActionCategory.WorkingHours,
       );
       assert.throws(() => toActionCategory("invalid"), TypeError);
     });
@@ -412,6 +418,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       );
       assert.equal(ActionType.TaxClassSwitchRevert, "TAX_CLASS_SWITCH_REVERT");
       assert.equal(ActionType.SalaryRaiseEffective, "SALARY_RAISE_EFFECTIVE");
+      assert.equal(
+        ActionType.WorkingHoursChangeEffective,
+        "WORKING_HOURS_CHANGE_EFFECTIVE",
+      );
     });
 
     it("toActionType validates valid action types and rejects invalid strings", () => {
@@ -420,6 +430,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         ActionType.PregnancyPositive,
       );
       assert.equal(toActionType("CHILD_DELIVERY"), ActionType.ChildDelivery);
+      assert.equal(
+        toActionType("WORKING_HOURS_CHANGE_EFFECTIVE"),
+        ActionType.WorkingHoursChangeEffective,
+      );
       assert.throws(() => toActionType("invalid"), TypeError);
     });
   });
@@ -483,6 +497,11 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
     it("toRaiseId brands valid salary raise identifiers", () => {
       assert.equal(toRaiseId("RAISE-1"), "RAISE-1");
       assert.throws(() => toRaiseId(""), TypeError);
+    });
+
+    it("toHoursChangeId brands valid working hours change identifiers", () => {
+      assert.equal(toHoursChangeId("HOURS-1"), "HOURS-1");
+      assert.throws(() => toHoursChangeId(""), TypeError);
     });
 
     it("toFinancialEventId brands valid financial event identifiers", () => {

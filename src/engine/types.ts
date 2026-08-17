@@ -45,6 +45,7 @@ export type ActionId = SubBrand<EntityId, "ActionId">;
 export type PregnancyId = ActionSubBrand<ActionId, "PregnancyId">;
 export type SwitchId = ActionSubBrand<ActionId, "SwitchId">;
 export type RaiseId = ActionSubBrand<ActionId, "RaiseId">;
+export type HoursChangeId = ActionSubBrand<ActionId, "HoursChangeId">;
 export type FinancialEventId = ActionSubBrand<ActionId, "FinancialEventId">;
 
 // Tax & Legal Categorization Enums (Strict Const Enums)
@@ -97,6 +98,7 @@ export const ActionCategory = {
   Pregnancy: "PREGNANCY",
   TaxSwitch: "TAX_SWITCH",
   SalaryRaise: "SALARY_RAISE",
+  WorkingHours: "WORKING_HOURS",
   FinancialEvent: "FINANCIAL_EVENT",
 } as const;
 export type ActionCategory =
@@ -108,6 +110,7 @@ export const ActionType = {
   TaxClassSwitchEffective: "TAX_CLASS_SWITCH_EFFECTIVE",
   TaxClassSwitchRevert: "TAX_CLASS_SWITCH_REVERT",
   SalaryRaiseEffective: "SALARY_RAISE_EFFECTIVE",
+  WorkingHoursChangeEffective: "WORKING_HOURS_CHANGE_EFFECTIVE",
   FinancialCostOutflow: "FINANCIAL_COST_OUTFLOW",
   FinancialIncomeInflow: "FINANCIAL_INCOME_INFLOW",
 } as const;
@@ -417,6 +420,15 @@ export function toRaiseId(val: string): RaiseId {
     throw new TypeError(`Invalid RaiseId: ${val}. Must be non-empty string.`);
   }
   return val as RaiseId;
+}
+
+export function toHoursChangeId(val: string): HoursChangeId {
+  if (!val || typeof val !== "string") {
+    throw new TypeError(
+      `Invalid HoursChangeId: ${val}. Must be non-empty string.`,
+    );
+  }
+  return val as HoursChangeId;
 }
 
 export function toFinancialEventId(val: string): FinancialEventId {
@@ -946,6 +958,19 @@ export interface SalaryRaiseAction {
 }
 
 /**
+ * Batch 3: Working Hours & Schedule Adjustments
+ */
+export interface WorkingHoursChangeAction {
+  readonly changeId: HoursChangeId;
+  readonly effectiveSimulationMonth: SimulationMonth;
+  readonly effectiveCalendarMonth: CalendarMonth;
+  readonly effectiveCalendarYear: number;
+  readonly targetPerson: TargetPerson;
+  readonly weeklyHours: WorkingHours;
+  readonly reason: string;
+}
+
+/**
  * Batch 4: Financial Events (One-Off Costs, Expenses, Grants & Extra Income)
  */
 export interface FinancialEventAction {
@@ -969,5 +994,6 @@ export interface ScenarioActionBatches {
   readonly pregnancies: readonly PregnancyAction[];
   readonly taxClassSwitches: readonly TaxClassSwitchAction[];
   readonly salaryRaises: readonly SalaryRaiseAction[];
+  readonly workingHoursChanges?: readonly WorkingHoursChangeAction[];
   readonly financialEvents?: readonly FinancialEventAction[];
 }
