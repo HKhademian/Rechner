@@ -82,6 +82,7 @@ import {
   FinancialEventCategory,
   SalaryInputMode,
   SalaryPeriod,
+  toSalaryInputMode,
   toSimulationMonth,
   toCalendarMonth,
   toEuroAmount,
@@ -101,6 +102,7 @@ import {
   toMonthRef,
   toMonthSimRef,
 } from "#engine/types";
+import scenarioPresetsData from "../../data/scenarioPresets.json" with { type: "json" };
 import {
   ConfigureSandboxIcon,
   SimulationPeriodIcon,
@@ -243,31 +245,62 @@ export default function SandboxControls(): JSX.Element {
   };
 
   // Preset Handlers
-  const applyPreset = (
-    presetName: "default" | "high_earner" | "equal",
-  ): void => {
-    if (presetName === "default") {
+  const applyPreset = (presetKey: string): void => {
+    const presetsRecord = scenarioPresetsData as Record<
+      string,
+      {
+        id?: string;
+        name?: string;
+        useDefaultReset?: boolean;
+        salaryInputMode?: string;
+        husbandGross?: number;
+        wifeGross?: number;
+        wifeInitialHours?: number;
+        wifePostBirthHours?: number;
+        prePregnancyPlanningMonths?: number;
+        child1BirthMonth?: number;
+        birthSpacingMonths?: number;
+        swapLeadMonths?: number;
+      }
+    >;
+    const preset = presetsRecord[presetKey];
+    if (!preset) return;
+
+    if (preset.useDefaultReset) {
       resetToDefaults();
-    } else if (presetName === "high_earner") {
-      setSalaryInputMode(SalaryInputMode.Gross);
-      setHusbandGross(8200);
-      setWifeGross(4500);
-      setWifeInitialHours(40);
-      setWifePostBirthHours(24);
-      prePregnancyPlanningMonths.value = 8;
-      child1BirthMonth.value = toSimulationMonth(17);
-      birthSpacingMonths.value = 27;
-      swapLeadMonths.value = 7;
-    } else if (presetName === "equal") {
-      setSalaryInputMode(SalaryInputMode.Gross);
-      setHusbandGross(4800);
-      setWifeGross(4800);
-      setWifeInitialHours(40);
-      setWifePostBirthHours(24);
-      prePregnancyPlanningMonths.value = 8;
-      child1BirthMonth.value = toSimulationMonth(17);
-      birthSpacingMonths.value = 24;
-      swapLeadMonths.value = 7;
+      return;
+    }
+
+    if (preset.salaryInputMode) {
+      try {
+        setSalaryInputMode(toSalaryInputMode(preset.salaryInputMode));
+      } catch {
+        setSalaryInputMode(SalaryInputMode.Gross);
+      }
+    }
+    if (preset.husbandGross !== undefined) {
+      setHusbandGross(preset.husbandGross);
+    }
+    if (preset.wifeGross !== undefined) {
+      setWifeGross(preset.wifeGross);
+    }
+    if (preset.wifeInitialHours !== undefined) {
+      setWifeInitialHours(preset.wifeInitialHours);
+    }
+    if (preset.wifePostBirthHours !== undefined) {
+      setWifePostBirthHours(preset.wifePostBirthHours);
+    }
+    if (preset.prePregnancyPlanningMonths !== undefined) {
+      prePregnancyPlanningMonths.value = preset.prePregnancyPlanningMonths;
+    }
+    if (preset.child1BirthMonth !== undefined) {
+      child1BirthMonth.value = toSimulationMonth(preset.child1BirthMonth);
+    }
+    if (preset.birthSpacingMonths !== undefined) {
+      birthSpacingMonths.value = preset.birthSpacingMonths;
+    }
+    if (preset.swapLeadMonths !== undefined) {
+      swapLeadMonths.value = preset.swapLeadMonths;
     }
   };
 
@@ -380,54 +413,36 @@ export default function SandboxControls(): JSX.Element {
               >
                 Scenario Presets:
               </span>
-              <button
-                type="button"
-                onClick={() => applyPreset("default")}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--color-primary-border)",
-                  background: "var(--bg-surface)",
-                  color: "var(--color-primary)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                Standard Baseline (Default)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset("high_earner")}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--border-subtle)",
-                  background: "var(--bg-surface)",
-                  color: "var(--text-primary)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                High Earner Model
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset("equal")}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--border-subtle)",
-                  background: "var(--bg-surface)",
-                  color: "var(--text-primary)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                Equal Earner Model
-              </button>
+              {Object.values(
+                scenarioPresetsData as Record<
+                  string,
+                  { id: string; name: string }
+                >,
+              ).map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.id)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "4px",
+                    border:
+                      preset.id === "default"
+                        ? "1px solid var(--color-primary-border)"
+                        : "1px solid var(--border-subtle)",
+                    background: "var(--bg-surface)",
+                    color:
+                      preset.id === "default"
+                        ? "var(--color-primary)"
+                        : "var(--text-primary)",
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {preset.name}
+                </button>
+              ))}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
