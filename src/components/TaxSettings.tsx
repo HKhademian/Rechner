@@ -22,12 +22,12 @@ export default function TaxSettings(): JSX.Element {
   };
 
   return (
-    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '8px', marginTop: '15px', fontSize: '0.9rem' }}>
+    <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: 'var(--border-radius)', marginTop: '15px', fontSize: '0.9rem', border: '1px solid var(--border-subtle)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Statutory Constants & Assessment Ceilings (2024–2026)</h3>
+        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Statutory Constants &amp; Assessment Ceilings (2024–2026)</h3>
         <button
           onClick={resetConfig}
-          style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--danger)', background: 'transparent', color: 'var(--danger)', cursor: 'pointer', transition: '0.2s' }}
+          style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--color-loss-border)', background: 'var(--color-loss-bg)', color: 'var(--color-loss)', cursor: 'pointer', transition: 'var(--transition)', fontWeight: 600 }}
         >
           Reset to Defaults
         </button>
@@ -85,8 +85,8 @@ export default function TaxSettings(): JSX.Element {
         </div>
       </div>
 
-      <hr style={{ border: 0, borderTop: '1px solid var(--card-border)', margin: '20px 0' }} />
-      <h4 style={{ marginTop: 0, color: '#cbd5e1' }}>Social Security Contribution Rates (*Sozialversicherungsbeiträge*)</h4>
+      <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: '20px 0' }} />
+      <h4 style={{ marginTop: 0, color: 'var(--text-secondary)' }}>Social Security Contribution Rates (*Sozialversicherungsbeiträge*)</h4>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
         <div class="input-group">

@@ -15,7 +15,7 @@ interface ScenarioCardItem {
   title: string;
   subtitle: string;
   badge: string;
-  badgeColor: string;
+  badgeClass: string;
   description: string;
   highlights: string[];
 }
@@ -30,7 +30,7 @@ export default function ScenarioSelector(): JSX.Element {
       title: 'Scenario C',
       subtitle: 'Fully Optimized (Recommended)',
       badge: 'Maximum State Benefit',
-      badgeColor: '#15803d',
+      badgeClass: 'badge-gain',
       description: 'Proactive tax class swap (*Steuerklassenwechsel* III/V § 39e EStG) + Synthetic Net (*Fiktives Netto* § 2e BEEG) + Sibling Bonus (*Geschwisterbonus*) + Joint Tax Refund (*Ehegatten-Splitting*).',
       highlights: [
         'Mother: ElterngeldPlus capped at maximum €900 / month (§ 4 BEEG)',
@@ -44,7 +44,7 @@ export default function ScenarioSelector(): JSX.Element {
       title: 'Scenario B',
       subtitle: 'Unoptimized (Static III/V)',
       badge: 'Standard Baseline',
-      badgeColor: '#b45309',
+      badgeClass: 'badge-warning',
       description: 'No tax class changes. Mother receives maternity and ElterngeldPlus calculated under Tax Class V (*Steuerklasse V*).',
       highlights: [
         'Mother ElterngeldPlus: €500.50 / month (Child 1)',
@@ -58,7 +58,7 @@ export default function ScenarioSelector(): JSX.Element {
       title: 'Scenario A',
       subtitle: 'No Children (Status Quo)',
       badge: 'Constant Employment',
-      badgeColor: '#475569',
+      badgeClass: 'badge-neutral',
       description: 'No children. Continuous standard wage flow (Husband €2,895 + Wife €1,975 = €6,125 / month net).',
       highlights: [
         'Constant €6,125 / month household net income stream',
@@ -72,7 +72,7 @@ export default function ScenarioSelector(): JSX.Element {
       title: 'Multi-Scenario',
       subtitle: 'Side-by-Side Comparison',
       badge: 'Overlay View',
-      badgeColor: '#1e40af',
+      badgeClass: 'badge-brand',
       description: 'Direct comparison of monthly liquidity curves and 5-year cumulative household asset accumulation.',
       highlights: [
         'Monthly cash flow curves compared side-by-side',
@@ -99,13 +99,13 @@ export default function ScenarioSelector(): JSX.Element {
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            backgroundColor: '#2563eb'
+            backgroundColor: 'var(--color-primary)'
           }}></span>
-          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
             Select Simulation Scenario
           </span>
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
           Click on any scenario to update the financial model in real time
         </div>
       </div>
@@ -125,16 +125,17 @@ export default function ScenarioSelector(): JSX.Element {
               style={{
                 textAlign: 'left',
                 background: isSelected
-                  ? '#1e293b'
-                  : '#0f172a',
+                  ? 'var(--color-primary-bg)'
+                  : 'var(--bg-surface)',
                 border: isSelected
-                  ? `2px solid ${sc.badgeColor}`
-                  : '1px solid #334155',
-                borderRadius: '8px',
+                  ? '2px solid var(--color-primary)'
+                  : '1px solid var(--border-subtle)',
+                borderRadius: 'var(--border-radius)',
                 padding: '16px',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                position: 'relative'
+                transition: 'var(--transition)',
+                position: 'relative',
+                boxShadow: isSelected ? 'var(--shadow-md)' : 'var(--shadow-sm)'
               }}
             >
               {/* Header: Title & Badge */}
@@ -143,23 +144,15 @@ export default function ScenarioSelector(): JSX.Element {
                   <div style={{
                     fontSize: '1.05rem',
                     fontWeight: 800,
-                    color: isSelected ? '#ffffff' : '#f1f5f9'
+                    color: isSelected ? 'var(--color-primary)' : 'var(--text-primary)'
                   }}>
                     {sc.title}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: isSelected ? '#93c5fd' : '#94a3b8', fontWeight: 500 }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                     {sc.subtitle}
                   </div>
                 </div>
-                <span style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  backgroundColor: '#1e293b',
-                  color: sc.badgeColor,
-                  border: `1px solid ${sc.badgeColor}`
-                }}>
+                <span className={sc.badgeClass}>
                   {sc.badge}
                 </span>
               </div>
@@ -167,8 +160,8 @@ export default function ScenarioSelector(): JSX.Element {
               {/* Description */}
               <p style={{
                 fontSize: '0.78rem',
-                color: '#cbd5e1',
-                lineHeight: 1.4,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.45,
                 margin: '0 0 12px 0'
               }}>
                 {sc.description}
@@ -176,7 +169,7 @@ export default function ScenarioSelector(): JSX.Element {
 
               {/* Highlights bullet list */}
               <div style={{
-                borderTop: '1px solid #334155',
+                borderTop: '1px solid var(--border-subtle)',
                 paddingTop: '10px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -185,12 +178,12 @@ export default function ScenarioSelector(): JSX.Element {
                 {sc.highlights.map((h, i) => (
                   <div key={i} style={{
                     fontSize: '0.72rem',
-                    color: isSelected ? '#e2e8f0' : '#94a3b8',
+                    color: 'var(--text-secondary)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px'
                   }}>
-                    <span style={{ color: sc.badgeColor, fontSize: '0.8rem' }}>•</span>
+                    <span style={{ color: 'var(--color-primary)', fontSize: '0.8rem' }}>•</span>
                     <span>{h}</span>
                   </div>
                 ))}

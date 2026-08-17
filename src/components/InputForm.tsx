@@ -37,19 +37,20 @@ export default function InputForm(): JSX.Element {
 
   return (
     <div class="glass-panel fade-in">
-      <h2>Household & Salary Parameters</h2>
+      <h2>Household &amp; Salary Parameters</h2>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
         <button
           style={{
             flex: 1,
             padding: '8px',
-            borderRadius: '6px',
-            border: '1px solid var(--card-border)',
+            borderRadius: 'var(--border-radius-sm)',
+            border: '1px solid var(--border-subtle)',
             cursor: 'pointer',
-            transition: '0.2s',
-            background: isMonthly ? 'var(--primary)' : 'transparent',
-            color: isMonthly ? '#fff' : '#cbd5e1'
+            transition: 'var(--transition)',
+            background: isMonthly ? 'var(--color-primary)' : 'var(--bg-surface-secondary)',
+            color: isMonthly ? '#ffffff' : 'var(--text-secondary)',
+            fontWeight: 600
           }}
           onClick={() => { inputMode.value = 'monthly'; }}
         >
@@ -59,12 +60,13 @@ export default function InputForm(): JSX.Element {
           style={{
             flex: 1,
             padding: '8px',
-            borderRadius: '6px',
-            border: '1px solid var(--card-border)',
+            borderRadius: 'var(--border-radius-sm)',
+            border: '1px solid var(--border-subtle)',
             cursor: 'pointer',
-            transition: '0.2s',
-            background: !isMonthly ? 'var(--primary)' : 'transparent',
-            color: !isMonthly ? '#fff' : '#cbd5e1'
+            transition: 'var(--transition)',
+            background: !isMonthly ? 'var(--color-primary)' : 'var(--bg-surface-secondary)',
+            color: !isMonthly ? '#ffffff' : 'var(--text-secondary)',
+            fontWeight: 600
           }}
           onClick={() => { inputMode.value = 'yearly'; }}
         >
@@ -83,7 +85,7 @@ export default function InputForm(): JSX.Element {
         </select>
       </div>
 
-      <hr style={{ border: 0, borderTop: '1px solid var(--card-border)', margin: '30px 0' }} />
+      <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: '30px 0' }} />
 
       <h3>Person 1 Details</h3>
       <div class="input-group">
@@ -167,7 +169,7 @@ export default function InputForm(): JSX.Element {
         </label>
       </div>
 
-      <hr style={{ border: 0, borderTop: '1px solid var(--card-border)', margin: '30px 0' }} />
+      <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: '30px 0' }} />
 
       <div class="input-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0 }}>Add Spouse / Partner (*Ehegatte*)</h3>
@@ -182,7 +184,7 @@ export default function InputForm(): JSX.Element {
       </div>
 
       {hasPartner.value && (
-        <div class="fade-in" style={{ marginTop: '20px', padding: '15px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
+        <div class="fade-in" style={{ marginTop: '20px', padding: '15px', borderRadius: 'var(--border-radius)', background: 'var(--bg-surface-secondary)', border: '1px solid var(--border-subtle)' }}>
           <div class="input-group">
             <label for="partnerGross">Partner's Gross ({isMonthly ? 'Monthly' : 'Yearly'}): €{partnerGrossIncome.value.toLocaleString('de-DE')}</label>
             <input
@@ -263,14 +265,14 @@ export default function InputForm(): JSX.Element {
         </div>
       )}
 
-      <hr style={{ border: 0, borderTop: '1px solid var(--card-border)', margin: '30px 0' }} />
+      <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: '30px 0' }} />
 
-      <details style={{ cursor: 'pointer', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px' }}>
-        <summary style={{ fontWeight: 600, color: '#f8fafc', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
+      <details style={{ cursor: 'pointer', background: 'var(--bg-surface-secondary)', borderRadius: 'var(--border-radius)', padding: '10px', border: '1px solid var(--border-subtle)' }}>
+        <summary style={{ fontWeight: 600, color: 'var(--text-primary)', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <SettingsIcon size={16} /> Advanced Tax Settings & Social Thresholds (2024–2026)
+            <SettingsIcon size={16} /> Advanced Tax Settings &amp; Social Thresholds (2024–2026)
           </div>
-          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Expand</span>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Expand</span>
         </summary>
         <TaxSettings />
       </details>

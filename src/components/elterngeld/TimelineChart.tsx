@@ -1,7 +1,6 @@
 import type { JSX } from 'preact';
 import { useState, useRef } from 'preact/hooks';
 import {
-  activeScenario,
   chartMode,
   timeRangeFilter,
   scenarioAData,
@@ -133,15 +132,15 @@ export default function TimelineChart(): JSX.Element {
   // Y Scale function
   const scaleY = (val: number): number => plotHeight - (val / yMax) * plotHeight;
 
-  // Colors (Corporate Minimal Palette)
+  // Colors (Institutional Professional Palette)
   const colors = {
-    husbandSalary: '#1e40af',     // Corporate Navy Blue
-    wifeSalary: '#0284c7',        // Steel Blue
-    mutterschutz: '#475569',      // Slate Gray
-    wifeElterngeld: '#15803d',    // Deep Forest Green
-    husbandElterngeld: '#b45309', // Muted Bronze Amber
-    kindergeld: '#991b1b',        // Dark Crimson Red
-    taxRefund: '#0f766e'          // Petrol Teal
+    husbandSalary: '#1e3a8a',     // Deep Navy Blue
+    wifeSalary: '#4338ca',        // Indigo
+    mutterschutz: '#0284c7',      // Sky Blue
+    wifeElterngeld: '#059669',    // Forest Green
+    husbandElterngeld: '#0d9488', // Teal
+    kindergeld: '#d97706',        // Amber
+    taxRefund: '#0891b2'          // Cyan
   };
 
   const seriesMeta: { key: keyof VisibleSeriesState; label: string; statutory: string; color: string }[] = [
@@ -234,10 +233,10 @@ export default function TimelineChart(): JSX.Element {
         marginBottom: '18px'
       }}>
         <div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0, letterSpacing: '-0.02em' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
             Monthly Cash Inflow & Benefits Timeline (60 Months)
           </h3>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '3px 0 0 0' }}>
             Interactive timeline with visible line curves, stacked cash flow, and toggleable statutory benefit series.
           </p>
         </div>
@@ -245,10 +244,10 @@ export default function TimelineChart(): JSX.Element {
         {/* View Mode Switcher */}
         <div style={{
           display: 'flex',
-          background: '#0f172a',
+          background: 'var(--bg-surface-secondary)',
           padding: '3px',
-          borderRadius: '6px',
-          border: '1px solid #334155',
+          borderRadius: 'var(--border-radius-sm)',
+          border: '1px solid var(--border-subtle)',
           gap: '4px',
           flexWrap: 'wrap'
         }}>
@@ -259,11 +258,13 @@ export default function TimelineChart(): JSX.Element {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === TimelineChartMode.StackedBar ? '#1e40af' : 'transparent',
-              color: mode === TimelineChartMode.StackedBar ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.StackedBar ? 'var(--color-primary)' : 'transparent',
+              color: mode === TimelineChartMode.StackedBar ? '#ffffff' : 'var(--text-secondary)',
               fontSize: '0.78rem',
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: mode === TimelineChartMode.StackedBar ? 'var(--shadow-sm)' : 'none',
+              transition: 'var(--transition)'
             }}
           >
             Stacked Bar
@@ -275,11 +276,13 @@ export default function TimelineChart(): JSX.Element {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === TimelineChartMode.Lines ? '#1e40af' : 'transparent',
-              color: mode === TimelineChartMode.Lines ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.Lines ? 'var(--color-primary)' : 'transparent',
+              color: mode === TimelineChartMode.Lines ? '#ffffff' : 'var(--text-secondary)',
               fontSize: '0.78rem',
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: mode === TimelineChartMode.Lines ? 'var(--shadow-sm)' : 'none',
+              transition: 'var(--transition)'
             }}
           >
             Multi-Line Series
@@ -291,11 +294,13 @@ export default function TimelineChart(): JSX.Element {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === TimelineChartMode.Area ? '#1e40af' : 'transparent',
-              color: mode === TimelineChartMode.Area ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.Area ? 'var(--color-primary)' : 'transparent',
+              color: mode === TimelineChartMode.Area ? '#ffffff' : 'var(--text-secondary)',
               fontSize: '0.78rem',
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: mode === TimelineChartMode.Area ? 'var(--shadow-sm)' : 'none',
+              transition: 'var(--transition)'
             }}
           >
             Area Trend
@@ -307,11 +312,13 @@ export default function TimelineChart(): JSX.Element {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === TimelineChartMode.Compare ? '#1e40af' : 'transparent',
-              color: mode === TimelineChartMode.Compare ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.Compare ? 'var(--color-primary)' : 'transparent',
+              color: mode === TimelineChartMode.Compare ? '#ffffff' : 'var(--text-secondary)',
               fontSize: '0.78rem',
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: mode === TimelineChartMode.Compare ? 'var(--shadow-sm)' : 'none',
+              transition: 'var(--transition)'
             }}
           >
             Scenario Compare
@@ -327,13 +334,13 @@ export default function TimelineChart(): JSX.Element {
         flexWrap: 'wrap',
         gap: '8px',
         padding: '10px 14px',
-        background: '#0f172a',
-        borderRadius: '6px',
-        border: '1px solid #334155',
+        background: 'var(--bg-surface-secondary)',
+        borderRadius: 'var(--border-radius-sm)',
+        border: '1px solid var(--border-subtle)',
         marginBottom: '16px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Series Toggles:
           </span>
           {seriesMeta.map((s) => {
@@ -349,12 +356,13 @@ export default function TimelineChart(): JSX.Element {
                   gap: '6px',
                   padding: '4px 10px',
                   borderRadius: '4px',
-                  border: isVisible ? `1px solid ${s.color}` : '1px solid #334155',
-                  background: isVisible ? '#1e293b' : 'transparent',
-                  color: isVisible ? '#f8fafc' : '#64748b',
+                  border: isVisible ? `1px solid ${s.color}` : '1px solid var(--border-subtle)',
+                  background: isVisible ? 'var(--bg-surface)' : 'transparent',
+                  color: isVisible ? 'var(--text-primary)' : 'var(--text-muted)',
                   fontSize: '0.74rem',
                   fontWeight: isVisible ? 600 : 400,
                   cursor: 'pointer',
+                  boxShadow: isVisible ? 'var(--shadow-sm)' : 'none',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -362,14 +370,14 @@ export default function TimelineChart(): JSX.Element {
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  backgroundColor: isVisible ? s.color : '#475569'
+                  backgroundColor: isVisible ? s.color : 'var(--border-medium)'
                 }}></span>
                 <span>{s.label}</span>
                 <span style={{
                   fontSize: '0.66rem',
                   padding: '0 4px',
                   borderRadius: '2px',
-                  background: isVisible ? s.color : '#334155',
+                  background: isVisible ? s.color : 'var(--border-medium)',
                   color: '#ffffff',
                   fontWeight: 700
                 }}>
@@ -387,9 +395,9 @@ export default function TimelineChart(): JSX.Element {
             style={{
               padding: '3px 8px',
               borderRadius: '4px',
-              border: '1px solid #334155',
-              background: '#1e293b',
-              color: '#93c5fd',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-surface)',
+              color: 'var(--color-primary)',
               fontSize: '0.7rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -403,9 +411,9 @@ export default function TimelineChart(): JSX.Element {
             style={{
               padding: '3px 8px',
               borderRadius: '4px',
-              border: '1px solid #334155',
-              background: '#1e293b',
-              color: '#cbd5e1',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-muted)',
               fontSize: '0.7rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -435,14 +443,14 @@ export default function TimelineChart(): JSX.Element {
                   y1={y}
                   x2={svgWidth - margin.right}
                   y2={y}
-                  stroke="rgba(51, 65, 85, 0.4)"
+                  stroke="rgba(148, 163, 184, 0.25)"
                   strokeDasharray="4 4"
                 />
                 <text
                   x={margin.left - 10}
                   y={y + 4}
                   textAnchor="end"
-                  fill="#64748b"
+                  fill="var(--text-muted)"
                   fontSize="11"
                   fontFamily="monospace"
                 >
@@ -463,14 +471,14 @@ export default function TimelineChart(): JSX.Element {
                   y1={margin.top}
                   x2={x}
                   y2={svgHeight - margin.bottom}
-                  stroke="#334155"
+                  stroke="var(--border-medium)"
                   strokeWidth="1.5"
                   strokeDasharray="2 2"
                 />
                 <text
                   x={x + 4}
                   y={margin.top - 12}
-                  fill="#94a3b8"
+                  fill="var(--text-muted)"
                   fontSize="11"
                   fontWeight="700"
                 >
@@ -505,7 +513,7 @@ export default function TimelineChart(): JSX.Element {
                     y={margin.top}
                     width={barSlotWidth}
                     height={plotHeight}
-                    fill="rgba(255, 255, 255, 0.04)"
+                    fill="rgba(59, 130, 246, 0.08)"
                     rx="2"
                   />
                 )}
@@ -531,7 +539,7 @@ export default function TimelineChart(): JSX.Element {
             );
           })}
 
-          {/* Render Mode 2: MULTI-LINE SERIES (Dedicated Visible Lines per Field) */}
+          {/* Render Mode 2: MULTI-LINE SERIES */}
           {mode === 'lines' && (
             <g>
               {seriesMeta.map((s) => {
@@ -561,7 +569,7 @@ export default function TimelineChart(): JSX.Element {
                           cy={cy}
                           r={isHovered ? 4.5 : 2.5}
                           fill={s.color}
-                          stroke="#0f172a"
+                          stroke="var(--bg-surface)"
                           strokeWidth="1.5"
                         />
                       );
@@ -578,7 +586,7 @@ export default function TimelineChart(): JSX.Element {
                   return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                 }, '')}
                 fill="none"
-                stroke="#38bdf8"
+                stroke="var(--color-primary)"
                 strokeWidth="2.5"
                 strokeDasharray="4 2"
               />
@@ -674,7 +682,7 @@ export default function TimelineChart(): JSX.Element {
                   return `${acc} ${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                 }, '')}
                 fill="none"
-                stroke="#60a5fa"
+                stroke="var(--color-primary)"
                 strokeWidth="2.5"
               />
             </g>
@@ -687,7 +695,7 @@ export default function TimelineChart(): JSX.Element {
               <path
                 d={getComparePath(aData)}
                 fill="none"
-                stroke="#64748b"
+                stroke="var(--text-muted)"
                 strokeWidth="2.5"
                 strokeDasharray="4 4"
               />
@@ -695,14 +703,14 @@ export default function TimelineChart(): JSX.Element {
               <path
                 d={getComparePath(bData)}
                 fill="none"
-                stroke="#b45309"
+                stroke="var(--color-warning)"
                 strokeWidth="2.5"
               />
               {/* Scenario C (Fully Optimized) */}
               <path
                 d={getComparePath(cData)}
                 fill="none"
-                stroke="#15803d"
+                stroke="var(--color-gain)"
                 strokeWidth="3.5"
               />
             </g>
@@ -714,14 +722,14 @@ export default function TimelineChart(): JSX.Element {
             y1={margin.top + scaleY(6125)}
             x2={svgWidth - margin.right}
             y2={margin.top + scaleY(6125)}
-            stroke="#475569"
+            stroke="var(--border-medium)"
             strokeWidth="1.5"
             strokeDasharray="6 3"
           />
           <text
             x={svgWidth - margin.right - 5}
             y={margin.top + scaleY(6125) - 6}
-            fill="#94a3b8"
+            fill="var(--text-muted)"
             fontSize="10"
             textAnchor="end"
             fontFamily="monospace"
@@ -735,7 +743,7 @@ export default function TimelineChart(): JSX.Element {
             y1={svgHeight - margin.bottom}
             x2={svgWidth - margin.right}
             y2={svgHeight - margin.bottom}
-            stroke="#475569"
+            stroke="var(--border-medium)"
             strokeWidth="1"
           />
           {displayedMonths.map((m, i) => {
@@ -750,13 +758,13 @@ export default function TimelineChart(): JSX.Element {
                   y1={svgHeight - margin.bottom}
                   x2={x}
                   y2={svgHeight - margin.bottom + 5}
-                  stroke="#64748b"
+                  stroke="var(--text-muted)"
                 />
                 <text
                   x={x}
                   y={svgHeight - margin.bottom + 15}
                   textAnchor="middle"
-                  fill="#94a3b8"
+                  fill="var(--text-muted)"
                   fontSize="9"
                   fontFamily="monospace"
                 >
@@ -766,7 +774,7 @@ export default function TimelineChart(): JSX.Element {
                   x={x}
                   y={svgHeight - margin.bottom + 25}
                   textAnchor="middle"
-                  fill="#38bdf8"
+                  fill="var(--color-primary)"
                   fontSize="7.5"
                   fontFamily="monospace"
                 >
@@ -783,52 +791,45 @@ export default function TimelineChart(): JSX.Element {
             position: 'absolute',
             left: `${Math.min(svgWidth - 280, Math.max(margin.left, tooltipState.x - 120))}px`,
             top: '20px',
-            background: '#0f172a',
-            border: '1px solid #334155',
-            borderRadius: '6px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--border-radius-sm)',
             padding: '12px 16px',
             minWidth: '250px',
             pointerEvents: 'none',
-            zIndex: 30
+            zIndex: 30,
+            boxShadow: 'var(--shadow-lg)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid #334155', paddingBottom: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '4px' }}>
               <div>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f8fafc' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
                   Month {tooltipState.month.month}
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#38bdf8', marginLeft: '6px', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', marginLeft: '6px', fontWeight: 600 }}>
                   ({tooltipState.month.calendarLabel})
                 </span>
-                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                   {tooltipState.month.relativeBirthLabel}
                 </div>
               </div>
-              <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#60a5fa', fontSize: '0.95rem' }}>
+              <span style={{ fontFamily: 'monospace', fontWeight: 800, color: 'var(--color-primary)', fontSize: '0.95rem' }}>
                 {formatCurrency(getMonthActiveTotal(tooltipState.month))}
               </span>
             </div>
 
             {tooltipState.month.eventTag && (
-              <div style={{
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                color: '#38bdf8',
-                background: '#1e293b',
-                borderRadius: '4px',
-                padding: '2px 6px',
-                marginBottom: '8px'
-              }}>
+              <div className="badge-brand" style={{ marginBottom: '8px' }}>
                 {tooltipState.month.eventTag}
               </div>
             )}
 
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '6px' }}>
-              Status: <span style={{ color: '#cbd5e1' }}>{tooltipState.month.taxClassLabel}</span>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+              Status: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{tooltipState.month.taxClassLabel}</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.75rem' }}>
               {visibleSeries.husbandSalary && (tooltipState.month.husbandSalary as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandSalary }}></span>
                     Husband Net Salary:
@@ -837,7 +838,7 @@ export default function TimelineChart(): JSX.Element {
                 </div>
               )}
               {visibleSeries.wifeSalary && (tooltipState.month.wifeSalary as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeSalary }}></span>
                     Wife Net Salary:
@@ -846,16 +847,16 @@ export default function TimelineChart(): JSX.Element {
                 </div>
               )}
               {visibleSeries.mutterschutz && (tooltipState.month.mutterschutz as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#93c5fd' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.mutterschutz }}></span>
-                    Maternity Pay (*Mutterschutz* MuSchG):
+                    Maternity Pay (*MuSchG*):
                   </span>
                   <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatCurrency(tooltipState.month.mutterschutz as number)}</span>
                 </div>
               )}
               {visibleSeries.wifeElterngeld && (tooltipState.month.wifeElterngeld as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6ee7b7' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gain)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.wifeElterngeld }}></span>
                     ElterngeldPlus (Mother / § 4 BEEG):
@@ -864,7 +865,7 @@ export default function TimelineChart(): JSX.Element {
                 </div>
               )}
               {visibleSeries.husbandElterngeld && (tooltipState.month.husbandElterngeld as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fde68a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-warning)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.husbandElterngeld }}></span>
                     Partner Months (*Partnermonate* § 4 BEEG):
@@ -873,7 +874,7 @@ export default function TimelineChart(): JSX.Element {
                 </div>
               )}
               {visibleSeries.kindergeld && (tooltipState.month.kindergeld as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fda4af' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-loss)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.kindergeld }}></span>
                     Child Benefit (*Kindergeld* § 66 EStG):
@@ -882,7 +883,7 @@ export default function TimelineChart(): JSX.Element {
                 </div>
               )}
               {visibleSeries.taxRefund && (tooltipState.month.taxRefund as number) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#67e8f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gain)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.taxRefund }}></span>
                     Tax Office Refund (*Finanzamt* § 26b EStG):
@@ -904,7 +905,7 @@ export default function TimelineChart(): JSX.Element {
         gap: '14px',
         marginTop: '18px',
         fontSize: '0.78rem',
-        color: '#cbd5e1'
+        color: 'var(--text-secondary)'
       }}>
         {seriesMeta.map((s) => {
           const isVisible = visibleSeries[s.key];
@@ -919,7 +920,7 @@ export default function TimelineChart(): JSX.Element {
                 gap: '6px',
                 background: 'transparent',
                 border: 'none',
-                color: isVisible ? '#cbd5e1' : '#64748b',
+                color: isVisible ? 'var(--text-primary)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 opacity: isVisible ? 1 : 0.45,
                 transition: 'opacity 0.15s ease',

@@ -91,8 +91,8 @@ export default function ComparisonTable(): JSX.Element | null {
     // Current Story
     const current = getPaycheckVal(deductions.value);
     cells.push(
-      <td key="current" style={{ padding: '12px 16px', fontWeight: 'bold', borderBottom: '1px solid var(--card-border)', background: 'rgba(16, 185, 129, 0.1)', minWidth: '220px', color: 'var(--success)' }}>
-        {format(current.val)} <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'normal' }}>{current.hint}</span>
+      <td key="current" style={{ padding: '12px 16px', fontWeight: 'bold', borderBottom: '1px solid var(--border-subtle)', background: 'var(--color-gain-bg)', minWidth: '220px', color: 'var(--color-gain)' }} class="tabular-nums">
+        {format(current.val)} <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>{current.hint}</span>
       </td>
     );
 
@@ -101,15 +101,15 @@ export default function ComparisonTable(): JSX.Element | null {
       const dataToUse = isActive && scenarioDraft.value ? scenarioDraft.value.data : scenario.data;
       const saved = getPaycheckVal(dataToUse);
       cells.push(
-        <td key={scenario.id} style={{ padding: '12px 16px', fontWeight: 'bold', borderBottom: '1px solid var(--card-border)', minWidth: '220px', color: isActive ? 'var(--primary)' : '#f8fafc', background: isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent' }}>
-          {format(saved.val)} <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'normal' }}>{saved.hint}</span>
+        <td key={scenario.id} style={{ padding: '12px 16px', fontWeight: 'bold', borderBottom: '1px solid var(--border-subtle)', minWidth: '220px', color: isActive ? 'var(--color-primary)' : 'var(--text-primary)', background: isActive ? 'var(--color-primary-bg)' : 'transparent' }} class="tabular-nums">
+          {format(saved.val)} <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>{saved.hint}</span>
         </td>
       );
     });
 
     return (
       <tr class="comparison-row">
-        <td style={{ padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--card-border)', color: '#cbd5e1', position: 'sticky', left: 0, background: '#1e293b', zIndex: 10, borderRight: '2px solid var(--card-border)' }}>
+        <td style={{ padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 10, borderRight: '2px solid var(--border-subtle)' }}>
           Net Per Paycheck
         </td>
         {cells}
@@ -132,8 +132,8 @@ export default function ComparisonTable(): JSX.Element | null {
 
     const currentVal = getAvgVal(deductions.value);
     cells.push(
-      <td key="current" style={{ padding: '12px 16px', borderBottom: '1px solid var(--card-border)', background: 'rgba(16, 185, 129, 0.1)', minWidth: '220px', color: '#e2e8f0' }}>
-        {format(currentVal)} <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>/ mo</span>
+      <td key="current" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--color-gain-bg)', minWidth: '220px', color: 'var(--color-gain)', fontWeight: 600 }} class="tabular-nums">
+        {format(currentVal)} <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ mo</span>
       </td>
     );
 
@@ -143,16 +143,16 @@ export default function ComparisonTable(): JSX.Element | null {
       const savedVal = getAvgVal(dataToUse);
 
       cells.push(
-        <td key={scenario.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--card-border)', minWidth: '220px', color: '#cbd5e1', background: isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent' }}>
-          {format(savedVal)} <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>/ mo</span>
+        <td key={scenario.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', minWidth: '220px', color: 'var(--text-primary)', background: isActive ? 'var(--color-primary-bg)' : 'transparent' }} class="tabular-nums">
+          {format(savedVal)} <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>/ mo</span>
         </td>
       );
     });
 
     return (
       <tr class="comparison-row">
-        <td style={{ padding: '12px 16px', fontWeight: 500, borderBottom: '1px solid var(--card-border)', color: '#94a3b8', position: 'sticky', left: 0, background: '#1e293b', zIndex: 10, borderRight: '2px solid var(--card-border)' }}>
-          Avg. Monthly Net <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: '4px' }}>(Yearly / 12)</span>
+        <td style={{ padding: '12px 16px', fontWeight: 500, borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 10, borderRight: '2px solid var(--border-subtle)' }}>
+          Avg. Monthly Net <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>(Yearly / 12)</span>
         </td>
         {cells}
       </tr>
@@ -168,7 +168,7 @@ export default function ComparisonTable(): JSX.Element | null {
       : personKey ? getMetric(deductions.value, personKey, metricKey as keyof PersonDeductions) : 0;
 
     cells.push(
-      <td key="current" style={{ padding: '12px 16px', fontWeight: isHeader ? 'bold' : 'normal', borderBottom: '1px solid var(--card-border)', background: 'rgba(16, 185, 129, 0.1)', minWidth: '220px' }}>
+      <td key="current" style={{ padding: '12px 16px', fontWeight: isHeader ? 'bold' : 'normal', borderBottom: '1px solid var(--border-subtle)', background: 'var(--color-gain-bg)', minWidth: '220px' }} class="tabular-nums">
         {format(currentVal)}
       </td>
     );
@@ -182,7 +182,7 @@ export default function ComparisonTable(): JSX.Element | null {
         : personKey ? getMetric(dataToUse, personKey, metricKey as keyof PersonDeductions) : 0;
 
       cells.push(
-        <td key={scenario.id} style={{ padding: '12px 16px', fontWeight: isHeader ? 'bold' : 'normal', borderBottom: '1px solid var(--card-border)', minWidth: '220px', background: isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent' }}>
+        <td key={scenario.id} style={{ padding: '12px 16px', fontWeight: isHeader ? 'bold' : 'normal', borderBottom: '1px solid var(--border-subtle)', minWidth: '220px', background: isActive ? 'var(--color-primary-bg)' : 'transparent' }} class="tabular-nums">
           {format(savedVal)}
         </td>
       );
@@ -190,7 +190,7 @@ export default function ComparisonTable(): JSX.Element | null {
 
     return (
       <tr class="comparison-row">
-        <td style={{ padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--card-border)', color: '#e2e8f0', position: 'sticky', left: 0, background: '#1e293b', zIndex: 10, borderRight: '2px solid var(--card-border)' }}>
+        <td style={{ padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 10, borderRight: '2px solid var(--border-subtle)' }}>
           {label}
         </td>
         {cells}
@@ -208,7 +208,7 @@ export default function ComparisonTable(): JSX.Element | null {
   ): JSX.Element => {
     const cells: JSX.Element[] = [];
     cells.push(
-      <td key="current" style={{ padding: '12px 16px', borderBottom: '1px solid var(--card-border)', background: 'rgba(16, 185, 129, 0.1)', color: '#e2e8f0', fontSize: '0.9rem' }}>
+      <td key="current" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--color-gain-bg)', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
         {currentVal}
       </td>
     );
@@ -221,7 +221,7 @@ export default function ComparisonTable(): JSX.Element | null {
 
       let content: JSX.Element | string | number = savedVal;
       if (isActive) {
-        const inputStyle = 'background: rgba(15, 23, 42, 0.8); border: 1px solid var(--primary); color: white; padding: 4px; borderRadius: 4px; width: 100%; outline: none;';
+        const inputStyle = 'background: var(--bg-surface-secondary); border: 1px solid var(--color-primary); color: var(--text-primary); padding: 4px; border-radius: 4px; width: 100%; outline: none;';
         if (type === 'select' && options) {
           content = (
             <select
@@ -229,7 +229,7 @@ export default function ComparisonTable(): JSX.Element | null {
               onChange={(e) => updateScenarioInput(fieldKey, (e.target as HTMLSelectElement).value as never)}
               style={inputStyle}
             >
-              {options.map(opt => <option key={opt.value} value={opt.value} style={{ color: 'black' }}>{opt.label}</option>)}
+              {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           );
         } else if (type === 'checkbox') {
@@ -256,7 +256,7 @@ export default function ComparisonTable(): JSX.Element | null {
       }
 
       cells.push(
-        <td key={scenario.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--card-border)', color: '#cbd5e1', fontSize: '0.9rem', background: isActive ? 'rgba(56, 189, 248, 0.05)' : 'transparent' }}>
+        <td key={scenario.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.9rem', background: isActive ? 'var(--color-primary-bg)' : 'transparent' }}>
           {content}
         </td>
       );
@@ -264,7 +264,7 @@ export default function ComparisonTable(): JSX.Element | null {
 
     return (
       <tr class="comparison-row">
-        <td style={{ padding: '12px 16px', fontWeight: 500, borderBottom: '1px solid var(--card-border)', color: '#94a3b8', position: 'sticky', left: 0, background: '#1e293b', zIndex: 10, borderRight: '2px solid var(--card-border)', fontSize: '0.9rem' }}>
+        <td style={{ padding: '12px 16px', fontWeight: 500, borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 10, borderRight: '2px solid var(--border-subtle)', fontSize: '0.9rem' }}>
           {label}
         </td>
         {cells}
@@ -278,26 +278,26 @@ export default function ComparisonTable(): JSX.Element | null {
   };
 
   return (
-    <div class="glass-panel fade-in" style={{ maxWidth: '95vw', margin: '0 auto 40px auto', padding: '25px', position: 'relative', borderTop: '4px solid var(--primary)' }}>
+    <div class="glass-panel fade-in" style={{ maxWidth: '95vw', margin: '0 auto 40px auto', padding: '25px', position: 'relative', borderTop: '4px solid var(--color-primary)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ margin: 0 }}>Scenario Manager & Household Models</h2>
-          <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#94a3b8' }}>Compare your active live inputs against saved household planning scenarios.</p>
+          <h2 style={{ margin: 0 }}>Scenario Manager &amp; Household Models</h2>
+          <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Compare your active live inputs against saved household planning scenarios.</p>
         </div>
 
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '5px', background: 'rgba(15, 23, 42, 0.8)', padding: '4px', borderRadius: '6px', border: '1px solid #334155' }}>
+          <div style={{ display: 'flex', gap: '5px', background: 'var(--bg-surface-secondary)', padding: '4px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)' }}>
             <button
               style={{
                 padding: '6px 12px',
                 borderRadius: '4px',
                 border: 'none',
                 cursor: 'pointer',
-                transition: '0.2s',
+                transition: 'var(--transition)',
                 fontSize: '0.8rem',
                 fontWeight: 'bold',
-                background: isMonthly ? 'var(--primary)' : 'transparent',
-                color: isMonthly ? '#fff' : '#cbd5e1'
+                background: isMonthly ? 'var(--color-primary)' : 'transparent',
+                color: isMonthly ? '#ffffff' : 'var(--text-secondary)'
               }}
               onClick={() => { displayMode.value = 'monthly'; }}
             >
@@ -309,11 +309,11 @@ export default function ComparisonTable(): JSX.Element | null {
                 borderRadius: '4px',
                 border: 'none',
                 cursor: 'pointer',
-                transition: '0.2s',
+                transition: 'var(--transition)',
                 fontSize: '0.8rem',
                 fontWeight: 'bold',
-                background: !isMonthly ? 'var(--primary)' : 'transparent',
-                color: !isMonthly ? '#fff' : '#cbd5e1'
+                background: !isMonthly ? 'var(--color-primary)' : 'transparent',
+                color: !isMonthly ? '#ffffff' : 'var(--text-secondary)'
               }}
               onClick={() => { displayMode.value = 'yearly'; }}
             >
@@ -327,19 +327,19 @@ export default function ComparisonTable(): JSX.Element | null {
         <table style={{ tableLayout: 'fixed', width: 'max-content', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
           <thead>
             <tr>
-              <th style={{ padding: '16px', borderBottom: '2px solid var(--card-border)', width: '250px', position: 'sticky', left: 0, top: 0, background: '#1e293b', zIndex: 20, borderRight: '2px solid var(--card-border)' }}></th>
+              <th style={{ padding: '16px', borderBottom: '2px solid var(--border-subtle)', width: '250px', position: 'sticky', left: 0, top: 0, background: 'var(--bg-surface)', zIndex: 20, borderRight: '2px solid var(--border-subtle)' }}></th>
 
-              <th style={{ padding: '16px', borderBottom: '2px solid var(--success)', background: 'rgba(16, 185, 129, 0.1)', position: 'sticky', top: 0, zIndex: 15, width: '300px', borderTop: '2px solid var(--success)' }}>
+              <th style={{ padding: '16px', borderBottom: '2px solid var(--color-gain)', background: 'var(--color-gain-bg)', position: 'sticky', top: 0, zIndex: 15, width: '300px', borderTop: '2px solid var(--color-gain)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '1.1rem', color: 'var(--success)', padding: '2px 4px', fontWeight: 'bold' }}>Live Calculation</div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#94a3b8', padding: '2px 4px' }}>Reacts live to sliders</div>
+                      <div style={{ fontSize: '1.1rem', color: 'var(--color-gain)', padding: '2px 4px', fontWeight: 'bold' }}>Live Calculation</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 'normal', color: 'var(--text-muted)', padding: '2px 4px' }}>Reacts live to sliders</div>
                     </div>
 
                     <button
                       onClick={handleAddScenario}
-                      style={{ background: 'transparent', color: 'var(--success)', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.8, transition: 'opacity 0.2s' }}
+                      style={{ background: 'transparent', color: 'var(--color-gain)', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.8, transition: 'opacity 0.2s' }}
                       title="Save as New Scenario"
                     >
                       <PlusIcon />
@@ -352,7 +352,7 @@ export default function ComparisonTable(): JSX.Element | null {
                 const isActive = activeScenarioId.value === scenario.id;
 
                 return (
-                  <th key={scenario.id} style={{ padding: '16px', borderBottom: `2px solid ${isActive ? 'var(--primary)' : 'var(--card-border)'}`, position: 'sticky', top: 0, background: isActive ? 'rgba(56, 189, 248, 0.1)' : '#1e293b', zIndex: 15, width: '300px', borderTop: isActive ? '2px solid var(--primary)' : 'none' }}>
+                  <th key={scenario.id} style={{ padding: '16px', borderBottom: `2px solid ${isActive ? 'var(--color-primary)' : 'var(--border-subtle)'}`, position: 'sticky', top: 0, background: isActive ? 'var(--color-primary-bg)' : 'var(--bg-surface)', zIndex: 15, width: '300px', borderTop: isActive ? '2px solid var(--color-primary)' : 'none' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
                         <div style={{ flex: 1 }}>
@@ -367,7 +367,7 @@ export default function ComparisonTable(): JSX.Element | null {
                             style={{
                               background: 'transparent',
                               border: '1px solid transparent',
-                              color: isActive ? 'var(--primary)' : 'white',
+                              color: isActive ? 'var(--color-primary)' : 'var(--text-primary)',
                               fontSize: '1.1rem',
                               fontWeight: 'bold',
                               width: '100%',
@@ -391,7 +391,7 @@ export default function ComparisonTable(): JSX.Element | null {
                             style={{
                               background: 'transparent',
                               border: '1px solid transparent',
-                              color: '#94a3b8',
+                              color: 'var(--text-muted)',
                               fontSize: '0.8rem',
                               fontWeight: 'normal',
                               width: '100%',
@@ -410,14 +410,14 @@ export default function ComparisonTable(): JSX.Element | null {
                             <>
                               <button
                                 onClick={() => loadScenario(scenario.id)}
-                                style={{ background: 'transparent', border: 'none', color: 'var(--success)', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.8, transition: 'opacity 0.2s' }}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--color-gain)', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.8, transition: 'opacity 0.2s' }}
                                 title="Load into Live Calculator"
                               >
                                 <DownloadIcon />
                               </button>
                               <button
                                 onClick={() => editScenario(scenario.id)}
-                                style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.8, transition: 'opacity 0.2s' }}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.8, transition: 'opacity 0.2s' }}
                                 title="Edit Scenario"
                               >
                                 <EditIcon />
@@ -426,7 +426,7 @@ export default function ComparisonTable(): JSX.Element | null {
                           )}
                           <button
                             onClick={() => deleteScenario(scenario.id)}
-                            style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.7, transition: 'opacity 0.2s' }}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--color-loss)', cursor: 'pointer', padding: '4px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.7, transition: 'opacity 0.2s' }}
                             title="Delete Scenario"
                           >
                             <XIcon />
@@ -438,14 +438,14 @@ export default function ComparisonTable(): JSX.Element | null {
                         <div style={{ display: 'flex', gap: '5px' }}>
                           <button
                             onClick={saveDraft}
-                            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                            style={{ background: 'var(--color-primary)', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                             title="Save changes to scenario"
                           >
                             <SaveIcon /> Save
                           </button>
                           <button
                             onClick={cancelEdit}
-                            style={{ background: 'transparent', color: '#cbd5e1', border: '1px solid var(--card-border)', padding: '6px 8px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', flex: 1 }}
+                            style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', padding: '6px 8px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', flex: 1 }}
                             title="Cancel editing"
                           >
                             Cancel
@@ -460,7 +460,7 @@ export default function ComparisonTable(): JSX.Element | null {
           </thead>
           <tbody>
             <tr>
-              <td colSpan={savedScenarios.value.length + 2} style={{ padding: '20px 16px 8px 16px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#94a3b8', fontWeight: 700, background: 'rgba(0,0,0,0.2)' }}>
+              <td colSpan={savedScenarios.value.length + 2} style={{ padding: '20px 16px 8px 16px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 700, background: 'var(--bg-surface-secondary)' }}>
                 Household Summary
               </td>
             </tr>
@@ -471,7 +471,7 @@ export default function ComparisonTable(): JSX.Element | null {
             {renderRow(isMonthly ? 'Household Avg Deductions' : 'Total Deductions', null, 'totalDeductions', true)}
 
             <tr>
-              <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#94a3b8', fontWeight: 700, background: 'rgba(0,0,0,0.2)' }}>
+              <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 700, background: 'var(--bg-surface-secondary)' }}>
                 Person 1 Summary
               </td>
             </tr>
@@ -484,7 +484,7 @@ export default function ComparisonTable(): JSX.Element | null {
             {renderRow(isMonthly ? 'Avg Pension' : 'Pension Insurance', 'person1', 'pension')}
 
             <tr>
-              <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', fontWeight: 600, background: 'rgba(0,0,0,0.1)' }}>
+              <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600, background: 'var(--bg-surface-secondary)' }}>
                 Person 1 Parameters
               </td>
             </tr>
@@ -516,7 +516,7 @@ export default function ComparisonTable(): JSX.Element | null {
             {(deductions.value.partner || savedScenarios.value.some(s => s.data.partner)) && (
               <>
                 <tr>
-                  <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#94a3b8', fontWeight: 700, background: 'rgba(0,0,0,0.2)' }}>
+                  <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 700, background: 'var(--bg-surface-secondary)' }}>
                     Partner Summary
                   </td>
                 </tr>
@@ -527,7 +527,7 @@ export default function ComparisonTable(): JSX.Element | null {
                 {renderRow(isMonthly ? 'Avg Wage Tax' : 'Wage Tax (Lohnsteuer)', 'partner', 'tax')}
 
                 <tr>
-                  <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', fontWeight: 600, background: 'rgba(0,0,0,0.1)' }}>
+                  <td colSpan={savedScenarios.value.length + 2} style={{ padding: '25px 16px 8px 16px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600, background: 'var(--bg-surface-secondary)' }}>
                     Partner Parameters
                   </td>
                 </tr>

@@ -49,26 +49,26 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
-            <div style={{ background: '#0f172a', padding: '10px', borderRadius: '5px', border: '1px solid #1e293b' }}>
-              <div style={{ color: '#f87171', fontWeight: 700 }}>Unoptimized (Tax Class V)</div>
+            <div style={{ background: 'var(--bg-surface)', padding: '10px', borderRadius: '5px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ color: 'var(--color-loss)', fontWeight: 700 }}>Unoptimized (Tax Class V)</div>
               <div>Pre-Birth Net: <strong>1.975 € / mo</strong></div>
               <div>Elterngeld Baseline: <strong>1.975 €</strong></div>
               <div>ElterngeldPlus (65%): <strong>~543 € / mo</strong></div>
             </div>
-            <div style={{ background: '#0f172a', padding: '10px', borderRadius: '5px', border: '1px solid #1e40af' }}>
-              <div style={{ color: '#4ade80', fontWeight: 700 }}>Optimized (Tax Class III)</div>
+            <div style={{ background: 'var(--bg-surface)', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-primary-border)' }}>
+              <div style={{ color: 'var(--color-gain)', fontWeight: 700 }}>Optimized (Tax Class III)</div>
               <div>Pre-Birth Net: <strong>2.603 € / mo</strong></div>
               <div>Elterngeld Baseline: <strong>2.603 €</strong></div>
-              <div>ElterngeldPlus (65% capped): <strong style={{ color: '#5eead4' }}>900 € / mo (MAX)</strong></div>
+              <div>ElterngeldPlus (65% capped): <strong style={{ color: 'var(--color-primary)' }}>900 € / mo (MAX)</strong></div>
             </div>
           </div>
-          <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '8px' }}>
-            ✔ <strong>Net Advantage:</strong> +357 € / month over 20 months = <strong style={{ color: '#4ade80' }}>+7.140 € extra state allowance</strong> for Child 1.
+          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            ✔ <strong>Net Advantage:</strong> +357 € / month over 20 months = <strong style={{ color: 'var(--color-gain)' }}>+7.140 € extra state allowance</strong> for Child 1.
           </div>
         </div>
       ),
@@ -115,15 +115,15 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div>• Mother in Tax Class III earns <strong>2.603 € net / month</strong> prior to leave.</div>
             <div>• Health insurance pays: 13 € × 30 days = <strong>390 €</strong> (*Mutterschaftsgeld*).</div>
             <div>• Employer pays statutory supplement: 2.603 € - 390 € = <strong>2.420 €</strong>.</div>
-            <div>• <strong>Total Inflow to Mother:</strong> Exactly <strong style={{ color: '#4ade80' }}>2.603 € / month (100% net preservation)</strong> during all 3.5 months of protection.</div>
+            <div>• <strong>Total Inflow to Mother:</strong> Exactly <strong style={{ color: 'var(--color-gain)' }}>2.603 € / month (100% net preservation)</strong> during all 3.5 months of protection.</div>
           </div>
         </div>
       ),
@@ -165,16 +165,16 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div>• Locked-in Pre-Birth Net (Tax Class III): <strong>2.603 €</strong></div>
             <div>• Post-Birth Part-Time (24h in Tax Class V): <strong>1.254 €</strong></div>
             <div>• Statutory Income Loss ($\Delta Net$): 2.603 € - 1.254 € = <strong>1.556 €</strong></div>
-            <div>• 65% Statutory Replacement: 1.556 € × 0.65 = <strong>1.011,40 €</strong> $\rightarrow$ Capped at <strong style={{ color: '#5eead4' }}>900.00 € / mo</strong>.</div>
-            <div>• <strong>Total Mother Cash Inflow:</strong> 1.254 € (PT Net) + 900 € (EG+) = <strong style={{ color: '#4ade80' }}>2.154 € / month</strong>.</div>
+            <div>• 65% Statutory Replacement: 1.556 € × 0.65 = <strong>1.011,40 €</strong> $\rightarrow$ Capped at <strong style={{ color: 'var(--color-primary)' }}>900.00 € / mo</strong>.</div>
+            <div>• <strong>Total Mother Cash Inflow:</strong> 1.254 € (PT Net) + 900 € (EG+) = <strong style={{ color: 'var(--color-gain)' }}>2.154 € / month</strong>.</div>
           </div>
         </div>
       ),
@@ -216,14 +216,14 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div>• Husband temporarily in Tax Class V: monthly salary reduced from 2.895 € to 2.191 € (<strong>-995 € / mo</strong>).</div>
             <div>• Over 6 swap months in Year 1: excess withholding = <strong>5.970 €</strong>.</div>
-            <div>• Annual Tax Return Reconciliation (§ 26b EStG) refund paid out in March: <strong style={{ color: '#4ade80' }}>+2.800 € to +3.600 € lump-sum refund</strong>.</div>
+            <div>• Annual Tax Return Reconciliation (§ 26b EStG) refund paid out in March: <strong style={{ color: 'var(--color-gain)' }}>+2.800 € to +3.600 € lump-sum refund</strong>.</div>
             <div>• <strong>Net Result:</strong> Zero permanent payroll loss; maximum parental benefits achieved without tax penalties.</div>
           </div>
         </div>
@@ -266,14 +266,14 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Statutory Allocation &amp; Payout Example:
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div>• <strong>Mother:</strong> 20 ElterngeldPlus months (up to <strong>900 € / mo</strong>) + 4 Partnership Bonus months (<strong>900 € / mo</strong>) = <strong>24 ElterngeldPlus months</strong>.</div>
             <div>• <strong>Father:</strong> 4 ElterngeldPlus partner months (<strong>150 € / mo</strong>) + 4 Partnership Bonus months (<strong>150 € / mo</strong>) = <strong>8 ElterngeldPlus months</strong>.</div>
-            <div>• 4 Partnership Bonus Months total payout: (900 € + 150 €) × 4 months = <strong style={{ color: '#4ade80' }}>+4.200 € total cash benefit</strong>.</div>
+            <div>• 4 Partnership Bonus Months total payout: (900 € + 150 €) × 4 months = <strong style={{ color: 'var(--color-gain)' }}>+4.200 € total cash benefit</strong>.</div>
           </div>
         </div>
       ),
@@ -315,14 +315,14 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div>• Child 2 ElterngeldPlus base entitlement: <strong>485,58 € / mo</strong>.</div>
-            <div>• +10% Sibling Bonus surcharge (§ 2a BEEG): <strong style={{ color: '#5eead4' }}>+75.00 € / mo (statutory minimum)</strong>.</div>
-            <div>• Total monthly Child 2 benefit: 485,58 € + 75,00 € = <strong style={{ color: '#4ade80' }}>560,58 € / month</strong> until Child 1 turns 36 months.</div>
+            <div>• +10% Sibling Bonus surcharge (§ 2a BEEG): <strong style={{ color: 'var(--color-primary)' }}>+75.00 € / mo (statutory minimum)</strong>.</div>
+            <div>• Total monthly Child 2 benefit: 485,58 € + 75,00 € = <strong style={{ color: 'var(--color-gain)' }}>560,58 € / month</strong> until Child 1 turns 36 months.</div>
           </div>
         </div>
       ),
@@ -353,28 +353,28 @@ export default function RulesExplainer(): JSX.Element {
               <strong>The Strategic Solution (Scenario C):</strong> Executing a timely second swap to Tax Class III during the intermediate part-time employment raises the assessment net salary to <strong>1.686 € / mo</strong>.
             </li>
             <li>
-              <strong>Resulting Award:</strong> Child 2 ElterngeldPlus increases from 150 € / mo to <strong style={{ color: '#4ade80' }}>560,58 € / mo</strong> (+8.211 € total extra benefit).
+              <strong>Resulting Award:</strong> Child 2 ElterngeldPlus increases from 150 € / mo to <strong style={{ color: 'var(--color-gain)' }}>560,58 € / mo</strong> (+8.211 € total extra benefit).
             </li>
           </ul>
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
-            <div style={{ background: '#0f172a', padding: '10px', borderRadius: '5px', border: '1px solid #1e293b' }}>
-              <div style={{ color: '#f87171', fontWeight: 700 }}>Scenario B (No 2nd Swap)</div>
+            <div style={{ background: 'var(--bg-surface)', padding: '10px', borderRadius: '5px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ color: 'var(--color-loss)', fontWeight: 700 }}>Scenario B (No 2nd Swap)</div>
               <div>Part-Time Net (Class V): <strong>1.254 €</strong></div>
-              <div>Child 2 ElterngeldPlus: <strong style={{ color: '#f87171' }}>150 € / mo (Min)</strong></div>
+              <div>Child 2 ElterngeldPlus: <strong style={{ color: 'var(--color-loss)' }}>150 € / mo (Min)</strong></div>
               <div>Total 20-Mo Payout: <strong>3.000 €</strong></div>
             </div>
-            <div style={{ background: '#0f172a', padding: '10px', borderRadius: '5px', border: '1px solid #1e40af' }}>
-              <div style={{ color: '#4ade80', fontWeight: 700 }}>Scenario C (2nd Swap to Class III)</div>
+            <div style={{ background: 'var(--bg-surface)', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-primary-border)' }}>
+              <div style={{ color: 'var(--color-gain)', fontWeight: 700 }}>Scenario C (2nd Swap to Class III)</div>
               <div>Part-Time Net (Class III): <strong>1.686 €</strong></div>
-              <div>Child 2 ElterngeldPlus: <strong style={{ color: '#5eead4' }}>560,58 € / mo</strong></div>
-              <div>Total 20-Mo Payout: <strong style={{ color: '#4ade80' }}>11.211 € (+8.211 € gain)</strong></div>
+              <div>Child 2 ElterngeldPlus: <strong style={{ color: 'var(--color-primary)' }}>560,58 € / mo</strong></div>
+              <div>Total 20-Mo Payout: <strong style={{ color: 'var(--color-gain)' }}>11.211 € (+8.211 € gain)</strong></div>
             </div>
           </div>
         </div>
@@ -412,14 +412,14 @@ export default function RulesExplainer(): JSX.Element {
         </div>
       ),
       example: (
-        <div style={{ background: '#1e293b', padding: '14px', borderRadius: '6px', border: '1px solid #334155', marginTop: '10px' }}>
-          <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface-secondary)', padding: '14px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-subtle)', marginTop: '10px' }}>
+          <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', fontSize: '0.82rem' }}>
             📊 Worked Numerical Example:
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div>• Child 1 born Month 17 $\rightarrow$ 259 € / mo.</div>
-            <div>• Child 2 born Month 44 $\rightarrow$ 259 € + 259 € = <strong style={{ color: '#4ade80' }}>518 € / month</strong> combined child benefit.</div>
-            <div>• Total 60-Month Inflow: 44 months (Child 1) + 17 months (Child 2) = <strong style={{ color: '#4ade80' }}>15.800 € total tax-free cash support</strong>.</div>
+            <div>• Child 2 born Month 44 $\rightarrow$ 259 € + 259 € = <strong style={{ color: 'var(--color-gain)' }}>518 € / month</strong> combined child benefit.</div>
+            <div>• Total 60-Month Inflow: 44 months (Child 1) + 17 months (Child 2) = <strong style={{ color: 'var(--color-gain)' }}>15.800 € total tax-free cash support</strong>.</div>
           </div>
         </div>
       ),
@@ -449,20 +449,20 @@ export default function RulesExplainer(): JSX.Element {
         padding: '26px',
         marginTop: '36px',
         marginBottom: '28px',
-        border: '1px solid #3b82f6',
-        boxShadow: '0 10px 30px -5px rgba(30, 58, 138, 0.25)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-md)',
         scrollMarginTop: '24px'
       }}
     >
       {/* Header Banner */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', borderBottom: '1px solid #334155', paddingBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            background: 'rgba(59, 130, 246, 0.15)',
+            background: 'var(--color-primary-bg)',
             padding: '10px',
-            borderRadius: '8px',
-            color: '#60a5fa',
-            border: '1px solid #1e40af'
+            borderRadius: 'var(--border-radius-sm)',
+            color: 'var(--color-primary)',
+            border: '1px solid var(--color-primary-border)'
           }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
@@ -472,24 +472,16 @@ export default function RulesExplainer(): JSX.Element {
             </svg>
           </div>
           <div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#f8fafc', margin: 0, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
               Statutory Legal Framework & Judicial Precedents
             </h3>
-            <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '3px 0 0 0' }}>
               Official German Civil, Social, and Fiscal Code references (*BEEG, MuSchG, EStG, BFH*) governing all simulator calculations.
             </p>
           </div>
         </div>
 
-        <div style={{
-          fontSize: '0.74rem',
-          color: '#60a5fa',
-          background: 'rgba(30, 64, 175, 0.25)',
-          padding: '4px 10px',
-          borderRadius: '20px',
-          border: '1px solid #3b82f6',
-          fontWeight: 600
-        }}>
+        <div className="badge-brand">
           ⚖ {rules.length} Statutory Modules Active
         </div>
       </div>
@@ -513,20 +505,21 @@ export default function RulesExplainer(): JSX.Element {
                 style={{
                   textAlign: 'left',
                   padding: '12px 14px',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--border-radius-sm)',
                   border: '1px solid',
-                  borderColor: isSelected ? '#3b82f6' : '#334155',
-                  background: isSelected ? 'rgba(30, 58, 138, 0.35)' : '#0f172a',
+                  borderColor: isSelected ? 'var(--color-primary)' : 'var(--border-subtle)',
+                  background: isSelected ? 'var(--color-primary-bg)' : 'var(--bg-surface)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  borderLeft: isSelected ? '4px solid #38bdf8' : '1px solid #334155'
+                  borderLeft: isSelected ? '4px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                  boxShadow: isSelected ? 'var(--shadow-sm)' : 'none'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                   <span style={{
                     fontSize: '0.84rem',
                     fontWeight: isSelected ? 800 : 600,
-                    color: isSelected ? '#ffffff' : '#cbd5e1'
+                    color: isSelected ? 'var(--color-primary)' : 'var(--text-primary)'
                   }}>
                     {rule.title}
                   </span>
@@ -534,16 +527,16 @@ export default function RulesExplainer(): JSX.Element {
                     fontSize: '0.68rem',
                     padding: '1px 6px',
                     borderRadius: '4px',
-                    background: isSelected ? '#1e40af' : '#1e293b',
-                    color: isSelected ? '#ffffff' : '#94a3b8',
-                    border: '1px solid #334155',
+                    background: isSelected ? 'var(--color-primary)' : 'var(--bg-surface-secondary)',
+                    color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                    border: '1px solid var(--border-subtle)',
                     fontFamily: 'monospace',
                     whiteSpace: 'nowrap'
                   }}>
                     {rule.tag}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: isSelected ? '#93c5fd' : '#64748b', marginTop: '4px', lineHeight: 1.3 }}>
+                <div style={{ fontSize: '0.72rem', color: isSelected ? 'var(--color-primary)' : 'var(--text-muted)', marginTop: '4px', lineHeight: 1.3 }}>
                   {rule.lawRef}
                 </div>
               </button>
@@ -553,10 +546,10 @@ export default function RulesExplainer(): JSX.Element {
 
         {/* Right: Rich Interactive Document Pane */}
         <div style={{
-          background: '#0f172a',
+          background: 'var(--bg-surface)',
           padding: '24px',
-          borderRadius: '8px',
-          border: '1px solid #334155',
+          borderRadius: 'var(--border-radius)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
           gap: '16px'
@@ -566,56 +559,41 @@ export default function RulesExplainer(): JSX.Element {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            borderBottom: '1px solid #334155',
+            borderBottom: '1px solid var(--border-subtle)',
             paddingBottom: '14px'
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 800,
-                  background: '#1e40af',
-                  color: '#ffffff',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontFamily: 'monospace'
-                }}>
+                <span className="badge-brand">
                   {currentRule.tag}
                 </span>
-                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   {currentRule.title}
                 </h4>
               </div>
               <div style={{
                 fontSize: '0.80rem',
-                color: '#60a5fa',
+                color: 'var(--color-primary)',
                 fontWeight: 600
               }}>
                 Statutory Authority: {currentRule.lawRef}
               </div>
             </div>
 
-            <span style={{
-              fontSize: '0.72rem',
-              color: '#86efac',
-              background: '#14532d',
-              padding: '3px 8px',
-              borderRadius: '4px',
-              fontWeight: 700
-            }}>
+            <span className="badge-gain">
               Active in Simulator
             </span>
           </div>
 
           {/* 1. Legal Overview & Statutory Mandate */}
           <div>
-            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
               📜 Statutory Mandate & Legal Rule
             </div>
             <div style={{
               fontSize: '0.86rem',
               lineHeight: 1.6,
-              color: '#cbd5e1'
+              color: 'var(--text-secondary)'
             }}>
               {currentRule.statutoryText}
             </div>
@@ -623,15 +601,15 @@ export default function RulesExplainer(): JSX.Element {
 
           {/* 2. Concrete Worked Calculation Example */}
           <div>
-            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
               💡 Real-World Simulation Example
             </div>
             {currentRule.example}
           </div>
 
           {/* 3. Official Legislation & Government Links */}
-          <div style={{ borderTop: '1px solid #334155', paddingTop: '14px', marginTop: '6px' }}>
-            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '14px', marginTop: '6px' }}>
+            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
               🔗 Official Legislation & Government References
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -646,20 +624,18 @@ export default function RulesExplainer(): JSX.Element {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '8px 12px',
-                    borderRadius: '5px',
-                    background: '#1e293b',
-                    border: '1px solid #334155',
-                    color: '#38bdf8',
+                    borderRadius: 'var(--border-radius-sm)',
+                    background: 'var(--bg-surface-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--color-primary)',
                     textDecoration: 'none',
                     fontSize: '0.78rem',
                     transition: 'all 0.15s ease'
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#38bdf8'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#334155'; }}
                 >
                   <div>
-                    <strong style={{ color: '#f8fafc' }}>{link.label}</strong>
-                    <div style={{ fontSize: '0.70rem', color: '#94a3b8', marginTop: '1px' }}>{link.description}</div>
+                    <strong style={{ color: 'var(--text-primary)' }}>{link.label}</strong>
+                    <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)', marginTop: '1px' }}>{link.description}</div>
                   </div>
                   <span style={{ fontSize: '0.9rem', marginLeft: '8px' }}>↗</span>
                 </a>

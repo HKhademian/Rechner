@@ -53,9 +53,6 @@ export default function TimelineTable(): JSX.Element {
   const bData = scenarioBData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
 
-  // Unique calendar years for the filter dropdown
-  const uniqueCalYears = Array.from(new Set(current.months.map(m => m.calendarYearNum)));
-
   // Filter rows
   const filteredMonths = current.months.filter(m => {
     if (selectedYear !== 'all') {
@@ -98,92 +95,95 @@ export default function TimelineTable(): JSX.Element {
       'Δ ElterngeldPlus vs B',
       'Partner Months (Father)',
       'Δ Partner Months vs B',
-      'Kindergeld',
+      'Child Benefit (Kindergeld)',
       'Δ Kindergeld vs B',
-      'Special Payment / Tax Return',
-      'Δ Special Payment vs B',
-      'Net Inflow',
+      'Special Fiscal Events (Bonuses / Tax Return)',
+      'Δ Special Events vs B',
+      'Net Inflow (Monthly Total)',
       'Δ Net Inflow vs B',
-      'Cumulative Total',
-      'Δ Cumulative Total vs B'
+      'Cumulated Total',
+      'Δ Cumulated Total vs B'
     ];
 
     const rows: (string | number)[][] = [];
-    current.months.forEach(m => {
+
+    current.months.forEach((m: TimelineMonth) => {
       const bMonth = bData.months[(m.month as number) - 1];
+
+      // 1. Action Milestones
+      if (m.startingActions) {
+        m.startingActions.forEach((act: ActionRowItem) => {
+          rows.push([
+            'ACTION',
+            `M${m.month}`,
+            m.calendarLabel,
+            m.relativeBirthLabel,
+            m.year as number,
+            act.title,
+            act.taxClassLabel || '—',
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0
+          ]);
+        });
+      }
+
+      // 2. Special Fiscal Events
+      if (isSpecialRowsActive && m.specialEvents && m.specialEvents.length > 0) {
+        m.specialEvents.forEach((ev: SpecialEventItem) => {
+          const bEvents = bMonth?.specialEvents || [];
+          const bMatch = bEvents.find((it: SpecialEventItem) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
+          const bAmount = bMatch ? (bMatch.amount as number) : 0;
+          const evDiff = (ev.amount as number) - bAmount;
+
+          rows.push([
+            'FISCAL_EVENT',
+            `M${m.month}`,
+            ev.calendarLabel,
+            m.relativeBirthLabel,
+            m.year as number,
+            `${ev.category}: ${ev.title}`,
+            ev.taxClassLabel || '—',
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            '—', 0,
+            ev.amount as number,
+            evDiff,
+            ev.amount as number,
+            evDiff,
+            '—',
+            '—'
+          ]);
+        });
+      }
+
+      // 3. Regular Monthly Baseline Row
       const diffHusband = (m.husbandSalary as number) - (bMonth ? (bMonth.husbandSalary as number) : 0);
       const diffWife = (m.wifeSalary as number) - (bMonth ? (bMonth.wifeSalary as number) : 0);
       const diffMutterschutz = (m.mutterschutz as number) - (bMonth ? (bMonth.mutterschutz as number) : 0);
       const diffWifeElterngeld = (m.wifeElterngeld as number) - (bMonth ? (bMonth.wifeElterngeld as number) : 0);
       const diffHusbandElterngeld = (m.husbandElterngeld as number) - (bMonth ? (bMonth.husbandElterngeld as number) : 0);
       const diffKindergeld = (m.kindergeld as number) - (bMonth ? (bMonth.kindergeld as number) : 0);
-      const diffSpecialEvents = (m.specialEventsTotal as number) - (bMonth ? (bMonth.specialEventsTotal as number) : 0);
-      const diffNetInflow = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
+      const diffNetInflow = (m.regularMonthlyTotal as number) - (bMonth ? (bMonth.regularMonthlyTotal as number) : 0);
       const diffCumulated = (m.cumulatedTotal as number) - (bMonth ? (bMonth.cumulatedTotal as number) : 0);
-      // 1. Action Milestone Rows (Placed immediately BEFORE month m)
-      if (m.startingActions && m.startingActions.length > 0) {
-        m.startingActions.forEach((act) => {
-          rows.push([
-            'Action Milestone',
-            `Month ${m.month} (Action)`,
-            m.calendarLabel,
-            m.relativeBirthLabel,
-            `Year ${m.year}`,
-            `"${act.title}"`,
-            `"${act.taxClassLabel || ''}"`,
-            '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—'
-          ]);
-        });
-      }
 
-      // 2. Special Event Rows (Placed immediately BEFORE month m)
-      if (m.specialEvents && m.specialEvents.length > 0) {
-        const prevMonthIdx = (m.month as number) - 2;
-        const prevCum = prevMonthIdx >= 0 ? (current.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
-        const bPrevCum = prevMonthIdx >= 0 ? (bData.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
-
-        m.specialEvents.forEach((ev: SpecialEventItem, evIdx: number) => {
-          const bEvents = bMonth?.specialEvents || [];
-          const bMatchIdx = bEvents.findIndex((it: SpecialEventItem) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
-          const bEv = bMatchIdx >= 0 ? bEvents[bMatchIdx] : undefined;
-          const bEvAmount = bEv ? (bEv.amount as number) : 0;
-          const evDiff = (ev.amount as number) - bEvAmount;
-
-          const priorEventsSum = m.specialEvents.slice(0, evIdx).reduce((acc: number, it: SpecialEventItem) => acc + (it.amount as number), 0);
-          const evCumulated = prevCum + priorEventsSum + (ev.amount as number);
-
-          const bPriorSum = bMatchIdx >= 0 ? bEvents.slice(0, bMatchIdx + 1).reduce((acc: number, it: SpecialEventItem) => acc + (it.amount as number), 0) : 0;
-          const bEvCumulated = bPrevCum + bPriorSum;
-          const diffEvCumulated = evCumulated - bEvCumulated;
-
-          rows.push([
-            'Special Event',
-            `Month ${m.month} (Event)`,
-            ev.calendarLabel,
-            ev.relativeBirthLabel,
-            `Year ${m.year}`,
-            `"${ev.title}"`,
-            `"${ev.taxClassLabel}"`,
-            '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—',
-            ev.amount as number,
-            evDiff,
-            ev.amount as number,
-            evDiff,
-            evCumulated,
-            diffEvCumulated
-          ]);
-        });
-      }
-
-      // 3. Base Monthly Row
       rows.push([
-        'Monthly Base',
-        `Month ${m.month}`,
+        'MONTH_BASE',
+        `M${m.month}`,
         m.calendarLabel,
         m.relativeBirthLabel,
-        `Year ${m.year}`,
-        `"${m.phaseLabel}"`,
-        `"${m.taxClassLabel}"`,
+        m.year as number,
+        m.phaseLabel,
+        m.taxClassLabel,
         m.husbandSalary as number,
         diffHusband,
         m.wifeSalary as number,
@@ -215,29 +215,29 @@ export default function TimelineTable(): JSX.Element {
     document.body.removeChild(link);
   };
 
-  // Helper to render diff badge: red for negative, green for positive, gray 0 for zero
+  // Helper to render diff badge: red for negative, green for positive, muted 0 for zero
   const renderDiffBadge = (diff: number): JSX.Element => {
     if (diff === 0) {
       return (
         <span style={{
           fontSize: '0.68rem',
           fontWeight: 600,
-          color: '#64748b',
-          fontFamily: 'monospace'
+          color: 'var(--text-muted)',
+          fontVariantNumeric: 'tabular-nums'
         }}>
           0 €
         </span>
       );
     }
     const isPositive = diff > 0;
-    const color = isPositive ? '#4ade80' : '#f87171';
+    const color = isPositive ? 'var(--color-gain)' : 'var(--color-loss)';
     const prefix = isPositive ? '+' : '';
     return (
       <span style={{
         fontSize: '0.68rem',
         fontWeight: 700,
         color,
-        fontFamily: 'monospace'
+        fontVariantNumeric: 'tabular-nums'
       }}>
         {prefix}{formatCurrency(diff)}
       </span>
@@ -256,9 +256,9 @@ export default function TimelineTable(): JSX.Element {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1px' }}>
         <span style={{
-          color: valueColor || '#cbd5e1',
+          color: valueColor || 'var(--text-primary)',
           fontWeight: isBoldValue ? 800 : 500,
-          fontFamily: 'monospace'
+          fontVariantNumeric: 'tabular-nums'
         }}>
           {displayVal}
         </span>
@@ -279,12 +279,12 @@ export default function TimelineTable(): JSX.Element {
         marginBottom: '18px'
       }}>
         <div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
             60-Month Cash Flow Ledger (Scenario {scenario})
           </h3>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
             {scenario === 'C' && showDelta
-              ? 'Showing actual Scenario C cash flow with colored per-column reference diffs vs. Scenario B (Green +, Red -, Gray 0).'
+              ? 'Showing actual Scenario C cash flow with colored per-column reference diffs vs. Scenario B (Green +, Red -, Muted 0).'
               : 'Base monthly salaries & statutory benefits cleanly separated from annual 13th salary chunks and tax refunds.'}
           </p>
         </div>
@@ -298,23 +298,24 @@ export default function TimelineTable(): JSX.Element {
               onClick={() => setShowDelta(!showDelta)}
               style={{
                 padding: '6px 12px',
-                borderRadius: '6px',
-                border: showDelta ? '1px solid #1e40af' : '1px solid #334155',
-                background: showDelta ? 'rgba(30, 64, 175, 0.25)' : '#0f172a',
-                color: showDelta ? '#60a5fa' : '#94a3b8',
+                borderRadius: 'var(--border-radius-sm)',
+                border: showDelta ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                background: showDelta ? 'var(--color-primary-bg)' : 'var(--bg-surface-secondary)',
+                color: showDelta ? 'var(--color-primary)' : 'var(--text-muted)',
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '6px',
+                transition: 'var(--transition)'
               }}
             >
               <span style={{
-                width: '8px',
-                height: '8px',
+                width: '7px',
+                height: '7px',
                 borderRadius: '50%',
-                backgroundColor: showDelta ? '#3b82f6' : '#64748b'
+                backgroundColor: showDelta ? 'var(--color-primary)' : 'var(--text-muted)'
               }}></span>
               {showDelta ? 'Per-Column Diff (vs. B): ON' : 'Per-Column Diff (vs. B): OFF'}
             </button>
@@ -326,23 +327,24 @@ export default function TimelineTable(): JSX.Element {
             onClick={() => { showSpecialEventRows.value = !showSpecialEventRows.value; }}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
-              border: isSpecialRowsActive ? '1px solid #b45309' : '1px solid #334155',
-              background: isSpecialRowsActive ? 'rgba(180, 83, 9, 0.2)' : '#0f172a',
-              color: isSpecialRowsActive ? '#fde68a' : '#94a3b8',
+              borderRadius: 'var(--border-radius-sm)',
+              border: isSpecialRowsActive ? '1px solid var(--color-warning)' : '1px solid var(--border-subtle)',
+              background: isSpecialRowsActive ? 'var(--color-warning-bg)' : 'var(--bg-surface-secondary)',
+              color: isSpecialRowsActive ? 'var(--color-warning)' : 'var(--text-muted)',
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              transition: 'var(--transition)'
             }}
           >
             <span style={{
-              width: '8px',
-              height: '8px',
+              width: '7px',
+              height: '7px',
               borderRadius: '50%',
-              backgroundColor: isSpecialRowsActive ? '#f59e0b' : '#64748b'
+              backgroundColor: isSpecialRowsActive ? 'var(--color-warning)' : 'var(--text-muted)'
             }}></span>
             {isSpecialRowsActive ? 'Special Rows: Separate' : 'Special Rows: Combined'}
           </button>
@@ -355,10 +357,10 @@ export default function TimelineTable(): JSX.Element {
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
-              background: '#0f172a',
-              color: '#f8fafc',
+              borderRadius: 'var(--border-radius-sm)',
+              border: '1px solid var(--border-medium)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
               fontSize: '0.78rem',
               width: '180px'
             }}
@@ -370,10 +372,10 @@ export default function TimelineTable(): JSX.Element {
             onChange={(e) => setSelectedYear((e.target as HTMLSelectElement).value)}
             style={{
               padding: '6px 10px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
-              background: '#0f172a',
-              color: '#f8fafc',
+              borderRadius: 'var(--border-radius-sm)',
+              border: '1px solid var(--border-medium)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
               fontSize: '0.78rem',
               width: '130px'
             }}
@@ -392,16 +394,18 @@ export default function TimelineTable(): JSX.Element {
             onClick={exportCSV}
             style={{
               padding: '6px 14px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
-              background: '#1e293b',
-              color: '#f8fafc',
+              borderRadius: 'var(--border-radius-sm)',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-surface-secondary)',
+              color: 'var(--text-primary)',
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'var(--transition)'
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -417,20 +421,22 @@ export default function TimelineTable(): JSX.Element {
       {/* Table Container */}
       <div style={{
         overflowX: 'auto',
-        borderRadius: '6px',
-        border: '1px solid #334155'
+        borderRadius: 'var(--border-radius-sm)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-sm)'
       }}>
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
           fontSize: '0.78rem',
-          textAlign: 'right'
+          textAlign: 'right',
+          background: 'var(--bg-surface)'
         }}>
           <thead>
             <tr style={{
-              background: '#0f172a',
-              color: '#94a3b8',
-              borderBottom: '2px solid #334155',
+              background: 'var(--bg-surface-secondary)',
+              color: 'var(--text-muted)',
+              borderBottom: '2px solid var(--border-subtle)',
               fontWeight: 700
             }}>
               <th style={{ padding: '10px 12px', textAlign: 'left' }}>Month / Entry</th>
@@ -439,13 +445,13 @@ export default function TimelineTable(): JSX.Element {
               <th style={{ padding: '10px 12px' }}>
                 <div>Husband Base Salary</div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
                 <div>Wife Base Salary</div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
@@ -454,14 +460,14 @@ export default function TimelineTable(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => scrollToLegalRule(LegalRuleKey.MuSchG_Maternity)}
-                    style={{ background: 'none', border: 'none', color: '#93c5fd', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
                     title="Click to view § 3 MuSchG statutory rule and example"
                   >
                     (*MuSchG ↗*)
                   </button>
                 </div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
@@ -470,14 +476,14 @@ export default function TimelineTable(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
-                    style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-gain)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
                     title="Click to view § 4 BEEG statutory rule and example"
                   >
                     (*§ 4 BEEG ↗*)
                   </button>
                 </div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
@@ -486,14 +492,14 @@ export default function TimelineTable(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)}
-                    style={{ background: 'none', border: 'none', color: '#fde68a', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-warning)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
                     title="Click to view § 4b BEEG Partnership Bonus statutory rule and example"
                   >
                     (*§ 4b BEEG ↗*)
                   </button>
                 </div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
               <th style={{ padding: '10px 12px' }}>
@@ -502,42 +508,42 @@ export default function TimelineTable(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)}
-                    style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-loss)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
                     title="Click to view § 66 EStG Kindergeld statutory rule and example"
                   >
                     (*§ 66 EStG ↗*)
                   </button>
                 </div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
-              <th style={{ padding: '10px 12px', color: '#fbbf24' }}>
+              <th style={{ padding: '10px 12px', color: 'var(--color-warning)' }}>
                 <div>
                   <span>Special / Tax </span>
                   <button
                     type="button"
                     onClick={() => scrollToLegalRule(LegalRuleKey.EStG_TaxSplitting)}
-                    style={{ background: 'none', border: 'none', color: '#5eead4', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--series-tax-refund)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '0.74rem' }}
                     title="Click to view § 26b EStG Marital Splitting statutory rule and example"
                   >
                     (*§ 26b ↗*)
                   </button>
                 </div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
-              <th style={{ padding: '10px 12px', color: '#f8fafc' }}>
+              <th style={{ padding: '10px 12px', color: 'var(--text-primary)' }}>
                 <div>Net Inflow</div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
-              <th style={{ padding: '10px 12px', color: '#cbd5e1' }}>
+              <th style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                 <div>Cumulated</div>
                 {showDelta && scenario === 'C' && (
-                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 500 }}>Target / Δ vs B</div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>Target / Δ vs B</div>
                 )}
               </th>
             </tr>
@@ -567,13 +573,13 @@ export default function TimelineTable(): JSX.Element {
                   const isPregnancy = act.type === ActionType.PregnancyPositive;
                   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
 
-                  const badgeBg = isDelivery
-                    ? '#0284c7'
+                  const badgeClass = isDelivery
+                    ? 'badge-brand'
                     : isPregnancy
-                    ? '#be185d'
+                    ? 'badge-warning'
                     : isTaxSwitch
-                    ? '#4f46e5'
-                    : '#b45309';
+                    ? 'badge-brand'
+                    : 'badge-neutral';
 
                   const badgeLabel = isDelivery
                     ? '🍼 BIRTH & DELIVERY'
@@ -583,44 +589,28 @@ export default function TimelineTable(): JSX.Element {
                     ? (act.type === ActionType.TaxClassSwitchRevert ? '🔄 TAX REVERSION' : '⚖️ TAX CLASS SWITCH')
                     : '💼 SALARY RAISE';
 
-                  const rowBg = isDelivery
-                    ? 'rgba(2, 132, 199, 0.12)'
-                    : isPregnancy
-                    ? 'rgba(190, 24, 93, 0.12)'
-                    : isTaxSwitch
-                    ? 'rgba(79, 70, 229, 0.12)'
-                    : 'rgba(180, 83, 9, 0.12)';
-
-                  const titleColor = isDelivery
-                    ? '#bae6fd'
-                    : isPregnancy
-                    ? '#fbcfe8'
-                    : isTaxSwitch
-                    ? '#c7d2fe'
-                    : '#fde68a';
-
                   const cleanTitle = act.title.replace(/^ACTION:\s*/, '');
 
                   return (
                     <tr
                       key={`action-${act.actionId}-m${m.month}`}
                       style={{
-                        background: rowBg,
-                        borderBottom: '1px dashed #475569',
+                        background: 'var(--bg-surface-secondary)',
+                        borderBottom: '1px dashed var(--border-subtle)',
                         transition: 'background 0.15s ease'
                       }}
                       onMouseEnter={() => { hoveredMonth.value = m.month; }}
                       onMouseLeave={() => { hoveredMonth.value = null; }}
                     >
                       <td
-                        style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: titleColor, fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', textAlign: 'left', fontWeight: 800, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', fontSize: '0.72rem', cursor: 'pointer' }}
                         title="Click to view action milestone derivation or inspect full row"
                         onClick={() => setSelectedFieldExplanation(getActionFieldExplanation(ExplanationFieldKey.Month, act, m))}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                           <div>
                             <div>↳ M{m.month} Event</div>
-                            <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({m.calendarLabel})</div>
+                            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>({m.calendarLabel})</div>
                           </div>
                           <button
                             type="button"
@@ -630,12 +620,12 @@ export default function TimelineTable(): JSX.Element {
                             }}
                             title="Inspect full action milestone details"
                             style={{
-                              background: '#1e293b',
-                              border: '1px solid #475569',
+                              background: 'var(--bg-surface)',
+                              border: '1px solid var(--border-subtle)',
                               borderRadius: '4px',
                               padding: '2px 5px',
                               fontSize: '0.66rem',
-                              color: '#38bdf8',
+                              color: 'var(--color-primary)',
                               cursor: 'pointer'
                             }}
                           >
@@ -649,41 +639,33 @@ export default function TimelineTable(): JSX.Element {
                         onClick={() => setSelectedFieldExplanation(getActionFieldExplanation(ExplanationFieldKey.Title, act, m))}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '1px 6px',
-                            borderRadius: '3px',
-                            fontSize: '0.68rem',
-                            fontWeight: 800,
-                            background: badgeBg,
-                            color: '#ffffff'
-                          }}>
+                          <span className={badgeClass}>
                             {badgeLabel}
                           </span>
-                          <span style={{ fontWeight: 700, color: titleColor, fontSize: '0.75rem' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.75rem' }}>
                             {cleanTitle}
                           </span>
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#cbd5e1', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                           {act.description}
                         </div>
                       </td>
                       <td
-                        style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.72rem', cursor: 'pointer' }}
                         title="Click to view tax class assignment"
                         onClick={() => setSelectedFieldExplanation(getActionFieldExplanation(ExplanationFieldKey.TaxClass, act, m))}
                       >
                         {act.taxClassLabel || '—'}
                       </td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#64748b', fontSize: '0.72rem' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontSize: '0.72rem' }}>—</td>
                     </tr>
                   );
                 }),
@@ -709,50 +691,38 @@ export default function TimelineTable(): JSX.Element {
                   const bEvCumulated = bPrevCumulated + bPriorSum;
                   const diffEvCumulated = evCumulated - bEvCumulated;
 
-                  const rowBg = isCost
-                    ? 'rgba(225, 29, 72, 0.10)'
+                  const badgeClass = isCost
+                    ? 'badge-loss'
                     : (ev.type as string).startsWith('bonus')
-                    ? 'rgba(180, 83, 9, 0.12)'
-                    : 'rgba(15, 118, 110, 0.15)';
-
-                  const badgeBg = isCost
-                    ? '#be123c'
-                    : (ev.type as string).startsWith('bonus')
-                    ? '#b45309'
-                    : '#0f766e';
-
-                  const titleColor = isCost
-                    ? '#fda4af'
-                    : (ev.type as string).startsWith('bonus')
-                    ? '#fde68a'
-                    : '#99f6e4';
+                    ? 'badge-warning'
+                    : 'badge-gain';
 
                   const valColor = isCost
-                    ? '#f87171'
+                    ? 'var(--color-loss)'
                     : (ev.type as string).startsWith('bonus')
-                    ? '#fbbf24'
-                    : '#5eead4';
+                    ? 'var(--color-warning)'
+                    : 'var(--color-gain)';
 
                   return (
                     <tr
                       key={ev.eventId}
                       style={{
-                        borderBottom: '1px dashed #334155',
-                        background: rowBg,
+                        borderBottom: '1px dashed var(--border-subtle)',
+                        background: isCost ? 'var(--color-loss-bg)' : 'var(--bg-surface-secondary)',
                         transition: 'background 0.15s ease'
                       }}
                       onMouseEnter={() => { hoveredMonth.value = m.month; }}
                       onMouseLeave={() => { hoveredMonth.value = null; }}
                     >
                       <td
-                        style={{ padding: '6px 12px', textAlign: 'left', color: valColor, fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', textAlign: 'left', color: valColor, fontVariantNumeric: 'tabular-nums', fontSize: '0.72rem', cursor: 'pointer' }}
                         title="Click to view event derivation or inspect full row"
                         onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation(ExplanationFieldKey.Month, ev, m, evCumulated, diffEvCumulated))}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                           <div>
                             <div>↳ M{m.month} {isCost ? 'Cost' : 'Event'}</div>
-                            <div style={{ fontSize: '0.66rem', color: '#94a3b8' }}>({ev.calendarLabel})</div>
+                            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>({ev.calendarLabel})</div>
                           </div>
                           <button
                             type="button"
@@ -762,12 +732,12 @@ export default function TimelineTable(): JSX.Element {
                             }}
                             title="Inspect full fiscal event breakdown"
                             style={{
-                              background: '#1e293b',
-                              border: '1px solid #475569',
+                              background: 'var(--bg-surface)',
+                              border: '1px solid var(--border-subtle)',
                               borderRadius: '4px',
                               padding: '2px 5px',
                               fontSize: '0.66rem',
-                              color: '#38bdf8',
+                              color: 'var(--color-primary)',
                               cursor: 'pointer'
                             }}
                           >
@@ -781,39 +751,31 @@ export default function TimelineTable(): JSX.Element {
                         onClick={() => setSelectedFieldExplanation(getSpecialEventFieldExplanation(ExplanationFieldKey.Title, ev, m, evCumulated, diffEvCumulated))}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '1px 6px',
-                            borderRadius: '3px',
-                            fontSize: '0.68rem',
-                            fontWeight: 800,
-                            background: badgeBg,
-                            color: '#ffffff'
-                          }}>
+                          <span className={badgeClass}>
                             {isCost ? `💸 ${ev.category}` : ev.category}
                           </span>
-                          <span style={{ fontWeight: 600, color: titleColor, fontSize: '0.75rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.75rem' }}>
                             {ev.title}
                           </span>
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#cbd5e1', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                           {ev.description}
                         </div>
                       </td>
-                      <td style={{ padding: '6px 12px', textAlign: 'left', color: '#94a3b8', fontSize: '0.72rem' }}>
+                      <td style={{ padding: '6px 12px', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
                         <div>{ev.taxClassLabel}</div>
                         {showDelta && scenario === 'C' && (
-                          <div style={{ fontSize: '0.66rem', color: '#64748b' }}>
+                          <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
                             {evDiff !== 0 ? 'Splitting Reconciled' : 'Same as B'}
                           </div>
                         )}
                       </td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
-                      <td style={{ padding: '6px 12px', color: '#475569', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
+                      <td style={{ padding: '6px 12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>—</td>
                       <td
                         style={{ padding: '6px 12px', cursor: 'pointer' }}
                         title="Click to view transaction amount and formula derivation"
@@ -849,7 +811,7 @@ export default function TimelineTable(): JSX.Element {
                           evCumulated,
                           diffEvCumulated,
                           false,
-                          '#cbd5e1',
+                          'var(--text-primary)',
                           false
                         )}
                       </td>
@@ -861,11 +823,11 @@ export default function TimelineTable(): JSX.Element {
                 <tr
                   key={`month-${m.month}`}
                   style={{
-                    borderBottom: '1px solid #334155',
+                    borderBottom: '1px solid var(--border-subtle)',
                     background: isHovered
-                      ? 'rgba(30, 64, 175, 0.15)'
+                      ? 'var(--color-primary-bg)'
                       : m.eventTag
-                      ? 'rgba(30, 41, 59, 0.5)'
+                      ? 'var(--bg-surface-secondary)'
                       : 'transparent',
                     transition: 'background 0.15s ease'
                   }}
@@ -873,7 +835,7 @@ export default function TimelineTable(): JSX.Element {
                   onMouseLeave={() => { hoveredMonth.value = null; }}
                 >
                   <td
-                    style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#f8fafc', fontFamily: 'monospace', cursor: 'pointer' }}
+                    style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', cursor: 'pointer' }}
                     title="Click to view month derivation or click ℹ️ to inspect the full row"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.Month, m, bMonth, scenario))}
                   >
@@ -881,9 +843,9 @@ export default function TimelineTable(): JSX.Element {
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <span>M{m.month}</span>
-                          <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>({m.calendarLabel})</span>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 600 }}>({m.calendarLabel})</span>
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500 }}>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                           {m.relativeBirthLabel} · Y{m.year}
                         </div>
                       </div>
@@ -895,12 +857,12 @@ export default function TimelineTable(): JSX.Element {
                         }}
                         title="Inspect full monthly cash flow and statutory audit"
                         style={{
-                          background: '#1e293b',
-                          border: '1px solid #475569',
+                          background: 'var(--bg-surface-secondary)',
+                          border: '1px solid var(--border-subtle)',
                           borderRadius: '4px',
                           padding: '2px 5px',
                           fontSize: '0.66rem',
-                          color: '#38bdf8',
+                          color: 'var(--color-primary)',
                           cursor: 'pointer'
                         }}
                       >
@@ -914,20 +876,11 @@ export default function TimelineTable(): JSX.Element {
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.Phase, m, bMonth, scenario))}
                   >
                     {m.eventTag ? (
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        background: '#1e293b',
-                        color: '#60a5fa',
-                        border: '1px solid #334155'
-                      }}>
+                      <span className="badge-brand">
                         {m.eventTag}
                       </span>
                     ) : (
-                      <span style={{ color: '#cbd5e1' }}>{m.phaseLabel}</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{m.phaseLabel}</span>
                     )}
                   </td>
                   <td
@@ -936,7 +889,7 @@ export default function TimelineTable(): JSX.Element {
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.TaxClass, m, bMonth, scenario))}
                   >
                     <div style={{
-                      color: m.isSwapActive ? '#60a5fa' : '#94a3b8',
+                      color: m.isSwapActive ? 'var(--color-primary)' : 'var(--text-muted)',
                       fontWeight: m.isSwapActive ? 700 : 500
                     }}>
                       {m.taxClassLabel}
@@ -944,7 +897,7 @@ export default function TimelineTable(): JSX.Element {
                     {showDelta && scenario === 'C' && (
                       <div style={{
                         fontSize: '0.68rem',
-                        color: m.isSwapActive ? '#f59e0b' : '#64748b',
+                        color: m.isSwapActive ? 'var(--color-warning)' : 'var(--text-muted)',
                         fontWeight: m.isSwapActive ? 700 : 500
                       }}>
                         {m.isSwapActive ? 'Swapped (vs. B: III/V)' : 'Same as B (III/V)'}
@@ -953,105 +906,119 @@ export default function TimelineTable(): JSX.Element {
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view husband net salary derivation"
+                    title="Click to view husband gross-to-net calculation"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.HusbandSalary, m, bMonth, scenario))}
                   >
-                    {renderCell(m.husbandSalary as number, diffHusband, false)}
+                    {renderCell(
+                      m.husbandSalary as number,
+                      diffHusband,
+                      true,
+                      'var(--series-salary-husband)',
+                      true
+                    )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view wife earned salary derivation"
+                    title="Click to view wife gross-to-net calculation"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.WifeSalary, m, bMonth, scenario))}
                   >
-                    {renderCell(m.wifeSalary as number, diffWife, false)}
+                    {renderCell(
+                      m.wifeSalary as number,
+                      diffWife,
+                      true,
+                      'var(--series-salary-wife)',
+                      true
+                    )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view maternity protection allowance (MuSchG) derivation"
+                    title="Click to view statutory Mutterschutz wage replacement formula"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.Mutterschutz, m, bMonth, scenario))}
                   >
                     {renderCell(
                       m.mutterschutz as number,
                       diffMutterschutz,
                       true,
-                      (m.mutterschutz as number) > 0 ? '#93c5fd' : undefined
+                      'var(--series-mutterschutz)',
+                      true
                     )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view mother ElterngeldPlus replacement calculation"
+                    title="Click to view § 4 BEEG synthetic net and Elterngeld derivation"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.WifeElterngeld, m, bMonth, scenario))}
                   >
                     {renderCell(
                       m.wifeElterngeld as number,
                       diffWifeElterngeld,
                       true,
-                      (m.wifeElterngeld as number) > 0 ? '#86efac' : undefined
+                      'var(--series-elterngeld-mother)',
+                      true
                     )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view father partner months / partnership bonus allowance"
+                    title="Click to view partner months calculation"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.HusbandElterngeld, m, bMonth, scenario))}
                   >
                     {renderCell(
                       m.husbandElterngeld as number,
                       diffHusbandElterngeld,
                       true,
-                      (m.husbandElterngeld as number) > 0 ? '#fde68a' : undefined
+                      'var(--series-elterngeld-father)',
+                      true
                     )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view Kindergeld child benefit derivation"
+                    title="Click to view § 66 EStG Kindergeld calculation"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.Kindergeld, m, bMonth, scenario))}
                   >
                     {renderCell(
                       m.kindergeld as number,
                       diffKindergeld,
                       true,
-                      (m.kindergeld as number) > 0 ? '#fca5a5' : undefined
+                      'var(--series-kindergeld)',
+                      false
                     )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view special payments and annual bonuses"
-                    onClick={() => !isSpecialRowsActive && setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.SpecialEvents, m, bMonth, scenario))}
-                  >
-                    {isSpecialRowsActive ? (
-                      <span style={{ color: '#475569', fontStyle: 'italic' }}>—</span>
-                    ) : (
-                      renderCell(
-                        (m.specialEventsTotal as number),
-                        diffSpecialEvents,
-                        true,
-                        '#fbbf24'
-                      )
-                    )}
-                  </td>
-                  <td
-                    style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view total monthly net inflow calculation"
-                    onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.NetInflow, m, bMonth, scenario))}
+                    title="Click to view 13th month / special tax events"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.SpecialEvents, m, bMonth, scenario))}
                   >
                     {renderCell(
-                      isSpecialRowsActive ? (m.regularMonthlyTotal as number) : (m.monthlyTotal as number),
-                      diffNetInflow,
-                      false,
-                      '#f8fafc',
+                      isSpecialRowsActive ? 0 : (m.specialEventsTotal as number),
+                      isSpecialRowsActive ? 0 : diffSpecialEvents,
+                      true,
+                      'var(--color-warning)',
                       true
                     )}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer' }}
-                    title="Click to view progressive cumulative 5-year balance calculation"
+                    title="Click to view total monthly inflow sum"
+                    onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.NetInflow, m, bMonth, scenario))}
+                  >
+                    {renderCell(
+                      isSpecialRowsActive ? (m.regularMonthlyTotal as number) : (m.monthlyTotal as number),
+                      isSpecialRowsActive ? diffNetInflow : ((m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0)),
+                      false,
+                      'var(--text-primary)',
+                      true
+                    )}
+                  </td>
+                  <td
+                    style={{ padding: '8px 12px', cursor: 'pointer' }}
+                    title="Click to view cumulative total balance"
                     onClick={() => setSelectedFieldExplanation(getFieldExplanation(FieldColumnKey.CumulativeTotal, m, bMonth, scenario))}
                   >
                     {renderCell(
                       m.cumulatedTotal as number,
                       diffCumulated,
                       false,
-                      '#cbd5e1'
+                      'var(--text-primary)',
+                      true
                     )}
                   </td>
                 </tr>
@@ -1061,17 +1028,20 @@ export default function TimelineTable(): JSX.Element {
         </table>
       </div>
 
-      {/* Field-Level Explanatory Popover Modal */}
-      <FieldExplainerModal
-        explanation={selectedFieldExplanation}
-        onClose={() => setSelectedFieldExplanation(null)}
-      />
+      {/* Explainer Modals */}
+      {selectedFieldExplanation && (
+        <FieldExplainerModal
+          explanation={selectedFieldExplanation}
+          onClose={() => setSelectedFieldExplanation(null)}
+        />
+      )}
 
-      {/* Full-Row Explanatory Audit Modal */}
-      <RowExplainerModal
-        explanation={selectedRowExplanation}
-        onClose={() => setSelectedRowExplanation(null)}
-      />
+      {selectedRowExplanation && (
+        <RowExplainerModal
+          explanation={selectedRowExplanation}
+          onClose={() => setSelectedRowExplanation(null)}
+        />
+      )}
     </div>
   );
 }

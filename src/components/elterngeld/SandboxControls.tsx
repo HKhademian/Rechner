@@ -146,9 +146,6 @@ export default function SandboxControls(): JSX.Element {
     }
   };
 
-  const preg1SimMonth = prePregnancyPlanningMonths.value + 1;
-  const b1SimMonth = child1BirthMonth.value;
-  const b2SimMonth = b1SimMonth + birthSpacingMonths.value;
   const endSimMonth = simulationDurationMonths.value;
 
   return (
@@ -162,10 +159,10 @@ export default function SandboxControls(): JSX.Element {
       }} onClick={() => setIsOpen(!isOpen)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            background: 'rgba(30, 64, 175, 0.2)',
+            background: 'var(--color-primary-bg)',
             padding: '8px',
-            borderRadius: '6px',
-            color: '#60a5fa'
+            borderRadius: 'var(--border-radius-sm)',
+            color: 'var(--color-primary)'
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="4" x2="20" y1="21" y2="21"/>
@@ -177,24 +174,24 @@ export default function SandboxControls(): JSX.Element {
             </svg>
           </div>
           <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               Discrete Batch Action Sandbox & Simulation Runner
             </h3>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
               Configured via discrete batches: 0. Preexisting Baseline → 1. Pregnancy Decisions → 2. Tax Switches → 3. Salary Raises
             </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '0.8rem', color: '#93c5fd', fontWeight: 600 }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 600 }}>
             {isOpen ? 'Collapse ▴' : 'Expand ▾'}
           </span>
         </div>
       </div>
 
       {isOpen && (
-        <div style={{ marginTop: '20px', borderTop: '1px solid #334155', paddingTop: '18px' }}>
+        <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-subtle)', paddingTop: '18px' }}>
           {/* Quick Presets & Reset Bar */}
           <div style={{
             display: 'flex',
@@ -203,22 +200,22 @@ export default function SandboxControls(): JSX.Element {
             flexWrap: 'wrap',
             gap: '10px',
             marginBottom: '20px',
-            background: '#0f172a',
+            background: 'var(--bg-surface-secondary)',
             padding: '10px 14px',
-            borderRadius: '6px',
-            border: '1px solid #334155'
+            borderRadius: 'var(--border-radius-sm)',
+            border: '1px solid var(--border-subtle)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>Scenario Presets:</span>
+              <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Scenario Presets:</span>
               <button
                 type="button"
                 onClick={() => applyPreset('default')}
                 style={{
                   padding: '4px 10px',
                   borderRadius: '4px',
-                  border: '1px solid #1e40af',
-                  background: '#1e293b',
-                  color: '#93c5fd',
+                  border: '1px solid var(--color-primary-border)',
+                  background: 'var(--bg-surface)',
+                  color: 'var(--color-primary)',
                   fontSize: '0.72rem',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -232,9 +229,9 @@ export default function SandboxControls(): JSX.Element {
                 style={{
                   padding: '4px 10px',
                   borderRadius: '4px',
-                  border: '1px solid #0f766e',
-                  background: '#1e293b',
-                  color: '#5eead4',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-surface)',
+                  color: 'var(--text-primary)',
                   fontSize: '0.72rem',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -248,9 +245,9 @@ export default function SandboxControls(): JSX.Element {
                 style={{
                   padding: '4px 10px',
                   borderRadius: '4px',
-                  border: '1px solid #15803d',
-                  background: '#1e293b',
-                  color: '#86efac',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-surface)',
+                  color: 'var(--text-primary)',
                   fontSize: '0.72rem',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -266,9 +263,9 @@ export default function SandboxControls(): JSX.Element {
               style={{
                 padding: '4px 12px',
                 borderRadius: '4px',
-                border: '1px solid #64748b',
-                background: '#1e293b',
-                color: '#cbd5e1',
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-secondary)',
                 fontSize: '0.72rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -291,10 +288,10 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 0: PREEXISTING CONDITIONS & BASELINE INCOMES */}
             {/* ======================================================== */}
             <div style={{
-              background: '#0f172a',
+              background: 'var(--bg-surface)',
               padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius)',
+              border: '1px solid var(--border-subtle)',
               gridColumn: 'span 1'
             }}>
               <div style={{
@@ -302,13 +299,13 @@ export default function SandboxControls(): JSX.Element {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '12px',
-                borderBottom: '1px solid #334155',
+                borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#60a5fa' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--color-primary)' }}>
                   0. Preexisting Conditions
                 </span>
-                <span style={{ fontSize: '0.68rem', color: '#94a3b8', background: '#1e293b', padding: '2px 6px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', background: 'var(--bg-surface-secondary)', padding: '2px 6px', borderRadius: '4px' }}>
                   Start: {getCalDate(1)}
                 </span>
               </div>
@@ -316,8 +313,8 @@ export default function SandboxControls(): JSX.Element {
               {/* Simulation Start Date & Duration */}
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Sim Start & Horizon:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Sim Start & Horizon:</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-primary)' }}>
                     {getCalDate(1)} → {getCalDate(endSimMonth)} ({simulationDurationMonths.value}M)
                   </span>
                 </div>
@@ -325,7 +322,7 @@ export default function SandboxControls(): JSX.Element {
                   <select
                     value={startCalendarMonth.value}
                     onChange={(e) => { startCalendarMonth.value = toCalendarMonth(Number((e.target as HTMLSelectElement).value)); }}
-                    style={{ background: '#1e293b', color: '#f8fafc', border: '1px solid #334155', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
+                    style={{ background: 'var(--bg-surface-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
                   >
                     {MONTH_NAMES.map((name, idx) => (
                       <option key={`start-m-${idx + 1}`} value={idx + 1}>{name}</option>
@@ -334,7 +331,7 @@ export default function SandboxControls(): JSX.Element {
                   <select
                     value={startCalendarYear.value}
                     onChange={(e) => { startCalendarYear.value = Number((e.target as HTMLSelectElement).value); }}
-                    style={{ background: '#1e293b', color: '#f8fafc', border: '1px solid #334155', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
+                    style={{ background: 'var(--bg-surface-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
                   >
                     {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map((yr) => (
                       <option key={`start-y-${yr}`} value={yr}>Year {yr}</option>
@@ -350,9 +347,9 @@ export default function SandboxControls(): JSX.Element {
                       style={{
                         padding: '2px 6px',
                         borderRadius: '3px',
-                        border: simulationDurationMonths.value === dur ? '1px solid #38bdf8' : '1px solid #334155',
-                        background: simulationDurationMonths.value === dur ? '#0284c7' : '#0f172a',
-                        color: '#ffffff',
+                        border: simulationDurationMonths.value === dur ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                        background: simulationDurationMonths.value === dur ? 'var(--color-primary)' : 'var(--bg-surface-secondary)',
+                        color: simulationDurationMonths.value === dur ? '#ffffff' : 'var(--text-secondary)',
                         fontSize: '0.68rem',
                         fontWeight: 700,
                         cursor: 'pointer'
@@ -366,16 +363,16 @@ export default function SandboxControls(): JSX.Element {
 
               {/* Cadence Switcher (Monthly vs Yearly) */}
               <div style={{
-                background: '#1e293b',
+                background: 'var(--bg-surface-secondary)',
                 padding: '5px 8px',
                 borderRadius: '4px',
-                border: '1px solid #334155',
+                border: '1px solid var(--border-subtle)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '12px'
               }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                   Salary Cadence:
                 </span>
                 <div style={{ display: 'flex', gap: '4px' }}>
@@ -385,9 +382,9 @@ export default function SandboxControls(): JSX.Element {
                     style={{
                       padding: '2px 8px',
                       borderRadius: '3px',
-                      border: salaryPeriod.value === SalaryPeriod.Monthly ? '1px solid #38bdf8' : '1px solid transparent',
-                      background: salaryPeriod.value === SalaryPeriod.Monthly ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-                      color: salaryPeriod.value === SalaryPeriod.Monthly ? '#7dd3fc' : '#94a3b8',
+                      border: salaryPeriod.value === SalaryPeriod.Monthly ? '1px solid var(--color-primary)' : '1px solid transparent',
+                      background: salaryPeriod.value === SalaryPeriod.Monthly ? 'var(--color-primary-bg)' : 'transparent',
+                      color: salaryPeriod.value === SalaryPeriod.Monthly ? 'var(--color-primary)' : 'var(--text-muted)',
                       fontSize: '0.68rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -401,9 +398,9 @@ export default function SandboxControls(): JSX.Element {
                     style={{
                       padding: '2px 8px',
                       borderRadius: '3px',
-                      border: salaryPeriod.value === SalaryPeriod.Yearly ? '1px solid #a855f7' : '1px solid transparent',
-                      background: salaryPeriod.value === SalaryPeriod.Yearly ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
-                      color: salaryPeriod.value === SalaryPeriod.Yearly ? '#d8b4fe' : '#94a3b8',
+                      border: salaryPeriod.value === SalaryPeriod.Yearly ? '1px solid var(--color-primary)' : '1px solid transparent',
+                      background: salaryPeriod.value === SalaryPeriod.Yearly ? 'var(--color-primary-bg)' : 'transparent',
+                      color: salaryPeriod.value === SalaryPeriod.Yearly ? 'var(--color-primary)' : 'var(--text-muted)',
                       fontSize: '0.68rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -415,15 +412,15 @@ export default function SandboxControls(): JSX.Element {
               </div>
 
               {/* SECTION: PRIMARY HUSBAND GROSS COMPENSATION */}
-              <div style={{ background: '#1e293b', padding: '10px', borderRadius: '6px', border: '1px solid #334155', marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#38bdf8', marginBottom: '8px' }}>
+              <div style={{ background: 'var(--bg-surface-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '8px' }}>
                   👤 Husband Gross Compensation
                 </div>
                 {/* Gross Amount Slider */}
                 <div style={{ marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#cbd5e1' }}>Gross Salary:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Gross Salary:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-primary)' }}>
                       {salaryPeriod.value === SalaryPeriod.Yearly
                         ? `${formatCurrency(husbandGrossYearly.value)} / yr (${formatCurrency(husbandGross.value)} / mo)`
                         : `${formatCurrency(husbandGross.value)} / mo`}
@@ -453,8 +450,8 @@ export default function SandboxControls(): JSX.Element {
                 {/* Husband Working Hours Slider */}
                 <div style={{ marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#94a3b8' }}>Weekly Working Hours:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#93c5fd' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Weekly Working Hours:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-primary)' }}>
                       {husbandHours.value} hours / week
                     </span>
                   </div>
@@ -470,28 +467,28 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* Husband Tax Class Badges */}
                 <div style={{ display: 'flex', gap: '4px', fontSize: '0.66rem', flexWrap: 'wrap' }}>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#93c5fd' }}>
+                  <span className="badge-brand">
                     Class III: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.husbandClass3Net as number) * 12 : (derivedSpousalSet.value.husbandClass3Net as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                   </span>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#fde047' }}>
+                  <span className="badge-warning">
                     Class V: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.husbandClass5Net as number) * 12 : (derivedSpousalSet.value.husbandClass5Net as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                   </span>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#94a3b8' }}>
+                  <span className="badge-muted">
                     Class IV: {formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.husbandClass4Net as number) * 12 : (derivedSpousalSet.value.husbandClass4Net as number))}
                   </span>
                 </div>
               </div>
 
               {/* SECTION: WIFE FULL-TIME PRE-PREGNANCY COMPENSATION */}
-              <div style={{ background: '#1e293b', padding: '10px', borderRadius: '6px', border: '1px solid #334155', marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#2dd4bf', marginBottom: '8px' }}>
+              <div style={{ background: 'var(--bg-surface-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--series-indigo)', marginBottom: '8px' }}>
                   👩 Wife Pre-Pregnancy Full-Time Compensation
                 </div>
                 {/* Gross Amount Slider */}
                 <div style={{ marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#cbd5e1' }}>Full-Time Gross:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2dd4bf' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Full-Time Gross:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--series-indigo)' }}>
                       {salaryPeriod.value === SalaryPeriod.Yearly
                         ? `${formatCurrency(wifeGrossYearly.value)} / yr (${formatCurrency(wifeGross.value)} / mo)`
                         : `${formatCurrency(wifeGross.value)} / mo`}
@@ -521,8 +518,8 @@ export default function SandboxControls(): JSX.Element {
                 {/* Wife Pre-Pregnancy Hours */}
                 <div style={{ marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#94a3b8' }}>Full-Time Working Hours:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#5eead4' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Full-Time Working Hours:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--series-indigo)' }}>
                       {wifeInitialHours.value} hours / week
                     </span>
                   </div>
@@ -538,24 +535,24 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* Wife FT Tax Class Badges */}
                 <div style={{ display: 'flex', gap: '4px', fontSize: '0.66rem', flexWrap: 'wrap' }}>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#fde047' }}>
+                  <span className="badge-warning">
                     Class V: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass5FullTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass5FullTimeNet as number))}</strong>{salaryPeriod.value === SalaryPeriod.Yearly ? '/yr' : ''}
                   </span>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#86efac' }}>
+                  <span className="badge-gain">
                     Class III: <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass3FullTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass3FullTimeNet as number))}</strong> (Booster!)
                   </span>
                 </div>
               </div>
 
               {/* SECTION: WIFE POST-BIRTH PART-TIME RETURN TO WORK */}
-              <div style={{ background: '#1e293b', padding: '10px', borderRadius: '6px', border: '1px solid #334155', marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#c084fc', marginBottom: '8px' }}>
+              <div style={{ background: 'var(--bg-surface-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--series-cyan)', marginBottom: '8px' }}>
                   👶 Wife Post-Birth Part-Time Return to Work
                 </div>
                 <div style={{ marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#cbd5e1' }}>Post-Birth Part-Time Hours:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#d8b4fe' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Post-Birth Part-Time Hours:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--series-cyan)' }}>
                       {wifePostBirthHours.value} hours / week {wifePostBirthHours.value >= 24 && wifePostBirthHours.value <= 32 ? '✓ PB Eligible' : ''}
                     </span>
                   </div>
@@ -575,13 +572,13 @@ export default function SandboxControls(): JSX.Element {
                         width: '100%',
                         textAlign: 'left',
                         fontSize: '0.66rem',
-                        color: '#fecdd3',
-                        background: '#881337',
+                        color: 'var(--color-loss)',
+                        background: 'var(--color-loss-bg)',
                         padding: '4px 6px',
                         borderRadius: '4px',
                         marginTop: '4px',
                         fontWeight: 600,
-                        border: '1px solid #be123c'
+                        border: '1px solid var(--color-loss-border)'
                       }}
                     >
                       ⚠️ Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours &gt; 32h / week disqualify from all Elterngeld (0 € benefit paid).
@@ -594,13 +591,13 @@ export default function SandboxControls(): JSX.Element {
                         width: '100%',
                         textAlign: 'left',
                         fontSize: '0.66rem',
-                        color: '#86efac',
-                        background: '#14532d',
+                        color: 'var(--color-gain)',
+                        background: 'var(--color-gain-bg)',
                         padding: '3px 6px',
                         borderRadius: '4px',
                         marginTop: '4px',
                         fontWeight: 600,
-                        border: '1px solid #15803d',
+                        border: '1px solid var(--color-gain-border)',
                         cursor: 'pointer'
                       }}
                       title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
@@ -610,8 +607,8 @@ export default function SandboxControls(): JSX.Element {
                   ) : wifePostBirthHours.value === 0 ? (
                     <div style={{
                       fontSize: '0.66rem',
-                      color: '#93c5fd',
-                      background: '#1e3a8a',
+                      color: 'var(--color-primary)',
+                      background: 'var(--color-primary-bg)',
                       padding: '3px 6px',
                       borderRadius: '4px',
                       marginTop: '4px'
@@ -626,12 +623,12 @@ export default function SandboxControls(): JSX.Element {
                         width: '100%',
                         textAlign: 'left',
                         fontSize: '0.66rem',
-                        color: '#fde68a',
-                        background: '#78350f',
+                        color: 'var(--color-warning)',
+                        background: 'var(--color-warning-bg)',
                         padding: '3px 6px',
                         borderRadius: '4px',
                         marginTop: '4px',
-                        border: '1px solid #b45309',
+                        border: '1px solid var(--color-warning-border)',
                         cursor: 'pointer'
                       }}
                       title="Click to view § 4b BEEG corridor requirements"
@@ -642,32 +639,32 @@ export default function SandboxControls(): JSX.Element {
                 </div>
 
                 <div style={{ display: 'flex', gap: '4px', fontSize: '0.66rem', flexWrap: 'wrap', marginBottom: '6px' }}>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#fde047' }}>
+                  <span className="badge-warning">
                     PT Gross: {formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeGrossPartTime as number) * 12 : (derivedSpousalSet.value.wifeGrossPartTime as number))}
                   </span>
-                  <span style={{ background: '#0f172a', padding: '2px 5px', borderRadius: '3px', color: '#c4b5fd' }}>
+                  <span className="badge-muted">
                     PT Net (Class V): <strong>{formatCurrency(salaryPeriod.value === SalaryPeriod.Yearly ? (derivedSpousalSet.value.wifeClass5PartTimeNet as number) * 12 : (derivedSpousalSet.value.wifeClass5PartTimeNet as number))}</strong>
                   </span>
                 </div>
 
                 {/* Statutory ElterngeldPlus Replacement Calculation */}
                 <div style={{
-                  background: '#0f172a',
-                  border: '1px solid #334155',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '5px',
                   padding: '6px 8px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '3px'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
                     <button
                       type="button"
                       onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)}
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#cbd5e1',
+                        color: 'var(--text-secondary)',
                         padding: 0,
                         cursor: 'pointer',
                         fontSize: '0.68rem',
@@ -678,7 +675,7 @@ export default function SandboxControls(): JSX.Element {
                     >
                       Statutory ElterngeldPlus (65% loss ↗):
                     </button>
-                    <strong style={{ color: '#f472b6', fontFamily: 'monospace' }}>
+                    <strong style={{ color: 'var(--color-gain)', fontVariantNumeric: 'tabular-nums' }}>
                       +{formatCurrency(Math.min(900, Math.max(150, Math.round(Math.max(0, (derivedSpousalSet.value.wifeClass3FullTimeNet as number) - (derivedSpousalSet.value.wifeClass5PartTimeNet as number)) * 0.65))))}
                     </strong>
                   </div>
@@ -686,37 +683,37 @@ export default function SandboxControls(): JSX.Element {
                     display: 'flex',
                     justifyContent: 'space-between',
                     fontSize: '0.70rem',
-                    color: '#f8fafc',
-                    borderTop: '1px solid #334155',
+                    color: 'var(--text-primary)',
+                    borderTop: '1px solid var(--border-subtle)',
                     paddingTop: '3px',
                     fontWeight: 700
                   }}>
                     <span>Total Monthly Mother Inflow:</span>
-                    <span style={{ color: '#4ade80', fontFamily: 'monospace' }}>
+                    <span style={{ color: 'var(--color-gain)', fontVariantNumeric: 'tabular-nums' }}>
                       {formatCurrency((derivedSpousalSet.value.wifeClass5PartTimeNet as number) + Math.min(900, Math.max(150, Math.round(Math.max(0, (derivedSpousalSet.value.wifeClass3FullTimeNet as number) - (derivedSpousalSet.value.wifeClass5PartTimeNet as number)) * 0.65))))}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* SECTION: HOW THE USER RECEIVES IT (BONUSES, 13TH MONTH & INVESTMENT INCOME) */}
-              <div style={{ background: '#1e293b', padding: '10px', borderRadius: '6px', border: '1px solid #334155', marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#fbbf24', marginBottom: '8px' }}>
+              {/* SECTION: ADDITIONAL INCOME & INFLOW CHANNELS */}
+              <div style={{ background: 'var(--bg-surface-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--color-warning)', marginBottom: '8px' }}>
                   🎁 Additional Income & Inflow Channels
                 </div>
 
                 {/* 13th Month Salary Toggle */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>13th Month Salary:</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>13th Month Salary:</span>
                   <button
                     type="button"
                     onClick={() => { enable13thSalary.value = !enable13thSalary.value; }}
                     style={{
                       padding: '2px 6px',
                       borderRadius: '3px',
-                      border: enable13thSalary.value ? '1px solid #f59e0b' : '1px solid #334155',
-                      background: enable13thSalary.value ? '#d97706' : '#0f172a',
-                      color: '#ffffff',
+                      border: enable13thSalary.value ? '1px solid var(--color-warning-border)' : '1px solid var(--border-subtle)',
+                      background: enable13thSalary.value ? 'var(--color-warning-bg)' : 'var(--bg-surface)',
+                      color: enable13thSalary.value ? 'var(--color-warning)' : 'var(--text-muted)',
                       fontSize: '0.66rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -726,7 +723,7 @@ export default function SandboxControls(): JSX.Element {
                   </button>
                 </div>
                 {enable13thSalary.value && (
-                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '8px', padding: '3px 5px', background: '#0f172a', borderRadius: '3px' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '8px', padding: '3px 5px', background: 'var(--bg-surface)', borderRadius: '3px' }}>
                     ↳ 40% Vacation Bonus in May + 60% Christmas Bonus in Nov (§ 2c BEEG exempt).
                   </div>
                 )}
@@ -734,8 +731,8 @@ export default function SandboxControls(): JSX.Element {
                 {/* Annual Performance Bonus Slider */}
                 <div style={{ marginBottom: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#cbd5e1' }}>Annual Performance Bonus:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fbbf24' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Annual Performance Bonus:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-warning)' }}>
                       {formatCurrency(annualBonusGross.value)} gross / yr
                     </span>
                   </div>
@@ -749,11 +746,11 @@ export default function SandboxControls(): JSX.Element {
                   />
                   {annualBonusGross.value > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                      <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Payout Month:</span>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Payout Month:</span>
                       <select
                         value={annualBonusMonth.value}
                         onChange={(e) => { setAnnualBonusMonth(Number((e.target as HTMLSelectElement).value)); }}
-                        style={{ background: '#0f172a', color: '#fde047', border: '1px solid #334155', borderRadius: '3px', padding: '1px 4px', fontSize: '0.68rem' }}
+                        style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: '3px', padding: '1px 4px', fontSize: '0.68rem' }}
                       >
                         {MONTH_NAMES.map((mName, idx) => (
                           <option key={`bonus-m-${idx + 1}`} value={idx + 1}>{mName}</option>
@@ -766,8 +763,8 @@ export default function SandboxControls(): JSX.Element {
                 {/* Monthly Investment Returns & Capital Income */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
-                    <span style={{ color: '#cbd5e1' }}>Investment & Capital Returns:</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#34d399' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Investment & Capital Returns:</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-gain)' }}>
                       {formatCurrency(investmentReturnMonthly.value)} / mo
                     </span>
                   </div>
@@ -779,7 +776,7 @@ export default function SandboxControls(): JSX.Element {
                     value={investmentReturnMonthly.value}
                     onInput={(e) => { setInvestmentReturnMonthly(Number((e.target as HTMLInputElement).value)); }}
                   />
-                  <div style={{ fontSize: '0.64rem', color: '#94a3b8', marginTop: '1px' }}>
+                  <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', marginTop: '1px' }}>
                     ↳ Net dividend, rental return, or ETF capital cash flow (§ 20 EStG).
                   </div>
                 </div>
@@ -794,9 +791,9 @@ export default function SandboxControls(): JSX.Element {
                     width: '100%',
                     padding: '4px 8px',
                     borderRadius: '4px',
-                    border: '1px solid #334155',
-                    background: '#0f172a',
-                    color: '#94a3b8',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-surface-secondary)',
+                    color: 'var(--text-secondary)',
                     fontSize: '0.68rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -809,22 +806,22 @@ export default function SandboxControls(): JSX.Element {
                 </button>
                 {showDeductionsBreakdown && (
                   <div style={{
-                    background: '#1e293b',
-                    border: '1px solid #334155',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '8px',
                     marginTop: '4px',
                     fontSize: '0.68rem',
-                    color: '#cbd5e1'
+                    color: 'var(--text-secondary)'
                   }}>
-                    <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: '4px' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: '4px' }}>
                       Husband (Class III): Deductions {formatCurrency(((derivedSpousalSet.value.husbandBreakdownClass3.monthlyGross as number) - (derivedSpousalSet.value.husbandBreakdownClass3.monthlyNetTakeHome as number)) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))} ({derivedSpousalSet.value.husbandBreakdownClass3.effectiveTotalDeductionRatePercent}%)
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '6px' }}>
                       <span>• Social: {formatCurrency((derivedSpousalSet.value.husbandBreakdownClass3.totalSocialSecurity as number) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))}</span>
                       <span>• Tax: {formatCurrency((derivedSpousalSet.value.husbandBreakdownClass3.monthlyWageTax as number) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))}</span>
                     </div>
-                    <div style={{ fontWeight: 700, color: '#2dd4bf', marginBottom: '4px' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--series-indigo)', marginBottom: '4px' }}>
                       Wife FT (Class V): Deductions {formatCurrency(((derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyGross as number) - (derivedSpousalSet.value.wifeBreakdownClass5FT.monthlyNetTakeHome as number)) * (salaryPeriod.value === SalaryPeriod.Yearly ? 12 : 1))} ({derivedSpousalSet.value.wifeBreakdownClass5FT.effectiveTotalDeductionRatePercent}%)
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
@@ -844,7 +841,7 @@ export default function SandboxControls(): JSX.Element {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#cbd5e1',
+                      color: 'var(--text-secondary)',
                       padding: 0,
                       cursor: 'pointer',
                       fontSize: '0.78rem',
@@ -855,9 +852,9 @@ export default function SandboxControls(): JSX.Element {
                     title="Click to view § 66 EStG Kindergeld legal rule & example"
                   >
                     <span>Kindergeld</span>
-                    <span style={{ color: '#60a5fa', textDecoration: 'underline', fontSize: '0.72rem' }}>(§ 66 EStG ↗)</span>:
+                    <span style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontSize: '0.72rem' }}>(§ 66 EStG ↗)</span>:
                   </button>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fca5a5' }}>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-loss)' }}>
                     {formatCurrency(kindergeldPerChild.value)} / mo
                   </span>
                 </div>
@@ -869,8 +866,8 @@ export default function SandboxControls(): JSX.Element {
                   value={kindergeldPerChild.value}
                   onInput={(e) => { kindergeldPerChild.value = toEuroAmount(Number((e.target as HTMLInputElement).value)); }}
                 />
-                <div style={{ fontSize: '0.64rem', color: '#94a3b8', marginTop: '2px' }}>
-                  ↳ Reconciled against Kinderfreibetrag (9.540 €/child § 32 Abs. 6) in annual tax return (<span style={{ color: '#38bdf8', fontWeight: 600 }}>Günstigerprüfung § 31 EStG</span>).
+                <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  ↳ Reconciled against Kinderfreibetrag (9.540 €/child § 32 Abs. 6) in annual tax return (<span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Günstigerprüfung § 31 EStG</span>).
                 </div>
               </div>
             </div>
@@ -879,10 +876,10 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 1: PREGNANCY POSITIVE DECISIONS & MILESTONES */}
             {/* ======================================================== */}
             <div style={{
-              background: '#0f172a',
+              background: 'var(--bg-surface)',
               padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius)',
+              border: '1px solid var(--border-subtle)',
               gridColumn: 'span 1'
             }}>
               <div style={{
@@ -890,13 +887,13 @@ export default function SandboxControls(): JSX.Element {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '12px',
-                borderBottom: '1px solid #334155',
+                borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f472b6' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--color-loss)' }}>
                   1. Pregnancy Positive Decisions
                 </span>
-                <span style={{ fontSize: '0.68rem', color: '#fbcfe8', background: '#831843', padding: '2px 6px', borderRadius: '4px' }}>
+                <span className="badge-loss">
                   {customPregnancies.value.length} Pregnancies Active
                 </span>
               </div>
@@ -911,10 +908,10 @@ export default function SandboxControls(): JSX.Element {
                   return (
                     <div
                       key={preg.pregnancyId || `preg-${idx}`}
-                      style={{ background: '#1e293b', padding: '10px', borderRadius: '6px', border: '1px solid #334155' }}
+                      style={{ background: 'var(--bg-surface-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f472b6' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-loss)' }}>
                           Child #{preg.childIndex} Pregnancy
                         </span>
                         {customPregnancies.value.length > 1 && (
@@ -922,9 +919,9 @@ export default function SandboxControls(): JSX.Element {
                             type="button"
                             onClick={() => removePregnancyAction(preg.pregnancyId)}
                             style={{
-                              background: '#7f1d1d',
-                              color: '#fca5a5',
-                              border: 'none',
+                              background: 'var(--color-loss-bg)',
+                              color: 'var(--color-loss)',
+                              border: '1px solid var(--color-loss-border)',
                               borderRadius: '3px',
                               padding: '2px 6px',
                               fontSize: '0.65rem',
@@ -941,7 +938,7 @@ export default function SandboxControls(): JSX.Element {
                         <div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '6px' }}>
                             <div>
-                              <label style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                              <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>
                                 Positive Month:
                               </label>
                               <select
@@ -951,7 +948,7 @@ export default function SandboxControls(): JSX.Element {
                                   const curY = startCalendarYear.value + Math.floor(((startCalendarMonth.value - 1) + (pSimMonth - 1)) / 12);
                                   setPregnancy1PositiveDate(curY, m);
                                 }}
-                                style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '3px 4px', fontSize: '0.72rem', fontWeight: 700 }}
+                                style={{ width: '100%', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '3px 4px', fontSize: '0.72rem', fontWeight: 700 }}
                               >
                                 {MONTH_NAMES.map((name, mIdx) => (
                                   <option key={mIdx + 1} value={mIdx + 1}>{name.slice(0, 14)}</option>
@@ -959,7 +956,7 @@ export default function SandboxControls(): JSX.Element {
                               </select>
                             </div>
                             <div>
-                              <label style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>
+                              <label style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>
                                 Positive Year:
                               </label>
                               <select
@@ -969,7 +966,7 @@ export default function SandboxControls(): JSX.Element {
                                   const curM = ((startCalendarMonth.value - 1 + pSimMonth - 1) % 12) + 1;
                                   setPregnancy1PositiveDate(y, curM);
                                 }}
-                                style={{ width: '100%', background: '#0f172a', color: '#f9a8d4', border: '1px solid #475569', borderRadius: '4px', padding: '3px 4px', fontSize: '0.72rem', fontWeight: 700 }}
+                                style={{ width: '100%', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '3px 4px', fontSize: '0.72rem', fontWeight: 700 }}
                               >
                                 {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
                                   <option key={y} value={y}>{y}</option>
@@ -977,21 +974,21 @@ export default function SandboxControls(): JSX.Element {
                               </select>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '4px' }}>
-                            <span>Positive: <strong style={{ color: '#f472b6' }}>{getCalDate(pSimMonth)}</strong> (M0)</span>
-                            <span>Birth 1: <strong style={{ color: '#5eead4' }}>{getCalDate(dSimMonth)}</strong> (M+{dSimMonth - pSimMonth})</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            <span>Positive: <strong style={{ color: 'var(--color-loss)' }}>{getCalDate(pSimMonth)}</strong> (M0)</span>
+                            <span>Birth 1: <strong style={{ color: 'var(--color-primary)' }}>{getCalDate(dSimMonth)}</strong> (M+{dSimMonth - pSimMonth})</span>
                           </div>
-                          <div style={{ fontSize: '0.65rem', color: '#94a3b8', background: '#0f172a', padding: '3px 5px', borderRadius: '3px' }}>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', background: 'var(--bg-surface)', padding: '3px 5px', borderRadius: '3px' }}>
                             ↳ Sim Start: <strong>01.{startCalendarYear.value}</strong> ({prePregnancyPlanningMonths.value}M before preg)
                           </div>
                         </div>
                       ) : (
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '4px' }}>
-                            <span>Positive: <strong style={{ color: '#f472b6' }}>{getCalDate(pSimMonth)}</strong> (M{pSimMonth})</span>
-                            <span>Birth #{preg.childIndex}: <strong style={{ color: '#5eead4' }}>{getCalDate(dSimMonth)}</strong> (M{dSimMonth})</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            <span>Positive: <strong style={{ color: 'var(--color-loss)' }}>{getCalDate(pSimMonth)}</strong> (M{pSimMonth})</span>
+                            <span>Birth #{preg.childIndex}: <strong style={{ color: 'var(--color-primary)' }}>{getCalDate(dSimMonth)}</strong> (M{dSimMonth})</span>
                           </div>
-                          <div style={{ fontSize: '0.66rem', color: (dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)) < 36 ? '#4ade80' : '#fbbf24' }}>
+                          <div style={{ fontSize: '0.66rem', color: (dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)) < 36 ? 'var(--color-gain)' : 'var(--color-warning)' }}>
                             {(dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)) < 36
                               ? `✓ Sibling Bonus (+10%) eligible (${dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)}M spacing)`
                               : `✗ Sibling bonus expired (${dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number || 0)}M spacing)`}
@@ -1028,10 +1025,10 @@ export default function SandboxControls(): JSX.Element {
                 style={{
                   width: '100%',
                   padding: '6px',
-                  background: '#831843',
-                  color: '#fbcfe8',
-                  border: '1px solid #be185d',
-                  borderRadius: '5px',
+                  background: 'var(--color-loss-bg)',
+                  color: 'var(--color-loss)',
+                  border: '1px solid var(--color-loss-border)',
+                  borderRadius: 'var(--border-radius-sm)',
                   fontSize: '0.74rem',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -1046,10 +1043,10 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 2: TAX CLASS SWITCHES (§ 2b BEEG) */}
             {/* ======================================================== */}
             <div style={{
-              background: '#0f172a',
+              background: 'var(--bg-surface)',
               padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius)',
+              border: '1px solid var(--border-subtle)',
               gridColumn: 'span 1'
             }}>
               <div style={{
@@ -1057,7 +1054,7 @@ export default function SandboxControls(): JSX.Element {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '12px',
-                borderBottom: '1px solid #334155',
+                borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '8px'
               }}>
                 <button
@@ -1070,7 +1067,7 @@ export default function SandboxControls(): JSX.Element {
                     cursor: 'pointer',
                     fontWeight: 800,
                     fontSize: '0.88rem',
-                    color: '#4ade80',
+                    color: 'var(--color-gain)',
                     textAlign: 'left',
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -1081,7 +1078,7 @@ export default function SandboxControls(): JSX.Element {
                   <span>2. Tax Class Switches</span>
                   <span style={{ fontSize: '0.72rem', textDecoration: 'underline' }}>(§ 2b BEEG ↗)</span>
                 </button>
-                <span style={{ fontSize: '0.68rem', color: '#86efac', background: '#14532d', padding: '2px 6px', borderRadius: '4px' }}>
+                <span className="badge-gain">
                   {customTaxClassSwitches.value.length} Switches Active
                 </span>
               </div>
@@ -1095,10 +1092,10 @@ export default function SandboxControls(): JSX.Element {
                   return (
                     <div
                       key={sw.switchId || `switch-${idx}`}
-                      style={{ background: '#1e293b', padding: '8px 10px', borderRadius: '5px', border: '1px solid #334155' }}
+                      style={{ background: 'var(--bg-surface-secondary)', padding: '8px 10px', borderRadius: '5px', border: '1px solid var(--border-subtle)' }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#4ade80' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--color-gain)' }}>
                           Switch #{idx + 1}: H: {sw.targetHusbandTaxClass} | W: {sw.targetWifeTaxClass}
                         </span>
                         {customTaxClassSwitches.value.length > 1 && (
@@ -1106,9 +1103,9 @@ export default function SandboxControls(): JSX.Element {
                             type="button"
                             onClick={() => removeTaxClassSwitchAction(sw.switchId)}
                             style={{
-                              background: '#7f1d1d',
-                              color: '#fca5a5',
-                              border: 'none',
+                              background: 'var(--color-loss-bg)',
+                              color: 'var(--color-loss)',
+                              border: '1px solid var(--color-loss-border)',
                               borderRadius: '3px',
                               padding: '2px 5px',
                               fontSize: '0.62rem',
@@ -1120,11 +1117,11 @@ export default function SandboxControls(): JSX.Element {
                           </button>
                         )}
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '2px' }}>
-                        <span>Effective: <strong style={{ color: '#86efac' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
-                        <span>Revert: <strong style={{ color: '#fbbf24' }}>{getCalDate(rMonth)}</strong> (M{rMonth})</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>
+                        <span>Effective: <strong style={{ color: 'var(--color-gain)' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
+                        <span>Revert: <strong style={{ color: 'var(--color-warning)' }}>{getCalDate(rMonth)}</strong> (M{rMonth})</span>
                       </div>
-                      <div style={{ fontSize: '0.64rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>
                         ↳ {sw.statutoryReason}
                       </div>
                     </div>
@@ -1158,10 +1155,10 @@ export default function SandboxControls(): JSX.Element {
                 style={{
                   width: '100%',
                   padding: '6px',
-                  background: '#14532d',
-                  color: '#86efac',
-                  border: '1px solid #16a34a',
-                  borderRadius: '4px',
+                  background: 'var(--color-gain-bg)',
+                  color: 'var(--color-gain)',
+                  border: '1px solid var(--color-gain-border)',
+                  borderRadius: 'var(--border-radius-sm)',
                   fontSize: '0.74rem',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -1174,8 +1171,8 @@ export default function SandboxControls(): JSX.Element {
               {/* Wife Optimized Class III FT Net */}
               <div style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Wife Net in Class III (Full-Time):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#4ade80' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Wife Net in Class III (Full-Time):</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-gain)' }}>
                     {formatCurrency(wifeClass3FullTimeNet.value)}
                   </span>
                 </div>
@@ -1192,8 +1189,8 @@ export default function SandboxControls(): JSX.Element {
               {/* Husband Class V Net during Swap */}
               <div style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '2px' }}>
-                  <span style={{ color: '#cbd5e1' }}>Husband Net in Class V (Swap):</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fbbf24' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Husband Net in Class V (Swap):</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--color-warning)' }}>
                     {formatCurrency(husbandClass5Net.value)}
                   </span>
                 </div>
@@ -1212,10 +1209,10 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 3: SALARY RAISES & CAREER PROGRESSION */}
             {/* ======================================================== */}
             <div style={{
-              background: '#0f172a',
+              background: 'var(--bg-surface)',
               padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius)',
+              border: '1px solid var(--border-subtle)',
               gridColumn: 'span 1'
             }}>
               <div style={{
@@ -1223,13 +1220,13 @@ export default function SandboxControls(): JSX.Element {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '12px',
-                borderBottom: '1px solid #334155',
+                borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#fbbf24' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--color-warning)' }}>
                   3. Salary Raises & Career
                 </span>
-                <span style={{ fontSize: '0.68rem', color: '#fde68a', background: '#78350f', padding: '2px 6px', borderRadius: '4px' }}>
+                <span className="badge-warning">
                   {customSalaryRaises.value.length} Raises Active
                 </span>
               </div>
@@ -1242,19 +1239,19 @@ export default function SandboxControls(): JSX.Element {
                   return (
                     <div
                       key={sr.raiseId || `raise-${idx}`}
-                      style={{ background: '#1e293b', padding: '8px 10px', borderRadius: '5px', border: '1px solid #334155' }}
+                      style={{ background: 'var(--bg-surface-secondary)', padding: '8px 10px', borderRadius: '5px', border: '1px solid var(--border-subtle)' }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#fbbf24' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--color-warning)' }}>
                           Raise #{idx + 1}: {sr.targetPerson.toUpperCase()} (+{((sr.percentageIncrease || 0) * 100).toFixed(0)}%)
                         </span>
                         <button
                           type="button"
                           onClick={() => removeSalaryRaiseAction(sr.raiseId)}
                           style={{
-                            background: '#7f1d1d',
-                            color: '#fca5a5',
-                            border: 'none',
+                            background: 'var(--color-loss-bg)',
+                            color: 'var(--color-loss)',
+                            border: '1px solid var(--color-loss-border)',
                             borderRadius: '3px',
                             padding: '2px 5px',
                             fontSize: '0.62rem',
@@ -1265,9 +1262,9 @@ export default function SandboxControls(): JSX.Element {
                           ✕
                         </button>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1' }}>
-                        <span>Effective: <strong style={{ color: '#fde68a' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
-                        <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{sr.reason}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: 'var(--text-secondary)' }}>
+                        <span>Effective: <strong style={{ color: 'var(--color-warning)' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{sr.reason}</span>
                       </div>
                     </div>
                   );
@@ -1297,10 +1294,10 @@ export default function SandboxControls(): JSX.Element {
                 style={{
                   width: '100%',
                   padding: '6px',
-                  background: '#78350f',
-                  color: '#fde68a',
-                  border: '1px solid #d97706',
-                  borderRadius: '4px',
+                  background: 'var(--color-warning-bg)',
+                  color: 'var(--color-warning)',
+                  border: '1px solid var(--color-warning-border)',
+                  borderRadius: 'var(--border-radius-sm)',
                   fontSize: '0.74rem',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -1315,10 +1312,10 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 4: FINANCIAL EVENTS (ONE-OFF COSTS & INFLOWS) */}
             {/* ======================================================== */}
             <div style={{
-              background: '#0f172a',
+              background: 'var(--bg-surface)',
               padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius)',
+              border: '1px solid var(--border-subtle)',
               gridColumn: 'span 1'
             }}>
               <div style={{
@@ -1326,13 +1323,13 @@ export default function SandboxControls(): JSX.Element {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '12px',
-                borderBottom: '1px solid #334155',
+                borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '8px'
               }}>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#f43f5e' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--color-loss)' }}>
                   4. Financial Events & Costs
                 </span>
-                <span style={{ fontSize: '0.68rem', color: '#fecdd3', background: '#881337', padding: '2px 6px', borderRadius: '4px' }}>
+                <span className="badge-loss">
                   {customFinancialEvents.value.length} Events Active
                 </span>
               </div>
@@ -1347,39 +1344,32 @@ export default function SandboxControls(): JSX.Element {
                     <div
                       key={fe.eventId || `fe-${idx}`}
                       style={{
-                        background: '#1e293b',
+                        background: 'var(--bg-surface-secondary)',
                         padding: '8px 10px',
                         borderRadius: '5px',
-                        border: isCost ? '1px solid #e11d48' : '1px solid #059669'
+                        border: isCost ? '1px solid var(--color-loss-border)' : '1px solid var(--color-gain-border)'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <span style={{
-                            fontSize: '0.65rem',
-                            fontWeight: 800,
-                            padding: '1px 5px',
-                            borderRadius: '3px',
-                            background: isCost ? '#be123c' : '#047857',
-                            color: '#ffffff'
-                          }}>
+                          <span className={isCost ? 'badge-loss' : 'badge-gain'}>
                             {isCost ? '💸 COST' : '💰 INFLOW'}
                           </span>
-                          <span style={{ fontSize: '0.74rem', fontWeight: 800, color: isCost ? '#fda4af' : '#6ee7b7' }}>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 800, color: isCost ? 'var(--color-loss)' : 'var(--color-gain)' }}>
                             {fe.title}
                           </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.78rem', color: isCost ? '#f87171' : '#4ade80' }}>
+                          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: '0.78rem', color: isCost ? 'var(--color-loss)' : 'var(--color-gain)' }}>
                             {formatCurrency(fe.amount as number)}
                           </span>
                           <button
                             type="button"
                             onClick={() => removeFinancialEventAction(fe.eventId)}
                             style={{
-                              background: '#7f1d1d',
-                              color: '#fca5a5',
-                              border: 'none',
+                              background: 'var(--color-loss-bg)',
+                              color: 'var(--color-loss)',
+                              border: '1px solid var(--color-loss-border)',
                               borderRadius: '3px',
                               padding: '2px 5px',
                               fontSize: '0.62rem',
@@ -1391,11 +1381,11 @@ export default function SandboxControls(): JSX.Element {
                           </button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: '#cbd5e1', marginBottom: '2px' }}>
-                        <span>Effective: <strong style={{ color: isCost ? '#fca5a5' : '#86efac' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
-                        <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{fe.category}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.70rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>
+                        <span>Effective: <strong style={{ color: isCost ? 'var(--color-loss)' : 'var(--color-gain)' }}>{getCalDate(sMonth)}</strong> (M{sMonth})</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{fe.category}</span>
                       </div>
-                      <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
                         {fe.description}
                       </div>
                     </div>
@@ -1427,9 +1417,9 @@ export default function SandboxControls(): JSX.Element {
                   }}
                   style={{
                     padding: '6px',
-                    background: '#881337',
-                    color: '#fecdd3',
-                    border: '1px solid #be123c',
+                    background: 'var(--color-loss-bg)',
+                    color: 'var(--color-loss)',
+                    border: '1px solid var(--color-loss-border)',
                     borderRadius: '4px',
                     fontSize: '0.72rem',
                     fontWeight: 800,
@@ -1461,9 +1451,9 @@ export default function SandboxControls(): JSX.Element {
                   }}
                   style={{
                     padding: '6px',
-                    background: '#064e3b',
-                    color: '#a7f3d0',
-                    border: '1px solid #059669',
+                    background: 'var(--color-gain-bg)',
+                    color: 'var(--color-gain)',
+                    border: '1px solid var(--color-gain-border)',
                     borderRadius: '4px',
                     fontSize: '0.72rem',
                     fontWeight: 800,

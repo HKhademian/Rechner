@@ -36,30 +36,30 @@ export default function KpiScorecard(): JSX.Element {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #1e40af'
+        borderLeft: '4px solid var(--series-salary-husband)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Total Net Working Salaries
             </div>
             <div style={{
               fontSize: '1.9rem',
               fontWeight: 800,
-              color: '#f8fafc',
+              color: 'var(--text-primary)',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
-              fontFamily: 'monospace'
+              fontVariantNumeric: 'tabular-nums'
             }}>
               {formatCurrency(current.summary.totalSalaries)}
             </div>
           </div>
           <div style={{
-            background: 'rgba(30, 64, 175, 0.15)',
-            border: '1px solid rgba(30, 64, 175, 0.3)',
-            borderRadius: '6px',
+            background: 'var(--color-primary-bg)',
+            border: '1px solid var(--color-primary-border)',
+            borderRadius: 'var(--border-radius-sm)',
             padding: '8px',
-            color: '#60a5fa'
+            color: 'var(--color-primary)'
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
@@ -68,11 +68,26 @@ export default function KpiScorecard(): JSX.Element {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-          <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#93c5fd', border: '1px solid #334155' }}>
+          <span style={{
+            fontSize: '0.72rem',
+            padding: '2px 8px',
+            borderRadius: 'var(--border-radius-sm)',
+            background: 'var(--bg-surface-secondary)',
+            color: 'var(--text-secondary)',
+            border: '1px solid var(--border-subtle)'
+          }}>
             Base Net: {formatCurrency(current.summary.totalSalaries - (current.summary.total13thSalaries || 0))}
           </span>
           {current.summary.total13thSalaries > 0 && (
-            <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#0f172a', color: '#fbbf24', border: '1px solid #b45309' }}>
+            <span style={{
+              fontSize: '0.72rem',
+              padding: '2px 8px',
+              borderRadius: 'var(--border-radius-sm)',
+              background: 'var(--color-warning-bg)',
+              color: 'var(--color-warning)',
+              border: '1px solid var(--color-warning-border)',
+              fontWeight: 600
+            }}>
               13th Month (*Sonderzahlung*): +{formatCurrency(current.summary.total13thSalaries)}
             </span>
           )}
@@ -84,30 +99,30 @@ export default function KpiScorecard(): JSX.Element {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #15803d'
+        borderLeft: '4px solid var(--color-gain)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               State Benefits & Allowances
             </div>
             <div style={{
               fontSize: '1.9rem',
               fontWeight: 800,
-              color: '#4ade80',
+              color: 'var(--color-gain)',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
-              fontFamily: 'monospace'
+              fontVariantNumeric: 'tabular-nums'
             }}>
               {formatCurrency(current.summary.totalBenefits)}
             </div>
           </div>
           <div style={{
-            background: 'rgba(21, 128, 61, 0.15)',
-            border: '1px solid rgba(21, 128, 61, 0.3)',
-            borderRadius: '6px',
+            background: 'var(--color-gain-bg)',
+            border: '1px solid var(--color-gain-border)',
+            borderRadius: 'var(--border-radius-sm)',
             padding: '8px',
-            color: '#4ade80'
+            color: 'var(--color-gain)'
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -123,20 +138,21 @@ export default function KpiScorecard(): JSX.Element {
             style={{
               fontSize: '0.72rem',
               padding: '2px 8px',
-              borderRadius: '4px',
-              background: '#0f172a',
-              color: '#93c5fd',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius-sm)',
+              background: 'var(--bg-surface-secondary)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px'
+              gap: '4px',
+              transition: 'var(--transition)'
             }}
             title="Click to view statutory MuSchG rule and worked example"
           >
             <span>Maternity (*MuSchG*):</span>
-            <strong style={{ color: '#ffffff' }}>{formatCurrency(current.summary.totalMutterschutz)}</strong>
-            <span style={{ color: '#60a5fa', fontSize: '0.65rem' }}>↗</span>
+            <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(current.summary.totalMutterschutz)}</strong>
+            <span style={{ color: 'var(--color-primary)', fontSize: '0.65rem' }}>↗</span>
           </button>
           <button
             type="button"
@@ -144,20 +160,21 @@ export default function KpiScorecard(): JSX.Element {
             style={{
               fontSize: '0.72rem',
               padding: '2px 8px',
-              borderRadius: '4px',
-              background: '#0f172a',
-              color: '#86efac',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius-sm)',
+              background: 'var(--bg-surface-secondary)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px'
+              gap: '4px',
+              transition: 'var(--transition)'
             }}
             title="Click to view statutory Elterngeld § 4 BEEG rule and worked example"
           >
-            <span>Parental Allowance (*§ 4 BEEG*):</span>
-            <strong style={{ color: '#ffffff' }}>{formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}</strong>
-            <span style={{ color: '#4ade80', fontSize: '0.65rem' }}>↗</span>
+            <span>Elterngeld (*§ 4 BEEG*):</span>
+            <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld)}</strong>
+            <span style={{ color: 'var(--color-gain)', fontSize: '0.65rem' }}>↗</span>
           </button>
           <button
             type="button"
@@ -165,20 +182,21 @@ export default function KpiScorecard(): JSX.Element {
             style={{
               fontSize: '0.72rem',
               padding: '2px 8px',
-              borderRadius: '4px',
-              background: '#0f172a',
-              color: '#fca5a5',
-              border: '1px solid #334155',
+              borderRadius: 'var(--border-radius-sm)',
+              background: 'var(--bg-surface-secondary)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px'
+              gap: '4px',
+              transition: 'var(--transition)'
             }}
             title="Click to view statutory Kindergeld § 66 EStG rule and worked example"
           >
-            <span>Child Benefit (*§ 66 EStG*):</span>
-            <strong style={{ color: '#ffffff' }}>{formatCurrency(current.summary.totalKindergeld)}</strong>
-            <span style={{ color: '#f87171', fontSize: '0.65rem' }}>↗</span>
+            <span>Kindergeld (*§ 66 EStG*):</span>
+            <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(current.summary.totalKindergeld)}</strong>
+            <span style={{ color: 'var(--color-warning)', fontSize: '0.65rem' }}>↗</span>
           </button>
         </div>
       </div>
@@ -188,30 +206,30 @@ export default function KpiScorecard(): JSX.Element {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #0f766e'
+        borderLeft: '4px solid var(--series-tax-refund)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Tax Office (*Finanzamt*) Refunds
             </div>
             <div style={{
               fontSize: '1.9rem',
               fontWeight: 800,
-              color: '#5eead4',
+              color: 'var(--color-gain)',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
-              fontFamily: 'monospace'
+              fontVariantNumeric: 'tabular-nums'
             }}>
               {formatCurrency(current.summary.totalTaxRefunds)}
             </div>
           </div>
           <div style={{
-            background: 'rgba(15, 118, 110, 0.15)',
-            border: '1px solid rgba(15, 118, 110, 0.3)',
-            borderRadius: '6px',
+            background: 'var(--color-gain-bg)',
+            border: '1px solid var(--color-gain-border)',
+            borderRadius: 'var(--border-radius-sm)',
             padding: '8px',
-            color: '#5eead4'
+            color: 'var(--series-tax-refund)'
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -221,7 +239,7 @@ export default function KpiScorecard(): JSX.Element {
             </svg>
           </div>
         </div>
-        <div style={{ fontSize: '0.76rem', color: isScenarioC ? '#93c5fd' : '#64748b', marginTop: '6px' }}>
+        <div style={{ fontSize: '0.76rem', color: isScenarioC ? 'var(--color-primary)' : 'var(--text-muted)', marginTop: '6px' }}>
           {isScenarioC ? (
             <button
               type="button"
@@ -229,11 +247,12 @@ export default function KpiScorecard(): JSX.Element {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#5eead4',
+                color: 'var(--color-primary)',
                 padding: 0,
                 cursor: 'pointer',
                 textAlign: 'left',
                 fontSize: '0.76rem',
+                fontWeight: 600,
                 textDecoration: 'underline'
               }}
               title="Click to view § 26b EStG Marital Splitting rules & worked example"
@@ -251,31 +270,31 @@ export default function KpiScorecard(): JSX.Element {
         padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
-        borderLeft: '4px solid #2563eb',
-        background: '#1e293b'
+        borderLeft: '4px solid var(--color-primary)',
+        background: 'var(--bg-surface)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Total 5-Year Cash Inflow (60M)
             </div>
             <div style={{
               fontSize: '2rem',
               fontWeight: 800,
-              color: '#f8fafc',
+              color: 'var(--text-primary)',
               margin: '6px 0 4px 0',
               letterSpacing: '-0.02em',
-              fontFamily: 'monospace'
+              fontVariantNumeric: 'tabular-nums'
             }}>
               {formatCurrency(current.summary.grandTotal)}
             </div>
           </div>
           <div style={{
-            background: 'rgba(37, 99, 235, 0.15)',
-            border: '1px solid rgba(37, 99, 235, 0.3)',
-            borderRadius: '6px',
+            background: 'var(--color-primary-bg)',
+            border: '1px solid var(--color-primary-border)',
+            borderRadius: 'var(--border-radius-sm)',
             padding: '8px',
-            color: '#60a5fa'
+            color: 'var(--color-primary)'
           }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 3h12l4 6-10 13L2 9Z"/>
@@ -288,50 +307,17 @@ export default function KpiScorecard(): JSX.Element {
         {/* Delta / Optimization pill */}
         <div style={{ marginTop: '8px' }}>
           {isScenarioC && (
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#0f172a',
-              border: '1px solid #15803d',
-              borderRadius: '4px',
-              padding: '3px 10px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: '#4ade80'
-            }}>
+            <div className="badge-gain">
               <span>+{formatCurrency(metrics.gainCvsB)} Net Financial Gain vs. Scenario B</span>
             </div>
           )}
           {isScenarioB && (
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#0f172a',
-              border: '1px solid #b45309',
-              borderRadius: '4px',
-              padding: '3px 10px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: '#fbbf24'
-            }}>
+            <div className="badge-warning">
               <span>Deficit vs. Scenario C: -{formatCurrency(metrics.gainCvsB)}</span>
             </div>
           )}
           {isScenarioA && (
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#0f172a',
-              border: '1px solid #475569',
-              borderRadius: '4px',
-              padding: '3px 10px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: '#cbd5e1'
-            }}>
+            <div className="badge-neutral">
               <span>Baseline: €6,125 / month net</span>
             </div>
           )}
