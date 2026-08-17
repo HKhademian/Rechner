@@ -17,7 +17,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
   describe("createTransaction", () => {
     it("creates immutable, validly branded transaction records", () => {
       const tx = createTransaction({
-        transactionId: "TX-M012026-TEST",
+        transactionId: "TX-M01.2026-TEST",
         monthId: toMonthId(1, 2026),
         month: toSimulationMonth(1),
         year: toCalendarYear(1),
@@ -30,8 +30,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         auditTrail: "Monthly net salary",
       });
 
-      assert.equal(tx.transactionId, "TX-M012026-TEST");
-      assert.equal(tx.monthId, "M012026");
+      assert.equal(tx.transactionId, "TX-M01.2026-TEST");
+      assert.equal(tx.monthId, "M01.2026");
       assert.equal(tx.amount, 2895);
       assert.equal(tx.statutoryCitation, "§ 19 EStG");
     });
@@ -116,7 +116,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
       // One-off baby equipment cost (-1500 €)
       const costEvent = {
-        eventId: "EVENT-M052027-EQUIPMENT" as any,
+        eventId: "EVENT-M05.2027-EQUIPMENT" as any,
         monthId: mId,
         monthRef: toMonthRef("M9 (Birth 1)"),
         month: sMonth,
@@ -167,9 +167,9 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
           hasSiblingBonus: false,
           transactions: [],
         },
-        50000,
-        10000,
-        850,
+        60850,
+        0,
+        0,
         60850,
       );
 
@@ -177,7 +177,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const expectedSpecial = -1500;
       const expectedMonthly = regularTotal - 1500; // 4238 €
 
-      assert.equal(entry.monthId, "M052027");
+      assert.equal(entry.monthId, "M05.2027");
+      assert.equal(entry.monthSimRef, "Sim17");
       assert.equal(entry.regularMonthlyTotal, regularTotal);
       assert.equal(entry.specialEventsTotal, expectedSpecial);
       assert.equal(entry.monthlyTotal, expectedMonthly);
@@ -197,7 +198,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
       // One-off bonus grant (+2000 €)
       const grantEvent = {
-        eventId: "EVENT-M122026-GRANT" as any,
+        eventId: "EVENT-M12.2026-GRANT" as any,
         monthId: mId,
         monthRef: toMonthRef("M-5"),
         month: sMonth,
@@ -258,7 +259,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const expectedSpecial = 2000;
       const expectedMonthly = regularTotal + expectedSpecial; // 6935 €
 
-      assert.equal(entry.monthId, "M122026");
+      assert.equal(entry.monthId, "M12.2026");
+      assert.equal(entry.monthSimRef, "Sim12");
       assert.equal(entry.regularMonthlyTotal, regularTotal);
       assert.equal(entry.specialEventsTotal, expectedSpecial);
       assert.equal(entry.monthlyTotal, expectedMonthly);

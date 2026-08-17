@@ -165,18 +165,23 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       });
 
       assert.equal(res.months.length, 12);
-      assert.equal(res.months[0].monthId, "M092026");
+      assert.equal(res.months[0].monthId, "M09.2026");
+      assert.equal(res.months[0].monthRef, "M-3");
+      assert.equal(res.months[0].monthSimRef, "Sim1");
       assert.equal(res.months[0].calendarLabel, "09.2026");
       assert.equal(res.months[0].calendarMonthNum, 9);
       assert.equal(res.months[0].calendarYearNum, 2026);
       assert.equal(res.months[0].relativeBirthLabel, "M-3");
       assert.equal(res.months[0].relativeMonthLabel, "M-3");
 
-      assert.equal(res.months[3].monthId, "M122026");
+      assert.equal(res.months[3].monthId, "M12.2026");
+      assert.equal(res.months[3].monthRef, "M1 (Pregnancy Positive)");
+      assert.equal(res.months[3].monthSimRef, "Sim4");
       assert.equal(res.months[3].relativeBirthLabel, "M1 (Pregnancy Positive)");
       assert.equal(res.months[3].relativeMonthLabel, "M1 (Pregnancy Positive)");
 
-      assert.equal(res.months[11].monthId, "M082027");
+      assert.equal(res.months[11].monthId, "M08.2027");
+      assert.equal(res.months[11].monthSimRef, "Sim12");
       assert.equal(res.months[11].calendarLabel, "08.2027");
       assert.equal(res.months[11].calendarMonthNum, 8);
       assert.equal(res.months[11].calendarYearNum, 2027);

@@ -10,12 +10,15 @@ const execFileAsync = promisify(execFile);
 describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
   describe("Argument Parsers (parseMonthArg & parseFieldArg)", () => {
     it("parses various month string formats cleanly", () => {
+      assert.equal(parseMonthArg("Sim21"), 21);
+      assert.equal(parseMonthArg("sim21"), 21);
       assert.equal(parseMonthArg("M21"), 21);
       assert.equal(parseMonthArg("m21"), 21);
       assert.equal(parseMonthArg("21"), 21);
       assert.equal(parseMonthArg("Month 14"), 14);
-      assert.equal(parseMonthArg("M092026"), "M092026");
-      assert.equal(parseMonthArg("m012027"), "M012027");
+      assert.equal(parseMonthArg("M09.2027"), "M09.2027");
+      assert.equal(parseMonthArg("M092027"), "M09.2027");
+      assert.equal(parseMonthArg("m01.2027"), "M01.2027");
       assert.equal(parseMonthArg("M1"), 1);
       assert.equal(parseMonthArg("M-8"), "M-8");
       assert.throws(() => parseMonthArg(""), /Missing month argument/);
@@ -132,19 +135,33 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Kindergeld"));
     });
 
-    it('explains monthly audit using nominal MonthId "explain M092026"', async () => {
+    it('explains monthly audit using nominal MonthId "explain M09.2026"', async () => {
       const { stdout, stderr } = await execFileAsync("node", [
         "src/cli/runner.ts",
         "explain",
-        "M092026",
+        "M09.2026",
       ]);
       assert.equal(stderr, "");
       assert.ok(stdout.includes("FULL MONTHLY AUDIT:"));
-      assert.ok(stdout.includes("M092026"));
+      assert.ok(stdout.includes("M09.2026"));
+      assert.ok(stdout.includes("Sim9"));
       assert.ok(stdout.includes("M1 (Pregnancy Positive)"));
     });
 
-    it("prints ledger table with Rel. Month and Month ID columns", async () => {
+    it('explains monthly audit using nominal MonthSimRef "explain Sim9"', async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "explain",
+        "Sim9",
+      ]);
+      assert.equal(stderr, "");
+      assert.ok(stdout.includes("FULL MONTHLY AUDIT:"));
+      assert.ok(stdout.includes("M09.2026"));
+      assert.ok(stdout.includes("Sim9"));
+      assert.ok(stdout.includes("M1 (Pregnancy Positive)"));
+    });
+
+    it("prints ledger table with Rel. Month, Month ID, and Sim Ref columns", async () => {
       const { stdout, stderr } = await execFileAsync("node", [
         "src/cli/runner.ts",
         "-f",
@@ -155,8 +172,11 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.equal(stderr, "");
       assert.ok(stdout.includes("Rel. Month"));
       assert.ok(stdout.includes("Month ID"));
-      assert.ok(stdout.includes("M012026"));
-      assert.ok(stdout.includes("M092026"));
+      assert.ok(stdout.includes("Sim Ref"));
+      assert.ok(stdout.includes("M01.2026"));
+      assert.ok(stdout.includes("M09.2026"));
+      assert.ok(stdout.includes("Sim1"));
+      assert.ok(stdout.includes("Sim9"));
       assert.ok(stdout.includes("M-8"));
       assert.ok(stdout.includes("M1 (Pregnancy Positive)"));
     });

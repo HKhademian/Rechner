@@ -251,21 +251,26 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
         salaryRaises: [],
       });
 
-      // M1 (01.2026): M-8
-      assert.equal(res.months[0].monthId, "M012026");
-      assert.equal(res.months[0].relativeBirthLabel, "M-8");
-      // M8 (08.2026): M-1
-      assert.equal(res.months[7].monthId, "M082026");
-      assert.equal(res.months[7].relativeBirthLabel, "M-1");
-      // M9 (09.2026): M1 (Pregnancy Positive)
-      assert.equal(res.months[8].monthId, "M092026");
-      assert.equal(res.months[8].relativeBirthLabel, "M1 (Pregnancy Positive)");
-      // M10 (10.2026): M2
-      assert.equal(res.months[9].monthId, "M102026");
-      assert.equal(res.months[9].relativeBirthLabel, "M2");
-      // M17 (05.2027): M9 (Birth 1)
-      assert.equal(res.months[16].monthId, "M052027");
-      assert.equal(res.months[16].relativeBirthLabel, "M9 (Birth 1)");
+      // M1 (01.2026): M-8 · Sim1
+      assert.equal(res.months[0].monthId, "M01.2026");
+      assert.equal(res.months[0].monthRef, "M-8");
+      assert.equal(res.months[0].monthSimRef, "Sim1");
+      // M8 (08.2026): M-1 · Sim8
+      assert.equal(res.months[7].monthId, "M08.2026");
+      assert.equal(res.months[7].monthRef, "M-1");
+      assert.equal(res.months[7].monthSimRef, "Sim8");
+      // M9 (09.2026): M1 (Pregnancy Positive) · Sim9
+      assert.equal(res.months[8].monthId, "M09.2026");
+      assert.equal(res.months[8].monthRef, "M1 (Pregnancy Positive)");
+      assert.equal(res.months[8].monthSimRef, "Sim9");
+      // M10 (10.2026): M2 · Sim10
+      assert.equal(res.months[9].monthId, "M10.2026");
+      assert.equal(res.months[9].monthRef, "M2");
+      assert.equal(res.months[9].monthSimRef, "Sim10");
+      // M17 (05.2027): M9 (Birth 1) · Sim17
+      assert.equal(res.months[16].monthId, "M05.2027");
+      assert.equal(res.months[16].monthRef, "M9 (Birth 1)");
+      assert.equal(res.months[16].monthSimRef, "Sim17");
     });
   });
 

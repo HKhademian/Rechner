@@ -42,7 +42,9 @@ import {
   isFinancialEventId,
   isMonthId,
   isMonthRef,
+  isMonthSimRef,
   toMonthRef,
+  toMonthSimRef,
   TaxClass,
   ScenarioId,
   ActiveScenarioView,
@@ -61,6 +63,7 @@ import {
   type CalendarMonth,
   type MonthId,
   type MonthRef,
+  type MonthSimRef,
   type WorkingHours,
   type EuroAmount,
   type EuroCents,
@@ -144,20 +147,20 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       const m2: MonthId = toMonthId(1, 2026);
       const m3: MonthId = toMonthId(12, 2030);
 
-      assert.equal(m1, "M092026");
-      assert.equal(m2, "M012026");
-      assert.equal(m3, "M122030");
+      assert.equal(m1, "M09.2026");
+      assert.equal(m2, "M01.2026");
+      assert.equal(m3, "M12.2030");
       assert.equal(isMonthId(m1), true);
       assert.equal(isMonthId(m2), true);
       assert.equal(isMonthId(m3), true);
     });
 
     it("constructs and validates MonthId from valid string representation", () => {
-      const m: MonthId = toMonthId("M092026");
-      assert.equal(m, "M092026");
-      assert.equal(isMonthId("M092026"), true);
-      assert.equal(isMonthId("M012026"), true);
-      assert.equal(isMonthId("M122030"), true);
+      const m: MonthId = toMonthId("M09.2027");
+      assert.equal(m, "M09.2027");
+      assert.equal(isMonthId("M09.2027"), true);
+      assert.equal(isMonthId("M01.2026"), true);
+      assert.equal(isMonthId("M12.2030"), true);
     });
 
     it("rejects invalid month numbers or invalid string formats", () => {
@@ -579,20 +582,23 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.throws(() => toEventId(""), TypeError);
     });
 
-    it("toMonthId constructs and validates nominal MonthId brands", () => {
-      assert.equal(toMonthId(9, 2026), "M092026");
-      assert.equal(toMonthId(1, 2026), "M012026");
-      assert.equal(toMonthId(12, 2030), "M122030");
-      assert.equal(toMonthId("M092026"), "M092026");
-      assert.equal(isMonthId("M092026"), true);
-      assert.equal(isMonthId("M012026"), true);
+    it("toMonthId constructs and validates nominal MonthId brands with dot format", () => {
+      assert.equal(toMonthId(9, 2027), "M09.2027");
+      assert.equal(toMonthId(1, 2026), "M01.2026");
+      assert.equal(toMonthId(12, 2030), "M12.2030");
+      assert.equal(toMonthId("M09.2027"), "M09.2027");
+      assert.equal(toMonthId("M092027"), "M09.2027");
+      assert.equal(isMonthId("M09.2027"), true);
+      assert.equal(isMonthId("M01.2026"), true);
+      assert.equal(isMonthId("M092027"), false);
       assert.equal(isMonthId("invalid"), false);
       assert.throws(() => toMonthId(13, 2026), TypeError);
       assert.throws(() => toMonthId(0, 2026), TypeError);
       assert.throws(() => toMonthId("invalid"), TypeError);
     });
 
-    it("toMonthRef constructs and validates nominal MonthRef brands", () => {
+    it("toMonthRef constructs and validates nominal MonthRef brands (dep on first preg positive)", () => {
+      assert.equal(toMonthRef(12), "M12");
       assert.equal(
         toMonthRef(1, "Pregnancy Positive"),
         "M1 (Pregnancy Positive)",
@@ -604,9 +610,11 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         toMonthRef("M1 (Pregnancy Positive)"),
         "M1 (Pregnancy Positive)",
       );
+      assert.equal(toMonthRef("M12"), "M12");
       assert.equal(toMonthRef("M-8"), "M-8");
       assert.equal(toMonthRef("M9 (Birth 1)"), "M9 (Birth 1)");
       assert.equal(isMonthRef("M1 (Pregnancy Positive)"), true);
+      assert.equal(isMonthRef("M12"), true);
       assert.equal(isMonthRef("M-8"), true);
       assert.equal(isMonthRef("M9"), true);
       assert.equal(isMonthRef("invalid"), false);
@@ -614,6 +622,26 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.throws(() => toMonthRef("invalid"), TypeError);
       assert.throws(() => toMonthRef(NaN), TypeError);
       assert.throws(() => toMonthRef(""), TypeError);
+    });
+
+    it("toMonthSimRef constructs and validates nominal MonthSimRef brands (dep on sim start)", () => {
+      assert.equal(toMonthSimRef(1), "Sim1");
+      assert.equal(toMonthSimRef(21), "Sim21");
+      assert.equal(toMonthSimRef(60), "Sim60");
+      assert.equal(toMonthSimRef("Sim21"), "Sim21");
+      assert.equal(toMonthSimRef("21"), "Sim21");
+      assert.equal(toMonthSimRef("M21"), "Sim21");
+      assert.equal(isMonthSimRef("Sim1"), true);
+      assert.equal(isMonthSimRef("Sim21"), true);
+      assert.equal(isMonthSimRef("Sim60"), true);
+      assert.equal(isMonthSimRef("Sim120"), true);
+      assert.equal(isMonthSimRef("Sim0"), false);
+      assert.equal(isMonthSimRef("Sim121"), false);
+      assert.equal(isMonthSimRef("invalid"), false);
+      assert.equal(isMonthSimRef(""), false);
+      assert.throws(() => toMonthSimRef(0), TypeError);
+      assert.throws(() => toMonthSimRef(121), TypeError);
+      assert.throws(() => toMonthSimRef("invalid"), TypeError);
     });
   });
 
