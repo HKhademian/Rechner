@@ -14,8 +14,11 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.equal(parseMonthArg("m21"), 21);
       assert.equal(parseMonthArg("21"), 21);
       assert.equal(parseMonthArg("Month 14"), 14);
-      assert.throws(() => parseMonthArg("invalid"), /Invalid month argument/);
-      assert.throws(() => parseMonthArg("125"), /Invalid month argument/);
+      assert.equal(parseMonthArg("M092026"), "M092026");
+      assert.equal(parseMonthArg("m012027"), "M012027");
+      assert.equal(parseMonthArg("M1"), 1);
+      assert.equal(parseMonthArg("M-8"), "M-8");
+      assert.throws(() => parseMonthArg(""), /Missing month argument/);
     });
 
     it("resolves field aliases to canonical FieldColumnKeys", () => {
@@ -127,6 +130,35 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
           stdout.includes("Father's Elterngeld"),
       );
       assert.ok(stdout.includes("Kindergeld"));
+    });
+
+    it('explains monthly audit using nominal MonthId "explain M092026"', async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "explain",
+        "M092026",
+      ]);
+      assert.equal(stderr, "");
+      assert.ok(stdout.includes("FULL MONTHLY AUDIT:"));
+      assert.ok(stdout.includes("M092026"));
+      assert.ok(stdout.includes("M1 (Pregnancy Positive)"));
+    });
+
+    it("prints ledger table with Rel. Month and Month ID columns", async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "-f",
+        "table",
+        "-d",
+        "12",
+      ]);
+      assert.equal(stderr, "");
+      assert.ok(stdout.includes("Rel. Month"));
+      assert.ok(stdout.includes("Month ID"));
+      assert.ok(stdout.includes("M012026"));
+      assert.ok(stdout.includes("M092026"));
+      assert.ok(stdout.includes("M-8"));
+      assert.ok(stdout.includes("M1 (Pregnancy Positive)"));
     });
 
     it('explains specific field step-by-step calculation when "explain M21 field partner" is invoked', async () => {
