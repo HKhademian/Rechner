@@ -58,6 +58,7 @@ import {
   toFinancialEventId,
   toTargetPerson,
   toFinancialEventCategory,
+  toMonthId,
 } from "#engine/types";
 import {
   type ElterngeldPersistedState,
@@ -862,16 +863,29 @@ export function exportStateToTextReport(
   );
   lines.push(" • Pregnancies & Births (Batch 1):");
   state.customPregnancies.forEach((p: PregnancyAction) => {
+    const posId = toMonthId(
+      p.positiveTestCalendarMonth,
+      p.positiveTestCalendarYear,
+    );
+    const delCalMonth = ((p.positiveTestCalendarMonth - 1 + 8) % 12) + 1;
+    const delCalYear =
+      p.positiveTestCalendarYear +
+      Math.floor((p.positiveTestCalendarMonth - 1 + 8) / 12);
+    const delId = toMonthId(delCalMonth, delCalYear);
     lines.push(
-      `   - Child #${p.childIndex}: Positive Test M${p.positiveTestSimulationMonth} (${p.positiveTestCalendarMonth}/${p.positiveTestCalendarYear}) -> Delivery M${p.calculatedDeliverySimulationMonth} (Father: ${p.fatherPartnerMonthsCount} partner months)`,
+      `   - Child #${p.childIndex}: Positive Test ${posId} (${String(p.positiveTestCalendarMonth).padStart(2, "0")}.${p.positiveTestCalendarYear} · M${p.childIndex === 1 ? "1 (Pregnancy Positive)" : p.positiveTestSimulationMonth}) -> Delivery ${delId} (${String(delCalMonth).padStart(2, "0")}.${delCalYear} · M${p.childIndex === 1 ? "9 (Birth 1)" : p.calculatedDeliverySimulationMonth}) (Father: ${p.fatherPartnerMonthsCount} partner months)`,
     );
   });
 
   lines.push(" • Strategic Tax Class Switches (Batch 2):");
   state.customTaxClassSwitches.forEach(
     (s: TaxClassSwitchAction, idx: number) => {
+      const effId = toMonthId(
+        s.effectiveCalendarMonth,
+        s.effectiveCalendarYear,
+      );
       lines.push(
-        `   - Swap #${idx + 1}: Effective M${s.effectiveSimulationMonth} -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
+        `   - Swap #${idx + 1}: Effective ${effId} (${String(s.effectiveCalendarMonth).padStart(2, "0")}.${s.effectiveCalendarYear}) -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
       );
       lines.push(`     ↳ Reason: ${s.statutoryReason}`);
     },
@@ -884,8 +898,12 @@ export function exportStateToTextReport(
     lines.push(" • Working Time & Schedule Adjustments (Batch 3):");
     state.customWorkingHoursChanges.forEach(
       (w: WorkingHoursChangeAction, idx: number) => {
+        const effId = toMonthId(
+          w.effectiveCalendarMonth,
+          w.effectiveCalendarYear,
+        );
         lines.push(
-          `   - Hours Change #${idx + 1}: Effective M${w.effectiveSimulationMonth} (${w.effectiveCalendarMonth}/${w.effectiveCalendarYear}) -> ${w.targetPerson}: ${w.weeklyHours} h/week (${w.reason})`,
+          `   - Hours Change #${idx + 1}: Effective ${effId} (${String(w.effectiveCalendarMonth).padStart(2, "0")}.${w.effectiveCalendarYear}) -> ${w.targetPerson}: ${w.weeklyHours} h/week (${w.reason})`,
         );
       },
     );
@@ -895,8 +913,12 @@ export function exportStateToTextReport(
     lines.push(" • Custom Financial Inflows & Expenses (Batch 4):");
     state.customFinancialEvents.forEach(
       (e: FinancialEventAction, idx: number) => {
+        const effId = toMonthId(
+          e.effectiveCalendarMonth,
+          e.effectiveCalendarYear,
+        );
         lines.push(
-          `   - Event #${idx + 1}: M${e.effectiveSimulationMonth} (${e.effectiveCalendarMonth}/${e.effectiveCalendarYear}) -> ${e.title}: ${fmtEur(e.amount as number)} [${e.category}]`,
+          `   - Event #${idx + 1}: ${effId} (${String(e.effectiveCalendarMonth).padStart(2, "0")}.${e.effectiveCalendarYear}) -> ${e.title}: ${fmtEur(e.amount as number)} [${e.category}]`,
         );
       },
     );
