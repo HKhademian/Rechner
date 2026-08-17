@@ -145,9 +145,10 @@ async function runQualityAudit(): Promise<void> {
 
   // Step 1: Prettier Code Style Formatting Check
   logSection("1. Prettier Code Style & Formatting Verification (Rule 20)");
+  const prettierBin = path.resolve(process.cwd(), "node_modules/.bin/prettier");
   const formatOk = runCommand(
-    "npx",
-    ["prettier", "--check", "src/**/*.{ts,tsx,css}", "test/**/*.ts"],
+    prettierBin,
+    ["--check", "src/**/*.{ts,tsx,css}", "test/**/*.ts"],
     "FormatCheck",
   );
   if (formatOk) {
@@ -162,7 +163,8 @@ async function runQualityAudit(): Promise<void> {
 
   // Step 2: TypeScript Compiler Diagnostics (Compiler Assisted Programming)
   logSection("2. TypeScript Compiler Diagnostics (Rule 10 & Rule 12)");
-  const typecheckOk = runCommand("npx", ["tsc", "--noEmit"], "Typecheck");
+  const tscBin = path.resolve(process.cwd(), "node_modules/.bin/tsc");
+  const typecheckOk = runCommand(tscBin, ["--noEmit"], "Typecheck");
   if (typecheckOk) {
     console.log(
       "✓ TypeScript Compiler passed with 0 errors and nominal type integrity.",
@@ -177,13 +179,24 @@ async function runQualityAudit(): Promise<void> {
 
   // Step 4: Unit and Multi-Year Scenario Test Suites
   logSection("4. Automated Unit & Scenario Test Suite Execution");
-  const testOk = runCommand(
-    "node",
-    ["--test", "test/**/*.test.ts"],
-    "TestSuites",
-  );
-  if (testOk) {
-    console.log("✓ All 1,265+ unit and scenario tests passed cleanly.");
+  const isInsideTestRunner =
+    Boolean(process.env.NODE_TEST_CONTEXT) ||
+    Boolean(process.env.QUALITY_AUDIT_NESTED) ||
+    process.argv.includes("--skip-tests");
+
+  if (isInsideTestRunner) {
+    console.log(
+      "ℹ️  Invoked inside parent test runner; skipping recursive test suite execution.",
+    );
+  } else {
+    const testOk = runCommand(
+      "node",
+      ["--test", "test/**/*.test.ts"],
+      "TestSuites",
+    );
+    if (testOk) {
+      console.log("✓ All unit and scenario tests passed cleanly.");
+    }
   }
 
   // Summary Report
