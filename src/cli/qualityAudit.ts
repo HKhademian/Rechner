@@ -191,7 +191,7 @@ async function runQualityAudit(): Promise<void> {
   } else {
     const testOk = runCommand(
       "node",
-      ["--test", "test/**/*.test.ts"],
+      ["--test", "src/**/*.test.ts", "test/**/*.test.ts"],
       "TestSuites",
     );
     if (testOk) {
