@@ -5,16 +5,19 @@ import {
   type SimulationMonth,
   type GuenstigerpruefungResult,
   toEuroAmount,
-  toStatutoryCitation
-} from '#engine/types';
-import { computeAnnualIncomeTax, computeSolidaritySurcharge } from '#engine/tax/wageTax';
+  toStatutoryCitation,
+} from "#engine/types";
+import {
+  computeAnnualIncomeTax,
+  computeSolidaritySurcharge,
+} from "#engine/tax/wageTax";
 
 /**
  * Annual Joint Tax Liability under Ehegatten-Splitting (§ 26b, § 32a Abs. 5 EStG)
  */
 export function computeJointTaxLiability(
   husbandAnnualZvE: number,
-  wifeAnnualZvE: number
+  wifeAnnualZvE: number,
 ): {
   readonly jointTax: EuroAmount;
   readonly jointSolidaritySurcharge: EuroAmount;
@@ -33,7 +36,7 @@ export function computeJointTaxLiability(
   return {
     jointTax,
     jointSolidaritySurcharge: jointSolz,
-    totalTaxLiability: total
+    totalTaxLiability: total,
   };
 }
 
@@ -46,10 +49,16 @@ export function computeMonthlySwapWithholdingVariance(
   husbandClass3Net: NetSalary,
   husbandClass5Net: NetSalary,
   wifeClass3Net: NetSalary,
-  wifeClass5Net: NetSalary
+  wifeClass5Net: NetSalary,
 ): EuroAmount {
-  const husbandExtraWithheld = Math.max(0, (husbandClass3Net as number) - (husbandClass5Net as number));
-  const wifeRelief = Math.max(0, (wifeClass3Net as number) - (wifeClass5Net as number));
+  const husbandExtraWithheld = Math.max(
+    0,
+    (husbandClass3Net as number) - (husbandClass5Net as number),
+  );
+  const wifeRelief = Math.max(
+    0,
+    (wifeClass3Net as number) - (wifeClass5Net as number),
+  );
   const monthlyDeficit = Math.max(0, husbandExtraWithheld - wifeRelief);
   return toEuroAmount(monthlyDeficit);
 }
@@ -73,7 +82,7 @@ export function computeKinderfreibetragGuenstigerpruefung(
   jointAnnualZvE: number,
   children: readonly ChildYearPresence[],
   reconciledYear: number,
-  monthlyKindergeldPerChild: number = 259
+  monthlyKindergeldPerChild: number = 259,
 ): GuenstigerpruefungResult {
   const FULL_KINDERFREIBETRAG_PER_CHILD = 9540; // § 32 Abs. 6 EStG (6.612 € + 2.928 € BEA)
 
@@ -88,7 +97,9 @@ export function computeKinderfreibetragGuenstigerpruefung(
     } else if (child.birthCalendarYear === reconciledYear) {
       // Child born during the reconciled calendar year -> Prorated by months (§ 32 Abs. 6 Satz 5 EStG)
       const monthsAlive = Math.max(1, 12 - child.birthCalendarMonth + 1);
-      const proratedAllowance = Math.round((monthsAlive / 12) * FULL_KINDERFREIBETRAG_PER_CHILD);
+      const proratedAllowance = Math.round(
+        (monthsAlive / 12) * FULL_KINDERFREIBETRAG_PER_CHILD,
+      );
       totalKinderfreibetrag += proratedAllowance;
       totalKindergeldReceived += monthlyKindergeldPerChild * monthsAlive;
     }
@@ -104,23 +115,29 @@ export function computeKinderfreibetragGuenstigerpruefung(
       totalKindergeldReceived: toEuroAmount(totalKindergeldReceived),
       extraTaxRefund: toEuroAmount(0),
       isKinderfreibetragFavorable: false,
-      statutoryCitation: toStatutoryCitation('§ 31 EStG (Familienleistungsausgleich)')
+      statutoryCitation: toStatutoryCitation(
+        "§ 31 EStG (Familienleistungsausgleich)",
+      ),
     };
   }
 
   // 1. Joint tax liability WITHOUT Kinderfreibetrag
-  const taxWithout = computeJointTaxLiability(jointAnnualZvE, 0).totalTaxLiability as number;
+  const taxWithout = computeJointTaxLiability(jointAnnualZvE, 0)
+    .totalTaxLiability as number;
 
   // 2. Joint tax liability WITH Kinderfreibetrag (§ 32 Abs. 6 EStG)
   const reducedZvE = Math.max(0, jointAnnualZvE - totalKinderfreibetrag);
-  const taxWith = computeJointTaxLiability(reducedZvE, 0).totalTaxLiability as number;
+  const taxWith = computeJointTaxLiability(reducedZvE, 0)
+    .totalTaxLiability as number;
 
   // 3. Tax Savings
   const taxSavings = Math.max(0, taxWithout - taxWith);
 
   // 4. Statutory Favorability Comparison (§ 31 Satz 4 EStG Günstigerprüfung)
   const isFavorable = taxSavings > totalKindergeldReceived;
-  const extraTaxRefund = isFavorable ? Math.max(0, taxSavings - totalKindergeldReceived) : 0;
+  const extraTaxRefund = isFavorable
+    ? Math.max(0, taxSavings - totalKindergeldReceived)
+    : 0;
 
   return {
     jointAnnualZvE: toEuroAmount(jointAnnualZvE),
@@ -131,7 +148,9 @@ export function computeKinderfreibetragGuenstigerpruefung(
     totalKindergeldReceived: toEuroAmount(totalKindergeldReceived),
     extraTaxRefund: toEuroAmount(extraTaxRefund),
     isKinderfreibetragFavorable: isFavorable,
-    statutoryCitation: toStatutoryCitation('§ 31, § 32 Abs. 6 EStG (Familienleistungsausgleich Günstigerprüfung)')
+    statutoryCitation: toStatutoryCitation(
+      "§ 31, § 32 Abs. 6 EStG (Familienleistungsausgleich Günstigerprüfung)",
+    ),
   };
 }
 
@@ -155,16 +174,22 @@ export function computeAnnualTaxReconciliation(
   refundMonth: SimulationMonth,
   monthlyDeficitsInYear: readonly EuroAmount[],
   baseStandardRefund: EuroAmount = toEuroAmount(850),
-  guenstigerpruefung?: GuenstigerpruefungResult
+  guenstigerpruefung?: GuenstigerpruefungResult,
 ): AnnualTaxReconciliationResult {
   const totalDeficitInYear = monthlyDeficitsInYear.reduce(
     (acc, val) => acc + (val as number),
-    0
+    0,
   );
 
   const accumulatedSwapDeficit = toEuroAmount(totalDeficitInYear);
-  const extraRefund = guenstigerpruefung ? (guenstigerpruefung.extraTaxRefund as number) : 0;
-  const totalRefundAmount = toEuroAmount((accumulatedSwapDeficit as number) + (baseStandardRefund as number) + extraRefund);
+  const extraRefund = guenstigerpruefung
+    ? (guenstigerpruefung.extraTaxRefund as number)
+    : 0;
+  const totalRefundAmount = toEuroAmount(
+    (accumulatedSwapDeficit as number) +
+      (baseStandardRefund as number) +
+      extraRefund,
+  );
 
   return {
     taxYear,
@@ -180,9 +205,12 @@ export function computeAnnualTaxReconciliation(
       totalKindergeldReceived: toEuroAmount(0),
       extraTaxRefund: toEuroAmount(0),
       isKinderfreibetragFavorable: false,
-      statutoryCitation: toStatutoryCitation('§ 31 EStG (Familienleistungsausgleich)')
+      statutoryCitation: toStatutoryCitation(
+        "§ 31 EStG (Familienleistungsausgleich)",
+      ),
     },
     totalRefundAmount,
-    statutoryCitation: 'EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a'
+    statutoryCitation:
+      "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
   };
 }

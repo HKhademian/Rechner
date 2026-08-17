@@ -2,8 +2,8 @@ import {
   type SimulationMonth,
   type EuroAmount,
   toEuroAmount,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 /**
  * Sibling Bonus Determination (§ 2a BEEG)
@@ -21,7 +21,7 @@ export interface SiblingBonusCalculation {
 export function computeSiblingBonus(
   baseElterngeldPlus: EuroAmount,
   olderChildBirthMonth: SimulationMonth,
-  currentMonth: SimulationMonth
+  currentMonth: SimulationMonth,
 ): SiblingBonusCalculation {
   const current = currentMonth as number;
   const olderBirth = olderChildBirthMonth as number;
@@ -38,13 +38,13 @@ export function computeSiblingBonus(
       siblingBonusAmount: toEuroAmount(0),
       totalElterngeldPlusWithBonus: baseElterngeldPlus,
       olderChildAgeInMonths,
-      statutoryCitation: 'BEEG § 2a (Expired: Older child ≥36M)'
+      statutoryCitation: "BEEG § 2a (Expired: Older child ≥36M)",
     };
   }
 
   const baseVal = baseElterngeldPlus as number;
   // § 2a Abs. 1 & 4 BEEG: +10% with a statutory minimum of +€75,00/month for ElterngeldPlus
-  const bonusAddition = Math.max(75, Math.round(baseVal * 0.10));
+  const bonusAddition = Math.max(75, Math.round(baseVal * 0.1));
   // Total capped at statutory max €900
   const total = Math.min(900, baseVal + bonusAddition);
 
@@ -54,6 +54,6 @@ export function computeSiblingBonus(
     siblingBonusAmount: toEuroAmount(bonusAddition),
     totalElterngeldPlusWithBonus: toEuroAmount(total),
     olderChildAgeInMonths,
-    statutoryCitation: 'BEEG § 2a (*Geschwisterbonus* +10% / min. +75 €)'
+    statutoryCitation: "BEEG § 2a (*Geschwisterbonus* +10% / min. +75 €)",
   };
 }

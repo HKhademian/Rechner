@@ -2,21 +2,23 @@ import {
   type NetSalary,
   type EuroAmount,
   toEuroAmount,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 /**
  * Statutory Wage Replacement Rate (§ 2 Abs. 1 & 2 BEEG)
  * Sliding scale from 65% to 100% based on pre-birth net income.
  */
-export function computeStatutoryReplacementRate(preBirthNet: NetSalary): number {
+export function computeStatutoryReplacementRate(
+  preBirthNet: NetSalary,
+): number {
   const net = preBirthNet as number;
   if (net <= 0) return 0.67;
 
   // Low income scale (§ 2 Abs. 2: < 1.000 € -> increases up to 100%)
   if (net < 1000) {
     const increase = (1000 - net) * 0.0005; // +0.1% per 2 €
-    return Math.min(1.00, 0.67 + increase);
+    return Math.min(1.0, 0.67 + increase);
   }
 
   // Standard zone: 1.000 € to 1.200 €
@@ -61,14 +63,22 @@ export function isElterngeldHoursEligible(weeklyHours: number): boolean {
  * Evaluates Statutory Partnerschaftsbonus Eligibility (§ 4b BEEG)
  * Both parents must simultaneously work between 24 and 32 hours per week.
  */
-export function isPartnerschaftsbonusEligible(motherHours: number, fatherHours: number): boolean {
-  return motherHours >= 24 && motherHours <= 32 && fatherHours >= 24 && fatherHours <= 32;
+export function isPartnerschaftsbonusEligible(
+  motherHours: number,
+  fatherHours: number,
+): boolean {
+  return (
+    motherHours >= 24 &&
+    motherHours <= 32 &&
+    fatherHours >= 24 &&
+    fatherHours <= 32
+  );
 }
 
 export function computeElterngeldBenefits(
   preBirthNet: NetSalary,
-  partTimeNetDuringLeave: NetSalary = (0 as unknown as NetSalary),
-  weeklyHours?: number
+  partTimeNetDuringLeave: NetSalary = 0 as unknown as NetSalary,
+  weeklyHours?: number,
 ): ElterngeldEntitlement {
   const pre = preBirthNet as number;
   const pt = partTimeNetDuringLeave as number;
@@ -85,7 +95,8 @@ export function computeElterngeldBenefits(
       elterngeldPlus: toEuroAmount(0),
       isMaxCapped: false,
       isMinFloorApplied: false,
-      statutoryCitation: 'BEEG § 1 Abs. 1 Nr. 4 (Ausschluss bei Erwerbstätigkeit > 32 Wochenstunden)'
+      statutoryCitation:
+        "BEEG § 1 Abs. 1 Nr. 4 (Ausschluss bei Erwerbstätigkeit > 32 Wochenstunden)",
     };
   }
 
@@ -112,6 +123,7 @@ export function computeElterngeldBenefits(
     elterngeldPlus: toEuroAmount(plus),
     isMaxCapped,
     isMinFloorApplied,
-    statutoryCitation: 'BEEG § 2 (Ersatzrate), § 4 (Basiselterngeld), § 4a (ElterngeldPlus)'
+    statutoryCitation:
+      "BEEG § 2 (Ersatzrate), § 4 (Basiselterngeld), § 4a (ElterngeldPlus)",
   };
 }

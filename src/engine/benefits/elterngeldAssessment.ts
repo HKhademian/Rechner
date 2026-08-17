@@ -4,8 +4,8 @@ import {
   type EuroAmount,
   toEuroAmount,
   toNetSalary,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 /**
  * Monthly Record in the 12-Month Assessment Period (Bemessungszeitraum § 2b BEEG)
@@ -22,7 +22,7 @@ export interface AssessmentMonthRecord {
  * The tax class active in at least 7 of the 12 months is locked as the dominant tax class.
  */
 export function determinePredominantTaxClass(
-  records: readonly AssessmentMonthRecord[]
+  records: readonly AssessmentMonthRecord[],
 ): {
   readonly dominantClass: TaxClass;
   readonly dominantClassCount: number;
@@ -34,7 +34,7 @@ export function determinePredominantTaxClass(
       dominantClass: TaxClass.IV,
       dominantClassCount: 0,
       isSyntheticClassApplied: false,
-      legalCitation: 'BEEG § 2b Abs. 1'
+      legalCitation: "BEEG § 2b Abs. 1",
     };
   }
 
@@ -45,10 +45,10 @@ export function determinePredominantTaxClass(
     [TaxClass.III]: 0,
     [TaxClass.IV]: 0,
     [TaxClass.V]: 0,
-    [TaxClass.VI]: 0
+    [TaxClass.VI]: 0,
   };
 
-  records.forEach(r => {
+  records.forEach((r) => {
     counts[r.taxClass] = (counts[r.taxClass] || 0) + 1;
   });
 
@@ -63,13 +63,15 @@ export function determinePredominantTaxClass(
   }
 
   // Statutory 7-Month Rule (§ 2b Abs. 1 Satz 3 BEEG)
-  const isSyntheticClassApplied = dominantClass === TaxClass.III && maxCount >= 7;
+  const isSyntheticClassApplied =
+    dominantClass === TaxClass.III && maxCount >= 7;
 
   return {
     dominantClass,
     dominantClassCount: maxCount,
     isSyntheticClassApplied,
-    legalCitation: 'BEEG § 2b Abs. 1 Satz 3 (*Überwiegende Steuerklasse*) & BFH VI R 2/13'
+    legalCitation:
+      "BEEG § 2b Abs. 1 Satz 3 (*Überwiegende Steuerklasse*) & BFH VI R 2/13",
   };
 }
 
@@ -78,7 +80,7 @@ export function determinePredominantTaxClass(
  * Exempts one-off special payments (Sonstige Bezüge § 2c Abs. 1 Satz 2).
  */
 export function computeAssessmentBaselineNet(
-  records: readonly AssessmentMonthRecord[]
+  records: readonly AssessmentMonthRecord[],
 ): {
   readonly averageMonthlyNet: NetSalary;
   readonly dominantTaxClass: TaxClass;
@@ -86,18 +88,20 @@ export function computeAssessmentBaselineNet(
   readonly excludedBonusesTotal: EuroAmount;
 } {
   if (!records || records.length !== 12) {
-    throw new Error(`BEEG § 2b requires exactly 12 assessment months. Received: ${records?.length || 0}`);
+    throw new Error(
+      `BEEG § 2b requires exactly 12 assessment months. Received: ${records?.length || 0}`,
+    );
   }
 
   let eligibleSum = 0;
   let excludedBonusSum = 0;
 
-  records.forEach(r => {
+  records.forEach((r) => {
     if (r.isOneOffBonus) {
       // Excluded under § 2c Abs. 1 Satz 2 BEEG
-      excludedBonusSum += (r.earnedNetSalary as number);
+      excludedBonusSum += r.earnedNetSalary as number;
     } else {
-      eligibleSum += (r.earnedNetSalary as number);
+      eligibleSum += r.earnedNetSalary as number;
     }
   });
 
@@ -108,6 +112,6 @@ export function computeAssessmentBaselineNet(
     averageMonthlyNet: toNetSalary(averageMonthly),
     dominantTaxClass: dominant.dominantClass,
     totalEligibleNet: toEuroAmount(eligibleSum),
-    excludedBonusesTotal: toEuroAmount(excludedBonusSum)
+    excludedBonusesTotal: toEuroAmount(excludedBonusSum),
   };
 }

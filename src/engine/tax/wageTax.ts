@@ -11,8 +11,8 @@ import {
   toGrossSalary,
   toNetSalary,
   toWorkingHours,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 /**
  * Determines the statutory § 32a EStG income tax tariff zone.
@@ -67,7 +67,10 @@ export function computeAnnualIncomeTax(zve: number): EuroAmount {
 /**
  * Statutory Solidarity Surcharge (§ 32a, SolzG 1995 § 3, § 4)
  */
-export function computeSolidaritySurcharge(annualTax: EuroAmount, isMarriedJoint: boolean = true): EuroAmount {
+export function computeSolidaritySurcharge(
+  annualTax: EuroAmount,
+  isMarriedJoint: boolean = true,
+): EuroAmount {
   const tax = annualTax as number;
   const exemptionLimit = isMarriedJoint ? 36260 : 18130; // Solz exemption threshold (§ 3 Abs. 3 SolzG)
   if (tax <= exemptionLimit) {
@@ -98,12 +101,12 @@ export interface SocialInsuranceDeductions {
 
 export function computeMonthlySocialSecurity(
   monthlyGross: GrossSalary,
-  childrenCount: number = 0
+  childrenCount: number = 0,
 ): SocialInsuranceDeductions {
   const gross = monthlyGross as number;
 
   // Monthly BBG 2024-2026
-  const healthPensionBBG = 5175;  // Health & Care Assessment Ceiling (€62.100 / yr)
+  const healthPensionBBG = 5175; // Health & Care Assessment Ceiling (€62.100 / yr)
   const generalPensionBBG = 7550; // Pension & Unemployment Assessment Ceiling (€90.600 / yr)
 
   const assessedHealthGross = Math.min(gross, healthPensionBBG);
@@ -115,11 +118,11 @@ export function computeMonthlySocialSecurity(
   const health = Math.round(assessedHealthGross * healthRate);
 
   // GRV: 18.6% / 2 = 9.30% (0.0930)
-  const pensionRate = 0.0930;
+  const pensionRate = 0.093;
   const pension = Math.round(assessedPensionGross * pensionRate);
 
   // AV: 2.6% / 2 = 1.30% (0.0130)
-  const unemploymentRate = 0.0130;
+  const unemploymentRate = 0.013;
   const unemployment = Math.round(assessedPensionGross * unemploymentRate);
 
   // PV: Base 2.2% employee share (Childless: +0.6% surcharge = 2.8%; With children: discount down to 1.2%)
@@ -128,7 +131,7 @@ export function computeMonthlySocialSecurity(
     careRate = 0.028; // Childless surcharge (§ 55 Abs. 3 SGB XI)
   } else {
     // SGB XI § 55 Abs. 3: -0.25% per child from 2nd to 5th child
-    const discount = Math.min(0.010, Math.max(0, childrenCount - 1) * 0.0025);
+    const discount = Math.min(0.01, Math.max(0, childrenCount - 1) * 0.0025);
     careRate = Math.round(Math.max(0.012, 0.022 - discount) * 10000) / 10000;
   }
   const care = Math.round(assessedHealthGross * careRate);
@@ -144,7 +147,7 @@ export function computeMonthlySocialSecurity(
     unemploymentInsuranceRate: unemploymentRate,
     careInsurance: toEuroAmount(care),
     careInsuranceRate: careRate,
-    totalSocialSecurity: toEuroAmount(total)
+    totalSocialSecurity: toEuroAmount(total),
   };
 }
 
@@ -154,13 +157,16 @@ export function computeMonthlySocialSecurity(
 export function computeAnnualWageTaxForClass(
   annualGross: number,
   annualSocialSecurity: number,
-  taxClass: TaxClass
+  taxClass: TaxClass,
 ): { annualTax: number; approxZvE: number } {
   const arbeitnehmerPauschbetrag = 1230; // § 9a Nr. 1a EStG
   const sonderausgabenPauschbetrag = 36; // § 10c EStG
   let approxZvE = Math.max(
     0,
-    annualGross - arbeitnehmerPauschbetrag - sonderausgabenPauschbetrag - annualSocialSecurity * 0.88
+    annualGross -
+      arbeitnehmerPauschbetrag -
+      sonderausgabenPauschbetrag -
+      annualSocialSecurity * 0.88,
   );
 
   let annualWageTax = 0;
@@ -177,7 +183,9 @@ export function computeAnnualWageTaxForClass(
       break;
     case TaxClass.III:
       // Tax Class III: Doubled basic allowance / applies splitting formula as sole earner (§ 38b Abs. 1 Nr. 3 EStG)
-      annualWageTax = Math.floor((computeAnnualIncomeTax(approxZvE / 2) as number) * 2);
+      annualWageTax = Math.floor(
+        (computeAnnualIncomeTax(approxZvE / 2) as number) * 2,
+      );
       break;
     case TaxClass.V:
       // Tax Class V: No basic allowance, higher progressive rate to offset Class III (§ 38b Abs. 1 Nr. 5 EStG)
@@ -189,7 +197,9 @@ export function computeAnnualWageTaxForClass(
       break;
     case TaxClass.VI:
       // Tax Class VI: Second job, zero basic allowance (§ 38b Abs. 1 Nr. 6 EStG)
-      annualWageTax = Math.floor(computeAnnualIncomeTax(approxZvE + 11784) as number);
+      annualWageTax = Math.floor(
+        computeAnnualIncomeTax(approxZvE + 11784) as number,
+      );
       break;
   }
 
@@ -203,13 +213,21 @@ export function computeSonstigeBezuegeTax(
   regularAnnualGross: number,
   regularAnnualSocialSecurity: number,
   bonusAmount: number,
-  taxClass: TaxClass
+  taxClass: TaxClass,
 ): number {
   if (bonusAmount <= 0) return 0;
 
-  const baseResult = computeAnnualWageTaxForClass(regularAnnualGross, regularAnnualSocialSecurity, taxClass);
+  const baseResult = computeAnnualWageTaxForClass(
+    regularAnnualGross,
+    regularAnnualSocialSecurity,
+    taxClass,
+  );
   const totalAnnualGross = regularAnnualGross + bonusAmount;
-  const totalResult = computeAnnualWageTaxForClass(totalAnnualGross, regularAnnualSocialSecurity, taxClass);
+  const totalResult = computeAnnualWageTaxForClass(
+    totalAnnualGross,
+    regularAnnualSocialSecurity,
+    taxClass,
+  );
 
   return Math.max(0, totalResult.annualTax - baseResult.annualTax);
 }
@@ -222,7 +240,7 @@ export function computeGrossToNetBreakdown(
   monthlyGross: GrossSalary,
   taxClass: TaxClass,
   childrenCount: number = 0,
-  oneOffBonus?: EuroAmount
+  oneOffBonus?: EuroAmount,
 ): GrossToNetBreakdown {
   const gross = monthlyGross as number;
   const bonus = oneOffBonus ? (oneOffBonus as number) : 0;
@@ -231,27 +249,46 @@ export function computeGrossToNetBreakdown(
   const social = computeMonthlySocialSecurity(monthlyGross, childrenCount);
   const annualSocial = (social.totalSocialSecurity as number) * 12;
 
-  const { annualTax, approxZvE } = computeAnnualWageTaxForClass(annualGross, annualSocial, taxClass);
+  const { annualTax, approxZvE } = computeAnnualWageTaxForClass(
+    annualGross,
+    annualSocial,
+    taxClass,
+  );
   const monthlyWageTax = Math.round(annualTax / 12);
-  const annualSolz = computeSolidaritySurcharge(toEuroAmount(annualTax), taxClass === TaxClass.III || taxClass === TaxClass.IV || taxClass === TaxClass.V) as number;
+  const annualSolz = computeSolidaritySurcharge(
+    toEuroAmount(annualTax),
+    taxClass === TaxClass.III ||
+      taxClass === TaxClass.IV ||
+      taxClass === TaxClass.V,
+  ) as number;
   const monthlySolz = Math.round(annualSolz / 12);
 
   // Bonus Differential Tax (§ 39b Abs. 3 EStG)
-  const bonusTax = bonus > 0
-    ? computeSonstigeBezuegeTax(annualGross, annualSocial, bonus, taxClass)
-    : 0;
+  const bonusTax =
+    bonus > 0
+      ? computeSonstigeBezuegeTax(annualGross, annualSocial, bonus, taxClass)
+      : 0;
 
   const totalMonthlyTax = monthlyWageTax + monthlySolz + bonusTax;
-  const totalDeductions = (social.totalSocialSecurity as number) + totalMonthlyTax;
+  const totalDeductions =
+    (social.totalSocialSecurity as number) + totalMonthlyTax;
   const totalGrossWithBonus = gross + bonus;
   const takeHomeNet = Math.max(0, totalGrossWithBonus - totalDeductions);
 
   // Clean Synthetic Net for Elterngeld (§ 2c BEEG - Excludes Non-Recurrent Bonuses)
-  const regularNetTakeHome = Math.max(0, gross - (social.totalSocialSecurity as number) - monthlyWageTax - monthlySolz);
+  const regularNetTakeHome = Math.max(
+    0,
+    gross -
+      (social.totalSocialSecurity as number) -
+      monthlyWageTax -
+      monthlySolz,
+  );
   const elterngeldSyntheticNet = toNetSalary(regularNetTakeHome);
 
-  const effectiveTaxRate = totalGrossWithBonus > 0 ? (totalMonthlyTax / totalGrossWithBonus) * 100 : 0;
-  const effectiveTotalDeductionRate = totalGrossWithBonus > 0 ? (totalDeductions / totalGrossWithBonus) * 100 : 0;
+  const effectiveTaxRate =
+    totalGrossWithBonus > 0 ? (totalMonthlyTax / totalGrossWithBonus) * 100 : 0;
+  const effectiveTotalDeductionRate =
+    totalGrossWithBonus > 0 ? (totalDeductions / totalGrossWithBonus) * 100 : 0;
 
   return {
     monthlyGross: toGrossSalary(gross),
@@ -277,12 +314,13 @@ export function computeGrossToNetBreakdown(
     monthlyNetTakeHome: toNetSalary(takeHomeNet),
     elterngeldSyntheticNet,
     effectiveTaxRatePercent: Math.round(effectiveTaxRate * 10) / 10,
-    effectiveTotalDeductionRatePercent: Math.round(effectiveTotalDeductionRate * 10) / 10,
+    effectiveTotalDeductionRatePercent:
+      Math.round(effectiveTotalDeductionRate * 10) / 10,
     statutoryCitation: toStatutoryCitation(
       bonus > 0
-        ? 'EStG § 38b (Lohnsteuer), § 39b Abs. 3 (Sonstige Bezüge) & BEEG § 2c'
-        : 'EStG § 38b (Lohnsteuerabzug) & § 32a (Tarif)'
-    )
+        ? "EStG § 38b (Lohnsteuer), § 39b Abs. 3 (Sonstige Bezüge) & BEEG § 2c"
+        : "EStG § 38b (Lohnsteuerabzug) & § 32a (Tarif)",
+    ),
   };
 }
 
@@ -293,9 +331,14 @@ export function computeMonthlyNetSalary(
   monthlyGross: GrossSalary,
   taxClass: TaxClass,
   childrenCount: number = 0,
-  oneOffBonus?: EuroAmount
+  oneOffBonus?: EuroAmount,
 ): NetSalary {
-  const breakdown = computeGrossToNetBreakdown(monthlyGross, taxClass, childrenCount, oneOffBonus);
+  const breakdown = computeGrossToNetBreakdown(
+    monthlyGross,
+    taxClass,
+    childrenCount,
+    oneOffBonus,
+  );
   return breakdown.monthlyNetTakeHome;
 }
 
@@ -307,24 +350,56 @@ export function deriveSpousalNetSalaries(
   wifeGrossFullTime: GrossSalary,
   wifePtHours: WorkingHours = toWorkingHours(24),
   wifeFtHours: WorkingHours = toWorkingHours(40),
-  childrenCount: number = 0
+  childrenCount: number = 0,
 ): SpousalGrossToNetSet {
   const hGross = husbandGross;
   const wGrossFT = wifeGrossFullTime;
 
-  const ptRatio = (wifePtHours as number) / (wifeFtHours as number || 40);
+  const ptRatio = (wifePtHours as number) / ((wifeFtHours as number) || 40);
   const wGrossPT = toGrossSalary(Math.round((wGrossFT as number) * ptRatio));
 
-  const hBreakdownClass3 = computeGrossToNetBreakdown(hGross, TaxClass.III, childrenCount);
-  const hBreakdownClass5 = computeGrossToNetBreakdown(hGross, TaxClass.V, childrenCount);
-  const hBreakdownClass4 = computeGrossToNetBreakdown(hGross, TaxClass.IV, childrenCount);
+  const hBreakdownClass3 = computeGrossToNetBreakdown(
+    hGross,
+    TaxClass.III,
+    childrenCount,
+  );
+  const hBreakdownClass5 = computeGrossToNetBreakdown(
+    hGross,
+    TaxClass.V,
+    childrenCount,
+  );
+  const hBreakdownClass4 = computeGrossToNetBreakdown(
+    hGross,
+    TaxClass.IV,
+    childrenCount,
+  );
 
-  const wBreakdownClass5FT = computeGrossToNetBreakdown(wGrossFT, TaxClass.V, childrenCount);
-  const wBreakdownClass3FT = computeGrossToNetBreakdown(wGrossFT, TaxClass.III, childrenCount);
-  const wBreakdownClass4FT = computeGrossToNetBreakdown(wGrossFT, TaxClass.IV, childrenCount);
+  const wBreakdownClass5FT = computeGrossToNetBreakdown(
+    wGrossFT,
+    TaxClass.V,
+    childrenCount,
+  );
+  const wBreakdownClass3FT = computeGrossToNetBreakdown(
+    wGrossFT,
+    TaxClass.III,
+    childrenCount,
+  );
+  const wBreakdownClass4FT = computeGrossToNetBreakdown(
+    wGrossFT,
+    TaxClass.IV,
+    childrenCount,
+  );
 
-  const wBreakdownClass5PT = computeGrossToNetBreakdown(wGrossPT, TaxClass.V, childrenCount);
-  const wBreakdownClass3PT = computeGrossToNetBreakdown(wGrossPT, TaxClass.III, childrenCount);
+  const wBreakdownClass5PT = computeGrossToNetBreakdown(
+    wGrossPT,
+    TaxClass.V,
+    childrenCount,
+  );
+  const wBreakdownClass3PT = computeGrossToNetBreakdown(
+    wGrossPT,
+    TaxClass.III,
+    childrenCount,
+  );
 
   return {
     husbandGross: hGross,
@@ -343,6 +418,6 @@ export function deriveSpousalNetSalaries(
     husbandBreakdownClass3: hBreakdownClass3,
     husbandBreakdownClass5: hBreakdownClass5,
     wifeBreakdownClass5FT: wBreakdownClass5FT,
-    wifeBreakdownClass3FT: wBreakdownClass3FT
+    wifeBreakdownClass3FT: wBreakdownClass3FT,
   };
 }

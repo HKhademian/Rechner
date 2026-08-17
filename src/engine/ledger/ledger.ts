@@ -11,7 +11,7 @@ import {
   toCalendarYear,
   toCalendarMonth,
   type ActionRowItem,
-} from '#engine/types';
+} from "#engine/types";
 
 export interface LedgerMonthInput {
   readonly month: SimulationMonth;
@@ -51,7 +51,7 @@ export function buildMonthlyLedgerEntry(
   runningCumulatedSalaries: number,
   runningCumulatedBenefits: number,
   runningCumulatedTaxRefunds: number,
-  runningCumulatedTotal: number
+  runningCumulatedTotal: number,
 ): {
   readonly entry: MonthlyLedgerEntry;
   readonly nextCumulatedSalaries: number;
@@ -71,12 +71,14 @@ export function buildMonthlyLedgerEntry(
   const kindergeld = input.kindergeld as number;
   const taxRefund = input.taxRefund as number;
 
-  const regularMonthlyTotal = hSalary + wSalary + mutterschutz + wElterngeld + hElterngeld + kindergeld;
-  
+  const regularMonthlyTotal =
+    hSalary + wSalary + mutterschutz + wElterngeld + hElterngeld + kindergeld;
+
   // Dynamically sum all financial special events (13th salaries, tax returns, and custom costs/income)
-  const specialEventsSum = (input.specialEvents && input.specialEvents.length > 0)
-    ? input.specialEvents.reduce((sum, ev) => sum + (ev.amount as number), 0)
-    : (specialBonusTotal + taxRefund);
+  const specialEventsSum =
+    input.specialEvents && input.specialEvents.length > 0
+      ? input.specialEvents.reduce((sum, ev) => sum + (ev.amount as number), 0)
+      : specialBonusTotal + taxRefund;
 
   const specialEventsTotal = specialEventsSum;
   const monthlyTotal = regularMonthlyTotal + specialEventsTotal;
@@ -126,7 +128,7 @@ export function buildMonthlyLedgerEntry(
     isMutterschutz: input.isMutterschutz,
     isPartnerschaftsbonus: input.isPartnerschaftsbonus,
     hasSiblingBonus: input.hasSiblingBonus,
-    transactions: input.transactions
+    transactions: input.transactions,
   };
 
   return {
@@ -134,6 +136,6 @@ export function buildMonthlyLedgerEntry(
     nextCumulatedSalaries,
     nextCumulatedBenefits,
     nextCumulatedTaxRefunds,
-    nextCumulatedTotal
+    nextCumulatedTotal,
   };
 }

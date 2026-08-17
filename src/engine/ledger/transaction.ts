@@ -8,8 +8,8 @@ import {
   type StatutoryCitation,
   type AccountingTransaction,
   toTransactionId,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 export interface CreateTransactionParams {
   readonly transactionId: string;
@@ -27,7 +27,9 @@ export interface CreateTransactionParams {
 /**
  * Creates an immutable, traceable accounting transaction entry
  */
-export function createTransaction(params: CreateTransactionParams): AccountingTransaction {
+export function createTransaction(
+  params: CreateTransactionParams,
+): AccountingTransaction {
   return {
     transactionId: toTransactionId(params.transactionId),
     month: params.month,
@@ -38,6 +40,6 @@ export function createTransaction(params: CreateTransactionParams): AccountingTr
     statutoryCitation: toStatutoryCitation(params.statutoryCitation),
     taxClassLabel: params.taxClassLabel,
     description: params.description,
-    auditTrail: params.auditTrail
+    auditTrail: params.auditTrail,
   };
 }

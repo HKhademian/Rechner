@@ -2,8 +2,8 @@ import {
   type NetSalary,
   type EuroAmount,
   toEuroAmount,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 /**
  * Maternity Protection Wage Replacement (§ 19, § 20 MuSchG)
@@ -13,13 +13,13 @@ import {
  */
 export interface MutterschutzBenefit {
   readonly healthInsuranceShare: EuroAmount; // Mutterschaftsgeld (max €13/day ~ €390/mo from GKV)
-  readonly employerSupplement: EuroAmount;   // Arbeitgeberzuschuss (§ 20 MuSchG)
+  readonly employerSupplement: EuroAmount; // Arbeitgeberzuschuss (§ 20 MuSchG)
   readonly totalMaternityBenefit: EuroAmount;
   readonly statutoryCitation: string;
 }
 
 export function computeMonthlyMutterschutz(
-  preBirthNetSalary: NetSalary
+  preBirthNetSalary: NetSalary,
 ): MutterschutzBenefit {
   const net = preBirthNetSalary as number;
   if (net <= 0) {
@@ -27,7 +27,7 @@ export function computeMonthlyMutterschutz(
       healthInsuranceShare: toEuroAmount(0),
       employerSupplement: toEuroAmount(0),
       totalMaternityBenefit: toEuroAmount(0),
-      statutoryCitation: 'MuSchG § 19, § 20'
+      statutoryCitation: "MuSchG § 19, § 20",
     };
   }
 
@@ -39,6 +39,7 @@ export function computeMonthlyMutterschutz(
     healthInsuranceShare: toEuroAmount(gkvShare),
     employerSupplement: toEuroAmount(employerShare),
     totalMaternityBenefit: toEuroAmount(net),
-    statutoryCitation: 'MuSchG § 19 (Mutterschaftsgeld) & § 20 (Arbeitgeberzuschuss)'
+    statutoryCitation:
+      "MuSchG § 19 (Mutterschaftsgeld) & § 20 (Arbeitgeberzuschuss)",
   };
 }

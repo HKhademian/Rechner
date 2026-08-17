@@ -1,8 +1,8 @@
 import {
   type EuroAmount,
   toEuroAmount,
-  toStatutoryCitation
-} from '#engine/types';
+  toStatutoryCitation,
+} from "#engine/types";
 
 /**
  * Statutory Child Benefit Calculation (§ 66 EStG)
@@ -16,14 +16,14 @@ export interface KindergeldEntitlement {
 
 export function computeKindergeld(
   childrenCount: number,
-  customRatePerChild: EuroAmount = toEuroAmount(259)
+  customRatePerChild: EuroAmount = toEuroAmount(259),
 ): KindergeldEntitlement {
   if (childrenCount <= 0) {
     return {
       childrenCount: 0,
       ratePerChild: customRatePerChild,
       totalMonthlyKindergeld: toEuroAmount(0),
-      statutoryCitation: 'EStG § 66'
+      statutoryCitation: "EStG § 66",
     };
   }
 
@@ -35,6 +35,6 @@ export function computeKindergeld(
     childrenCount: count,
     ratePerChild: customRatePerChild,
     totalMonthlyKindergeld: toEuroAmount(total),
-    statutoryCitation: 'EStG § 66 (*Kindergeld*)'
+    statutoryCitation: "EStG § 66 (*Kindergeld*)",
   };
 }
