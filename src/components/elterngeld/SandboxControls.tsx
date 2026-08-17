@@ -53,6 +53,7 @@ import {
   customPregnancies,
   customTaxClassSwitches,
   customSalaryRaises,
+  customWorkingHoursChanges,
   customFinancialEvents,
   addPregnancyAction,
   removePregnancyAction,
@@ -60,6 +61,9 @@ import {
   removeTaxClassSwitchAction,
   addSalaryRaiseAction,
   removeSalaryRaiseAction,
+  addWorkingHoursChangeAction,
+  updateWorkingHoursChangeAction,
+  removeWorkingHoursChangeAction,
   addFinancialEventAction,
   removeFinancialEventAction,
   updateFinancialEventAction,
@@ -81,7 +85,9 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toHoursChangeId,
   toFinancialEventId,
+  type WorkingHoursChangeAction,
 } from "#engine/types";
 import {
   ConfigureSandboxIcon,
@@ -1894,51 +1900,109 @@ export default function SandboxControls(): JSX.Element {
                     3. Salaries, Working Times &amp; Career Progression
                   </span>
                   <span className="badge-warning">
-                    {customSalaryRaises.value.length} Raises Active
+                    {customWorkingHoursChanges.value.length} Schedules ·{" "}
+                    {customSalaryRaises.value.length} Raises
                   </span>
                 </div>
 
-                {/* Add Career Raise Action Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const count = customSalaryRaises.value.length;
-                    const newSimMonth = (count + 2) * 12 + 1;
-                    const totalElapsed =
-                      startCalendarMonth.value - 1 + (newSimMonth - 1);
-                    const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                    const sYear =
-                      startCalendarYear.value + Math.floor(totalElapsed / 12);
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {/* Add Working Hours Adjustment Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const count = customWorkingHoursChanges.value.length;
+                      const target =
+                        count % 2 === 0
+                          ? TargetPerson.Wife
+                          : TargetPerson.Husband;
+                      const defaultMonth = Math.min(
+                        simulationDurationMonths.value,
+                        (child1BirthMonth.value as number) +
+                          (count === 0 ? 2 : 14),
+                      );
+                      const totalElapsed =
+                        startCalendarMonth.value - 1 + (defaultMonth - 1);
+                      const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                      const sYear =
+                        startCalendarYear.value + Math.floor(totalElapsed / 12);
 
-                    addSalaryRaiseAction({
-                      raiseId: toRaiseId(`RAISE-CUSTOM-${count + 1}`),
-                      effectiveSimulationMonth: toSimulationMonth(
-                        Math.min(simulationDurationMonths.value, newSimMonth),
-                      ),
-                      effectiveCalendarMonth: sMonth,
-                      effectiveCalendarYear: sYear,
-                      targetPerson: TargetPerson.Both,
-                      percentageIncrease: 0.05,
-                      reason: `Merit Promotion / Tariff Adjustment (+5%)`,
-                    });
-                  }}
-                  style={{
-                    padding: "5px 12px",
-                    background: "var(--color-warning-bg)",
-                    color: "var(--color-warning)",
-                    border: "1px solid var(--color-warning-border)",
-                    borderRadius: "var(--border-radius-sm)",
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <AddActionIcon size={12} />
-                  <span>Add Career Raise / Promotion</span>
-                </button>
+                      addWorkingHoursChangeAction({
+                        changeId: toHoursChangeId(`HOURS-${Date.now()}`),
+                        effectiveSimulationMonth:
+                          toSimulationMonth(defaultMonth),
+                        effectiveCalendarMonth: sMonth,
+                        effectiveCalendarYear: sYear,
+                        targetPerson: target,
+                        weeklyHours: toWorkingHours(
+                          target === TargetPerson.Husband ? 32 : 24,
+                        ),
+                        reason:
+                          target === TargetPerson.Husband
+                            ? `Husband Parental Leave Hours (§ 4b BEEG)`
+                            : `Wife Post-Birth Part-Time Return`,
+                      });
+                    }}
+                    style={{
+                      padding: "5px 12px",
+                      background: "var(--color-primary-bg)",
+                      color: "var(--color-primary)",
+                      border:
+                        "1px solid var(--color-primary-border, var(--border-subtle))",
+                      borderRadius: "var(--border-radius-sm)",
+                      fontSize: "0.74rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <AddActionIcon size={12} />
+                    <span>+ Add Working Time Change</span>
+                  </button>
+
+                  {/* Add Career Raise Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const count = customSalaryRaises.value.length;
+                      const newSimMonth = (count + 2) * 12 + 1;
+                      const totalElapsed =
+                        startCalendarMonth.value - 1 + (newSimMonth - 1);
+                      const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                      const sYear =
+                        startCalendarYear.value + Math.floor(totalElapsed / 12);
+
+                      addSalaryRaiseAction({
+                        raiseId: toRaiseId(`RAISE-CUSTOM-${count + 1}`),
+                        effectiveSimulationMonth: toSimulationMonth(
+                          Math.min(simulationDurationMonths.value, newSimMonth),
+                        ),
+                        effectiveCalendarMonth: sMonth,
+                        effectiveCalendarYear: sYear,
+                        targetPerson: TargetPerson.Both,
+                        percentageIncrease: 0.05,
+                        reason: `Merit Promotion / Tariff Adjustment (+5%)`,
+                      });
+                    }}
+                    style={{
+                      padding: "5px 12px",
+                      background: "var(--color-warning-bg)",
+                      color: "var(--color-warning)",
+                      border: "1px solid var(--color-warning-border)",
+                      borderRadius: "var(--border-radius-sm)",
+                      fontSize: "0.74rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <AddActionIcon size={12} />
+                    <span>+ Add Career Raise / Promotion</span>
+                  </button>
+                </div>
               </div>
 
               {/* Dynamic Salaries & Career Controls Grid: Columns with Auto-Wrap */}
@@ -2470,364 +2534,564 @@ export default function SandboxControls(): JSX.Element {
                   </div>
                 </div>
 
-                {/* ENTRY 4: WIFE POST-BIRTH PART-TIME RETURN TO WORK */}
-                <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
+                {/* ENTRY 4: DYNAMIC SCHEDULE & WORKING TIME ADJUSTMENT CARDS */}
+                {customWorkingHoursChanges.value.map((whc, idx) => {
+                  const sMonth = whc.effectiveSimulationMonth as number;
+                  const isWife = whc.targetPerson === TargetPerson.Wife;
+                  const isHusband = whc.targetPerson === TargetPerson.Husband;
+                  const isBoth = whc.targetPerson === TargetPerson.Both;
+                  const hours = whc.weeklyHours as number;
+
+                  // Proportional earnings & benefits estimation
+                  const baselineWifeH = wifeInitialHours.value || 40;
+                  const baselineHusbandH = husbandHours.value || 40;
+                  const wifeRatio =
+                    baselineWifeH > 0 ? hours / baselineWifeH : 0;
+                  const husbandRatio =
+                    baselineHusbandH > 0 ? hours / baselineHusbandH : 0;
+
+                  const ptGross = isWife
+                    ? Math.round(wifeGross.value * wifeRatio)
+                    : Math.round(husbandGross.value * husbandRatio);
+
+                  const ptNet = isWife
+                    ? Math.round(
+                        (derivedSpousalSet.value
+                          .wifeClass5FullTimeNet as number) * wifeRatio,
+                      )
+                    : Math.round(
+                        (derivedSpousalSet.value.husbandClass3Net as number) *
+                          husbandRatio,
+                      );
+
+                  const estimatedEgPlus = isWife
+                    ? hours > 32
+                      ? 0
+                      : Math.min(
+                          900,
+                          Math.max(
+                            150,
+                            Math.round(
+                              Math.max(
+                                0,
+                                (derivedSpousalSet.value
+                                  .wifeClass3FullTimeNet as number) - ptNet,
+                              ) * 0.65,
+                            ),
+                          ),
+                        )
+                    : hours >= 24 && hours <= 32
+                      ? 150
+                      : 0;
+
+                  const totalInflow = ptNet + estimatedEgPlus;
+
+                  return (
                     <div
+                      key={whc.changeId || `hours-change-${idx}`}
                       style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--series-cyan)",
-                        marginBottom: "6px",
+                        background: "var(--bg-surface-secondary)",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
+                        border: isWife
+                          ? "1px solid rgba(6, 182, 212, 0.4)"
+                          : isHusband
+                            ? "1px solid rgba(59, 130, 246, 0.4)"
+                            : "1px solid var(--border-subtle)",
                         display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        gap: "8px",
                       }}
                     >
-                      <ChildBirthMilestoneIcon size={13} />
-                      <span>Wife Post-Birth Part-Time Return</span>
-                    </div>
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          Post-Birth PT Time:
-                        </span>
-                        <span
+                      <div>
+                        {/* Header: Title & Delete Button */}
+                        <div
                           style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--series-cyan)",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "6px",
                           }}
                         >
-                          {formatWorkingTime(wifePostBirthHours.value)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="40"
-                        step="1"
-                        value={wifePostBirthHours.value}
-                        onInput={(e) => {
-                          setWifePostBirthHours(
-                            Number((e.target as HTMLInputElement).value),
-                          );
-                        }}
-                      />
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "3px",
-                          marginTop: "3px",
-                        }}
-                      >
-                        {[
-                          { label: "32h (4d PB)", val: 32 },
-                          { label: "24h (3d PB)", val: 24 },
-                          { label: "16h (2d)", val: 16 },
-                          { label: "0h (Leave)", val: 0 },
-                        ].map((pill) => (
-                          <button
-                            key={`pb-pill-${pill.val}`}
-                            type="button"
-                            onClick={() => setWifePostBirthHours(pill.val)}
+                          <span
                             style={{
-                              padding: "1px 5px",
-                              fontSize: "0.62rem",
-                              borderRadius: "3px",
-                              border:
-                                wifePostBirthHours.value === pill.val
-                                  ? "1px solid var(--series-cyan)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                wifePostBirthHours.value === pill.val
-                                  ? "var(--color-primary-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                wifePostBirthHours.value === pill.val
-                                  ? "var(--series-cyan)"
-                                  : "var(--text-muted)",
-                              cursor: "pointer",
-                              fontWeight: 600,
+                              fontSize: "0.78rem",
+                              fontWeight: 800,
+                              color: isWife
+                                ? "var(--series-cyan)"
+                                : isHusband
+                                  ? "var(--color-primary)"
+                                  : "var(--series-indigo)",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
                             }}
                           >
-                            {pill.label}
+                            <ChildBirthMilestoneIcon size={13} />
+                            <span>
+                              Schedule #{idx + 1}:{" "}
+                              {whc.targetPerson.toUpperCase()}
+                            </span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeWorkingHoursChangeAction(whc.changeId)
+                            }
+                            style={{
+                              background: "var(--color-loss-bg)",
+                              color: "var(--color-loss)",
+                              border: "1px solid var(--color-loss-border)",
+                              borderRadius: "3px",
+                              padding: "2px 6px",
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <RemoveItemIcon size={11} />
                           </button>
-                        ))}
+                        </div>
+
+                        {/* Target Person & Effective Month Selectors */}
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "6px",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <div>
+                            <label
+                              style={{
+                                display: "block",
+                                fontSize: "0.65rem",
+                                color: "var(--text-muted)",
+                                marginBottom: "2px",
+                              }}
+                            >
+                              Person:
+                            </label>
+                            <select
+                              value={whc.targetPerson}
+                              onChange={(e) => {
+                                updateWorkingHoursChangeAction(whc.changeId, {
+                                  targetPerson: (e.target as HTMLSelectElement)
+                                    .value as TargetPerson,
+                                });
+                              }}
+                              style={{
+                                width: "100%",
+                                padding: "4px 6px",
+                                fontSize: "0.72rem",
+                                borderRadius: "4px",
+                                border: "1px solid var(--border-subtle)",
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                              }}
+                            >
+                              <option value={TargetPerson.Wife}>
+                                Wife (Mother)
+                              </option>
+                              <option value={TargetPerson.Husband}>
+                                Husband (Father)
+                              </option>
+                              <option value={TargetPerson.Both}>
+                                Both Spouses
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              style={{
+                                display: "block",
+                                fontSize: "0.65rem",
+                                color: "var(--text-muted)",
+                                marginBottom: "2px",
+                              }}
+                            >
+                              Effective Date:
+                            </label>
+                            <select
+                              value={whc.effectiveSimulationMonth}
+                              onChange={(e) => {
+                                const newMonth = Number(
+                                  (e.target as HTMLSelectElement).value,
+                                );
+                                const totalElapsed =
+                                  startCalendarMonth.value - 1 + (newMonth - 1);
+                                const calM = toCalendarMonth(
+                                  (totalElapsed % 12) + 1,
+                                );
+                                const calY =
+                                  startCalendarYear.value +
+                                  Math.floor(totalElapsed / 12);
+                                updateWorkingHoursChangeAction(whc.changeId, {
+                                  effectiveSimulationMonth:
+                                    toSimulationMonth(newMonth),
+                                  effectiveCalendarMonth: calM,
+                                  effectiveCalendarYear: calY,
+                                });
+                              }}
+                              style={{
+                                width: "100%",
+                                padding: "4px 6px",
+                                fontSize: "0.72rem",
+                                borderRadius: "4px",
+                                border: "1px solid var(--border-subtle)",
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                              }}
+                            >
+                              {Array.from(
+                                { length: simulationDurationMonths.value },
+                                (_, i) => i + 1,
+                              ).map((m) => (
+                                <option key={`whc-m-${m}`} value={m}>
+                                  {getCalDate(m)} (M{m})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Working Hours Slider & Comfort Badges */}
+                        <div style={{ marginBottom: "6px" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              fontSize: "0.72rem",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            <span style={{ color: "var(--text-secondary)" }}>
+                              Working Time:
+                            </span>
+                            <span
+                              style={{
+                                fontVariantNumeric: "tabular-nums",
+                                fontWeight: 700,
+                                color: isWife
+                                  ? "var(--series-cyan)"
+                                  : "var(--color-primary)",
+                              }}
+                            >
+                              {formatWorkingTime(whc.weeklyHours)}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="60"
+                            step="1"
+                            value={whc.weeklyHours}
+                            onInput={(e) => {
+                              const newHours = Number(
+                                (e.target as HTMLInputElement).value,
+                              );
+                              updateWorkingHoursChangeAction(whc.changeId, {
+                                weeklyHours: toWorkingHours(newHours),
+                              });
+                              if (isWife && idx === 0) {
+                                setWifePostBirthHours(newHours);
+                              }
+                            }}
+                          />
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              marginTop: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {[
+                              { label: "40h (5d)", val: 40 },
+                              { label: "32h (4d PB)", val: 32 },
+                              { label: "24h (3d PB)", val: 24 },
+                              { label: "16h (2d)", val: 16 },
+                              { label: "0h (Leave)", val: 0 },
+                            ].map((pill) => (
+                              <button
+                                key={`whc-${whc.changeId}-pill-${pill.val}`}
+                                type="button"
+                                onClick={() => {
+                                  updateWorkingHoursChangeAction(whc.changeId, {
+                                    weeklyHours: toWorkingHours(pill.val),
+                                  });
+                                  if (isWife && idx === 0) {
+                                    setWifePostBirthHours(pill.val);
+                                  }
+                                }}
+                                style={{
+                                  padding: "1px 5px",
+                                  fontSize: "0.62rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    whc.weeklyHours === pill.val
+                                      ? "1px solid var(--series-cyan)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    whc.weeklyHours === pill.val
+                                      ? "var(--color-primary-bg)"
+                                      : "var(--bg-surface)",
+                                  color:
+                                    whc.weeklyHours === pill.val
+                                      ? "var(--series-cyan)"
+                                      : "var(--text-muted)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {pill.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Reason input */}
+                        <div style={{ marginBottom: "6px" }}>
+                          <input
+                            type="text"
+                            value={whc.reason}
+                            placeholder="Reason (e.g. Part-time return)"
+                            onInput={(e) => {
+                              updateWorkingHoursChangeAction(whc.changeId, {
+                                reason: (e.target as HTMLInputElement).value,
+                              });
+                            }}
+                            style={{
+                              width: "100%",
+                              padding: "4px 6px",
+                              fontSize: "0.68rem",
+                              borderRadius: "4px",
+                              border: "1px solid var(--border-subtle)",
+                              background: "var(--bg-surface)",
+                              color: "var(--text-primary)",
+                            }}
+                          />
+                        </div>
+
+                        {/* Statutory Corridor Validation Indicator */}
+                        {hours > 32 ? (
+                          <div
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              fontSize: "0.65rem",
+                              color: "var(--color-loss)",
+                              background: "var(--color-loss-bg)",
+                              padding: "3px 5px",
+                              borderRadius: "4px",
+                              marginTop: "4px",
+                              fontWeight: 600,
+                              border: "1px solid var(--color-loss-border)",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            <StatutoryLimitationWarningIcon size={11} />
+                            <span>
+                              &gt; 32h/week disqualifies from Elterngeld (§ 1
+                              BEEG).
+                            </span>
+                          </div>
+                        ) : hours >= 24 && hours <= 32 ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              scrollToLegalRule(
+                                LegalRuleKey.BEEG_PartnershipBonus,
+                              )
+                            }
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              fontSize: "0.65rem",
+                              color: "var(--color-gain)",
+                              background: "var(--color-gain-bg)",
+                              padding: "3px 5px",
+                              borderRadius: "4px",
+                              marginTop: "4px",
+                              fontWeight: 600,
+                              border: "1px solid var(--color-gain-border)",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                            title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
+                          >
+                            <EligibilityConfirmedIcon size={11} />
+                            <span>
+                              Partnerschaftsbonus (§ 4b BEEG) OK (24–32h / 3–4d)
+                            </span>
+                            <ExternalLegalSourceIcon size={10} />
+                          </button>
+                        ) : hours === 0 ? (
+                          <div
+                            style={{
+                              fontSize: "0.65rem",
+                              color: "var(--color-primary)",
+                              background: "var(--color-primary-bg)",
+                              padding: "3px 5px",
+                              borderRadius: "4px",
+                              marginTop: "4px",
+                            }}
+                          >
+                            ℹ Full Parental Leave (0h / week · 100% leave)
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              scrollToLegalRule(
+                                LegalRuleKey.BEEG_PartnershipBonus,
+                              )
+                            }
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              fontSize: "0.65rem",
+                              color: "var(--color-warning)",
+                              background: "var(--color-warning-bg)",
+                              padding: "3px 5px",
+                              borderRadius: "4px",
+                              marginTop: "4px",
+                              fontWeight: 600,
+                              border: "1px solid var(--color-warning-border)",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                            title="Click to view § 4b BEEG corridor requirements"
+                          >
+                            <InformationalNoticeIcon size={11} />
+                            <span>
+                              ElterngeldPlus eligible, outside PB corridor
+                              (24–32h)
+                            </span>
+                            <ExternalLegalSourceIcon size={10} />
+                          </button>
+                        )}
                       </div>
 
-                      {/* Statutory Elterngeld & Partnership Bonus Indicators */}
-                      {wifePostBirthHours.value > 32 ? (
-                        <div
-                          style={{
-                            width: "100%",
-                            textAlign: "left",
-                            fontSize: "0.65rem",
-                            color: "var(--color-loss)",
-                            background: "var(--color-loss-bg)",
-                            padding: "3px 5px",
-                            borderRadius: "4px",
-                            marginTop: "4px",
-                            fontWeight: 600,
-                            border: "1px solid var(--color-loss-border)",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
-                        >
-                          <StatutoryLimitationWarningIcon size={11} />
-                          <span>
-                            &gt; 32h/week disqualifies from Elterngeld (§ 1
-                            BEEG).
-                          </span>
-                        </div>
-                      ) : wifePostBirthHours.value >= 24 &&
-                        wifePostBirthHours.value <= 32 ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            scrollToLegalRule(
-                              LegalRuleKey.BEEG_PartnershipBonus,
-                            )
-                          }
-                          style={{
-                            width: "100%",
-                            textAlign: "left",
-                            fontSize: "0.65rem",
-                            color: "var(--color-gain)",
-                            background: "var(--color-gain-bg)",
-                            padding: "3px 5px",
-                            borderRadius: "4px",
-                            marginTop: "4px",
-                            fontWeight: 600,
-                            border: "1px solid var(--color-gain-border)",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
-                          title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
-                        >
-                          <EligibilityConfirmedIcon size={11} />
-                          <span>
-                            Partnerschaftsbonus (§ 4b BEEG) OK (24–32h / 3–4d)
-                          </span>
-                          <ExternalLegalSourceIcon size={10} />
-                        </button>
-                      ) : wifePostBirthHours.value === 0 ? (
-                        <div
-                          style={{
-                            fontSize: "0.65rem",
-                            color: "var(--color-primary)",
-                            background: "var(--color-primary-bg)",
-                            padding: "3px 5px",
-                            borderRadius: "4px",
-                            marginTop: "4px",
-                          }}
-                        >
-                          ℹ Full Parental Leave (0h / week · 100% leave)
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            scrollToLegalRule(
-                              LegalRuleKey.BEEG_PartnershipBonus,
-                            )
-                          }
-                          style={{
-                            width: "100%",
-                            textAlign: "left",
-                            fontSize: "0.65rem",
-                            color: "var(--color-warning)",
-                            background: "var(--color-warning-bg)",
-                            padding: "3px 5px",
-                            borderRadius: "4px",
-                            marginTop: "4px",
-                            fontWeight: 600,
-                            border: "1px solid var(--color-warning-border)",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
-                          title="Click to view § 4b BEEG corridor requirements"
-                        >
-                          <InformationalNoticeIcon size={11} />
-                          <span>
-                            ElterngeldPlus eligible, outside PB corridor
-                            (24–32h)
-                          </span>
-                          <ExternalLegalSourceIcon size={10} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "4px",
-                        fontSize: "0.66rem",
-                        flexWrap: "wrap",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      <span className="badge-warning">
-                        PT Gross:{" "}
-                        {formatCurrency(
-                          salaryPeriod.value === SalaryPeriod.Yearly
-                            ? (derivedSpousalSet.value
-                                .wifeGrossPartTime as number) * 12
-                            : (derivedSpousalSet.value
-                                .wifeGrossPartTime as number),
-                        )}
-                      </span>
-                      <span className="badge-muted">
-                        PT Net (Cl. V):{" "}
-                        <strong>
-                          {formatCurrency(
-                            salaryPeriod.value === SalaryPeriod.Yearly
-                              ? (derivedSpousalSet.value
-                                  .wifeClass5PartTimeNet as number) * 12
-                              : (derivedSpousalSet.value
-                                  .wifeClass5PartTimeNet as number),
-                          )}
-                        </strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Statutory ElterngeldPlus Replacement Calculation */}
-                  <div
-                    style={{
-                      background: "var(--bg-surface)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "5px",
-                      padding: "5px 7px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "2px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.66rem",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)
-                        }
+                      {/* Proportional Salary Preview & Total Inflow */}
+                      <div
                         style={{
-                          background: "none",
-                          border: "none",
-                          color: "var(--text-secondary)",
-                          padding: 0,
-                          cursor: "pointer",
-                          fontSize: "0.66rem",
-                          textAlign: "left",
-                          textDecoration: "underline",
-                          display: "inline-flex",
-                          alignItems: "center",
+                          background: "var(--bg-surface)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "5px",
+                          padding: "5px 7px",
+                          display: "flex",
+                          flexDirection: "column",
                           gap: "2px",
                         }}
-                        title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
                       >
-                        <span>ElterngeldPlus (65% loss)</span>
-                        <ExternalLegalSourceIcon size={9} />:
-                      </button>
-                      <strong
-                        style={{
-                          color: "var(--color-gain)",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        +
-                        {formatCurrency(
-                          wifePostBirthHours.value > 32
-                            ? 0
-                            : Math.min(
-                                900,
-                                Math.max(
-                                  150,
-                                  Math.round(
-                                    Math.max(
-                                      0,
-                                      (derivedSpousalSet.value
-                                        .wifeClass3FullTimeNet as number) -
-                                        (derivedSpousalSet.value
-                                          .wifeClass5PartTimeNet as number),
-                                    ) * 0.65,
-                                  ),
-                                ),
-                              ),
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "0.66rem",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          <span>Proportional Gross:</span>
+                          <strong
+                            style={{ fontVariantNumeric: "tabular-nums" }}
+                          >
+                            {formatCurrency(
+                              salaryPeriod.value === SalaryPeriod.Yearly
+                                ? ptGross * 12
+                                : ptGross,
+                            )}
+                            {salaryPeriod.value === SalaryPeriod.Yearly
+                              ? "/yr"
+                              : "/mo"}
+                          </strong>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "0.66rem",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          <span>Part-Time Net:</span>
+                          <strong
+                            style={{ fontVariantNumeric: "tabular-nums" }}
+                          >
+                            {formatCurrency(
+                              salaryPeriod.value === SalaryPeriod.Yearly
+                                ? ptNet * 12
+                                : ptNet,
+                            )}
+                            {salaryPeriod.value === SalaryPeriod.Yearly
+                              ? "/yr"
+                              : "/mo"}
+                          </strong>
+                        </div>
+                        {isWife && (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              fontSize: "0.66rem",
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            <span>ElterngeldPlus (+65%):</span>
+                            <strong
+                              style={{
+                                color: "var(--color-gain)",
+                                fontVariantNumeric: "tabular-nums",
+                              }}
+                            >
+                              +{formatCurrency(estimatedEgPlus)}/mo
+                            </strong>
+                          </div>
                         )}
-                      </strong>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "0.68rem",
+                            color: "var(--text-primary)",
+                            borderTop: "1px solid var(--border-subtle)",
+                            paddingTop: "2px",
+                            fontWeight: 700,
+                          }}
+                        >
+                          <span>Total Inflow:</span>
+                          <span
+                            style={{
+                              color: "var(--color-gain)",
+                              fontVariantNumeric: "tabular-nums",
+                            }}
+                          >
+                            {formatCurrency(
+                              salaryPeriod.value === SalaryPeriod.Yearly
+                                ? totalInflow * 12
+                                : totalInflow,
+                            )}
+                            {salaryPeriod.value === SalaryPeriod.Yearly
+                              ? "/yr"
+                              : "/mo"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.68rem",
-                        color: "var(--text-primary)",
-                        borderTop: "1px solid var(--border-subtle)",
-                        paddingTop: "2px",
-                        fontWeight: 700,
-                      }}
-                    >
-                      <span>Total Mother Inflow:</span>
-                      <span
-                        style={{
-                          color: "var(--color-gain)",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        {formatCurrency(
-                          (derivedSpousalSet.value
-                            .wifeClass5PartTimeNet as number) +
-                            (wifePostBirthHours.value > 32
-                              ? 0
-                              : Math.min(
-                                  900,
-                                  Math.max(
-                                    150,
-                                    Math.round(
-                                      Math.max(
-                                        0,
-                                        (derivedSpousalSet.value
-                                          .wifeClass3FullTimeNet as number) -
-                                          (derivedSpousalSet.value
-                                            .wifeClass5PartTimeNet as number),
-                                      ) * 0.65,
-                                    ),
-                                  ),
-                                )),
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
 
                 {/* ENTRY 5: Career Raises & Promotions Cards */}
                 {customSalaryRaises.value.map((sr, idx) => {
