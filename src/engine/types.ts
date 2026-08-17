@@ -3,14 +3,19 @@
  * Enforces nominal typing and subtype inheritance hierarchies in TypeScript.
  */
 declare const _BRAND_TAG: unique symbol;
-declare const _BRAND_KIND: unique symbol;
+declare const _SUB_BRAND_TAG: unique symbol;
+declare const _ACTION_SUB_BRAND_TAG: unique symbol;
 
 export type Brand<Base, Tag extends string> = Base & {
   readonly [_BRAND_TAG]: Tag;
 };
 
 export type SubBrand<ParentBrand, SubTag extends string> = ParentBrand & {
-  readonly [_BRAND_KIND]: SubTag;
+  readonly [_SUB_BRAND_TAG]: SubTag;
+};
+
+export type ActionSubBrand<ParentBrand, SubTag extends string> = ParentBrand & {
+  readonly [_ACTION_SUB_BRAND_TAG]: SubTag;
 };
 
 // Temporal & Timeline Nominal Types
@@ -34,10 +39,10 @@ export type EventId = SubBrand<EntityId, 'EventId'>;
 
 // Discrete Batch Action Identifier Hierarchy (Subtypes of ActionId & EntityId)
 export type ActionId = SubBrand<EntityId, 'ActionId'>;
-export type PregnancyId = SubBrand<ActionId, 'PregnancyId'>;
-export type SwitchId = SubBrand<ActionId, 'SwitchId'>;
-export type RaiseId = SubBrand<ActionId, 'RaiseId'>;
-export type FinancialEventId = SubBrand<ActionId, 'FinancialEventId'>;
+export type PregnancyId = ActionSubBrand<ActionId, 'PregnancyId'>;
+export type SwitchId = ActionSubBrand<ActionId, 'SwitchId'>;
+export type RaiseId = ActionSubBrand<ActionId, 'RaiseId'>;
+export type FinancialEventId = ActionSubBrand<ActionId, 'FinancialEventId'>;
 
 // Tax & Legal Categorization Enums (Strict Const Enums)
 export const TaxClass = {
@@ -56,6 +61,30 @@ export const ScenarioId = {
   C: 'C'
 } as const;
 export type ScenarioId = (typeof ScenarioId)[keyof typeof ScenarioId];
+
+export const ActiveScenarioView = {
+  A: ScenarioId.A,
+  B: ScenarioId.B,
+  C: ScenarioId.C,
+  Compare: 'compare'
+} as const;
+export type ActiveScenarioView = (typeof ActiveScenarioView)[keyof typeof ActiveScenarioView];
+
+export const TimelineChartMode = {
+  StackedBar: 'stacked_bar',
+  Lines: 'lines',
+  Area: 'area',
+  Compare: 'compare'
+} as const;
+export type TimelineChartMode = (typeof TimelineChartMode)[keyof typeof TimelineChartMode];
+
+export const TimelineTimeRangeFilter = {
+  All: 'all',
+  Child1: 'child1',
+  Child2: 'child2',
+  Post: 'post'
+} as const;
+export type TimelineTimeRangeFilter = (typeof TimelineTimeRangeFilter)[keyof typeof TimelineTimeRangeFilter];
 
 // Discrete Batch Action Enums (Strict Const Enums)
 export const ActionCategory = {
@@ -427,6 +456,30 @@ export function toScenarioId(val: string): ScenarioId {
   return val as ScenarioId;
 }
 
+export function toActiveScenarioView(val: string): ActiveScenarioView {
+  const values = Object.values(ActiveScenarioView) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid ActiveScenarioView: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as ActiveScenarioView;
+}
+
+export function toTimelineChartMode(val: string): TimelineChartMode {
+  const values = Object.values(TimelineChartMode) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid TimelineChartMode: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as TimelineChartMode;
+}
+
+export function toTimelineTimeRangeFilter(val: string): TimelineTimeRangeFilter {
+  const values = Object.values(TimelineTimeRangeFilter) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(`Invalid TimelineTimeRangeFilter: ${val}. Expected one of: ${values.join(', ')}.`);
+  }
+  return val as TimelineTimeRangeFilter;
+}
+
 export function toFieldColumnKey(val: string): FieldColumnKey {
   const values = Object.values(FieldColumnKey) as string[];
   if (!values.includes(val)) {
@@ -604,6 +657,9 @@ export interface SimulationResult {
     readonly total13thSalaries: EuroAmount;
   };
 }
+
+export type TimelineMonth = MonthlyLedgerEntry;
+export type ScenarioTimelineResult = SimulationResult;
 
 /**
  * Itemized German Gross-to-Net Payroll & Statutory Tax Breakdown
