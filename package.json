@@ -21,7 +21,9 @@
     "sim": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node src/cli/runner.ts",
     "test": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node --test 'test/**/*.test.ts'",
     "typecheck": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 tsc --noEmit",
-    "check": "npm run typecheck"
+    "check": "npm run typecheck",
+    "format": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 prettier --write \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\"",
+    "format:check": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 prettier --check \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\""
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.1",
@@ -33,6 +35,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@types/node": "^26.2.0",
+    "prettier": "^3.5.0",
     "typescript": "^7.0.2"
   }
 }
