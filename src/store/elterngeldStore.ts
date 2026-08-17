@@ -108,13 +108,23 @@ export const investmentReturnMonthly = signal<EuroAmount>(
   initialPersisted.investmentReturnMonthly,
 );
 
+// Precondition Initial Tax Classes
+export const husbandInitialTaxClass = signal<TaxClass>(TaxClass.III);
+export const wifeInitialTaxClass = signal<TaxClass>(TaxClass.V);
+
+export function setInitialTaxClasses(hClass: TaxClass, wClass: TaxClass) {
+  husbandInitialTaxClass.value = hClass;
+  wifeInitialTaxClass.value = wClass;
+  syncGrossToNet();
+}
+
 export function syncGrossToNet() {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
     const spousal = deriveSpousalNetSalaries(
-      toGrossSalary(Math.max(0, husbandGross.value || 0)),
-      toGrossSalary(Math.max(0, wifeGross.value || 0)),
-      toWorkingHours(wifePostBirthHours.value || 24),
-      toWorkingHours(wifeInitialHours.value || 40),
+      toGrossSalary(Math.max(0, husbandGross.value ?? 0)),
+      toGrossSalary(Math.max(0, wifeGross.value ?? 0)),
+      toWorkingHours(wifePostBirthHours.value ?? 24),
+      toWorkingHours(wifeInitialHours.value ?? 40),
       0,
     );
     husbandClass3Net.value = spousal.husbandClass3Net;
@@ -125,38 +135,45 @@ export function syncGrossToNet() {
 }
 
 export function setHusbandGross(gross: number | GrossSalary) {
-  husbandGross.value = toGrossSalary(Math.max(0, gross || 0));
+  const g = typeof gross === "number" ? gross : (gross as number);
+  husbandGross.value = toGrossSalary(Math.max(0, isNaN(g) ? 0 : g));
   syncGrossToNet();
 }
 
 export function setWifeGross(gross: number | GrossSalary) {
-  wifeGross.value = toGrossSalary(Math.max(0, gross || 0));
+  const g = typeof gross === "number" ? gross : (gross as number);
+  wifeGross.value = toGrossSalary(Math.max(0, isNaN(g) ? 0 : g));
   syncGrossToNet();
 }
 
 export function setHusbandGrossYearly(yearly: number) {
-  setHusbandGross(Math.round(yearly / 12));
+  setHusbandGross(Math.round((yearly || 0) / 12));
 }
 
 export function setWifeGrossYearly(yearly: number) {
-  setWifeGross(Math.round(yearly / 12));
+  setWifeGross(Math.round((yearly || 0) / 12));
 }
 
 export function setHusbandHours(hours: number | WorkingHours) {
-  husbandHours.value = toWorkingHours(Math.max(0, Math.min(60, hours || 0)));
+  const h = typeof hours === "number" ? hours : (hours as number);
+  husbandHours.value = toWorkingHours(
+    Math.max(0, Math.min(60, isNaN(h) ? 0 : h)),
+  );
   syncGrossToNet();
 }
 
 export function setWifeInitialHours(hours: number | WorkingHours) {
+  const h = typeof hours === "number" ? hours : (hours as number);
   wifeInitialHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, hours || 0)),
+    Math.max(0, Math.min(60, isNaN(h) ? 0 : h)),
   );
   syncGrossToNet();
 }
 
 export function setWifePostBirthHours(hours: number | WorkingHours) {
+  const h = typeof hours === "number" ? hours : (hours as number);
   wifePostBirthHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, hours || 0)),
+    Math.max(0, Math.min(60, isNaN(h) ? 0 : h)),
   );
   syncGrossToNet();
 }
@@ -186,10 +203,10 @@ export function setSalaryInputMode(mode: SalaryInputMode) {
 
 export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
   return deriveSpousalNetSalaries(
-    toGrossSalary(Math.max(0, husbandGross.value || 0)),
-    toGrossSalary(Math.max(0, wifeGross.value || 0)),
-    toWorkingHours(wifePostBirthHours.value || 24),
-    toWorkingHours(wifeInitialHours.value || 40),
+    toGrossSalary(Math.max(0, husbandGross.value ?? 0)),
+    toGrossSalary(Math.max(0, wifeGross.value ?? 0)),
+    toWorkingHours(wifePostBirthHours.value ?? 24),
+    toWorkingHours(wifeInitialHours.value ?? 40),
     0,
   );
 });
@@ -199,9 +216,9 @@ export const wifeClass5PartTimeNet = computed(() => {
     return derivedSpousalSet.value.wifeClass5PartTimeNet as number;
   }
   const ft = wifeClass5FullTimeNet.value;
-  const initH = wifeInitialHours.value || 40;
-  const pbH = wifePostBirthHours.value;
-  const ratio = Math.max(0, pbH / initH);
+  const initH = wifeInitialHours.value ?? 40;
+  const pbH = wifePostBirthHours.value ?? 24;
+  const ratio = initH > 0 ? Math.max(0, pbH / initH) : 0;
   return Math.round(ft * ratio);
 });
 
@@ -210,9 +227,9 @@ export const wifeClass3PartTimeNet = computed(() => {
     return derivedSpousalSet.value.wifeClass3PartTimeNet as number;
   }
   const ft = wifeClass3FullTimeNet.value;
-  const initH = wifeInitialHours.value || 40;
-  const pbH = wifePostBirthHours.value;
-  const ratio = Math.max(0, pbH / initH);
+  const initH = wifeInitialHours.value ?? 40;
+  const pbH = wifePostBirthHours.value ?? 24;
+  const ratio = initH > 0 ? Math.max(0, pbH / initH) : 0;
   return Math.round(ft * ratio);
 });
 
@@ -686,11 +703,11 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     salaryPeriod: salaryPeriod.value,
     husbandGross: toGrossSalary(husbandGross.value),
     wifeGross: toGrossSalary(wifeGross.value),
-    husbandInitialTaxClass: TaxClass.III,
+    husbandInitialTaxClass: husbandInitialTaxClass.value || TaxClass.III,
     husbandInitialNet: toNetSalary(husbandClass3Net.value),
     husbandInitialClass5Net: toNetSalary(husbandClass5Net.value),
     husbandWeeklyHours: toWorkingHours(husbandHours.value),
-    wifeInitialTaxClass: TaxClass.V,
+    wifeInitialTaxClass: wifeInitialTaxClass.value || TaxClass.V,
     wifeInitialFullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),
     wifeInitialClass3FullTimeNet: toNetSalary(wifeClass3FullTimeNet.value),
     wifeInitialPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
