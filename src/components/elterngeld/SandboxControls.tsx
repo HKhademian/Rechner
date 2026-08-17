@@ -95,7 +95,9 @@ import {
   type WorkingHoursChangeAction,
   type TaxClassSwitchAction,
   type MonthId,
+  type MonthRef,
   toMonthId,
+  toMonthRef,
 } from "#engine/types";
 import {
   ConfigureSandboxIcon,
@@ -171,7 +173,7 @@ export default function SandboxControls(): JSX.Element {
   };
 
   // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1))
-  const getRelativeMonthLabel = (simMonth: number): string => {
+  const getRelativeMonthLabel = (simMonth: number): MonthRef => {
     const p1 =
       (customPregnancies.value[0]?.positiveTestSimulationMonth as number) ??
       Math.max(
@@ -187,17 +189,17 @@ export default function SandboxControls(): JSX.Element {
         ?.calculatedDeliverySimulationMonth as number) ?? 999;
 
     if (simMonth < p1) {
-      return `M${simMonth - p1}`;
+      return toMonthRef(simMonth - p1);
     }
     const idx = simMonth - p1 + 1;
-    if (simMonth === p1) return `M${idx} (Pregnancy Positive)`;
-    if (simMonth === d1) return `M${idx} (Birth 1)`;
-    if (simMonth === d2) return `M${idx} (Birth 2)`;
-    return `M${idx}`;
+    if (simMonth === p1) return toMonthRef(idx, "Pregnancy Positive");
+    if (simMonth === d1) return toMonthRef(idx, "Birth 1");
+    if (simMonth === d2) return toMonthRef(idx, "Birth 2");
+    return toMonthRef(idx);
   };
 
   // Helper for short relative month label (e.g. M-8, M1, M9)
-  const getShortMonthLabel = (simMonth: number): string => {
+  const getShortMonthLabel = (simMonth: number): MonthRef => {
     const p1 =
       (customPregnancies.value[0]?.positiveTestSimulationMonth as number) ??
       Math.max(
@@ -206,9 +208,9 @@ export default function SandboxControls(): JSX.Element {
           ?.calculatedDeliverySimulationMonth as number) ?? 12) - 8,
       );
     if (simMonth < p1) {
-      return `M${simMonth - p1}`;
+      return toMonthRef(simMonth - p1);
     }
-    return `M${simMonth - p1 + 1}`;
+    return toMonthRef(simMonth - p1 + 1);
   };
 
   // Preset Handlers
