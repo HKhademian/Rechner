@@ -112,12 +112,24 @@ export const investmentReturnMonthly = signal<EuroAmount>(
 );
 
 // Precondition Initial Tax Classes
-export const husbandInitialTaxClass = signal<TaxClass>(TaxClass.III);
-export const wifeInitialTaxClass = signal<TaxClass>(TaxClass.V);
+export const husbandInitialTaxClass = signal<TaxClass>(
+  initialPersisted.husbandInitialTaxClass ?? TaxClass.III,
+);
+export const wifeInitialTaxClass = signal<TaxClass>(
+  initialPersisted.wifeInitialTaxClass ?? TaxClass.V,
+);
+export const useInitialTaxFactor = signal<boolean>(
+  initialPersisted.useInitialTaxFactor ?? false,
+);
 
-export function setInitialTaxClasses(hClass: TaxClass, wClass: TaxClass) {
+export function setInitialTaxClasses(
+  hClass: TaxClass,
+  wClass: TaxClass,
+  useFactor: boolean = false,
+) {
   husbandInitialTaxClass.value = hClass;
   wifeInitialTaxClass.value = wClass;
+  useInitialTaxFactor.value = useFactor;
   syncGrossToNet();
 }
 
@@ -665,6 +677,9 @@ export function persistCurrentState(): void {
     husbandClass5Net: husbandClass5Net.value,
     wifeClass5FullTimeNet: wifeClass5FullTimeNet.value,
     wifeClass3FullTimeNet: wifeClass3FullTimeNet.value,
+    husbandInitialTaxClass: husbandInitialTaxClass.value,
+    wifeInitialTaxClass: wifeInitialTaxClass.value,
+    useInitialTaxFactor: useInitialTaxFactor.value,
 
     annualBonusGross: annualBonusGross.value,
     annualBonusMonth: annualBonusMonth.value,
@@ -723,6 +738,10 @@ export function resetToDefaults() {
   husbandClass5Net.value = defaults.husbandClass5Net;
   wifeClass5FullTimeNet.value = defaults.wifeClass5FullTimeNet;
   wifeClass3FullTimeNet.value = defaults.wifeClass3FullTimeNet;
+  husbandInitialTaxClass.value =
+    defaults.husbandInitialTaxClass ?? TaxClass.III;
+  wifeInitialTaxClass.value = defaults.wifeInitialTaxClass ?? TaxClass.V;
+  useInitialTaxFactor.value = defaults.useInitialTaxFactor ?? false;
 
   annualBonusGross.value = defaults.annualBonusGross;
   annualBonusMonth.value = defaults.annualBonusMonth;
@@ -783,14 +802,25 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     husbandInitialTaxClass: husbandInitialTaxClass.value || TaxClass.III,
     husbandInitialNet: toNetSalary(husbandClass3Net.value),
     husbandInitialClass5Net: toNetSalary(husbandClass5Net.value),
+    husbandInitialClass4Net: toNetSalary(
+      derivedSpousalSet.value.husbandClass4Net,
+    ),
     husbandWeeklyHours: toWorkingHours(husbandHours.value),
     wifeInitialTaxClass: wifeInitialTaxClass.value || TaxClass.V,
     wifeInitialFullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),
     wifeInitialClass3FullTimeNet: toNetSalary(wifeClass3FullTimeNet.value),
+    wifeInitialClass4FullTimeNet: toNetSalary(
+      derivedSpousalSet.value.wifeClass4FullTimeNet,
+    ),
     wifeInitialPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
     wifeInitialPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
+    wifeInitialPartTimeClass4Net: toNetSalary(
+      derivedSpousalSet.value.wifeClass4PartTimeNet,
+    ),
     wifeWeeklyHours: toWorkingHours(wifeInitialHours.value),
     wifePostBirthWeeklyHours: toWorkingHours(wifePostBirthHours.value),
+    initialUseTaxFactor: useInitialTaxFactor.value,
+    initialTaxFactor: derivedSpousalSet.value.taxFactor,
     annualBonusGross: toEuroAmount(annualBonusGross.value),
     annualBonusMonth: toCalendarMonth(annualBonusMonth.value),
     investmentReturnMonthly: toEuroAmount(investmentReturnMonthly.value),

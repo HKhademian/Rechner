@@ -67,6 +67,9 @@ export interface ElterngeldPersistedState {
   readonly husbandClass5Net: NetSalary;
   readonly wifeClass5FullTimeNet: NetSalary;
   readonly wifeClass3FullTimeNet: NetSalary;
+  readonly husbandInitialTaxClass?: TaxClass;
+  readonly wifeInitialTaxClass?: TaxClass;
+  readonly useInitialTaxFactor?: boolean;
 
   // Additional Inflows
   readonly annualBonusGross: GrossSalary;
@@ -123,6 +126,9 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
     husbandClass5Net: toNetSalary(2398),
     wifeClass5FullTimeNet: toNetSalary(1975),
     wifeClass3FullTimeNet: toNetSalary(2603),
+    husbandInitialTaxClass: TaxClass.III,
+    wifeInitialTaxClass: TaxClass.V,
+    useInitialTaxFactor: false,
 
     annualBonusGross: toGrossSalary(0),
     annualBonusMonth: toCalendarMonth(12),
@@ -409,6 +415,22 @@ export function validateAndSanitizePersistedState(
             targetW = TaxClass.III;
           }
         }
+        let revH: TaxClass | undefined = undefined;
+        if (typeof sObj.revertHusbandTaxClass === "string") {
+          try {
+            revH = toTaxClass(sObj.revertHusbandTaxClass);
+          } catch {
+            revH = undefined;
+          }
+        }
+        let revW: TaxClass | undefined = undefined;
+        if (typeof sObj.revertWifeTaxClass === "string") {
+          try {
+            revW = toTaxClass(sObj.revertWifeTaxClass);
+          } catch {
+            revW = undefined;
+          }
+        }
         return {
           switchId: toSwitchId(
             typeof sObj.switchId === "string"
@@ -429,6 +451,22 @@ export function validateAndSanitizePersistedState(
           ),
           targetHusbandTaxClass: targetH,
           targetWifeTaxClass: targetW,
+          targetUseTaxFactor:
+            typeof sObj.targetUseTaxFactor === "boolean"
+              ? sObj.targetUseTaxFactor
+              : undefined,
+          targetTaxFactor:
+            typeof sObj.targetTaxFactor === "number" &&
+            sObj.targetTaxFactor > 0 &&
+            sObj.targetTaxFactor <= 1
+              ? Math.round(sObj.targetTaxFactor * 1000) / 1000
+              : undefined,
+          revertHusbandTaxClass: revH,
+          revertWifeTaxClass: revW,
+          revertUseTaxFactor:
+            typeof sObj.revertUseTaxFactor === "boolean"
+              ? sObj.revertUseTaxFactor
+              : undefined,
           statutoryReason: str(
             sObj.statutoryReason,
             "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
@@ -596,6 +634,30 @@ export function validateAndSanitizePersistedState(
     ),
     wifeClass3FullTimeNet: toNetSalary(
       num(obj.wifeClass3FullTimeNet, defaults.wifeClass3FullTimeNet, 0, 100000),
+    ),
+    husbandInitialTaxClass:
+      typeof obj.husbandInitialTaxClass === "string"
+        ? (() => {
+            try {
+              return toTaxClass(obj.husbandInitialTaxClass);
+            } catch {
+              return defaults.husbandInitialTaxClass;
+            }
+          })()
+        : defaults.husbandInitialTaxClass,
+    wifeInitialTaxClass:
+      typeof obj.wifeInitialTaxClass === "string"
+        ? (() => {
+            try {
+              return toTaxClass(obj.wifeInitialTaxClass);
+            } catch {
+              return defaults.wifeInitialTaxClass;
+            }
+          })()
+        : defaults.wifeInitialTaxClass,
+    useInitialTaxFactor: bool(
+      obj.useInitialTaxFactor,
+      defaults.useInitialTaxFactor ?? false,
     ),
 
     annualBonusGross: toGrossSalary(
