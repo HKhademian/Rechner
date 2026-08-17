@@ -2,6 +2,9 @@ import { signal, computed, effect } from '@preact/signals';
 import {
   type ScenarioId as ScenarioIdType,
   ScenarioId,
+  ActiveScenarioView,
+  TimelineChartMode,
+  TimelineTimeRangeFilter,
   TaxClass,
   TargetPerson,
   SalaryInputMode,
@@ -23,13 +26,22 @@ import {
   toFinancialEventId,
   toSalaryInputMode,
   toSalaryPeriod,
+  toActiveScenarioView,
+  toTimelineChartMode,
+  toTimelineTimeRangeFilter,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
   type FinancialEventAction,
   type GrossToNetBreakdown,
-  type SpousalGrossToNetSet
+  type SpousalGrossToNetSet,
+  type GrossSalary,
+  type NetSalary,
+  type WorkingHours,
+  type EuroAmount,
+  type CalendarMonth,
+  type SimulationMonth
 } from '#engine/types';
 import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
 import { deriveSpousalNetSalaries, computeGrossToNetBreakdown } from '#engine/tax/wageTax';
@@ -47,26 +59,26 @@ const initialPersisted = loadFromStorage();
 // Input Mode (Gross vs Net Mode) & Period (Monthly vs Yearly)
 export const salaryInputMode = signal<SalaryInputMode>(initialPersisted.salaryInputMode);
 export const salaryPeriod = signal<SalaryPeriod>(initialPersisted.salaryPeriod);
-export const husbandGross = signal<number>(initialPersisted.husbandGross);
-export const wifeGross = signal<number>(initialPersisted.wifeGross);
+export const husbandGross = signal<GrossSalary>(initialPersisted.husbandGross);
+export const wifeGross = signal<GrossSalary>(initialPersisted.wifeGross);
 
 export const husbandGrossYearly = computed(() => (husbandGross.value || 0) * 12);
 export const wifeGrossYearly = computed(() => (wifeGross.value || 0) * 12);
 
 // Default Financial Parameters (The Sandbox)
-export const husbandClass3Net = signal(initialPersisted.husbandClass3Net);
-export const husbandClass5Net = signal(initialPersisted.husbandClass5Net);
-export const husbandHours = signal(initialPersisted.husbandHours);
+export const husbandClass3Net = signal<NetSalary>(initialPersisted.husbandClass3Net);
+export const husbandClass5Net = signal<NetSalary>(initialPersisted.husbandClass5Net);
+export const husbandHours = signal<WorkingHours>(initialPersisted.husbandHours);
 
-export const wifeInitialHours = signal(initialPersisted.wifeInitialHours);
-export const wifePostBirthHours = signal(initialPersisted.wifePostBirthHours);
-export const wifeClass5FullTimeNet = signal(initialPersisted.wifeClass5FullTimeNet);
-export const wifeClass3FullTimeNet = signal(initialPersisted.wifeClass3FullTimeNet);
+export const wifeInitialHours = signal<WorkingHours>(initialPersisted.wifeInitialHours);
+export const wifePostBirthHours = signal<WorkingHours>(initialPersisted.wifePostBirthHours);
+export const wifeClass5FullTimeNet = signal<NetSalary>(initialPersisted.wifeClass5FullTimeNet);
+export const wifeClass3FullTimeNet = signal<NetSalary>(initialPersisted.wifeClass3FullTimeNet);
 
 // Additional Income Channels
-export const annualBonusGross = signal<number>(initialPersisted.annualBonusGross);
-export const annualBonusMonth = signal<number>(initialPersisted.annualBonusMonth);
-export const investmentReturnMonthly = signal<number>(initialPersisted.investmentReturnMonthly);
+export const annualBonusGross = signal<GrossSalary>(initialPersisted.annualBonusGross);
+export const annualBonusMonth = signal<CalendarMonth>(initialPersisted.annualBonusMonth);
+export const investmentReturnMonthly = signal<EuroAmount>(initialPersisted.investmentReturnMonthly);
 
 export function syncGrossToNet() {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
@@ -77,20 +89,20 @@ export function syncGrossToNet() {
       toWorkingHours(wifeInitialHours.value || 40),
       0
     );
-    husbandClass3Net.value = spousal.husbandClass3Net as number;
-    husbandClass5Net.value = spousal.husbandClass5Net as number;
-    wifeClass5FullTimeNet.value = spousal.wifeClass5FullTimeNet as number;
-    wifeClass3FullTimeNet.value = spousal.wifeClass3FullTimeNet as number;
+    husbandClass3Net.value = spousal.husbandClass3Net;
+    husbandClass5Net.value = spousal.husbandClass5Net;
+    wifeClass5FullTimeNet.value = spousal.wifeClass5FullTimeNet;
+    wifeClass3FullTimeNet.value = spousal.wifeClass3FullTimeNet;
   }
 }
 
-export function setHusbandGross(gross: number) {
-  husbandGross.value = gross;
+export function setHusbandGross(gross: number | GrossSalary) {
+  husbandGross.value = toGrossSalary(Math.max(0, gross || 0));
   syncGrossToNet();
 }
 
-export function setWifeGross(gross: number) {
-  wifeGross.value = gross;
+export function setWifeGross(gross: number | GrossSalary) {
+  wifeGross.value = toGrossSalary(Math.max(0, gross || 0));
   syncGrossToNet();
 }
 
@@ -102,31 +114,31 @@ export function setWifeGrossYearly(yearly: number) {
   setWifeGross(Math.round(yearly / 12));
 }
 
-export function setHusbandHours(hours: number) {
-  husbandHours.value = hours;
+export function setHusbandHours(hours: number | WorkingHours) {
+  husbandHours.value = toWorkingHours(Math.max(0, Math.min(60, hours || 0)));
   syncGrossToNet();
 }
 
-export function setWifeInitialHours(hours: number) {
-  wifeInitialHours.value = hours;
+export function setWifeInitialHours(hours: number | WorkingHours) {
+  wifeInitialHours.value = toWorkingHours(Math.max(0, Math.min(60, hours || 0)));
   syncGrossToNet();
 }
 
-export function setWifePostBirthHours(hours: number) {
-  wifePostBirthHours.value = hours;
+export function setWifePostBirthHours(hours: number | WorkingHours) {
+  wifePostBirthHours.value = toWorkingHours(Math.max(0, Math.min(60, hours || 0)));
   syncGrossToNet();
 }
 
-export function setAnnualBonusGross(amount: number) {
-  annualBonusGross.value = amount;
+export function setAnnualBonusGross(amount: number | GrossSalary) {
+  annualBonusGross.value = toGrossSalary(Math.max(0, amount || 0));
 }
 
-export function setAnnualBonusMonth(m: number) {
-  annualBonusMonth.value = m;
+export function setAnnualBonusMonth(m: number | CalendarMonth) {
+  annualBonusMonth.value = toCalendarMonth(Math.max(1, Math.min(12, m || 1)));
 }
 
-export function setInvestmentReturnMonthly(amount: number) {
-  investmentReturnMonthly.value = amount;
+export function setInvestmentReturnMonthly(amount: number | EuroAmount) {
+  investmentReturnMonthly.value = toEuroAmount(amount || 0);
 }
 
 export function setSalaryPeriod(period: SalaryPeriod) {
@@ -172,13 +184,13 @@ export const wifeClass3PartTimeNet = computed(() => {
   return Math.round(ft * ratio);
 });
 
-export const kindergeldPerChild = signal(initialPersisted.kindergeldPerChild);
+export const kindergeldPerChild = signal<EuroAmount>(initialPersisted.kindergeldPerChild);
 
 // Special Annual Events (13th Month Salary & Tax Return Timing)
 export const enable13thSalary = signal(initialPersisted.enable13thSalary);
-export const bonus40Month = signal(initialPersisted.bonus40Month); // Month 4 or 5 of each year (40% Vacation Bonus / Urlaubsgeld)
-export const bonus60Month = signal(initialPersisted.bonus60Month); // Month 10 or 11 of each year (60% Christmas Bonus / Weihnachtsgeld)
-export const taxReturnMonth = signal(initialPersisted.taxReturnMonth); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
+export const bonus40Month = signal<CalendarMonth>(initialPersisted.bonus40Month); // Month 4 or 5 of each year (40% Vacation Bonus / Urlaubsgeld)
+export const bonus60Month = signal<CalendarMonth>(initialPersisted.bonus60Month); // Month 10 or 11 of each year (60% Christmas Bonus / Weihnachtsgeld)
+export const taxReturnMonth = signal<CalendarMonth>(initialPersisted.taxReturnMonth); // Month 2 or 3 of each year (Annual Tax Return / Finanzamt-Erstattung)
 export const showSpecialEventRows = signal(initialPersisted.showSpecialEventRows); // Table display toggle
 
 // Batch 3: Salary Raises & Career Progression Controls
@@ -187,19 +199,19 @@ export const annualSalaryRaisePercent = signal(initialPersisted.annualSalaryRais
 
 // Timeline & Calendar Simulation Controls
 export const startCalendarYear = signal(initialPersisted.startCalendarYear); // Default 2026
-export const startCalendarMonth = signal(initialPersisted.startCalendarMonth); // Default 1 (January)
+export const startCalendarMonth = signal<CalendarMonth>(initialPersisted.startCalendarMonth); // Default 1 (January)
 export const simulationDurationMonths = signal(initialPersisted.simulationDurationMonths); // Default 60 months (5 years)
 export const prePregnancyPlanningMonths = signal(initialPersisted.prePregnancyPlanningMonths); // Default 8 months planning -> Pregnancy starts in September 2026 (09.2026)
-export const child1BirthMonth = signal(initialPersisted.child1BirthMonth); // Month 17 (05.2027 / 9 months pregnancy)
+export const child1BirthMonth = signal<SimulationMonth>(initialPersisted.child1BirthMonth); // Month 17 (05.2027 / 9 months pregnancy)
 export const birthSpacingMonths = signal(initialPersisted.birthSpacingMonths); // Gap of 27 months -> Child 2 born at Month 44
 export const swapLeadMonths = signal(initialPersisted.swapLeadMonths); // 7 months prior to Mutterschutz phase
 export const preMutterschutzMonths = signal(initialPersisted.preMutterschutzMonths); // 6 weeks
 export const postMutterschutzMonths = signal(initialPersisted.postMutterschutzMonths); // 8 weeks
 
 // UI & View State
-export const activeScenario = signal<string>(initialPersisted.activeScenario); // 'A', 'B', 'C', or 'compare'
-export const chartMode = signal<string>(initialPersisted.chartMode); // 'stacked_bar', 'lines', 'area', 'compare'
-export const timeRangeFilter = signal<string>(initialPersisted.timeRangeFilter); // 'all', 'child1', 'child2', 'post'
+export const activeScenario = signal<ActiveScenarioView>(initialPersisted.activeScenario);
+export const chartMode = signal<TimelineChartMode>(initialPersisted.chartMode);
+export const timeRangeFilter = signal<TimelineTimeRangeFilter>(initialPersisted.timeRangeFilter);
 export const hoveredMonth = signal<number | null>(null);
 
 /**
@@ -210,9 +222,9 @@ export const hoveredMonth = signal<number | null>(null);
 export function setPregnancy1PositiveDate(year: number, month: number) {
   const result = calculateSimulationStartDate(year, month);
   startCalendarYear.value = result.startCalendarYear;
-  startCalendarMonth.value = result.startCalendarMonth;
+  startCalendarMonth.value = toCalendarMonth(result.startCalendarMonth);
   prePregnancyPlanningMonths.value = result.prePregnancyPlanningMonths;
-  child1BirthMonth.value = result.pregnancySimulationMonth + 8; // 9 months of pregnancy (delivery at Month + 8)
+  child1BirthMonth.value = toSimulationMonth(result.pregnancySimulationMonth + 8); // 9 months of pregnancy (delivery at Month + 8)
 }
 
 export function createDefaultPregnancies(): PregnancyAction[] {
