@@ -263,8 +263,10 @@ describe("User Data Export & Import Engine", () => {
 
       const lines = csv.split("\r\n");
       assert.equal(lines.length, 61); // 1 Header + 60 Months
-      assert.ok(lines[1].startsWith('"M012026";'));
-      assert.ok(lines[60].startsWith('"M122030";'));
+      assert.ok(lines[1].startsWith('"M012026";"M-8";M1;'));
+      assert.ok(lines[9].startsWith('"M092026";"M1 (Pregnancy Positive)";M9;'));
+      assert.ok(lines[17].startsWith('"M052027";"M9 (Birth 1)";M17;'));
+      assert.ok(lines[60].startsWith('"M122030";"M52";M60;'));
     });
   });
 

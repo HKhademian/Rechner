@@ -7,6 +7,7 @@ import {
   toCalendarYear,
   toCalendarMonth,
   toMonthId,
+  toMonthRef,
   toEuroAmount,
   TransactionType,
   TransactionDirection,
@@ -95,6 +96,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const expectedTotal = expectedRegular + expectedSpecial;
 
         assert.equal(entry.monthId, mId);
+        assert.equal(entry.monthRef, `M${sMonth}`);
         assert.equal(entry.regularMonthlyTotal, expectedRegular);
         assert.equal(entry.specialEventsTotal, expectedSpecial);
         assert.equal(entry.monthlyTotal, expectedTotal);
@@ -116,12 +118,14 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const costEvent = {
         eventId: "EVENT-M052027-EQUIPMENT" as any,
         monthId: mId,
+        monthRef: toMonthRef("M9 (Birth 1)"),
         month: sMonth,
         year: cy,
         calendarYearNum: 2027,
         calendarMonthNum: cm,
         calendarLabel: "05.2027",
-        relativeBirthLabel: "Birth M0",
+        relativeBirthLabel: "M9 (Birth 1)",
+        relativeMonthLabel: toMonthRef("M9 (Birth 1)"),
         type: "custom_cost" as any,
         title: "Child #1 Initial Equipment",
         category: "Baby Equipment (*Erstausstattung*)" as any,
@@ -134,13 +138,15 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
         {
           monthId: mId,
+          monthRef: toMonthRef("M9 (Birth 1)"),
           month: sMonth,
           year: cy,
           monthInYear: cm,
           calendarYearNum: 2027,
           calendarMonthNum: cm,
           calendarLabel: "05.2027",
-          relativeBirthLabel: "Birth M0",
+          relativeBirthLabel: "M9 (Birth 1)",
+          relativeMonthLabel: toMonthRef("M9 (Birth 1)"),
           husbandSalary: hSalary,
           wifeSalary: wSalary,
           mutterschutz,
@@ -193,12 +199,14 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const grantEvent = {
         eventId: "EVENT-M122026-GRANT" as any,
         monthId: mId,
+        monthRef: toMonthRef("M-5"),
         month: sMonth,
         year: cy,
         calendarYearNum: 2026,
         calendarMonthNum: cm,
         calendarLabel: "12.2026",
         relativeBirthLabel: "M-5",
+        relativeMonthLabel: toMonthRef("M-5"),
         type: "custom_income" as any,
         title: "Employer Family Grant",
         category: "Career & Bonus (*Sonderzahlung*)" as any,
@@ -211,6 +219,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const { entry, nextCumulatedTotal } = buildMonthlyLedgerEntry(
         {
           monthId: mId,
+          monthRef: toMonthRef("M-5"),
           month: sMonth,
           year: cy,
           monthInYear: cm,
@@ -218,6 +227,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
           calendarMonthNum: cm,
           calendarLabel: "12.2026",
           relativeBirthLabel: "M-5",
+          relativeMonthLabel: toMonthRef("M-5"),
           husbandSalary: hSalary,
           wifeSalary: wSalary,
           mutterschutz: toEuroAmount(0),
