@@ -1,7 +1,11 @@
 import type { JSX } from "preact";
 import { activeThemeMode, setThemeMode } from "#store/themeStore";
 import { ThemeMode } from "#engine/types";
-import { SunIcon, MoonIcon, AutoThemeIcon } from "#components/Icons";
+import {
+  LightThemeIcon,
+  DarkThemeIcon,
+  SystemThemeIcon,
+} from "#components/Icons";
 
 export default function ThemeToggle(): JSX.Element {
   const currentMode = activeThemeMode.value;
@@ -45,7 +49,7 @@ export default function ThemeToggle(): JSX.Element {
           transition: "var(--transition)",
         }}
       >
-        <SunIcon size={13} />
+        <LightThemeIcon size={13} />
         <span>Light</span>
       </button>
 
@@ -77,7 +81,7 @@ export default function ThemeToggle(): JSX.Element {
           transition: "var(--transition)",
         }}
       >
-        <MoonIcon size={13} />
+        <DarkThemeIcon size={13} />
         <span>Dark</span>
       </button>
 
@@ -109,7 +113,7 @@ export default function ThemeToggle(): JSX.Element {
           transition: "var(--transition)",
         }}
       >
-        <AutoThemeIcon size={13} />
+        <SystemThemeIcon size={13} />
         <span>Auto</span>
       </button>
     </div>

@@ -1,9 +1,9 @@
 import type { JSX } from "preact";
 import ThemeToggle from "#components/ThemeToggle";
 import {
-  CalculatorTabIcon,
-  TimelineSimulatorTabIcon,
-  LegalSectionIcon,
+  CalculatorNavigationIcon,
+  SimulatorNavigationIcon,
+  StatutorySectionIcon,
 } from "#components/Icons";
 
 export interface NavigationProps {
@@ -68,7 +68,7 @@ export default function Navigation({
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <LegalSectionIcon size={20} />
+            <StatutorySectionIcon size={20} />
           </div>
           <div>
             <div
@@ -135,7 +135,7 @@ export default function Navigation({
                 transition: "var(--transition)",
               }}
             >
-              <CalculatorTabIcon size={15} />
+              <CalculatorNavigationIcon size={15} />
               <span>Net Pay Calculator</span>
             </a>
 
@@ -159,7 +159,7 @@ export default function Navigation({
                 transition: "var(--transition)",
               }}
             >
-              <TimelineSimulatorTabIcon size={15} />
+              <SimulatorNavigationIcon size={15} />
               <span>Elterngeld 5-Year Simulator</span>
               <span
                 style={{

@@ -18,7 +18,7 @@ import {
 } from "#store/calculatorStore";
 import { useState, useEffect } from "preact/hooks";
 import TaxSettings from "#components/TaxSettings";
-import { SettingsIcon } from "#components/Icons";
+import { ConfigureSandboxIcon } from "#components/Icons";
 
 const germanStates = [
   "Baden-Württemberg",
@@ -466,8 +466,8 @@ export default function InputForm(): JSX.Element {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <SettingsIcon size={16} /> Advanced Tax Settings &amp; Social
-            Thresholds (2024–2026)
+            <ConfigureSandboxIcon size={16} /> Advanced Tax Settings &amp;
+            Social Thresholds (2024–2026)
           </div>
           <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
             Expand

@@ -32,11 +32,11 @@ import {
   type PersonDeductions,
 } from "#store/calculatorStore";
 import {
-  PlusIcon,
-  DownloadIcon,
-  XIcon,
-  SaveIcon,
-  EditIcon,
+  AddActionIcon,
+  ExportDataIcon,
+  RemoveItemIcon,
+  SaveConfigurationIcon,
+  EditSettingsIcon,
 } from "#components/Icons";
 
 export default function ComparisonTable(): JSX.Element | null {
@@ -711,7 +711,7 @@ export default function ComparisonTable(): JSX.Element | null {
                       }}
                       title="Save as New Scenario"
                     >
-                      <PlusIcon />
+                      <AddActionIcon />
                     </button>
                   </div>
                 </div>
@@ -844,7 +844,7 @@ export default function ComparisonTable(): JSX.Element | null {
                                 }}
                                 title="Load into Live Calculator"
                               >
-                                <DownloadIcon />
+                                <ExportDataIcon />
                               </button>
                               <button
                                 onClick={() => editScenario(scenario.id)}
@@ -864,7 +864,7 @@ export default function ComparisonTable(): JSX.Element | null {
                                 }}
                                 title="Edit Scenario"
                               >
-                                <EditIcon />
+                                <EditSettingsIcon />
                               </button>
                             </>
                           )}
@@ -886,7 +886,7 @@ export default function ComparisonTable(): JSX.Element | null {
                             }}
                             title="Delete Scenario"
                           >
-                            <XIcon />
+                            <RemoveItemIcon />
                           </button>
                         </div>
                       </div>
@@ -911,7 +911,7 @@ export default function ComparisonTable(): JSX.Element | null {
                             }}
                             title="Save changes to scenario"
                           >
-                            <SaveIcon /> Save
+                            <SaveConfigurationIcon /> Save
                           </button>
                           <button
                             onClick={cancelEdit}
