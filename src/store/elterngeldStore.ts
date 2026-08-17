@@ -61,6 +61,15 @@ import {
   clearStorage,
   type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
+import {
+  exportStateToJson,
+  exportStateToTextReport,
+  exportScenarioToCsv,
+  exportStateToZip,
+  triggerFileDownload,
+  triggerPrintableReport,
+  importStateFromJson,
+} from "#engine/storage/exportImport";
 
 // Initial state loaded from localStorage (or statutory defaults)
 const initialPersisted = loadFromStorage();
@@ -664,8 +673,11 @@ export function removeFinancialEventAction(eventId: FinancialEventId | string) {
 /**
  * Persists the entire reactive state of the simulator into localStorage.
  */
-export function persistCurrentState(): void {
-  saveToStorage({
+/**
+ * Constructs the strongly-typed snapshot of the active simulation state.
+ */
+export function getCurrentPersistedState(): ElterngeldPersistedState {
+  return {
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: husbandGross.value,
@@ -713,7 +725,76 @@ export function persistCurrentState(): void {
     activeScenario: activeScenario.value,
     chartMode: chartMode.value,
     timeRangeFilter: timeRangeFilter.value,
-  });
+  };
+}
+
+/**
+ * Persists the entire reactive state of the simulator into localStorage.
+ */
+export function persistCurrentState(): void {
+  saveToStorage(getCurrentPersistedState());
+}
+
+/**
+ * Safely applies an imported state to all reactive store signals and syncs to persistence.
+ */
+export function importSimulationState(
+  newState: ElterngeldPersistedState,
+): void {
+  salaryInputMode.value = newState.salaryInputMode;
+  salaryPeriod.value = newState.salaryPeriod;
+  husbandGross.value = newState.husbandGross;
+  wifeGross.value = newState.wifeGross;
+  husbandHours.value = newState.husbandHours;
+  wifeInitialHours.value = newState.wifeInitialHours;
+  wifePostBirthHours.value = newState.wifePostBirthHours;
+  husbandClass3Net.value = newState.husbandClass3Net;
+  husbandClass5Net.value = newState.husbandClass5Net;
+  wifeClass5FullTimeNet.value = newState.wifeClass5FullTimeNet;
+  wifeClass3FullTimeNet.value = newState.wifeClass3FullTimeNet;
+  husbandInitialTaxClass.value =
+    newState.husbandInitialTaxClass ?? TaxClass.III;
+  wifeInitialTaxClass.value = newState.wifeInitialTaxClass ?? TaxClass.V;
+  useInitialTaxFactor.value = newState.useInitialTaxFactor ?? false;
+
+  annualBonusGross.value = newState.annualBonusGross;
+  annualBonusMonth.value = newState.annualBonusMonth;
+  investmentReturnMonthly.value = newState.investmentReturnMonthly;
+
+  kindergeldPerChild.value = newState.kindergeldPerChild;
+  enable13thSalary.value = newState.enable13thSalary;
+  bonus40Month.value = newState.bonus40Month;
+  bonus60Month.value = newState.bonus60Month;
+  taxReturnMonth.value = newState.taxReturnMonth;
+  showSpecialEventRows.value = newState.showSpecialEventRows;
+
+  enableSalaryRaises.value = newState.enableSalaryRaises;
+  annualSalaryRaisePercent.value = newState.annualSalaryRaisePercent;
+
+  startCalendarYear.value = newState.startCalendarYear;
+  startCalendarMonth.value = newState.startCalendarMonth;
+  simulationDurationMonths.value = newState.simulationDurationMonths;
+  prePregnancyPlanningMonths.value = newState.prePregnancyPlanningMonths;
+  child1BirthMonth.value = newState.child1BirthMonth;
+  birthSpacingMonths.value = newState.birthSpacingMonths;
+  swapLeadMonths.value = newState.swapLeadMonths;
+  preMutterschutzMonths.value = newState.preMutterschutzMonths;
+  postMutterschutzMonths.value = newState.postMutterschutzMonths;
+
+  customPregnancies.value = [...newState.customPregnancies];
+  customTaxClassSwitches.value = [...newState.customTaxClassSwitches];
+  customSalaryRaises.value = [...newState.customSalaryRaises];
+  customWorkingHoursChanges.value = [
+    ...(newState.customWorkingHoursChanges || []),
+  ];
+  customFinancialEvents.value = [...(newState.customFinancialEvents || [])];
+
+  activeScenario.value = newState.activeScenario;
+  chartMode.value = newState.chartMode;
+  timeRangeFilter.value = newState.timeRangeFilter;
+
+  syncGrossToNet();
+  persistCurrentState();
 }
 
 // Auto-persist signal changes to localStorage in browser environment
@@ -721,6 +802,108 @@ if (typeof window !== "undefined") {
   effect(() => {
     persistCurrentState();
   });
+}
+
+// ============================================================================
+// User Data Export & Import Modal & Triggers
+// ============================================================================
+
+export const isExportImportModalOpen = signal<boolean>(false);
+export const exportImportActiveTab = signal<"export" | "import">("export");
+
+export function openExportImportModal(
+  tab: "export" | "import" = "export",
+): void {
+  exportImportActiveTab.value = tab;
+  isExportImportModalOpen.value = true;
+}
+
+export function closeExportImportModal(): void {
+  isExportImportModalOpen.value = false;
+}
+
+export function exportSimulationJson(): void {
+  const state = getCurrentPersistedState();
+  const jsonStr = exportStateToJson(state);
+  const dateTag = new Date().toISOString().slice(0, 10);
+  triggerFileDownload(
+    `elterngeld-simulation-${dateTag}.json`,
+    jsonStr,
+    "application/json",
+  );
+}
+
+export function exportSimulationText(): void {
+  const state = getCurrentPersistedState();
+  const timelines = {
+    [ScenarioId.A]: scenarioAData.value,
+    [ScenarioId.B]: scenarioBData.value,
+    [ScenarioId.C]: scenarioCData.value,
+  };
+  const textReport = exportStateToTextReport(state, timelines);
+  const dateTag = new Date().toISOString().slice(0, 10);
+  triggerFileDownload(
+    `elterngeld-financial-report-${dateTag}.txt`,
+    textReport,
+    "text/plain;charset=utf-8",
+  );
+}
+
+export function exportSimulationZip(): void {
+  const state = getCurrentPersistedState();
+  const timelines = {
+    [ScenarioId.A]: scenarioAData.value,
+    [ScenarioId.B]: scenarioBData.value,
+    [ScenarioId.C]: scenarioCData.value,
+  };
+  const jsonStr = exportStateToJson(state);
+  const textReport = exportStateToTextReport(state, timelines);
+  const csvA = exportScenarioToCsv(timelines[ScenarioId.A]);
+  const csvB = exportScenarioToCsv(timelines[ScenarioId.B]);
+  const csvC = exportScenarioToCsv(timelines[ScenarioId.C]);
+
+  const files: Record<string, string> = {
+    "simulation_config.json": jsonStr,
+    "financial_audit_report.txt": textReport,
+    "scenario_A_baseline_ledger.csv": csvA,
+    "scenario_B_tax_swap_ledger.csv": csvB,
+    "scenario_C_maximum_strategy_ledger.csv": csvC,
+  };
+
+  const zipBytes = exportStateToZip(files);
+  const dateTag = new Date().toISOString().slice(0, 10);
+  triggerFileDownload(
+    `elterngeld-simulation-bundle-${dateTag}.zip`,
+    zipBytes,
+    "application/zip",
+  );
+}
+
+export function exportSimulationCsv(
+  scenarioKey: ScenarioId = ScenarioId.C,
+): void {
+  const timelines = {
+    [ScenarioId.A]: scenarioAData.value,
+    [ScenarioId.B]: scenarioBData.value,
+    [ScenarioId.C]: scenarioCData.value,
+  };
+  const csvContent = exportScenarioToCsv(timelines[scenarioKey]);
+  const dateTag = new Date().toISOString().slice(0, 10);
+  triggerFileDownload(
+    `elterngeld-scenario-${scenarioKey}-ledger-${dateTag}.csv`,
+    csvContent,
+    "text/csv;charset=utf-8",
+  );
+}
+
+export function printSimulationReport(): void {
+  const state = getCurrentPersistedState();
+  const timelines = {
+    [ScenarioId.A]: scenarioAData.value,
+    [ScenarioId.B]: scenarioBData.value,
+    [ScenarioId.C]: scenarioCData.value,
+  };
+  triggerPrintableReport(state, timelines);
 }
 
 export function resetToDefaults() {
