@@ -1,13 +1,13 @@
-import { signal, effect } from '@preact/signals';
-import { ThemeMode, toThemeMode } from '#engine/types';
+import { signal, effect } from "@preact/signals";
+import { ThemeMode, toThemeMode } from "#engine/types";
 
-const THEME_STORAGE_KEY = 'german_calc_theme_mode';
+const THEME_STORAGE_KEY = "german_calc_theme_mode";
 
 /**
  * Initializes the default theme mode from storage or defaults to institutional Light
  */
 function getInitialThemeMode(): ThemeMode {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return ThemeMode.Light;
   }
   try {
@@ -27,28 +27,28 @@ export const activeThemeMode = signal<ThemeMode>(getInitialThemeMode());
  * Applies the effective theme (light / dark) to the root document element
  */
 export function applyThemeToDocument(mode: ThemeMode): void {
-  if (typeof document === 'undefined') return;
+  if (typeof document === "undefined") return;
 
   let effectiveDark = false;
   if (mode === ThemeMode.Dark) {
     effectiveDark = true;
   } else if (mode === ThemeMode.System) {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      effectiveDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (typeof window !== "undefined" && window.matchMedia) {
+      effectiveDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
   }
 
   const root = document.documentElement;
   if (effectiveDark) {
-    root.setAttribute('data-theme', 'dark');
+    root.setAttribute("data-theme", "dark");
   } else {
-    root.setAttribute('data-theme', 'light');
+    root.setAttribute("data-theme", "light");
   }
 }
 
 export function setThemeMode(newMode: ThemeMode): void {
   activeThemeMode.value = newMode;
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, newMode);
     } catch {
@@ -59,7 +59,7 @@ export function setThemeMode(newMode: ThemeMode): void {
 }
 
 // Client-side initialization and system change listener
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Apply immediately on load
   applyThemeToDocument(activeThemeMode.value);
 
@@ -70,8 +70,8 @@ if (typeof window !== 'undefined') {
 
   // Listen for OS color scheme adjustments when in System mode
   if (window.matchMedia) {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', () => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", () => {
       if (activeThemeMode.value === ThemeMode.System) {
         applyThemeToDocument(ThemeMode.System);
       }

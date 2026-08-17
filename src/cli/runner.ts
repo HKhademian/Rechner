@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 // Universal Telemetry & Analytics Opt-Out
-process.env.ASTRO_TELEMETRY_DISABLED = '1';
-process.env.DO_NOT_TRACK = '1';
-process.env.NEXT_TELEMETRY_DISABLED = '1';
-process.env.VITE_TELEMETRY_DISABLED = '1';
-process.env.CHECKPOINT_DISABLE = '1';
+process.env.ASTRO_TELEMETRY_DISABLED = "1";
+process.env.DO_NOT_TRACK = "1";
+process.env.NEXT_TELEMETRY_DISABLED = "1";
+process.env.VITE_TELEMETRY_DISABLED = "1";
+process.env.CHECKPOINT_DISABLE = "1";
 
 /**
  * Headless CLI Scenario Runner for German Elterngeld Financial Simulator
@@ -14,8 +14,11 @@ process.env.CHECKPOINT_DISABLE = '1';
  * without requiring web browser rendering or DOM captures.
  */
 
-import { fileURLToPath } from 'node:url';
-import { runScenarioBatches, calculateSimulationStartDate } from '#engine/simulator/timelineGenerator';
+import { fileURLToPath } from "node:url";
+import {
+  runScenarioBatches,
+  calculateSimulationStartDate,
+} from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,
@@ -43,38 +46,38 @@ import {
   type SimulationResult,
   type TimelineMonth,
   type GrossToNetBreakdown,
-  type SpousalGrossToNetSet
-} from '#engine/types';
+  type SpousalGrossToNetSet,
+} from "#engine/types";
 import {
   computeGrossToNetBreakdown,
-  deriveSpousalNetSalaries
-} from '#engine/tax/wageTax';
+  deriveSpousalNetSalaries,
+} from "#engine/tax/wageTax";
 import {
   getFieldExplanation,
   getRowExplanation,
   type FieldExplanation,
-  type RowExplanation
-} from '#engine/explanation/timelineExplainer';
+  type RowExplanation,
+} from "#engine/explanation/timelineExplainer";
 
 // ANSI Color Codes
-const RESET = '\x1b[0m';
-const BOLD = '\x1b[1m';
-const DIM = '\x1b[2m';
-const GREEN = '\x1b[32m';
-const RED = '\x1b[31m';
-const YELLOW = '\x1b[33m';
-const CYAN = '\x1b[36m';
-const BLUE = '\x1b[34m';
-const MAGENTA = '\x1b[35m';
-const GRAY = '\x1b[90m';
+const RESET = "\x1b[0m";
+const BOLD = "\x1b[1m";
+const DIM = "\x1b[2m";
+const GREEN = "\x1b[32m";
+const RED = "\x1b[31m";
+const YELLOW = "\x1b[33m";
+const CYAN = "\x1b[36m";
+const BLUE = "\x1b[34m";
+const MAGENTA = "\x1b[35m";
+const GRAY = "\x1b[90m";
 
 function formatEuro(amount: number): string {
-  return `${amount.toLocaleString('de-DE')} €`;
+  return `${amount.toLocaleString("de-DE")} €`;
 }
 
 function formatDiff(val: number): string {
-  if (val > 0) return `${GREEN}+${val.toLocaleString('de-DE')} €${RESET}`;
-  if (val < 0) return `${RED}${val.toLocaleString('de-DE')} €${RESET}`;
+  if (val > 0) return `${GREEN}+${val.toLocaleString("de-DE")} €${RESET}`;
+  if (val < 0) return `${RED}${val.toLocaleString("de-DE")} €${RESET}`;
   return `${GRAY}0 €${RESET}`;
 }
 
@@ -82,143 +85,157 @@ export const CliScenarioTarget = {
   A: ScenarioId.A,
   B: ScenarioId.B,
   C: ScenarioId.C,
-  Compare: 'compare'
+  Compare: "compare",
 } as const;
-export type CliScenarioTarget = (typeof CliScenarioTarget)[keyof typeof CliScenarioTarget];
+export type CliScenarioTarget =
+  (typeof CliScenarioTarget)[keyof typeof CliScenarioTarget];
 
 export function toCliScenarioTarget(val: string): CliScenarioTarget {
   const upper = val.toUpperCase();
-  if (upper === 'A' || upper === 'B' || upper === 'C') {
+  if (upper === "A" || upper === "B" || upper === "C") {
     return upper as CliScenarioTarget;
   }
-  if (upper === 'COMPARE') {
+  if (upper === "COMPARE") {
     return CliScenarioTarget.Compare;
   }
-  throw new TypeError(`Invalid CLI scenario target: ${val}. Expected 'A', 'B', 'C', or 'compare'.`);
+  throw new TypeError(
+    `Invalid CLI scenario target: ${val}. Expected 'A', 'B', 'C', or 'compare'.`,
+  );
 }
 
 export function parseMonthArg(val: string): number {
   if (!val) {
-    throw new TypeError('Missing month argument. Example: explain M21 or --explain 21');
+    throw new TypeError(
+      "Missing month argument. Example: explain M21 or --explain 21",
+    );
   }
-  const clean = val.trim().replace(/^[Mm](?:onth)?\s*/i, '');
+  const clean = val.trim().replace(/^[Mm](?:onth)?\s*/i, "");
   const num = parseInt(clean, 10);
   if (Number.isNaN(num) || num < 1 || num > 120) {
-    throw new TypeError(`Invalid month argument "${val}". Expected integer between 1 and 120 (e.g. M21 or 21).`);
+    throw new TypeError(
+      `Invalid month argument "${val}". Expected integer between 1 and 120 (e.g. M21 or 21).`,
+    );
   }
   return num;
 }
 
 export function parseFieldArg(val: string): FieldColumnKey {
   if (!val) {
-    throw new TypeError('Missing field argument. Available fields: partner, mother, mutterschutz, husband, wife, taxClass, kindergeld, special, net, cumulative, phase, month.');
+    throw new TypeError(
+      "Missing field argument. Available fields: partner, mother, mutterschutz, husband, wife, taxClass, kindergeld, special, net, cumulative, phase, month.",
+    );
   }
-  const normalized = val.trim().toLowerCase().replace(/[-_\s]+/g, '');
+  const normalized = val
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
   switch (normalized) {
-    case 'partner':
-    case 'father':
-    case 'fatherelterngeld':
-    case 'husbandelterngeld':
-    case 'partnermonths':
-    case 'partnershipbonus':
-    case 'partnerbonus':
+    case "partner":
+    case "father":
+    case "fatherelterngeld":
+    case "husbandelterngeld":
+    case "partnermonths":
+    case "partnershipbonus":
+    case "partnerbonus":
       return FieldColumnKey.HusbandElterngeld;
 
-    case 'mother':
-    case 'wifeelterngeld':
-    case 'egplus':
-    case 'elterngeldplus':
-    case 'elterngeld':
-    case 'parentalallowance':
+    case "mother":
+    case "wifeelterngeld":
+    case "egplus":
+    case "elterngeldplus":
+    case "elterngeld":
+    case "parentalallowance":
       return FieldColumnKey.WifeElterngeld;
 
-    case 'mutterschutz':
-    case 'maternity':
-    case 'muschg':
+    case "mutterschutz":
+    case "maternity":
+    case "muschg":
       return FieldColumnKey.Mutterschutz;
 
-    case 'husband':
-    case 'husbandsalary':
-    case 'fathersalary':
-    case 'fathergross':
+    case "husband":
+    case "husbandsalary":
+    case "fathersalary":
+    case "fathergross":
       return FieldColumnKey.HusbandSalary;
 
-    case 'wife':
-    case 'wifesalary':
-    case 'mothersalary':
-    case 'mothergross':
+    case "wife":
+    case "wifesalary":
+    case "mothersalary":
+    case "mothergross":
       return FieldColumnKey.WifeSalary;
 
-    case 'tax':
-    case 'taxclass':
-    case 'taxclasses':
-    case 'classes':
-    case 'class':
+    case "tax":
+    case "taxclass":
+    case "taxclasses":
+    case "classes":
+    case "class":
       return FieldColumnKey.TaxClass;
 
-    case 'kindergeld':
-    case 'childbenefit':
-    case 'child':
-    case 'children':
+    case "kindergeld":
+    case "childbenefit":
+    case "child":
+    case "children":
       return FieldColumnKey.Kindergeld;
 
-    case 'special':
-    case 'specialevents':
-    case 'bonus':
-    case 'taxreturn':
-    case 'refund':
+    case "special":
+    case "specialevents":
+    case "bonus":
+    case "taxreturn":
+    case "refund":
       return FieldColumnKey.SpecialEvents;
 
-    case 'net':
-    case 'netinflow':
-    case 'monthlynet':
-    case 'monthlytotal':
-    case 'inflow':
-    case 'total':
+    case "net":
+    case "netinflow":
+    case "monthlynet":
+    case "monthlytotal":
+    case "inflow":
+    case "total":
       return FieldColumnKey.NetInflow;
 
-    case 'cumulative':
-    case 'cumulativetotal':
-    case 'cumulated':
-    case 'balance':
-    case 'wealth':
+    case "cumulative":
+    case "cumulativetotal":
+    case "cumulated":
+    case "balance":
+    case "wealth":
       return FieldColumnKey.CumulativeTotal;
 
-    case 'phase':
-    case 'status':
-    case 'event':
-    case 'eventtag':
+    case "phase":
+    case "status":
+    case "event":
+    case "eventtag":
       return FieldColumnKey.Phase;
 
-    case 'month':
-    case 'date':
-    case 'calendar':
+    case "month":
+    case "date":
+    case "calendar":
       return FieldColumnKey.Month;
 
     default: {
       const validNames = [
-        'partner (or husbandElterngeld)',
-        'mother (or wifeElterngeld, egplus)',
-        'mutterschutz',
-        'husband (or husbandSalary)',
-        'wife (or wifeSalary)',
-        'taxClass',
-        'kindergeld',
-        'special (or specialEvents)',
-        'net (or netInflow)',
-        'cumulative (or cumulativeTotal)',
-        'phase',
-        'month'
+        "partner (or husbandElterngeld)",
+        "mother (or wifeElterngeld, egplus)",
+        "mutterschutz",
+        "husband (or husbandSalary)",
+        "wife (or wifeSalary)",
+        "taxClass",
+        "kindergeld",
+        "special (or specialEvents)",
+        "net (or netInflow)",
+        "cumulative (or cumulativeTotal)",
+        "phase",
+        "month",
       ];
-      throw new TypeError(`Unknown explanation field: "${val}". Available fields are: ${validNames.join(', ')}.`);
+      throw new TypeError(
+        `Unknown explanation field: "${val}". Available fields are: ${validNames.join(", ")}.`,
+      );
     }
   }
 }
 
 export const CliMode = {
-  Simulate: 'SIMULATE',
-  GrossToNet: 'GROSS_TO_NET',
-  SpousalNet: 'SPOUSAL_NET'
+  Simulate: "SIMULATE",
+  GrossToNet: "GROSS_TO_NET",
+  SpousalNet: "SPOUSAL_NET",
 } as const;
 export type CliMode = (typeof CliMode)[keyof typeof CliMode];
 
@@ -266,19 +283,27 @@ function parseArgs(args: string[]): CliOptions {
     enable13th: true,
     taxReturnMonth: 3,
     period: SalaryPeriod.Monthly,
-    childrenCount: 0
+    childrenCount: 0,
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === '--help' || arg === '-h') {
+    if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
-    } else if (arg === 'gross-to-net' || arg === 'gross2net' || arg === 'brutto-netto') {
+    } else if (
+      arg === "gross-to-net" ||
+      arg === "gross2net" ||
+      arg === "brutto-netto"
+    ) {
       opts.mode = CliMode.GrossToNet;
-    } else if (arg === 'spousal-net' || arg === 'spousal' || arg === 'couple-net') {
+    } else if (
+      arg === "spousal-net" ||
+      arg === "spousal" ||
+      arg === "couple-net"
+    ) {
       opts.mode = CliMode.SpousalNet;
-    } else if (arg === 'explain') {
+    } else if (arg === "explain") {
       const nextArg = args[++i];
       if (nextArg) {
         opts.explainMonth = parseMonthArg(nextArg);
@@ -286,69 +311,80 @@ function parseArgs(args: string[]): CliOptions {
       // Check if following arguments provide 'field <fieldName>' or '--field <fieldName>'
       if (i + 1 < args.length) {
         const peek = args[i + 1];
-        if (peek === 'field' || peek === '--field') {
+        if (peek === "field" || peek === "--field") {
           i += 1;
           opts.explainField = parseFieldArg(args[++i]);
         }
       }
-    } else if (arg === '--explain' || arg === '-e') {
+    } else if (arg === "--explain" || arg === "-e") {
       opts.explainMonth = parseMonthArg(args[++i]);
-    } else if (arg === '--explain-month') {
+    } else if (arg === "--explain-month") {
       opts.explainMonth = parseMonthArg(args[++i]);
-    } else if (arg === '--explain-field' || arg === '--field') {
+    } else if (arg === "--explain-field" || arg === "--field") {
       opts.explainField = parseFieldArg(args[++i]);
-    } else if (arg === '--scenario' || arg === '-s') {
-      opts.scenario = toCliScenarioTarget(args[++i] || 'compare');
-    } else if (arg === '--start-year') {
+    } else if (arg === "--scenario" || arg === "-s") {
+      opts.scenario = toCliScenarioTarget(args[++i] || "compare");
+    } else if (arg === "--start-year") {
       opts.startYear = Number(args[++i]) || 2026;
-    } else if (arg === '--start-month') {
+    } else if (arg === "--start-month") {
       opts.startMonth = Number(args[++i]) || 1;
-    } else if (arg === '--duration' || arg === '-d') {
+    } else if (arg === "--duration" || arg === "-d") {
       opts.duration = Number(args[++i]) || 60;
-    } else if (arg === '--preg-start') {
+    } else if (arg === "--preg-start") {
       opts.pregStartSimMonth = Number(args[++i]) || 9;
-    } else if (arg === '--preg-year') {
+    } else if (arg === "--preg-year") {
       opts.pregYear = Number(args[++i]);
-    } else if (arg === '--preg-month') {
+    } else if (arg === "--preg-month") {
       opts.pregMonth = Number(args[++i]);
-    } else if (arg === '--spacing') {
+    } else if (arg === "--spacing") {
       opts.birthSpacing = Number(args[++i]) || 27;
-    } else if (arg === '--raise' || arg === '-r') {
+    } else if (arg === "--raise" || arg === "-r") {
       opts.annualRaise = Number(args[++i]) || 0;
-    } else if (arg === '--format' || arg === '-f') {
-      opts.format = toCliOutputFormat(args[++i] || 'table');
-    } else if (arg === '--no-13th') {
+    } else if (arg === "--format" || arg === "-f") {
+      opts.format = toCliOutputFormat(args[++i] || "table");
+    } else if (arg === "--no-13th") {
       opts.enable13th = false;
-    } else if (arg === '--tax-month') {
+    } else if (arg === "--tax-month") {
       opts.taxReturnMonth = Number(args[++i]) || 3;
-    } else if (arg === '--period') {
+    } else if (arg === "--period") {
       opts.period = toSalaryPeriod(args[++i]);
-    } else if (arg === '--yearly' || arg === '-y' || arg === '--annual') {
+    } else if (arg === "--yearly" || arg === "-y" || arg === "--annual") {
       opts.period = SalaryPeriod.Yearly;
-    } else if (arg === '--monthly') {
+    } else if (arg === "--monthly") {
       opts.period = SalaryPeriod.Monthly;
-    } else if (arg === '--gross' || arg === '-g') {
+    } else if (arg === "--gross" || arg === "-g") {
       opts.gross = Number(args[++i]);
-    } else if (arg === '--tax-class' || arg === '--class' || arg === '-c') {
+    } else if (arg === "--tax-class" || arg === "--class" || arg === "-c") {
       opts.taxClass = toTaxClass(args[++i]);
-    } else if (arg === '--children' || arg === '--kids') {
+    } else if (arg === "--children" || arg === "--kids") {
       opts.childrenCount = Number(args[++i]) || 0;
-    } else if (arg === '--bonus' || arg === '-b') {
+    } else if (arg === "--bonus" || arg === "-b") {
       opts.bonus = Number(args[++i]);
-    } else if (arg === '--husband-gross' || arg === '--h-gross') {
+    } else if (arg === "--husband-gross" || arg === "--h-gross") {
       opts.husbandGross = Number(args[++i]);
-    } else if (arg === '--wife-gross' || arg === '--w-gross') {
+    } else if (arg === "--wife-gross" || arg === "--w-gross") {
       opts.wifeGross = Number(args[++i]);
-    } else if (arg === '--husband-hours' || arg === '--h-hours') {
+    } else if (arg === "--husband-hours" || arg === "--h-hours") {
       opts.husbandHours = Number(args[++i]);
-    } else if (arg === '--wife-hours' || arg === '--w-hours') {
+    } else if (arg === "--wife-hours" || arg === "--w-hours") {
       opts.wifeHours = Number(args[++i]);
-    } else if (arg === '--annual-bonus' || arg === '--annual-bonus-gross' || arg === '--bonus-gross') {
+    } else if (
+      arg === "--annual-bonus" ||
+      arg === "--annual-bonus-gross" ||
+      arg === "--bonus-gross"
+    ) {
       opts.annualBonusGross = Number(args[++i]);
-    } else if (arg === '--investment' || arg === '--investment-return' || arg === '--capital-inflow') {
+    } else if (
+      arg === "--investment" ||
+      arg === "--investment-return" ||
+      arg === "--capital-inflow"
+    ) {
       opts.investmentReturnMonthly = Number(args[++i]);
-    } else if (arg === '--salary-mode') {
-      opts.salaryMode = args[++i]?.toUpperCase() === 'GROSS' ? SalaryInputMode.Gross : SalaryInputMode.Net;
+    } else if (arg === "--salary-mode") {
+      opts.salaryMode =
+        args[++i]?.toUpperCase() === "GROSS"
+          ? SalaryInputMode.Gross
+          : SalaryInputMode.Net;
     }
   }
 
@@ -423,66 +459,120 @@ ${BOLD}Examples:${RESET}
 `);
 }
 
-function printGrossToNetBreakdown(b: GrossToNetBreakdown, period: SalaryPeriod = SalaryPeriod.Monthly): void {
+function printGrossToNetBreakdown(
+  b: GrossToNetBreakdown,
+  period: SalaryPeriod = SalaryPeriod.Monthly,
+): void {
   const isYearly = period === SalaryPeriod.Yearly;
-  const line = '═'.repeat(80);
+  const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
-  console.log(`${BOLD}${CYAN}STATUTORY GROSS-TO-NET BREAKDOWN (${isYearly ? 'ANNUAL' : 'MONTHLY'} · § 38b, § 39b EStG & SGB IV/V/VI/XI)${RESET}`);
-  console.log(`${DIM}Tax Class: ${b.taxClass} · Children: ${b.childrenCount} · Statutory Tariff Zone: ${b.wageTaxZone}${RESET}`);
+  console.log(
+    `${BOLD}${CYAN}STATUTORY GROSS-TO-NET BREAKDOWN (${isYearly ? "ANNUAL" : "MONTHLY"} · § 38b, § 39b EStG & SGB IV/V/VI/XI)${RESET}`,
+  );
+  console.log(
+    `${DIM}Tax Class: ${b.taxClass} · Children: ${b.childrenCount} · Statutory Tariff Zone: ${b.wageTaxZone}${RESET}`,
+  );
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
 
   if (isYearly) {
-    console.log(`  ${BOLD}Annual Gross Salary:${RESET}      ${GREEN}${BOLD}${formatEuro(b.annualGross as number)}${RESET} (${formatEuro(b.monthlyGross as number)} / month)`);
+    console.log(
+      `  ${BOLD}Annual Gross Salary:${RESET}      ${GREEN}${BOLD}${formatEuro(b.annualGross as number)}${RESET} (${formatEuro(b.monthlyGross as number)} / month)`,
+    );
   } else {
-    console.log(`  ${BOLD}Monthly Gross Salary:${RESET}     ${GREEN}${BOLD}${formatEuro(b.monthlyGross as number)}${RESET} (${formatEuro(b.annualGross as number)} / year)`);
+    console.log(
+      `  ${BOLD}Monthly Gross Salary:${RESET}     ${GREEN}${BOLD}${formatEuro(b.monthlyGross as number)}${RESET} (${formatEuro(b.annualGross as number)} / year)`,
+    );
   }
   if (b.oneOffBonusAmount) {
-    console.log(`  ${BOLD}Non-Recurrent Bonus:${RESET}      ${YELLOW}${BOLD}+${formatEuro(b.oneOffBonusAmount as number)}${RESET} ${DIM}(Sonstige Bezüge § 39b EStG)${RESET}`);
+    console.log(
+      `  ${BOLD}Non-Recurrent Bonus:${RESET}      ${YELLOW}${BOLD}+${formatEuro(b.oneOffBonusAmount as number)}${RESET} ${DIM}(Sonstige Bezüge § 39b EStG)${RESET}`,
+    );
   }
 
   const mult = isYearly ? 12 : 1;
-  const unit = isYearly ? ' / yr' : ' / mo';
+  const unit = isYearly ? " / yr" : " / mo";
 
-  console.log(`\n${BOLD}Social Insurance Deductions (Employee Share${isYearly ? ', Annual' : ''}):${RESET}`);
-  console.log(`  • ${BOLD}Health Insurance (GKV ${(b.healthInsuranceRate * 100).toFixed(2)}%):${RESET}      ${RED}${formatEuro((b.healthInsurance as number) * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: 5.175 €/mo]${RESET}`);
-  console.log(`  • ${BOLD}Pension Insurance (GRV ${(b.pensionInsuranceRate * 100).toFixed(2)}%):${RESET}     ${RED}${formatEuro((b.pensionInsurance as number) * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: 7.550 €/mo]${RESET}`);
-  console.log(`  • ${BOLD}Unemployment Insurance (${(b.unemploymentInsuranceRate * 100).toFixed(2)}%):${RESET}  ${RED}${formatEuro((b.unemploymentInsurance as number) * mult).padStart(10)}${RESET}${unit}`);
-  console.log(`  • ${BOLD}Care Insurance (PV ${(b.careInsuranceRate * 100).toFixed(2)}%):${RESET}          ${RED}${formatEuro((b.careInsurance as number) * mult).padStart(10)}${RESET}${unit} ${DIM}[§ 55 SGB XI child discount]${RESET}`);
-  console.log(`  ${'─'.repeat(48)}`);
-  console.log(`  ${BOLD}Total Social Security:${RESET}             ${RED}${BOLD}${formatEuro((b.totalSocialSecurity as number) * mult).padStart(10)}${RESET}${unit}`);
+  console.log(
+    `\n${BOLD}Social Insurance Deductions (Employee Share${isYearly ? ", Annual" : ""}):${RESET}`,
+  );
+  console.log(
+    `  • ${BOLD}Health Insurance (GKV ${(b.healthInsuranceRate * 100).toFixed(2)}%):${RESET}      ${RED}${formatEuro((b.healthInsurance as number) * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: 5.175 €/mo]${RESET}`,
+  );
+  console.log(
+    `  • ${BOLD}Pension Insurance (GRV ${(b.pensionInsuranceRate * 100).toFixed(2)}%):${RESET}     ${RED}${formatEuro((b.pensionInsurance as number) * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: 7.550 €/mo]${RESET}`,
+  );
+  console.log(
+    `  • ${BOLD}Unemployment Insurance (${(b.unemploymentInsuranceRate * 100).toFixed(2)}%):${RESET}  ${RED}${formatEuro((b.unemploymentInsurance as number) * mult).padStart(10)}${RESET}${unit}`,
+  );
+  console.log(
+    `  • ${BOLD}Care Insurance (PV ${(b.careInsuranceRate * 100).toFixed(2)}%):${RESET}          ${RED}${formatEuro((b.careInsurance as number) * mult).padStart(10)}${RESET}${unit} ${DIM}[§ 55 SGB XI child discount]${RESET}`,
+  );
+  console.log(`  ${"─".repeat(48)}`);
+  console.log(
+    `  ${BOLD}Total Social Security:${RESET}             ${RED}${BOLD}${formatEuro((b.totalSocialSecurity as number) * mult).padStart(10)}${RESET}${unit}`,
+  );
 
-  console.log(`\n${BOLD}Statutory Tax Withholding (${isYearly ? 'Annual Total, ' : ''}§ 38b, § 39b EStG, SolzG):${RESET}`);
-  console.log(`  • ${BOLD}Wage Tax (${b.taxClass}):${RESET}                  ${RED}${formatEuro((b.monthlyWageTax as number) * mult).padStart(10)}${RESET}${unit}`);
-  console.log(`  • ${BOLD}Solidarity Surcharge (Solz):${RESET}          ${RED}${formatEuro((b.monthlySolidaritySurcharge as number) * mult).padStart(10)}${RESET}${unit}`);
+  console.log(
+    `\n${BOLD}Statutory Tax Withholding (${isYearly ? "Annual Total, " : ""}§ 38b, § 39b EStG, SolzG):${RESET}`,
+  );
+  console.log(
+    `  • ${BOLD}Wage Tax (${b.taxClass}):${RESET}                  ${RED}${formatEuro((b.monthlyWageTax as number) * mult).padStart(10)}${RESET}${unit}`,
+  );
+  console.log(
+    `  • ${BOLD}Solidarity Surcharge (Solz):${RESET}          ${RED}${formatEuro((b.monthlySolidaritySurcharge as number) * mult).padStart(10)}${RESET}${unit}`,
+  );
   if (b.bonusTaxDeduction) {
-    console.log(`  • ${BOLD}Bonus Tax (Annual Differential):${RESET}      ${RED}${formatEuro(b.bonusTaxDeduction as number).padStart(10)}${RESET} ${DIM}[§ 39b Abs. 3 EStG]${RESET}`);
+    console.log(
+      `  • ${BOLD}Bonus Tax (Annual Differential):${RESET}      ${RED}${formatEuro(b.bonusTaxDeduction as number).padStart(10)}${RESET} ${DIM}[§ 39b Abs. 3 EStG]${RESET}`,
+    );
   }
-  console.log(`  ${'─'.repeat(48)}`);
-  console.log(`  ${BOLD}Total Tax Withholding:${RESET}             ${RED}${BOLD}${formatEuro((b.totalTaxWithholding as number) * mult).padStart(10)}${RESET}${unit}`);
+  console.log(`  ${"─".repeat(48)}`);
+  console.log(
+    `  ${BOLD}Total Tax Withholding:${RESET}             ${RED}${BOLD}${formatEuro((b.totalTaxWithholding as number) * mult).padStart(10)}${RESET}${unit}`,
+  );
 
   console.log(`\n${BOLD}Final Net Pay Summary:${RESET}`);
   if (isYearly) {
-    console.log(`  ${BOLD}✔ Annual Net Take-Home Pay:${RESET}         ${GREEN}${BOLD}${formatEuro((b.monthlyNetTakeHome as number) * 12)}${RESET} / year (${formatEuro(b.monthlyNetTakeHome as number)} / month)`);
-    console.log(`  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet as number)}${RESET} / month baseline (${formatEuro((b.elterngeldSyntheticNet as number) * 12)} / year)`);
+    console.log(
+      `  ${BOLD}✔ Annual Net Take-Home Pay:${RESET}         ${GREEN}${BOLD}${formatEuro((b.monthlyNetTakeHome as number) * 12)}${RESET} / year (${formatEuro(b.monthlyNetTakeHome as number)} / month)`,
+    );
+    console.log(
+      `  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet as number)}${RESET} / month baseline (${formatEuro((b.elterngeldSyntheticNet as number) * 12)} / year)`,
+    );
   } else {
-    console.log(`  ${BOLD}✔ Monthly Net Take-Home Pay:${RESET}        ${GREEN}${BOLD}${formatEuro(b.monthlyNetTakeHome as number)}${RESET}`);
-    console.log(`  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet as number)}${RESET} ${DIM}(Excludes non-recurrent bonuses)${RESET}`);
+    console.log(
+      `  ${BOLD}✔ Monthly Net Take-Home Pay:${RESET}        ${GREEN}${BOLD}${formatEuro(b.monthlyNetTakeHome as number)}${RESET}`,
+    );
+    console.log(
+      `  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet as number)}${RESET} ${DIM}(Excludes non-recurrent bonuses)${RESET}`,
+    );
   }
-  console.log(`  ${DIM}Effective Tax Rate: ${b.effectiveTaxRatePercent}% · Total Deductions: ${b.effectiveTotalDeductionRatePercent}%${RESET}`);
+  console.log(
+    `  ${DIM}Effective Tax Rate: ${b.effectiveTaxRatePercent}% · Total Deductions: ${b.effectiveTotalDeductionRatePercent}%${RESET}`,
+  );
   console.log(`  ${DIM}Legal Citation: ${b.statutoryCitation}${RESET}`);
 
   console.log(`\n${CYAN}${line}${RESET}\n`);
 }
 
-function printSpousalGrossToNetSet(set: SpousalGrossToNetSet, period: SalaryPeriod = SalaryPeriod.Monthly): void {
+function printSpousalGrossToNetSet(
+  set: SpousalGrossToNetSet,
+  period: SalaryPeriod = SalaryPeriod.Monthly,
+): void {
   const isYearly = period === SalaryPeriod.Yearly;
-  const line = '═'.repeat(80);
+  const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
-  console.log(`${BOLD}${CYAN}SPOUSAL HOUSEHOLD GROSS-TO-NET COMPARISON SET (${isYearly ? 'ANNUAL' : 'MONTHLY'} · § 38b EStG & § 2b BEEG)${RESET}`);
+  console.log(
+    `${BOLD}${CYAN}SPOUSAL HOUSEHOLD GROSS-TO-NET COMPARISON SET (${isYearly ? "ANNUAL" : "MONTHLY"} · § 38b EStG & § 2b BEEG)${RESET}`,
+  );
   if (isYearly) {
-    console.log(`${DIM}Husband Gross: ${formatEuro((set.husbandGross as number) * 12)} / yr (${formatEuro(set.husbandGross as number)} / mo) · Wife Gross FT: ${formatEuro((set.wifeGrossFullTime as number) * 12)} / yr (${formatEuro(set.wifeGrossFullTime as number)} / mo) (PT: ${formatEuro((set.wifeGrossPartTime as number) * 12)} / yr)${RESET}`);
+    console.log(
+      `${DIM}Husband Gross: ${formatEuro((set.husbandGross as number) * 12)} / yr (${formatEuro(set.husbandGross as number)} / mo) · Wife Gross FT: ${formatEuro((set.wifeGrossFullTime as number) * 12)} / yr (${formatEuro(set.wifeGrossFullTime as number)} / mo) (PT: ${formatEuro((set.wifeGrossPartTime as number) * 12)} / yr)${RESET}`,
+    );
   } else {
-    console.log(`${DIM}Husband Gross: ${formatEuro(set.husbandGross as number)} · Wife Gross FT: ${formatEuro(set.wifeGrossFullTime as number)} (PT: ${formatEuro(set.wifeGrossPartTime as number)})${RESET}`);
+    console.log(
+      `${DIM}Husband Gross: ${formatEuro(set.husbandGross as number)} · Wife Gross FT: ${formatEuro(set.wifeGrossFullTime as number)} (PT: ${formatEuro(set.wifeGrossPartTime as number)})${RESET}`,
+    );
   }
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
 
@@ -493,58 +583,116 @@ function printSpousalGrossToNetSet(set: SpousalGrossToNetSet, period: SalaryPeri
     const hDiffY = h5Y - h3Y;
 
     console.log(`  ${BOLD}Husband Annual Salary Breakdown:${RESET}`);
-    console.log(`  • Tax Class III (Default):      ${GREEN}${BOLD}${formatEuro(h3Y)}${RESET} net / yr (${formatEuro(set.husbandClass3Net as number)} / mo)`);
-    console.log(`  • Tax Class V (Prenatal Swap):  ${YELLOW}${BOLD}${formatEuro(h5Y)}${RESET} net / yr (${formatEuro(set.husbandClass5Net as number)} / mo) ${RED}(Δ ${formatEuro(hDiffY)} / yr)${RESET}`);
-    console.log(`  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(h4Y)}${RESET} net / yr (${formatEuro(set.husbandClass4Net as number)} / mo)`);
+    console.log(
+      `  • Tax Class III (Default):      ${GREEN}${BOLD}${formatEuro(h3Y)}${RESET} net / yr (${formatEuro(set.husbandClass3Net as number)} / mo)`,
+    );
+    console.log(
+      `  • Tax Class V (Prenatal Swap):  ${YELLOW}${BOLD}${formatEuro(h5Y)}${RESET} net / yr (${formatEuro(set.husbandClass5Net as number)} / mo) ${RED}(Δ ${formatEuro(hDiffY)} / yr)${RESET}`,
+    );
+    console.log(
+      `  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(h4Y)}${RESET} net / yr (${formatEuro(set.husbandClass4Net as number)} / mo)`,
+    );
 
     const w5Y = (set.wifeClass5FullTimeNet as number) * 12;
     const w3Y = (set.wifeClass3FullTimeNet as number) * 12;
     const w4Y = (set.wifeClass4FullTimeNet as number) * 12;
     const wBoostY = w3Y - w5Y;
 
-    console.log(`\n  ${BOLD}Wife Full-Time (40h) Annual Salary Breakdown:${RESET}`);
-    console.log(`  • Tax Class V (Default):        ${YELLOW}${BOLD}${formatEuro(w5Y)}${RESET} net / yr (${formatEuro(set.wifeClass5FullTimeNet as number)} / mo)`);
-    console.log(`  • Tax Class III (Prenatal Swap):${GREEN}${BOLD}${formatEuro(w3Y)}${RESET} net / yr (${formatEuro(set.wifeClass3FullTimeNet as number)} / mo) ${GREEN}(+${formatEuro(wBoostY)} / yr Elterngeld Booster!)${RESET}`);
-    console.log(`  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(w4Y)}${RESET} net / yr (${formatEuro(set.wifeClass4FullTimeNet as number)} / mo)`);
+    console.log(
+      `\n  ${BOLD}Wife Full-Time (40h) Annual Salary Breakdown:${RESET}`,
+    );
+    console.log(
+      `  • Tax Class V (Default):        ${YELLOW}${BOLD}${formatEuro(w5Y)}${RESET} net / yr (${formatEuro(set.wifeClass5FullTimeNet as number)} / mo)`,
+    );
+    console.log(
+      `  • Tax Class III (Prenatal Swap):${GREEN}${BOLD}${formatEuro(w3Y)}${RESET} net / yr (${formatEuro(set.wifeClass3FullTimeNet as number)} / mo) ${GREEN}(+${formatEuro(wBoostY)} / yr Elterngeld Booster!)${RESET}`,
+    );
+    console.log(
+      `  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(w4Y)}${RESET} net / yr (${formatEuro(set.wifeClass4FullTimeNet as number)} / mo)`,
+    );
 
     const wPt5Y = (set.wifeClass5PartTimeNet as number) * 12;
     const wPt3Y = (set.wifeClass3PartTimeNet as number) * 12;
 
-    console.log(`\n  ${BOLD}Wife Post-Birth Part-Time (${set.wifePartTimeWeeklyHours}h) Annual Salary Breakdown:${RESET}`);
-    console.log(`  • Tax Class V (Reverted):       ${GREEN}${BOLD}${formatEuro(wPt5Y)}${RESET} net / yr (${formatEuro(set.wifeClass5PartTimeNet as number)} / mo)`);
-    console.log(`  • Tax Class III (Extended):     ${CYAN}${formatEuro(wPt3Y)}${RESET} net / yr (${formatEuro(set.wifeClass3PartTimeNet as number)} / mo)`);
+    console.log(
+      `\n  ${BOLD}Wife Post-Birth Part-Time (${set.wifePartTimeWeeklyHours}h) Annual Salary Breakdown:${RESET}`,
+    );
+    console.log(
+      `  • Tax Class V (Reverted):       ${GREEN}${BOLD}${formatEuro(wPt5Y)}${RESET} net / yr (${formatEuro(set.wifeClass5PartTimeNet as number)} / mo)`,
+    );
+    console.log(
+      `  • Tax Class III (Extended):     ${CYAN}${formatEuro(wPt3Y)}${RESET} net / yr (${formatEuro(set.wifeClass3PartTimeNet as number)} / mo)`,
+    );
 
-    console.log(`\n  ${BOLD}Prenatal Swap Net Cash Flow Impact (Annual):${RESET}`);
-    const defaultMonthlyInflow = (set.husbandClass3Net as number) + (set.wifeClass5FullTimeNet as number);
-    const swapMonthlyInflow = (set.husbandClass5Net as number) + (set.wifeClass3FullTimeNet as number);
+    console.log(
+      `\n  ${BOLD}Prenatal Swap Net Cash Flow Impact (Annual):${RESET}`,
+    );
+    const defaultMonthlyInflow =
+      (set.husbandClass3Net as number) + (set.wifeClass5FullTimeNet as number);
+    const swapMonthlyInflow =
+      (set.husbandClass5Net as number) + (set.wifeClass3FullTimeNet as number);
     const diff = swapMonthlyInflow - defaultMonthlyInflow;
 
-    console.log(`  • Combined Net in Default (H: III | W: V): ${formatEuro(defaultMonthlyInflow * 12)} / yr (${formatEuro(defaultMonthlyInflow)} / mo)`);
-    console.log(`  • Combined Net in Swap (H: V | W: III):    ${formatEuro(swapMonthlyInflow * 12)} / yr (${formatEuro(swapMonthlyInflow)} / mo)`);
-    console.log(`  • Annual Temporary Tax Gap:               ${diff < 0 ? RED : GREEN}${diff >= 0 ? '+' : ''}${formatEuro(diff * 12)} / yr${RESET} ${DIM}(${formatEuro(diff)} / mo, Reconciled via § 26b Annual Tax Return)${RESET}`);
+    console.log(
+      `  • Combined Net in Default (H: III | W: V): ${formatEuro(defaultMonthlyInflow * 12)} / yr (${formatEuro(defaultMonthlyInflow)} / mo)`,
+    );
+    console.log(
+      `  • Combined Net in Swap (H: V | W: III):    ${formatEuro(swapMonthlyInflow * 12)} / yr (${formatEuro(swapMonthlyInflow)} / mo)`,
+    );
+    console.log(
+      `  • Annual Temporary Tax Gap:               ${diff < 0 ? RED : GREEN}${diff >= 0 ? "+" : ""}${formatEuro(diff * 12)} / yr${RESET} ${DIM}(${formatEuro(diff)} / mo, Reconciled via § 26b Annual Tax Return)${RESET}`,
+    );
   } else {
     console.log(`  ${BOLD}Husband Salary Breakdown:${RESET}`);
-    console.log(`  • Tax Class III (Default):      ${GREEN}${BOLD}${formatEuro(set.husbandClass3Net as number)}${RESET} net / mo (${formatEuro((set.husbandClass3Net as number) * 12)} / yr)`);
-    console.log(`  • Tax Class V (Prenatal Swap):  ${YELLOW}${BOLD}${formatEuro(set.husbandClass5Net as number)}${RESET} net / mo ${RED}(Δ ${formatEuro((set.husbandClass5Net as number) - (set.husbandClass3Net as number))})${RESET}`);
-    console.log(`  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(set.husbandClass4Net as number)}${RESET} net / mo`);
+    console.log(
+      `  • Tax Class III (Default):      ${GREEN}${BOLD}${formatEuro(set.husbandClass3Net as number)}${RESET} net / mo (${formatEuro((set.husbandClass3Net as number) * 12)} / yr)`,
+    );
+    console.log(
+      `  • Tax Class V (Prenatal Swap):  ${YELLOW}${BOLD}${formatEuro(set.husbandClass5Net as number)}${RESET} net / mo ${RED}(Δ ${formatEuro((set.husbandClass5Net as number) - (set.husbandClass3Net as number))})${RESET}`,
+    );
+    console.log(
+      `  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(set.husbandClass4Net as number)}${RESET} net / mo`,
+    );
 
     console.log(`\n  ${BOLD}Wife Full-Time (40h) Salary Breakdown:${RESET}`);
-    console.log(`  • Tax Class V (Default):        ${YELLOW}${BOLD}${formatEuro(set.wifeClass5FullTimeNet as number)}${RESET} net / mo (${formatEuro((set.wifeClass5FullTimeNet as number) * 12)} / yr)`);
-    console.log(`  • Tax Class III (Prenatal Swap):${GREEN}${BOLD}${formatEuro(set.wifeClass3FullTimeNet as number)}${RESET} net / mo ${GREEN}(+${formatEuro((set.wifeClass3FullTimeNet as number) - (set.wifeClass5FullTimeNet as number))} Elterngeld Booster!)${RESET}`);
-    console.log(`  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(set.wifeClass4FullTimeNet as number)}${RESET} net / mo`);
+    console.log(
+      `  • Tax Class V (Default):        ${YELLOW}${BOLD}${formatEuro(set.wifeClass5FullTimeNet as number)}${RESET} net / mo (${formatEuro((set.wifeClass5FullTimeNet as number) * 12)} / yr)`,
+    );
+    console.log(
+      `  • Tax Class III (Prenatal Swap):${GREEN}${BOLD}${formatEuro(set.wifeClass3FullTimeNet as number)}${RESET} net / mo ${GREEN}(+${formatEuro((set.wifeClass3FullTimeNet as number) - (set.wifeClass5FullTimeNet as number))} Elterngeld Booster!)${RESET}`,
+    );
+    console.log(
+      `  • Tax Class IV (Proportional):  ${CYAN}${formatEuro(set.wifeClass4FullTimeNet as number)}${RESET} net / mo`,
+    );
 
-    console.log(`\n  ${BOLD}Wife Post-Birth Part-Time (${set.wifePartTimeWeeklyHours}h) Salary Breakdown:${RESET}`);
-    console.log(`  • Tax Class V (Reverted):       ${GREEN}${BOLD}${formatEuro(set.wifeClass5PartTimeNet as number)}${RESET} net / mo`);
-    console.log(`  • Tax Class III (Extended):     ${CYAN}${formatEuro(set.wifeClass3PartTimeNet as number)}${RESET} net / mo`);
+    console.log(
+      `\n  ${BOLD}Wife Post-Birth Part-Time (${set.wifePartTimeWeeklyHours}h) Salary Breakdown:${RESET}`,
+    );
+    console.log(
+      `  • Tax Class V (Reverted):       ${GREEN}${BOLD}${formatEuro(set.wifeClass5PartTimeNet as number)}${RESET} net / mo`,
+    );
+    console.log(
+      `  • Tax Class III (Extended):     ${CYAN}${formatEuro(set.wifeClass3PartTimeNet as number)}${RESET} net / mo`,
+    );
 
-    console.log(`\n  ${BOLD}Prenatal Swap Net Cash Flow Impact (Monthly):${RESET}`);
-    const defaultMonthlyInflow = (set.husbandClass3Net as number) + (set.wifeClass5FullTimeNet as number);
-    const swapMonthlyInflow = (set.husbandClass5Net as number) + (set.wifeClass3FullTimeNet as number);
+    console.log(
+      `\n  ${BOLD}Prenatal Swap Net Cash Flow Impact (Monthly):${RESET}`,
+    );
+    const defaultMonthlyInflow =
+      (set.husbandClass3Net as number) + (set.wifeClass5FullTimeNet as number);
+    const swapMonthlyInflow =
+      (set.husbandClass5Net as number) + (set.wifeClass3FullTimeNet as number);
     const diff = swapMonthlyInflow - defaultMonthlyInflow;
 
-    console.log(`  • Combined Net in Default (H: III | W: V): ${formatEuro(defaultMonthlyInflow)} / mo (${formatEuro(defaultMonthlyInflow * 12)} / yr)`);
-    console.log(`  • Combined Net in Swap (H: V | W: III):    ${formatEuro(swapMonthlyInflow)} / mo (${formatEuro(swapMonthlyInflow * 12)} / yr)`);
-    console.log(`  • Monthly Temporary Tax Gap:               ${diff < 0 ? RED : GREEN}${diff >= 0 ? '+' : ''}${formatEuro(diff)} / mo${RESET} ${DIM}(Reconciled via § 26b Annual Tax Return)${RESET}`);
+    console.log(
+      `  • Combined Net in Default (H: III | W: V): ${formatEuro(defaultMonthlyInflow)} / mo (${formatEuro(defaultMonthlyInflow * 12)} / yr)`,
+    );
+    console.log(
+      `  • Combined Net in Swap (H: V | W: III):    ${formatEuro(swapMonthlyInflow)} / mo (${formatEuro(swapMonthlyInflow * 12)} / yr)`,
+    );
+    console.log(
+      `  • Monthly Temporary Tax Gap:               ${diff < 0 ? RED : GREEN}${diff >= 0 ? "+" : ""}${formatEuro(diff)} / mo${RESET} ${DIM}(Reconciled via § 26b Annual Tax Return)${RESET}`,
+    );
   }
 
   console.log(`\n${CYAN}${line}${RESET}\n`);
@@ -554,23 +702,35 @@ function printFieldExplanation(
   exp: FieldExplanation,
   monthNum: number,
   scenarioId: ScenarioId,
-  m: TimelineMonth
+  m: TimelineMonth,
 ): void {
-  const line = '═'.repeat(80);
+  const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
-  console.log(`${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (Month ${m.month} · ${m.calendarLabel})${RESET}`);
-  console.log(`${DIM}Scenario: ${scenarioId} · Spousal Tax Classes: ${m.taxClassLabel}${RESET}`);
+  console.log(
+    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (Month ${m.month} · ${m.calendarLabel})${RESET}`,
+  );
+  console.log(
+    `${DIM}Scenario: ${scenarioId} · Spousal Tax Classes: ${m.taxClassLabel}${RESET}`,
+  );
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
 
-  console.log(`  ${BOLD}Value:${RESET}              ${GREEN}${BOLD}${exp.valueFormatted}${RESET}`);
+  console.log(
+    `  ${BOLD}Value:${RESET}              ${GREEN}${BOLD}${exp.valueFormatted}${RESET}`,
+  );
   if (exp.derivationFormula) {
-    console.log(`  ${BOLD}Derivation Formula:${RESET} ${YELLOW}${exp.derivationFormula}${RESET}`);
+    console.log(
+      `  ${BOLD}Derivation Formula:${RESET} ${YELLOW}${exp.derivationFormula}${RESET}`,
+    );
   }
   if (exp.legalCitation) {
-    console.log(`  ${BOLD}Legal Citation:${RESET}     ${BLUE}${exp.legalCitation}${RESET}`);
+    console.log(
+      `  ${BOLD}Legal Citation:${RESET}     ${BLUE}${exp.legalCitation}${RESET}`,
+    );
   }
   if (exp.diffVsBFormatted) {
-    console.log(`  ${BOLD}Comparison vs. B:${RESET}   ${exp.diffVsBFormatted.includes('+') ? GREEN : RED}${exp.diffVsBFormatted}${RESET}`);
+    console.log(
+      `  ${BOLD}Comparison vs. B:${RESET}   ${exp.diffVsBFormatted.includes("+") ? GREEN : RED}${exp.diffVsBFormatted}${RESET}`,
+    );
   }
 
   console.log(`\n${BOLD}Description:${RESET}`);
@@ -579,7 +739,9 @@ function printFieldExplanation(
   if (exp.contributingFactors && exp.contributingFactors.length > 0) {
     console.log(`\n${BOLD}Contributing Parameters / Factors:${RESET}`);
     exp.contributingFactors.forEach((f) => {
-      console.log(`  • ${BOLD}${f.name}:${RESET} ${CYAN}${f.value}${RESET}${f.description ? ` (${DIM}${f.description}${RESET})` : ''}`);
+      console.log(
+        `  • ${BOLD}${f.name}:${RESET} ${CYAN}${f.value}${RESET}${f.description ? ` (${DIM}${f.description}${RESET})` : ""}`,
+      );
     });
   }
 
@@ -588,7 +750,9 @@ function printFieldExplanation(
     exp.calculationSteps.forEach((s) => {
       console.log(`  ${BOLD}[${s.stepNumber}] ${s.description}${RESET}`);
       console.log(`      ${DIM}Formula:${RESET} ${YELLOW}${s.formula}${RESET}`);
-      console.log(`      ${DIM}Result:${RESET}  ${GREEN}${BOLD}${s.result}${RESET}`);
+      console.log(
+        `      ${DIM}Result:${RESET}  ${GREEN}${BOLD}${s.result}${RESET}`,
+      );
     });
   }
 
@@ -598,19 +762,27 @@ function printFieldExplanation(
 function printMonthExplanation(
   rowExp: RowExplanation,
   m: TimelineMonth,
-  scenarioId: ScenarioId
+  scenarioId: ScenarioId,
 ): void {
-  const line = '═'.repeat(80);
+  const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
   console.log(`${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title}${RESET}`);
   console.log(`${DIM}${rowExp.subtitle} · Scenario: ${scenarioId}${RESET}`);
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
 
-  console.log(`  ${BOLD}Phase / Status:${RESET}      ${MAGENTA}${rowExp.phaseOrCategory}${RESET}`);
-  console.log(`  ${BOLD}Monthly Net Inflow:${RESET}  ${GREEN}${BOLD}${rowExp.totalNetInflowFormatted}${RESET}${rowExp.diffVsBFormatted ? ` (${rowExp.diffVsBFormatted} vs Scenario B)` : ''}`);
-  console.log(`  ${BOLD}Progressive Total:${RESET}   ${CYAN}${BOLD}${rowExp.cumulatedTotalFormatted}${RESET}`);
+  console.log(
+    `  ${BOLD}Phase / Status:${RESET}      ${MAGENTA}${rowExp.phaseOrCategory}${RESET}`,
+  );
+  console.log(
+    `  ${BOLD}Monthly Net Inflow:${RESET}  ${GREEN}${BOLD}${rowExp.totalNetInflowFormatted}${RESET}${rowExp.diffVsBFormatted ? ` (${rowExp.diffVsBFormatted} vs Scenario B)` : ""}`,
+  );
+  console.log(
+    `  ${BOLD}Progressive Total:${RESET}   ${CYAN}${BOLD}${rowExp.cumulatedTotalFormatted}${RESET}`,
+  );
   if (rowExp.legalCitation) {
-    console.log(`  ${BOLD}Statutory Basis:${RESET}     ${BLUE}${rowExp.legalCitation}${RESET}`);
+    console.log(
+      `  ${BOLD}Statutory Basis:${RESET}     ${BLUE}${rowExp.legalCitation}${RESET}`,
+    );
   }
 
   console.log(`\n${BOLD}Audit Summary:${RESET}`);
@@ -619,10 +791,14 @@ function printMonthExplanation(
   if (rowExp.streams.length > 0) {
     console.log(`\n${BOLD}Itemized Cash Flow Breakdown:${RESET}`);
     rowExp.streams.forEach((st) => {
-      console.log(`  • ${BOLD}${st.label.padEnd(38)}:${RESET} ${GREEN}${st.valueFormatted.padStart(10)}${RESET} ${DIM}[${st.formula || st.notes}]${RESET}`);
+      console.log(
+        `  • ${BOLD}${st.label.padEnd(38)}:${RESET} ${GREEN}${st.valueFormatted.padStart(10)}${RESET} ${DIM}[${st.formula || st.notes}]${RESET}`,
+      );
     });
-    console.log(`  ${'─'.repeat(52)}`);
-    console.log(`    ${BOLD}${'Total Net Household Inflow'.padEnd(36)}:${RESET} ${GREEN}${BOLD}${rowExp.totalNetInflowFormatted.padStart(10)}${RESET}`);
+    console.log(`  ${"─".repeat(52)}`);
+    console.log(
+      `    ${BOLD}${"Total Net Household Inflow".padEnd(36)}:${RESET} ${GREEN}${BOLD}${rowExp.totalNetInflowFormatted.padStart(10)}${RESET}`,
+    );
   }
 
   if (m.startingActions && m.startingActions.length > 0) {
@@ -637,7 +813,9 @@ function printMonthExplanation(
     console.log(`\n${BOLD}Special Fiscal Events in Month ${m.month}:${RESET}`);
     m.specialEvents.forEach((ev) => {
       const isCost = (ev.amount as number) < 0;
-      console.log(`  💰 ${BOLD}${ev.title}${RESET} (${isCost ? RED : GREEN}${(ev.amount as number).toLocaleString('de-DE')} €${RESET})`);
+      console.log(
+        `  💰 ${BOLD}${ev.title}${RESET} (${isCost ? RED : GREEN}${(ev.amount as number).toLocaleString("de-DE")} €${RESET})`,
+      );
       console.log(`     ↳ ${DIM}${ev.description || ev.category}${RESET}`);
     });
   }
@@ -645,29 +823,35 @@ function printMonthExplanation(
   console.log(`\n${CYAN}${line}${RESET}\n`);
 }
 
-
-
-function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationResult {
+function buildSimulation(
+  scenarioKey: ScenarioId,
+  opts: CliOptions,
+): SimulationResult {
   const b1 = opts.pregStartSimMonth + 8; // 9 months of pregnancy -> delivery at pregStart + 8 (e.g. M9 -> M17)
   const b2 = b1 + opts.birthSpacing;
   const lead = 7;
 
   // Calculate dynamic or default spousal nets (normalizing yearly inputs if provided)
   const husbandGrossMonthly = opts.husbandGross
-    ? (opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000 ? Math.round(opts.husbandGross / 12) : opts.husbandGross)
+    ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
+      ? Math.round(opts.husbandGross / 12)
+      : opts.husbandGross
     : undefined;
   const wifeGrossMonthly = opts.wifeGross
-    ? (opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000 ? Math.round(opts.wifeGross / 12) : opts.wifeGross)
+    ? opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000
+      ? Math.round(opts.wifeGross / 12)
+      : opts.wifeGross
     : undefined;
 
-  const hasGrossInputs = husbandGrossMonthly !== undefined || wifeGrossMonthly !== undefined;
+  const hasGrossInputs =
+    husbandGrossMonthly !== undefined || wifeGrossMonthly !== undefined;
   const spousal = hasGrossInputs
     ? deriveSpousalNetSalaries(
         toGrossSalary(husbandGrossMonthly || 6000),
         toGrossSalary(wifeGrossMonthly || 3000),
         toWorkingHours(opts.wifeHours || 24),
         toWorkingHours(40),
-        opts.childrenCount
+        opts.childrenCount,
       )
     : null;
 
@@ -676,30 +860,48 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
     startCalendarYear: opts.startYear,
     startCalendarMonth: toCalendarMonth(opts.startMonth),
     simulationDurationMonths: opts.duration,
-    salaryInputMode: hasGrossInputs ? SalaryInputMode.Gross : SalaryInputMode.Net,
+    salaryInputMode: hasGrossInputs
+      ? SalaryInputMode.Gross
+      : SalaryInputMode.Net,
     salaryPeriod: opts.period,
-    husbandGross: husbandGrossMonthly ? toGrossSalary(husbandGrossMonthly) : undefined,
+    husbandGross: husbandGrossMonthly
+      ? toGrossSalary(husbandGrossMonthly)
+      : undefined,
     wifeGross: wifeGrossMonthly ? toGrossSalary(wifeGrossMonthly) : undefined,
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: spousal ? spousal.husbandClass3Net : toNetSalary(2895),
-    husbandInitialClass5Net: spousal ? spousal.husbandClass5Net : toNetSalary(2191),
+    husbandInitialClass5Net: spousal
+      ? spousal.husbandClass5Net
+      : toNetSalary(2191),
     husbandWeeklyHours: toWorkingHours(opts.husbandHours || 32),
     wifeInitialTaxClass: TaxClass.V,
-    wifeInitialFullTimeNet: spousal ? spousal.wifeClass5FullTimeNet : toNetSalary(1975),
-    wifeInitialClass3FullTimeNet: spousal ? spousal.wifeClass3FullTimeNet : toNetSalary(2603),
-    wifeInitialPartTimeClass5Net: spousal ? spousal.wifeClass5PartTimeNet : toNetSalary(1328),
-    wifeInitialPartTimeClass3Net: spousal ? spousal.wifeClass3PartTimeNet : toNetSalary(1648),
+    wifeInitialFullTimeNet: spousal
+      ? spousal.wifeClass5FullTimeNet
+      : toNetSalary(1975),
+    wifeInitialClass3FullTimeNet: spousal
+      ? spousal.wifeClass3FullTimeNet
+      : toNetSalary(2603),
+    wifeInitialPartTimeClass5Net: spousal
+      ? spousal.wifeClass5PartTimeNet
+      : toNetSalary(1328),
+    wifeInitialPartTimeClass3Net: spousal
+      ? spousal.wifeClass3PartTimeNet
+      : toNetSalary(1648),
     wifeWeeklyHours: toWorkingHours(40),
     wifePostBirthWeeklyHours: toWorkingHours(opts.wifeHours || 24),
-    annualBonusGross: opts.annualBonusGross ? toEuroAmount(opts.annualBonusGross) : undefined,
+    annualBonusGross: opts.annualBonusGross
+      ? toEuroAmount(opts.annualBonusGross)
+      : undefined,
     annualBonusMonth: toCalendarMonth(12),
-    investmentReturnMonthly: opts.investmentReturnMonthly ? toEuroAmount(opts.investmentReturnMonthly) : undefined,
+    investmentReturnMonthly: opts.investmentReturnMonthly
+      ? toEuroAmount(opts.investmentReturnMonthly)
+      : undefined,
     existingChildrenCount: opts.childrenCount,
     kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: opts.enable13th,
     bonus40Month: toCalendarMonth(5),
     bonus60Month: toCalendarMonth(11),
-    taxReturnMonth: toCalendarMonth(opts.taxReturnMonth)
+    taxReturnMonth: toCalendarMonth(opts.taxReturnMonth),
   };
 
   const ptNet5 = spousal ? spousal.wifeClass5PartTimeNet : toNetSalary(1328);
@@ -708,29 +910,36 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
   // Batch 1: Pregnancy Actions
   const pregnancies: PregnancyAction[] = [
     {
-      pregnancyId: toPregnancyId('PREG-CHILD-1'),
+      pregnancyId: toPregnancyId("PREG-CHILD-1"),
       childIndex: 1,
-      positiveTestCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + opts.pregStartSimMonth - 1) % 12) + 1),
-      positiveTestCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + opts.pregStartSimMonth - 1) / 12),
+      positiveTestCalendarMonth: toCalendarMonth(
+        ((opts.startMonth - 1 + opts.pregStartSimMonth - 1) % 12) + 1,
+      ),
+      positiveTestCalendarYear:
+        opts.startYear +
+        Math.floor((opts.startMonth - 1 + opts.pregStartSimMonth - 1) / 12),
       positiveTestSimulationMonth: toSimulationMonth(opts.pregStartSimMonth),
       calculatedDeliverySimulationMonth: toSimulationMonth(b1),
       motherPostBirthPartTimeHours: toWorkingHours(opts.wifeHours || 24),
       motherPostBirthPartTimeClass5Net: ptNet5,
       motherPostBirthPartTimeClass3Net: ptNet3,
-      fatherPartnerMonthsCount: 4
+      fatherPartnerMonthsCount: 4,
     },
     {
-      pregnancyId: toPregnancyId('PREG-CHILD-2'),
+      pregnancyId: toPregnancyId("PREG-CHILD-2"),
       childIndex: 2,
-      positiveTestCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + (b2 - 9)) % 12) + 1),
-      positiveTestCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + (b2 - 9)) / 12),
+      positiveTestCalendarMonth: toCalendarMonth(
+        ((opts.startMonth - 1 + (b2 - 9)) % 12) + 1,
+      ),
+      positiveTestCalendarYear:
+        opts.startYear + Math.floor((opts.startMonth - 1 + (b2 - 9)) / 12),
       positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
       calculatedDeliverySimulationMonth: toSimulationMonth(b2),
       motherPostBirthPartTimeHours: toWorkingHours(opts.wifeHours || 24),
       motherPostBirthPartTimeClass5Net: ptNet5,
       motherPostBirthPartTimeClass3Net: ptNet3,
-      fatherPartnerMonthsCount: 4
-    }
+      fatherPartnerMonthsCount: 4,
+    },
   ];
 
   // Batch 2: Tax Class Switches
@@ -741,25 +950,35 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
 
   const taxClassSwitches: TaxClassSwitchAction[] = [
     {
-      switchId: toSwitchId('SWAP-CHILD-1'),
+      switchId: toSwitchId("SWAP-CHILD-1"),
       effectiveSimulationMonth: toSimulationMonth(swap1Start),
-      effectiveCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + swap1Start - 1) % 12) + 1),
-      effectiveCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + swap1Start - 1) / 12),
+      effectiveCalendarMonth: toCalendarMonth(
+        ((opts.startMonth - 1 + swap1Start - 1) % 12) + 1,
+      ),
+      effectiveCalendarYear:
+        opts.startYear +
+        Math.floor((opts.startMonth - 1 + swap1Start - 1) / 12),
       targetHusbandTaxClass: TaxClass.V,
       targetWifeTaxClass: TaxClass.III,
-      statutoryReason: 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)',
-      revertSimulationMonth: toSimulationMonth(b1)
+      statutoryReason:
+        "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
+      revertSimulationMonth: toSimulationMonth(b1),
     },
     {
-      switchId: toSwitchId('SWAP-CHILD-2'),
+      switchId: toSwitchId("SWAP-CHILD-2"),
       effectiveSimulationMonth: toSimulationMonth(swap2Start),
-      effectiveCalendarMonth: toCalendarMonth(((opts.startMonth - 1 + swap2Start - 1) % 12) + 1),
-      effectiveCalendarYear: opts.startYear + Math.floor((opts.startMonth - 1 + swap2Start - 1) / 12),
+      effectiveCalendarMonth: toCalendarMonth(
+        ((opts.startMonth - 1 + swap2Start - 1) % 12) + 1,
+      ),
+      effectiveCalendarYear:
+        opts.startYear +
+        Math.floor((opts.startMonth - 1 + swap2Start - 1) / 12),
       targetHusbandTaxClass: TaxClass.V,
       targetWifeTaxClass: TaxClass.III,
-      statutoryReason: 'Optimize Child 2 Part-Time Elterngeld baseline (§ 2b BEEG)',
-      revertSimulationMonth: toSimulationMonth(b2)
-    }
+      statutoryReason:
+        "Optimize Child 2 Part-Time Elterngeld baseline (§ 2b BEEG)",
+      revertSimulationMonth: toSimulationMonth(b2),
+    },
   ];
 
   // Batch 3: Salary Raises
@@ -776,7 +995,7 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
           effectiveCalendarYear: opts.startYear + y - 1,
           targetPerson: TargetPerson.Both,
           percentageIncrease: opts.annualRaise,
-          reason: `Year ${y} Tariff Adjustment (+${(opts.annualRaise * 100).toFixed(1)}%)`
+          reason: `Year ${y} Tariff Adjustment (+${(opts.annualRaise * 100).toFixed(1)}%)`,
         });
       }
     }
@@ -787,63 +1006,125 @@ function buildSimulation(scenarioKey: ScenarioId, opts: CliOptions): SimulationR
     preexisting,
     pregnancies,
     taxClassSwitches,
-    salaryRaises
+    salaryRaises,
   });
 }
 
-function printSummaryScorecard(resA: SimulationResult, resB: SimulationResult, resC: SimulationResult) {
-  const gainOverB = (resC.summary.grandTotal as number) - (resB.summary.grandTotal as number);
-  const gainOverA = (resC.summary.grandTotal as number) - (resA.summary.grandTotal as number);
-  const benefitGainOverB = (resC.summary.totalBenefits as number) - (resB.summary.totalBenefits as number);
+function printSummaryScorecard(
+  resA: SimulationResult,
+  resB: SimulationResult,
+  resC: SimulationResult,
+) {
+  const gainOverB =
+    (resC.summary.grandTotal as number) - (resB.summary.grandTotal as number);
+  const gainOverA =
+    (resC.summary.grandTotal as number) - (resA.summary.grandTotal as number);
+  const benefitGainOverB =
+    (resC.summary.totalBenefits as number) -
+    (resB.summary.totalBenefits as number);
 
-  console.log(`\n${BOLD}${CYAN}========================================================================================${RESET}`);
-  console.log(`${BOLD}${CYAN}                   GERMAN ELTERNGELD SIMULATION KPI SCORECARD                          ${RESET}`);
-  console.log(`${BOLD}${CYAN}========================================================================================${RESET}\n`);
+  console.log(
+    `\n${BOLD}${CYAN}========================================================================================${RESET}`,
+  );
+  console.log(
+    `${BOLD}${CYAN}                   GERMAN ELTERNGELD SIMULATION KPI SCORECARD                          ${RESET}`,
+  );
+  console.log(
+    `${BOLD}${CYAN}========================================================================================${RESET}\n`,
+  );
 
-  console.log(`  ${BOLD}Category${RESET}                       ${BOLD}Scenario A (Status Quo)${RESET}  ${BOLD}Scenario B (Unoptimized)${RESET} ${BOLD}Scenario C (Optimized)${RESET}`);
-  console.log(`  --------------------------------------------------------------------------------------`);
-  console.log(`  Earned Net Salaries:          ${String(formatEuro(resA.summary.totalSalaries as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalSalaries as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalSalaries as number)).padStart(15)}`);
-  console.log(`  State Parental Benefits:      ${String(formatEuro(resA.summary.totalBenefits as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalBenefits as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalBenefits as number)).padStart(15)}`);
-  console.log(`  13th Month Special Bonuses:   ${String(formatEuro(resA.summary.total13thSalaries as number)).padStart(15)}  ${String(formatEuro(resB.summary.total13thSalaries as number)).padStart(16)}  ${String(formatEuro(resC.summary.total13thSalaries as number)).padStart(15)}`);
-  console.log(`  Annual Tax Returns (§ 26b):   ${String(formatEuro(resA.summary.totalTaxRefunds as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalTaxRefunds as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalTaxRefunds as number)).padStart(15)}`);
-  console.log(`  --------------------------------------------------------------------------------------`);
-  console.log(`  ${BOLD}Grand Total Cash Inflow:      ${String(formatEuro(resA.summary.grandTotal as number)).padStart(15)}  ${String(formatEuro(resB.summary.grandTotal as number)).padStart(16)}  ${GREEN}${BOLD}${String(formatEuro(resC.summary.grandTotal as number)).padStart(15)}${RESET}`);
-  console.log(`  ======================================================================================\n`);
+  console.log(
+    `  ${BOLD}Category${RESET}                       ${BOLD}Scenario A (Status Quo)${RESET}  ${BOLD}Scenario B (Unoptimized)${RESET} ${BOLD}Scenario C (Optimized)${RESET}`,
+  );
+  console.log(
+    `  --------------------------------------------------------------------------------------`,
+  );
+  console.log(
+    `  Earned Net Salaries:          ${String(formatEuro(resA.summary.totalSalaries as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalSalaries as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalSalaries as number)).padStart(15)}`,
+  );
+  console.log(
+    `  State Parental Benefits:      ${String(formatEuro(resA.summary.totalBenefits as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalBenefits as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalBenefits as number)).padStart(15)}`,
+  );
+  console.log(
+    `  13th Month Special Bonuses:   ${String(formatEuro(resA.summary.total13thSalaries as number)).padStart(15)}  ${String(formatEuro(resB.summary.total13thSalaries as number)).padStart(16)}  ${String(formatEuro(resC.summary.total13thSalaries as number)).padStart(15)}`,
+  );
+  console.log(
+    `  Annual Tax Returns (§ 26b):   ${String(formatEuro(resA.summary.totalTaxRefunds as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalTaxRefunds as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalTaxRefunds as number)).padStart(15)}`,
+  );
+  console.log(
+    `  --------------------------------------------------------------------------------------`,
+  );
+  console.log(
+    `  ${BOLD}Grand Total Cash Inflow:      ${String(formatEuro(resA.summary.grandTotal as number)).padStart(15)}  ${String(formatEuro(resB.summary.grandTotal as number)).padStart(16)}  ${GREEN}${BOLD}${String(formatEuro(resC.summary.grandTotal as number)).padStart(15)}${RESET}`,
+  );
+  console.log(
+    `  ======================================================================================\n`,
+  );
 
-  console.log(`  ${BOLD}${GREEN}✔ Net Optimization Advantage (Scenario C vs B):${RESET}  ${BOLD}${GREEN}+${formatEuro(gainOverB)}${RESET}`);
-  console.log(`  ${BOLD}${GREEN}✔ State Benefit Surplus (§ 2b BEEG Maxed EG+):${RESET}   ${BOLD}${GREEN}+${formatEuro(benefitGainOverB)}${RESET}`);
-  console.log(`  ${BOLD}${CYAN}✔ Net Financial Gain vs Status Quo (C vs A):${RESET}     ${BOLD}${CYAN}+${formatEuro(gainOverA)}${RESET}\n`);
+  console.log(
+    `  ${BOLD}${GREEN}✔ Net Optimization Advantage (Scenario C vs B):${RESET}  ${BOLD}${GREEN}+${formatEuro(gainOverB)}${RESET}`,
+  );
+  console.log(
+    `  ${BOLD}${GREEN}✔ State Benefit Surplus (§ 2b BEEG Maxed EG+):${RESET}   ${BOLD}${GREEN}+${formatEuro(benefitGainOverB)}${RESET}`,
+  );
+  console.log(
+    `  ${BOLD}${CYAN}✔ Net Financial Gain vs Status Quo (C vs A):${RESET}     ${BOLD}${CYAN}+${formatEuro(gainOverA)}${RESET}\n`,
+  );
 }
 
 function printMilestones(res: SimulationResult) {
-  console.log(`\n${BOLD}${CYAN}Key Life Milestones & Special Events Timeline (${res.months.length} Months):${RESET}\n`);
+  console.log(
+    `\n${BOLD}${CYAN}Key Life Milestones & Special Events Timeline (${res.months.length} Months):${RESET}\n`,
+  );
 
   res.months.forEach((m) => {
     // Print starting actions before month
     if (m.startingActions && m.startingActions.length > 0) {
       m.startingActions.forEach((act) => {
-        console.log(`  ${BOLD}${MAGENTA}⚡ ${act.title}${RESET} [Triggered before ${m.calendarLabel} / M${m.month}]`);
+        console.log(
+          `  ${BOLD}${MAGENTA}⚡ ${act.title}${RESET} [Triggered before ${m.calendarLabel} / M${m.month}]`,
+        );
         console.log(`    ↳ ${DIM}${act.description}${RESET}`);
       });
     }
 
     const events: string[] = [];
-    if (m.isMutterschutz) events.push(`${MAGENTA}Mutterschutz (${formatEuro(m.mutterschutz as number)})${RESET}`);
-    if ((m.wifeElterngeld as number) > 0) events.push(`${CYAN}ElterngeldPlus (${formatEuro(m.wifeElterngeld as number)})${RESET}`);
+    if (m.isMutterschutz)
+      events.push(
+        `${MAGENTA}Mutterschutz (${formatEuro(m.mutterschutz as number)})${RESET}`,
+      );
+    if ((m.wifeElterngeld as number) > 0)
+      events.push(
+        `${CYAN}ElterngeldPlus (${formatEuro(m.wifeElterngeld as number)})${RESET}`,
+      );
     if (m.hasSiblingBonus) events.push(`${GREEN}Sibling Bonus (+10%)${RESET}`);
-    if (m.isPartnerschaftsbonus) events.push(`${BLUE}Partnerschaftsbonus${RESET}`);
-    if (m.isSwapActive) events.push(`${YELLOW}Tax Swap Active (H: V | W: III)${RESET}`);
-    if ((m.specialBonusTotal as number) > 0) events.push(`${GREEN}13th Salary Bonus (${formatEuro(m.specialBonusTotal as number)})${RESET}`);
-    if ((m.taxRefund as number) > 0) events.push(`${BOLD}${GREEN}Tax Return Refund (§ 26b EStG: ${formatEuro(m.taxRefund as number)})${RESET}`);
+    if (m.isPartnerschaftsbonus)
+      events.push(`${BLUE}Partnerschaftsbonus${RESET}`);
+    if (m.isSwapActive)
+      events.push(`${YELLOW}Tax Swap Active (H: V | W: III)${RESET}`);
+    if ((m.specialBonusTotal as number) > 0)
+      events.push(
+        `${GREEN}13th Salary Bonus (${formatEuro(m.specialBonusTotal as number)})${RESET}`,
+      );
+    if ((m.taxRefund as number) > 0)
+      events.push(
+        `${BOLD}${GREEN}Tax Return Refund (§ 26b EStG: ${formatEuro(m.taxRefund as number)})${RESET}`,
+      );
 
-    if (events.length > 0 || m.relativeBirthLabel.includes('Birth') || m.relativeBirthLabel.includes('M-8')) {
-      console.log(`  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}M${m.month}${RESET} / ${m.relativeBirthLabel}): ${m.phaseLabel}`);
+    if (
+      events.length > 0 ||
+      m.relativeBirthLabel.includes("Birth") ||
+      m.relativeBirthLabel.includes("M-8")
+    ) {
+      console.log(
+        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}M${m.month}${RESET} / ${m.relativeBirthLabel}): ${m.phaseLabel}`,
+      );
       if (events.length > 0) {
-        console.log(`    ↳ ${events.join(' • ')}`);
+        console.log(`    ↳ ${events.join(" • ")}`);
       }
     }
   });
-  console.log('');
+  console.log("");
 }
 
 // Main Execution
@@ -852,18 +1133,22 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
 
   if (opts.mode === CliMode.GrossToNet) {
     const grossMonthly = opts.gross
-      ? (opts.period === SalaryPeriod.Yearly || opts.gross > 20000 ? Math.round(opts.gross / 12) : opts.gross)
+      ? opts.period === SalaryPeriod.Yearly || opts.gross > 20000
+        ? Math.round(opts.gross / 12)
+        : opts.gross
       : 4000;
     const taxClassVal = opts.taxClass || TaxClass.IV;
     const breakdown = computeGrossToNetBreakdown(
       toGrossSalary(grossMonthly),
       taxClassVal,
       opts.childrenCount,
-      opts.bonus ? toEuroAmount(opts.bonus) : undefined
+      opts.bonus ? toEuroAmount(opts.bonus) : undefined,
     );
 
     if (opts.format === CliOutputFormat.Json) {
-      console.log(JSON.stringify({ ...breakdown, period: opts.period }, null, 2));
+      console.log(
+        JSON.stringify({ ...breakdown, period: opts.period }, null, 2),
+      );
     } else {
       printGrossToNetBreakdown(breakdown, opts.period);
     }
@@ -872,10 +1157,14 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
 
   if (opts.mode === CliMode.SpousalNet) {
     const hGrossMonthly = opts.husbandGross
-      ? (opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000 ? Math.round(opts.husbandGross / 12) : opts.husbandGross)
+      ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
+        ? Math.round(opts.husbandGross / 12)
+        : opts.husbandGross
       : 4500;
     const wGrossMonthly = opts.wifeGross
-      ? (opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000 ? Math.round(opts.wifeGross / 12) : opts.wifeGross)
+      ? opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000
+        ? Math.round(opts.wifeGross / 12)
+        : opts.wifeGross
       : 3000;
     const wHours = opts.wifeHours || 24;
     const spousal = deriveSpousalNetSalaries(
@@ -883,7 +1172,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       toGrossSalary(wGrossMonthly),
       toWorkingHours(wHours),
       toWorkingHours(40),
-      opts.childrenCount
+      opts.childrenCount,
     );
 
     if (opts.format === CliOutputFormat.Json) {
@@ -895,13 +1184,18 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
   }
 
   if (opts.explainMonth !== undefined) {
-    const scenarioKey = opts.scenario === CliScenarioTarget.Compare ? ScenarioId.C : (opts.scenario as ScenarioId);
+    const scenarioKey =
+      opts.scenario === CliScenarioTarget.Compare
+        ? ScenarioId.C
+        : (opts.scenario as ScenarioId);
     const targetSim = buildSimulation(scenarioKey, opts);
     const bSim = buildSimulation(ScenarioId.B, opts);
 
     const monthIdx = opts.explainMonth - 1;
     if (monthIdx < 0 || monthIdx >= targetSim.months.length) {
-      console.error(`Error: Month ${opts.explainMonth} is outside simulation duration (${targetSim.months.length} months).`);
+      console.error(
+        `Error: Month ${opts.explainMonth} is outside simulation duration (${targetSim.months.length} months).`,
+      );
       process.exit(1);
     }
 
@@ -909,28 +1203,45 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     const bMonth = bSim.months[monthIdx];
 
     if (opts.explainField) {
-      const fieldExp = getFieldExplanation(opts.explainField, m, bMonth, scenarioKey);
+      const fieldExp = getFieldExplanation(
+        opts.explainField,
+        m,
+        bMonth,
+        scenarioKey,
+      );
       if (opts.format === CliOutputFormat.Json) {
-        console.log(JSON.stringify({
-          simulationMonth: opts.explainMonth,
-          calendarMonth: m.calendarLabel,
-          scenario: scenarioKey,
-          fieldKey: opts.explainField,
-          explanation: fieldExp
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              simulationMonth: opts.explainMonth,
+              calendarMonth: m.calendarLabel,
+              scenario: scenarioKey,
+              fieldKey: opts.explainField,
+              explanation: fieldExp,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         printFieldExplanation(fieldExp, opts.explainMonth, scenarioKey, m);
       }
     } else {
       const rowExp = getRowExplanation(m, bMonth, scenarioKey);
       if (opts.format === CliOutputFormat.Json) {
-        console.log(JSON.stringify({
-          simulationMonth: opts.explainMonth,
-          calendarMonth: m.calendarLabel,
-          scenario: scenarioKey,
-          rowExplanation: rowExp,
-          monthDetails: m
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              simulationMonth: opts.explainMonth,
+              calendarMonth: m.calendarLabel,
+              scenario: scenarioKey,
+              rowExplanation: rowExp,
+              monthDetails: m,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         printMonthExplanation(rowExp, m, scenarioKey);
       }
@@ -939,7 +1250,13 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     const resA = buildSimulation(ScenarioId.A, opts);
     const resB = buildSimulation(ScenarioId.B, opts);
     const resC = buildSimulation(ScenarioId.C, opts);
-    console.log(JSON.stringify({ options: opts, scenarioA: resA, scenarioB: resB, scenarioC: resC }, null, 2));
+    console.log(
+      JSON.stringify(
+        { options: opts, scenarioA: resA, scenarioB: resB, scenarioC: resC },
+        null,
+        2,
+      ),
+    );
   } else {
     const resA = buildSimulation(ScenarioId.A, opts);
     const resB = buildSimulation(ScenarioId.B, opts);
@@ -950,15 +1267,30 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     if (opts.format === CliOutputFormat.Milestones) {
       printMilestones(resC);
     } else if (opts.format === CliOutputFormat.Table) {
-      const target = opts.scenario === CliScenarioTarget.A ? resA : (opts.scenario === CliScenarioTarget.B ? resB : resC);
-      printLedgerTable(target, opts.scenario === CliScenarioTarget.Compare || opts.scenario === CliScenarioTarget.C ? resB : undefined);
+      const target =
+        opts.scenario === CliScenarioTarget.A
+          ? resA
+          : opts.scenario === CliScenarioTarget.B
+            ? resB
+            : resC;
+      printLedgerTable(
+        target,
+        opts.scenario === CliScenarioTarget.Compare ||
+          opts.scenario === CliScenarioTarget.C
+          ? resB
+          : undefined,
+      );
     }
   }
 }
 
 function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
-  console.log(`\n${BOLD}Simulation Ledger: ${res.scenarioKey === ScenarioId.C ? 'Scenario C (Optimized Tax Classes)' : 'Scenario ' + res.scenarioKey}${RESET}`);
-  console.log(`${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`);
+  console.log(
+    `\n${BOLD}Simulation Ledger: ${res.scenarioKey === ScenarioId.C ? "Scenario C (Optimized Tax Classes)" : "Scenario " + res.scenarioKey}${RESET}`,
+  );
+  console.log(
+    `${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`,
+  );
 
   const header = `| Month | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |`;
   const sep = `|-------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|`;
@@ -968,38 +1300,61 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
 
   res.months.forEach((m, idx) => {
     const bMonth = resB?.months[idx];
-    const diffTotal = bMonth ? (m.monthlyTotal as number) - (bMonth.monthlyTotal as number) : 0;
-    const diffStr = bMonth && diffTotal !== 0 ? ` (${diffTotal > 0 ? '+' : ''}${diffTotal}€)` : '';
+    const diffTotal = bMonth
+      ? (m.monthlyTotal as number) - (bMonth.monthlyTotal as number)
+      : 0;
+    const diffStr =
+      bMonth && diffTotal !== 0
+        ? ` (${diffTotal > 0 ? "+" : ""}${diffTotal}€)`
+        : "";
 
     // Print Action Milestone Rows immediately BEFORE Month m
     if (m.startingActions && m.startingActions.length > 0) {
       m.startingActions.forEach((act) => {
-        const isDelivery = act.type === 'CHILD_DELIVERY';
-        const isPregnancy = act.type === 'PREGNANCY_POSITIVE';
-        const isTaxRevert = act.type === 'TAX_CLASS_SWITCH_REVERT';
-        const isTaxSwitch = act.category === 'TAX_SWITCH';
-        const isRaise = act.category === 'SALARY_RAISE';
+        const isDelivery = act.type === "CHILD_DELIVERY";
+        const isPregnancy = act.type === "PREGNANCY_POSITIVE";
+        const isTaxRevert = act.type === "TAX_CLASS_SWITCH_REVERT";
+        const isTaxSwitch = act.category === "TAX_SWITCH";
+        const isRaise = act.category === "SALARY_RAISE";
 
-        const color = isDelivery ? CYAN : isPregnancy ? MAGENTA : isTaxRevert ? BLUE : isTaxSwitch ? BLUE : YELLOW;
-        const tag = isDelivery ? '[Birth]' : isPregnancy ? '[Preg]' : isTaxRevert ? '[Revert]' : isTaxSwitch ? '[Swap]' : '[Raise]';
-        const cleanTitle = act.title.replace(/^ACTION:\s*/, '');
+        const color = isDelivery
+          ? CYAN
+          : isPregnancy
+            ? MAGENTA
+            : isTaxRevert
+              ? BLUE
+              : isTaxSwitch
+                ? BLUE
+                : YELLOW;
+        const tag = isDelivery
+          ? "[Birth]"
+          : isPregnancy
+            ? "[Preg]"
+            : isTaxRevert
+              ? "[Revert]"
+              : isTaxSwitch
+                ? "[Swap]"
+                : "[Raise]";
+        const cleanTitle = act.title.replace(/^ACTION:\s*/, "");
         const actTitle = `↳ ${cleanTitle}`;
 
         const actRow = [
           `M${String(m.month).padEnd(2)} ${tag}`,
           m.calendarLabel.padEnd(8),
-          `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(30 + color.length + RESET.length),
-          (act.taxClassLabel || '—').slice(0, 11).padEnd(11),
-          '—'.padStart(11),
-          '—'.padStart(9),
-          '—'.padStart(8),
-          '—'.padStart(10),
-          '—'.padStart(10),
-          '—'.padStart(7),
-          '—'.padStart(10),
-          '—'.padStart(15),
-          '—'.padStart(10)
-        ].join(' | ');
+          `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(
+            30 + color.length + RESET.length,
+          ),
+          (act.taxClassLabel || "—").slice(0, 11).padEnd(11),
+          "—".padStart(11),
+          "—".padStart(9),
+          "—".padStart(8),
+          "—".padStart(10),
+          "—".padStart(10),
+          "—".padStart(7),
+          "—".padStart(10),
+          "—".padStart(15),
+          "—".padStart(10),
+        ].join(" | ");
         console.log(`| ${actRow} |`);
       });
     }
@@ -1007,41 +1362,68 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     // Print Special Fiscal Event Rows immediately BEFORE Month m
     if (m.specialEvents && m.specialEvents.length > 0) {
       const prevMonthIdx = (m.month as number) - 2;
-      const prevCum = prevMonthIdx >= 0 ? (res.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
-      const bPrevCum = prevMonthIdx >= 0 && resB ? (resB.months[prevMonthIdx]?.cumulatedTotal as number) || 0 : 0;
+      const prevCum =
+        prevMonthIdx >= 0
+          ? (res.months[prevMonthIdx]?.cumulatedTotal as number) || 0
+          : 0;
+      const bPrevCum =
+        prevMonthIdx >= 0 && resB
+          ? (resB.months[prevMonthIdx]?.cumulatedTotal as number) || 0
+          : 0;
 
       m.specialEvents.forEach((ev, evIdx) => {
-        const isBonus = (ev.type as string).startsWith('bonus');
+        const isBonus = (ev.type as string).startsWith("bonus");
         const isCost = (ev.amount as number) < 0;
         const color = isCost ? RED : isBonus ? YELLOW : CYAN;
-        const tag = isCost ? '[Cost]' : isBonus ? '[Bon]' : '[Evt]';
+        const tag = isCost ? "[Cost]" : isBonus ? "[Bon]" : "[Evt]";
         const evTitle = `↳ ${ev.category}: ${ev.title}`;
 
-        const priorEventsSum = m.specialEvents.slice(0, evIdx).reduce((acc, it) => acc + (it.amount as number), 0);
+        const priorEventsSum = m.specialEvents
+          .slice(0, evIdx)
+          .reduce((acc, it) => acc + (it.amount as number), 0);
         const evCumulated = prevCum + priorEventsSum + (ev.amount as number);
 
         const bEvents = bMonth?.specialEvents || [];
-        const bMatchIdx = bEvents.findIndex((it) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
-        const bPriorSum = bMatchIdx >= 0 ? bEvents.slice(0, bMatchIdx + 1).reduce((acc, it) => acc + (it.amount as number), 0) : 0;
+        const bMatchIdx = bEvents.findIndex(
+          (it) =>
+            it.eventId === ev.eventId ||
+            it.title === ev.title ||
+            it.type === ev.type,
+        );
+        const bPriorSum =
+          bMatchIdx >= 0
+            ? bEvents
+                .slice(0, bMatchIdx + 1)
+                .reduce((acc, it) => acc + (it.amount as number), 0)
+            : 0;
         const bEvCumulated = bPrevCum + bPriorSum;
         const diffEvCumulated = resB ? evCumulated - bEvCumulated : 0;
-        const diffCumStr = resB && diffEvCumulated !== 0 ? ` (${diffEvCumulated > 0 ? '+' : ''}${diffEvCumulated}€)` : '';
+        const diffCumStr =
+          resB && diffEvCumulated !== 0
+            ? ` (${diffEvCumulated > 0 ? "+" : ""}${diffEvCumulated}€)`
+            : "";
 
         const evRow = [
           `M${String(m.month).padEnd(2)} ${tag}`,
           ev.calendarLabel.padEnd(8),
-          `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(30 + color.length + RESET.length),
-          (ev.taxClassLabel || '—').slice(0, 11).padEnd(11),
-          '—'.padStart(11),
-          '—'.padStart(9),
-          '—'.padStart(8),
-          '—'.padStart(10),
-          '—'.padStart(10),
-          isBonus ? String(ev.amount).padStart(7) : '—'.padStart(7),
-          !isBonus && !isCost ? String(ev.amount).padStart(10) : (isCost ? String(ev.amount).padStart(10) : '—'.padStart(10)),
-          `${String(ev.amount).padStart(7)}${''.padStart(8)}`,
-          `${String(evCumulated).padStart(7)}${diffCumStr.padStart(3)}`
-        ].join(' | ');
+          `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(
+            30 + color.length + RESET.length,
+          ),
+          (ev.taxClassLabel || "—").slice(0, 11).padEnd(11),
+          "—".padStart(11),
+          "—".padStart(9),
+          "—".padStart(8),
+          "—".padStart(10),
+          "—".padStart(10),
+          isBonus ? String(ev.amount).padStart(7) : "—".padStart(7),
+          !isBonus && !isCost
+            ? String(ev.amount).padStart(10)
+            : isCost
+              ? String(ev.amount).padStart(10)
+              : "—".padStart(10),
+          `${String(ev.amount).padStart(7)}${"".padStart(8)}`,
+          `${String(evCumulated).padStart(7)}${diffCumStr.padStart(3)}`,
+        ].join(" | ");
         console.log(`| ${evRow} |`);
       });
     }
@@ -1054,26 +1436,27 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
       String(m.husbandSalary).padStart(11),
       String(m.wifeSalary).padStart(9),
       String(m.mutterschutz).padStart(8),
-      String((m.wifeElterngeld as number) + (m.husbandElterngeld as number)).padStart(10),
+      String(
+        (m.wifeElterngeld as number) + (m.husbandElterngeld as number),
+      ).padStart(10),
       String(m.kindergeld).padStart(10),
       String(m.specialBonusTotal).padStart(7),
       String(m.taxRefund).padStart(10),
       `${String(m.monthlyTotal).padStart(7)}${diffStr.padStart(8)}`,
-      String(m.cumulatedTotal).padStart(10)
-    ].join(' | ');
+      String(m.cumulatedTotal).padStart(10),
+    ].join(" | ");
 
     console.log(`| ${row} |`);
   });
 
-  console.log(sep + '\n');
+  console.log(sep + "\n");
 }
 
 const isDirectRun = Boolean(
-  process.argv[1] && (
-    fileURLToPath(import.meta.url) === process.argv[1] ||
-    process.argv[1].endsWith('runner.ts') ||
-    process.argv[1].endsWith('runner.js')
-  )
+  process.argv[1] &&
+  (fileURLToPath(import.meta.url) === process.argv[1] ||
+    process.argv[1].endsWith("runner.ts") ||
+    process.argv[1].endsWith("runner.js")),
 );
 
 if (isDirectRun) {

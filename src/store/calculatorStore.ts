@@ -1,4 +1,4 @@
-import { signal, computed, effect, type Signal } from '@preact/signals';
+import { signal, computed, effect, type Signal } from "@preact/signals";
 import {
   configHealthCap,
   configPensionCap,
@@ -10,13 +10,13 @@ import {
   configPensionRate,
   configUnemploymentRate,
   configCareRateBase,
-  configCareChildlessPenalty
-} from '#store/taxConfigStore';
+  configCareChildlessPenalty,
+} from "#store/taxConfigStore";
 
 // Helper to persist signals in localStorage
 function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
   let initial = initialValue;
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const stored = localStorage.getItem(key);
     if (stored !== null) {
       try {
@@ -29,7 +29,7 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
 
   const s = signal<T>(initial);
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     effect(() => {
       localStorage.setItem(key, JSON.stringify(s.value));
     });
@@ -39,7 +39,7 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
 }
 
 export interface CalculatorInputs {
-  inputMode: 'yearly' | 'monthly';
+  inputMode: "yearly" | "monthly";
   grossIncome: number;
   taxBracket: string;
   hasChurchTax: boolean;
@@ -91,29 +91,53 @@ export interface SavedScenarioItem {
 }
 
 // Display Settings
-export const inputMode = persistedSignal<'yearly' | 'monthly'>('inputMode', 'yearly');
+export const inputMode = persistedSignal<"yearly" | "monthly">(
+  "inputMode",
+  "yearly",
+);
 
 // Person 1 Settings
-export const grossIncome = persistedSignal<number>('grossIncome', 50000);
-export const taxBracket = persistedSignal<string>('taxBracket', '1');
-export const hasChurchTax = persistedSignal<boolean>('hasChurchTax', false);
-export const state = persistedSignal<string>('state', 'Berlin');
-export const children = persistedSignal<number>('children', 0);
-export const workingMonths = persistedSignal<number>('workingMonths', 12);
-export const salariesPerYear = persistedSignal<number>('salariesPerYear', 12);
+export const grossIncome = persistedSignal<number>("grossIncome", 50000);
+export const taxBracket = persistedSignal<string>("taxBracket", "1");
+export const hasChurchTax = persistedSignal<boolean>("hasChurchTax", false);
+export const state = persistedSignal<string>("state", "Berlin");
+export const children = persistedSignal<number>("children", 0);
+export const workingMonths = persistedSignal<number>("workingMonths", 12);
+export const salariesPerYear = persistedSignal<number>("salariesPerYear", 12);
 
 // Partner Settings
-export const hasPartner = persistedSignal<boolean>('hasPartner', false);
-export const partnerGrossIncome = persistedSignal<number>('partnerGrossIncome', 40000);
-export const partnerTaxBracket = persistedSignal<string>('partnerTaxBracket', '4');
-export const partnerHasChurchTax = persistedSignal<boolean>('partnerHasChurchTax', false);
-export const partnerState = persistedSignal<string>('partnerState', 'Berlin');
-export const partnerWorkingMonths = persistedSignal<number>('partnerWorkingMonths', 12);
-export const partnerSalariesPerYear = persistedSignal<number>('partnerSalariesPerYear', 12);
+export const hasPartner = persistedSignal<boolean>("hasPartner", false);
+export const partnerGrossIncome = persistedSignal<number>(
+  "partnerGrossIncome",
+  40000,
+);
+export const partnerTaxBracket = persistedSignal<string>(
+  "partnerTaxBracket",
+  "4",
+);
+export const partnerHasChurchTax = persistedSignal<boolean>(
+  "partnerHasChurchTax",
+  false,
+);
+export const partnerState = persistedSignal<string>("partnerState", "Berlin");
+export const partnerWorkingMonths = persistedSignal<number>(
+  "partnerWorkingMonths",
+  12,
+);
+export const partnerSalariesPerYear = persistedSignal<number>(
+  "partnerSalariesPerYear",
+  12,
+);
 
 // Saved Scenarios
-export const savedScenarios = persistedSignal<SavedScenarioItem[]>('savedScenarios', []);
-export const activeScenarioId = persistedSignal<string | null>('activeScenarioId', null);
+export const savedScenarios = persistedSignal<SavedScenarioItem[]>(
+  "savedScenarios",
+  [],
+);
+export const activeScenarioId = persistedSignal<string | null>(
+  "activeScenarioId",
+  null,
+);
 export const scenarioDraft = signal<SavedScenarioItem | null>(null);
 
 export function getCurrentInputs(): CalculatorInputs {
@@ -132,46 +156,50 @@ export function getCurrentInputs(): CalculatorInputs {
     partnerHasChurchTax: partnerHasChurchTax.value,
     partnerState: partnerState.value,
     partnerWorkingMonths: partnerWorkingMonths.value,
-    partnerSalariesPerYear: partnerSalariesPerYear.value
+    partnerSalariesPerYear: partnerSalariesPerYear.value,
   };
 }
 
-export function saveScenario(title?: string, description?: string, currentDeductions?: HouseholdScenarioData): void {
+export function saveScenario(
+  title?: string,
+  description?: string,
+  currentDeductions?: HouseholdScenarioData,
+): void {
   const newScenario: SavedScenarioItem = {
     id: Date.now().toString(),
-    title: title || 'Untitled Scenario',
-    description: description || '',
+    title: title || "Untitled Scenario",
+    description: description || "",
     timestamp: new Date().toISOString(),
     inputs: getCurrentInputs(),
-    data: currentDeductions || calculateScenarioData(getCurrentInputs())
+    data: currentDeductions || calculateScenarioData(getCurrentInputs()),
   };
   savedScenarios.value = [...savedScenarios.value, newScenario];
   editScenario(newScenario.id);
 }
 
 export function deleteScenario(id: string): void {
-  savedScenarios.value = savedScenarios.value.filter(s => s.id !== id);
+  savedScenarios.value = savedScenarios.value.filter((s) => s.id !== id);
   if (activeScenarioId.value === id) {
     cancelEdit();
   }
 }
 
 export function loadScenario(id: string): void {
-  const scenario = savedScenarios.value.find(s => s.id === id);
+  const scenario = savedScenarios.value.find((s) => s.id === id);
   if (scenario && scenario.inputs) {
-    inputMode.value = scenario.inputs.inputMode ?? 'yearly';
+    inputMode.value = scenario.inputs.inputMode ?? "yearly";
     grossIncome.value = scenario.inputs.grossIncome ?? 50000;
-    taxBracket.value = scenario.inputs.taxBracket ?? '1';
+    taxBracket.value = scenario.inputs.taxBracket ?? "1";
     hasChurchTax.value = scenario.inputs.hasChurchTax ?? false;
-    state.value = scenario.inputs.state ?? 'Berlin';
+    state.value = scenario.inputs.state ?? "Berlin";
     children.value = scenario.inputs.children ?? 0;
     workingMonths.value = scenario.inputs.workingMonths ?? 12;
     salariesPerYear.value = scenario.inputs.salariesPerYear ?? 12;
     hasPartner.value = scenario.inputs.hasPartner ?? false;
     partnerGrossIncome.value = scenario.inputs.partnerGrossIncome ?? 40000;
-    partnerTaxBracket.value = scenario.inputs.partnerTaxBracket ?? '4';
+    partnerTaxBracket.value = scenario.inputs.partnerTaxBracket ?? "4";
     partnerHasChurchTax.value = scenario.inputs.partnerHasChurchTax ?? false;
-    partnerState.value = scenario.inputs.partnerState ?? 'Berlin';
+    partnerState.value = scenario.inputs.partnerState ?? "Berlin";
     partnerWorkingMonths.value = scenario.inputs.partnerWorkingMonths ?? 12;
     partnerSalariesPerYear.value = scenario.inputs.partnerSalariesPerYear ?? 12;
   }
@@ -209,7 +237,7 @@ function calculateForPerson(
   numChildren: number,
   bundesland: string,
   monthsWorked: number,
-  salariesReceived = 12
+  salariesReceived = 12,
 ): PersonDeductions {
   if (grossYearly <= 0) {
     return {
@@ -224,7 +252,7 @@ function calculateForPerson(
       totalDeductions: 0,
       netIncome: 0,
       monthsWorked,
-      salariesReceived
+      salariesReceived,
     };
   }
 
@@ -235,7 +263,8 @@ function calculateForPerson(
   const assessableHealth = Math.min(grossYearly, healthCap);
   const assessablePension = Math.min(grossYearly, pensionCap);
 
-  const healthInsuranceRate = configHealthRateBase.value + configHealthRateZusatz.value;
+  const healthInsuranceRate =
+    configHealthRateBase.value + configHealthRateZusatz.value;
   const pensionInsuranceRate = configPensionRate.value;
   const unemploymentInsuranceRate = configUnemploymentRate.value;
 
@@ -264,15 +293,15 @@ function calculateForPerson(
   let tax = 0;
   const basicAllowance = configBasicAllowance.value;
 
-  if (bracket === '3') {
+  if (bracket === "3") {
     tax = getBaseTax(taxableIncome / 2, basicAllowance) * 2;
-  } else if (bracket === '5') {
+  } else if (bracket === "5") {
     tax = getBaseTax(taxableIncome, basicAllowance) * 1.6;
-  } else if (bracket === '6') {
+  } else if (bracket === "6") {
     tax = getBaseTax(taxableIncome + basicAllowance, basicAllowance);
   } else {
     tax = getBaseTax(taxableIncome, basicAllowance);
-    if (bracket === '2') {
+    if (bracket === "2") {
       let class2ZvE = taxableIncome - 4260;
       if (class2ZvE < 0) class2ZvE = 0;
       tax = getBaseTax(class2ZvE, basicAllowance);
@@ -285,12 +314,13 @@ function calculateForPerson(
   if (tax < 0) tax = 0;
 
   let soli = 0;
-  const soliThreshold = bracket === '3' ? 36260 : 18130;
+  const soliThreshold = bracket === "3" ? 36260 : 18130;
   if (tax > soliThreshold) {
     soli = tax * 0.055;
   }
 
-  const churchRate = bundesland === 'Bayern' || bundesland === 'Baden-Württemberg' ? 0.08 : 0.09;
+  const churchRate =
+    bundesland === "Bayern" || bundesland === "Baden-Württemberg" ? 0.08 : 0.09;
   const churchTax = paysChurchTax ? tax * churchRate : 0;
 
   const totalDeductions = totalSocialSecurity + tax + soli + churchTax;
@@ -307,13 +337,21 @@ function calculateForPerson(
     totalDeductions,
     netIncome: grossYearly - totalDeductions,
     monthsWorked,
-    salariesReceived
+    salariesReceived,
   };
 }
 
-export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenarioData {
-  const p1YearlyGross = inputs.inputMode === 'monthly' ? inputs.grossIncome * inputs.salariesPerYear : inputs.grossIncome;
-  const p2YearlyGross = inputs.inputMode === 'monthly' ? inputs.partnerGrossIncome * inputs.partnerSalariesPerYear : inputs.partnerGrossIncome;
+export function calculateScenarioData(
+  inputs: CalculatorInputs,
+): HouseholdScenarioData {
+  const p1YearlyGross =
+    inputs.inputMode === "monthly"
+      ? inputs.grossIncome * inputs.salariesPerYear
+      : inputs.grossIncome;
+  const p2YearlyGross =
+    inputs.inputMode === "monthly"
+      ? inputs.partnerGrossIncome * inputs.partnerSalariesPerYear
+      : inputs.partnerGrossIncome;
 
   const person1 = calculateForPerson(
     p1YearlyGross,
@@ -322,7 +360,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     inputs.children,
     inputs.state,
     inputs.workingMonths,
-    inputs.salariesPerYear
+    inputs.salariesPerYear,
   );
 
   let partner: PersonDeductions | null = null;
@@ -334,13 +372,15 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
       inputs.children,
       inputs.partnerState,
       inputs.partnerWorkingMonths,
-      inputs.partnerSalariesPerYear
+      inputs.partnerSalariesPerYear,
     );
   }
 
-  const householdGross = person1.grossYearly + (partner ? partner.grossYearly : 0);
+  const householdGross =
+    person1.grossYearly + (partner ? partner.grossYearly : 0);
   const householdNet = person1.netIncome + (partner ? partner.netIncome : 0);
-  const householdTotalDeductions = person1.totalDeductions + (partner ? partner.totalDeductions : 0);
+  const householdTotalDeductions =
+    person1.totalDeductions + (partner ? partner.totalDeductions : 0);
 
   return {
     person1,
@@ -348,8 +388,8 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     household: {
       grossYearly: householdGross,
       netIncome: householdNet,
-      totalDeductions: householdTotalDeductions
-    }
+      totalDeductions: householdTotalDeductions,
+    },
   };
 }
 
@@ -358,46 +398,55 @@ export const deductions = computed<HouseholdScenarioData>(() => {
 });
 
 export function editScenario(id: string): void {
-  const scenario = savedScenarios.peek().find(s => s.id === id);
+  const scenario = savedScenarios.peek().find((s) => s.id === id);
   if (scenario) {
     scenarioDraft.value = {
       ...scenario,
-      inputs: { ...scenario.inputs }
+      inputs: { ...scenario.inputs },
     };
     activeScenarioId.value = id;
   }
 }
 
-export function updateScenarioMetaData(newTitle: string, newDescription: string): void {
+export function updateScenarioMetaData(
+  newTitle: string,
+  newDescription: string,
+): void {
   if (scenarioDraft.value) {
     scenarioDraft.value = {
       ...scenarioDraft.value,
       title: newTitle,
-      description: newDescription
+      description: newDescription,
     };
   }
 }
 
-export function updateScenarioInput<K extends keyof CalculatorInputs>(field: K, value: CalculatorInputs[K]): void {
+export function updateScenarioInput<K extends keyof CalculatorInputs>(
+  field: K,
+  value: CalculatorInputs[K],
+): void {
   if (scenarioDraft.value) {
-    const newInputs: CalculatorInputs = { ...scenarioDraft.value.inputs, [field]: value };
+    const newInputs: CalculatorInputs = {
+      ...scenarioDraft.value.inputs,
+      [field]: value,
+    };
     scenarioDraft.value = {
       ...scenarioDraft.value,
       inputs: newInputs,
-      data: calculateScenarioData(newInputs)
+      data: calculateScenarioData(newInputs),
     };
   }
 }
 
 export function overwriteScenarioWithCurrent(id: string): void {
   const scenarios = savedScenarios.peek();
-  const index = scenarios.findIndex(s => s.id === id);
+  const index = scenarios.findIndex((s) => s.id === id);
   if (index > -1) {
     const newScenarios = [...scenarios];
     newScenarios[index] = {
       ...newScenarios[index],
       inputs: getCurrentInputs(),
-      data: deductions.peek()
+      data: deductions.peek(),
     };
     savedScenarios.value = newScenarios;
   }
@@ -409,7 +458,7 @@ export function overwriteScenarioWithCurrent(id: string): void {
 export function saveDraft(): void {
   if (scenarioDraft.value && activeScenarioId.value) {
     const scenarios = savedScenarios.peek();
-    const index = scenarios.findIndex(s => s.id === activeScenarioId.value);
+    const index = scenarios.findIndex((s) => s.id === activeScenarioId.value);
     if (index > -1) {
       const newScenarios = [...scenarios];
       newScenarios[index] = scenarioDraft.value;

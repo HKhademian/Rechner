@@ -1,8 +1,8 @@
-import { signal, effect, type Signal } from '@preact/signals';
+import { signal, effect, type Signal } from "@preact/signals";
 
 function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
   let initial = initialValue;
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const stored = localStorage.getItem(key);
     if (stored !== null) {
       try {
@@ -15,7 +15,7 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
 
   const s = signal<T>(initial);
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     effect(() => {
       localStorage.setItem(key, JSON.stringify(s.value));
     });
@@ -54,21 +54,54 @@ const DEFAULT_CONFIG: TaxConfig = {
   careInsuranceRateBase: 0.017,
   careInsuranceChildlessPenalty: 0.006,
   churchRateBayernBW: 0.08,
-  churchRateOther: 0.09
+  churchRateOther: 0.09,
 };
 
-export const configHealthCap = persistedSignal<number>('cfg_healthCap', DEFAULT_CONFIG.healthCap);
-export const configPensionCap = persistedSignal<number>('cfg_pensionCap', DEFAULT_CONFIG.pensionCap);
-export const configBasicAllowance = persistedSignal<number>('cfg_basicAllowance', DEFAULT_CONFIG.basicAllowance);
-export const configChildTaxReduction = persistedSignal<number>('cfg_childTaxReduction', DEFAULT_CONFIG.childTaxReduction);
-export const configWorkExpenseAllowance = persistedSignal<number>('cfg_workExpenseAllowance', DEFAULT_CONFIG.workExpenseAllowance);
+export const configHealthCap = persistedSignal<number>(
+  "cfg_healthCap",
+  DEFAULT_CONFIG.healthCap,
+);
+export const configPensionCap = persistedSignal<number>(
+  "cfg_pensionCap",
+  DEFAULT_CONFIG.pensionCap,
+);
+export const configBasicAllowance = persistedSignal<number>(
+  "cfg_basicAllowance",
+  DEFAULT_CONFIG.basicAllowance,
+);
+export const configChildTaxReduction = persistedSignal<number>(
+  "cfg_childTaxReduction",
+  DEFAULT_CONFIG.childTaxReduction,
+);
+export const configWorkExpenseAllowance = persistedSignal<number>(
+  "cfg_workExpenseAllowance",
+  DEFAULT_CONFIG.workExpenseAllowance,
+);
 
-export const configHealthRateBase = persistedSignal<number>('cfg_healthRateBase', DEFAULT_CONFIG.healthInsuranceRateBase);
-export const configHealthRateZusatz = persistedSignal<number>('cfg_healthRateZusatz', DEFAULT_CONFIG.healthInsuranceZusatzbeitrag);
-export const configPensionRate = persistedSignal<number>('cfg_pensionRate', DEFAULT_CONFIG.pensionInsuranceRate);
-export const configUnemploymentRate = persistedSignal<number>('cfg_unemploymentRate', DEFAULT_CONFIG.unemploymentInsuranceRate);
-export const configCareRateBase = persistedSignal<number>('cfg_careRateBase', DEFAULT_CONFIG.careInsuranceRateBase);
-export const configCareChildlessPenalty = persistedSignal<number>('cfg_careChildlessPenalty', DEFAULT_CONFIG.careInsuranceChildlessPenalty);
+export const configHealthRateBase = persistedSignal<number>(
+  "cfg_healthRateBase",
+  DEFAULT_CONFIG.healthInsuranceRateBase,
+);
+export const configHealthRateZusatz = persistedSignal<number>(
+  "cfg_healthRateZusatz",
+  DEFAULT_CONFIG.healthInsuranceZusatzbeitrag,
+);
+export const configPensionRate = persistedSignal<number>(
+  "cfg_pensionRate",
+  DEFAULT_CONFIG.pensionInsuranceRate,
+);
+export const configUnemploymentRate = persistedSignal<number>(
+  "cfg_unemploymentRate",
+  DEFAULT_CONFIG.unemploymentInsuranceRate,
+);
+export const configCareRateBase = persistedSignal<number>(
+  "cfg_careRateBase",
+  DEFAULT_CONFIG.careInsuranceRateBase,
+);
+export const configCareChildlessPenalty = persistedSignal<number>(
+  "cfg_careChildlessPenalty",
+  DEFAULT_CONFIG.careInsuranceChildlessPenalty,
+);
 
 export function resetConfig(): void {
   configHealthCap.value = DEFAULT_CONFIG.healthCap;
@@ -82,5 +115,6 @@ export function resetConfig(): void {
   configPensionRate.value = DEFAULT_CONFIG.pensionInsuranceRate;
   configUnemploymentRate.value = DEFAULT_CONFIG.unemploymentInsuranceRate;
   configCareRateBase.value = DEFAULT_CONFIG.careInsuranceRateBase;
-  configCareChildlessPenalty.value = DEFAULT_CONFIG.careInsuranceChildlessPenalty;
+  configCareChildlessPenalty.value =
+    DEFAULT_CONFIG.careInsuranceChildlessPenalty;
 }
