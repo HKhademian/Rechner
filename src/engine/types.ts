@@ -367,6 +367,21 @@ export function toNetSalary(val: number): NetSalary {
   return Math.round(val) as NetSalary;
 }
 
+export function toTaxFactor(val: number): number {
+  if (
+    typeof val !== "number" ||
+    Number.isNaN(val) ||
+    !Number.isFinite(val) ||
+    val <= 0 ||
+    val > 1
+  ) {
+    throw new TypeError(
+      `Invalid TaxFactor: ${val}. Must be a valid ratio between 0 and 1.0.`,
+    );
+  }
+  return Math.round(val * 1000) / 1000;
+}
+
 export function toStatutoryCitation(val: string): StatutoryCitation {
   if (!val || typeof val !== "string") {
     throw new TypeError(
@@ -820,6 +835,7 @@ export interface GrossToNetBreakdown {
   readonly monthlyWageTax: EuroAmount;
   readonly monthlySolidaritySurcharge: EuroAmount;
   readonly totalTaxWithholding: EuroAmount;
+  readonly taxFactor?: number; // § 39f EStG (Faktorverfahren)
 
   // Non-Recurrent Bonus Accounting (§ 39b Abs. 3 EStG)
   readonly oneOffBonusAmount?: EuroAmount;
@@ -856,13 +872,18 @@ export interface SpousalGrossToNetSet {
   readonly husbandClass3Net: NetSalary;
   readonly husbandClass5Net: NetSalary;
   readonly husbandClass4Net: NetSalary;
+  readonly husbandClass4WithFactorNet: NetSalary;
   readonly wifeGrossFullTime: GrossSalary;
   readonly wifeClass5FullTimeNet: NetSalary;
   readonly wifeClass3FullTimeNet: NetSalary;
   readonly wifeClass4FullTimeNet: NetSalary;
+  readonly wifeClass4WithFactorNet: NetSalary;
   readonly wifeGrossPartTime: GrossSalary;
   readonly wifeClass5PartTimeNet: NetSalary;
   readonly wifeClass3PartTimeNet: NetSalary;
+  readonly wifeClass4PartTimeNet: NetSalary;
+  readonly wifeClass4WithFactorPartTimeNet: NetSalary;
+  readonly taxFactor: number;
   readonly wifePartTimeWeeklyHours: WorkingHours;
   readonly husbandWeeklyHours: WorkingHours;
   readonly husbandBreakdownClass3: GrossToNetBreakdown;
@@ -889,14 +910,19 @@ export interface PreexistingConditions {
   readonly husbandInitialTaxClass: TaxClass;
   readonly husbandInitialNet: NetSalary;
   readonly husbandInitialClass5Net: NetSalary;
+  readonly husbandInitialClass4Net?: NetSalary;
   readonly husbandWeeklyHours: WorkingHours;
   readonly wifeInitialTaxClass: TaxClass;
   readonly wifeInitialFullTimeNet: NetSalary;
   readonly wifeInitialClass3FullTimeNet: NetSalary;
+  readonly wifeInitialClass4FullTimeNet?: NetSalary;
   readonly wifeInitialPartTimeClass5Net: NetSalary;
   readonly wifeInitialPartTimeClass3Net: NetSalary;
+  readonly wifeInitialPartTimeClass4Net?: NetSalary;
   readonly wifeWeeklyHours: WorkingHours;
   readonly wifePostBirthWeeklyHours?: WorkingHours;
+  readonly initialUseTaxFactor?: boolean;
+  readonly initialTaxFactor?: number;
   readonly annualBonusGross?: EuroAmount;
   readonly annualBonusMonth?: CalendarMonth;
   readonly investmentReturnMonthly?: EuroAmount;
@@ -934,6 +960,11 @@ export interface TaxClassSwitchAction {
   readonly effectiveCalendarYear: number;
   readonly targetHusbandTaxClass: TaxClass;
   readonly targetWifeTaxClass: TaxClass;
+  readonly targetUseTaxFactor?: boolean;
+  readonly targetTaxFactor?: number;
+  readonly revertHusbandTaxClass?: TaxClass;
+  readonly revertWifeTaxClass?: TaxClass;
+  readonly revertUseTaxFactor?: boolean;
   readonly statutoryReason: string;
   readonly revertSimulationMonth?: SimulationMonth;
 }
