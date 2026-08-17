@@ -9,6 +9,7 @@ import {
   type PregnancyId,
   type SwitchId,
   type RaiseId,
+  type HoursChangeId,
   TaxClass,
   ScenarioId,
   TransactionType,
@@ -27,6 +28,7 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
   type FinancialEventAction,
   type ScenarioActionBatches,
   FinancialEventCategory,
@@ -41,6 +43,7 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toHoursChangeId,
   toFinancialEventId,
   toStatutoryCitation,
 } from "#engine/types";
@@ -139,6 +142,7 @@ export function runScenarioBatches(
     pregnancies,
     taxClassSwitches,
     salaryRaises,
+    workingHoursChanges = [],
     financialEvents = [],
   } = batches;
 
@@ -212,6 +216,31 @@ export function runScenarioBatches(
         relativeBirthLabel = `M+${offset}`;
       }
     }
+
+    // --- Batch 3: Evaluate Dynamic Working Hours & Schedules ---
+    let activeHusbandHours =
+      (preexisting.husbandWeeklyHours as unknown as number) ?? 40;
+    let activeWifeHours =
+      (preexisting.wifeWeeklyHours as unknown as number) ?? 40;
+
+    let hasExplicitWifeHoursChange = false;
+    workingHoursChanges.forEach((whc) => {
+      if ((whc.effectiveSimulationMonth as number) <= m) {
+        if (
+          whc.targetPerson === TargetPerson.Husband ||
+          whc.targetPerson === TargetPerson.Both
+        ) {
+          activeHusbandHours = whc.weeklyHours as unknown as number;
+        }
+        if (
+          whc.targetPerson === TargetPerson.Wife ||
+          whc.targetPerson === TargetPerson.Both
+        ) {
+          activeWifeHours = whc.weeklyHours as unknown as number;
+          hasExplicitWifeHoursChange = true;
+        }
+      }
+    });
 
     // --- Batch 3: Evaluate Active Salaries from Baseline + Raises ---
     let curH3Net = preexisting.husbandInitialNet as number;
@@ -327,12 +356,44 @@ export function runScenarioBatches(
         // ElterngeldPlus Phase (Standard EG+ months and Partnerschaftsbonus months)
         else if (m >= egStart && m <= egBonusEnd) {
           inSpecialPhase = true;
-          wifeSalary = toEuroAmount(curW5PT);
 
-          const motherHours =
+          const motherHours = hasExplicitWifeHoursChange
+            ? activeWifeHours
+            : ((preg.motherPostBirthPartTimeHours as unknown as number) ?? 24);
+          const fatherHours = activeHusbandHours;
+
+          const defaultPtHours =
             (preg.motherPostBirthPartTimeHours as unknown as number) ?? 24;
-          const fatherHours =
-            (preexisting.husbandWeeklyHours as unknown as number) ?? 32;
+          const basePtW5 =
+            (preg.motherPostBirthPartTimeClass5Net as number) || curW5PT;
+          const basePtW3 =
+            (preg.motherPostBirthPartTimeClass3Net as number) || curW3PT;
+
+          let dynamicW5PT: number;
+          let dynamicW3PT: number;
+
+          if (motherHours === defaultPtHours && basePtW5 > 0) {
+            dynamicW5PT = basePtW5;
+            dynamicW3PT = basePtW3;
+          } else if (motherHours === 0) {
+            dynamicW5PT = 0;
+            dynamicW3PT = 0;
+          } else if (motherHours === 40) {
+            dynamicW5PT = curW5FT;
+            dynamicW3PT = curW3FT;
+          } else if (basePtW5 > 0 && defaultPtHours > 0) {
+            dynamicW5PT = Math.round(basePtW5 * (motherHours / defaultPtHours));
+            dynamicW3PT = Math.round(basePtW3 * (motherHours / defaultPtHours));
+          } else {
+            const baselineWifeH =
+              (preexisting.wifeWeeklyHours as unknown as number) || 40;
+            const wifeRatio =
+              baselineWifeH > 0 ? motherHours / baselineWifeH : 0;
+            dynamicW5PT = Math.round(curW5FT * wifeRatio);
+            dynamicW3PT = Math.round(curW3FT * wifeRatio);
+          }
+          wifeSalary = toEuroAmount(dynamicW5PT);
+
           const isMotherEgEligible = isElterngeldHoursEligible(motherHours);
           const isBonusWindow = m >= egBonusStart && m <= egBonusEnd;
           const qualifiesPartnerschaftsbonus =
@@ -349,21 +410,24 @@ export function runScenarioBatches(
               if (pIdx === 0) {
                 const egEntitlement = computeElterngeldBenefits(
                   toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
-                  toNetSalary(curW5PT),
+                  toNetSalary(dynamicW5PT),
                   motherHours,
                 );
                 wifeElterngeld = egEntitlement.elterngeldPlus;
               } else {
                 const blendedNet = toNetSalary(
                   Math.round(
-                    (10 * (scenarioKey === ScenarioId.C ? curW3PT : curW5PT) +
+                    (10 *
+                      (scenarioKey === ScenarioId.C
+                        ? dynamicW3PT
+                        : dynamicW5PT) +
                       2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
                       12,
                   ),
                 );
                 const egEntitlement = computeElterngeldBenefits(
                   blendedNet,
-                  toNetSalary(curW5PT),
+                  toNetSalary(dynamicW5PT),
                   motherHours,
                 );
                 const prevBirth =
@@ -395,7 +459,7 @@ export function runScenarioBatches(
                 // Child 1
                 const egEntitlement = computeElterngeldBenefits(
                   toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
-                  toNetSalary(curW5PT),
+                  toNetSalary(dynamicW5PT),
                   motherHours,
                 );
                 wifeElterngeld = egEntitlement.elterngeldPlus;
@@ -404,14 +468,17 @@ export function runScenarioBatches(
                 // Child 2+ with blended pre-birth assessment baseline (10M PT + 2M FT)
                 const blendedNet = toNetSalary(
                   Math.round(
-                    (10 * (scenarioKey === ScenarioId.C ? curW3PT : curW5PT) +
+                    (10 *
+                      (scenarioKey === ScenarioId.C
+                        ? dynamicW3PT
+                        : dynamicW5PT) +
                       2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
                       12,
                   ),
                 );
                 const egEntitlement = computeElterngeldBenefits(
                   blendedNet,
-                  toNetSalary(curW5PT),
+                  toNetSalary(dynamicW5PT),
                   motherHours,
                 );
 
@@ -425,12 +492,9 @@ export function runScenarioBatches(
                 );
                 hasSiblingBonus = sibling.isEligible;
                 wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
-                phaseLabel = sibling.isEligible
-                  ? `Child ${preg.childIndex} EGPlus + Sibling Bonus (+10%)`
-                  : `Child ${preg.childIndex} EGPlus`;
+                phaseLabel = `Child ${preg.childIndex} EGPlus (Sibling Bonus)`;
               }
             } else {
-              // Working > 32h/week: Ineligible for Elterngeld (§ 1 Abs. 1 Nr. 4 BEEG)
               wifeElterngeld = toEuroAmount(0);
               phaseLabel = `Child ${preg.childIndex} Post-Leave (Hours >32h: No EG § 1 BEEG)`;
             }
@@ -1200,6 +1264,26 @@ export function runScenarioBatches(
             `Annual wage progression / tariff merit step adjustment.`,
           category: ActionCategory.SalaryRaise,
           type: ActionType.SalaryRaiseEffective,
+          taxClassLabel: rm.taxClassLabel,
+        });
+      }
+    });
+
+    // Batch 3: Working Hours Changes starting at Month m
+    workingHoursChanges.forEach((whc) => {
+      const eff = whc.effectiveSimulationMonth as number;
+      if (m === eff) {
+        startingActions.push({
+          actionId: toActionId(`${whc.changeId}-EFFECTIVE`),
+          month: rm.month,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          title: `ACTION: Working Hours Adjustment (${whc.targetPerson.toUpperCase()}: ${whc.weeklyHours} h/wk)`,
+          description:
+            whc.reason ||
+            `Working hours adjusted to ${whc.weeklyHours} hours/week for ${whc.targetPerson}.`,
+          category: ActionCategory.WorkingHours,
+          type: ActionType.WorkingHoursChangeEffective,
           taxClassLabel: rm.taxClassLabel,
         });
       }

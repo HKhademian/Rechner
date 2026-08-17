@@ -28,6 +28,7 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toHoursChangeId,
   toFinancialEventId,
   toEuroAmount,
   toGrossSalary,
@@ -44,6 +45,7 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
   type FinancialEventAction,
 } from "#engine/types";
 
@@ -96,6 +98,7 @@ export interface ElterngeldPersistedState {
   readonly customPregnancies: readonly PregnancyAction[];
   readonly customTaxClassSwitches: readonly TaxClassSwitchAction[];
   readonly customSalaryRaises: readonly SalaryRaiseAction[];
+  readonly customWorkingHoursChanges?: readonly WorkingHoursChangeAction[];
   readonly customFinancialEvents: readonly FinancialEventAction[];
 
   // UI View Preferences
@@ -197,6 +200,29 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
     ],
 
     customSalaryRaises: [],
+
+    customWorkingHoursChanges: [
+      {
+        changeId: toHoursChangeId("HOURS-WIFE-RETURN"),
+        effectiveSimulationMonth: toSimulationMonth(19),
+        effectiveCalendarMonth: toCalendarMonth(7),
+        effectiveCalendarYear: 2027,
+        targetPerson: TargetPerson.Wife,
+        weeklyHours: toWorkingHours(24),
+        reason:
+          "Post-birth Part-time return (Partnerschaftsbonus § 4b BEEG eligible)",
+      },
+      {
+        changeId: toHoursChangeId("HOURS-HUSBAND-BONUS"),
+        effectiveSimulationMonth: toSimulationMonth(31),
+        effectiveCalendarMonth: toCalendarMonth(7),
+        effectiveCalendarYear: 2028,
+        targetPerson: TargetPerson.Husband,
+        weeklyHours: toWorkingHours(32),
+        reason:
+          "Parental leave reduction (24-32h Partnerschaftsbonus § 4b BEEG)",
+      },
+    ],
 
     customFinancialEvents: [
       {
@@ -457,6 +483,47 @@ export function validateAndSanitizePersistedState(
       })
     : defaults.customSalaryRaises;
 
+  // Validate Batch 3: Working Hours Changes Action Collection
+  const workingHoursChanges: readonly WorkingHoursChangeAction[] =
+    Array.isArray(obj.customWorkingHoursChanges)
+      ? obj.customWorkingHoursChanges.map((h, idx) => {
+          const hObj = (h && typeof h === "object" ? h : {}) as Record<
+            string,
+            unknown
+          >;
+          let tp: TargetPerson = TargetPerson.Wife;
+          if (typeof hObj.targetPerson === "string") {
+            try {
+              tp = toTargetPerson(hObj.targetPerson);
+            } catch {
+              tp = TargetPerson.Wife;
+            }
+          }
+          return {
+            changeId: toHoursChangeId(
+              typeof hObj.changeId === "string" && hObj.changeId.length > 0
+                ? hObj.changeId
+                : `HOURS-CHANGE-${idx + 1}`,
+            ),
+            effectiveSimulationMonth: toSimulationMonth(
+              num(hObj.effectiveSimulationMonth, 19, 1, 120),
+            ),
+            effectiveCalendarMonth: toCalendarMonth(
+              num(hObj.effectiveCalendarMonth, 7, 1, 12),
+            ),
+            effectiveCalendarYear: num(
+              hObj.effectiveCalendarYear,
+              2027,
+              2020,
+              2050,
+            ),
+            targetPerson: tp,
+            weeklyHours: toWorkingHours(num(hObj.weeklyHours, 24, 0, 60)),
+            reason: str(hObj.reason, "Schedule adjustment"),
+          };
+        })
+      : defaults.customWorkingHoursChanges || [];
+
   // Validate Batch 4: Financial Events Action Collection
   const financialEvents: readonly FinancialEventAction[] = Array.isArray(
     obj.customFinancialEvents,
@@ -621,6 +688,7 @@ export function validateAndSanitizePersistedState(
     customPregnancies: pregnancies,
     customTaxClassSwitches: taxSwitches,
     customSalaryRaises: salaryRaises,
+    customWorkingHoursChanges: workingHoursChanges,
     customFinancialEvents: financialEvents,
 
     activeScenario: activeScenarioVal,
