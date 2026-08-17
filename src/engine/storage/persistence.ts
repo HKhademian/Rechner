@@ -36,12 +36,14 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
+  toTaxFactor,
   type GrossSalary,
   type NetSalary,
   type WorkingHours,
   type EuroAmount,
   type SimulationMonth,
   type CalendarMonth,
+  type TaxFactor,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
@@ -459,7 +461,7 @@ export function validateAndSanitizePersistedState(
             typeof sObj.targetTaxFactor === "number" &&
             sObj.targetTaxFactor > 0 &&
             sObj.targetTaxFactor <= 1
-              ? Math.round(sObj.targetTaxFactor * 1000) / 1000
+              ? toTaxFactor(sObj.targetTaxFactor)
               : undefined,
           revertHusbandTaxClass: revH,
           revertWifeTaxClass: revW,

@@ -1,6 +1,7 @@
 import {
   type GrossSalary,
   type NetSalary,
+  type TaxFactor,
   TaxClass,
   WageTaxZone,
   type EuroAmount,
@@ -11,6 +12,7 @@ import {
   toGrossSalary,
   toNetSalary,
   toWorkingHours,
+  toTaxFactor,
   toStatutoryCitation,
 } from "#engine/types";
 
@@ -241,8 +243,8 @@ export function computeTaxFactor(
   husbandAnnualGross: number,
   wifeAnnualGross: number,
   childrenCount: number = 0,
-): number {
-  if (husbandAnnualGross <= 0 && wifeAnnualGross <= 0) return 1.0;
+): TaxFactor {
+  if (husbandAnnualGross <= 0 && wifeAnnualGross <= 0) return toTaxFactor(1.0);
 
   const hMonthlyGross = toGrossSalary(
     Math.max(0, Math.round(husbandAnnualGross / 12)),
@@ -270,7 +272,7 @@ export function computeTaxFactor(
   );
 
   const sumTax4 = hTax4.annualTax + wTax4.annualTax;
-  if (sumTax4 <= 0) return 1.0;
+  if (sumTax4 <= 0) return toTaxFactor(1.0);
 
   const combinedZvE = hTax4.approxZvE + wTax4.approxZvE;
   const jointTax = Math.floor(
@@ -281,7 +283,7 @@ export function computeTaxFactor(
     1.0,
     Math.max(0.001, Math.round((jointTax / sumTax4) * 1000) / 1000),
   );
-  return factor;
+  return toTaxFactor(factor);
 }
 
 /**
@@ -293,7 +295,7 @@ export function computeGrossToNetBreakdown(
   taxClass: TaxClass,
   childrenCount: number = 0,
   oneOffBonus?: EuroAmount,
-  taxFactor?: number,
+  taxFactor?: TaxFactor | number,
 ): GrossToNetBreakdown {
   const gross = monthlyGross as number;
   const bonus = oneOffBonus ? (oneOffBonus as number) : 0;
@@ -312,9 +314,9 @@ export function computeGrossToNetBreakdown(
   const effectiveAnnualTax =
     taxClass === TaxClass.IV &&
     taxFactor !== undefined &&
-    taxFactor > 0 &&
-    taxFactor <= 1.0
-      ? Math.floor(baseAnnualTax * taxFactor)
+    (taxFactor as number) > 0 &&
+    (taxFactor as number) <= 1.0
+      ? Math.floor(baseAnnualTax * (taxFactor as number))
       : baseAnnualTax;
 
   const monthlyWageTax = Math.round(effectiveAnnualTax / 12);
@@ -373,8 +375,10 @@ export function computeGrossToNetBreakdown(
     monthlySolidaritySurcharge: toEuroAmount(monthlySolz),
     totalTaxWithholding: toEuroAmount(totalMonthlyTax),
     taxFactor:
-      taxClass === TaxClass.IV && taxFactor !== undefined
-        ? taxFactor
+      taxFactor !== undefined
+        ? typeof taxFactor === "number"
+          ? toTaxFactor(taxFactor)
+          : taxFactor
         : undefined,
     oneOffBonusAmount: bonus > 0 ? toEuroAmount(bonus) : undefined,
     bonusTaxDeduction: bonus > 0 ? toEuroAmount(bonusTax) : undefined,
@@ -401,7 +405,7 @@ export function computeMonthlyNetSalary(
   taxClass: TaxClass,
   childrenCount: number = 0,
   oneOffBonus?: EuroAmount,
-  taxFactor?: number,
+  taxFactor?: TaxFactor | number,
 ): NetSalary {
   const breakdown = computeGrossToNetBreakdown(
     monthlyGross,
