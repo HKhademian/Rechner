@@ -55,12 +55,12 @@ export function determinePredominantTaxClass(
   let dominantClass: TaxClass = TaxClass.IV;
   let maxCount = 0;
 
-  (Object.keys(counts) as TaxClass[]).forEach(tc => {
+  for (const tc of Object.keys(counts) as TaxClass[]) {
     if (counts[tc] > maxCount) {
       maxCount = counts[tc];
       dominantClass = tc;
     }
-  });
+  }
 
   // Statutory 7-Month Rule (§ 2b Abs. 1 Satz 3 BEEG)
   const isSyntheticClassApplied = dominantClass === TaxClass.III && maxCount >= 7;

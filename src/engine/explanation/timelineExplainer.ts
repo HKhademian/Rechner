@@ -447,7 +447,7 @@ export function getFieldExplanation(
     case FieldColumnKey.SpecialEvents: {
       const bSpecial = bMonth ? (bMonth.specialEventsTotal as number) : spTotal;
       const diffSp = spTotal - bSpecial;
-      const taxReturnEvent = m.specialEvents?.find(e => e.type === SpecialEventType.TaxReturn);
+      const taxReturnEvent = m.specialEvents?.find((e: SpecialEventItem) => e.type === SpecialEventType.TaxReturn);
 
       if (taxReturnEvent) {
         const taxDetails = parseTaxReturnDetails(taxReturnEvent, m);
@@ -748,7 +748,7 @@ export function getSpecialEventFieldExplanation(
           { name: 'Description', value: ev.description || ev.title, description: 'Operational note' }
         ],
         legalCitation: toStatutoryCitation(
-          ev.type === SpecialEventType.AnnualSalaryBonus
+          ev.type === SpecialEventType.Bonus40 || ev.type === SpecialEventType.Bonus60
             ? 'EStG § 38a (Sonstige Bezüge)'
             : 'BGB § 241 (Sonderzahlung / Aufwand)'
         ),
@@ -834,7 +834,7 @@ export function getRowExplanation(
       label: "Husband's Net Salary",
       value: toEuroAmount(hSalary),
       valueFormatted: formatCurrency(hSalary),
-      notes: `Tax Class ${m.husbandTaxClass || 'III'}`
+      notes: `Tax Class ${m.isSwapActive ? 'V' : 'III'}`
     });
   }
 
@@ -843,7 +843,7 @@ export function getRowExplanation(
       label: "Wife's Net Salary",
       value: toEuroAmount(wSalary),
       valueFormatted: formatCurrency(wSalary),
-      notes: `Tax Class ${m.wifeTaxClass || 'V'} · Part-Time`
+      notes: `Tax Class ${m.isSwapActive ? 'III' : 'V'} · Part-Time`
     });
   }
 
@@ -896,8 +896,8 @@ export function getRowExplanation(
     rowType: ExplainerRowType.Month,
     title: `Month ${m.month} · ${m.calendarLabel}`,
     subtitle: m.relativeBirthLabel,
-    phaseOrCategory: m.phaseLabel || m.phase || 'Standard Cash Flow',
-    taxClasses: `Husband: ${m.husbandTaxClass || 'III'} | Wife: ${m.wifeTaxClass || 'V'}`,
+    phaseOrCategory: m.phaseLabel || 'Standard Cash Flow',
+    taxClasses: m.taxClassLabel || (m.isSwapActive ? 'Husband: V | Wife: III' : 'Husband: III | Wife: V'),
     summaryDescription: `Comprehensive cash flow breakdown for Month ${m.month} (${m.calendarLabel}). Total net cash inflow is ${formatCurrency(netInflow)}, resulting in a progressive balance of ${formatCurrency(cumTotal)}.`,
     streams,
     totalNetInflow: toEuroAmount(netInflow),
@@ -907,7 +907,7 @@ export function getRowExplanation(
     diffVsB: toEuroAmount(diffNet),
     diffVsBFormatted: diffNet !== 0 ? `${diffNet > 0 ? '+' : ''}${formatCurrency(diffNet)}` : '0 €',
     legalCitation: toStatutoryCitation('BEEG § 1, § 2, § 4 & EStG § 26b, § 38b, § 66'),
-    legalRuleKey: LegalRuleKey.BEEG_Calculation
+    legalRuleKey: LegalRuleKey.BEEG_SyntheticNet
   };
 }
 
@@ -973,7 +973,7 @@ export function getSpecialEventRowExplanation(
   const isCost = evAmount < 0;
 
   const bEvents = bMonth?.specialEvents || [];
-  const bMatch = bEvents.find(it => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
+  const bMatch = bEvents.find((it: SpecialEventItem) => it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type);
   const bEvAmount = bMatch ? (bMatch.amount as number) : 0;
   const diffEv = evAmount - bEvAmount;
 
