@@ -8,9 +8,9 @@ import {
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
-  CheckmarkIcon,
-  WarningTriangleIcon,
-  ExternalLinkIcon,
+  EligibilityConfirmedIcon,
+  StatutoryLimitationWarningIcon,
+  ExternalLegalSourceIcon,
 } from "#components/Icons";
 
 function formatCurrency(amount: number): string {
@@ -223,7 +223,7 @@ export default function KpiScorecard(): JSX.Element {
                 gap: "4px",
               }}
             >
-              <CheckmarkIcon size={13} />
+              <EligibilityConfirmedIcon size={13} />
               <span>
                 Maximized via Class III booster, Sibling &amp; Partnership
                 bonuses
@@ -239,7 +239,7 @@ export default function KpiScorecard(): JSX.Element {
                 gap: "4px",
               }}
             >
-              <WarningTriangleIcon size={13} />
+              <StatutoryLimitationWarningIcon size={13} />
               <span>Minimum base rate due to unoptimized Tax Class V</span>
             </span>
           ) : (
@@ -412,7 +412,7 @@ export default function KpiScorecard(): JSX.Element {
             title="View § 2b BEEG legal basis and strategy"
           >
             <span>How is this calculated? (§ 2b BEEG)</span>
-            <ExternalLinkIcon size={11} />
+            <ExternalLegalSourceIcon size={11} />
           </button>
         </div>
       </div>

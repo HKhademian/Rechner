@@ -3,11 +3,11 @@ import { type RowExplanation } from "#engine/explanation/timelineExplainer";
 import { ExplainerRowType } from "#engine/types";
 import { scrollToLegalRule } from "#store/elterngeldStore";
 import {
-  CalendarIcon,
-  LightningIcon,
-  CoinsIcon,
-  CloseIcon,
-  ArrowRightIcon,
+  SimulationPeriodIcon,
+  SpecialEventTriggerIcon,
+  FinancialInflowIcon,
+  DismissIcon,
+  StepTransitionIcon,
 } from "#components/Icons";
 
 export interface RowExplainerModalProps {
@@ -94,17 +94,17 @@ export default function RowExplainerModal({
               >
                 {isMonth ? (
                   <>
-                    <CalendarIcon size={12} />
+                    <SimulationPeriodIcon size={12} />
                     <span>Monthly Audit</span>
                   </>
                 ) : isAction ? (
                   <>
-                    <LightningIcon size={12} />
+                    <SpecialEventTriggerIcon size={12} />
                     <span>Lifecycle Action</span>
                   </>
                 ) : (
                   <>
-                    <CoinsIcon size={12} />
+                    <FinancialInflowIcon size={12} />
                     <span>Fiscal Event</span>
                   </>
                 )}
@@ -156,7 +156,7 @@ export default function RowExplainerModal({
               fontWeight: 700,
             }}
           >
-            <CloseIcon size={14} />
+            <DismissIcon size={14} />
           </button>
         </div>
 
@@ -316,7 +316,7 @@ export default function RowExplainerModal({
               }}
             >
               <span>View Full Statutory Rule &amp; Case Law</span>
-              <ArrowRightIcon size={14} />
+              <StepTransitionIcon size={14} />
             </button>
           </div>
         )}

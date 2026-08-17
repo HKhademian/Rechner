@@ -5,13 +5,13 @@ import {
   type LegalRuleKeyType,
 } from "#store/elterngeldStore";
 import {
-  ScrollDocIcon,
-  LightbulbIcon,
-  LinkChainIcon,
-  ExternalLinkIcon,
-  LegalSectionIcon,
-  CheckmarkIcon,
-  TimelineSimulatorTabIcon,
+  LegalStatuteDocumentationIcon,
+  OptimizationInsightIcon,
+  CitationReferenceIcon,
+  ExternalLegalSourceIcon,
+  StatutorySectionIcon,
+  EligibilityConfirmedIcon,
+  SimulatorNavigationIcon,
 } from "#components/Icons";
 
 interface LegalLink {
@@ -106,7 +106,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -173,7 +173,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "4px",
             }}
           >
-            <CheckmarkIcon size={12} />
+            <EligibilityConfirmedIcon size={12} />
             <span>
               <strong>Net Advantage:</strong> +357 € / month over 20 months ={" "}
               <strong style={{ color: "var(--color-gain)" }}>
@@ -271,7 +271,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -383,7 +383,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -505,7 +505,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -622,7 +622,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Statutory Allocation &amp; Payout Example:</span>
           </div>
           <div
@@ -731,7 +731,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -841,7 +841,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -980,7 +980,7 @@ export default function RulesExplainer(): JSX.Element {
               gap: "6px",
             }}
           >
-            <TimelineSimulatorTabIcon size={13} />
+            <SimulatorNavigationIcon size={13} />
             <span>Worked Numerical Example:</span>
           </div>
           <div
@@ -1068,7 +1068,7 @@ export default function RulesExplainer(): JSX.Element {
               justifyContent: "center",
             }}
           >
-            <ScrollDocIcon size={24} />
+            <LegalStatuteDocumentationIcon size={24} />
           </div>
           <div>
             <h3
@@ -1080,7 +1080,7 @@ export default function RulesExplainer(): JSX.Element {
                 letterSpacing: "-0.02em",
               }}
             >
-              Statutory Legal Framework & Judicial Precedents
+              Statutory Legal Framework &amp; Judicial Precedents
             </h3>
             <p
               style={{
@@ -1103,7 +1103,7 @@ export default function RulesExplainer(): JSX.Element {
             gap: "5px",
           }}
         >
-          <LegalSectionIcon size={13} />
+          <StatutorySectionIcon size={13} />
           <span>{rules.length} Statutory Modules Active</span>
         </div>
       </div>
@@ -1272,7 +1272,7 @@ export default function RulesExplainer(): JSX.Element {
                 gap: "6px",
               }}
             >
-              <ScrollDocIcon size={14} />
+              <LegalStatuteDocumentationIcon size={14} />
               <span>Statutory Mandate &amp; Legal Rule</span>
             </div>
             <div
@@ -1301,7 +1301,7 @@ export default function RulesExplainer(): JSX.Element {
                 gap: "6px",
               }}
             >
-              <LightbulbIcon size={14} />
+              <OptimizationInsightIcon size={14} />
               <span>Real-World Simulation Example</span>
             </div>
             {currentRule.example}
@@ -1328,7 +1328,7 @@ export default function RulesExplainer(): JSX.Element {
                 gap: "6px",
               }}
             >
-              <LinkChainIcon size={14} />
+              <CitationReferenceIcon size={14} />
               <span>Official Legislation &amp; Government References</span>
             </div>
             <div
@@ -1368,7 +1368,7 @@ export default function RulesExplainer(): JSX.Element {
                       {link.description}
                     </div>
                   </div>
-                  <ExternalLinkIcon size={12} />
+                  <ExternalLegalSourceIcon size={12} />
                 </a>
               ))}
             </div>
