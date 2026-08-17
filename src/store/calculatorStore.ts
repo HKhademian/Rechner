@@ -92,70 +92,75 @@ export interface SavedScenarioItem {
 
 import defaultCalculatorData from "../data/defaultCalculatorState.json" with { type: "json" };
 
+const DEFAULT_CALCULATOR_INPUTS: CalculatorInputs = {
+  ...defaultCalculatorData,
+  inputMode: defaultCalculatorData.inputMode as "yearly" | "monthly",
+} satisfies CalculatorInputs;
+
 // Display Settings
 export const inputMode = persistedSignal<"yearly" | "monthly">(
   "inputMode",
-  defaultCalculatorData.inputMode as "yearly" | "monthly",
+  DEFAULT_CALCULATOR_INPUTS.inputMode,
 );
 
 // Person 1 Settings
 export const grossIncome = persistedSignal<number>(
   "grossIncome",
-  defaultCalculatorData.grossIncome,
+  DEFAULT_CALCULATOR_INPUTS.grossIncome,
 );
 export const taxBracket = persistedSignal<string>(
   "taxBracket",
-  defaultCalculatorData.taxBracket,
+  DEFAULT_CALCULATOR_INPUTS.taxBracket,
 );
 export const hasChurchTax = persistedSignal<boolean>(
   "hasChurchTax",
-  defaultCalculatorData.hasChurchTax,
+  DEFAULT_CALCULATOR_INPUTS.hasChurchTax,
 );
 export const state = persistedSignal<string>(
   "state",
-  defaultCalculatorData.state,
+  DEFAULT_CALCULATOR_INPUTS.state,
 );
 export const children = persistedSignal<number>(
   "children",
-  defaultCalculatorData.children,
+  DEFAULT_CALCULATOR_INPUTS.children,
 );
 export const workingMonths = persistedSignal<number>(
   "workingMonths",
-  defaultCalculatorData.workingMonths,
+  DEFAULT_CALCULATOR_INPUTS.workingMonths,
 );
 export const salariesPerYear = persistedSignal<number>(
   "salariesPerYear",
-  defaultCalculatorData.salariesPerYear,
+  DEFAULT_CALCULATOR_INPUTS.salariesPerYear,
 );
 
 // Partner Settings
 export const hasPartner = persistedSignal<boolean>(
   "hasPartner",
-  defaultCalculatorData.hasPartner,
+  DEFAULT_CALCULATOR_INPUTS.hasPartner,
 );
 export const partnerGrossIncome = persistedSignal<number>(
   "partnerGrossIncome",
-  defaultCalculatorData.partnerGrossIncome,
+  DEFAULT_CALCULATOR_INPUTS.partnerGrossIncome,
 );
 export const partnerTaxBracket = persistedSignal<string>(
   "partnerTaxBracket",
-  defaultCalculatorData.partnerTaxBracket,
+  DEFAULT_CALCULATOR_INPUTS.partnerTaxBracket,
 );
 export const partnerHasChurchTax = persistedSignal<boolean>(
   "partnerHasChurchTax",
-  defaultCalculatorData.partnerHasChurchTax,
+  DEFAULT_CALCULATOR_INPUTS.partnerHasChurchTax,
 );
 export const partnerState = persistedSignal<string>(
   "partnerState",
-  defaultCalculatorData.partnerState,
+  DEFAULT_CALCULATOR_INPUTS.partnerState,
 );
 export const partnerWorkingMonths = persistedSignal<number>(
   "partnerWorkingMonths",
-  defaultCalculatorData.partnerWorkingMonths,
+  DEFAULT_CALCULATOR_INPUTS.partnerWorkingMonths,
 );
 export const partnerSalariesPerYear = persistedSignal<number>(
   "partnerSalariesPerYear",
-  defaultCalculatorData.partnerSalariesPerYear,
+  DEFAULT_CALCULATOR_INPUTS.partnerSalariesPerYear,
 );
 
 // Saved Scenarios
@@ -217,39 +222,40 @@ export function loadScenario(id: string): void {
   const scenario = savedScenarios.value.find((s) => s.id === id);
   if (scenario && scenario.inputs) {
     inputMode.value =
-      scenario.inputs.inputMode ??
-      (defaultCalculatorData.inputMode as "yearly" | "monthly");
+      scenario.inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
     grossIncome.value =
-      scenario.inputs.grossIncome ?? defaultCalculatorData.grossIncome;
+      scenario.inputs.grossIncome ?? DEFAULT_CALCULATOR_INPUTS.grossIncome;
     taxBracket.value =
-      scenario.inputs.taxBracket ?? defaultCalculatorData.taxBracket;
+      scenario.inputs.taxBracket ?? DEFAULT_CALCULATOR_INPUTS.taxBracket;
     hasChurchTax.value =
-      scenario.inputs.hasChurchTax ?? defaultCalculatorData.hasChurchTax;
-    state.value = scenario.inputs.state ?? defaultCalculatorData.state;
-    children.value = scenario.inputs.children ?? defaultCalculatorData.children;
+      scenario.inputs.hasChurchTax ?? DEFAULT_CALCULATOR_INPUTS.hasChurchTax;
+    state.value = scenario.inputs.state ?? DEFAULT_CALCULATOR_INPUTS.state;
+    children.value =
+      scenario.inputs.children ?? DEFAULT_CALCULATOR_INPUTS.children;
     workingMonths.value =
-      scenario.inputs.workingMonths ?? defaultCalculatorData.workingMonths;
+      scenario.inputs.workingMonths ?? DEFAULT_CALCULATOR_INPUTS.workingMonths;
     salariesPerYear.value =
-      scenario.inputs.salariesPerYear ?? defaultCalculatorData.salariesPerYear;
+      scenario.inputs.salariesPerYear ??
+      DEFAULT_CALCULATOR_INPUTS.salariesPerYear;
     hasPartner.value =
-      scenario.inputs.hasPartner ?? defaultCalculatorData.hasPartner;
+      scenario.inputs.hasPartner ?? DEFAULT_CALCULATOR_INPUTS.hasPartner;
     partnerGrossIncome.value =
       scenario.inputs.partnerGrossIncome ??
-      defaultCalculatorData.partnerGrossIncome;
+      DEFAULT_CALCULATOR_INPUTS.partnerGrossIncome;
     partnerTaxBracket.value =
       scenario.inputs.partnerTaxBracket ??
-      defaultCalculatorData.partnerTaxBracket;
+      DEFAULT_CALCULATOR_INPUTS.partnerTaxBracket;
     partnerHasChurchTax.value =
       scenario.inputs.partnerHasChurchTax ??
-      defaultCalculatorData.partnerHasChurchTax;
+      DEFAULT_CALCULATOR_INPUTS.partnerHasChurchTax;
     partnerState.value =
-      scenario.inputs.partnerState ?? defaultCalculatorData.partnerState;
+      scenario.inputs.partnerState ?? DEFAULT_CALCULATOR_INPUTS.partnerState;
     partnerWorkingMonths.value =
       scenario.inputs.partnerWorkingMonths ??
-      defaultCalculatorData.partnerWorkingMonths;
+      DEFAULT_CALCULATOR_INPUTS.partnerWorkingMonths;
     partnerSalariesPerYear.value =
       scenario.inputs.partnerSalariesPerYear ??
-      defaultCalculatorData.partnerSalariesPerYear;
+      DEFAULT_CALCULATOR_INPUTS.partnerSalariesPerYear;
   }
 }
 

@@ -21,6 +21,9 @@ import TaxSettings from "#components/TaxSettings";
 import { ConfigureSandboxIcon } from "#components/Icons";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 
+const GERMAN_STATES: readonly string[] =
+  germanStates satisfies readonly string[];
+
 export default function InputForm(): JSX.Element {
   const [mounted, setMounted] = useState<boolean>(false);
   useEffect(() => setMounted(true), []);
@@ -207,7 +210,7 @@ export default function InputForm(): JSX.Element {
             state.value = (e.target as HTMLSelectElement).value;
           }}
         >
-          {germanStates.map((s) => (
+          {GERMAN_STATES.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -383,7 +386,7 @@ export default function InputForm(): JSX.Element {
                 partnerState.value = (e.target as HTMLSelectElement).value;
               }}
             >
-              {germanStates.map((s) => (
+              {GERMAN_STATES.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>

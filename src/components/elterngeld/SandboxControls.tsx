@@ -104,6 +104,27 @@ import {
 } from "#engine/types";
 import { getDefaultPersistedState } from "#engine/storage/persistence";
 import scenarioPresetsData from "../../data/scenarioPresets.json" with { type: "json" };
+
+export interface ScenarioPresetConfig {
+  readonly id: string;
+  readonly name: string;
+  readonly description?: string;
+  readonly useDefaultReset?: boolean;
+  readonly salaryInputMode?: string;
+  readonly husbandGross?: number;
+  readonly wifeGross?: number;
+  readonly wifeInitialHours?: number;
+  readonly wifePostBirthHours?: number;
+  readonly prePregnancyPlanningMonths?: number;
+  readonly child1BirthMonth?: number;
+  readonly birthSpacingMonths?: number;
+  readonly swapLeadMonths?: number;
+}
+
+export type ScenarioPresetsMap = Record<string, ScenarioPresetConfig>;
+
+const SCENARIO_PRESETS: ScenarioPresetsMap =
+  scenarioPresetsData satisfies ScenarioPresetsMap;
 import {
   ConfigureSandboxIcon,
   SimulationPeriodIcon,
@@ -247,24 +268,7 @@ export default function SandboxControls(): JSX.Element {
 
   // Preset Handlers
   const applyPreset = (presetKey: string): void => {
-    const presetsRecord = scenarioPresetsData as Record<
-      string,
-      {
-        id?: string;
-        name?: string;
-        useDefaultReset?: boolean;
-        salaryInputMode?: string;
-        husbandGross?: number;
-        wifeGross?: number;
-        wifeInitialHours?: number;
-        wifePostBirthHours?: number;
-        prePregnancyPlanningMonths?: number;
-        child1BirthMonth?: number;
-        birthSpacingMonths?: number;
-        swapLeadMonths?: number;
-      }
-    >;
-    const preset = presetsRecord[presetKey];
+    const preset = SCENARIO_PRESETS[presetKey];
     if (!preset) return;
 
     if (preset.useDefaultReset) {
@@ -414,12 +418,7 @@ export default function SandboxControls(): JSX.Element {
               >
                 Scenario Presets:
               </span>
-              {Object.values(
-                scenarioPresetsData as Record<
-                  string,
-                  { id: string; name: string }
-                >,
-              ).map((preset) => (
+              {Object.values(SCENARIO_PRESETS).map((preset) => (
                 <button
                   key={preset.id}
                   type="button"
