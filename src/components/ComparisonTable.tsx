@@ -216,7 +216,7 @@ export default function ComparisonTable(): JSX.Element | null {
     savedScenarios.value.forEach(scenario => {
       const isActive = activeScenarioId.value === scenario.id;
       const inputsToUse = isActive && scenarioDraft.value ? scenarioDraft.value.inputs : (scenario.inputs || {});
-      const rawVal = (inputsToUse as Record<string, unknown>)[fieldKey];
+      const rawVal = (inputsToUse as unknown as Record<string, unknown>)[fieldKey];
       const savedVal = formatFn(inputsToUse);
 
       let content: JSX.Element | string | number = savedVal;

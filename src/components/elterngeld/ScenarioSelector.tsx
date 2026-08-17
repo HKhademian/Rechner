@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
 import { activeScenario, comparisonMetrics } from '#store/elterngeldStore';
-import { ScenarioId, type ScenarioId as ScenarioIdType } from '#engine/types';
+import { ActiveScenarioView } from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
@@ -11,7 +11,7 @@ function formatCurrency(amount: number): string {
 }
 
 interface ScenarioCardItem {
-  id: ScenarioIdType | 'compare';
+  scenarioViewId: ActiveScenarioView;
   title: string;
   subtitle: string;
   badge: string;
@@ -26,7 +26,7 @@ export default function ScenarioSelector(): JSX.Element {
 
   const scenarios: ScenarioCardItem[] = [
     {
-      id: ScenarioId.C,
+      scenarioViewId: ActiveScenarioView.C,
       title: 'Scenario C',
       subtitle: 'Fully Optimized (Recommended)',
       badge: 'Maximum State Benefit',
@@ -40,7 +40,7 @@ export default function ScenarioSelector(): JSX.Element {
       ]
     },
     {
-      id: ScenarioId.B,
+      scenarioViewId: ActiveScenarioView.B,
       title: 'Scenario B',
       subtitle: 'Unoptimized (Static III/V)',
       badge: 'Standard Baseline',
@@ -54,7 +54,7 @@ export default function ScenarioSelector(): JSX.Element {
       ]
     },
     {
-      id: ScenarioId.A,
+      scenarioViewId: ActiveScenarioView.A,
       title: 'Scenario A',
       subtitle: 'No Children (Status Quo)',
       badge: 'Constant Employment',
@@ -68,7 +68,7 @@ export default function ScenarioSelector(): JSX.Element {
       ]
     },
     {
-      id: 'compare',
+      scenarioViewId: ActiveScenarioView.Compare,
       title: 'Multi-Scenario',
       subtitle: 'Side-by-Side Comparison',
       badge: 'Overlay View',
@@ -116,11 +116,11 @@ export default function ScenarioSelector(): JSX.Element {
         gap: '16px'
       }}>
         {scenarios.map((sc) => {
-          const isSelected = current === sc.id;
+          const isSelected = current === sc.scenarioViewId;
           return (
             <button
-              key={sc.id}
-              onClick={() => { activeScenario.value = sc.id; }}
+              key={sc.scenarioViewId}
+              onClick={() => { activeScenario.value = sc.scenarioViewId; }}
               type="button"
               style={{
                 textAlign: 'left',

@@ -74,6 +74,7 @@ import {
   toCalendarMonth,
   toEuroAmount,
   toNetSalary,
+  toWorkingHours,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -126,20 +127,20 @@ export default function SandboxControls(): JSX.Element {
       setSalaryInputMode(SalaryInputMode.Gross);
       setHusbandGross(8200);
       setWifeGross(4500);
-      wifeInitialHours.value = 40;
-      wifePostBirthHours.value = 24;
+      setWifeInitialHours(40);
+      setWifePostBirthHours(24);
       prePregnancyPlanningMonths.value = 8;
-      child1BirthMonth.value = 17;
+      child1BirthMonth.value = toSimulationMonth(17);
       birthSpacingMonths.value = 27;
       swapLeadMonths.value = 7;
     } else if (presetName === 'equal') {
       setSalaryInputMode(SalaryInputMode.Gross);
       setHusbandGross(4800);
       setWifeGross(4800);
-      wifeInitialHours.value = 40;
-      wifePostBirthHours.value = 24;
+      setWifeInitialHours(40);
+      setWifePostBirthHours(24);
       prePregnancyPlanningMonths.value = 8;
-      child1BirthMonth.value = 17;
+      child1BirthMonth.value = toSimulationMonth(17);
       birthSpacingMonths.value = 24;
       swapLeadMonths.value = 7;
     }
@@ -323,7 +324,7 @@ export default function SandboxControls(): JSX.Element {
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '6px', marginBottom: '6px' }}>
                   <select
                     value={startCalendarMonth.value}
-                    onChange={(e) => { startCalendarMonth.value = Number((e.target as HTMLSelectElement).value); }}
+                    onChange={(e) => { startCalendarMonth.value = toCalendarMonth(Number((e.target as HTMLSelectElement).value)); }}
                     style={{ background: '#1e293b', color: '#f8fafc', border: '1px solid #334155', borderRadius: '4px', padding: '3px 6px', fontSize: '0.74rem' }}
                   >
                     {MONTH_NAMES.map((name, idx) => (
@@ -866,7 +867,7 @@ export default function SandboxControls(): JSX.Element {
                   max="350"
                   step="5"
                   value={kindergeldPerChild.value}
-                  onInput={(e) => { kindergeldPerChild.value = Number((e.target as HTMLInputElement).value); }}
+                  onInput={(e) => { kindergeldPerChild.value = toEuroAmount(Number((e.target as HTMLInputElement).value)); }}
                 />
                 <div style={{ fontSize: '0.64rem', color: '#94a3b8', marginTop: '2px' }}>
                   ↳ Reconciled against Kinderfreibetrag (9.540 €/child § 32 Abs. 6) in annual tax return (<span style={{ color: '#38bdf8', fontWeight: 600 }}>Günstigerprüfung § 31 EStG</span>).
@@ -1014,12 +1015,14 @@ export default function SandboxControls(): JSX.Element {
                   addPregnancyAction({
                     pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
                     childIndex: count + 1,
+                    positiveTestCalendarMonth: toCalendarMonth(1),
+                    positiveTestCalendarYear: 2026,
                     positiveTestSimulationMonth: toSimulationMonth(newSimMonth),
                     calculatedDeliverySimulationMonth: toSimulationMonth(newSimMonth + 8),
-                    motherPostBirthPartTimeHours: toEuroAmount(24) as unknown as import('#engine/types').WorkingHours,
+                    motherPostBirthPartTimeHours: toWorkingHours(24),
                     motherPostBirthPartTimeClass5Net: toNetSalary(wifeClass5PartTimeNet.value),
                     motherPostBirthPartTimeClass3Net: toNetSalary(wifeClass3PartTimeNet.value),
-                    fatherPartnerMonthsTaken: 4
+                    fatherPartnerMonthsCount: 4
                   });
                 }}
                 style={{
@@ -1182,7 +1185,7 @@ export default function SandboxControls(): JSX.Element {
                   max="5500"
                   step="25"
                   value={wifeClass3FullTimeNet.value}
-                  onInput={(e) => { wifeClass3FullTimeNet.value = Number((e.target as HTMLInputElement).value); }}
+                  onInput={(e) => { wifeClass3FullTimeNet.value = toNetSalary(Number((e.target as HTMLInputElement).value)); }}
                 />
               </div>
 
@@ -1200,7 +1203,7 @@ export default function SandboxControls(): JSX.Element {
                   max="5500"
                   step="25"
                   value={husbandClass5Net.value}
-                  onInput={(e) => { husbandClass5Net.value = Number((e.target as HTMLInputElement).value); }}
+                  onInput={(e) => { husbandClass5Net.value = toNetSalary(Number((e.target as HTMLInputElement).value)); }}
                 />
               </div>
             </div>

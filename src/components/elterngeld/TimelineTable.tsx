@@ -14,6 +14,8 @@ import {
   ActionCategory,
   FieldColumnKey,
   ExplanationFieldKey,
+  ScenarioId,
+  ActiveScenarioView,
   type TimelineMonth,
   type SpecialEventItem,
   type ActionRowItem
@@ -46,7 +48,7 @@ export default function TimelineTable(): JSX.Element {
   const [selectedFieldExplanation, setSelectedFieldExplanation] = useState<FieldExplanation | null>(null);
   const [selectedRowExplanation, setSelectedRowExplanation] = useState<RowExplanation | null>(null);
 
-  const scenario = activeScenario.value;
+  const scenario: ScenarioId = activeScenario.value === ActiveScenarioView.Compare ? ScenarioId.C : (activeScenario.value as ScenarioId);
   const current = currentScenarioData.value;
   const bData = scenarioBData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
@@ -117,6 +119,7 @@ export default function TimelineTable(): JSX.Element {
       const diffKindergeld = (m.kindergeld as number) - (bMonth ? (bMonth.kindergeld as number) : 0);
       const diffSpecialEvents = (m.specialEventsTotal as number) - (bMonth ? (bMonth.specialEventsTotal as number) : 0);
       const diffNetInflow = (m.monthlyTotal as number) - (bMonth ? (bMonth.monthlyTotal as number) : 0);
+      const diffCumulated = (m.cumulatedTotal as number) - (bMonth ? (bMonth.cumulatedTotal as number) : 0);
       // 1. Action Milestone Rows (Placed immediately BEFORE month m)
       if (m.startingActions && m.startingActions.length > 0) {
         m.startingActions.forEach((act) => {

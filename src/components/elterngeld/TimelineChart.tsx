@@ -10,7 +10,12 @@ import {
   currentScenarioData,
   hoveredMonth
 } from '#store/elterngeldStore';
-import type { TimelineMonth, ScenarioTimelineResult } from '#engine/types';
+import {
+  TimelineChartMode,
+  TimelineTimeRangeFilter,
+  type TimelineMonth,
+  type ScenarioTimelineResult
+} from '#engine/types';
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
@@ -84,11 +89,11 @@ export default function TimelineChart(): JSX.Element {
 
   // Filter months according to active time range
   let displayedMonths = currentData.months;
-  if (filter === 'child1') {
+  if (filter === TimelineTimeRangeFilter.Child1) {
     displayedMonths = currentData.months.filter(m => (m.month as number) <= 24);
-  } else if (filter === 'child2') {
+  } else if (filter === TimelineTimeRangeFilter.Child2) {
     displayedMonths = currentData.months.filter(m => (m.month as number) >= 25 && (m.month as number) <= 48);
-  } else if (filter === 'post') {
+  } else if (filter === TimelineTimeRangeFilter.Post) {
     displayedMonths = currentData.months.filter(m => (m.month as number) >= 49);
   }
 
@@ -249,13 +254,13 @@ export default function TimelineChart(): JSX.Element {
         }}>
           <button
             type="button"
-            onClick={() => { chartMode.value = 'stacked_bar'; }}
+            onClick={() => { chartMode.value = TimelineChartMode.StackedBar; }}
             style={{
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'stacked_bar' ? '#1e40af' : 'transparent',
-              color: mode === 'stacked_bar' ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.StackedBar ? '#1e40af' : 'transparent',
+              color: mode === TimelineChartMode.StackedBar ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -265,13 +270,13 @@ export default function TimelineChart(): JSX.Element {
           </button>
           <button
             type="button"
-            onClick={() => { chartMode.value = 'lines'; }}
+            onClick={() => { chartMode.value = TimelineChartMode.Lines; }}
             style={{
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'lines' ? '#1e40af' : 'transparent',
-              color: mode === 'lines' ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.Lines ? '#1e40af' : 'transparent',
+              color: mode === TimelineChartMode.Lines ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -281,13 +286,13 @@ export default function TimelineChart(): JSX.Element {
           </button>
           <button
             type="button"
-            onClick={() => { chartMode.value = 'area'; }}
+            onClick={() => { chartMode.value = TimelineChartMode.Area; }}
             style={{
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'area' ? '#1e40af' : 'transparent',
-              color: mode === 'area' ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.Area ? '#1e40af' : 'transparent',
+              color: mode === TimelineChartMode.Area ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -297,13 +302,13 @@ export default function TimelineChart(): JSX.Element {
           </button>
           <button
             type="button"
-            onClick={() => { chartMode.value = 'compare'; }}
+            onClick={() => { chartMode.value = TimelineChartMode.Compare; }}
             style={{
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: mode === 'compare' ? '#1e40af' : 'transparent',
-              color: mode === 'compare' ? '#ffffff' : '#94a3b8',
+              background: mode === TimelineChartMode.Compare ? '#1e40af' : 'transparent',
+              color: mode === TimelineChartMode.Compare ? '#ffffff' : '#94a3b8',
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer'
