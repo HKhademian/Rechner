@@ -19,7 +19,9 @@
     "preview": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro preview",
     "astro": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro",
     "sim": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node src/cli/runner.ts",
-    "test": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node --test 'test/**/*.test.ts'"
+    "test": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node --test 'test/**/*.test.ts'",
+    "typecheck": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 tsc --noEmit",
+    "check": "npm run typecheck"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.1",
@@ -29,6 +31,8 @@
     "preact": "^10.29.7"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0"
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
   }
 }
