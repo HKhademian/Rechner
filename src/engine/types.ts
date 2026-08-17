@@ -23,6 +23,7 @@ export type SimulationMonth = Brand<number, "SimulationMonth">; // M1..M120
 export type CalendarYear = Brand<number, "CalendarYear">; // Y1..Y10
 export type CalendarMonth = Brand<number, "CalendarMonth">; // M1..M12 (1=Jan, 12=Dec)
 export type MonthId = SubBrand<EntityId, "MonthId">; // Immutable absolute calendar month identifier (e.g. 'M092026')
+export type MonthRef = SubBrand<EntityId, "MonthRef">; // Statutory pregnancy-relative month reference (e.g. 'M1 (Pregnancy Positive)', 'M-8', 'M9 (Birth 1)')
 export type WorkingHours = Brand<number, "WorkingHours">; // e.g. 24, 32, 40
 export type TaxFactor = Brand<number, "TaxFactor">; // § 39f EStG factor ratio (0.001..1.000)
 
@@ -502,6 +503,46 @@ export function isMonthId(val: unknown): val is MonthId {
   return typeof val === "string" && /^M(0[1-9]|1[0-2])\d{4}$/.test(val);
 }
 
+/**
+ * Constructs an immutable, nominal MonthRef representing statutory relative month notation
+ * anchored to the pregnancy positive test (M1).
+ * Examples:
+ * - toMonthRef(1, "Pregnancy Positive") -> 'M1 (Pregnancy Positive)'
+ * - toMonthRef(-8) -> 'M-8'
+ * - toMonthRef(9, "Birth 1") -> 'M9 (Birth 1)'
+ * - toMonthRef("M1 (Pregnancy Positive)") -> 'M1 (Pregnancy Positive)'
+ */
+export function toMonthRef(
+  monthRefOrIndex: number | string,
+  suffix?: string,
+): MonthRef {
+  if (typeof monthRefOrIndex === "number") {
+    if (!Number.isInteger(monthRefOrIndex)) {
+      throw new TypeError(
+        `Invalid MonthRef relative index: ${monthRefOrIndex}. Must be an integer.`,
+      );
+    }
+    const base = `M${monthRefOrIndex}`;
+    return (suffix ? `${base} (${suffix})` : base) as MonthRef;
+  }
+  if (!monthRefOrIndex || typeof monthRefOrIndex !== "string") {
+    throw new TypeError(
+      `Invalid MonthRef: ${monthRefOrIndex}. Must be non-empty string or integer.`,
+    );
+  }
+  const trimmed = monthRefOrIndex.trim();
+  if (!/^M-?\d+(\s*\(.*\))?$/i.test(trimmed)) {
+    throw new TypeError(
+      `Invalid MonthRef string format: "${monthRefOrIndex}". Expected format 'M<signed_int>' or 'M<signed_int> (<label>)' (e.g. 'M1', 'M-8', 'M1 (Pregnancy Positive)').`,
+    );
+  }
+  return trimmed as MonthRef;
+}
+
+export function isMonthRef(val: unknown): val is MonthRef {
+  return typeof val === "string" && /^M-?\d+(\s*\(.*\))?$/i.test(val.trim());
+}
+
 export function toKinderfreibetragAnnualAmount(
   val: number,
 ): KinderfreibetragAnnualAmount {
@@ -749,6 +790,8 @@ export function toBonusTaxMethod(val: string): BonusTaxMethod {
 export interface AccountingTransaction {
   readonly transactionId: TransactionId;
   readonly monthId: MonthId;
+  readonly monthRef?: MonthRef;
+  readonly relativeMonthLabel?: MonthRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly type: TransactionType;
@@ -766,13 +809,14 @@ export interface AccountingTransaction {
 export interface SpecialEventItem {
   readonly eventId: EventId;
   readonly monthId: MonthId;
+  readonly monthRef?: MonthRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly calendarYearNum: number;
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
-  readonly relativeMonthLabel?: string;
+  readonly relativeMonthLabel?: MonthRef;
   readonly type: SpecialEventType;
   readonly title: string;
   readonly category: SpecialEventCategory;
@@ -788,10 +832,11 @@ export interface SpecialEventItem {
 export interface ActionRowItem {
   readonly actionId: ActionId;
   readonly monthId: MonthId;
+  readonly monthRef?: MonthRef;
   readonly month: SimulationMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
-  readonly relativeMonthLabel?: string;
+  readonly relativeMonthLabel?: MonthRef;
   readonly title: string;
   readonly description: string;
   readonly category: ActionCategory;
@@ -804,6 +849,7 @@ export interface ActionRowItem {
  */
 export interface MonthlyLedgerEntry {
   readonly monthId: MonthId;
+  readonly monthRef: MonthRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
@@ -811,7 +857,7 @@ export interface MonthlyLedgerEntry {
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
-  readonly relativeMonthLabel: string;
+  readonly relativeMonthLabel: MonthRef;
   readonly relativeMonthIndex: number;
   readonly husbandSalary: EuroAmount;
   readonly wifeSalary: EuroAmount;

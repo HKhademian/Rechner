@@ -41,6 +41,8 @@ import {
   isRaiseId,
   isFinancialEventId,
   isMonthId,
+  isMonthRef,
+  toMonthRef,
   TaxClass,
   ScenarioId,
   ActiveScenarioView,
@@ -58,6 +60,7 @@ import {
   type CalendarYear,
   type CalendarMonth,
   type MonthId,
+  type MonthRef,
   type WorkingHours,
   type EuroAmount,
   type EuroCents,
@@ -574,6 +577,43 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(toEventId("EV-456"), "EV-456");
       assert.throws(() => toTransactionId(""), TypeError);
       assert.throws(() => toEventId(""), TypeError);
+    });
+
+    it("toMonthId constructs and validates nominal MonthId brands", () => {
+      assert.equal(toMonthId(9, 2026), "M092026");
+      assert.equal(toMonthId(1, 2026), "M012026");
+      assert.equal(toMonthId(12, 2030), "M122030");
+      assert.equal(toMonthId("M092026"), "M092026");
+      assert.equal(isMonthId("M092026"), true);
+      assert.equal(isMonthId("M012026"), true);
+      assert.equal(isMonthId("invalid"), false);
+      assert.throws(() => toMonthId(13, 2026), TypeError);
+      assert.throws(() => toMonthId(0, 2026), TypeError);
+      assert.throws(() => toMonthId("invalid"), TypeError);
+    });
+
+    it("toMonthRef constructs and validates nominal MonthRef brands", () => {
+      assert.equal(
+        toMonthRef(1, "Pregnancy Positive"),
+        "M1 (Pregnancy Positive)",
+      );
+      assert.equal(toMonthRef(-8), "M-8");
+      assert.equal(toMonthRef(9, "Birth 1"), "M9 (Birth 1)");
+      assert.equal(toMonthRef(36, "Birth 2"), "M36 (Birth 2)");
+      assert.equal(
+        toMonthRef("M1 (Pregnancy Positive)"),
+        "M1 (Pregnancy Positive)",
+      );
+      assert.equal(toMonthRef("M-8"), "M-8");
+      assert.equal(toMonthRef("M9 (Birth 1)"), "M9 (Birth 1)");
+      assert.equal(isMonthRef("M1 (Pregnancy Positive)"), true);
+      assert.equal(isMonthRef("M-8"), true);
+      assert.equal(isMonthRef("M9"), true);
+      assert.equal(isMonthRef("invalid"), false);
+      assert.equal(isMonthRef(""), false);
+      assert.throws(() => toMonthRef("invalid"), TypeError);
+      assert.throws(() => toMonthRef(NaN), TypeError);
+      assert.throws(() => toMonthRef(""), TypeError);
     });
   });
 
