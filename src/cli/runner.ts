@@ -103,20 +103,22 @@ export function toCliScenarioTarget(val: string): CliScenarioTarget {
   );
 }
 
-export function parseMonthArg(val: string): number {
+export function parseMonthArg(val: string): string | number {
   if (!val) {
     throw new TypeError(
-      "Missing month argument. Example: explain M21 or --explain 21",
+      "Missing month argument. Example: explain M092026, explain M1, or --explain 21",
     );
   }
-  const clean = val.trim().replace(/^[Mm](?:onth)?\s*/i, "");
+  const trimmed = val.trim();
+  if (/^M(0[1-9]|1[0-2])\d{4}$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+  const clean = trimmed.replace(/^[Mm](?:onth)?\s*/i, "");
   const num = parseInt(clean, 10);
-  if (Number.isNaN(num) || num < 1 || num > 120) {
-    throw new TypeError(
-      `Invalid month argument "${val}". Expected integer between 1 and 120 (e.g. M21 or 21).`,
-    );
+  if (!Number.isNaN(num) && num >= 1 && num <= 120) {
+    return num;
   }
-  return num;
+  return trimmed;
 }
 
 export function parseFieldArg(val: string): FieldColumnKey {
@@ -265,7 +267,7 @@ interface CliOptions {
   salaryMode?: SalaryInputMode;
   pregYear?: number;
   pregMonth?: number;
-  explainMonth?: number;
+  explainMonth?: string | number;
   explainField?: FieldColumnKey;
 }
 
@@ -707,7 +709,7 @@ function printFieldExplanation(
   const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
   console.log(
-    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (Month ${m.month} · ${m.calendarLabel})${RESET}`,
+    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (${m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.calendarLabel})${RESET}`,
   );
   console.log(
     `${DIM}Scenario: ${scenarioId} · Spousal Tax Classes: ${m.taxClassLabel}${RESET}`,
@@ -766,7 +768,9 @@ function printMonthExplanation(
 ): void {
   const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
-  console.log(`${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title}${RESET}`);
+  console.log(
+    `${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title} (${m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.calendarLabel})${RESET}`,
+  );
   console.log(`${DIM}${rowExp.subtitle} · Scenario: ${scenarioId}${RESET}`);
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
 
@@ -1082,7 +1086,7 @@ function printMilestones(res: SimulationResult) {
     if (m.startingActions && m.startingActions.length > 0) {
       m.startingActions.forEach((act) => {
         console.log(
-          `  ${BOLD}${MAGENTA}⚡ ${act.title}${RESET} [Triggered before ${m.calendarLabel} / M${m.month}]`,
+          `  ${BOLD}${MAGENTA}⚡ ${act.title}${RESET} [Triggered before ${m.calendarLabel} / ${act.relativeMonthLabel || m.relativeMonthLabel || m.relativeBirthLabel} · ${act.monthId || m.monthId}]`,
         );
         console.log(`    ↳ ${DIM}${act.description}${RESET}`);
       });
@@ -1113,11 +1117,12 @@ function printMilestones(res: SimulationResult) {
 
     if (
       events.length > 0 ||
-      m.relativeBirthLabel.includes("Birth") ||
-      m.relativeBirthLabel.includes("M-8")
+      (m.relativeMonthLabel || m.relativeBirthLabel).includes("Birth") ||
+      (m.relativeMonthLabel || m.relativeBirthLabel).includes("Pregnancy") ||
+      (m.relativeMonthLabel || m.relativeBirthLabel).includes("M-8")
     ) {
       console.log(
-        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}M${m.month}${RESET} / ${m.relativeBirthLabel}): ${m.phaseLabel}`,
+        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}${m.relativeMonthLabel || m.relativeBirthLabel}${RESET} · ${m.monthId} · Sim M${m.month}): ${m.phaseLabel}`,
       );
       if (events.length > 0) {
         console.log(`    ↳ ${events.join(" • ")}`);
@@ -1191,10 +1196,23 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     const targetSim = buildSimulation(scenarioKey, opts);
     const bSim = buildSimulation(ScenarioId.B, opts);
 
-    const monthIdx = opts.explainMonth - 1;
+    let monthIdx = -1;
+    if (typeof opts.explainMonth === "number") {
+      monthIdx = opts.explainMonth - 1;
+    } else {
+      const q = String(opts.explainMonth).trim();
+      monthIdx = targetSim.months.findIndex(
+        (m) =>
+          m.monthId === q ||
+          m.relativeMonthLabel.toLowerCase().startsWith(q.toLowerCase()) ||
+          m.calendarLabel === q ||
+          m.month === parseInt(q.replace(/^M/i, ""), 10),
+      );
+    }
+
     if (monthIdx < 0 || monthIdx >= targetSim.months.length) {
       console.error(
-        `Error: Month ${opts.explainMonth} is outside simulation duration (${targetSim.months.length} months).`,
+        `Error: Month "${opts.explainMonth}" is outside simulation duration (${targetSim.months.length} months).`,
       );
       process.exit(1);
     }
@@ -1213,7 +1231,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
         console.log(
           JSON.stringify(
             {
-              simulationMonth: opts.explainMonth,
+              monthId: m.monthId,
+              relativeMonthLabel: m.relativeMonthLabel,
+              simulationMonth: m.month,
               calendarMonth: m.calendarLabel,
               scenario: scenarioKey,
               fieldKey: opts.explainField,
@@ -1224,7 +1244,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
           ),
         );
       } else {
-        printFieldExplanation(fieldExp, opts.explainMonth, scenarioKey, m);
+        printFieldExplanation(fieldExp, m.month as number, scenarioKey, m);
       }
     } else {
       const rowExp = getRowExplanation(m, bMonth, scenarioKey);
@@ -1232,7 +1252,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
         console.log(
           JSON.stringify(
             {
-              simulationMonth: opts.explainMonth,
+              monthId: m.monthId,
+              relativeMonthLabel: m.relativeMonthLabel,
+              simulationMonth: m.month,
               calendarMonth: m.calendarLabel,
               scenario: scenarioKey,
               rowExplanation: rowExp,
@@ -1292,8 +1314,8 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     `${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`,
   );
 
-  const header = `| Month | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |`;
-  const sep = `|-------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|`;
+  const header = `| Rel. Month               | Month ID | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |`;
+  const sep = `|--------------------------|----------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|`;
 
   console.log(header);
   console.log(sep);
@@ -1326,20 +1348,14 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
               : isTaxSwitch
                 ? BLUE
                 : YELLOW;
-        const tag = isDelivery
-          ? "[Birth]"
-          : isPregnancy
-            ? "[Preg]"
-            : isTaxRevert
-              ? "[Revert]"
-              : isTaxSwitch
-                ? "[Swap]"
-                : "[Raise]";
         const cleanTitle = act.title.replace(/^ACTION:\s*/, "");
         const actTitle = `↳ ${cleanTitle}`;
 
         const actRow = [
-          `M${String(m.month).padEnd(2)} ${tag}`,
+          (act.relativeMonthLabel || m.relativeMonthLabel || "")
+            .slice(0, 24)
+            .padEnd(24),
+          (act.monthId || m.monthId).padEnd(8),
           m.calendarLabel.padEnd(8),
           `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1375,7 +1391,6 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
         const isBonus = (ev.type as string).startsWith("bonus");
         const isCost = (ev.amount as number) < 0;
         const color = isCost ? RED : isBonus ? YELLOW : CYAN;
-        const tag = isCost ? "[Cost]" : isBonus ? "[Bon]" : "[Evt]";
         const evTitle = `↳ ${ev.category}: ${ev.title}`;
 
         const priorEventsSum = m.specialEvents
@@ -1404,7 +1419,10 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
             : "";
 
         const evRow = [
-          `M${String(m.month).padEnd(2)} ${tag}`,
+          (ev.relativeMonthLabel || m.relativeMonthLabel || "")
+            .slice(0, 24)
+            .padEnd(24),
+          (ev.monthId || m.monthId).padEnd(8),
           ev.calendarLabel.padEnd(8),
           `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1429,7 +1447,10 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     }
 
     const row = [
-      `M${String(m.month).padEnd(4)}`,
+      (m.relativeMonthLabel || m.relativeBirthLabel || "")
+        .slice(0, 24)
+        .padEnd(24),
+      m.monthId.padEnd(8),
       m.calendarLabel.padEnd(8),
       m.phaseLabel.slice(0, 30).padEnd(30),
       m.taxClassLabel.slice(0, 11).padEnd(11),
