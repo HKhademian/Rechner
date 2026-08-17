@@ -13,12 +13,14 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toHoursChangeId,
   toFinancialEventId,
   FinancialEventCategory,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
   type FinancialEventAction,
 } from "#engine/types";
 
@@ -861,6 +863,91 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           month.phaseLabel.includes("Partnerschaftsbonus 1 (Both 24-32h)"),
         );
       }
+    });
+
+    it("evaluates generalized dynamic WorkingHoursChangeActions for both husband and wife across the timeline", () => {
+      const pregnancy: PregnancyAction = {
+        pregnancyId: toPregnancyId("PREG-DYNAMIC-SCHEDULE"),
+        childIndex: 1,
+        positiveTestCalendarMonth: toCalendarMonth(4),
+        positiveTestCalendarYear: 2026,
+        positiveTestSimulationMonth: toSimulationMonth(4),
+        calculatedDeliverySimulationMonth: toSimulationMonth(12),
+        motherPostBirthPartTimeHours: toWorkingHours(24),
+        motherPostBirthPartTimeClass5Net: toNetSalary(1328),
+        motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+        fatherPartnerMonthsCount: 4,
+      };
+
+      const workingHoursChanges: WorkingHoursChangeAction[] = [
+        {
+          changeId: toHoursChangeId("HOURS-WIFE-RETURN"),
+          effectiveSimulationMonth: toSimulationMonth(14),
+          effectiveCalendarMonth: toCalendarMonth(2),
+          effectiveCalendarYear: 2027,
+          targetPerson: TargetPerson.Wife,
+          weeklyHours: toWorkingHours(24),
+          reason: "Wife part-time return 24h/wk",
+        },
+        {
+          changeId: toHoursChangeId("HOURS-HUSBAND-REDUCE"),
+          effectiveSimulationMonth: toSimulationMonth(26),
+          effectiveCalendarMonth: toCalendarMonth(2),
+          effectiveCalendarYear: 2028,
+          targetPerson: TargetPerson.Husband,
+          weeklyHours: toWorkingHours(32),
+          reason: "Husband reduction to 32h/wk for Partnerschaftsbonus",
+        },
+        {
+          changeId: toHoursChangeId("HOURS-WIFE-INCREASE"),
+          effectiveSimulationMonth: toSimulationMonth(36),
+          effectiveCalendarMonth: toCalendarMonth(12),
+          effectiveCalendarYear: 2028,
+          targetPerson: TargetPerson.Wife,
+          weeklyHours: toWorkingHours(32),
+          reason: "Wife career ramp-up to 32h/wk",
+        },
+      ];
+
+      const res = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies: [pregnancy],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        workingHoursChanges,
+        financialEvents: [],
+      });
+
+      // Month 14: Wife returns to work at 24h, startingAction created
+      const m14 = res.months[13];
+      assert.ok(m14.startingActions && m14.startingActions.length >= 1);
+      assert.ok(
+        m14.startingActions!.some((a) =>
+          a.title.includes("Working Hours Adjustment (WIFE: 24 h/wk)"),
+        ),
+      );
+      assert.equal((m14.wifeSalary as number) > 0, true);
+
+      // Month 26: Husband reduces to 32h, Partnerschaftsbonus active
+      const m26 = res.months[25];
+      assert.ok(m26.startingActions && m26.startingActions.length >= 1);
+      assert.ok(
+        m26.startingActions!.some((a) =>
+          a.title.includes("Working Hours Adjustment (HUSBAND: 32 h/wk)"),
+        ),
+      );
+      assert.equal(m26.isPartnerschaftsbonus, true);
+      assert.equal(m26.husbandElterngeld as number, 150);
+
+      // Month 36: Wife increases to 32h, startingAction created
+      const m36 = res.months[35];
+      assert.ok(m36.startingActions && m36.startingActions.length >= 1);
+      assert.ok(
+        m36.startingActions!.some((a) =>
+          a.title.includes("Working Hours Adjustment (WIFE: 32 h/wk)"),
+        ),
+      );
     });
   });
 });
