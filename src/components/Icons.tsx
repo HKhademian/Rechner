@@ -775,3 +775,269 @@ export const CollapseSectionIcon = ({
     <polyline points="18 15 12 9 6 15" />
   </svg>
 );
+
+// ============================================================================
+// 8. Data Export & Import Management Icons (Intention: Serialization & Portability)
+// ============================================================================
+
+/** Intention: Import simulation data, presets, or batches from file / clipboard */
+export const ImportDataIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+/** Intention: Export or download structured JSON simulation state */
+export const JsonExportIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="16 18 22 12 16 6" />
+    <polyline points="8 6 2 12 8 18" />
+  </svg>
+);
+
+/** Intention: Export or generate printable PDF / executive summary report */
+export const PdfExportIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
+/** Intention: Export formatted plaintext / markdown financial audit report */
+export const TextReportIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <line x1="12" y1="9" x2="8" y2="9" />
+  </svg>
+);
+
+/** Intention: Export multi-file bundled ZIP package */
+export const ZipExportIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 8v13H3V8" />
+    <path d="M1 3h22v5H1z" />
+    <path d="M10 12h4" />
+  </svg>
+);
+
+/** Intention: Export comma-separated value (CSV) spreadsheet ledger */
+export const CsvExportIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <line x1="3" y1="9" x2="21" y2="9" />
+    <line x1="3" y1="15" x2="21" y2="15" />
+    <line x1="9" y1="3" x2="9" y2="21" />
+    <line x1="15" y1="3" x2="15" y2="21" />
+  </svg>
+);
+
+/** Intention: Trigger system browser print dialog for Save as PDF */
+export const PrintReportIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="6 9 6 2 18 2 18 9" />
+    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+    <rect x="6" y="14" width="12" height="8" />
+  </svg>
+);
+
+/** Intention: Upload or drop a data file into dropzone */
+export const UploadFileIcon = ({
+  size = 20,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+    <path d="M12 12v9" />
+    <path d="m16 16-4-4-4 4" />
+  </svg>
+);
+
+/** Intention: Download file to local storage */
+export const DownloadFileIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
+/** Intention: Copy exported payload or snippet to clipboard */
+export const ClipboardCopyIcon = ({
+  size = 16,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+/** Intention: Close or dismiss open modal dialog */
+export const CloseIcon = ({
+  size = 16,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+/** Semantic alias for checkmark / confirmed status */
+export const CheckmarkIcon = EligibilityConfirmedIcon;
+
+/** Semantic alias for warning / limitation icon */
+export const WarningIcon = StatutoryLimitationWarningIcon;

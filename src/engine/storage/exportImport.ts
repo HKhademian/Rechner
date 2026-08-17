@@ -1,0 +1,1228 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Simulator - Data Export & Import Engine
+ *
+ * Provides pure client-side, zero-dependency serialization, document generation,
+ * spreadsheet generation, and ZIP archive bundling across all standard formats:
+ * 1. JSON (Structured simulation state with metadata envelope and nominal validation)
+ * 2. Text / Markdown (Comprehensive financial audit report with statutory citations)
+ * 3. CSV (Detailed monthly ledger spreadsheets per scenario)
+ * 4. ZIP (Multi-file bundle archive containing JSON, TXT report, and per-scenario CSVs)
+ *
+ * Adheres strictly to German data privacy rules (100% client-side computation),
+ * branded domain types, const enums, and repository architectural guidelines.
+ */
+
+import {
+  type SimulationMonth,
+  type CalendarMonth,
+  type NetSalary,
+  type EuroAmount,
+  type WorkingHours,
+  type GrossSalary,
+  type TaxFactor,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
+  type FinancialEventAction,
+  TaxClass,
+  TargetPerson,
+  ScenarioId,
+  ExportFormat,
+  SalaryInputMode,
+  SalaryPeriod,
+  ActiveScenarioView,
+  TimelineChartMode,
+  TimelineTimeRangeFilter,
+  type SimulationExportEnvelope,
+  type ImportValidationResult,
+  type SimulationResult,
+  type MonthlyLedgerEntry,
+  toSimulationMonth,
+  toCalendarMonth,
+  toEuroAmount,
+  toGrossSalary,
+  toNetSalary,
+  toWorkingHours,
+  toTaxFactor,
+  toTaxClass,
+  toSalaryInputMode,
+  toSalaryPeriod,
+  toActiveScenarioView,
+  toTimelineChartMode,
+  toTimelineTimeRangeFilter,
+  toPregnancyId,
+  toSwitchId,
+  toRaiseId,
+  toHoursChangeId,
+  toFinancialEventId,
+  toTargetPerson,
+  toFinancialEventCategory,
+} from "#engine/types";
+import {
+  type ElterngeldPersistedState,
+  getDefaultPersistedState,
+} from "#engine/storage/persistence";
+
+export const EXPORT_SCHEMA_VERSION = 1;
+export const APPLICATION_NAME =
+  "German Elterngeld & Parental Leave 5-Year Financial Simulator";
+
+/**
+ * Serializes the complete simulator state into a validated JSON envelope.
+ */
+export function exportStateToJson(state: ElterngeldPersistedState): string {
+  const envelope: SimulationExportEnvelope<ElterngeldPersistedState> = {
+    metadata: {
+      version: EXPORT_SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      application: APPLICATION_NAME,
+      format: ExportFormat.Json,
+    },
+    simulationState: state,
+  };
+  return JSON.stringify(envelope, null, 2);
+}
+
+/**
+ * Safely parses and validates an imported JSON string into a strongly-typed ElterngeldPersistedState.
+ */
+export function importStateFromJson(
+  jsonStr: string,
+): ImportValidationResult<ElterngeldPersistedState> {
+  if (!jsonStr || typeof jsonStr !== "string" || jsonStr.trim().length === 0) {
+    return {
+      success: false,
+      error: "Import payload is empty.",
+    };
+  }
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(jsonStr);
+  } catch (err) {
+    return {
+      success: false,
+      error: `Invalid JSON syntax: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+
+  if (typeof raw !== "object" || raw === null) {
+    return {
+      success: false,
+      error: "Imported JSON payload must be an object.",
+    };
+  }
+
+  const warnings: string[] = [];
+  const root = raw as Record<string, unknown>;
+
+  // Check if wrapped in metadata envelope or direct state object
+  const stateObj =
+    typeof root.simulationState === "object" && root.simulationState !== null
+      ? (root.simulationState as Record<string, unknown>)
+      : root;
+
+  const defaults = getDefaultPersistedState();
+
+  const num = (
+    val: unknown,
+    fallback: number,
+    min = -Infinity,
+    max = Infinity,
+    fieldName = "",
+  ): number => {
+    if (typeof val === "number" && !Number.isNaN(val) && Number.isFinite(val)) {
+      if (val < min || val > max) {
+        warnings.push(
+          `${fieldName || "Field"} clamped from ${val} to [${min}, ${max}]`,
+        );
+      }
+      return Math.min(Math.max(val, min), max);
+    }
+    if (typeof val === "string") {
+      const parsed = parseFloat(val);
+      if (!Number.isNaN(parsed) && Number.isFinite(parsed)) {
+        return Math.min(Math.max(parsed, min), max);
+      }
+    }
+    return fallback;
+  };
+
+  const bool = (val: unknown, fallback: boolean): boolean =>
+    typeof val === "boolean" ? val : fallback;
+
+  try {
+    // 1. Input Modes & Salaries
+    let salaryInputModeVal: SalaryInputMode;
+    try {
+      salaryInputModeVal =
+        typeof stateObj.salaryInputMode === "string"
+          ? toSalaryInputMode(stateObj.salaryInputMode)
+          : defaults.salaryInputMode;
+    } catch {
+      salaryInputModeVal = defaults.salaryInputMode;
+    }
+
+    let salaryPeriodVal: SalaryPeriod;
+    try {
+      salaryPeriodVal =
+        typeof stateObj.salaryPeriod === "string"
+          ? toSalaryPeriod(stateObj.salaryPeriod)
+          : defaults.salaryPeriod;
+    } catch {
+      salaryPeriodVal = defaults.salaryPeriod;
+    }
+
+    const husbandGross = toGrossSalary(
+      num(stateObj.husbandGross, defaults.husbandGross, 0, 1000000),
+    );
+    const wifeGross = toGrossSalary(
+      num(stateObj.wifeGross, defaults.wifeGross, 0, 1000000),
+    );
+    const husbandHours = toWorkingHours(
+      num(stateObj.husbandHours, defaults.husbandHours, 0, 60),
+    );
+    const wifeInitialHours = toWorkingHours(
+      num(stateObj.wifeInitialHours, defaults.wifeInitialHours, 0, 60),
+    );
+    const wifePostBirthHours = toWorkingHours(
+      num(stateObj.wifePostBirthHours, defaults.wifePostBirthHours, 0, 60),
+    );
+
+    const husbandClass3Net = toNetSalary(
+      num(stateObj.husbandClass3Net, defaults.husbandClass3Net, 0, 100000),
+    );
+    const husbandClass5Net = toNetSalary(
+      num(stateObj.husbandClass5Net, defaults.husbandClass5Net, 0, 100000),
+    );
+    const wifeClass5FullTimeNet = toNetSalary(
+      num(
+        stateObj.wifeClass5FullTimeNet,
+        defaults.wifeClass5FullTimeNet,
+        0,
+        100000,
+      ),
+    );
+    const wifeClass3FullTimeNet = toNetSalary(
+      num(
+        stateObj.wifeClass3FullTimeNet,
+        defaults.wifeClass3FullTimeNet,
+        0,
+        100000,
+      ),
+    );
+
+    let husbandInitialTaxClass: TaxClass = defaults.husbandInitialTaxClass!;
+    if (typeof stateObj.husbandInitialTaxClass === "string") {
+      try {
+        husbandInitialTaxClass = toTaxClass(stateObj.husbandInitialTaxClass);
+      } catch {
+        warnings.push("Invalid husbandInitialTaxClass, defaulted to III");
+      }
+    }
+
+    let wifeInitialTaxClass: TaxClass = defaults.wifeInitialTaxClass!;
+    if (typeof stateObj.wifeInitialTaxClass === "string") {
+      try {
+        wifeInitialTaxClass = toTaxClass(stateObj.wifeInitialTaxClass);
+      } catch {
+        warnings.push("Invalid wifeInitialTaxClass, defaulted to V");
+      }
+    }
+
+    const useInitialTaxFactor = bool(
+      stateObj.useInitialTaxFactor,
+      defaults.useInitialTaxFactor ?? false,
+    );
+
+    // 2. Inflows & Benefits
+    const annualBonusGross = toGrossSalary(
+      num(stateObj.annualBonusGross, defaults.annualBonusGross, 0, 1000000),
+    );
+    const annualBonusMonth = toCalendarMonth(
+      num(stateObj.annualBonusMonth, defaults.annualBonusMonth, 1, 12),
+    );
+    const investmentReturnMonthly = toEuroAmount(
+      num(
+        stateObj.investmentReturnMonthly,
+        defaults.investmentReturnMonthly,
+        0,
+        1000000,
+      ),
+    );
+
+    const kindergeldPerChild = toEuroAmount(
+      num(stateObj.kindergeldPerChild, defaults.kindergeldPerChild, 0, 10000),
+    );
+    const enable13thSalary = bool(
+      stateObj.enable13thSalary,
+      defaults.enable13thSalary,
+    );
+    const bonus40Month = toCalendarMonth(
+      num(stateObj.bonus40Month, defaults.bonus40Month, 1, 12),
+    );
+    const bonus60Month = toCalendarMonth(
+      num(stateObj.bonus60Month, defaults.bonus60Month, 1, 12),
+    );
+    const taxReturnMonth = toCalendarMonth(
+      num(stateObj.taxReturnMonth, defaults.taxReturnMonth, 1, 12),
+    );
+    const showSpecialEventRows = bool(
+      stateObj.showSpecialEventRows,
+      defaults.showSpecialEventRows,
+    );
+    const enableSalaryRaises = bool(
+      stateObj.enableSalaryRaises,
+      defaults.enableSalaryRaises,
+    );
+    const annualSalaryRaisePercent = num(
+      stateObj.annualSalaryRaisePercent,
+      defaults.annualSalaryRaisePercent,
+      0,
+      100,
+    );
+
+    // 3. Timelines & Horizon
+    const startCalendarYear = num(
+      stateObj.startCalendarYear,
+      defaults.startCalendarYear,
+      2020,
+      2050,
+    );
+    const startCalendarMonth = toCalendarMonth(
+      num(stateObj.startCalendarMonth, defaults.startCalendarMonth, 1, 12),
+    );
+    const simulationDurationMonths = num(
+      stateObj.simulationDurationMonths,
+      defaults.simulationDurationMonths,
+      12,
+      120,
+    );
+    const prePregnancyPlanningMonths = num(
+      stateObj.prePregnancyPlanningMonths,
+      defaults.prePregnancyPlanningMonths,
+      0,
+      36,
+    );
+    const child1BirthMonth = toSimulationMonth(
+      num(stateObj.child1BirthMonth, defaults.child1BirthMonth, 1, 120),
+    );
+    const birthSpacingMonths = num(
+      stateObj.birthSpacingMonths,
+      defaults.birthSpacingMonths,
+      6,
+      60,
+    );
+    const swapLeadMonths = num(
+      stateObj.swapLeadMonths,
+      defaults.swapLeadMonths,
+      1,
+      18,
+    );
+    const preMutterschutzMonths = num(
+      stateObj.preMutterschutzMonths,
+      defaults.preMutterschutzMonths,
+      0,
+      6,
+    );
+    const postMutterschutzMonths = num(
+      stateObj.postMutterschutzMonths,
+      defaults.postMutterschutzMonths,
+      0,
+      6,
+    );
+
+    // 4. Dynamic Action Batches
+    const customPregnancies = Array.isArray(stateObj.customPregnancies)
+      ? stateObj.customPregnancies.map((p, idx) => {
+          const pObj = (p || {}) as Record<string, unknown>;
+          return {
+            pregnancyId: toPregnancyId(
+              typeof pObj.pregnancyId === "string"
+                ? pObj.pregnancyId
+                : `PREG-${idx + 1}`,
+            ),
+            childIndex: num(pObj.childIndex, idx + 1, 1, 10),
+            positiveTestCalendarMonth: toCalendarMonth(
+              num(pObj.positiveTestCalendarMonth, 4, 1, 12),
+            ),
+            positiveTestCalendarYear: num(
+              pObj.positiveTestCalendarYear,
+              2026,
+              2020,
+              2050,
+            ),
+            positiveTestSimulationMonth: toSimulationMonth(
+              num(pObj.positiveTestSimulationMonth, 4, 1, 120),
+            ),
+            calculatedDeliverySimulationMonth: toSimulationMonth(
+              num(pObj.calculatedDeliverySimulationMonth, 12, 1, 120),
+            ),
+            motherPostBirthPartTimeHours: toWorkingHours(
+              num(pObj.motherPostBirthPartTimeHours, 24, 0, 60),
+            ),
+            motherPostBirthPartTimeClass5Net: toNetSalary(
+              num(pObj.motherPostBirthPartTimeClass5Net, 1328, 0, 100000),
+            ),
+            motherPostBirthPartTimeClass3Net: toNetSalary(
+              num(pObj.motherPostBirthPartTimeClass3Net, 1648, 0, 100000),
+            ),
+            fatherPartnerMonthsCount: num(
+              pObj.fatherPartnerMonthsCount,
+              2,
+              0,
+              12,
+            ),
+          };
+        })
+      : defaults.customPregnancies;
+
+    const customTaxClassSwitches = Array.isArray(
+      stateObj.customTaxClassSwitches,
+    )
+      ? stateObj.customTaxClassSwitches.map((s, idx) => {
+          const sObj = (s || {}) as Record<string, unknown>;
+          let targetH: TaxClass = TaxClass.V;
+          try {
+            if (typeof sObj.targetHusbandTaxClass === "string")
+              targetH = toTaxClass(sObj.targetHusbandTaxClass);
+          } catch {
+            targetH = TaxClass.V;
+          }
+
+          let targetW: TaxClass = TaxClass.III;
+          try {
+            if (typeof sObj.targetWifeTaxClass === "string")
+              targetW = toTaxClass(sObj.targetWifeTaxClass);
+          } catch {
+            targetW = TaxClass.III;
+          }
+
+          let revH: TaxClass | undefined;
+          if (typeof sObj.revertHusbandTaxClass === "string") {
+            try {
+              revH = toTaxClass(sObj.revertHusbandTaxClass);
+            } catch {
+              revH = undefined;
+            }
+          }
+
+          let revW: TaxClass | undefined;
+          if (typeof sObj.revertWifeTaxClass === "string") {
+            try {
+              revW = toTaxClass(sObj.revertWifeTaxClass);
+            } catch {
+              revW = undefined;
+            }
+          }
+
+          return {
+            switchId: toSwitchId(
+              typeof sObj.switchId === "string"
+                ? sObj.switchId
+                : `SWAP-CHILD-${idx + 1}`,
+            ),
+            effectiveSimulationMonth: toSimulationMonth(
+              num(sObj.effectiveSimulationMonth, 5, 1, 120),
+            ),
+            effectiveCalendarMonth: toCalendarMonth(
+              num(sObj.effectiveCalendarMonth, 5, 1, 12),
+            ),
+            effectiveCalendarYear: num(
+              sObj.effectiveCalendarYear,
+              2026,
+              2020,
+              2050,
+            ),
+            targetHusbandTaxClass: targetH,
+            targetWifeTaxClass: targetW,
+            targetUseTaxFactor:
+              typeof sObj.targetUseTaxFactor === "boolean"
+                ? sObj.targetUseTaxFactor
+                : undefined,
+            targetTaxFactor:
+              typeof sObj.targetTaxFactor === "number" &&
+              sObj.targetTaxFactor > 0 &&
+              sObj.targetTaxFactor <= 1
+                ? toTaxFactor(sObj.targetTaxFactor)
+                : undefined,
+            revertHusbandTaxClass: revH,
+            revertWifeTaxClass: revW,
+            revertUseTaxFactor:
+              typeof sObj.revertUseTaxFactor === "boolean"
+                ? sObj.revertUseTaxFactor
+                : undefined,
+            statutoryReason:
+              typeof sObj.statutoryReason === "string"
+                ? sObj.statutoryReason
+                : "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
+            revertSimulationMonth:
+              sObj.revertSimulationMonth !== undefined
+                ? toSimulationMonth(num(sObj.revertSimulationMonth, 12, 1, 120))
+                : undefined,
+          };
+        })
+      : defaults.customTaxClassSwitches;
+
+    const customSalaryRaises = Array.isArray(stateObj.customSalaryRaises)
+      ? stateObj.customSalaryRaises.map((r, idx) => {
+          const rObj = (r || {}) as Record<string, unknown>;
+          let targetPerson: TargetPerson = TargetPerson.Both;
+          if (typeof rObj.targetPerson === "string") {
+            try {
+              targetPerson = toTargetPerson(rObj.targetPerson);
+            } catch {
+              targetPerson = TargetPerson.Both;
+            }
+          }
+
+          return {
+            raiseId: toRaiseId(
+              typeof rObj.raiseId === "string"
+                ? rObj.raiseId
+                : `RAISE-${idx + 1}`,
+            ),
+            effectiveSimulationMonth: toSimulationMonth(
+              num(rObj.effectiveSimulationMonth, 13, 1, 120),
+            ),
+            effectiveCalendarMonth: toCalendarMonth(
+              num(rObj.effectiveCalendarMonth, 1, 1, 12),
+            ),
+            effectiveCalendarYear: num(
+              rObj.effectiveCalendarYear,
+              2027,
+              2020,
+              2050,
+            ),
+            targetPerson,
+            percentageIncrease: num(rObj.percentageIncrease, 3, 0, 100),
+            reason:
+              typeof rObj.reason === "string"
+                ? rObj.reason
+                : "Annual Merit / Tariff Raise",
+          };
+        })
+      : defaults.customSalaryRaises;
+
+    const customWorkingHoursChanges = Array.isArray(
+      stateObj.customWorkingHoursChanges,
+    )
+      ? stateObj.customWorkingHoursChanges.map((w, idx) => {
+          const wObj = (w || {}) as Record<string, unknown>;
+          let targetPerson: TargetPerson = TargetPerson.Wife;
+          if (typeof wObj.targetPerson === "string") {
+            try {
+              targetPerson = toTargetPerson(wObj.targetPerson);
+            } catch {
+              targetPerson = TargetPerson.Wife;
+            }
+          }
+
+          return {
+            changeId: toHoursChangeId(
+              typeof wObj.changeId === "string"
+                ? wObj.changeId
+                : `HOURS-${idx + 1}`,
+            ),
+            effectiveSimulationMonth: toSimulationMonth(
+              num(wObj.effectiveSimulationMonth, 14, 1, 120),
+            ),
+            effectiveCalendarMonth: toCalendarMonth(
+              num(wObj.effectiveCalendarMonth, 2, 1, 12),
+            ),
+            effectiveCalendarYear: num(
+              wObj.effectiveCalendarYear,
+              2027,
+              2020,
+              2050,
+            ),
+            targetPerson,
+            weeklyHours: toWorkingHours(num(wObj.weeklyHours, 24, 0, 60)),
+            reason:
+              typeof wObj.reason === "string"
+                ? wObj.reason
+                : "Parental leave return",
+          };
+        })
+      : defaults.customWorkingHoursChanges;
+
+    const customFinancialEvents = Array.isArray(stateObj.customFinancialEvents)
+      ? stateObj.customFinancialEvents.map((e, idx) => {
+          const eObj = (e || {}) as Record<string, unknown>;
+          let category = defaults.customFinancialEvents[0]?.category;
+          try {
+            if (typeof eObj.category === "string")
+              category = toFinancialEventCategory(eObj.category);
+          } catch {
+            // keep fallback
+          }
+
+          return {
+            eventId: toFinancialEventId(
+              typeof eObj.eventId === "string"
+                ? eObj.eventId
+                : `FEVENT-${idx + 1}`,
+            ),
+            effectiveSimulationMonth: toSimulationMonth(
+              num(eObj.effectiveSimulationMonth, 12, 1, 120),
+            ),
+            effectiveCalendarMonth: toCalendarMonth(
+              num(eObj.effectiveCalendarMonth, 12, 1, 12),
+            ),
+            effectiveCalendarYear: num(
+              eObj.effectiveCalendarYear,
+              2026,
+              2020,
+              2050,
+            ),
+            title:
+              typeof eObj.title === "string"
+                ? eObj.title
+                : `Custom Inflow/Expense #${idx + 1}`,
+            amount: toEuroAmount(num(eObj.amount, 0, -1000000, 1000000)),
+            category,
+            description:
+              typeof eObj.description === "string" ? eObj.description : "",
+          };
+        })
+      : defaults.customFinancialEvents;
+
+    // 5. UI Preferences
+    let activeScenario: ActiveScenarioView = defaults.activeScenario;
+    try {
+      if (typeof stateObj.activeScenario === "string")
+        activeScenario = toActiveScenarioView(stateObj.activeScenario);
+    } catch {
+      activeScenario = defaults.activeScenario;
+    }
+
+    let chartMode: TimelineChartMode = defaults.chartMode;
+    try {
+      if (typeof stateObj.chartMode === "string")
+        chartMode = toTimelineChartMode(stateObj.chartMode);
+    } catch {
+      chartMode = defaults.chartMode;
+    }
+
+    let timeRangeFilter: TimelineTimeRangeFilter = defaults.timeRangeFilter;
+    try {
+      if (typeof stateObj.timeRangeFilter === "string")
+        timeRangeFilter = toTimelineTimeRangeFilter(stateObj.timeRangeFilter);
+    } catch {
+      timeRangeFilter = defaults.timeRangeFilter;
+    }
+
+    const validatedState: ElterngeldPersistedState = {
+      salaryInputMode: salaryInputModeVal,
+      salaryPeriod: salaryPeriodVal,
+      husbandGross,
+      wifeGross,
+      husbandHours,
+      wifeInitialHours,
+      wifePostBirthHours,
+      husbandClass3Net,
+      husbandClass5Net,
+      wifeClass5FullTimeNet,
+      wifeClass3FullTimeNet,
+      husbandInitialTaxClass,
+      wifeInitialTaxClass,
+      useInitialTaxFactor,
+
+      annualBonusGross,
+      annualBonusMonth,
+      investmentReturnMonthly,
+
+      kindergeldPerChild,
+      enable13thSalary,
+      bonus40Month,
+      bonus60Month,
+      taxReturnMonth,
+      showSpecialEventRows,
+      enableSalaryRaises,
+      annualSalaryRaisePercent,
+
+      startCalendarYear,
+      startCalendarMonth,
+      simulationDurationMonths,
+      prePregnancyPlanningMonths,
+      child1BirthMonth,
+      birthSpacingMonths,
+      swapLeadMonths,
+      preMutterschutzMonths,
+      postMutterschutzMonths,
+
+      customPregnancies,
+      customTaxClassSwitches,
+      customSalaryRaises,
+      customWorkingHoursChanges,
+      customFinancialEvents,
+
+      activeScenario,
+      chartMode,
+      timeRangeFilter,
+    };
+
+    return {
+      success: true,
+      state: validatedState,
+      warnings,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: `Validation error: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+}
+
+/**
+ * Formats Euro currency for text reports.
+ */
+function fmtEur(amount: number): string {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(amount || 0);
+}
+
+/**
+ * Generates an executive, comprehensive Plaintext / Markdown financial audit report.
+ */
+export function exportStateToTextReport(
+  state: ElterngeldPersistedState,
+  timelines: Record<ScenarioId, SimulationResult>,
+): string {
+  const dateStr = new Date().toLocaleDateString("de-DE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const lines: string[] = [];
+  lines.push(
+    "================================================================================",
+  );
+  lines.push(
+    " GERMAN ELTERNGELD & PARENTAL LEAVE 5-YEAR FINANCIAL FORECAST & AUDIT REPORT",
+  );
+  lines.push(" Statutory Basis: BEEG (Bundeselterngeldgesetz), MuSchG & EStG");
+  lines.push(
+    ` Generated: ${dateStr} • Simulation Horizon: 60 Months (${state.startCalendarYear} - ${state.startCalendarYear + Math.floor(state.simulationDurationMonths / 12)})`,
+  );
+  lines.push(
+    "================================================================================",
+  );
+  lines.push("");
+
+  // Section 1: Household Baseline Profile ($M1$)
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(" 1. HOUSEHOLD STARTING PROFILE & PREEXISTING CONDITIONS (M1)");
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(
+    ` • Husband Gross Compensation:  ${fmtEur(state.husbandGross as number)} / month (${fmtEur((state.husbandGross as number) * 12)} / year)`,
+  );
+  lines.push(
+    ` • Husband Initial Contract:    ${state.husbandHours} hours / week`,
+  );
+  lines.push(
+    ` • Wife Full-Time Gross:        ${fmtEur(state.wifeGross as number)} / month (${fmtEur((state.wifeGross as number) * 12)} / year)`,
+  );
+  lines.push(
+    ` • Wife Initial Contract:       ${state.wifeInitialHours} hours / week`,
+  );
+  lines.push(
+    ` • Baseline Tax Class Pairing:  Husband: Class ${state.husbandInitialTaxClass ?? "III"} | Wife: Class ${state.wifeInitialTaxClass ?? "V"}${state.useInitialTaxFactor ? " (Faktorverfahren § 39f active)" : ""}`,
+  );
+  lines.push(
+    ` • Kindergeld (Monthly/Child):  ${fmtEur(state.kindergeldPerChild as number)}`,
+  );
+  lines.push(
+    ` • 13th Salary (Weihnachtsgeld): ${state.enable13thSalary ? "Enabled (Split 40% in M5 / 60% in M11)" : "Disabled"}`,
+  );
+  lines.push("");
+
+  // Section 2: Executive Scenario Comparison Matrix
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(
+    " 2. EXECUTIVE 3-SCENARIO FINANCIAL OUTCOME COMPARISON (60-MONTH HORIZON)",
+  );
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(
+    " Scenario A: Baseline Standard (Wife Class V, Basis-Elterngeld, No Optimization)",
+  );
+  lines.push(
+    " Scenario B: Strategic Tax Swap (Class III/V Shift, Basis-Elterngeld)",
+  );
+  lines.push(
+    " Scenario C: Maximum Legal Strategy (Tax Swap + ElterngeldPlus + Partnerschaftsbonus)",
+  );
+  lines.push("");
+
+  const resA = timelines[ScenarioId.A];
+  const resB = timelines[ScenarioId.B];
+  const resC = timelines[ScenarioId.C];
+
+  const totalA = resA?.summary?.grandTotal
+    ? (resA.summary.grandTotal as number)
+    : 0;
+  const totalB = resB?.summary?.grandTotal
+    ? (resB.summary.grandTotal as number)
+    : 0;
+  const totalC = resC?.summary?.grandTotal
+    ? (resC.summary.grandTotal as number)
+    : 0;
+
+  const egA = resA?.summary
+    ? (resA.summary.totalWifeElterngeld as number) +
+      (resA.summary.totalHusbandElterngeld as number)
+    : 0;
+  const egB = resB?.summary
+    ? (resB.summary.totalWifeElterngeld as number) +
+      (resB.summary.totalHusbandElterngeld as number)
+    : 0;
+  const egC = resC?.summary
+    ? (resC.summary.totalWifeElterngeld as number) +
+      (resC.summary.totalHusbandElterngeld as number)
+    : 0;
+
+  lines.push(
+    ` Metric                               Scenario A        Scenario B        Scenario C`,
+  );
+  lines.push(
+    ` ----------------------------------------------------------------------------------`,
+  );
+  lines.push(
+    ` Total 60-Month Net Family Inflow:   ${fmtEur(totalA).padEnd(16)}  ${fmtEur(totalB).padEnd(16)}  ${fmtEur(totalC).padEnd(16)}`,
+  );
+  lines.push(
+    ` Difference to Baseline (Scenario A): ${fmtEur(0).padEnd(16)}  +${fmtEur(totalB - totalA).padEnd(15)}  +${fmtEur(totalC - totalA).padEnd(15)}`,
+  );
+  lines.push(
+    ` Total Elterngeld Benefits Paid:     ${fmtEur(egA).padEnd(16)}  ${fmtEur(egB).padEnd(16)}  ${fmtEur(egC).padEnd(16)}`,
+  );
+  lines.push(
+    ` Net Gain from Strategy:              ${fmtEur(0).padEnd(16)}  +${fmtEur(egB - egA).padEnd(15)}  +${fmtEur(egC - egA).padEnd(15)}`,
+  );
+  lines.push("");
+
+  // Section 3: Annual Cashflow Breakdown (Scenario C)
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(
+    " 3. YEAR-BY-YEAR FINANCIAL INFLOW SCHEDULE (OPTIMIZED SCENARIO C)",
+  );
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  if (resC && resC.months) {
+    for (let yr = 1; yr <= 5; yr++) {
+      const startIdx = (yr - 1) * 12;
+      const endIdx = Math.min(startIdx + 12, resC.months.length);
+      const yrMonths = resC.months.slice(startIdx, endIdx);
+      const yrIncome = yrMonths.reduce(
+        (acc, m: MonthlyLedgerEntry) => acc + (m.monthlyTotal as number),
+        0,
+      );
+      const yrEG = yrMonths.reduce(
+        (acc, m: MonthlyLedgerEntry) =>
+          acc + (m.wifeElterngeld as number) + (m.husbandElterngeld as number),
+        0,
+      );
+      const yrMuSch = yrMonths.reduce(
+        (acc, m: MonthlyLedgerEntry) => acc + (m.mutterschutz as number),
+        0,
+      );
+      const yrCalYear = state.startCalendarYear + yr - 1;
+
+      lines.push(
+        ` Year ${yr} (${yrCalYear}): Total Net Inflow: ${fmtEur(yrIncome)} • Elterngeld: ${fmtEur(yrEG)} • Mutterschutz: ${fmtEur(yrMuSch)}`,
+      );
+    }
+  }
+  lines.push("");
+
+  // Section 4: Timeline Milestone & Action Log
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(" 4. DISCRETE MILESTONE ACTION AUDIT LOG (BATCHES 1 - 4)");
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(" • Pregnancies & Births (Batch 1):");
+  state.customPregnancies.forEach((p: PregnancyAction) => {
+    lines.push(
+      `   - Child #${p.childIndex}: Positive Test M${p.positiveTestSimulationMonth} (${p.positiveTestCalendarMonth}/${p.positiveTestCalendarYear}) -> Delivery M${p.calculatedDeliverySimulationMonth} (Father: ${p.fatherPartnerMonthsCount} partner months)`,
+    );
+  });
+
+  lines.push(" • Strategic Tax Class Switches (Batch 2):");
+  state.customTaxClassSwitches.forEach(
+    (s: TaxClassSwitchAction, idx: number) => {
+      lines.push(
+        `   - Swap #${idx + 1}: Effective M${s.effectiveSimulationMonth} -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
+      );
+      lines.push(`     ↳ Reason: ${s.statutoryReason}`);
+    },
+  );
+
+  if (
+    state.customWorkingHoursChanges &&
+    state.customWorkingHoursChanges.length > 0
+  ) {
+    lines.push(" • Working Time & Schedule Adjustments (Batch 3):");
+    state.customWorkingHoursChanges.forEach(
+      (w: WorkingHoursChangeAction, idx: number) => {
+        lines.push(
+          `   - Hours Change #${idx + 1}: Effective M${w.effectiveSimulationMonth} (${w.effectiveCalendarMonth}/${w.effectiveCalendarYear}) -> ${w.targetPerson}: ${w.weeklyHours} h/week (${w.reason})`,
+        );
+      },
+    );
+  }
+
+  if (state.customFinancialEvents && state.customFinancialEvents.length > 0) {
+    lines.push(" • Custom Financial Inflows & Expenses (Batch 4):");
+    state.customFinancialEvents.forEach(
+      (e: FinancialEventAction, idx: number) => {
+        lines.push(
+          `   - Event #${idx + 1}: M${e.effectiveSimulationMonth} (${e.effectiveCalendarMonth}/${e.effectiveCalendarYear}) -> ${e.title}: ${fmtEur(e.amount as number)} [${e.category}]`,
+        );
+      },
+    );
+  }
+  lines.push("");
+
+  // Section 5: Statutory Legal Citations
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(" 5. STATUTORY FRAMEWORK & LEGAL CITATIONS");
+  lines.push(
+    "--------------------------------------------------------------------------------",
+  );
+  lines.push(
+    " 1. BEEG § 1 (Parental Allowance Entitlement & 32h Part-Time Ceiling)",
+  );
+  lines.push(
+    " 2. BEEG § 2, § 2b (Assessment Period & Tax Class Majority Determination)",
+  );
+  lines.push(
+    " 3. BEEG § 2c (Synthetic Net Salary Determination excluding One-Off Bonuses)",
+  );
+  lines.push(
+    " 4. BEEG § 4, § 4b (ElterngeldPlus & Partnerschaftsbonus 24-32 h/week Corridor)",
+  );
+  lines.push(
+    " 5. MuSchG § 3, § 19 (Statutory Maternity Protection & Mutterschaftsgeld)",
+  );
+  lines.push(
+    " 6. EStG § 32a, § 38b, § 39f (Progressive Tariff, Tax Classes & Faktorverfahren)",
+  );
+  lines.push(
+    " 7. BFH Ruling VI R 2/13 (Legality of Strategic Pregnancy Tax Class Switching)",
+  );
+  lines.push(
+    "================================================================================",
+  );
+
+  return lines.join("\n");
+}
+
+/**
+ * Exports a specific simulation scenario ledger as a CSV spreadsheet string.
+ */
+export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
+  const headers = [
+    "Simulation Month",
+    "Calendar Date",
+    "Calendar Year",
+    "Calendar Month",
+    "Tax Class Label",
+    "Wife Salary (EUR)",
+    "Husband Salary (EUR)",
+    "Wife Elterngeld (EUR)",
+    "Husband Elterngeld (EUR)",
+    "Mutterschaftsgeld (EUR)",
+    "Kindergeld (EUR)",
+    "13th Salary / Bonus (EUR)",
+    "Tax Return Refund (EUR)",
+    "Custom Events (EUR)",
+    "Total Monthly Net Inflow (EUR)",
+    "Cumulative Net Inflow (EUR)",
+    "Is Partnerschaftsbonus",
+    "Action Milestones",
+  ];
+
+  const rows: string[] = [];
+  rows.push(headers.join(";"));
+
+  if (scenarioResult && scenarioResult.months) {
+    scenarioResult.months.forEach((m: MonthlyLedgerEntry) => {
+      const actionsStr = m.startingActions
+        ? m.startingActions.map((a) => a.title).join(" | ")
+        : "";
+
+      const row = [
+        `M${m.month}`,
+        `"${m.calendarLabel}"`,
+        m.calendarYearNum,
+        m.calendarMonthNum,
+        `"${m.taxClassLabel}"`,
+        m.wifeSalary ?? 0,
+        m.husbandSalary ?? 0,
+        m.wifeElterngeld ?? 0,
+        m.husbandElterngeld ?? 0,
+        m.mutterschutz ?? 0,
+        m.kindergeld ?? 0,
+        m.specialBonusTotal ?? 0,
+        m.taxRefund ?? 0,
+        m.specialEventsTotal ?? 0,
+        m.monthlyTotal ?? 0,
+        m.cumulatedTotal ?? 0,
+        m.isPartnerschaftsbonus ? "YES" : "NO",
+        `"${actionsStr.replace(/"/g, '""')}"`,
+      ];
+      rows.push(row.join(";"));
+    });
+  }
+
+  return rows.join("\r\n");
+}
+
+/**
+ * Standard CRC-32 Lookup Table & Checksum Engine for PKZIP compliance.
+ */
+let crcTable: Uint32Array | null = null;
+function getCrcTable(): Uint32Array {
+  if (crcTable) return crcTable;
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      if (c & 1) {
+        c = 0xedb88320 ^ (c >>> 1);
+      } else {
+        c = c >>> 1;
+      }
+    }
+    table[n] = c >>> 0;
+  }
+  crcTable = table;
+  return table;
+}
+
+function computeCrc32(bytes: Uint8Array): number {
+  const table = getCrcTable();
+  let crc = 0 ^ -1;
+  for (let i = 0; i < bytes.length; i++) {
+    crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff];
+  }
+  return (crc ^ -1) >>> 0;
+}
+
+/**
+ * Pure TypeScript Zero-Dependency PKZIP Archive Packager.
+ * Bundles multiple files into a standard, fully compliant uncompressed (STORE) ZIP binary.
+ */
+export function exportStateToZip(
+  files: Record<string, string | Uint8Array>,
+): Uint8Array {
+  const encoder = new TextEncoder();
+  const fileEntries: {
+    nameBytes: Uint8Array;
+    contentBytes: Uint8Array;
+    crc: number;
+    offset: number;
+  }[] = [];
+
+  let currentOffset = 0;
+  const localHeadersAndData: Uint8Array[] = [];
+
+  for (const [filename, content] of Object.entries(files)) {
+    const nameBytes = encoder.encode(filename);
+    const contentBytes =
+      typeof content === "string" ? encoder.encode(content) : content;
+    const crc = computeCrc32(contentBytes);
+    const offset = currentOffset;
+
+    fileEntries.push({
+      nameBytes,
+      contentBytes,
+      crc,
+      offset,
+    });
+
+    // Local file header (30 bytes + filename + data)
+    const header = new Uint8Array(30 + nameBytes.length + contentBytes.length);
+    const view = new DataView(header.buffer);
+
+    view.setUint32(0, 0x02895b50, true); // Local file header signature
+    view.setUint16(4, 10, true); // Version needed to extract (1.0)
+    view.setUint16(6, 0, true); // General purpose bit flag
+    view.setUint16(8, 0, true); // Compression method (0 = STORE)
+    view.setUint16(10, 0, true); // Last mod file time
+    view.setUint16(12, 0, true); // Last mod file date
+    view.setUint32(14, crc, true); // CRC-32
+    view.setUint32(18, contentBytes.length, true); // Compressed size
+    view.setUint32(22, contentBytes.length, true); // Uncompressed size
+    view.setUint16(26, nameBytes.length, true); // Filename length
+    view.setUint16(28, 0, true); // Extra field length
+
+    header.set(nameBytes, 30);
+    header.set(contentBytes, 30 + nameBytes.length);
+
+    localHeadersAndData.push(header);
+    currentOffset += header.length;
+  }
+
+  // Central directory records
+  const centralDirRecords: Uint8Array[] = [];
+  const centralDirStartOffset = currentOffset;
+  let centralDirSize = 0;
+
+  for (const entry of fileEntries) {
+    const record = new Uint8Array(46 + entry.nameBytes.length);
+    const view = new DataView(record.buffer);
+
+    view.setUint32(0, 0x02014b50, true); // Central file header signature
+    view.setUint16(4, 20, true); // Version made by
+    view.setUint16(6, 10, true); // Version needed to extract
+    view.setUint16(8, 0, true); // General purpose bit flag
+    view.setUint16(10, 0, true); // Compression method (STORE)
+    view.setUint16(12, 0, true); // Last mod file time
+    view.setUint16(14, 0, true); // Last mod file date
+    view.setUint32(16, entry.crc, true); // CRC-32
+    view.setUint32(20, entry.contentBytes.length, true); // Compressed size
+    view.setUint32(24, entry.contentBytes.length, true); // Uncompressed size
+    view.setUint16(28, entry.nameBytes.length, true); // Filename length
+    view.setUint16(30, 0, true); // Extra field length
+    view.setUint16(32, 0, true); // File comment length
+    view.setUint16(34, 0, true); // Disk number start
+    view.setUint16(36, 0, true); // Internal file attributes
+    view.setUint32(38, 0, true); // External file attributes
+    view.setUint32(42, entry.offset, true); // Relative offset of local header
+
+    record.set(entry.nameBytes, 46);
+    centralDirRecords.push(record);
+    centralDirSize += record.length;
+  }
+
+  // End of Central Directory Record (22 bytes)
+  const eocd = new Uint8Array(22);
+  const eocdView = new DataView(eocd.buffer);
+  eocdView.setUint32(0, 0x06054b50, true); // End of central dir signature
+  eocdView.setUint16(4, 0, true); // Number of this disk
+  eocdView.setUint16(6, 0, true); // Disk where central directory starts
+  eocdView.setUint16(8, fileEntries.length, true); // Total entries on this disk
+  eocdView.setUint16(10, fileEntries.length, true); // Total entries in central directory
+  eocdView.setUint32(12, centralDirSize, true); // Size of central directory
+  eocdView.setUint32(16, centralDirStartOffset, true); // Offset of start of central directory
+  eocdView.setUint16(20, 0, true); // Comment length
+
+  // Combine into single Uint8Array
+  const totalLength = currentOffset + centralDirSize + eocd.length;
+  const result = new Uint8Array(totalLength);
+  let pos = 0;
+
+  for (const chunk of localHeadersAndData) {
+    result.set(chunk, pos);
+    pos += chunk.length;
+  }
+  for (const chunk of centralDirRecords) {
+    result.set(chunk, pos);
+    pos += chunk.length;
+  }
+  result.set(eocd, pos);
+
+  return result;
+}
+
+/**
+ * Triggers a browser file download for text or binary byte payloads.
+ */
+export function triggerFileDownload(
+  filename: string,
+  data: string | Uint8Array,
+  mimeType: string = "application/octet-stream",
+): void {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return;
+  }
+
+  const blob =
+    typeof data === "string"
+      ? new Blob([data], { type: mimeType })
+      : new Blob([data as Uint8Array<ArrayBuffer>], { type: mimeType });
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Triggers browser system print dialog for a clean, executive printable financial report.
+ */
+export function triggerPrintableReport(
+  state: ElterngeldPersistedState,
+  timelines: Record<ScenarioId, SimulationResult>,
+): void {
+  if (typeof window === "undefined") return;
+
+  const reportText = exportStateToTextReport(state, timelines);
+
+  const printWindow = window.open("", "_blank", "width=850,height=900");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="utf-8" />
+      <title>Elterngeld &amp; Parental Leave Financial Report</title>
+      <style>
+        @page { size: A4; margin: 18mm 15mm; }
+        body {
+          font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+          font-size: 11px;
+          line-height: 1.45;
+          color: #111827;
+          background: #ffffff;
+          padding: 20px;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+        @media print {
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+${reportText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 250);
+}
