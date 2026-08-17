@@ -32,11 +32,13 @@ import {
   type FinancialEventAction,
   type ScenarioActionBatches,
   type MonthId,
+  type MonthRef,
   FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
   toMonthId,
+  toMonthRef,
   toEuroAmount,
   toGrossSalary,
   toNetSalary,
@@ -166,7 +168,8 @@ export function runScenarioBatches(
     readonly calendarMonthNum: CalendarMonth;
     readonly calendarLabel: string;
     readonly relativeBirthLabel: string;
-    readonly relativeMonthLabel: string;
+    readonly relativeMonthLabel: MonthRef;
+    readonly monthRef: MonthRef;
     readonly relativeMonthIndex: number;
     readonly husbandSalary: EuroAmount;
     readonly wifeSalary: EuroAmount;
@@ -212,26 +215,26 @@ export function runScenarioBatches(
       Math.max(1, child1Delivery - 8);
     let relativeMonthIndex: number;
     let relativeBirthLabel: string;
-    let relativeMonthLabel: string;
+    let relativeMonthLabel: MonthRef;
 
     if (m < preg1PositiveMonth) {
       relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
       relativeBirthLabel = `M${relativeMonthIndex}`;
-      relativeMonthLabel = `M${relativeMonthIndex}`;
+      relativeMonthLabel = toMonthRef(relativeMonthIndex);
     } else {
       relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
       if (m === preg1PositiveMonth) {
         relativeBirthLabel = "M1 (Pregnancy Positive)";
-        relativeMonthLabel = "M1 (Pregnancy Positive)";
+        relativeMonthLabel = toMonthRef(1, "Pregnancy Positive");
       } else if (m === child1Delivery) {
         relativeBirthLabel = `M${relativeMonthIndex} (Birth 1)`;
-        relativeMonthLabel = `M${relativeMonthIndex} (Birth 1)`;
+        relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 1");
       } else if (m === child2Delivery) {
         relativeBirthLabel = `M${relativeMonthIndex} (Birth 2)`;
-        relativeMonthLabel = `M${relativeMonthIndex} (Birth 2)`;
+        relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 2");
       } else {
         relativeBirthLabel = `M${relativeMonthIndex}`;
-        relativeMonthLabel = `M${relativeMonthIndex}`;
+        relativeMonthLabel = toMonthRef(relativeMonthIndex);
       }
     }
 
@@ -635,6 +638,7 @@ export function runScenarioBatches(
 
     rawMonths.push({
       monthId,
+      monthRef: relativeMonthLabel,
       month: sMonth,
       year,
       monthInYear,

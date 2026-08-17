@@ -59,6 +59,7 @@ import {
   toTargetPerson,
   toFinancialEventCategory,
   toMonthId,
+  toMonthRef,
 } from "#engine/types";
 import {
   type ElterngeldPersistedState,
@@ -999,7 +1000,7 @@ export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
 
       const row = [
         `"${m.monthId}"`,
-        `"${m.relativeMonthLabel || m.relativeBirthLabel}"`,
+        `"${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel}"`,
         `M${m.month}`,
         `"${m.calendarLabel}"`,
         m.calendarYearNum,
