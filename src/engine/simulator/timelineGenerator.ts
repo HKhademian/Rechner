@@ -33,12 +33,14 @@ import {
   type ScenarioActionBatches,
   type MonthId,
   type MonthRef,
+  type MonthSimRef,
   FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
   toCalendarMonth,
   toMonthId,
   toMonthRef,
+  toMonthSimRef,
   toEuroAmount,
   toGrossSalary,
   toNetSalary,
@@ -170,6 +172,7 @@ export function runScenarioBatches(
     readonly relativeBirthLabel: string;
     readonly relativeMonthLabel: MonthRef;
     readonly monthRef: MonthRef;
+    readonly monthSimRef: MonthSimRef;
     readonly relativeMonthIndex: number;
     readonly husbandSalary: EuroAmount;
     readonly wifeSalary: EuroAmount;
@@ -201,6 +204,7 @@ export function runScenarioBatches(
 
   for (let m = 1; m <= duration; m++) {
     const sMonth = toSimulationMonth(m);
+    const monthSimRef = toMonthSimRef(m);
     const totalElapsedMonths = startMonth - 1 + (m - 1);
     const calendarMonthNum = toCalendarMonth((totalElapsedMonths % 12) + 1);
     const calendarYearNum = startYear + Math.floor(totalElapsedMonths / 12);
@@ -639,6 +643,7 @@ export function runScenarioBatches(
     rawMonths.push({
       monthId,
       monthRef: relativeMonthLabel,
+      monthSimRef,
       month: sMonth,
       year,
       monthInYear,

@@ -4,6 +4,7 @@ import {
   type CalendarMonth,
   type MonthId,
   type MonthRef,
+  type MonthSimRef,
   type EuroAmount,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -14,12 +15,14 @@ import {
   toCalendarMonth,
   toMonthId,
   toMonthRef,
+  toMonthSimRef,
   type ActionRowItem,
 } from "#engine/types";
 
 export interface LedgerMonthInput {
   readonly monthId: MonthId | string;
   readonly monthRef?: MonthRef | string;
+  readonly monthSimRef?: MonthSimRef | string;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
@@ -110,6 +113,7 @@ export function buildMonthlyLedgerEntry(
   const entry: MonthlyLedgerEntry = {
     monthId: toMonthId(input.monthId),
     monthRef: relLabel,
+    monthSimRef: toMonthSimRef(input.monthSimRef || input.month),
     month: input.month,
     year: input.year,
     monthInYear: input.monthInYear,

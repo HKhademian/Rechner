@@ -1,6 +1,8 @@
 import {
   type TransactionId,
   type MonthId,
+  type MonthRef,
+  type MonthSimRef,
   type SimulationMonth,
   type CalendarYear,
   type TransactionType,
@@ -11,11 +13,16 @@ import {
   toTransactionId,
   toStatutoryCitation,
   toMonthId,
+  toMonthRef,
+  toMonthSimRef,
 } from "#engine/types";
 
 export interface CreateTransactionParams {
   readonly transactionId: string;
   readonly monthId: MonthId | string;
+  readonly monthRef?: MonthRef | string;
+  readonly monthSimRef?: MonthSimRef | string;
+  readonly relativeMonthLabel?: MonthRef | string;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly type: TransactionType;
@@ -36,6 +43,19 @@ export function createTransaction(
   return {
     transactionId: toTransactionId(params.transactionId),
     monthId: toMonthId(params.monthId),
+    monthRef: params.monthRef
+      ? toMonthRef(params.monthRef)
+      : params.relativeMonthLabel
+        ? toMonthRef(params.relativeMonthLabel)
+        : undefined,
+    monthSimRef: params.monthSimRef
+      ? toMonthSimRef(params.monthSimRef)
+      : undefined,
+    relativeMonthLabel: params.relativeMonthLabel
+      ? toMonthRef(params.relativeMonthLabel)
+      : params.monthRef
+        ? toMonthRef(params.monthRef)
+        : undefined,
     month: params.month,
     year: params.year,
     type: params.type,
