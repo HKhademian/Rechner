@@ -19,25 +19,7 @@ import {
 import { useState, useEffect } from "preact/hooks";
 import TaxSettings from "#components/TaxSettings";
 import { ConfigureSandboxIcon } from "#components/Icons";
-
-const germanStates = [
-  "Baden-Württemberg",
-  "Bayern",
-  "Berlin",
-  "Brandenburg",
-  "Bremen",
-  "Hamburg",
-  "Hessen",
-  "Mecklenburg-Vorpommern",
-  "Niedersachsen",
-  "Nordrhein-Westfalen",
-  "Rheinland-Pfalz",
-  "Saarland",
-  "Sachsen",
-  "Sachsen-Anhalt",
-  "Schleswig-Holstein",
-  "Thüringen",
-];
+import germanStates from "../data/germanStates.json" with { type: "json" };
 
 export default function InputForm(): JSX.Element {
   const [mounted, setMounted] = useState<boolean>(false);

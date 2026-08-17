@@ -102,6 +102,7 @@ import {
   toMonthRef,
   toMonthSimRef,
 } from "#engine/types";
+import { getDefaultPersistedState } from "#engine/storage/persistence";
 import scenarioPresetsData from "../../data/scenarioPresets.json" with { type: "json" };
 import {
   ConfigureSandboxIcon,
@@ -584,6 +585,7 @@ export default function SandboxControls(): JSX.Element {
                     const calYear =
                       startCalendarYear.value + Math.floor(totalElapsed / 12);
 
+                    const defs = getDefaultPersistedState();
                     addPregnancyAction({
                       pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
                       childIndex: count + 1,
@@ -595,7 +597,7 @@ export default function SandboxControls(): JSX.Element {
                         newSimMonth + 8,
                       ),
                       motherPostBirthPartTimeHours: toWorkingHours(
-                        wifePostBirthHours.value ?? 24,
+                        wifePostBirthHours.value ?? defs.wifePostBirthHours,
                       ),
                       motherPostBirthPartTimeClass5Net: toNetSalary(
                         wifeClass5PartTimeNet.value,
@@ -603,7 +605,9 @@ export default function SandboxControls(): JSX.Element {
                       motherPostBirthPartTimeClass3Net: toNetSalary(
                         wifeClass3PartTimeNet.value,
                       ),
-                      fatherPartnerMonthsCount: 4,
+                      fatherPartnerMonthsCount:
+                        defs.customPregnancies[0]?.fatherPartnerMonthsCount ??
+                        4,
                     });
                   }}
                   style={{
@@ -1183,7 +1187,7 @@ export default function SandboxControls(): JSX.Element {
                       ];
                     const delivery =
                       (nextChild?.calculatedDeliverySimulationMonth as number) ||
-                      44;
+                      child1BirthMonth.value + birthSpacingMonths.value;
                     const start = Math.max(1, delivery - 8);
                     const totalElapsed =
                       startCalendarMonth.value - 1 + (start - 1);
@@ -2202,6 +2206,7 @@ export default function SandboxControls(): JSX.Element {
                       const sYear =
                         startCalendarYear.value + Math.floor(totalElapsed / 12);
 
+                      const defs = getDefaultPersistedState();
                       addWorkingHoursChangeAction({
                         changeId: toHoursChangeId(`HOURS-${Date.now()}`),
                         effectiveSimulationMonth:
@@ -2210,7 +2215,10 @@ export default function SandboxControls(): JSX.Element {
                         effectiveCalendarYear: sYear,
                         targetPerson: target,
                         weeklyHours: toWorkingHours(
-                          target === TargetPerson.Husband ? 32 : 24,
+                          target === TargetPerson.Husband
+                            ? (husbandHours.value ?? defs.husbandHours)
+                            : (wifePostBirthHours.value ??
+                                defs.wifePostBirthHours),
                         ),
                         reason:
                           target === TargetPerson.Husband

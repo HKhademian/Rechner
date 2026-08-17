@@ -144,11 +144,12 @@ export function setInitialTaxClasses(
 
 export function syncGrossToNet() {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
+    const defaults = getDefaultPersistedState();
     const spousal = deriveSpousalNetSalaries(
       toGrossSalary(Math.max(0, husbandGross.value ?? 0)),
       toGrossSalary(Math.max(0, wifeGross.value ?? 0)),
-      toWorkingHours(wifePostBirthHours.value ?? 24),
-      toWorkingHours(wifeInitialHours.value ?? 40),
+      toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
+      toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
       0,
     );
     husbandClass3Net.value = spousal.husbandClass3Net;
@@ -226,11 +227,12 @@ export function setSalaryInputMode(mode: SalaryInputMode) {
 }
 
 export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
+  const defaults = getDefaultPersistedState();
   return deriveSpousalNetSalaries(
     toGrossSalary(Math.max(0, husbandGross.value ?? 0)),
     toGrossSalary(Math.max(0, wifeGross.value ?? 0)),
-    toWorkingHours(wifePostBirthHours.value ?? 24),
-    toWorkingHours(wifeInitialHours.value ?? 40),
+    toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
+    toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
     0,
   );
 });
@@ -239,9 +241,10 @@ export const wifeClass5PartTimeNet = computed(() => {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
     return derivedSpousalSet.value.wifeClass5PartTimeNet as number;
   }
+  const defaults = getDefaultPersistedState();
   const ft = wifeClass5FullTimeNet.value;
-  const initH = wifeInitialHours.value ?? 40;
-  const pbH = wifePostBirthHours.value ?? 24;
+  const initH = wifeInitialHours.value ?? defaults.wifeInitialHours;
+  const pbH = wifePostBirthHours.value ?? defaults.wifePostBirthHours;
   const ratio = initH > 0 ? Math.max(0, pbH / initH) : 0;
   return Math.round(ft * ratio);
 });
@@ -250,9 +253,10 @@ export const wifeClass3PartTimeNet = computed(() => {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
     return derivedSpousalSet.value.wifeClass3PartTimeNet as number;
   }
+  const defaults = getDefaultPersistedState();
   const ft = wifeClass3FullTimeNet.value;
-  const initH = wifeInitialHours.value ?? 40;
-  const pbH = wifePostBirthHours.value ?? 24;
+  const initH = wifeInitialHours.value ?? defaults.wifeInitialHours;
+  const pbH = wifePostBirthHours.value ?? defaults.wifePostBirthHours;
   const ratio = initH > 0 ? Math.max(0, pbH / initH) : 0;
   return Math.round(ft * ratio);
 });

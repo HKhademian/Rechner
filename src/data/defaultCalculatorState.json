@@ -1,0 +1,17 @@
+{
+  "inputMode": "yearly",
+  "grossIncome": 50000,
+  "taxBracket": "1",
+  "hasChurchTax": false,
+  "state": "Berlin",
+  "children": 0,
+  "workingMonths": 12,
+  "salariesPerYear": 12,
+  "hasPartner": false,
+  "partnerGrossIncome": 40000,
+  "partnerTaxBracket": "4",
+  "partnerHasChurchTax": false,
+  "partnerState": "Berlin",
+  "partnerWorkingMonths": 12,
+  "partnerSalariesPerYear": 12
+}

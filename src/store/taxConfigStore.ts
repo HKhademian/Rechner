@@ -24,6 +24,8 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
   return s;
 }
 
+import defaultTaxConfigData from "../data/defaultTaxConfig.json" with { type: "json" };
+
 // 2026 Default Values
 export interface TaxConfig {
   readonly healthCap: number;
@@ -41,21 +43,7 @@ export interface TaxConfig {
   readonly churchRateOther: number;
 }
 
-const DEFAULT_CONFIG: TaxConfig = {
-  healthCap: 69750,
-  pensionCap: 101400,
-  basicAllowance: 12348,
-  childTaxReduction: 2000,
-  workExpenseAllowance: 1230,
-  healthInsuranceRateBase: 0.073,
-  healthInsuranceZusatzbeitrag: 0.0085, // Average additional contribution / 2
-  pensionInsuranceRate: 0.093,
-  unemploymentInsuranceRate: 0.013,
-  careInsuranceRateBase: 0.017,
-  careInsuranceChildlessPenalty: 0.006,
-  churchRateBayernBW: 0.08,
-  churchRateOther: 0.09,
-};
+const DEFAULT_CONFIG: TaxConfig = defaultTaxConfigData satisfies TaxConfig;
 
 export const configHealthCap = persistedSignal<number>(
   "cfg_healthCap",

@@ -3,6 +3,7 @@ import {
   toEuroAmount,
   toStatutoryCitation,
 } from "#engine/types";
+import { getDefaultPersistedState } from "#engine/storage/persistence";
 
 /**
  * Statutory Child Benefit Calculation (§ 66 EStG)
@@ -16,24 +17,26 @@ export interface KindergeldEntitlement {
 
 export function computeKindergeld(
   childrenCount: number,
-  customRatePerChild: EuroAmount = toEuroAmount(259),
+  customRatePerChild?: EuroAmount,
 ): KindergeldEntitlement {
+  const effectiveRate =
+    customRatePerChild ?? getDefaultPersistedState().kindergeldPerChild;
   if (childrenCount <= 0) {
     return {
       childrenCount: 0,
-      ratePerChild: customRatePerChild,
+      ratePerChild: effectiveRate,
       totalMonthlyKindergeld: toEuroAmount(0),
       statutoryCitation: "EStG § 66",
     };
   }
 
   const count = Math.max(0, Math.floor(childrenCount));
-  const rate = customRatePerChild as number;
+  const rate = effectiveRate as number;
   const total = count * rate;
 
   return {
     childrenCount: count,
-    ratePerChild: customRatePerChild,
+    ratePerChild: effectiveRate,
     totalMonthlyKindergeld: toEuroAmount(total),
     statutoryCitation: "EStG § 66 (*Kindergeld*)",
   };
