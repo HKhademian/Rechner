@@ -148,6 +148,64 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.equal(sanitized.customFinancialEvents.length, 2);
   });
 
+  it("transparently extracts simulationState from exported metadata envelopes", () => {
+    const envelope = {
+      metadata: {
+        version: 1,
+        exportedAt: "2026-08-17T23:30:00.000Z",
+        application:
+          "German Elterngeld & Parental Leave 5-Year Financial Simulator",
+        format: "JSON",
+      },
+      simulationState: {
+        husbandGross: 7200,
+        wifeGross: 4100,
+        husbandHours: 35,
+        wifeInitialHours: 38,
+        activeScenario: "B",
+      },
+    };
+
+    const sanitized = validateAndSanitizePersistedState(envelope);
+    assert.equal(sanitized.husbandGross, 7200);
+    assert.equal(sanitized.wifeGross, 4100);
+    assert.equal(sanitized.husbandHours, 35);
+    assert.equal(sanitized.wifeInitialHours, 38);
+    assert.equal(sanitized.activeScenario, ActiveScenarioView.B);
+  });
+
+  it("normalizes salary raise percentage values from whole numbers to decimal ratios", () => {
+    const stateWithPercentageNumbers = {
+      customSalaryRaises: [
+        {
+          raiseId: "RAISE-Y2",
+          effectiveSimulationMonth: 13,
+          effectiveCalendarMonth: 1,
+          effectiveCalendarYear: 2027,
+          targetPerson: "BOTH",
+          percentageIncrease: 5, // 5% entered as 5 -> normalized to 0.05
+          reason: "Tariff adjustment",
+        },
+        {
+          raiseId: "RAISE-Y3",
+          effectiveSimulationMonth: 25,
+          effectiveCalendarMonth: 1,
+          effectiveCalendarYear: 2028,
+          targetPerson: "WIFE",
+          percentageIncrease: 0.03, // 3% entered as decimal 0.03 -> preserved
+          reason: "Merit step",
+        },
+      ],
+    };
+
+    const sanitized = validateAndSanitizePersistedState(
+      stateWithPercentageNumbers,
+    );
+    assert.equal(sanitized.customSalaryRaises.length, 2);
+    assert.equal(sanitized.customSalaryRaises[0].percentageIncrease, 0.05);
+    assert.equal(sanitized.customSalaryRaises[1].percentageIncrease, 0.03);
+  });
+
   describe("Storage Mocking & Browser Environment Guards", () => {
     let mockStorage: Record<string, string> = {};
 
