@@ -23,6 +23,7 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toHoursChangeId,
   toFinancialEventId,
   toSalaryInputMode,
   toSalaryPeriod,
@@ -33,6 +34,7 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
   type FinancialEventAction,
   type GrossToNetBreakdown,
   type SpousalGrossToNetSet,
@@ -42,6 +44,7 @@ import {
   type EuroAmount,
   type CalendarMonth,
   type SimulationMonth,
+  type HoursChangeId,
 } from "#engine/types";
 import {
   runScenarioBatches,
@@ -426,6 +429,43 @@ export function createDefaultSalaryRaises(): SalaryRaiseAction[] {
   }
   return salaryRaises;
 }
+export function createDefaultWorkingHoursChanges(): WorkingHoursChangeAction[] {
+  const b1 = child1BirthMonth.value;
+  const startYear = startCalendarYear.value;
+  const startMonth = startCalendarMonth.value;
+
+  const m19 = b1 + 2; // Wife post-birth part-time return
+  const totalElapsed19 = startMonth - 1 + (m19 - 1);
+  const calM19 = toCalendarMonth((totalElapsed19 % 12) + 1);
+  const calY19 = startYear + Math.floor(totalElapsed19 / 12);
+
+  const m31 = b1 + 14; // Husband parental hours (Partnerschaftsbonus window)
+  const totalElapsed31 = startMonth - 1 + (m31 - 1);
+  const calM31 = toCalendarMonth((totalElapsed31 % 12) + 1);
+  const calY31 = startYear + Math.floor(totalElapsed31 / 12);
+
+  return [
+    {
+      changeId: toHoursChangeId("HOURS-WIFE-RETURN"),
+      effectiveSimulationMonth: toSimulationMonth(m19),
+      effectiveCalendarMonth: calM19,
+      effectiveCalendarYear: calY19,
+      targetPerson: TargetPerson.Wife,
+      weeklyHours: toWorkingHours(wifePostBirthHours.value ?? 24),
+      reason:
+        "Post-birth Part-time return (Partnerschaftsbonus § 4b BEEG eligible)",
+    },
+    {
+      changeId: toHoursChangeId("HOURS-HUSBAND-BONUS"),
+      effectiveSimulationMonth: toSimulationMonth(m31),
+      effectiveCalendarMonth: calM31,
+      effectiveCalendarYear: calY31,
+      targetPerson: TargetPerson.Husband,
+      weeklyHours: toWorkingHours(32),
+      reason: "Parental leave reduction (24-32h Partnerschaftsbonus § 4b BEEG)",
+    },
+  ];
+}
 
 export function createDefaultFinancialEvents(): FinancialEventAction[] {
   const b1 = child1BirthMonth.value;
@@ -456,7 +496,7 @@ export function createDefaultFinancialEvents(): FinancialEventAction[] {
     },
     {
       eventId: toFinancialEventId("FIN-CHILD1-KITA-DEPOSIT"),
-      effectiveSimulationMonth: toSimulationMonth(m26),
+      effectiveSimulationMonth: toSimulationMonth(26),
       effectiveCalendarMonth: calM26,
       effectiveCalendarYear: calY26,
       title: "Kita Childcare Enrollment & Equipment (*Kita-Start*)",
@@ -488,6 +528,13 @@ export const customSalaryRaises = signal<SalaryRaiseAction[]>(
     initialPersisted.customSalaryRaises.length > 0
     ? (initialPersisted.customSalaryRaises as SalaryRaiseAction[])
     : createDefaultSalaryRaises(),
+);
+
+export const customWorkingHoursChanges = signal<WorkingHoursChangeAction[]>(
+  initialPersisted.customWorkingHoursChanges &&
+    initialPersisted.customWorkingHoursChanges.length > 0
+    ? (initialPersisted.customWorkingHoursChanges as WorkingHoursChangeAction[])
+    : createDefaultWorkingHoursChanges(),
 );
 
 export const customFinancialEvents = signal<FinancialEventAction[]>(
@@ -537,7 +584,7 @@ export function removeTaxClassSwitchAction(switchId: SwitchId | string) {
   );
 }
 
-// Batch 3 Mutation Helpers
+// Batch 3 Mutation Helpers (Salary Raises)
 export function addSalaryRaiseAction(action: SalaryRaiseAction) {
   customSalaryRaises.value = [...customSalaryRaises.value, action];
 }
@@ -554,6 +601,31 @@ export function updateSalaryRaiseAction(
 export function removeSalaryRaiseAction(raiseId: RaiseId | string) {
   customSalaryRaises.value = customSalaryRaises.value.filter(
     (r) => r.raiseId !== raiseId,
+  );
+}
+
+// Batch 3 Mutation Helpers (Working Hours Changes)
+export function addWorkingHoursChangeAction(action: WorkingHoursChangeAction) {
+  customWorkingHoursChanges.value = [
+    ...customWorkingHoursChanges.value,
+    action,
+  ];
+}
+
+export function updateWorkingHoursChangeAction(
+  changeId: HoursChangeId | string,
+  updates: Partial<WorkingHoursChangeAction>,
+) {
+  customWorkingHoursChanges.value = customWorkingHoursChanges.value.map((h) =>
+    h.changeId === changeId ? { ...h, ...updates } : h,
+  );
+}
+
+export function removeWorkingHoursChangeAction(
+  changeId: HoursChangeId | string,
+) {
+  customWorkingHoursChanges.value = customWorkingHoursChanges.value.filter(
+    (h) => h.changeId !== changeId,
   );
 }
 
@@ -620,6 +692,7 @@ export function persistCurrentState(): void {
     customPregnancies: customPregnancies.value,
     customTaxClassSwitches: customTaxClassSwitches.value,
     customSalaryRaises: customSalaryRaises.value,
+    customWorkingHoursChanges: customWorkingHoursChanges.value,
     customFinancialEvents: customFinancialEvents.value,
 
     activeScenario: activeScenario.value,
@@ -678,6 +751,10 @@ export function resetToDefaults() {
   customPregnancies.value = [...defaults.customPregnancies];
   customTaxClassSwitches.value = [...defaults.customTaxClassSwitches];
   customSalaryRaises.value = [...defaults.customSalaryRaises];
+  customWorkingHoursChanges.value = [
+    ...(defaults.customWorkingHoursChanges ||
+      createDefaultWorkingHoursChanges()),
+  ];
   customFinancialEvents.value = [...defaults.customFinancialEvents];
 
   activeScenario.value = defaults.activeScenario;
@@ -738,6 +815,7 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     pregnancies: dynamicPregnancies,
     taxClassSwitches: customTaxClassSwitches.value,
     salaryRaises: customSalaryRaises.value,
+    workingHoursChanges: customWorkingHoursChanges.value,
     financialEvents: customFinancialEvents.value,
   });
 }
