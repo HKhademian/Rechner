@@ -57,6 +57,7 @@ import {
   customWorkingHoursChanges,
   customFinancialEvents,
   addPregnancyAction,
+  updatePregnancyAction,
   removePregnancyAction,
   addTaxClassSwitchAction,
   updateTaxClassSwitchAction,
@@ -70,6 +71,7 @@ import {
   removeFinancialEventAction,
   updateFinancialEventAction,
   resetToDefaults,
+  openExportImportModal,
   scrollToLegalRule,
   LegalRuleKey,
 } from "#store/elterngeldStore";
@@ -111,6 +113,8 @@ import {
   SimulatorNavigationIcon,
   ResetDefaultsIcon,
   InformationalNoticeIcon,
+  ImportDataIcon,
+  DownloadFileIcon,
 } from "#components/Icons";
 
 function formatCurrency(amount: number): string {
@@ -346,25 +350,72 @@ export default function SandboxControls(): JSX.Element {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={resetToDefaults}
-              style={{
-                padding: "4px 12px",
-                borderRadius: "4px",
-                border: "1px solid var(--border-subtle)",
-                background: "var(--bg-surface)",
-                color: "var(--text-secondary)",
-                fontSize: "0.72rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              Reset to Defaults
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => openExportImportModal("export")}
+                id="export-data-btn"
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "4px",
+                  border: "1px solid var(--color-primary-border)",
+                  background: "var(--color-primary-bg)",
+                  color: "var(--color-primary)",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
+              >
+                <DownloadFileIcon size={13} />
+                Export Data
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openExportImportModal("import")}
+                id="import-data-btn"
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "4px",
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg-surface)",
+                  color: "var(--text-primary)",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
+              >
+                <ImportDataIcon size={13} />
+                Import Data
+              </button>
+
+              <button
+                type="button"
+                onClick={resetToDefaults}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "4px",
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg-surface)",
+                  color: "var(--text-secondary)",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <ResetDefaultsIcon size={13} />
+                Reset to Defaults
+              </button>
+            </div>
           </div>
 
           {/* Discrete Batches: Full-Width Rows Layout with Auto-Wrapping Column Entries */}
@@ -1001,11 +1052,17 @@ export default function SandboxControls(): JSX.Element {
                       lastDeliv + 19,
                     );
 
+                    const totalElapsed =
+                      startCalendarMonth.value - 1 + (newSimMonth - 1);
+                    const calMonth = toCalendarMonth((totalElapsed % 12) + 1);
+                    const calYear =
+                      startCalendarYear.value + Math.floor(totalElapsed / 12);
+
                     addPregnancyAction({
                       pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
                       childIndex: count + 1,
-                      positiveTestCalendarMonth: toCalendarMonth(1),
-                      positiveTestCalendarYear: 2026,
+                      positiveTestCalendarMonth: calMonth,
+                      positiveTestCalendarYear: calYear,
                       positiveTestSimulationMonth:
                         toSimulationMonth(newSimMonth),
                       calculatedDeliverySimulationMonth: toSimulationMonth(
@@ -1224,6 +1281,7 @@ export default function SandboxControls(): JSX.Element {
                                 >
                                   {[
                                     2024, 2025, 2026, 2027, 2028, 2029, 2030,
+                                    2031, 2032,
                                   ].map((y) => (
                                     <option key={y} value={y}>
                                       {y}
@@ -1261,6 +1319,154 @@ export default function SandboxControls(): JSX.Element {
                           </div>
                         ) : (
                           <div>
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: "6px",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.68rem",
+                                    color: "var(--text-muted)",
+                                    display: "block",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Positive Month:
+                                </label>
+                                <select
+                                  value={
+                                    ((startCalendarMonth.value -
+                                      1 +
+                                      pSimMonth -
+                                      1) %
+                                      12) +
+                                    1
+                                  }
+                                  onChange={(e) => {
+                                    const m = Number(
+                                      (e.target as HTMLSelectElement).value,
+                                    );
+                                    const curY =
+                                      startCalendarYear.value +
+                                      Math.floor(
+                                        (startCalendarMonth.value -
+                                          1 +
+                                          (pSimMonth - 1)) /
+                                          12,
+                                      );
+                                    const totalElapsed =
+                                      (curY - startCalendarYear.value) * 12 +
+                                      (m - startCalendarMonth.value);
+                                    const newPSim = Math.max(
+                                      1,
+                                      totalElapsed + 1,
+                                    );
+                                    const newDSim = newPSim + 8;
+                                    updatePregnancyAction(preg.pregnancyId, {
+                                      positiveTestCalendarMonth:
+                                        toCalendarMonth(m),
+                                      positiveTestCalendarYear: curY,
+                                      positiveTestSimulationMonth:
+                                        toSimulationMonth(newPSim),
+                                      calculatedDeliverySimulationMonth:
+                                        toSimulationMonth(newDSim),
+                                    });
+                                  }}
+                                  style={{
+                                    width: "100%",
+                                    background: "var(--bg-surface)",
+                                    color: "var(--text-primary)",
+                                    border: "1px solid var(--border-subtle)",
+                                    borderRadius: "4px",
+                                    padding: "4px 5px",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {MONTH_NAMES.map((name, mIdx) => (
+                                    <option key={mIdx + 1} value={mIdx + 1}>
+                                      {name.slice(0, 14)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.68rem",
+                                    color: "var(--text-muted)",
+                                    display: "block",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Positive Year:
+                                </label>
+                                <select
+                                  value={
+                                    startCalendarYear.value +
+                                    Math.floor(
+                                      (startCalendarMonth.value -
+                                        1 +
+                                        (pSimMonth - 1)) /
+                                        12,
+                                    )
+                                  }
+                                  onChange={(e) => {
+                                    const y = Number(
+                                      (e.target as HTMLSelectElement).value,
+                                    );
+                                    const curM =
+                                      ((startCalendarMonth.value -
+                                        1 +
+                                        pSimMonth -
+                                        1) %
+                                        12) +
+                                      1;
+                                    const totalElapsed =
+                                      (y - startCalendarYear.value) * 12 +
+                                      (curM - startCalendarMonth.value);
+                                    const newPSim = Math.max(
+                                      1,
+                                      totalElapsed + 1,
+                                    );
+                                    const newDSim = newPSim + 8;
+                                    updatePregnancyAction(preg.pregnancyId, {
+                                      positiveTestCalendarMonth:
+                                        toCalendarMonth(curM),
+                                      positiveTestCalendarYear: y,
+                                      positiveTestSimulationMonth:
+                                        toSimulationMonth(newPSim),
+                                      calculatedDeliverySimulationMonth:
+                                        toSimulationMonth(newDSim),
+                                    });
+                                  }}
+                                  style={{
+                                    width: "100%",
+                                    background: "var(--bg-surface)",
+                                    color: "var(--text-primary)",
+                                    border: "1px solid var(--border-subtle)",
+                                    borderRadius: "4px",
+                                    padding: "4px 5px",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {[
+                                    2024, 2025, 2026, 2027, 2028, 2029, 2030,
+                                    2031, 2032,
+                                  ].map((y) => (
+                                    <option key={y} value={y}>
+                                      {y}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
                             <div
                               style={{
                                 display: "flex",

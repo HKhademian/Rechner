@@ -1,6 +1,11 @@
 import type { JSX } from "preact";
-import { activeScenario, comparisonMetrics } from "#store/elterngeldStore";
+import {
+  activeScenario,
+  comparisonMetrics,
+  openExportImportModal,
+} from "#store/elterngeldStore";
 import { ActiveScenarioView } from "#engine/types";
+import { ImportDataIcon, DownloadFileIcon } from "#components/Icons";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("de-DE", {
@@ -123,11 +128,42 @@ export default function ScenarioSelector(): JSX.Element {
         </div>
         <div
           style={{
-            fontSize: "0.8rem",
-            color: "var(--text-muted)",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
           }}
         >
-          Click card to activate timeline, table audit, and chart modes
+          <div
+            style={{
+              fontSize: "0.8rem",
+              color: "var(--text-muted)",
+            }}
+          >
+            Click card to activate timeline, table audit, and chart modes
+          </div>
+
+          <button
+            type="button"
+            onClick={() => openExportImportModal("export")}
+            id="scenario-export-btn"
+            style={{
+              padding: "4px 10px",
+              borderRadius: "4px",
+              border: "1px solid var(--border-subtle)",
+              background: "var(--bg-surface)",
+              color: "var(--text-secondary)",
+              fontSize: "0.74rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+            title="Export full reports or restore JSON presets"
+          >
+            <DownloadFileIcon size={12} />
+            Export / Import
+          </button>
         </div>
       </div>
 

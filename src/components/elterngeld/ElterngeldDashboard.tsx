@@ -5,6 +5,7 @@ import TimelineChart from "#components/elterngeld/TimelineChart";
 import SandboxControls from "#components/elterngeld/SandboxControls";
 import RulesExplainer from "#components/elterngeld/RulesExplainer";
 import TimelineTable from "#components/elterngeld/TimelineTable";
+import { DataExportImportModal } from "#components/elterngeld/DataExportImportModal";
 import Navigation from "#components/Navigation";
 
 export default function ElterngeldDashboard(): JSX.Element {
@@ -106,6 +107,9 @@ export default function ElterngeldDashboard(): JSX.Element {
 
         {/* German Law Rules, Statutory Framework & Legal Precedents */}
         <RulesExplainer />
+
+        {/* Data Export / Import Modal Dialog */}
+        <DataExportImportModal />
       </main>
 
       {/* Footer */}
