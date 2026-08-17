@@ -233,14 +233,67 @@ export function computeSonstigeBezuegeTax(
 }
 
 /**
+ * Calculates the statutory tax factor for married couples under § 39f EStG (Faktorverfahren).
+ * Factor F = Projected Joint Tax (Splitting § 32a Abs. 5) / (Husband Tax IV + Wife Tax IV)
+ * Rounded to 3 decimal places (0 < F <= 1.000).
+ */
+export function computeTaxFactor(
+  husbandAnnualGross: number,
+  wifeAnnualGross: number,
+  childrenCount: number = 0,
+): number {
+  if (husbandAnnualGross <= 0 && wifeAnnualGross <= 0) return 1.0;
+
+  const hMonthlyGross = toGrossSalary(
+    Math.max(0, Math.round(husbandAnnualGross / 12)),
+  );
+  const wMonthlyGross = toGrossSalary(
+    Math.max(0, Math.round(wifeAnnualGross / 12)),
+  );
+
+  const hSocial =
+    (computeMonthlySocialSecurity(hMonthlyGross, childrenCount)
+      .totalSocialSecurity as number) * 12;
+  const wSocial =
+    (computeMonthlySocialSecurity(wMonthlyGross, childrenCount)
+      .totalSocialSecurity as number) * 12;
+
+  const hTax4 = computeAnnualWageTaxForClass(
+    husbandAnnualGross,
+    hSocial,
+    TaxClass.IV,
+  );
+  const wTax4 = computeAnnualWageTaxForClass(
+    wifeAnnualGross,
+    wSocial,
+    TaxClass.IV,
+  );
+
+  const sumTax4 = hTax4.annualTax + wTax4.annualTax;
+  if (sumTax4 <= 0) return 1.0;
+
+  const combinedZvE = hTax4.approxZvE + wTax4.approxZvE;
+  const jointTax = Math.floor(
+    (computeAnnualIncomeTax(combinedZvE / 2) as number) * 2,
+  );
+
+  const factor = Math.min(
+    1.0,
+    Math.max(0.001, Math.round((jointTax / sumTax4) * 1000) / 1000),
+  );
+  return factor;
+}
+
+/**
  * Comprehensive Itemized Gross-to-Net Breakdown Determination.
- * Handles both regular wage and one-off bonuses per § 38b and § 39b EStG.
+ * Handles both regular wage and one-off bonuses per § 38b, § 39b, and § 39f EStG.
  */
 export function computeGrossToNetBreakdown(
   monthlyGross: GrossSalary,
   taxClass: TaxClass,
   childrenCount: number = 0,
   oneOffBonus?: EuroAmount,
+  taxFactor?: number,
 ): GrossToNetBreakdown {
   const gross = monthlyGross as number;
   const bonus = oneOffBonus ? (oneOffBonus as number) : 0;
@@ -249,14 +302,24 @@ export function computeGrossToNetBreakdown(
   const social = computeMonthlySocialSecurity(monthlyGross, childrenCount);
   const annualSocial = (social.totalSocialSecurity as number) * 12;
 
-  const { annualTax, approxZvE } = computeAnnualWageTaxForClass(
+  const { annualTax: baseAnnualTax, approxZvE } = computeAnnualWageTaxForClass(
     annualGross,
     annualSocial,
     taxClass,
   );
-  const monthlyWageTax = Math.round(annualTax / 12);
+
+  // Apply § 39f EStG Factor when Tax Class IV and factor is supplied
+  const effectiveAnnualTax =
+    taxClass === TaxClass.IV &&
+    taxFactor !== undefined &&
+    taxFactor > 0 &&
+    taxFactor <= 1.0
+      ? Math.floor(baseAnnualTax * taxFactor)
+      : baseAnnualTax;
+
+  const monthlyWageTax = Math.round(effectiveAnnualTax / 12);
   const annualSolz = computeSolidaritySurcharge(
-    toEuroAmount(annualTax),
+    toEuroAmount(effectiveAnnualTax),
     taxClass === TaxClass.III ||
       taxClass === TaxClass.IV ||
       taxClass === TaxClass.V,
@@ -309,6 +372,10 @@ export function computeGrossToNetBreakdown(
     monthlyWageTax: toEuroAmount(monthlyWageTax),
     monthlySolidaritySurcharge: toEuroAmount(monthlySolz),
     totalTaxWithholding: toEuroAmount(totalMonthlyTax),
+    taxFactor:
+      taxClass === TaxClass.IV && taxFactor !== undefined
+        ? taxFactor
+        : undefined,
     oneOffBonusAmount: bonus > 0 ? toEuroAmount(bonus) : undefined,
     bonusTaxDeduction: bonus > 0 ? toEuroAmount(bonusTax) : undefined,
     monthlyNetTakeHome: toNetSalary(takeHomeNet),
@@ -319,7 +386,9 @@ export function computeGrossToNetBreakdown(
     statutoryCitation: toStatutoryCitation(
       bonus > 0
         ? "EStG § 38b (Lohnsteuer), § 39b Abs. 3 (Sonstige Bezüge) & BEEG § 2c"
-        : "EStG § 38b (Lohnsteuerabzug) & § 32a (Tarif)",
+        : taxClass === TaxClass.IV && taxFactor !== undefined
+          ? "EStG § 39f (Faktorverfahren) & § 38b (Lohnsteuerabzug)"
+          : "EStG § 38b (Lohnsteuerabzug) & § 32a (Tarif)",
     ),
   };
 }
@@ -332,18 +401,20 @@ export function computeMonthlyNetSalary(
   taxClass: TaxClass,
   childrenCount: number = 0,
   oneOffBonus?: EuroAmount,
+  taxFactor?: number,
 ): NetSalary {
   const breakdown = computeGrossToNetBreakdown(
     monthlyGross,
     taxClass,
     childrenCount,
     oneOffBonus,
+    taxFactor,
   );
   return breakdown.monthlyNetTakeHome;
 }
 
 /**
- * Derives complete Spousal Household Net Set across all 6 Tax Class & Hours combinations.
+ * Derives complete Spousal Household Net Set across all Tax Class & Factor combinations.
  */
 export function deriveSpousalNetSalaries(
   husbandGross: GrossSalary,
@@ -357,6 +428,12 @@ export function deriveSpousalNetSalaries(
 
   const ptRatio = (wifePtHours as number) / ((wifeFtHours as number) || 40);
   const wGrossPT = toGrossSalary(Math.round((wGrossFT as number) * ptRatio));
+
+  const factor = computeTaxFactor(
+    (hGross as number) * 12,
+    (wGrossFT as number) * 12,
+    childrenCount,
+  );
 
   const hBreakdownClass3 = computeGrossToNetBreakdown(
     hGross,
@@ -372,6 +449,13 @@ export function deriveSpousalNetSalaries(
     hGross,
     TaxClass.IV,
     childrenCount,
+  );
+  const hBreakdownClass4WithFactor = computeGrossToNetBreakdown(
+    hGross,
+    TaxClass.IV,
+    childrenCount,
+    undefined,
+    factor,
   );
 
   const wBreakdownClass5FT = computeGrossToNetBreakdown(
@@ -389,6 +473,13 @@ export function deriveSpousalNetSalaries(
     TaxClass.IV,
     childrenCount,
   );
+  const wBreakdownClass4WithFactorFT = computeGrossToNetBreakdown(
+    wGrossFT,
+    TaxClass.IV,
+    childrenCount,
+    undefined,
+    factor,
+  );
 
   const wBreakdownClass5PT = computeGrossToNetBreakdown(
     wGrossPT,
@@ -400,19 +491,37 @@ export function deriveSpousalNetSalaries(
     TaxClass.III,
     childrenCount,
   );
+  const wBreakdownClass4PT = computeGrossToNetBreakdown(
+    wGrossPT,
+    TaxClass.IV,
+    childrenCount,
+  );
+  const wBreakdownClass4WithFactorPT = computeGrossToNetBreakdown(
+    wGrossPT,
+    TaxClass.IV,
+    childrenCount,
+    undefined,
+    factor,
+  );
 
   return {
     husbandGross: hGross,
     husbandClass3Net: hBreakdownClass3.monthlyNetTakeHome,
     husbandClass5Net: hBreakdownClass5.monthlyNetTakeHome,
     husbandClass4Net: hBreakdownClass4.monthlyNetTakeHome,
+    husbandClass4WithFactorNet: hBreakdownClass4WithFactor.monthlyNetTakeHome,
     wifeGrossFullTime: wGrossFT,
     wifeClass5FullTimeNet: wBreakdownClass5FT.monthlyNetTakeHome,
     wifeClass3FullTimeNet: wBreakdownClass3FT.monthlyNetTakeHome,
     wifeClass4FullTimeNet: wBreakdownClass4FT.monthlyNetTakeHome,
+    wifeClass4WithFactorNet: wBreakdownClass4WithFactorFT.monthlyNetTakeHome,
     wifeGrossPartTime: wGrossPT,
     wifeClass5PartTimeNet: wBreakdownClass5PT.monthlyNetTakeHome,
     wifeClass3PartTimeNet: wBreakdownClass3PT.monthlyNetTakeHome,
+    wifeClass4PartTimeNet: wBreakdownClass4PT.monthlyNetTakeHome,
+    wifeClass4WithFactorPartTimeNet:
+      wBreakdownClass4WithFactorPT.monthlyNetTakeHome,
+    taxFactor: factor,
     wifePartTimeWeeklyHours: wifePtHours,
     husbandWeeklyHours: toWorkingHours(32),
     husbandBreakdownClass3: hBreakdownClass3,

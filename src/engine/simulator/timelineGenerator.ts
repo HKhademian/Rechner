@@ -62,7 +62,10 @@ import {
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import { computeSiblingBonus } from "#engine/benefits/siblingBonus";
-import { computeGrossToNetBreakdown } from "#engine/tax/wageTax";
+import {
+  computeGrossToNetBreakdown,
+  computeMonthlyNetSalary,
+} from "#engine/tax/wageTax";
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
@@ -273,9 +276,17 @@ export function runScenarioBatches(
       }
     });
 
-    // --- Batch 2: Evaluate Active Tax Class Switches ---
+    // --- Batch 2: Evaluate Active Tax Classes & Switches ---
+    const initialHTaxClass = preexisting.husbandInitialTaxClass ?? TaxClass.III;
+    const initialWTaxClass = preexisting.wifeInitialTaxClass ?? TaxClass.V;
+    const initialUseFactor = preexisting.initialUseTaxFactor ?? false;
+    const initialTaxFactor = preexisting.initialTaxFactor ?? 1.0;
+
+    let activeHTaxClass = initialHTaxClass;
+    let activeWTaxClass = initialWTaxClass;
+    let activeUseFactor = initialUseFactor;
+    let activeTaxFactor = initialTaxFactor;
     let isSwapActive = false;
-    let taxClassLabel = "H: III | W: V";
 
     if (scenarioKey === ScenarioId.C) {
       taxClassSwitches.forEach((sw) => {
@@ -285,12 +296,78 @@ export function runScenarioBatches(
           : Infinity;
         if (m >= eff && m < rev) {
           isSwapActive = true;
-          taxClassLabel = `H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass}`;
+          activeHTaxClass = sw.targetHusbandTaxClass;
+          activeWTaxClass = sw.targetWifeTaxClass;
+          activeUseFactor = sw.targetUseTaxFactor ?? false;
+          if (sw.targetTaxFactor) activeTaxFactor = sw.targetTaxFactor;
+        } else if (m >= rev) {
+          if (sw.revertHusbandTaxClass)
+            activeHTaxClass = sw.revertHusbandTaxClass;
+          else activeHTaxClass = initialHTaxClass;
+
+          if (sw.revertWifeTaxClass) activeWTaxClass = sw.revertWifeTaxClass;
+          else activeWTaxClass = initialWTaxClass;
+
+          if (sw.revertUseTaxFactor !== undefined)
+            activeUseFactor = sw.revertUseTaxFactor;
+          else activeUseFactor = initialUseFactor;
         }
       });
     }
 
-    let husbandSalary = toEuroAmount(isSwapActive ? curH5Net : curH3Net);
+    const formatTaxLabel = (hCl: TaxClass, wCl: TaxClass, useFac: boolean) => {
+      const hStr = useFac && hCl === TaxClass.IV ? "IV (F)" : hCl;
+      const wStr = useFac && wCl === TaxClass.IV ? "IV (F)" : wCl;
+      return `H: ${hStr} | W: ${wStr}`;
+    };
+
+    let taxClassLabel = formatTaxLabel(
+      activeHTaxClass,
+      activeWTaxClass,
+      activeUseFactor,
+    );
+
+    // Compute husband salary based on active tax class
+    let husbandSalaryNum: number;
+    if (activeHTaxClass === TaxClass.V) {
+      husbandSalaryNum = curH5Net;
+    } else if (activeHTaxClass === TaxClass.IV) {
+      husbandSalaryNum =
+        activeUseFactor && preexisting.husbandGross
+          ? (computeMonthlyNetSalary(
+              preexisting.husbandGross,
+              TaxClass.IV,
+              0,
+              undefined,
+              activeTaxFactor,
+            ) as number)
+          : (preexisting.husbandInitialClass4Net as number) ||
+            Math.round(curH3Net * 0.88);
+    } else {
+      husbandSalaryNum = curH3Net;
+    }
+    let husbandSalary = toEuroAmount(husbandSalaryNum);
+
+    // Compute wife full-time salary based on active tax class
+    let wifeFTNetNum: number;
+    if (activeWTaxClass === TaxClass.III) {
+      wifeFTNetNum = curW3FT;
+    } else if (activeWTaxClass === TaxClass.IV) {
+      wifeFTNetNum =
+        activeUseFactor && preexisting.wifeGross
+          ? (computeMonthlyNetSalary(
+              preexisting.wifeGross,
+              TaxClass.IV,
+              0,
+              undefined,
+              activeTaxFactor,
+            ) as number)
+          : (preexisting.wifeInitialClass4FullTimeNet as number) ||
+            Math.round(curW5FT * 1.15);
+    } else {
+      wifeFTNetNum = curW5FT;
+    }
+
     let wifeSalary = toEuroAmount(0);
     let mutterschutz = toEuroAmount(0);
     let wifeElterngeld = toEuroAmount(0);
@@ -304,10 +381,14 @@ export function runScenarioBatches(
 
     // --- Batch 1: Evaluate Active Pregnancies & Parental Leaves ---
     if (scenarioKey === ScenarioId.A) {
-      husbandSalary = toEuroAmount(curH3Net);
-      wifeSalary = toEuroAmount(curW5FT);
+      husbandSalary = toEuroAmount(husbandSalaryNum);
+      wifeSalary = toEuroAmount(wifeFTNetNum);
       phaseLabel = "Standard Career (No Children)";
-      taxClassLabel = "H: III | W: V";
+      taxClassLabel = formatTaxLabel(
+        initialHTaxClass,
+        initialWTaxClass,
+        initialUseFactor,
+      );
     } else {
       // Calculate living children count for Kindergeld
       let livingChildren = preexisting.existingChildrenCount;
@@ -1216,22 +1297,40 @@ export function runScenarioBatches(
     });
 
     // Batch 2: Tax Class Switches starting at Month m (Effective or Revert)
-    taxClassSwitches.forEach((sw, sIdx) => {
+    taxClassSwitches.forEach((sw) => {
       const eff = sw.effectiveSimulationMonth as number;
       const rev = sw.revertSimulationMonth as number;
+      const effH =
+        sw.targetHusbandTaxClass + (sw.targetUseTaxFactor ? " (F)" : "");
+      const effW =
+        sw.targetWifeTaxClass + (sw.targetUseTaxFactor ? " (F)" : "");
+
+      const revHTax =
+        sw.revertHusbandTaxClass ??
+        preexisting.husbandInitialTaxClass ??
+        TaxClass.III;
+      const revWTax =
+        sw.revertWifeTaxClass ?? preexisting.wifeInitialTaxClass ?? TaxClass.V;
+      const revUseFac =
+        sw.revertUseTaxFactor !== undefined
+          ? sw.revertUseTaxFactor
+          : (preexisting.initialUseTaxFactor ?? false);
+      const revH = revHTax + (revUseFac ? " (F)" : "");
+      const revW = revWTax + (revUseFac ? " (F)" : "");
+
       if (m === eff && scenarioKey === ScenarioId.C) {
         startingActions.push({
           actionId: toActionId(`${sw.switchId}-EFFECTIVE`),
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
-          title: `ACTION: Tax Class Switch Active (H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass})`,
+          title: `ACTION: Tax Class Switch Active (H: ${effH} | W: ${effW})`,
           description:
             sw.statutoryReason ||
             `Proactive tax class switch to optimize Elterngeld assessment baseline (§ 2b BEEG).`,
           category: ActionCategory.TaxSwitch,
           type: ActionType.TaxClassSwitchEffective,
-          taxClassLabel: `H: ${sw.targetHusbandTaxClass} | W: ${sw.targetWifeTaxClass}`,
+          taxClassLabel: `H: ${effH} | W: ${effW}`,
         });
       }
       if (m === rev && scenarioKey === ScenarioId.C) {
@@ -1240,11 +1339,11 @@ export function runScenarioBatches(
           month: rm.month,
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
-          title: `ACTION: Tax Class Reversion (H: ${preexisting.husbandInitialTaxClass} | W: ${preexisting.wifeInitialTaxClass})`,
-          description: `Reverting tax classes post-delivery back to baseline (${preexisting.husbandInitialTaxClass}/${preexisting.wifeInitialTaxClass}) to maximize family take-home pay.`,
+          title: `ACTION: Tax Class Reversion (H: ${revH} | W: ${revW})`,
+          description: `Reverting tax classes post-delivery back to baseline (${revH}/${revW}) to maximize family take-home pay.`,
           category: ActionCategory.TaxSwitch,
           type: ActionType.TaxClassSwitchRevert,
-          taxClassLabel: `H: ${preexisting.husbandInitialTaxClass} | W: ${preexisting.wifeInitialTaxClass}`,
+          taxClassLabel: `H: ${revH} | W: ${revW}`,
         });
       }
     });
