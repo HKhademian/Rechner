@@ -4,6 +4,15 @@ import {
   LegalRuleKey,
   type LegalRuleKeyType,
 } from "#store/elterngeldStore";
+import {
+  ScrollDocIcon,
+  LightbulbIcon,
+  LinkChainIcon,
+  ExternalLinkIcon,
+  LegalSectionIcon,
+  CheckmarkIcon,
+  TimelineSimulatorTabIcon,
+} from "#components/Icons";
 
 interface LegalLink {
   readonly label: string;
@@ -92,9 +101,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -155,13 +168,19 @@ export default function RulesExplainer(): JSX.Element {
               fontSize: "0.74rem",
               color: "var(--text-muted)",
               marginTop: "8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
             }}
           >
-            ✔ <strong>Net Advantage:</strong> +357 € / month over 20 months ={" "}
-            <strong style={{ color: "var(--color-gain)" }}>
-              +7.140 € extra state allowance
-            </strong>{" "}
-            for Child 1.
+            <CheckmarkIcon size={12} />
+            <span>
+              <strong>Net Advantage:</strong> +357 € / month over 20 months ={" "}
+              <strong style={{ color: "var(--color-gain)" }}>
+                +7.140 € extra state allowance
+              </strong>{" "}
+              for Child 1.
+            </span>
           </div>
         </div>
       ),
@@ -247,9 +266,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -355,9 +378,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -473,9 +500,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -586,9 +617,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Statutory Allocation &amp; Payout Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Statutory Allocation &amp; Payout Example:</span>
           </div>
           <div
             style={{
@@ -691,9 +726,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -797,9 +836,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -932,9 +975,13 @@ export default function RulesExplainer(): JSX.Element {
               color: "var(--color-primary)",
               marginBottom: "8px",
               fontSize: "0.82rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Worked Numerical Example:
+            <TimelineSimulatorTabIcon size={13} />
+            <span>Worked Numerical Example:</span>
           </div>
           <div
             style={{
@@ -1016,21 +1063,12 @@ export default function RulesExplainer(): JSX.Element {
               borderRadius: "var(--border-radius-sm)",
               color: "var(--color-primary)",
               border: "1px solid var(--color-primary-border)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-              <path d="M6 6h10" />
-              <path d="M6 10h10" />
-              <path d="m9 16 2 2 4-4" />
-            </svg>
+            <ScrollDocIcon size={24} />
           </div>
           <div>
             <h3
@@ -1057,8 +1095,16 @@ export default function RulesExplainer(): JSX.Element {
           </div>
         </div>
 
-        <div className="badge-brand">
-          ⚖ {rules.length} Statutory Modules Active
+        <div
+          className="badge-brand"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+          }}
+        >
+          <LegalSectionIcon size={13} />
+          <span>{rules.length} Statutory Modules Active</span>
         </div>
       </div>
 
@@ -1221,9 +1267,13 @@ export default function RulesExplainer(): JSX.Element {
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: "6px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              📜 Statutory Mandate & Legal Rule
+              <ScrollDocIcon size={14} />
+              <span>Statutory Mandate &amp; Legal Rule</span>
             </div>
             <div
               style={{
@@ -1246,9 +1296,13 @@ export default function RulesExplainer(): JSX.Element {
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: "6px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              💡 Real-World Simulation Example
+              <LightbulbIcon size={14} />
+              <span>Real-World Simulation Example</span>
             </div>
             {currentRule.example}
           </div>
@@ -1269,9 +1323,13 @@ export default function RulesExplainer(): JSX.Element {
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              🔗 Official Legislation & Government References
+              <LinkChainIcon size={14} />
+              <span>Official Legislation &amp; Government References</span>
             </div>
             <div
               style={{ display: "flex", flexDirection: "column", gap: "8px" }}
@@ -1310,9 +1368,7 @@ export default function RulesExplainer(): JSX.Element {
                       {link.description}
                     </div>
                   </div>
-                  <span style={{ fontSize: "0.9rem", marginLeft: "8px" }}>
-                    ↗
-                  </span>
+                  <ExternalLinkIcon size={12} />
                 </a>
               ))}
             </div>

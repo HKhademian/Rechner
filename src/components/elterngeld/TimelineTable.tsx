@@ -20,6 +20,16 @@ import {
   type SpecialEventItem,
   type ActionRowItem,
 } from "#engine/types";
+import {
+  DownloadIcon,
+  BabyIcon,
+  TaxSwitchIcon,
+  CareerRaiseIcon,
+  CoinsIcon,
+  LegalSectionIcon,
+  ExternalLinkIcon,
+  InfoIcon,
+} from "#components/Icons";
 import FieldExplainerModal from "./FieldExplainerModal";
 import RowExplainerModal from "./RowExplainerModal";
 import {
@@ -539,19 +549,8 @@ export default function TimelineTable(): JSX.Element {
               transition: "var(--transition)",
             }}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="15" y2="3" />
-            </svg>
-            Export CSV
+            <DownloadIcon size={14} />
+            <span>Export CSV</span>
           </button>
         </div>
       </div>
@@ -636,10 +635,14 @@ export default function TimelineTable(): JSX.Element {
                       padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
                     }}
                     title="Click to view § 3 MuSchG statutory rule and example"
                   >
-                    (*MuSchG ↗*)
+                    <span>(*MuSchG*)</span>
+                    <ExternalLinkIcon size={10} />
                   </button>
                 </div>
                 {showDelta && scenario === "C" && (
@@ -670,10 +673,14 @@ export default function TimelineTable(): JSX.Element {
                       padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
                     }}
                     title="Click to view § 4 BEEG statutory rule and example"
                   >
-                    (*§ 4 BEEG ↗*)
+                    <span>(*§ 4 BEEG*)</span>
+                    <ExternalLinkIcon size={10} />
                   </button>
                 </div>
                 {showDelta && scenario === "C" && (
@@ -704,10 +711,14 @@ export default function TimelineTable(): JSX.Element {
                       padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
                     }}
                     title="Click to view § 4b BEEG Partnership Bonus statutory rule and example"
                   >
-                    (*§ 4b BEEG ↗*)
+                    <span>(*§ 4b BEEG*)</span>
+                    <ExternalLinkIcon size={10} />
                   </button>
                 </div>
                 {showDelta && scenario === "C" && (
@@ -738,10 +749,14 @@ export default function TimelineTable(): JSX.Element {
                       padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
                     }}
                     title="Click to view § 66 EStG Kindergeld statutory rule and example"
                   >
-                    (*§ 66 EStG ↗*)
+                    <span>(*§ 66 EStG*)</span>
+                    <ExternalLinkIcon size={10} />
                   </button>
                 </div>
                 {showDelta && scenario === "C" && (
@@ -774,10 +789,14 @@ export default function TimelineTable(): JSX.Element {
                       padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
                     }}
                     title="Click to view § 26b EStG Marital Splitting statutory rule and example"
                   >
-                    (*§ 26b ↗*)
+                    <span>(*§ 26b*)</span>
+                    <ExternalLinkIcon size={10} />
                   </button>
                 </div>
                 {showDelta && scenario === "C" && (
@@ -883,15 +902,34 @@ export default function TimelineTable(): JSX.Element {
                           ? "badge-brand"
                           : "badge-neutral";
 
-                    const badgeLabel = isDelivery
-                      ? "🍼 BIRTH & DELIVERY"
-                      : isPregnancy
-                        ? "👶 PREGNANCY POSITIVE"
-                        : isTaxSwitch
-                          ? act.type === ActionType.TaxClassSwitchRevert
-                            ? "🔄 TAX REVERSION"
-                            : "⚖️ TAX CLASS SWITCH"
-                          : "💼 SALARY RAISE";
+                    const badgeLabel = isDelivery ? (
+                      <>
+                        <BabyIcon size={12} />
+                        <span>BIRTH &amp; DELIVERY</span>
+                      </>
+                    ) : isPregnancy ? (
+                      <>
+                        <BabyIcon size={12} />
+                        <span>PREGNANCY POSITIVE</span>
+                      </>
+                    ) : isTaxSwitch ? (
+                      act.type === ActionType.TaxClassSwitchRevert ? (
+                        <>
+                          <TaxSwitchIcon size={12} />
+                          <span>TAX REVERSION</span>
+                        </>
+                      ) : (
+                        <>
+                          <TaxSwitchIcon size={12} />
+                          <span>TAX CLASS SWITCH</span>
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <CareerRaiseIcon size={12} />
+                        <span>SALARY RAISE</span>
+                      </>
+                    );
 
                     const cleanTitle = act.title.replace(/^ACTION:\s*/, "");
 
@@ -967,9 +1005,12 @@ export default function TimelineTable(): JSX.Element {
                                 fontSize: "0.66rem",
                                 color: "var(--color-primary)",
                                 cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
                               }}
                             >
-                              ℹ️
+                              <InfoIcon size={12} />
                             </button>
                           </div>
                         </td>
@@ -998,7 +1039,16 @@ export default function TimelineTable(): JSX.Element {
                               flexWrap: "wrap",
                             }}
                           >
-                            <span className={badgeClass}>{badgeLabel}</span>
+                            <span
+                              className={badgeClass}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {badgeLabel}
+                            </span>
                             <span
                               style={{
                                 fontWeight: 700,
@@ -1304,8 +1354,16 @@ export default function TimelineTable(): JSX.Element {
                               flexWrap: "wrap",
                             }}
                           >
-                            <span className={badgeClass}>
-                              {isCost ? `💸 ${ev.category}` : ev.category}
+                            <span
+                              className={badgeClass}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {isCost ? <CoinsIcon size={11} /> : null}
+                              <span>{ev.category}</span>
                             </span>
                             <span
                               style={{
@@ -1570,9 +1628,12 @@ export default function TimelineTable(): JSX.Element {
                           fontSize: "0.66rem",
                           color: "var(--color-primary)",
                           cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        ℹ️
+                        <InfoIcon size={12} />
                       </button>
                     </div>
                   </td>

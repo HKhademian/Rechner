@@ -7,6 +7,11 @@ import {
   scrollToLegalRule,
   LegalRuleKey,
 } from "#store/elterngeldStore";
+import {
+  CheckmarkIcon,
+  WarningTriangleIcon,
+  ExternalLinkIcon,
+} from "#components/Icons";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("de-DE", {
@@ -209,13 +214,33 @@ export default function KpiScorecard(): JSX.Element {
           }}
         >
           {isScenarioC ? (
-            <span style={{ color: "var(--color-gain)", fontWeight: 600 }}>
-              ✓ Maximized via Class III booster, Sibling &amp; Partnership
-              bonuses
+            <span
+              style={{
+                color: "var(--color-gain)",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <CheckmarkIcon size={13} />
+              <span>
+                Maximized via Class III booster, Sibling &amp; Partnership
+                bonuses
+              </span>
             </span>
           ) : isScenarioB ? (
-            <span style={{ color: "var(--color-warning)", fontWeight: 600 }}>
-              ⚠ Minimum base rate due to unoptimized Tax Class V
+            <span
+              style={{
+                color: "var(--color-warning)",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <WarningTriangleIcon size={13} />
+              <span>Minimum base rate due to unoptimized Tax Class V</span>
             </span>
           ) : (
             "0 € state parental allowance (no children)"
@@ -380,10 +405,14 @@ export default function KpiScorecard(): JSX.Element {
               fontSize: "0.72rem",
               padding: 0,
               fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
             }}
             title="View § 2b BEEG legal basis and strategy"
           >
-            How is this calculated? (§ 2b BEEG ↗)
+            <span>How is this calculated? (§ 2b BEEG)</span>
+            <ExternalLinkIcon size={11} />
           </button>
         </div>
       </div>

@@ -80,6 +80,25 @@ import {
   toRaiseId,
   toFinancialEventId,
 } from "#engine/types";
+import {
+  SettingsIcon,
+  CalendarIcon,
+  BabyIcon,
+  BriefcaseIcon,
+  TaxSwitchIcon,
+  CareerRaiseIcon,
+  CoinsIcon,
+  PlusIcon,
+  CloseIcon,
+  CheckmarkIcon,
+  WarningTriangleIcon,
+  ExternalLinkIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  TimelineSimulatorTabIcon,
+  RefreshIcon,
+  InfoIcon,
+} from "#components/Icons";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("de-DE", {
@@ -173,23 +192,12 @@ export default function SandboxControls(): JSX.Element {
               padding: "8px",
               borderRadius: "var(--border-radius-sm)",
               color: "var(--color-primary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <line x1="4" x2="20" y1="21" y2="21" />
-              <line x1="4" x2="20" y1="3" y2="3" />
-              <line x1="4" x2="20" y1="12" y2="12" />
-              <circle cx="9" cy="21" r="2" />
-              <circle cx="15" cy="3" r="2" />
-              <circle cx="11" cy="12" r="2" />
-            </svg>
+            <SettingsIcon size={20} />
           </div>
           <div>
             <h3
@@ -546,9 +554,13 @@ export default function SandboxControls(): JSX.Element {
                       fontSize: "0.68rem",
                       fontWeight: 700,
                       cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
-                    📅 Monthly (€/mo)
+                    <CalendarIcon size={11} />
+                    <span>Monthly (€/mo)</span>
                   </button>
                   <button
                     type="button"
@@ -571,9 +583,13 @@ export default function SandboxControls(): JSX.Element {
                       fontSize: "0.68rem",
                       fontWeight: 700,
                       cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
-                    📆 Yearly (€/yr)
+                    <CalendarIcon size={11} />
+                    <span>Yearly (€/yr)</span>
                   </button>
                 </div>
               </div>
@@ -594,9 +610,13 @@ export default function SandboxControls(): JSX.Element {
                     fontWeight: 800,
                     color: "var(--color-primary)",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  👤 Husband Gross Compensation
+                  <BriefcaseIcon size={13} />
+                  <span>Husband Gross Compensation</span>
                 </div>
                 {/* Gross Amount Slider */}
                 <div style={{ marginBottom: "8px" }}>
@@ -752,9 +772,13 @@ export default function SandboxControls(): JSX.Element {
                     fontWeight: 800,
                     color: "var(--series-indigo)",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  👩 Wife Pre-Pregnancy Full-Time Compensation
+                  <BriefcaseIcon size={13} />
+                  <span>Wife Pre-Pregnancy Full-Time Compensation</span>
                 </div>
                 {/* Gross Amount Slider */}
                 <div style={{ marginBottom: "8px" }}>
@@ -901,9 +925,13 @@ export default function SandboxControls(): JSX.Element {
                     fontWeight: 800,
                     color: "var(--series-cyan)",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  👶 Wife Post-Birth Part-Time Return to Work
+                  <BabyIcon size={13} />
+                  <span>Wife Post-Birth Part-Time Return to Work</span>
                 </div>
                 <div style={{ marginBottom: "8px" }}>
                   <div
@@ -927,7 +955,7 @@ export default function SandboxControls(): JSX.Element {
                       {wifePostBirthHours.value} hours / week{" "}
                       {wifePostBirthHours.value >= 24 &&
                       wifePostBirthHours.value <= 32
-                        ? "✓ PB Eligible"
+                        ? "(PB Eligible)"
                         : ""}
                     </span>
                   </div>
@@ -958,11 +986,17 @@ export default function SandboxControls(): JSX.Element {
                         marginTop: "4px",
                         fontWeight: 600,
                         border: "1px solid var(--color-loss-border)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
                       }}
                     >
-                      ⚠️ Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours
-                      &gt; 32h / week disqualify from all Elterngeld (0 €
-                      benefit paid).
+                      <WarningTriangleIcon size={12} />
+                      <span>
+                        Exceeds Statutory Limit (§ 1 Abs. 1 Nr. 4 BEEG): Hours
+                        &gt; 32h / week disqualify from all Elterngeld (0 €
+                        benefit paid).
+                      </span>
                     </div>
                   ) : wifePostBirthHours.value >= 24 &&
                     wifePostBirthHours.value <= 32 ? (
@@ -983,11 +1017,18 @@ export default function SandboxControls(): JSX.Element {
                         fontWeight: 600,
                         border: "1px solid var(--color-gain-border)",
                         cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
                       }}
                       title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
                     >
-                      ✓ ElterngeldPlus &amp; Partnerschaftsbonus (§ 4b BEEG ↗)
-                      corridor (24–32h / week)
+                      <CheckmarkIcon size={12} />
+                      <span>
+                        ElterngeldPlus &amp; Partnerschaftsbonus (§ 4b BEEG)
+                        corridor (24–32h / week)
+                      </span>
+                      <ExternalLinkIcon size={10} />
                     </button>
                   ) : wifePostBirthHours.value === 0 ? (
                     <div
@@ -1017,14 +1058,22 @@ export default function SandboxControls(): JSX.Element {
                         padding: "3px 6px",
                         borderRadius: "4px",
                         marginTop: "4px",
+                        fontWeight: 600,
                         border: "1px solid var(--color-warning-border)",
                         cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
                       }}
                       title="Click to view § 4b BEEG corridor requirements"
                     >
-                      ℹ Eligible for ElterngeldPlus (≤ 32h), but outside
-                      Partnerschaftsbonus corridor (must be 24–32h for +4 bonus
-                      months ↗)
+                      <InfoIcon size={11} />
+                      <span>
+                        Eligible for ElterngeldPlus (≤ 32h), but outside
+                        Partnerschaftsbonus corridor (must be 24–32h for +4
+                        bonus months)
+                      </span>
+                      <ExternalLinkIcon size={10} />
                     </button>
                   )}
                 </div>
@@ -1095,10 +1144,14 @@ export default function SandboxControls(): JSX.Element {
                         fontSize: "0.68rem",
                         textAlign: "left",
                         textDecoration: "underline",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "2px",
                       }}
                       title="Click to view ElterngeldPlus § 4 BEEG replacement rules and €900 cap"
                     >
-                      Statutory ElterngeldPlus (65% loss ↗):
+                      <span>Statutory ElterngeldPlus (65% loss)</span>
+                      <ExternalLinkIcon size={10} />:
                     </button>
                     <strong
                       style={{
@@ -1184,9 +1237,13 @@ export default function SandboxControls(): JSX.Element {
                     fontWeight: 800,
                     color: "var(--color-warning)",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  🎁 Additional Income & Inflow Channels
+                  <CoinsIcon size={13} />
+                  <span>Additional Income &amp; Inflow Channels</span>
                 </div>
 
                 {/* 13th Month Salary Toggle */}
@@ -1226,11 +1283,22 @@ export default function SandboxControls(): JSX.Element {
                       fontSize: "0.66rem",
                       fontWeight: 700,
                       cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
-                    {enable13thSalary.value
-                      ? "✓ Active (May & Nov)"
-                      : "✕ Disabled"}
+                    {enable13thSalary.value ? (
+                      <>
+                        <CheckmarkIcon size={11} />
+                        <span>Active (May &amp; Nov)</span>
+                      </>
+                    ) : (
+                      <>
+                        <CloseIcon size={11} />
+                        <span>Disabled</span>
+                      </>
+                    )}
                   </button>
                 </div>
                 {enable13thSalary.value && (
@@ -1396,8 +1464,35 @@ export default function SandboxControls(): JSX.Element {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span>📊 Statutory Tax & Social Deductions Breakdown</span>
-                  <span>{showDeductionsBreakdown ? "▲ Hide" : "▼ Expand"}</span>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <TimelineSimulatorTabIcon size={12} />
+                    <span>Statutory Tax &amp; Social Deductions Breakdown</span>
+                  </span>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    {showDeductionsBreakdown ? (
+                      <>
+                        <ChevronUpIcon size={11} />
+                        <span>Hide</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDownIcon size={11} />
+                        <span>Expand</span>
+                      </>
+                    )}
+                  </span>
                 </button>
                 {showDeductionsBreakdown && (
                   <div
@@ -1537,7 +1632,8 @@ export default function SandboxControls(): JSX.Element {
                       color: "var(--text-secondary)",
                       padding: 0,
                       cursor: "pointer",
-                      fontSize: "0.78rem",
+                      fontSize: "0.72rem",
+                      textAlign: "left",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "4px",
@@ -1550,9 +1646,13 @@ export default function SandboxControls(): JSX.Element {
                         color: "var(--color-primary)",
                         textDecoration: "underline",
                         fontSize: "0.72rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "2px",
                       }}
                     >
-                      (§ 66 EStG ↗)
+                      <span>(§ 66 EStG)</span>
+                      <ExternalLinkIcon size={10} />
                     </span>
                     :
                   </button>
@@ -1690,9 +1790,13 @@ export default function SandboxControls(): JSX.Element {
                               fontSize: "0.65rem",
                               fontWeight: 700,
                               cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
                             }}
                           >
-                            ✕ Remove
+                            <CloseIcon size={11} />
+                            <span>Remove</span>
                           </button>
                         )}
                       </div>
@@ -1889,15 +1993,40 @@ export default function SandboxControls(): JSX.Element {
                                 36
                                   ? "var(--color-gain)"
                                   : "var(--color-warning)",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
                             }}
                           >
                             {dSimMonth -
                               ((customPregnancies.value[idx - 1]
                                 ?.calculatedDeliverySimulationMonth as number) ||
                                 0) <
-                            36
-                              ? `✓ Sibling Bonus (+10%) eligible (${dSimMonth - ((customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number) || 0)}M spacing)`
-                              : `✗ Sibling bonus expired (${dSimMonth - ((customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth as number) || 0)}M spacing)`}
+                            36 ? (
+                              <>
+                                <CheckmarkIcon size={11} />
+                                <span>
+                                  Sibling Bonus (+10%) eligible (
+                                  {dSimMonth -
+                                    ((customPregnancies.value[idx - 1]
+                                      ?.calculatedDeliverySimulationMonth as number) ||
+                                      0)}
+                                  M spacing)
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <CloseIcon size={11} />
+                                <span>
+                                  Sibling bonus expired (
+                                  {dSimMonth -
+                                    ((customPregnancies.value[idx - 1]
+                                      ?.calculatedDeliverySimulationMonth as number) ||
+                                      0)}
+                                  M spacing)
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                       )}
@@ -1949,9 +2078,16 @@ export default function SandboxControls(): JSX.Element {
                   fontWeight: 800,
                   cursor: "pointer",
                   marginBottom: "10px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
                 }}
               >
-                ➕ Add Pregnancy (Child #{customPregnancies.value.length + 1})
+                <PlusIcon size={12} />
+                <span>
+                  Add Pregnancy (Child #{customPregnancies.value.length + 1})
+                </span>
               </button>
             </div>
 
@@ -1997,9 +2133,16 @@ export default function SandboxControls(): JSX.Element {
                 >
                   <span>2. Tax Class Switches</span>
                   <span
-                    style={{ fontSize: "0.72rem", textDecoration: "underline" }}
+                    style={{
+                      fontSize: "0.72rem",
+                      textDecoration: "underline",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
+                    }}
                   >
-                    (§ 2b BEEG ↗)
+                    <span>(§ 2b BEEG)</span>
+                    <ExternalLinkIcon size={10} />
                   </span>
                 </button>
                 <span className="badge-gain">
@@ -2063,9 +2206,12 @@ export default function SandboxControls(): JSX.Element {
                               fontSize: "0.62rem",
                               fontWeight: 700,
                               cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            ✕
+                            <CloseIcon size={11} />
                           </button>
                         )}
                       </div>
@@ -2146,10 +2292,17 @@ export default function SandboxControls(): JSX.Element {
                   fontWeight: 800,
                   cursor: "pointer",
                   marginBottom: "10px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
                 }}
               >
-                ➕ Add Tax Class Switch (Swap #
-                {customTaxClassSwitches.value.length + 1})
+                <PlusIcon size={12} />
+                <span>
+                  Add Tax Class Switch (Swap #
+                  {customTaxClassSwitches.value.length + 1})
+                </span>
               </button>
 
               {/* Wife Optimized Class III FT Net */}
@@ -2315,9 +2468,12 @@ export default function SandboxControls(): JSX.Element {
                             fontSize: "0.62rem",
                             fontWeight: 700,
                             cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          ✕
+                          <CloseIcon size={11} />
                         </button>
                       </div>
                       <div
@@ -2326,6 +2482,7 @@ export default function SandboxControls(): JSX.Element {
                           justifyContent: "space-between",
                           fontSize: "0.70rem",
                           color: "var(--text-secondary)",
+                          marginBottom: "2px",
                         }}
                       >
                         <span>
@@ -2384,9 +2541,14 @@ export default function SandboxControls(): JSX.Element {
                   fontWeight: 800,
                   cursor: "pointer",
                   marginBottom: "10px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
                 }}
               >
-                ➕ Add Career Raise / Promotion
+                <PlusIcon size={12} />
+                <span>Add Career Raise / Promotion</span>
               </button>
             </div>
 
@@ -2468,8 +2630,14 @@ export default function SandboxControls(): JSX.Element {
                         >
                           <span
                             className={isCost ? "badge-loss" : "badge-gain"}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "3px",
+                            }}
                           >
-                            {isCost ? "💸 COST" : "💰 INFLOW"}
+                            <CoinsIcon size={11} />
+                            <span>{isCost ? "COST" : "INFLOW"}</span>
                           </span>
                           <span
                             style={{
@@ -2516,9 +2684,12 @@ export default function SandboxControls(): JSX.Element {
                               fontSize: "0.62rem",
                               fontWeight: 700,
                               cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            ✕
+                            <CloseIcon size={11} />
                           </button>
                         </div>
                       </div>
@@ -2610,9 +2781,14 @@ export default function SandboxControls(): JSX.Element {
                     fontSize: "0.72rem",
                     fontWeight: 800,
                     cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
                   }}
                 >
-                  ➕ Add Cost (-1.000 €)
+                  <PlusIcon size={12} />
+                  <span>Add Cost (-1.000 €)</span>
                 </button>
 
                 <button
@@ -2651,9 +2827,14 @@ export default function SandboxControls(): JSX.Element {
                     fontSize: "0.72rem",
                     fontWeight: 800,
                     cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
                   }}
                 >
-                  ➕ Add Inflow (+1.500 €)
+                  <PlusIcon size={12} />
+                  <span>Add Inflow (+1.500 €)</span>
                 </button>
               </div>
             </div>

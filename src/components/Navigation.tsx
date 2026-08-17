@@ -1,5 +1,10 @@
 import type { JSX } from "preact";
 import ThemeToggle from "#components/ThemeToggle";
+import {
+  CalculatorTabIcon,
+  TimelineSimulatorTabIcon,
+  LegalSectionIcon,
+} from "#components/Icons";
 
 export interface NavigationProps {
   currentPath?: string;
@@ -63,7 +68,7 @@ export default function Navigation({
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            §
+            <LegalSectionIcon size={20} />
           </div>
           <div>
             <div
@@ -130,28 +135,7 @@ export default function Navigation({
                 transition: "var(--transition)",
               }}
             >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="16" height="20" x="4" y="2" rx="2" />
-                <line x1="8" x2="16" y1="6" y2="6" />
-                <line x1="16" x2="16" y1="14" y2="14" />
-                <line x1="16" x2="16" y1="18" y2="18" />
-                <line x1="8" x2="8.01" y1="10" y2="10" />
-                <line x1="12" x2="12.01" y1="10" y2="10" />
-                <line x1="16" x2="16.01" y1="10" y2="10" />
-                <line x1="8" x2="8.01" y1="14" y2="14" />
-                <line x1="12" x2="12.01" y1="14" y2="14" />
-                <line x1="8" x2="8.01" y1="18" y2="18" />
-                <line x1="12" x2="12.01" y1="18" y2="18" />
-              </svg>
+              <CalculatorTabIcon size={15} />
               <span>Net Pay Calculator</span>
             </a>
 
@@ -175,19 +159,7 @@ export default function Navigation({
                 transition: "var(--transition)",
               }}
             >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 3v18h18" />
-                <path d="m19 9-5 5-4-4-3 3" />
-              </svg>
+              <TimelineSimulatorTabIcon size={15} />
               <span>Elterngeld 5-Year Simulator</span>
               <span
                 style={{

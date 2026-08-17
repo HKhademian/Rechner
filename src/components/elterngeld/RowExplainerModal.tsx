@@ -2,6 +2,13 @@ import type { JSX } from "preact";
 import { type RowExplanation } from "#engine/explanation/timelineExplainer";
 import { ExplainerRowType } from "#engine/types";
 import { scrollToLegalRule } from "#store/elterngeldStore";
+import {
+  CalendarIcon,
+  LightningIcon,
+  CoinsIcon,
+  CloseIcon,
+  ArrowRightIcon,
+} from "#components/Icons";
 
 export interface RowExplainerModalProps {
   readonly explanation: RowExplanation | null;
@@ -79,12 +86,28 @@ export default function RowExplainerModal({
                       ? "badge-warning"
                       : "badge-gain"
                 }
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
               >
-                {isMonth
-                  ? "📅 Monthly Audit"
-                  : isAction
-                    ? "⚡ Lifecycle Action"
-                    : "💰 Fiscal Event"}
+                {isMonth ? (
+                  <>
+                    <CalendarIcon size={12} />
+                    <span>Monthly Audit</span>
+                  </>
+                ) : isAction ? (
+                  <>
+                    <LightningIcon size={12} />
+                    <span>Lifecycle Action</span>
+                  </>
+                ) : (
+                  <>
+                    <CoinsIcon size={12} />
+                    <span>Fiscal Event</span>
+                  </>
+                )}
               </span>
               <span
                 style={{
@@ -133,7 +156,7 @@ export default function RowExplainerModal({
               fontWeight: 700,
             }}
           >
-            ✕
+            <CloseIcon size={14} />
           </button>
         </div>
 
@@ -293,7 +316,7 @@ export default function RowExplainerModal({
               }}
             >
               <span>View Full Statutory Rule &amp; Case Law</span>
-              <span>→</span>
+              <ArrowRightIcon size={14} />
             </button>
           </div>
         )}

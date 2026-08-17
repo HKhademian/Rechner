@@ -1,6 +1,7 @@
 import type { JSX } from "preact";
 import { type FieldExplanation } from "#engine/explanation/timelineExplainer";
 import { scrollToLegalRule } from "#store/elterngeldStore";
+import { CloseIcon, ArrowRightIcon } from "#components/Icons";
 
 export interface FieldExplainerModalProps {
   readonly explanation: FieldExplanation | null;
@@ -100,7 +101,7 @@ export default function FieldExplainerModal({
               fontWeight: 700,
             }}
           >
-            ✕
+            <CloseIcon size={14} />
           </button>
         </div>
 
@@ -365,7 +366,7 @@ export default function FieldExplainerModal({
               }}
             >
               <span>View Full Statutory Rule &amp; Case Law</span>
-              <span>→</span>
+              <ArrowRightIcon size={14} />
             </button>
           </div>
         )}
