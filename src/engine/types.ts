@@ -271,14 +271,14 @@ export function toCalendarMonth(val: number): CalendarMonth {
 }
 
 export function toWorkingHours(val: number): WorkingHours {
-  if (typeof val !== 'number' || val < 0 || val > 60) {
+  if (typeof val !== 'number' || Number.isNaN(val) || !Number.isFinite(val) || val < 0 || val > 60) {
     throw new TypeError(`Invalid WorkingHours: ${val}. Must be between 0 and 60.`);
   }
   return val as WorkingHours;
 }
 
 export function toEuroAmount(val: number): EuroAmount {
-  if (typeof val !== 'number' || Number.isNaN(val)) {
+  if (typeof val !== 'number' || Number.isNaN(val) || !Number.isFinite(val)) {
     throw new TypeError(`Invalid EuroAmount: ${val}. Must be a valid number.`);
   }
   return Math.round(val) as EuroAmount;
@@ -292,14 +292,14 @@ export function toEuroCents(val: number): EuroCents {
 }
 
 export function toGrossSalary(val: number): GrossSalary {
-  if (typeof val !== 'number' || val < 0) {
+  if (typeof val !== 'number' || Number.isNaN(val) || !Number.isFinite(val) || val < 0) {
     throw new TypeError(`Invalid GrossSalary: ${val}. Must be non-negative.`);
   }
   return Math.round(val) as GrossSalary;
 }
 
 export function toNetSalary(val: number): NetSalary {
-  if (typeof val !== 'number' || val < 0) {
+  if (typeof val !== 'number' || Number.isNaN(val) || !Number.isFinite(val) || val < 0) {
     throw new TypeError(`Invalid NetSalary: ${val}. Must be non-negative.`);
   }
   return Math.round(val) as NetSalary;
