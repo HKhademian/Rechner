@@ -106,12 +106,20 @@ export function toCliScenarioTarget(val: string): CliScenarioTarget {
 export function parseMonthArg(val: string): string | number {
   if (!val) {
     throw new TypeError(
-      "Missing month argument. Example: explain M092026, explain M1, or --explain 21",
+      "Missing month argument. Example: explain M09.2027, explain Sim21, explain M12, or --explain 21",
     );
   }
   const trimmed = val.trim();
-  if (/^M(0[1-9]|1[0-2])\d{4}$/i.test(trimmed)) {
-    return trimmed.toUpperCase();
+  const matchMonthId = trimmed.match(/^M(0[1-9]|1[0-2])\.?(\d{4})$/i);
+  if (matchMonthId) {
+    return `M${matchMonthId[1]}.${matchMonthId[2]}`;
+  }
+  const matchSim = trimmed.match(/^Sim(\d+)$/i);
+  if (matchSim) {
+    const num = parseInt(matchSim[1], 10);
+    if (!Number.isNaN(num) && num >= 1 && num <= 120) {
+      return num;
+    }
   }
   const clean = trimmed.replace(/^[Mm](?:onth)?\s*/i, "");
   const num = parseInt(clean, 10);
@@ -709,7 +717,7 @@ function printFieldExplanation(
   const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
   console.log(
-    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (${m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.calendarLabel})${RESET}`,
+    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.monthSimRef || `Sim${m.month}`} · ${m.calendarLabel})${RESET}`,
   );
   console.log(
     `${DIM}Scenario: ${scenarioId} · Spousal Tax Classes: ${m.taxClassLabel}${RESET}`,
@@ -769,7 +777,7 @@ function printMonthExplanation(
   const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
   console.log(
-    `${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title} (${m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.calendarLabel})${RESET}`,
+    `${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title} (${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.monthSimRef || `Sim${m.month}`} · ${m.calendarLabel})${RESET}`,
   );
   console.log(`${DIM}${rowExp.subtitle} · Scenario: ${scenarioId}${RESET}`);
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
@@ -1122,7 +1130,7 @@ function printMilestones(res: SimulationResult) {
       (m.relativeMonthLabel || m.relativeBirthLabel).includes("M-8")
     ) {
       console.log(
-        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}${m.relativeMonthLabel || m.relativeBirthLabel}${RESET} · ${m.monthId} · Sim M${m.month}): ${m.phaseLabel}`,
+        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel}${RESET} · ${m.monthId} · ${m.monthSimRef || `Sim${m.month}`}): ${m.phaseLabel}`,
       );
       if (events.length > 0) {
         console.log(`    ↳ ${events.join(" • ")}`);
@@ -1203,10 +1211,12 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       const q = String(opts.explainMonth).trim();
       monthIdx = targetSim.months.findIndex(
         (m) =>
-          m.monthId === q ||
+          m.monthId.toLowerCase() === q.toLowerCase() ||
+          m.monthRef.toLowerCase().startsWith(q.toLowerCase()) ||
           m.relativeMonthLabel.toLowerCase().startsWith(q.toLowerCase()) ||
+          m.monthSimRef.toLowerCase() === q.toLowerCase() ||
           m.calendarLabel === q ||
-          m.month === parseInt(q.replace(/^M/i, ""), 10),
+          m.month === parseInt(q.replace(/^(?:Sim|M)/i, ""), 10),
       );
     }
 
@@ -1314,8 +1324,8 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     `${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`,
   );
 
-  const header = `| Rel. Month               | Month ID | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |`;
-  const sep = `|--------------------------|----------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|`;
+  const header = `| Rel. Month (monthRef)    | Month ID  | Sim Ref | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |`;
+  const sep = `|--------------------------|-----------|---------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|`;
 
   console.log(header);
   console.log(sep);
@@ -1352,10 +1362,11 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
         const actTitle = `↳ ${cleanTitle}`;
 
         const actRow = [
-          (act.relativeMonthLabel || m.relativeMonthLabel || "")
+          (act.relativeMonthLabel || act.monthRef || m.relativeMonthLabel || "")
             .slice(0, 24)
             .padEnd(24),
-          (act.monthId || m.monthId).padEnd(8),
+          (act.monthId || m.monthId).padEnd(9),
+          (act.monthSimRef || m.monthSimRef || `Sim${m.month}`).padEnd(7),
           m.calendarLabel.padEnd(8),
           `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1419,10 +1430,11 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
             : "";
 
         const evRow = [
-          (ev.relativeMonthLabel || m.relativeMonthLabel || "")
+          (ev.relativeMonthLabel || ev.monthRef || m.relativeMonthLabel || "")
             .slice(0, 24)
             .padEnd(24),
-          (ev.monthId || m.monthId).padEnd(8),
+          (ev.monthId || m.monthId).padEnd(9),
+          (ev.monthSimRef || m.monthSimRef || `Sim${m.month}`).padEnd(7),
           ev.calendarLabel.padEnd(8),
           `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1447,10 +1459,11 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     }
 
     const row = [
-      (m.relativeMonthLabel || m.relativeBirthLabel || "")
+      (m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel || "")
         .slice(0, 24)
         .padEnd(24),
-      m.monthId.padEnd(8),
+      m.monthId.padEnd(9),
+      m.monthSimRef.padEnd(7),
       m.calendarLabel.padEnd(8),
       m.phaseLabel.slice(0, 30).padEnd(30),
       m.taxClassLabel.slice(0, 11).padEnd(11),
