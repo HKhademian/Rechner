@@ -703,7 +703,7 @@ export default function TimelineChart(): JSX.Element {
               ];
 
               return (
-                <g key={m.month} opacity={isHovered ? 1 : 0.92}>
+                <g key={m.monthId} opacity={isHovered ? 1 : 0.92}>
                   {isHovered && (
                     <rect
                       x={margin.left + i * barSlotWidth}
@@ -1054,7 +1054,7 @@ export default function TimelineChart(): JSX.Element {
               (m.month as number) === totalCount;
             const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
             return isLabel ? (
-              <g key={`x-tick-${m.month}`}>
+              <g key={`x-tick-${m.monthId}`}>
                 <line
                   x1={x}
                   y1={svgHeight - margin.bottom}
@@ -1069,8 +1069,9 @@ export default function TimelineChart(): JSX.Element {
                   fill="var(--text-muted)"
                   fontSize="9"
                   fontFamily="monospace"
+                  fontWeight="bold"
                 >
-                  M{m.month}
+                  {m.relativeMonthLabel || m.relativeBirthLabel}
                 </text>
                 <text
                   x={x}
@@ -1122,7 +1123,8 @@ export default function TimelineChart(): JSX.Element {
                     color: "var(--text-primary)",
                   }}
                 >
-                  Month {tooltipState.month.month}
+                  {tooltipState.month.relativeMonthLabel ||
+                    tooltipState.month.relativeBirthLabel}
                 </span>
                 <span
                   style={{
@@ -1132,12 +1134,14 @@ export default function TimelineChart(): JSX.Element {
                     fontWeight: 600,
                   }}
                 >
-                  ({tooltipState.month.calendarLabel})
+                  ({tooltipState.month.calendarLabel}) ·{" "}
+                  {tooltipState.month.monthId}
                 </span>
                 <div
                   style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}
                 >
-                  {tooltipState.month.relativeBirthLabel}
+                  Sim M{tooltipState.month.month} · Year{" "}
+                  {tooltipState.month.year}
                 </div>
               </div>
               <span

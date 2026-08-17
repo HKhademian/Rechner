@@ -83,8 +83,11 @@ export default function TimelineTable(): JSX.Element {
       const matchMonth =
         `m${m.month}`.includes(term) ||
         `month ${m.month}`.includes(term) ||
+        m.monthId.toLowerCase().includes(term) ||
         m.calendarLabel.includes(term) ||
-        m.relativeBirthLabel.toLowerCase().includes(term);
+        (m.relativeMonthLabel || m.relativeBirthLabel)
+          .toLowerCase()
+          .includes(term);
       const matchPhase = m.phaseLabel.toLowerCase().includes(term);
       const matchTax = m.taxClassLabel.toLowerCase().includes(term);
       const matchEvent = m.eventTag && m.eventTag.toLowerCase().includes(term);
@@ -93,7 +96,8 @@ export default function TimelineTable(): JSX.Element {
         m.specialEvents.some(
           (e: SpecialEventItem) =>
             e.title.toLowerCase().includes(term) ||
-            (e.category as string).toLowerCase().includes(term),
+            (e.category as string).toLowerCase().includes(term) ||
+            e.monthId.toLowerCase().includes(term),
         );
       if (
         !matchMonth &&
@@ -111,9 +115,10 @@ export default function TimelineTable(): JSX.Element {
   const exportCSV = (): void => {
     const headers = [
       "Entry Type",
+      "Month ID",
+      "Relative Month",
       "Simulation Month",
       "Calendar Date",
-      "Relative to Delivery",
       "Simulation Year",
       "Phase / Event Name",
       "Tax Classes",
@@ -141,15 +146,17 @@ export default function TimelineTable(): JSX.Element {
 
     current.months.forEach((m: TimelineMonth) => {
       const bMonth = bData.months[(m.month as number) - 1];
+      const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
 
       // 1. Action Milestones
       if (m.startingActions) {
         m.startingActions.forEach((act: ActionRowItem) => {
           rows.push([
             "ACTION",
+            act.monthId,
+            act.relativeMonthLabel || relLabel,
             `M${m.month}`,
             m.calendarLabel,
-            m.relativeBirthLabel,
             m.year as number,
             act.title,
             act.taxClassLabel || "—",
@@ -194,9 +201,10 @@ export default function TimelineTable(): JSX.Element {
 
           rows.push([
             "FISCAL_EVENT",
+            ev.monthId,
+            ev.relativeMonthLabel || relLabel,
             `M${m.month}`,
             ev.calendarLabel,
-            m.relativeBirthLabel,
             m.year as number,
             `${ev.category}: ${ev.title}`,
             ev.taxClassLabel || "—",
@@ -248,9 +256,10 @@ export default function TimelineTable(): JSX.Element {
 
       rows.push([
         "MONTH_BASE",
+        m.monthId,
+        relLabel,
         `M${m.month}`,
         m.calendarLabel,
-        m.relativeBirthLabel,
         m.year as number,
         m.phaseLabel,
         m.taxClassLabel,
@@ -935,7 +944,7 @@ export default function TimelineTable(): JSX.Element {
 
                     return (
                       <tr
-                        key={`action-${act.actionId}-m${m.month}`}
+                        key={act.actionId}
                         style={{
                           background: "var(--bg-surface-secondary)",
                           borderBottom: "1px dashed var(--border-subtle)",
@@ -978,14 +987,20 @@ export default function TimelineTable(): JSX.Element {
                             }}
                           >
                             <div>
-                              <div>↳ M{m.month} Event</div>
+                              <div>
+                                ↳{" "}
+                                {act.relativeMonthLabel ||
+                                  m.relativeMonthLabel ||
+                                  act.relativeBirthLabel}{" "}
+                                Event
+                              </div>
                               <div
                                 style={{
                                   fontSize: "0.66rem",
                                   color: "var(--text-muted)",
                                 }}
                               >
-                                ({m.calendarLabel})
+                                ({m.calendarLabel}) · {act.monthId}
                               </div>
                             </div>
                             <button
@@ -1287,7 +1302,11 @@ export default function TimelineTable(): JSX.Element {
                           >
                             <div>
                               <div>
-                                ↳ M{m.month} {isCost ? "Cost" : "Event"}
+                                ↳{" "}
+                                {ev.relativeMonthLabel ||
+                                  m.relativeMonthLabel ||
+                                  ev.relativeBirthLabel}{" "}
+                                {isCost ? "Cost" : "Event"}
                               </div>
                               <div
                                 style={{
@@ -1295,7 +1314,7 @@ export default function TimelineTable(): JSX.Element {
                                   color: "var(--text-muted)",
                                 }}
                               >
-                                ({ev.calendarLabel})
+                                ({ev.calendarLabel}) · {ev.monthId}
                               </div>
                             </div>
                             <button
@@ -1541,7 +1560,7 @@ export default function TimelineTable(): JSX.Element {
 
                 /* 3. Base Monthly Row */
                 <tr
-                  key={`month-${m.month}`}
+                  key={m.monthId}
                   style={{
                     borderBottom: "1px solid var(--border-subtle)",
                     background: isHovered
@@ -1595,7 +1614,9 @@ export default function TimelineTable(): JSX.Element {
                             gap: "4px",
                           }}
                         >
-                          <span>M{m.month}</span>
+                          <span style={{ fontWeight: 800 }}>
+                            {m.relativeMonthLabel || m.relativeBirthLabel}
+                          </span>
                           <span
                             style={{
                               fontSize: "0.72rem",
@@ -1613,7 +1634,7 @@ export default function TimelineTable(): JSX.Element {
                             fontWeight: 500,
                           }}
                         >
-                          {m.relativeBirthLabel} · Y{m.year}
+                          {m.monthId} · Sim M{m.month} · Y{m.year}
                         </div>
                       </div>
                       <button
