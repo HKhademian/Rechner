@@ -4,17 +4,27 @@
  * Provides type-safe serialization, deserialization, schema validation,
  * and robust localStorage persistence for all user sandbox inputs,
  * timeline parameters, custom actions, and UI view preferences.
+ * Enforces nominal branded types, const object enums, and runtime validation
+ * per repository rules and domain modeling guidelines.
  */
 
 import {
   SalaryInputMode,
   SalaryPeriod,
-  ScenarioId,
+  ActiveScenarioView,
+  TimelineChartMode,
+  TimelineTimeRangeFilter,
   TaxClass,
   TargetPerson,
   FinancialEventCategory,
   toSalaryInputMode,
   toSalaryPeriod,
+  toActiveScenarioView,
+  toTimelineChartMode,
+  toTimelineTimeRangeFilter,
+  toTaxClass,
+  toTargetPerson,
+  toFinancialEventCategory,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -25,7 +35,12 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
-  toCalendarYear,
+  type GrossSalary,
+  type NetSalary,
+  type WorkingHours,
+  type EuroAmount,
+  type SimulationMonth,
+  type CalendarMonth,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
@@ -34,41 +49,44 @@ import {
 
 export const ELTERNGELD_STORAGE_KEY = 'elterngeld_simulator_state_v1';
 
+/**
+ * Strongly-typed persisted state interface with nominal branded types and const enums.
+ */
 export interface ElterngeldPersistedState {
   // Input Modes & Salaries
   readonly salaryInputMode: SalaryInputMode;
   readonly salaryPeriod: SalaryPeriod;
-  readonly husbandGross: number;
-  readonly wifeGross: number;
-  readonly husbandHours: number;
-  readonly wifeInitialHours: number;
-  readonly wifePostBirthHours: number;
-  readonly husbandClass3Net: number;
-  readonly husbandClass5Net: number;
-  readonly wifeClass5FullTimeNet: number;
-  readonly wifeClass3FullTimeNet: number;
+  readonly husbandGross: GrossSalary;
+  readonly wifeGross: GrossSalary;
+  readonly husbandHours: WorkingHours;
+  readonly wifeInitialHours: WorkingHours;
+  readonly wifePostBirthHours: WorkingHours;
+  readonly husbandClass3Net: NetSalary;
+  readonly husbandClass5Net: NetSalary;
+  readonly wifeClass5FullTimeNet: NetSalary;
+  readonly wifeClass3FullTimeNet: NetSalary;
 
   // Additional Inflows
-  readonly annualBonusGross: number;
-  readonly annualBonusMonth: number;
-  readonly investmentReturnMonthly: number;
+  readonly annualBonusGross: GrossSalary;
+  readonly annualBonusMonth: CalendarMonth;
+  readonly investmentReturnMonthly: EuroAmount;
 
   // Benefits & Calendar Timelines
-  readonly kindergeldPerChild: number;
+  readonly kindergeldPerChild: EuroAmount;
   readonly enable13thSalary: boolean;
-  readonly bonus40Month: number;
-  readonly bonus60Month: number;
-  readonly taxReturnMonth: number;
+  readonly bonus40Month: CalendarMonth;
+  readonly bonus60Month: CalendarMonth;
+  readonly taxReturnMonth: CalendarMonth;
   readonly showSpecialEventRows: boolean;
   readonly enableSalaryRaises: boolean;
   readonly annualSalaryRaisePercent: number;
 
   // Simulation Duration & Milestones
   readonly startCalendarYear: number;
-  readonly startCalendarMonth: number;
+  readonly startCalendarMonth: CalendarMonth;
   readonly simulationDurationMonths: number;
   readonly prePregnancyPlanningMonths: number;
-  readonly child1BirthMonth: number;
+  readonly child1BirthMonth: SimulationMonth;
   readonly birthSpacingMonths: number;
   readonly swapLeadMonths: number;
   readonly preMutterschutzMonths: number;
@@ -81,43 +99,46 @@ export interface ElterngeldPersistedState {
   readonly customFinancialEvents: readonly FinancialEventAction[];
 
   // UI View Preferences
-  readonly activeScenario: string;
-  readonly chartMode: string;
-  readonly timeRangeFilter: string;
+  readonly activeScenario: ActiveScenarioView;
+  readonly chartMode: TimelineChartMode;
+  readonly timeRangeFilter: TimelineTimeRangeFilter;
 }
 
+/**
+ * Returns the statutory default persisted state with branded domain types and const enum members.
+ */
 export function getDefaultPersistedState(): ElterngeldPersistedState {
   return {
     salaryInputMode: SalaryInputMode.Gross,
     salaryPeriod: SalaryPeriod.Monthly,
-    husbandGross: 4500,
-    wifeGross: 3000,
-    husbandHours: 32,
-    wifeInitialHours: 40,
-    wifePostBirthHours: 24,
-    husbandClass3Net: 3184,
-    husbandClass5Net: 2398,
-    wifeClass5FullTimeNet: 1975,
-    wifeClass3FullTimeNet: 2603,
+    husbandGross: toGrossSalary(4500),
+    wifeGross: toGrossSalary(3000),
+    husbandHours: toWorkingHours(32),
+    wifeInitialHours: toWorkingHours(40),
+    wifePostBirthHours: toWorkingHours(24),
+    husbandClass3Net: toNetSalary(3184),
+    husbandClass5Net: toNetSalary(2398),
+    wifeClass5FullTimeNet: toNetSalary(1975),
+    wifeClass3FullTimeNet: toNetSalary(2603),
 
-    annualBonusGross: 0,
-    annualBonusMonth: 12,
-    investmentReturnMonthly: 0,
+    annualBonusGross: toGrossSalary(0),
+    annualBonusMonth: toCalendarMonth(12),
+    investmentReturnMonthly: toEuroAmount(0),
 
-    kindergeldPerChild: 259,
+    kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: true,
-    bonus40Month: 5,
-    bonus60Month: 11,
-    taxReturnMonth: 3,
+    bonus40Month: toCalendarMonth(5),
+    bonus60Month: toCalendarMonth(11),
+    taxReturnMonth: toCalendarMonth(3),
     showSpecialEventRows: true,
     enableSalaryRaises: false,
     annualSalaryRaisePercent: 0,
 
     startCalendarYear: 2026,
-    startCalendarMonth: 1,
+    startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: 60,
     prePregnancyPlanningMonths: 8,
-    child1BirthMonth: 17,
+    child1BirthMonth: toSimulationMonth(17),
     birthSpacingMonths: 27,
     swapLeadMonths: 7,
     preMutterschutzMonths: 1.5,
@@ -198,15 +219,15 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
       }
     ],
 
-    activeScenario: ScenarioId.C,
-    chartMode: 'stacked_bar',
-    timeRangeFilter: 'all'
+    activeScenario: ActiveScenarioView.C,
+    chartMode: TimelineChartMode.StackedBar,
+    timeRangeFilter: TimelineTimeRangeFilter.All
   };
 }
 
 /**
  * Validates and sanitizes a raw object loaded from JSON storage into a complete ElterngeldPersistedState.
- * If any fields are invalid or missing, it gracefully substitutes the statutory default.
+ * If any fields are invalid, missing, or corrupted, it gracefully substitutes the statutory default.
  */
 export function validateAndSanitizePersistedState(raw: unknown): ElterngeldPersistedState {
   const defaults = getDefaultPersistedState();
@@ -216,8 +237,8 @@ export function validateAndSanitizePersistedState(raw: unknown): ElterngeldPersi
 
   const obj = raw as Record<string, unknown>;
 
-  // Validate salaryInputMode
-  let salaryInputModeVal = defaults.salaryInputMode;
+  // Validate salaryInputMode const enum
+  let salaryInputModeVal: SalaryInputMode = defaults.salaryInputMode;
   if (typeof obj.salaryInputMode === 'string') {
     try {
       salaryInputModeVal = toSalaryInputMode(obj.salaryInputMode);
@@ -226,13 +247,43 @@ export function validateAndSanitizePersistedState(raw: unknown): ElterngeldPersi
     }
   }
 
-  // Validate salaryPeriod
-  let salaryPeriodVal = defaults.salaryPeriod;
+  // Validate salaryPeriod const enum
+  let salaryPeriodVal: SalaryPeriod = defaults.salaryPeriod;
   if (typeof obj.salaryPeriod === 'string') {
     try {
       salaryPeriodVal = toSalaryPeriod(obj.salaryPeriod);
     } catch {
       salaryPeriodVal = defaults.salaryPeriod;
+    }
+  }
+
+  // Validate activeScenario const enum
+  let activeScenarioVal: ActiveScenarioView = defaults.activeScenario;
+  if (typeof obj.activeScenario === 'string') {
+    try {
+      activeScenarioVal = toActiveScenarioView(obj.activeScenario);
+    } catch {
+      activeScenarioVal = defaults.activeScenario;
+    }
+  }
+
+  // Validate chartMode const enum
+  let chartModeVal: TimelineChartMode = defaults.chartMode;
+  if (typeof obj.chartMode === 'string') {
+    try {
+      chartModeVal = toTimelineChartMode(obj.chartMode);
+    } catch {
+      chartModeVal = defaults.chartMode;
+    }
+  }
+
+  // Validate timeRangeFilter const enum
+  let timeRangeFilterVal: TimelineTimeRangeFilter = defaults.timeRangeFilter;
+  if (typeof obj.timeRangeFilter === 'string') {
+    try {
+      timeRangeFilterVal = toTimelineTimeRangeFilter(obj.timeRangeFilter);
+    } catch {
+      timeRangeFilterVal = defaults.timeRangeFilter;
     }
   }
 
@@ -251,91 +302,138 @@ export function validateAndSanitizePersistedState(raw: unknown): ElterngeldPersi
     return typeof v === 'string' && v.trim() ? v : def;
   };
 
-  // Validate Action Collections
-  const pregnancies: PregnancyAction[] = Array.isArray(obj.customPregnancies)
-    ? obj.customPregnancies.map((p, idx) => ({
-        pregnancyId: toPregnancyId(typeof p.pregnancyId === 'string' ? p.pregnancyId : `PREG-CHILD-${idx + 1}`),
-        childIndex: num(p.childIndex, idx + 1, 1, 10),
-        positiveTestCalendarMonth: toCalendarMonth(num(p.positiveTestCalendarMonth, 9, 1, 12)),
-        positiveTestCalendarYear: num(p.positiveTestCalendarYear, 2026, 2020, 2050),
-        positiveTestSimulationMonth: toSimulationMonth(num(p.positiveTestSimulationMonth, 9, 1, 120)),
-        calculatedDeliverySimulationMonth: toSimulationMonth(num(p.calculatedDeliverySimulationMonth, 17, 1, 120)),
-        motherPostBirthPartTimeHours: toWorkingHours(num(p.motherPostBirthPartTimeHours, 24, 0, 60)),
-        motherPostBirthPartTimeClass5Net: toNetSalary(num(p.motherPostBirthPartTimeClass5Net, 1328, 0, 100000)),
-        motherPostBirthPartTimeClass3Net: toNetSalary(num(p.motherPostBirthPartTimeClass3Net, 1648, 0, 100000)),
-        fatherPartnerMonthsCount: num(p.fatherPartnerMonthsCount, 4, 0, 14)
-      }))
+  // Validate Batch 1: Pregnancies Action Collection
+  const pregnancies: readonly PregnancyAction[] = Array.isArray(obj.customPregnancies)
+    ? obj.customPregnancies.map((p, idx) => {
+        const pObj = (p && typeof p === 'object' ? p : {}) as Record<string, unknown>;
+        return {
+          pregnancyId: toPregnancyId(typeof pObj.pregnancyId === 'string' ? pObj.pregnancyId : `PREG-CHILD-${idx + 1}`),
+          childIndex: num(pObj.childIndex, idx + 1, 1, 10),
+          positiveTestCalendarMonth: toCalendarMonth(num(pObj.positiveTestCalendarMonth, 9, 1, 12)),
+          positiveTestCalendarYear: num(pObj.positiveTestCalendarYear, 2026, 2020, 2050),
+          positiveTestSimulationMonth: toSimulationMonth(num(pObj.positiveTestSimulationMonth, 9, 1, 120)),
+          calculatedDeliverySimulationMonth: toSimulationMonth(num(pObj.calculatedDeliverySimulationMonth, 17, 1, 120)),
+          motherPostBirthPartTimeHours: toWorkingHours(num(pObj.motherPostBirthPartTimeHours, 24, 0, 60)),
+          motherPostBirthPartTimeClass5Net: toNetSalary(num(pObj.motherPostBirthPartTimeClass5Net, 1328, 0, 100000)),
+          motherPostBirthPartTimeClass3Net: toNetSalary(num(pObj.motherPostBirthPartTimeClass3Net, 1648, 0, 100000)),
+          fatherPartnerMonthsCount: num(pObj.fatherPartnerMonthsCount, 4, 0, 14)
+        };
+      })
     : defaults.customPregnancies;
 
-  const taxSwitches: TaxClassSwitchAction[] = Array.isArray(obj.customTaxClassSwitches)
-    ? obj.customTaxClassSwitches.map((s, idx) => ({
-        switchId: toSwitchId(typeof s.switchId === 'string' ? s.switchId : `SWAP-CHILD-${idx + 1}`),
-        effectiveSimulationMonth: toSimulationMonth(num(s.effectiveSimulationMonth, 9, 1, 120)),
-        effectiveCalendarMonth: toCalendarMonth(num(s.effectiveCalendarMonth, 9, 1, 12)),
-        effectiveCalendarYear: num(s.effectiveCalendarYear, 2026, 2020, 2050),
-        targetHusbandTaxClass: (s.targetHusbandTaxClass as TaxClass) || TaxClass.V,
-        targetWifeTaxClass: (s.targetWifeTaxClass as TaxClass) || TaxClass.III,
-        statutoryReason: str(s.statutoryReason, 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)'),
-        revertSimulationMonth: s.revertSimulationMonth ? toSimulationMonth(num(s.revertSimulationMonth, 17, 1, 120)) : undefined
-      }))
+  // Validate Batch 2: Tax Class Switches Action Collection
+  const taxSwitches: readonly TaxClassSwitchAction[] = Array.isArray(obj.customTaxClassSwitches)
+    ? obj.customTaxClassSwitches.map((s, idx) => {
+        const sObj = (s && typeof s === 'object' ? s : {}) as Record<string, unknown>;
+        let targetH: TaxClass = TaxClass.V;
+        if (typeof sObj.targetHusbandTaxClass === 'string') {
+          try {
+            targetH = toTaxClass(sObj.targetHusbandTaxClass);
+          } catch {
+            targetH = TaxClass.V;
+          }
+        }
+        let targetW: TaxClass = TaxClass.III;
+        if (typeof sObj.targetWifeTaxClass === 'string') {
+          try {
+            targetW = toTaxClass(sObj.targetWifeTaxClass);
+          } catch {
+            targetW = TaxClass.III;
+          }
+        }
+        return {
+          switchId: toSwitchId(typeof sObj.switchId === 'string' ? sObj.switchId : `SWAP-CHILD-${idx + 1}`),
+          effectiveSimulationMonth: toSimulationMonth(num(sObj.effectiveSimulationMonth, 9, 1, 120)),
+          effectiveCalendarMonth: toCalendarMonth(num(sObj.effectiveCalendarMonth, 9, 1, 12)),
+          effectiveCalendarYear: num(sObj.effectiveCalendarYear, 2026, 2020, 2050),
+          targetHusbandTaxClass: targetH,
+          targetWifeTaxClass: targetW,
+          statutoryReason: str(sObj.statutoryReason, 'Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)'),
+          revertSimulationMonth: sObj.revertSimulationMonth !== undefined ? toSimulationMonth(num(sObj.revertSimulationMonth, 17, 1, 120)) : undefined
+        };
+      })
     : defaults.customTaxClassSwitches;
 
-  const salaryRaises: SalaryRaiseAction[] = Array.isArray(obj.customSalaryRaises)
-    ? obj.customSalaryRaises.map((r, idx) => ({
-        raiseId: toRaiseId(typeof r.raiseId === 'string' ? r.raiseId : `RAISE-Y${idx + 2}`),
-        effectiveSimulationMonth: toSimulationMonth(num(r.effectiveSimulationMonth, 13, 1, 120)),
-        effectiveCalendarMonth: toCalendarMonth(num(r.effectiveCalendarMonth, 1, 1, 12)),
-        effectiveCalendarYear: num(r.effectiveCalendarYear, 2027, 2020, 2050),
-        targetPerson: (r.targetPerson as TargetPerson) || TargetPerson.Both,
-        percentageIncrease: num(r.percentageIncrease, 0.02, 0, 1),
-        reason: str(r.reason, 'Annual Merit / Tariff Raise')
-      }))
+  // Validate Batch 3: Salary Raises Action Collection
+  const salaryRaises: readonly SalaryRaiseAction[] = Array.isArray(obj.customSalaryRaises)
+    ? obj.customSalaryRaises.map((r, idx) => {
+        const rObj = (r && typeof r === 'object' ? r : {}) as Record<string, unknown>;
+        let tp: TargetPerson = TargetPerson.Both;
+        if (typeof rObj.targetPerson === 'string') {
+          try {
+            tp = toTargetPerson(rObj.targetPerson);
+          } catch {
+            tp = TargetPerson.Both;
+          }
+        }
+        return {
+          raiseId: toRaiseId(typeof rObj.raiseId === 'string' ? rObj.raiseId : `RAISE-Y${idx + 2}`),
+          effectiveSimulationMonth: toSimulationMonth(num(rObj.effectiveSimulationMonth, 13, 1, 120)),
+          effectiveCalendarMonth: toCalendarMonth(num(rObj.effectiveCalendarMonth, 1, 1, 12)),
+          effectiveCalendarYear: num(rObj.effectiveCalendarYear, 2027, 2020, 2050),
+          targetPerson: tp,
+          percentageIncrease: num(rObj.percentageIncrease, 0.02, 0, 1),
+          reason: str(rObj.reason, 'Annual Merit / Tariff Raise')
+        };
+      })
     : defaults.customSalaryRaises;
 
-  const financialEvents: FinancialEventAction[] = Array.isArray(obj.customFinancialEvents)
-    ? obj.customFinancialEvents.map((e, idx) => ({
-        eventId: toFinancialEventId(typeof e.eventId === 'string' ? e.eventId : `FIN-EVENT-${idx + 1}`),
-        effectiveSimulationMonth: toSimulationMonth(num(e.effectiveSimulationMonth, 17, 1, 120)),
-        effectiveCalendarMonth: toCalendarMonth(num(e.effectiveCalendarMonth, 5, 1, 12)),
-        effectiveCalendarYear: num(e.effectiveCalendarYear, 2027, 2020, 2050),
-        title: str(e.title, `Custom Event #${idx + 1}`),
-        amount: toEuroAmount(num(e.amount, 0)),
-        category: (e.category as FinancialEventCategory) || FinancialEventCategory.Custom,
-        description: str(e.description, '')
-      }))
+  // Validate Batch 4: Financial Events Action Collection
+  const financialEvents: readonly FinancialEventAction[] = Array.isArray(obj.customFinancialEvents)
+    ? obj.customFinancialEvents.map((e, idx) => {
+        const eObj = (e && typeof e === 'object' ? e : {}) as Record<string, unknown>;
+        let cat: FinancialEventCategory = FinancialEventCategory.CustomSpecial;
+        if (typeof eObj.category === 'string') {
+          try {
+            cat = toFinancialEventCategory(eObj.category);
+          } catch {
+            cat = FinancialEventCategory.CustomSpecial;
+          }
+        }
+        return {
+          eventId: toFinancialEventId(typeof eObj.eventId === 'string' ? eObj.eventId : `FIN-EVENT-${idx + 1}`),
+          effectiveSimulationMonth: toSimulationMonth(num(eObj.effectiveSimulationMonth, 17, 1, 120)),
+          effectiveCalendarMonth: toCalendarMonth(num(eObj.effectiveCalendarMonth, 5, 1, 12)),
+          effectiveCalendarYear: num(eObj.effectiveCalendarYear, 2027, 2020, 2050),
+          title: str(eObj.title, `Custom Event #${idx + 1}`),
+          amount: toEuroAmount(num(eObj.amount, 0)),
+          category: cat,
+          description: str(eObj.description, '')
+        };
+      })
     : defaults.customFinancialEvents;
 
   return {
     salaryInputMode: salaryInputModeVal,
     salaryPeriod: salaryPeriodVal,
-    husbandGross: num(obj.husbandGross, defaults.husbandGross, 0, 1000000),
-    wifeGross: num(obj.wifeGross, defaults.wifeGross, 0, 1000000),
-    husbandHours: num(obj.husbandHours, defaults.husbandHours, 0, 60),
-    wifeInitialHours: num(obj.wifeInitialHours, defaults.wifeInitialHours, 0, 60),
-    wifePostBirthHours: num(obj.wifePostBirthHours, defaults.wifePostBirthHours, 0, 60),
-    husbandClass3Net: num(obj.husbandClass3Net, defaults.husbandClass3Net, 0, 100000),
-    husbandClass5Net: num(obj.husbandClass5Net, defaults.husbandClass5Net, 0, 100000),
-    wifeClass5FullTimeNet: num(obj.wifeClass5FullTimeNet, defaults.wifeClass5FullTimeNet, 0, 100000),
-    wifeClass3FullTimeNet: num(obj.wifeClass3FullTimeNet, defaults.wifeClass3FullTimeNet, 0, 100000),
+    husbandGross: toGrossSalary(num(obj.husbandGross, defaults.husbandGross, 0, 1000000)),
+    wifeGross: toGrossSalary(num(obj.wifeGross, defaults.wifeGross, 0, 1000000)),
+    husbandHours: toWorkingHours(num(obj.husbandHours, defaults.husbandHours, 0, 60)),
+    wifeInitialHours: toWorkingHours(num(obj.wifeInitialHours, defaults.wifeInitialHours, 0, 60)),
+    wifePostBirthHours: toWorkingHours(num(obj.wifePostBirthHours, defaults.wifePostBirthHours, 0, 60)),
+    husbandClass3Net: toNetSalary(num(obj.husbandClass3Net, defaults.husbandClass3Net, 0, 100000)),
+    husbandClass5Net: toNetSalary(num(obj.husbandClass5Net, defaults.husbandClass5Net, 0, 100000)),
+    wifeClass5FullTimeNet: toNetSalary(num(obj.wifeClass5FullTimeNet, defaults.wifeClass5FullTimeNet, 0, 100000)),
+    wifeClass3FullTimeNet: toNetSalary(num(obj.wifeClass3FullTimeNet, defaults.wifeClass3FullTimeNet, 0, 100000)),
 
-    annualBonusGross: num(obj.annualBonusGross, defaults.annualBonusGross, 0, 1000000),
-    annualBonusMonth: num(obj.annualBonusMonth, defaults.annualBonusMonth, 1, 12),
-    investmentReturnMonthly: num(obj.investmentReturnMonthly, defaults.investmentReturnMonthly, 0, 1000000),
+    annualBonusGross: toGrossSalary(num(obj.annualBonusGross, defaults.annualBonusGross, 0, 1000000)),
+    annualBonusMonth: toCalendarMonth(num(obj.annualBonusMonth, defaults.annualBonusMonth, 1, 12)),
+    investmentReturnMonthly: toEuroAmount(num(obj.investmentReturnMonthly, defaults.investmentReturnMonthly, 0, 1000000)),
 
-    kindergeldPerChild: num(obj.kindergeldPerChild, defaults.kindergeldPerChild, 0, 10000),
+    kindergeldPerChild: toEuroAmount(num(obj.kindergeldPerChild, defaults.kindergeldPerChild, 0, 10000)),
     enable13thSalary: bool(obj.enable13thSalary, defaults.enable13thSalary),
-    bonus40Month: num(obj.bonus40Month, defaults.bonus40Month, 1, 12),
-    bonus60Month: num(obj.bonus60Month, defaults.bonus60Month, 1, 12),
-    taxReturnMonth: num(obj.taxReturnMonth, defaults.taxReturnMonth, 1, 12),
+    bonus40Month: toCalendarMonth(num(obj.bonus40Month, defaults.bonus40Month, 1, 12)),
+    bonus60Month: toCalendarMonth(num(obj.bonus60Month, defaults.bonus60Month, 1, 12)),
+    taxReturnMonth: toCalendarMonth(num(obj.taxReturnMonth, defaults.taxReturnMonth, 1, 12)),
     showSpecialEventRows: bool(obj.showSpecialEventRows, defaults.showSpecialEventRows),
     enableSalaryRaises: bool(obj.enableSalaryRaises, defaults.enableSalaryRaises),
     annualSalaryRaisePercent: num(obj.annualSalaryRaisePercent, defaults.annualSalaryRaisePercent, 0, 100),
 
     startCalendarYear: num(obj.startCalendarYear, defaults.startCalendarYear, 2020, 2050),
-    startCalendarMonth: num(obj.startCalendarMonth, defaults.startCalendarMonth, 1, 12),
+    startCalendarMonth: toCalendarMonth(num(obj.startCalendarMonth, defaults.startCalendarMonth, 1, 12)),
     simulationDurationMonths: num(obj.simulationDurationMonths, defaults.simulationDurationMonths, 12, 120),
     prePregnancyPlanningMonths: num(obj.prePregnancyPlanningMonths, defaults.prePregnancyPlanningMonths, 0, 36),
-    child1BirthMonth: num(obj.child1BirthMonth, defaults.child1BirthMonth, 1, 120),
+    child1BirthMonth: toSimulationMonth(num(obj.child1BirthMonth, defaults.child1BirthMonth, 1, 120)),
     birthSpacingMonths: num(obj.birthSpacingMonths, defaults.birthSpacingMonths, 6, 60),
     swapLeadMonths: num(obj.swapLeadMonths, defaults.swapLeadMonths, 1, 18),
     preMutterschutzMonths: num(obj.preMutterschutzMonths, defaults.preMutterschutzMonths, 0, 6),
@@ -346,9 +444,9 @@ export function validateAndSanitizePersistedState(raw: unknown): ElterngeldPersi
     customSalaryRaises: salaryRaises,
     customFinancialEvents: financialEvents,
 
-    activeScenario: str(obj.activeScenario, defaults.activeScenario),
-    chartMode: str(obj.chartMode, defaults.chartMode),
-    timeRangeFilter: str(obj.timeRangeFilter, defaults.timeRangeFilter)
+    activeScenario: activeScenarioVal,
+    chartMode: chartModeVal,
+    timeRangeFilter: timeRangeFilterVal
   };
 }
 
