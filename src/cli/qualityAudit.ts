@@ -110,6 +110,23 @@ function scanSourceFiles(dir: string): void {
             lineNum,
           );
         }
+
+        // Rule 22: Centralized Icons & No Inline SVG / Raw Emojis in UI components
+        if (
+          entry.name.endsWith(".tsx") &&
+          entry.name !== "Icons.tsx" &&
+          entry.name !== "TimelineChart.tsx"
+        ) {
+          if (trimmed.includes("<svg") || trimmed.includes("</svg>")) {
+            addDiagnostic(
+              "WARN",
+              "IconsArchitecture (Rule 22)",
+              "Inline <svg> detected in component. Move all SVG icons to src/components/Icons.tsx.",
+              fullPath,
+              lineNum,
+            );
+          }
+        }
       });
     }
   }
