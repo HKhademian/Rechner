@@ -1,25 +1,174 @@
-:root {
-  --bg-color: #0f172a; /* Dark slate blue */
-  --text-color: #f8fafc; /* Off-white */
-  --card-bg: #1e293b;
-  --card-border: #334155;
-  --primary: #3b82f6; /* Blue */
-  --primary-hover: #2563eb;
-  --success: #10b981; /* Green */
-  --danger: #ef4444; /* Red */
-  --deduction: #f59e0b; /* Amber */
+/* =========================================================================
+   INSTITUTIONAL DESIGN SYSTEM & THEME TOKENS
+   Federal Parental Allowance & German Wage Tax Modeling Platform
+   ========================================================================= */
+
+:root,
+:root[data-theme="light"] {
+  /* Neutral Canvas & Surfaces */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-secondary: #f1f5f9;
+  --bg-surface-tertiary: #e2e8f0;
+  --bg-surface-elevated: #ffffff;
+
+  /* Borders & Dividers */
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-strong: #94a3b8;
+
+  /* Text & Typography */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Institutional Brand & Actions */
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-bg: #eff6ff;
+  --color-primary-border: #bfdbfe;
+
+  /* Financial Inflow / Benefit Gain */
+  --color-gain: #047857;
+  --color-gain-hover: #065f46;
+  --color-gain-bg: #ecfdf5;
+  --color-gain-border: #a7f3d0;
+
+  /* Financial Outflow / Cost / Forfeiture */
+  --color-loss: #b91c1c;
+  --color-loss-hover: #991b1b;
+  --color-loss-bg: #fef2f2;
+  --color-loss-border: #fecaca;
+
+  /* Statutory / Tax Switch Warning */
+  --color-warning: #b45309;
+  --color-warning-hover: #92400e;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
+
+  /* Categorical Cash Flow Series (Charts & Legends) */
+  --series-salary-husband: #1e3a8a;
+  --series-salary-wife: #4338ca;
+  --series-mutterschutz: #0284c7;
+  --series-elterngeld-mother: #059669;
+  --series-elterngeld-father: #0d9488;
+  --series-kindergeld: #d97706;
+  --series-tax-refund: #0891b2;
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+  /* Legacy Mapping Compatibility */
+  --bg-color: var(--bg-app);
+  --text-color: var(--text-primary);
+  --card-bg: var(--bg-surface);
+  --card-border: var(--border-subtle);
+  --primary: var(--color-primary);
+  --primary-hover: var(--color-primary-hover);
+  --success: var(--color-gain);
+  --danger: var(--color-loss);
+  --deduction: var(--color-warning);
+
+  /* Layout & Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --border-radius: 12px;
-  --transition: all 0.3s ease;
+  --border-radius-sm: 6px;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================================
+   DARK THEME TOKENS
+   ========================================================================= */
+
+[data-theme="dark"] {
+  /* Neutral Canvas & Surfaces */
+  --bg-app: #0b0f19;
+  --bg-surface: #111827;
+  --bg-surface-secondary: #1e293b;
+  --bg-surface-tertiary: #334155;
+  --bg-surface-elevated: #1f2937;
+
+  /* Borders & Dividers */
+  --border-subtle: #1f2937;
+  --border-medium: #374151;
+  --border-strong: #4b5563;
+
+  /* Text & Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f172a;
+
+  /* Institutional Brand & Actions */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-bg: rgba(59, 130, 246, 0.15);
+  --color-primary-border: rgba(59, 130, 246, 0.35);
+
+  /* Financial Inflow / Benefit Gain */
+  --color-gain: #10b981;
+  --color-gain-hover: #34d399;
+  --color-gain-bg: rgba(16, 185, 129, 0.15);
+  --color-gain-border: rgba(16, 185, 129, 0.35);
+
+  /* Financial Outflow / Cost / Forfeiture */
+  --color-loss: #ef4444;
+  --color-loss-hover: #f87171;
+  --color-loss-bg: rgba(239, 68, 68, 0.15);
+  --color-loss-border: rgba(239, 68, 68, 0.35);
+
+  /* Statutory / Tax Switch Warning */
+  --color-warning: #f59e0b;
+  --color-warning-hover: #fbbf24;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-warning-border: rgba(245, 158, 11, 0.35);
+
+  /* Categorical Cash Flow Series (Charts & Legends) */
+  --series-salary-husband: #3b82f6;
+  --series-salary-wife: #6366f1;
+  --series-mutterschutz: #38bdf8;
+  --series-elterngeld-mother: #34d399;
+  --series-elterngeld-father: #2dd4bf;
+  --series-kindergeld: #fbbf24;
+  --series-tax-refund: #22d3ee;
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+
+  /* Legacy Mapping Compatibility */
+  --bg-color: var(--bg-app);
+  --text-color: var(--text-primary);
+  --card-bg: var(--bg-surface);
+  --card-border: var(--border-subtle);
+  --primary: var(--color-primary);
+  --primary-hover: var(--color-primary-hover);
+  --success: var(--color-gain);
+  --danger: var(--color-loss);
+  --deduction: var(--color-warning);
+}
+
+/* =========================================================================
+   BASE STYLES & RESET
+   ========================================================================= */
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -27,202 +176,190 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.025em;
+  color: var(--text-primary);
 }
 
-* {
-  box-sizing: border-box;
+p {
+  color: var(--text-secondary);
+  line-height: 1.55;
 }
 
 /* Institutional Card Panel */
 .glass-panel {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--border-radius);
   padding: 24px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .input-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .input-group label {
   display: block;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #cbd5e1;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
+/* Form Controls */
 input[type="number"],
+input[type="text"],
 input[type="range"],
 select {
   width: 100%;
-  padding: 10px 12px;
-  background-color: #0f172a;
-  border: 1px solid var(--card-border);
-  border-radius: 6px;
-  color: white;
+  padding: 8px 12px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
   font-family: var(--font-family);
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: var(--transition);
 }
 
 input[type="number"]:focus,
+input[type="text"]:focus,
 select:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
 }
 
-/* Range Slider Styling */
+/* Range Slider */
 input[type=range] {
   -webkit-appearance: none;
   background: transparent;
-  height: 24px;
+  height: 22px;
   padding: 0;
   border: none;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--color-primary);
   cursor: pointer;
-  margin-top: -8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  margin-top: -6px;
+  box-shadow: var(--shadow-sm);
   transition: transform 0.1s;
 }
 input[type=range]::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
   height: 6px;
   cursor: pointer;
-  background: var(--card-border);
+  background: var(--border-medium);
   border-radius: 3px;
+}
+
+/* Financial Number Utilities */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Badges and Chips */
+.badge-gain {
+  color: var(--color-gain);
+  background-color: var(--color-gain-bg);
+  border: 1px solid var(--color-gain-border);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-loss {
+  color: var(--color-loss);
+  background-color: var(--color-loss-bg);
+  border: 1px solid var(--color-loss-border);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-warning {
+  color: var(--color-warning);
+  background-color: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-brand {
+  color: var(--color-primary);
+  background-color: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-border);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-neutral {
+  color: var(--text-secondary);
+  background-color: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Animations */
 .fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 0.25s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Value display styling */
-.value-display {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-/* Deduction item styling */
-.deduction-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  font-size: 0.95rem;
-  color: #94a3b8;
-  transition: var(--transition);
-}
-
-.deduction-item:hover {
-  color: #e2e8f0;
-  transform: translateX(4px);
-}
-
-.deduction-item .amount {
-  font-family: monospace;
-  font-size: 1rem;
-}
-
-.total-net {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--success);
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px dashed var(--card-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .container {
-  max-width: 95vw;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 1.5rem;
 }
 
-/* Toggle Switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--card-border);
-  transition: .4s;
-  border-radius: 24px;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
-input:checked + .slider {
-  background-color: var(--primary);
-}
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-.comparison-row:hover td {
-  background-color: rgba(255, 255, 255, 0.03);
-}
-.comparison-row:hover td:first-child {
-  background-color: #2a3b52 !important;
-}
-
-/* Custom Webkit Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   height: 8px;
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--bg-surface-secondary);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--border-medium);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--border-strong);
 }
-
