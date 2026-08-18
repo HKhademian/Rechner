@@ -24,21 +24,39 @@ function formatCurrency(amount: number): string {
   }).format(amount || 0);
 }
 
+/**
+ * Toggle Visibility State for Interactive Timeline Chart Series.
+ */
 interface VisibleSeriesState {
+  /** Husband's earned take-home salary series. */
   husbandSalary: boolean;
+  /** Wife's earned take-home salary series. */
   wifeSalary: boolean;
+  /** Maternity protection benefit series. */
   mutterschutz: boolean;
+  /** Mother's parental allowance series. */
   wifeElterngeld: boolean;
+  /** Father's parental allowance series. */
   husbandElterngeld: boolean;
+  /** Child benefit (Kindergeld) series. */
   kindergeld: boolean;
+  /** Annual tax reconciliation refund series. */
   taxRefund: boolean;
 }
 
+/**
+ * Interactive Timeline Chart Tooltip Hover State.
+ */
 interface TooltipState {
+  /** Monthly ledger snapshot for hovered data point. */
   month: TimelineMonth;
+  /** Chart SVG container relative X coordinate. */
   x: number;
+  /** Chart SVG container relative Y coordinate. */
   y: number;
+  /** Viewport client X coordinate. */
   clientX: number;
+  /** Viewport client Y coordinate. */
   clientY: number;
 }
 

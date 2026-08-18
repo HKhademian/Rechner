@@ -1,7 +1,12 @@
 import type { JSX } from "preact";
 
+/**
+ * Standard SVG Icon Component Properties.
+ */
 export interface IconProps {
+  /** Icon bounding square dimension in pixels (width and height). */
   size?: number;
+  /** Optional additional CSS class names for styling or sizing. */
   className?: string;
 }
 

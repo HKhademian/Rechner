@@ -6,7 +6,11 @@ import {
   StatutorySectionIcon,
 } from "#components/Icons";
 
+/**
+ * Top-Level Navigation Header Component Properties.
+ */
 export interface NavigationProps {
+  /** Active routing pathname (e.g. '/' or '/elterngeld'). */
   currentPath?: string;
 }
 

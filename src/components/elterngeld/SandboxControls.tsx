@@ -110,22 +110,39 @@ import {
 import { getDefaultPersistedState } from "#engine/storage/persistence";
 import scenarioPresetsData from "../../data/scenarioPresets.json" with { type: "json" };
 
+/**
+ * Preset Configuration Schema for Sandbox Simulation Scenarios.
+ */
 export interface ScenarioPresetConfig {
+  /** Unique preset identifier key (e.g. 'standard_equal_income'). */
   readonly id: string;
+  /** Human-readable preset display name. */
   readonly name: string;
+  /** Contextual explanation of preset financial dynamics. */
   readonly description?: string;
+  /** If true, resets state entirely to baseline default before applying. */
   readonly useDefaultReset?: boolean;
+  /** Salary input format ('gross' or 'net'). */
   readonly salaryInputMode?: string;
+  /** Husband's regular gross salary in EUR. */
   readonly husbandGross?: number;
+  /** Wife's pre-birth regular gross salary in EUR. */
   readonly wifeGross?: number;
+  /** Wife's initial full-time weekly working hours. */
   readonly wifeInitialHours?: number;
+  /** Wife's post-birth part-time weekly working hours during leave. */
   readonly wifePostBirthHours?: number;
+  /** Pre-pregnancy planning buffer in months. */
   readonly prePregnancyPlanningMonths?: number;
+  /** First child delivery simulation month index. */
   readonly child1BirthMonth?: number;
+  /** Birth spacing elapsed months between deliveries. */
   readonly birthSpacingMonths?: number;
+  /** Proactive tax class swap lead time in months before conception. */
   readonly swapLeadMonths?: number;
 }
 
+/** Dictionary mapping preset keys to `ScenarioPresetConfig` items. */
 export type ScenarioPresetsMap = Record<string, ScenarioPresetConfig>;
 
 const SCENARIO_PRESETS: ScenarioPresetsMap =

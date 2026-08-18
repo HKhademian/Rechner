@@ -10,8 +10,13 @@ import {
   StepTransitionIcon,
 } from "#components/Icons";
 
+/**
+ * Row Explanation Modal Component Properties.
+ */
 export interface RowExplainerModalProps {
+  /** Active row explanation data payload to render, or null if modal is closed. */
   readonly explanation: RowExplanation | null;
+  /** Callback triggered when user dismisses the modal. */
   readonly onClose: () => void;
 }
 

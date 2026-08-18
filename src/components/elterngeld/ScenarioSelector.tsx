@@ -15,13 +15,23 @@ function formatCurrency(amount: number): string {
   }).format(amount || 0);
 }
 
+/**
+ * Scenario Selection Card View Model.
+ */
 interface ScenarioCardItem {
+  /** Target active scenario view selection. */
   scenarioViewId: ActiveScenarioView;
+  /** Scenario card header title (e.g. 'Scenario C'). */
   title: string;
+  /** Secondary subtitle describing scenario strategy. */
   subtitle: string;
+  /** Promotional badge text (e.g. 'Recommended'). */
   badge: string;
+  /** CSS styling variant for badge. */
   badgeClass: string;
+  /** Short scenario summary description. */
   description: string;
+  /** Key strategic highlight bullet points. */
   highlights: string[];
 }
 

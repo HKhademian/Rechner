@@ -3,8 +3,13 @@ import { type FieldExplanation } from "#engine/explanation/timelineExplainer";
 import { scrollToLegalRule } from "#store/elterngeldStore";
 import { DismissIcon, StepTransitionIcon } from "#components/Icons";
 
+/**
+ * Field-Level Drill-Down Explanation Modal Component Properties.
+ */
 export interface FieldExplainerModalProps {
+  /** Active field explanation data payload to render, or null if modal is closed. */
   readonly explanation: FieldExplanation | null;
+  /** Callback triggered when user dismisses the modal. */
   readonly onClose: () => void;
 }
 

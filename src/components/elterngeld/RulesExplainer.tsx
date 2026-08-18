@@ -14,20 +14,37 @@ import {
   SimulatorNavigationIcon,
 } from "#components/Icons";
 
+/**
+ * Official External Legal Reference Link.
+ */
 interface LegalLink {
+  /** Display label for the legal source. */
   readonly label: string;
+  /** External HTTP URL to official legal statute or court precedent. */
   readonly url: string;
+  /** Contextual description of the citation. */
   readonly description: string;
 }
 
+/**
+ * Statutory Legal Framework Rule Item Specification.
+ */
 interface RuleItem {
+  /** Unique statutory rule key for deep-linking. */
   readonly key: LegalRuleKeyType;
+  /** User-facing rule title. */
   readonly title: string;
+  /** Formal law statute code reference (e.g. 'BEEG § 2b'). */
   readonly lawRef: string;
+  /** Short badge tag. */
   readonly tag: string;
+  /** Concise executive summary description. */
   readonly summary: string;
+  /** Formatted statutory legal text and analysis. */
   readonly statutoryText: JSX.Element;
+  /** Concrete financial scenario example. */
   readonly example: JSX.Element;
+  /** External authoritative legal links. */
   readonly links: readonly LegalLink[];
 }
 
