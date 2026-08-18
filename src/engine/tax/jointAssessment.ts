@@ -42,11 +42,11 @@ export function computeJointTaxLiability(
   const halfZvE = totalZvE / 2;
 
   // Splitting Tariff: 2 * Tarif(totalZvE / 2)
-  const singleTaxOnHalf = computeAnnualIncomeTax(halfZvE) as number;
+  const singleTaxOnHalf = computeAnnualIncomeTax(halfZvE);
   const jointTax = toEuroAmount(singleTaxOnHalf * 2);
 
   const jointSolz = computeSolidaritySurcharge(jointTax, true);
-  const total = toEuroAmount((jointTax as number) + (jointSolz as number));
+  const total = toEuroAmount(jointTax + jointSolz);
 
   return {
     jointTax,
@@ -73,9 +73,8 @@ export function computeMonthlySwapWithholdingVariance(
   wifeClass3Net: NetSalary,
   wifeClass5Net: NetSalary,
 ): EuroAmount {
-  const husbandLoss =
-    (husbandClass3Net as number) - (husbandClass5Net as number);
-  const wifeGain = (wifeClass3Net as number) - (wifeClass5Net as number);
+  const husbandLoss = husbandClass3Net - husbandClass5Net;
+  const wifeGain = wifeClass3Net - wifeClass5Net;
   const monthlyVariance = husbandLoss - wifeGain;
   return toEuroAmount(Math.max(0, monthlyVariance));
 }
@@ -151,12 +150,12 @@ export function computeKinderfreibetragGuenstigerpruefung(
 
   // 1. Joint tax liability WITHOUT Kinderfreibetrag
   const taxWithout = computeJointTaxLiability(jointAnnualZvE, 0)
-    .totalTaxLiability as number;
+    .totalTaxLiability;
 
   // 2. Joint tax liability WITH Kinderfreibetrag (§ 32 Abs. 6 EStG)
   const reducedZvE = Math.max(0, jointAnnualZvE - totalKinderfreibetrag);
   const taxWith = computeJointTaxLiability(reducedZvE, 0)
-    .totalTaxLiability as number;
+    .totalTaxLiability;
 
   // 3. Tax Savings
   const taxSavings = Math.max(0, taxWithout - taxWith);
@@ -222,18 +221,14 @@ export function computeAnnualTaxReconciliation(
   guenstigerpruefung?: GuenstigerpruefungResult,
 ): AnnualTaxReconciliationResult {
   const totalDeficitInYear = monthlyDeficitsInYear.reduce(
-    (acc, val) => acc + (val as number),
+    (acc, val) => acc + val,
     0,
   );
 
   const accumulatedSwapDeficit = toEuroAmount(totalDeficitInYear);
-  const extraRefund = guenstigerpruefung
-    ? (guenstigerpruefung.extraTaxRefund as number)
-    : 0;
+  const extraRefund = guenstigerpruefung?.extraTaxRefund ?? 0;
   const totalRefundAmount = toEuroAmount(
-    (accumulatedSwapDeficit as number) +
-      (baseStandardRefund as number) +
-      extraRefund,
+    accumulatedSwapDeficit + baseStandardRefund + extraRefund,
   );
 
   return {

@@ -120,17 +120,17 @@ export function buildMonthlyLedgerEntry(
   readonly nextCumulatedTaxRefunds: number;
   readonly nextCumulatedTotal: number;
 } {
-  const hSalary = input.husbandSalary as number;
-  const wSalary = input.wifeSalary as number;
-  const bonus40 = input.bonus40Amount as number;
-  const bonus60 = input.bonus60Amount as number;
+  const hSalary = input.husbandSalary;
+  const wSalary = input.wifeSalary;
+  const bonus40 = input.bonus40Amount;
+  const bonus60 = input.bonus60Amount;
   const specialBonusTotal = bonus40 + bonus60;
 
-  const mutterschutz = input.mutterschutz as number;
-  const wElterngeld = input.wifeElterngeld as number;
-  const hElterngeld = input.husbandElterngeld as number;
-  const kindergeld = input.kindergeld as number;
-  const taxRefund = input.taxRefund as number;
+  const mutterschutz = input.mutterschutz;
+  const wElterngeld = input.wifeElterngeld;
+  const hElterngeld = input.husbandElterngeld;
+  const kindergeld = input.kindergeld;
+  const taxRefund = input.taxRefund;
 
   const regularMonthlyTotal =
     hSalary + wSalary + mutterschutz + wElterngeld + hElterngeld + kindergeld;
@@ -138,7 +138,7 @@ export function buildMonthlyLedgerEntry(
   // Dynamically sum all financial special events (13th salaries, tax returns, and custom costs/income)
   const specialEventsSum =
     input.specialEvents && input.specialEvents.length > 0
-      ? input.specialEvents.reduce((sum, ev) => sum + (ev.amount as number), 0)
+      ? input.specialEvents.reduce((sum, ev) => sum + ev.amount, 0)
       : specialBonusTotal + taxRefund;
 
   const specialEventsTotal = specialEventsSum;
@@ -158,7 +158,7 @@ export function buildMonthlyLedgerEntry(
   const relIndex =
     input.relativeMonthIndex !== undefined
       ? input.relativeMonthIndex
-      : (input.month as number);
+      : input.month;
 
   const entry: MonthlyLedgerEntry = {
     monthId: toMonthId(input.monthId),

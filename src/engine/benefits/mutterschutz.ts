@@ -35,8 +35,7 @@ export interface MutterschutzBenefit {
 export function computeMonthlyMutterschutz(
   preBirthNetSalary: NetSalary,
 ): MutterschutzBenefit {
-  const net = preBirthNetSalary as number;
-  if (net <= 0) {
+  if (preBirthNetSalary <= 0) {
     return {
       healthInsuranceShare: toEuroAmount(0),
       employerSupplement: toEuroAmount(0),
@@ -46,13 +45,13 @@ export function computeMonthlyMutterschutz(
   }
 
   // Statutory health insurance pays up to €13 per calendar day (€390 for 30-day month)
-  const gkvShare = Math.min(net, 390);
-  const employerShare = Math.max(0, net - gkvShare);
+  const gkvShare = Math.min(preBirthNetSalary, 390);
+  const employerShare = Math.max(0, preBirthNetSalary - gkvShare);
 
   return {
     healthInsuranceShare: toEuroAmount(gkvShare),
     employerSupplement: toEuroAmount(employerShare),
-    totalMaternityBenefit: toEuroAmount(net),
+    totalMaternityBenefit: toEuroAmount(preBirthNetSalary),
     statutoryCitation:
       "MuSchG § 19 (Mutterschaftsgeld) & § 20 (Arbeitgeberzuschuss)",
   };

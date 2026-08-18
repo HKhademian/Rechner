@@ -59,20 +59,20 @@ describe("User Data Export & Import Engine", () => {
       assert.equal(res.success, true);
       if (res.success) {
         assert.equal(
-          res.state.husbandGross as number,
-          defaultState.husbandGross as number,
+          res.state.husbandGross,
+          defaultState.husbandGross,
         );
         assert.equal(
-          res.state.wifeGross as number,
-          defaultState.wifeGross as number,
+          res.state.wifeGross,
+          defaultState.wifeGross,
         );
         assert.equal(
-          res.state.husbandHours as number,
-          defaultState.husbandHours as number,
+          res.state.husbandHours,
+          defaultState.husbandHours,
         );
         assert.equal(
-          res.state.wifeInitialHours as number,
-          defaultState.wifeInitialHours as number,
+          res.state.wifeInitialHours,
+          defaultState.wifeInitialHours,
         );
         assert.equal(
           res.state.customPregnancies.length,
@@ -100,10 +100,10 @@ describe("User Data Export & Import Engine", () => {
       const res = importStateFromJson(rawJson);
       assert.equal(res.success, true);
       if (res.success) {
-        assert.equal(res.state.husbandGross as number, 7000);
-        assert.equal(res.state.wifeGross as number, 4200);
-        assert.equal(res.state.husbandHours as number, 35);
-        assert.equal(res.state.wifeInitialHours as number, 38);
+        assert.equal(res.state.husbandGross, 7000);
+        assert.equal(res.state.wifeGross, 4200);
+        assert.equal(res.state.husbandHours, 35);
+        assert.equal(res.state.wifeInitialHours, 38);
         assert.equal(res.state.husbandInitialTaxClass, TaxClass.IV);
         assert.equal(res.state.wifeInitialTaxClass, TaxClass.IV);
         assert.equal(res.state.useInitialTaxFactor, true);
@@ -120,9 +120,9 @@ describe("User Data Export & Import Engine", () => {
       const res = importStateFromJson(dirtyJson);
       assert.equal(res.success, true);
       if (res.success) {
-        assert.equal(res.state.husbandGross as number, 1000000);
-        assert.equal(res.state.husbandHours as number, 60);
-        assert.equal(res.state.wifeInitialHours as number, 0);
+        assert.equal(res.state.husbandGross, 1000000);
+        assert.equal(res.state.husbandHours, 60);
+        assert.equal(res.state.wifeInitialHours, 0);
         assert.ok(res.warnings.length >= 2);
       }
     });
@@ -271,7 +271,7 @@ describe("User Data Export & Import Engine", () => {
       const lines = csv.split("\r\n");
       assert.equal(
         lines.length,
-        (defaultState.simulationDurationMonths as number) + 1,
+        defaultState.simulationDurationMonths + 1,
       ); // 1 Header + N Months
       assert.ok(lines[1].startsWith('"M01.2026";"M-8";"Sim1";M1;'));
       assert.ok(

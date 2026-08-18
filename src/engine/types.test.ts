@@ -384,7 +384,7 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       const validFactors = [0.001, 0.5, 0.885, 0.905, 1.0];
       for (const f of validFactors) {
         const factor = toTaxFactor(f);
-        assert.equal(factor as number, Math.round(f * 1000) / 1000);
+        assert.equal(factor, Math.round(f * 1000) / 1000);
         assert.ok(isTaxFactor(factor));
       }
     });

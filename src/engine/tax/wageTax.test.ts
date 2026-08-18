@@ -24,7 +24,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
 
     it("Zone 2 (Progressionszone 1): Applies quadratic formula between 11.785 € and 17.005 €", () => {
       for (let zve = 11800; zve <= 17000; zve += 200) {
-        const tax = computeAnnualIncomeTax(zve) as number;
+        const tax = computeAnnualIncomeTax(zve);
         assert.ok(tax > 0, `Tax must be positive at ZvE: ${zve}`);
         assert.ok(
           tax < zve * 0.2,
@@ -36,7 +36,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
     it("Zone 3 (Progressionszone 2): Progresses smoothly between 17.006 € and 66.760 €", () => {
       let previousTax = 0;
       for (let zve = 18000; zve <= 66000; zve += 2000) {
-        const tax = computeAnnualIncomeTax(zve) as number;
+        const tax = computeAnnualIncomeTax(zve);
         assert.ok(
           tax > previousTax,
           `Tax must increase monotonically at ZvE: ${zve}`,
@@ -48,8 +48,8 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
     it("Zone 4 (Proportionalzone 1): 42% Spitzensteuersatz between 66.761 € and 277.825 €", () => {
       const zve1 = 80000;
       const zve2 = 100000;
-      const tax1 = computeAnnualIncomeTax(zve1) as number;
-      const tax2 = computeAnnualIncomeTax(zve2) as number;
+      const tax1 = computeAnnualIncomeTax(zve1);
+      const tax2 = computeAnnualIncomeTax(zve2);
 
       // Marginal tax rate in Zone 4 must be exactly 42%
       const marginalDiff = (tax2 - tax1) / (zve2 - zve1);
@@ -62,8 +62,8 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
     it("Zone 5 (Proportionalzone 2): 45% Reichensteuer above 277.825 €", () => {
       const zve1 = 300000;
       const zve2 = 400000;
-      const tax1 = computeAnnualIncomeTax(zve1) as number;
-      const tax2 = computeAnnualIncomeTax(zve2) as number;
+      const tax1 = computeAnnualIncomeTax(zve1);
+      const tax2 = computeAnnualIncomeTax(zve2);
 
       const marginalDiff = (tax2 - tax1) / (zve2 - zve1);
       assert.ok(
@@ -88,7 +88,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
       const solzSingle = computeSolidaritySurcharge(
         highTaxSingle,
         false,
-      ) as number;
+      );
       assert.ok(solzSingle > 0);
       assert.ok(solzSingle <= 40000 * 0.055);
     });
@@ -98,7 +98,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
     it("calculates social contributions proportionally below the BBG", () => {
       for (let gross = 1000; gross <= 4000; gross += 500) {
         const sec = computeMonthlySocialSecurity(toGrossSalary(gross), 0);
-        const total = sec.totalSocialSecurity as number;
+        const total = sec.totalSocialSecurity;
         // Total employee share is approximately 20-21%
         assert.ok(total > gross * 0.18);
         assert.ok(total < gross * 0.23);
@@ -127,16 +127,16 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
       const sec3Child = computeMonthlySocialSecurity(gross, 3);
 
       assert.ok(
-        (secNoChild.careInsurance as number) >
-          (sec1Child.careInsurance as number),
+        secNoChild.careInsurance >
+          sec1Child.careInsurance,
       );
       assert.ok(
-        (sec1Child.careInsurance as number) >
-          (sec2Child.careInsurance as number),
+        sec1Child.careInsurance >
+          sec2Child.careInsurance,
       );
       assert.ok(
-        (sec2Child.careInsurance as number) >
-          (sec3Child.careInsurance as number),
+        sec2Child.careInsurance >
+          sec3Child.careInsurance,
       );
     });
   });
@@ -145,9 +145,9 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
     it("produces higher net for Tax Class III than Class IV and Class V at identical gross", () => {
       for (let gross = 2500; gross <= 8000; gross += 500) {
         const g = toGrossSalary(gross);
-        const net3 = computeMonthlyNetSalary(g, TaxClass.III, 0) as number;
-        const net4 = computeMonthlyNetSalary(g, TaxClass.IV, 0) as number;
-        const net5 = computeMonthlyNetSalary(g, TaxClass.V, 0) as number;
+        const net3 = computeMonthlyNetSalary(g, TaxClass.III, 0);
+        const net4 = computeMonthlyNetSalary(g, TaxClass.IV, 0);
+        const net5 = computeMonthlyNetSalary(g, TaxClass.V, 0);
 
         assert.ok(
           net3 > net4,
@@ -196,14 +196,14 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
         hGross,
         TaxClass.IV,
         0,
-      ) as number;
+      );
       const net4Factor = computeMonthlyNetSalary(
         hGross,
         TaxClass.IV,
         0,
         undefined,
         factor,
-      ) as number;
+      );
 
       assert.ok(
         net4Factor > net4Standard,

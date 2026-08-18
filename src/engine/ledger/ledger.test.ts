@@ -50,7 +50,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const sMonth = toSimulationMonth(m);
         const cy = toCalendarYear(Math.ceil(m / 12));
         const cm = toCalendarMonth(((m - 1) % 12) + 1);
-        const calYearNum = 2026 + (cy as number) - 1;
+        const calYearNum = 2026 + cy - 1;
         const mId = toMonthId(cm, calYearNum);
 
         const hSalary = toEuroAmount(4000);
@@ -99,7 +99,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
 
         const expectedRegular = 4000 + 2000 + 259;
         const expectedSpecial =
-          (bonus40 as number) + (bonus60 as number) + (taxRefund as number);
+          bonus40 + bonus60 + taxRefund;
         const expectedTotal = expectedRegular + expectedSpecial;
 
         assert.equal(entry.monthId, mId);

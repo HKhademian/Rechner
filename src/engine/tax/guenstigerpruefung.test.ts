@@ -71,17 +71,17 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       assert.equal(result.totalKindergeldReceived, 3108);
       assert.equal(result.isKinderfreibetragFavorable, true);
       assert.ok(
-        (result.taxSavingsFromAllowance as number) > 3108,
+        result.taxSavingsFromAllowance > 3108,
         "Tax savings should exceed Kindergeld",
       );
       assert.ok(
-        (result.extraTaxRefund as number) > 0,
+        result.extraTaxRefund > 0,
         "Extra refund should be positive",
       );
       assert.equal(
         result.extraTaxRefund,
-        (result.taxSavingsFromAllowance as number) -
-          (result.totalKindergeldReceived as number),
+        result.taxSavingsFromAllowance -
+          result.totalKindergeldReceived,
       );
     });
 
@@ -101,8 +101,8 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
 
       assert.equal(result.isKinderfreibetragFavorable, true);
       // 42% of 9.540 € + Solz ~ 4.227 € -> extra refund ~ 1.119 €
-      assert.ok((result.taxSavingsFromAllowance as number) >= 4000);
-      assert.ok((result.extraTaxRefund as number) >= 890);
+      assert.ok(result.taxSavingsFromAllowance >= 4000);
+      assert.ok(result.extraTaxRefund >= 890);
     });
 
     it("Scenario 4: Prorated birth year calculation (§ 32 Abs. 6 Satz 5 EStG)", () => {
@@ -124,7 +124,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       assert.equal(result.totalKinderfreibetrag, expectedAllowance);
       assert.equal(result.totalKindergeldReceived, expectedKg);
       assert.equal(result.isKinderfreibetragFavorable, true);
-      assert.ok((result.extraTaxRefund as number) > 0);
+      assert.ok(result.extraTaxRefund > 0);
     });
 
     it("Scenario 5: Multiple children scaling (2 children)", () => {
@@ -146,7 +146,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       assert.equal(result.totalKinderfreibetrag, 9540 * 2); // 19.080 €
       assert.equal(result.totalKindergeldReceived, 3108 * 2); // 6.216 €
       assert.equal(result.isKinderfreibetragFavorable, true);
-      assert.ok((result.extraTaxRefund as number) > 500);
+      assert.ok(result.extraTaxRefund > 500);
     });
 
     it("Scenario 6: Edge case - 0 children or 0 taxable income", () => {

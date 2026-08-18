@@ -20,7 +20,7 @@ describe("Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)", () => {
       for (let hZve = 20000; hZve <= 100000; hZve += 10000) {
         for (let wZve = 0; wZve <= 50000; wZve += 10000) {
           const joint = computeJointTaxLiability(hZve, wZve);
-          assert.ok((joint.totalTaxLiability as number) >= 0);
+          assert.ok(joint.totalTaxLiability >= 0);
         }
       }
     });

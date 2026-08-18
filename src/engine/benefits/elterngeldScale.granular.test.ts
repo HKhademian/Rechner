@@ -40,8 +40,8 @@ describe("Granular Elterngeld Replacement Scale & Caps (300 Individual Assertion
         toNetSalary(partTime),
       );
 
-      const plus = benefit.elterngeldPlus as number;
-      const basis = benefit.basiselterngeld as number;
+      const plus = benefit.elterngeldPlus;
+      const basis = benefit.basiselterngeld;
 
       // ElterngeldPlus is always between minimum floor €150 and maximum cap €900
       assert.ok(plus >= 150, `ElterngeldPlus must be >= 150, got: ${plus}`);

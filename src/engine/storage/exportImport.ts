@@ -166,13 +166,13 @@ export function exportStateToTextReport(
     "--------------------------------------------------------------------------------",
   );
   lines.push(
-    ` • Husband Gross Compensation:  ${fmtEur(state.husbandGross as number)} / month (${fmtEur((state.husbandGross as number) * 12)} / year)`,
+    ` • Husband Gross Compensation:  ${fmtEur(state.husbandGross)} / month (${fmtEur(state.husbandGross * 12)} / year)`,
   );
   lines.push(
     ` • Husband Initial Contract:    ${state.husbandHours} hours / week`,
   );
   lines.push(
-    ` • Wife Full-Time Gross:        ${fmtEur(state.wifeGross as number)} / month (${fmtEur((state.wifeGross as number) * 12)} / year)`,
+    ` • Wife Full-Time Gross:        ${fmtEur(state.wifeGross)} / month (${fmtEur(state.wifeGross * 12)} / year)`,
   );
   lines.push(
     ` • Wife Initial Contract:       ${state.wifeInitialHours} hours / week`,
@@ -181,7 +181,7 @@ export function exportStateToTextReport(
     ` • Baseline Tax Class Pairing:  Husband: Class ${state.husbandInitialTaxClass ?? "III"} | Wife: Class ${state.wifeInitialTaxClass ?? "V"}${state.useInitialTaxFactor ? " (Faktorverfahren § 39f active)" : ""}`,
   );
   lines.push(
-    ` • Kindergeld (Monthly/Child):  ${fmtEur(state.kindergeldPerChild as number)}`,
+    ` • Kindergeld (Monthly/Child):  ${fmtEur(state.kindergeldPerChild)}`,
   );
   lines.push(
     ` • 13th Salary (Weihnachtsgeld): ${state.enable13thSalary ? "Enabled (Split 40% in M5 / 60% in M11)" : "Disabled"}`,
@@ -213,27 +213,18 @@ export function exportStateToTextReport(
   const resB = timelines[ScenarioId.B];
   const resC = timelines[ScenarioId.C];
 
-  const totalA = resA?.summary?.grandTotal
-    ? (resA.summary.grandTotal as number)
-    : 0;
-  const totalB = resB?.summary?.grandTotal
-    ? (resB.summary.grandTotal as number)
-    : 0;
-  const totalC = resC?.summary?.grandTotal
-    ? (resC.summary.grandTotal as number)
-    : 0;
+  const totalA = resA?.summary?.grandTotal ?? 0;
+  const totalB = resB?.summary?.grandTotal ?? 0;
+  const totalC = resC?.summary?.grandTotal ?? 0;
 
   const egA = resA?.summary
-    ? (resA.summary.totalWifeElterngeld as number) +
-      (resA.summary.totalHusbandElterngeld as number)
+    ? resA.summary.totalWifeElterngeld + resA.summary.totalHusbandElterngeld
     : 0;
   const egB = resB?.summary
-    ? (resB.summary.totalWifeElterngeld as number) +
-      (resB.summary.totalHusbandElterngeld as number)
+    ? resB.summary.totalWifeElterngeld + resB.summary.totalHusbandElterngeld
     : 0;
   const egC = resC?.summary
-    ? (resC.summary.totalWifeElterngeld as number) +
-      (resC.summary.totalHusbandElterngeld as number)
+    ? resC.summary.totalWifeElterngeld + resC.summary.totalHusbandElterngeld
     : 0;
 
   lines.push(
@@ -272,16 +263,16 @@ export function exportStateToTextReport(
       const endIdx = Math.min(startIdx + 12, resC.months.length);
       const yrMonths = resC.months.slice(startIdx, endIdx);
       const yrIncome = yrMonths.reduce(
-        (acc, m: MonthlyLedgerEntry) => acc + (m.monthlyTotal as number),
+        (acc, m: MonthlyLedgerEntry) => acc + m.monthlyTotal,
         0,
       );
       const yrEG = yrMonths.reduce(
         (acc, m: MonthlyLedgerEntry) =>
-          acc + (m.wifeElterngeld as number) + (m.husbandElterngeld as number),
+          acc + m.wifeElterngeld + m.husbandElterngeld,
         0,
       );
       const yrMuSch = yrMonths.reduce(
-        (acc, m: MonthlyLedgerEntry) => acc + (m.mutterschutz as number),
+        (acc, m: MonthlyLedgerEntry) => acc + m.mutterschutz,
         0,
       );
       const yrCalYear = state.startCalendarYear + yr - 1;
@@ -358,7 +349,7 @@ export function exportStateToTextReport(
           e.effectiveCalendarYear,
         );
         lines.push(
-          `   - Event #${idx + 1}: ${effId} (${String(e.effectiveCalendarMonth).padStart(2, "0")}.${e.effectiveCalendarYear}) -> ${e.title}: ${fmtEur(e.amount as number)} [${e.category}]`,
+          `   - Event #${idx + 1}: ${effId} (${String(e.effectiveCalendarMonth).padStart(2, "0")}.${e.effectiveCalendarYear}) -> ${e.title}: ${fmtEur(e.amount)} [${e.category}]`,
         );
       },
     );

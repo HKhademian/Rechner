@@ -95,10 +95,10 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
 
       for (let i = 0; i < res.months.length; i++) {
         const m = res.months[i];
-        expectedCumulativeSalaries += m.earnedSalaries as number;
-        expectedCumulativeBenefits += m.stateBenefits as number;
-        expectedCumulativeTaxRefunds += m.taxRefund as number;
-        expectedCumulativeTotal += m.monthlyTotal as number;
+        expectedCumulativeSalaries += m.earnedSalaries;
+        expectedCumulativeBenefits += m.stateBenefits;
+        expectedCumulativeTaxRefunds += m.taxRefund;
+        expectedCumulativeTotal += m.monthlyTotal;
 
         assert.equal(m.cumulatedSalaries, expectedCumulativeSalaries);
         assert.equal(m.cumulatedBenefits, expectedCumulativeBenefits);
@@ -134,7 +134,7 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
         `Month ${m.month} must have at least 2 salary transactions`,
       );
       const sumTxAmounts = m.transactions.reduce(
-        (acc, tx) => acc + (tx.amount as number),
+        (acc, tx) => acc + tx.amount,
         0,
       );
       assert.equal(

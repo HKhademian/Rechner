@@ -176,7 +176,7 @@ function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
     ? Number(guenstigerMatch[1].replace(/\./g, ""))
     : 0;
 
-  const totalRefundNum = (ev.amount as number) || 0;
+  const totalRefundNum = ev.amount || 0;
 
   const contributingFactors: CalculationFactor[] = [
     {
@@ -281,17 +281,17 @@ export function getFieldExplanation(
   scenarioId: ScenarioId = ScenarioId.C,
 ): FieldExplanation {
   const validatedKey = toFieldColumnKey(columnKey);
-  const hSalary = m.husbandSalary as number;
-  const wSalary = m.wifeSalary as number;
-  const mutterschutzVal = m.mutterschutz as number;
-  const wElterngeld = m.wifeElterngeld as number;
-  const hElterngeld = m.husbandElterngeld as number;
-  const kg = m.kindergeld as number;
-  const spTotal = m.specialEventsTotal as number;
-  const netInflow = m.monthlyTotal as number;
-  const cumTotal = m.cumulatedTotal as number;
+  const hSalary = m.husbandSalary;
+  const wSalary = m.wifeSalary;
+  const mutterschutzVal = m.mutterschutz;
+  const wElterngeld = m.wifeElterngeld;
+  const hElterngeld = m.husbandElterngeld;
+  const kg = m.kindergeld;
+  const spTotal = m.specialEventsTotal;
+  const netInflow = m.monthlyTotal;
+  const cumTotal = m.cumulatedTotal;
 
-  const bNetInflow = bMonth ? (bMonth.monthlyTotal as number) : 0;
+  const bNetInflow = bMonth ? bMonth.monthlyTotal : 0;
   const diffNet = netInflow - bNetInflow;
   const diffNetStr =
     diffNet !== 0
@@ -416,7 +416,7 @@ export function getFieldExplanation(
       };
 
     case FieldColumnKey.HusbandSalary: {
-      const bHusband = bMonth ? (bMonth.husbandSalary as number) : hSalary;
+      const bHusband = bMonth ? bMonth.husbandSalary : hSalary;
       const diffH = hSalary - bHusband;
       const activeClass = m.taxClassLabel.split("/")[0] || "Class III";
       return {
@@ -481,7 +481,7 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.WifeSalary: {
-      const bWife = bMonth ? (bMonth.wifeSalary as number) : wSalary;
+      const bWife = bMonth ? bMonth.wifeSalary : wSalary;
       const diffW = wSalary - bWife;
       const isFullLeave = wSalary === 0;
       const ftBase = 1975;
@@ -544,7 +544,7 @@ export function getFieldExplanation(
 
     case FieldColumnKey.Mutterschutz: {
       const bMutterschutz = bMonth
-        ? (bMonth.mutterschutz as number)
+        ? bMonth.mutterschutz
         : mutterschutzVal;
       const diffM = mutterschutzVal - bMutterschutz;
       const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
@@ -636,7 +636,7 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.WifeElterngeld: {
-      const bWifeEg = bMonth ? (bMonth.wifeElterngeld as number) : wElterngeld;
+      const bWifeEg = bMonth ? bMonth.wifeElterngeld : wElterngeld;
       const diffWeg = wElterngeld - bWifeEg;
       const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
       const ptNet = wSalary;
@@ -738,7 +738,7 @@ export function getFieldExplanation(
 
     case FieldColumnKey.HusbandElterngeld: {
       const bHusbandEg = bMonth
-        ? (bMonth.husbandElterngeld as number)
+        ? bMonth.husbandElterngeld
         : hElterngeld;
       const diffHeg = hElterngeld - bHusbandEg;
       return {
@@ -853,7 +853,7 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.SpecialEvents: {
-      const bSpecial = bMonth ? (bMonth.specialEventsTotal as number) : spTotal;
+      const bSpecial = bMonth ? bMonth.specialEventsTotal : spTotal;
       const diffSp = spTotal - bSpecial;
       const taxReturnEvent = m.specialEvents?.find(
         (e: SpecialEventItem) => e.type === SpecialEventType.TaxReturn,
@@ -992,7 +992,7 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.CumulativeTotal: {
-      const bCum = bMonth ? (bMonth.cumulatedTotal as number) : cumTotal;
+      const bCum = bMonth ? bMonth.cumulatedTotal : cumTotal;
       const diffCum = cumTotal - bCum;
       const prevBal = cumTotal - netInflow;
       return {
@@ -1016,7 +1016,7 @@ export function getFieldExplanation(
           {
             name: "Scenario B Reference Balance",
             value: bMonth
-              ? formatCurrency(bMonth.cumulatedTotal as number)
+              ? formatCurrency(bMonth.cumulatedTotal)
               : "—",
             description: "Comparison baseline",
           },
@@ -1031,7 +1031,7 @@ export function getFieldExplanation(
           {
             stepNumber: 2,
             description: "Calculate cumulative advantage vs Scenario B",
-            formula: `${formatCurrency(cumTotal)} - ${bMonth ? formatCurrency(bMonth.cumulatedTotal as number) : "0 €"}`,
+            formula: `${formatCurrency(cumTotal)} - ${bMonth ? formatCurrency(bMonth.cumulatedTotal) : "0 €"}`,
             result:
               diffCum !== 0
                 ? `${diffCum > 0 ? "+" : ""}${formatCurrency(diffCum)}`
@@ -1192,7 +1192,7 @@ export function getSpecialEventFieldExplanation(
   evCumulated: number,
   diffEvCumulated: number,
 ): FieldExplanation {
-  const isCost = (ev.amount as number) < 0;
+  const isCost = ev.amount < 0;
   const key = toExplanationFieldKey(fieldKey);
   const isTaxReturn = ev.type === SpecialEventType.TaxReturn;
   const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
@@ -1244,7 +1244,7 @@ export function getSpecialEventFieldExplanation(
         return {
           fieldKey: ExplanationFieldKey.Amount,
           fieldTitle: "Annual Income Tax Return Refund",
-          valueFormatted: formatCurrency(ev.amount as number),
+          valueFormatted: formatCurrency(ev.amount),
           derivationFormula:
             "Swap Withholding Deficit Refund + Base Deductions (+850 €) + § 31 EStG Günstigerprüfung Bonus",
           explanation: taxDetails.detailedExplanation,
@@ -1263,16 +1263,16 @@ export function getSpecialEventFieldExplanation(
           valueFormatted: formatCurrency(evCumulated),
           derivationFormula:
             "Previous Month Cumulative Balance + Prior Events + Tax Return Refund",
-          explanation: `Progressive cumulative balance immediately after receiving the ${formatCurrency(ev.amount as number)} tax return refund is ${formatCurrency(evCumulated)}.`,
+          explanation: `Progressive cumulative balance immediately after receiving the ${formatCurrency(ev.amount)} tax return refund is ${formatCurrency(evCumulated)}.`,
           contributingFactors: [
             {
               name: "Balance Prior to Tax Return",
-              value: formatCurrency(evCumulated - (ev.amount as number)),
+              value: formatCurrency(evCumulated - ev.amount),
               description: "Prior progressive total",
             },
             {
               name: "Tax Return Refund",
-              value: `+${formatCurrency(ev.amount as number)}`,
+              value: `+${formatCurrency(ev.amount)}`,
               description: `Tax Year ${taxDetails.taxYear} refund`,
             },
           ],
@@ -1281,7 +1281,7 @@ export function getSpecialEventFieldExplanation(
               stepNumber: 1,
               description:
                 "Credit annual tax return to household cumulative balance",
-              formula: `${formatCurrency(evCumulated - (ev.amount as number))} + ${formatCurrency(ev.amount as number)}`,
+              formula: `${formatCurrency(evCumulated - ev.amount)} + ${formatCurrency(ev.amount)}`,
               result: formatCurrency(evCumulated),
             },
           ],
@@ -1295,7 +1295,7 @@ export function getSpecialEventFieldExplanation(
         return {
           fieldKey: key,
           fieldTitle: "Annual Tax Return Parameter",
-          valueFormatted: formatCurrency(ev.amount as number),
+          valueFormatted: formatCurrency(ev.amount),
           explanation: taxDetails.detailedExplanation,
           contributingFactors: taxDetails.contributingFactors,
           calculationSteps: taxDetails.calculationSteps,
@@ -1328,7 +1328,7 @@ export function getSpecialEventFieldExplanation(
           },
           {
             name: "Transaction Amount",
-            value: formatCurrency(ev.amount as number),
+            value: formatCurrency(ev.amount),
             description: isCost ? "Expense" : "Income",
           },
         ],
@@ -1377,15 +1377,15 @@ export function getSpecialEventFieldExplanation(
         fieldTitle: isCost
           ? "Fiscal Outflow / Expense"
           : "Fiscal Inflow / Income",
-        valueFormatted: formatCurrency(ev.amount as number),
-        derivationFormula: `${isCost ? "Debit (-)" : "Credit (+)"} ${formatCurrency(Math.abs(ev.amount as number))}`,
+        valueFormatted: formatCurrency(ev.amount),
+        derivationFormula: `${isCost ? "Debit (-)" : "Credit (+)"} ${formatCurrency(Math.abs(ev.amount))}`,
         explanation: isCost
-          ? `A one-off expenditure of ${formatCurrency(Math.abs(ev.amount as number))} reduces the monthly net inflow and cumulative total.`
-          : `A one-off payment of ${formatCurrency(ev.amount as number)} increases the monthly net inflow and cumulative total.`,
+          ? `A one-off expenditure of ${formatCurrency(Math.abs(ev.amount))} reduces the monthly net inflow and cumulative total.`
+          : `A one-off payment of ${formatCurrency(ev.amount)} increases the monthly net inflow and cumulative total.`,
         contributingFactors: [
           {
             name: "Transaction Amount",
-            value: formatCurrency(ev.amount as number),
+            value: formatCurrency(ev.amount),
             description: isCost
               ? "Direct expenditure (Outflow)"
               : "Direct income (Inflow)",
@@ -1400,8 +1400,8 @@ export function getSpecialEventFieldExplanation(
           {
             stepNumber: 1,
             description: "Apply transaction to monthly net inflow",
-            formula: `${isCost ? "-" : "+"}${formatCurrency(Math.abs(ev.amount as number))}`,
-            result: formatCurrency(ev.amount as number),
+            formula: `${isCost ? "-" : "+"}${formatCurrency(Math.abs(ev.amount))}`,
+            result: formatCurrency(ev.amount),
           },
         ],
         legalCitation: toStatutoryCitation(
@@ -1421,12 +1421,12 @@ export function getSpecialEventFieldExplanation(
         contributingFactors: [
           {
             name: "Balance Prior to Event",
-            value: formatCurrency(evCumulated - (ev.amount as number)),
+            value: formatCurrency(evCumulated - ev.amount),
             description: "Prior progressive total",
           },
           {
             name: "Event Transaction Value",
-            value: `${(ev.amount as number) >= 0 ? "+" : ""}${formatCurrency(ev.amount as number)}`,
+            value: `${ev.amount >= 0 ? "+" : ""}${formatCurrency(ev.amount)}`,
             description: "Credit or debit",
           },
         ],
@@ -1434,7 +1434,7 @@ export function getSpecialEventFieldExplanation(
           {
             stepNumber: 1,
             description: "Update cumulative progressive total",
-            formula: `${formatCurrency(evCumulated - (ev.amount as number))} + ${formatCurrency(ev.amount as number)}`,
+            formula: `${formatCurrency(evCumulated - ev.amount)} + ${formatCurrency(ev.amount)}`,
             result: formatCurrency(evCumulated),
           },
         ],
@@ -1470,17 +1470,17 @@ export function getRowExplanation(
   bMonth?: TimelineMonth,
   _scenarioId: ScenarioId = ScenarioId.C,
 ): RowExplanation {
-  const hSalary = m.husbandSalary as number;
-  const wSalary = m.wifeSalary as number;
-  const mutterschutzVal = m.mutterschutz as number;
-  const wElterngeld = m.wifeElterngeld as number;
-  const hElterngeld = m.husbandElterngeld as number;
-  const kg = m.kindergeld as number;
-  const spTotal = m.specialEventsTotal as number;
-  const netInflow = m.monthlyTotal as number;
-  const cumTotal = m.cumulatedTotal as number;
+  const hSalary = m.husbandSalary;
+  const wSalary = m.wifeSalary;
+  const mutterschutzVal = m.mutterschutz;
+  const wElterngeld = m.wifeElterngeld;
+  const hElterngeld = m.husbandElterngeld;
+  const kg = m.kindergeld;
+  const spTotal = m.specialEventsTotal;
+  const netInflow = m.monthlyTotal;
+  const cumTotal = m.cumulatedTotal;
 
-  const bNetInflow = bMonth ? (bMonth.monthlyTotal as number) : 0;
+  const bNetInflow = bMonth ? bMonth.monthlyTotal : 0;
   const diffNet = netInflow - bNetInflow;
 
   const streams: RowItemStream[] = [];
@@ -1609,7 +1609,7 @@ export function getActionRowExplanation(
       : LegalRuleKey.MuSchG_Maternity,
     actionDetails: {
       category: act.category,
-      effectiveMonth: m.month as number,
+      effectiveMonth: m.month,
       details: {
         "Action ID": act.actionId,
         "Action Type": act.type,
@@ -1631,7 +1631,7 @@ export function getSpecialEventRowExplanation(
   prevMonthCumulated: number = 0,
   _scenarioId: ScenarioId = ScenarioId.C,
 ): RowExplanation {
-  const evAmount = ev.amount as number;
+  const evAmount = ev.amount;
   const isCost = evAmount < 0;
 
   const bEvents = bMonth?.specialEvents || [];
@@ -1639,7 +1639,7 @@ export function getSpecialEventRowExplanation(
     (it: SpecialEventItem) =>
       it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type,
   );
-  const bEvAmount = bMatch ? (bMatch.amount as number) : 0;
+  const bEvAmount = bMatch ? bMatch.amount : 0;
   const diffEv = evAmount - bEvAmount;
 
   const evCumulated = prevMonthCumulated + evAmount;

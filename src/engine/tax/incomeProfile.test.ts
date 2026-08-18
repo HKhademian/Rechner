@@ -149,7 +149,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       assert.ok(bonusEvent, "Bonus event must be present in month 12");
       assert.equal(bonusEvent.category, SpecialEventCategory.CareerBonus);
       assert.ok(bonusEvent.statutory.includes("§ 39b"));
-      assert.ok((bonusEvent.amount as number) > 4000); // Net bonus after § 39b taxes
+      assert.ok(bonusEvent.amount > 4000); // Net bonus after § 39b taxes
 
       // Verify transaction log
       const bonusTx = m12.transactions.find(
@@ -202,7 +202,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       assert.equal(m5.calendarMonthNum, 5);
       assert.equal(
         m5.bonus40Amount,
-        Math.round(0.4 * (m5.husbandSalary as number)),
+        Math.round(0.4 * m5.husbandSalary),
       );
       assert.equal(m5.bonus60Amount, 0);
 
@@ -212,7 +212,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       assert.equal(m11.bonus40Amount, 0);
       assert.equal(
         m11.bonus60Amount,
-        Math.round(0.6 * (m11.husbandSalary as number)),
+        Math.round(0.6 * m11.husbandSalary),
       );
     });
   });

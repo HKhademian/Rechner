@@ -29,25 +29,24 @@ import {
 export function computeStatutoryReplacementRate(
   preBirthNet: NetSalary,
 ): PercentageRate {
-  const net = preBirthNet as number;
-  if (net <= 0) {
+  if (preBirthNet <= 0) {
     return toPercentageRate(0.67);
   }
 
   // Low income scale (§ 2 Abs. 2: < 1.000 € -> increases up to 100%)
-  if (net < 1000) {
-    const increase = (1000 - net) * 0.0005; // +0.1% per 2 €
+  if (preBirthNet < 1000) {
+    const increase = (1000 - preBirthNet) * 0.0005; // +0.1% per 2 €
     return toPercentageRate(Math.min(1.0, 0.67 + increase));
   }
 
   // Standard zone: 1.000 € to 1.200 €
-  if (net <= 1200) {
+  if (preBirthNet <= 1200) {
     return toPercentageRate(0.67);
   }
 
   // High income scale (§ 2 Abs. 1: 1.200 € to 1.240 € -> decreases to 65%)
-  if (net < 1240) {
-    const decrease = (net - 1200) * 0.0005; // -0.1% per 2 €
+  if (preBirthNet < 1240) {
+    const decrease = (preBirthNet - 1200) * 0.0005; // -0.1% per 2 €
     return toPercentageRate(Math.max(0.65, 0.67 - decrease));
   }
 
@@ -90,8 +89,7 @@ export interface ElterngeldEntitlement {
 export function isElterngeldHoursEligible(
   weeklyHours: WorkingHours | number,
 ): boolean {
-  const h = weeklyHours as number;
-  return h >= 0 && h <= 32;
+  return weeklyHours >= 0 && weeklyHours <= 32;
 }
 
 /**
@@ -106,9 +104,12 @@ export function isPartnerschaftsbonusEligible(
   motherHours: WorkingHours | number,
   fatherHours: WorkingHours | number,
 ): boolean {
-  const m = motherHours as number;
-  const f = fatherHours as number;
-  return m >= 24 && m <= 32 && f >= 24 && f <= 32;
+  return (
+    motherHours >= 24 &&
+    motherHours <= 32 &&
+    fatherHours >= 24 &&
+    fatherHours <= 32
+  );
 }
 
 /**
@@ -122,15 +123,12 @@ export function isPartnerschaftsbonusEligible(
  */
 export function computeElterngeldBenefits(
   preBirthNet: NetSalary,
-  partTimeNetDuringLeave: NetSalary = 0 as unknown as NetSalary,
+  partTimeNetDuringLeave: NetSalary = 0 as NetSalary,
   weeklyHours?: WorkingHours | number,
 ): ElterngeldEntitlement {
-  const pre = preBirthNet as number;
-  const pt = partTimeNetDuringLeave as number;
-
   // Statutory Exclusion (§ 1 Abs. 1 Nr. 4 BEEG):
   // Working more than 32 hours/week disqualifies from parental allowance entirely.
-  if (weeklyHours !== undefined && (weeklyHours as number) > 32) {
+  if (weeklyHours !== undefined && weeklyHours > 32) {
     return {
       preBirthNet,
       partTimeNet: partTimeNetDuringLeave,
@@ -145,10 +143,10 @@ export function computeElterngeldBenefits(
     };
   }
 
-  const loss = Math.max(0, pre - pt);
+  const loss = Math.max(0, preBirthNet - partTimeNetDuringLeave);
   const rate = computeStatutoryReplacementRate(preBirthNet);
 
-  const rawBenefit = loss * (rate as number);
+  const rawBenefit = loss * rate;
 
   // Basiselterngeld: min €300, max €1.800 (§ 2 Abs. 1 BEEG)
   const basis = Math.min(1800, Math.max(300, Math.round(rawBenefit)));

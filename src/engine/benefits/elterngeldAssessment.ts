@@ -119,10 +119,10 @@ export function computeAssessmentBaselineNet(
   records.forEach((r) => {
     if (r.isOneOffBonus) {
       // Excluded under § 2c Abs. 1 Satz 2 BEEG
-      excludedBonusSum += r.earnedNetSalary as number;
+      excludedBonusSum += r.earnedNetSalary;
     }
     else {
-      eligibleSum += r.earnedNetSalary as number;
+      eligibleSum += r.earnedNetSalary;
     }
   });
 

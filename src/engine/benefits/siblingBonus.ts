@@ -43,10 +43,7 @@ export function computeSiblingBonus(
   olderChildBirthMonth: SimulationMonth,
   currentMonth: SimulationMonth,
 ): SiblingBonusCalculation {
-  const current = currentMonth as number;
-  const olderBirth = olderChildBirthMonth as number;
-
-  const olderChildAgeInMonths = current - olderBirth;
+  const olderChildAgeInMonths = currentMonth - olderChildBirthMonth;
 
   // § 2a Abs. 1 BEEG: Eligible until older sibling turns 36 months (3rd birthday)
   const isEligible = olderChildAgeInMonths >= 0 && olderChildAgeInMonths < 36;
@@ -62,11 +59,10 @@ export function computeSiblingBonus(
     };
   }
 
-  const baseVal = baseElterngeldPlus as number;
   // § 2a Abs. 1 & 4 BEEG: +10% with a statutory minimum of +€75,00/month for ElterngeldPlus
-  const bonusAddition = Math.max(75, Math.round(baseVal * 0.1));
+  const bonusAddition = Math.max(75, Math.round(baseElterngeldPlus * 0.1));
   // Total capped at statutory max €900
-  const total = Math.min(900, baseVal + bonusAddition);
+  const total = Math.min(900, baseElterngeldPlus + bonusAddition);
 
   return {
     isEligible: true,

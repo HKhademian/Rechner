@@ -485,10 +485,10 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(res.months.length, 60);
 
       // Verify grand total conservation
-      const sumSalaries = res.summary.totalSalaries as number;
-      const sumBenefits = res.summary.totalBenefits as number;
-      const sumTax = res.summary.totalTaxRefunds as number;
-      const grandTotal = res.summary.grandTotal as number;
+      const sumSalaries = res.summary.totalSalaries;
+      const sumBenefits = res.summary.totalBenefits;
+      const sumTax = res.summary.totalTaxRefunds;
+      const grandTotal = res.summary.grandTotal;
 
       assert.equal(grandTotal, sumSalaries + sumBenefits + sumTax);
       assert.ok(
@@ -610,8 +610,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(res.months[11].monthSimRef, "Sim12");
 
       // Verify Month 25 husband salary has +10% raise
-      const m24Husband = res.months[23].husbandSalary as number;
-      const m25Husband = res.months[24].husbandSalary as number;
+      const m24Husband = res.months[23].husbandSalary;
+      const m25Husband = res.months[24].husbandSalary;
       assert.equal(m25Husband, Math.round(m24Husband * 1.1));
 
       // Verify Month 52 is Swap 3 active
@@ -708,14 +708,14 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       // Verify monthly total is exactly -1500 less than baseline
       assert.equal(
-        m17Cost.monthlyTotal as number,
-        (m17Baseline.monthlyTotal as number) - 1500,
+        m17Cost.monthlyTotal,
+        m17Baseline.monthlyTotal - 1500,
       );
 
       // Verify 60-month grandTotal is reduced by 1500
       assert.equal(
-        resWithCost.summary.grandTotal as number,
-        (resBaseline.summary.grandTotal as number) - 1500,
+        resWithCost.summary.grandTotal,
+        resBaseline.summary.grandTotal - 1500,
       );
     });
 
@@ -765,14 +765,14 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       // Verify monthly total is exactly +2500 greater than baseline
       assert.equal(
-        m12Income.monthlyTotal as number,
-        (m12Baseline.monthlyTotal as number) + 2500,
+        m12Income.monthlyTotal,
+        m12Baseline.monthlyTotal + 2500,
       );
 
       // Verify 60-month grandTotal is increased by 2500
       assert.equal(
-        resWithIncome.summary.grandTotal as number,
-        (resBaseline.summary.grandTotal as number) + 2500,
+        resWithIncome.summary.grandTotal,
+        resBaseline.summary.grandTotal + 2500,
       );
     });
 
@@ -854,7 +854,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         const month = res.months[m - 1];
         // Zero Elterngeld for mother because hours > 32
         assert.equal(
-          month.wifeElterngeld as number,
+          month.wifeElterngeld,
           0,
           `Month ${m} wifeElterngeld must be 0 for >32h`,
         );
@@ -891,7 +891,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       // Months 14..25: Standard EG+ is paid (€900)
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld as number, 900);
+        assert.equal(month.wifeElterngeld, 900);
       }
 
       // Months 26..29: Partnerschaftsbonus window -> denied because 20h < 24h
@@ -899,12 +899,12 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         const month = res.months[m - 1];
         assert.equal(month.isPartnerschaftsbonus, false);
         assert.equal(
-          month.wifeElterngeld as number,
+          month.wifeElterngeld,
           0,
           `Month ${m} wifeElterngeld must be 0 for <24h during bonus window`,
         );
         assert.equal(
-          month.husbandElterngeld as number,
+          month.husbandElterngeld,
           0,
           `Month ${m} husbandElterngeld must be 0 for <24h during bonus window`,
         );
@@ -938,15 +938,15 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       // Months 14..25: Standard EG+ is paid (€900)
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld as number, 900);
+        assert.equal(month.wifeElterngeld, 900);
       }
 
       // Months 26..29: Partnerschaftsbonus granted for both parents
       for (let m = 26; m <= 29; m++) {
         const month = res.months[m - 1];
         assert.equal(month.isPartnerschaftsbonus, true);
-        assert.equal(month.wifeElterngeld as number, 900);
-        assert.equal(month.husbandElterngeld as number, 150);
+        assert.equal(month.wifeElterngeld, 900);
+        assert.equal(month.husbandElterngeld, 150);
         assert.ok(
           month.phaseLabel.includes("Partnerschaftsbonus 1 (Both 24-32h)"),
         );
@@ -961,39 +961,39 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(4),
         calculatedDeliverySimulationMonth: toSimulationMonth(12),
-        motherPostBirthPartTimeHours: toWorkingHours(24),
-        motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-        motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+        motherPostBirthPartTimeHours: toWorkingHours(0),
+        motherPostBirthPartTimeClass5Net: toNetSalary(0),
+        motherPostBirthPartTimeClass3Net: toNetSalary(0),
         fatherPartnerMonthsCount: toMonthDuration(4),
       };
 
       const workingHoursChanges: WorkingHoursChangeAction[] = [
         {
-          changeId: toHoursChangeId("HOURS-WIFE-RETURN"),
+          changeId: toHoursChangeId("HOURS-WIFE-RETURN-M14"),
           effectiveSimulationMonth: toSimulationMonth(14),
           effectiveCalendarMonth: toCalendarMonth(2),
           effectiveCalendarYear: toFullCalendarYear(2027),
           targetPerson: TargetPerson.Wife,
           weeklyHours: toWorkingHours(24),
-          reason: "Wife part-time return 24h/wk",
+          reason: "Wife Part-Time Return (24h/wk)",
         },
         {
-          changeId: toHoursChangeId("HOURS-HUSBAND-REDUCE"),
+          changeId: toHoursChangeId("HOURS-HUSBAND-BONUS-M26"),
           effectiveSimulationMonth: toSimulationMonth(26),
           effectiveCalendarMonth: toCalendarMonth(2),
           effectiveCalendarYear: toFullCalendarYear(2028),
           targetPerson: TargetPerson.Husband,
           weeklyHours: toWorkingHours(32),
-          reason: "Husband reduction to 32h/wk for Partnerschaftsbonus",
+          reason: "Husband Partnerschaftsbonus Reduction (32h/wk)",
         },
         {
-          changeId: toHoursChangeId("HOURS-WIFE-INCREASE"),
+          changeId: toHoursChangeId("HOURS-WIFE-INCREASE-M36"),
           effectiveSimulationMonth: toSimulationMonth(36),
           effectiveCalendarMonth: toCalendarMonth(12),
           effectiveCalendarYear: toFullCalendarYear(2028),
           targetPerson: TargetPerson.Wife,
           weeklyHours: toWorkingHours(32),
-          reason: "Wife career ramp-up to 32h/wk",
+          reason: "Wife Career Advancement Hours Increase (32h/wk)",
         },
       ];
 
@@ -1004,7 +1004,6 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         taxClassSwitches: [],
         salaryRaises: [],
         workingHoursChanges,
-        financialEvents: [],
       });
 
       // Month 14: Wife returns to work at 24h, startingAction created
@@ -1014,7 +1013,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         m14.startingActions!.some((a) =>
           a.title.includes("Working Hours Adjustment (WIFE: 24 h/wk)")),
       );
-      assert.equal((m14.wifeSalary as number) > 0, true);
+      assert.equal(m14.wifeSalary > 0, true);
 
       // Month 26: Husband reduces to 32h, Partnerschaftsbonus active
       const m26 = res.months[25];
@@ -1024,7 +1023,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           a.title.includes("Working Hours Adjustment (HUSBAND: 32 h/wk)")),
       );
       assert.equal(m26.isPartnerschaftsbonus, true);
-      assert.equal(m26.husbandElterngeld as number, 150);
+      assert.equal(m26.husbandElterngeld, 150);
 
       // Month 36: Wife increases to 32h, startingAction created
       const m36 = res.months[35];

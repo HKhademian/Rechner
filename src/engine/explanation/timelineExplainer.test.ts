@@ -235,7 +235,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         undefined,
         ScenarioId.C,
       );
-      assert.ok((m12C.mutterschutz as number) > 0);
+      assert.ok(m12C.mutterschutz > 0);
       assert.ok(exp.derivationFormula?.includes("100% Net"));
       assert.ok(exp.legalCitation?.includes("MuSchG"));
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);

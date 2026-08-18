@@ -49,7 +49,7 @@ describe("Granular Joint Assessment & Withholding Swap Tests (200 Individual Ass
       const expected = Math.max(0, hDelta - wDelta);
 
       assert.equal(variance, expected);
-      assert.ok((variance as number) >= 0);
+      assert.ok(variance >= 0);
     });
   }
 });

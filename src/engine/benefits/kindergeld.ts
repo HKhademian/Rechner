@@ -49,8 +49,7 @@ export function computeKindergeld(
   }
 
   const count = Math.max(0, Math.floor(childrenCount));
-  const rate = effectiveRate as number;
-  const total = count * rate;
+  const total = count * effectiveRate;
 
   return {
     childrenCount: count,

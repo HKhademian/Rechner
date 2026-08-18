@@ -147,8 +147,8 @@ export function calculateSimulationStartDate(
   prePregnancyPlanningMonths: MonthDuration;
   pregnancySimulationMonth: SimulationMonth;
 } {
-  const pYear = pregPositiveYear as number;
-  const pMonth = pregPositiveMonth as number;
+  const pYear = pregPositiveYear;
+  const pMonth = pregPositiveMonth;
   // 1. Subtract 3 months
   const totalMonths = pYear * 12 + (pMonth - 1) - 3;
   const resultYear = Math.floor(totalMonths / 12);
@@ -159,12 +159,12 @@ export function calculateSimulationStartDate(
 
   // 3. Pre-pregnancy buffer months in the simulation (simulation months before pregnancy positive)
   const pregnancySimulationMonth = toSimulationMonth(
-    (pYear - (startCalendarYear as number)) * 12 +
-      (pMonth - (startCalendarMonth as number)) +
+    (pYear - startCalendarYear) * 12 +
+      (pMonth - startCalendarMonth) +
       1,
   );
   const prePregnancyPlanningMonths = toMonthDuration(
-    (pregnancySimulationMonth as number) - 1,
+    pregnancySimulationMonth - 1,
   );
 
   return {
@@ -200,9 +200,9 @@ export function runScenarioBatches(
   } = batches;
 
   const startYear = preexisting.startCalendarYear;
-  const startMonth = preexisting.startCalendarMonth as number;
+  const startMonth = preexisting.startCalendarMonth;
   const duration = preexisting.simulationDurationMonths;
-  const kgRate = preexisting.kindergeldPerChild as number;
+  const kgRate = preexisting.kindergeldPerChild;
 
   // PASS 1: Month-by-month state reduction across action batches
   interface RawMonth {
@@ -239,11 +239,11 @@ export function runScenarioBatches(
   // Identify Child 1 and Child 2 deliveries for relative notation
   const child1Delivery =
     pregnancies.length > 0
-      ? (pregnancies[0].calculatedDeliverySimulationMonth as number)
+      ? pregnancies[0].calculatedDeliverySimulationMonth
       : 12;
   const child2Delivery =
     pregnancies.length > 1
-      ? (pregnancies[1].calculatedDeliverySimulationMonth as number)
+      ? pregnancies[1].calculatedDeliverySimulationMonth
       : 999;
 
   for (let m = 1; m <= duration; m++) {
@@ -261,7 +261,7 @@ export function runScenarioBatches(
 
     // Mx counter starting from first pregnancy positive test (M1 = Positive Test)
     const preg1PositiveMonth =
-      (pregnancies[0]?.positiveTestSimulationMonth as number) ??
+      pregnancies[0]?.positiveTestSimulationMonth ??
       Math.max(1, child1Delivery - 8);
     let relativeMonthIndex: number;
     let relativeBirthLabel: string;
@@ -293,67 +293,65 @@ export function runScenarioBatches(
     }
 
     // --- Batch 3: Evaluate Dynamic Working Hours & Schedules ---
-    let activeHusbandHours =
-      (preexisting.husbandWeeklyHours as unknown as number) ?? 40;
-    let activeWifeHours =
-      (preexisting.wifeWeeklyHours as unknown as number) ?? 40;
+    let activeHusbandHours = preexisting.husbandWeeklyHours ?? 40;
+    let activeWifeHours = preexisting.wifeWeeklyHours ?? 40;
 
     let hasExplicitWifeHoursChange = false;
     workingHoursChanges.forEach((whc) => {
-      if ((whc.effectiveSimulationMonth as number) <= m) {
+      if (whc.effectiveSimulationMonth <= m) {
         if (
           whc.targetPerson === TargetPerson.Husband ||
           whc.targetPerson === TargetPerson.Both
         ) {
-          activeHusbandHours = whc.weeklyHours as unknown as number;
+          activeHusbandHours = whc.weeklyHours;
         }
         if (
           whc.targetPerson === TargetPerson.Wife ||
           whc.targetPerson === TargetPerson.Both
         ) {
-          activeWifeHours = whc.weeklyHours as unknown as number;
+          activeWifeHours = whc.weeklyHours;
           hasExplicitWifeHoursChange = true;
         }
       }
     });
 
     // --- Batch 3: Evaluate Active Salaries from Baseline + Raises ---
-    let curH3Net = preexisting.husbandInitialNet as number;
-    let curH5Net = preexisting.husbandInitialClass5Net as number;
-    let curW5FT = preexisting.wifeInitialFullTimeNet as number;
-    let curW3FT = preexisting.wifeInitialClass3FullTimeNet as number;
-    let curW5PT = preexisting.wifeInitialPartTimeClass5Net as number;
-    let curW3PT = preexisting.wifeInitialPartTimeClass3Net as number;
+    let curH3Net = preexisting.husbandInitialNet;
+    let curH5Net = preexisting.husbandInitialClass5Net;
+    let curW5FT = preexisting.wifeInitialFullTimeNet;
+    let curW3FT = preexisting.wifeInitialClass3FullTimeNet;
+    let curW5PT = preexisting.wifeInitialPartTimeClass5Net;
+    let curW3PT = preexisting.wifeInitialPartTimeClass3Net;
 
     salaryRaises.forEach((sr) => {
-      if ((sr.effectiveSimulationMonth as number) <= m) {
+      if (sr.effectiveSimulationMonth <= m) {
         if (sr.percentageIncrease) {
           const factor = 1 + sr.percentageIncrease;
-          curH3Net = Math.round(curH3Net * factor);
-          curH5Net = Math.round(curH5Net * factor);
-          curW5FT = Math.round(curW5FT * factor);
-          curW3FT = Math.round(curW3FT * factor);
-          curW5PT = Math.round(curW5PT * factor);
-          curW3PT = Math.round(curW3PT * factor);
+          curH3Net = toNetSalary(Math.round(curH3Net * factor));
+          curH5Net = toNetSalary(Math.round(curH5Net * factor));
+          curW5FT = toNetSalary(Math.round(curW5FT * factor));
+          curW3FT = toNetSalary(Math.round(curW3FT * factor));
+          curW5PT = toNetSalary(Math.round(curW5PT * factor));
+          curW3PT = toNetSalary(Math.round(curW3PT * factor));
         }
         else {
           if (sr.newHusbandClass3Net) {
-            curH3Net = sr.newHusbandClass3Net as number;
+            curH3Net = sr.newHusbandClass3Net;
           }
           if (sr.newHusbandClass5Net) {
-            curH5Net = sr.newHusbandClass5Net as number;
+            curH5Net = sr.newHusbandClass5Net;
           }
           if (sr.newWifeClass5FTNet) {
-            curW5FT = sr.newWifeClass5FTNet as number;
+            curW5FT = sr.newWifeClass5FTNet;
           }
           if (sr.newWifeClass3FTNet) {
-            curW3FT = sr.newWifeClass3FTNet as number;
+            curW3FT = sr.newWifeClass3FTNet;
           }
           if (sr.newWifeClass5PTNet) {
-            curW5PT = sr.newWifeClass5PTNet as number;
+            curW5PT = sr.newWifeClass5PTNet;
           }
           if (sr.newWifeClass3PTNet) {
-            curW3PT = sr.newWifeClass3PTNet as number;
+            curW3PT = sr.newWifeClass3PTNet;
           }
         }
       }
@@ -373,10 +371,8 @@ export function runScenarioBatches(
 
     if (scenarioKey === ScenarioId.C) {
       taxClassSwitches.forEach((sw) => {
-        const eff = sw.effectiveSimulationMonth as number;
-        const rev = sw.revertSimulationMonth
-          ? (sw.revertSimulationMonth as number)
-          : Infinity;
+        const eff = sw.effectiveSimulationMonth;
+        const rev = sw.revertSimulationMonth ?? Infinity;
         if (m >= eff && m < rev) {
           isSwapActive = true;
           activeHTaxClass = sw.targetHusbandTaxClass;
@@ -431,14 +427,14 @@ export function runScenarioBatches(
     else if (activeHTaxClass === TaxClass.IV) {
       husbandSalaryNum =
         activeUseFactor && preexisting.husbandGross
-          ? (computeMonthlyNetSalary(
+          ? computeMonthlyNetSalary(
             preexisting.husbandGross,
             TaxClass.IV,
             0,
             undefined,
             activeTaxFactor,
-          ) as number)
-          : (preexisting.husbandInitialClass4Net as number) ||
+          )
+          : preexisting.husbandInitialClass4Net ||
             Math.round(curH3Net * 0.88);
     }
     else {
@@ -454,14 +450,14 @@ export function runScenarioBatches(
     else if (activeWTaxClass === TaxClass.IV) {
       wifeFTNetNum =
         activeUseFactor && preexisting.wifeGross
-          ? (computeMonthlyNetSalary(
+          ? computeMonthlyNetSalary(
             preexisting.wifeGross,
             TaxClass.IV,
             0,
             undefined,
             activeTaxFactor,
-          ) as number)
-          : (preexisting.wifeInitialClass4FullTimeNet as number) ||
+          )
+          : preexisting.wifeInitialClass4FullTimeNet ||
             Math.round(curW5FT * 1.15);
     }
     else {
@@ -492,9 +488,9 @@ export function runScenarioBatches(
     }
     else {
       // Calculate living children count for Kindergeld
-      let livingChildren = preexisting.existingChildrenCount as number;
+      let livingChildren: number = preexisting.existingChildrenCount;
       pregnancies.forEach((preg) => {
-        const del = preg.calculatedDeliverySimulationMonth as number;
+        const del = preg.calculatedDeliverySimulationMonth;
         if (m >= del) {
           livingChildren += 1;
         }
@@ -505,7 +501,7 @@ export function runScenarioBatches(
       let inSpecialPhase = false;
 
       pregnancies.forEach((preg, pIdx) => {
-        const b = preg.calculatedDeliverySimulationMonth as number;
+        const b = preg.calculatedDeliverySimulationMonth;
         const preM = b - 1;
         const mutterschutzMonths = [preM, b, b + 1];
         const egStart = b + 2;
@@ -542,15 +538,15 @@ export function runScenarioBatches(
 
           const motherHours = hasExplicitWifeHoursChange
             ? activeWifeHours
-            : ((preg.motherPostBirthPartTimeHours as unknown as number) ?? 24);
+            : (preg.motherPostBirthPartTimeHours ?? 24);
           const fatherHours = activeHusbandHours;
 
           const defaultPtHours =
-            (preg.motherPostBirthPartTimeHours as unknown as number) ?? 24;
+            preg.motherPostBirthPartTimeHours ?? 24;
           const basePtW5 =
-            (preg.motherPostBirthPartTimeClass5Net as number) || curW5PT;
+            preg.motherPostBirthPartTimeClass5Net || curW5PT;
           const basePtW3 =
-            (preg.motherPostBirthPartTimeClass3Net as number) || curW3PT;
+            preg.motherPostBirthPartTimeClass3Net || curW3PT;
 
           let dynamicW5PT: number;
           let dynamicW3PT: number;
@@ -573,7 +569,7 @@ export function runScenarioBatches(
           }
           else {
             const baselineWifeH =
-              (preexisting.wifeWeeklyHours as unknown as number) || 40;
+              preexisting.wifeWeeklyHours || 40;
             const wifeRatio =
               baselineWifeH > 0 ? motherHours / baselineWifeH : 0;
             dynamicW5PT = Math.round(curW5FT * wifeRatio);
@@ -711,7 +707,7 @@ export function runScenarioBatches(
           wifeSalary = toEuroAmount(isSwapActive ? curW3FT : curW5FT);
           phaseLabel = isSwapActive
             ? "Swap Active (Pre-Mutterschutz)"
-            : m < ((pregnancies[0]?.positiveTestSimulationMonth as number) ?? 4)
+            : m < (pregnancies[0]?.positiveTestSimulationMonth ?? 4)
               ? "Pre-Pregnancy Planning"
               : "Pre-Birth Full-Time";
         }
@@ -773,40 +769,35 @@ export function runScenarioBatches(
   const taxRefundReconByMonth: Record<number, AnnualTaxReconciliationResult> =
     {};
   const taxRefundByMonth: Record<number, EuroAmount> = {};
-  const tMonth = (preexisting.taxReturnMonth as number) ?? 3;
+  const tMonth = preexisting.taxReturnMonth ?? 3;
   const baseStandardRefund = toEuroAmount(850);
   const defaultState = getDefaultPersistedState();
-  const monthlyKg = preexisting.kindergeldPerChild
-    ? (preexisting.kindergeldPerChild as number)
-    : (defaultState.kindergeldPerChild as number);
+  const monthlyKg =
+    preexisting.kindergeldPerChild ?? defaultState.kindergeldPerChild;
 
   rawMonths.forEach((rm) => {
-    if ((rm.calendarMonthNum as number) === tMonth) {
+    if (rm.calendarMonthNum === tMonth) {
       const reconciledCalYear = rm.calendarYearNum - 1;
       const deficits = deficitsByCalYear[reconciledCalYear] || [];
 
       // Calculate annual taxable income in reconciledCalYear
-      const husbandGrossMonthly = preexisting.husbandGross
-        ? (preexisting.husbandGross as number)
-        : (defaultState.husbandGross as number);
+      const husbandGrossMonthly =
+        preexisting.husbandGross ?? defaultState.husbandGross;
       const husbandBreakdown = computeGrossToNetBreakdown(
         toGrossSalary(husbandGrossMonthly),
         TaxClass.III,
         preexisting.existingChildrenCount,
       );
-      const husbandAnnualZvE =
-        (husbandBreakdown.taxableIncomeZvE as number) * 12;
+      const husbandAnnualZvE = husbandBreakdown.taxableIncomeZvE * 12;
 
       // Calculate wife annual earned gross based on pre-birth FT / post-birth PT status in that calendar year
-      const wifeFTGross = preexisting.wifeGross
-        ? (preexisting.wifeGross as number)
-        : (defaultState.wifeGross as number);
-      const wifeHoursPT = preexisting.wifePostBirthWeeklyHours
-        ? (preexisting.wifePostBirthWeeklyHours as number)
-        : (defaultState.wifePostBirthHours as number);
-      const wifeHoursFT = preexisting.wifeWeeklyHours
-        ? (preexisting.wifeWeeklyHours as number)
-        : (defaultState.wifeInitialHours as number);
+      const wifeFTGross =
+        preexisting.wifeGross ?? defaultState.wifeGross;
+      const wifeHoursPT =
+        preexisting.wifePostBirthWeeklyHours ??
+        defaultState.wifePostBirthHours;
+      const wifeHoursFT =
+        preexisting.wifeWeeklyHours ?? defaultState.wifeInitialHours;
       const wifePTGross = Math.round(
         wifeFTGross * (wifeHoursPT / Math.max(1, wifeHoursFT)),
       );
@@ -828,13 +819,13 @@ export function runScenarioBatches(
         TaxClass.V,
         preexisting.existingChildrenCount,
       );
-      const wifeAnnualZvE = (wifeBreakdown.taxableIncomeZvE as number) * 12;
+      const wifeAnnualZvE = wifeBreakdown.taxableIncomeZvE * 12;
       const jointAnnualZvE = husbandAnnualZvE + wifeAnnualZvE;
 
       // Identify children present in the reconciled calendar year
       const childrenInYear: ChildYearPresence[] = [];
       // Any preexisting children
-      for (let c = 0; c < (preexisting.existingChildrenCount as number); c++) {
+      for (let c = 0; c < preexisting.existingChildrenCount; c++) {
         childrenInYear.push({
           childIndex: toChildIndex(c + 1),
           birthCalendarYear: toFullCalendarYear(reconciledCalYear - 1),
@@ -843,15 +834,15 @@ export function runScenarioBatches(
       }
       // Pregnancies delivered on or before reconciledCalYear
       pregnancies.forEach((preg) => {
-        const delSimMonth = preg.calculatedDeliverySimulationMonth as number;
+        const delSimMonth = preg.calculatedDeliverySimulationMonth;
         const delRm = rawMonths.find(
-          (r) => (r.month as number) === delSimMonth,
+          (r) => r.month === delSimMonth,
         );
         if (delRm && delRm.calendarYearNum <= reconciledCalYear) {
           childrenInYear.push({
             childIndex: preg.childIndex,
             birthCalendarYear: delRm.calendarYearNum,
-            birthCalendarMonth: delRm.calendarMonthNum as number,
+            birthCalendarMonth: delRm.calendarMonthNum,
           });
         }
       });
@@ -865,15 +856,15 @@ export function runScenarioBatches(
       );
 
       const recon = computeAnnualTaxReconciliation(
-        toCalendarYear(Math.min(10, Math.max(1, rm.year as number))),
+        toCalendarYear(Math.min(10, Math.max(1, rm.year))),
         rm.month,
         deficits,
         baseStandardRefund,
         guenstiger,
       );
 
-      taxRefundReconByMonth[rm.month as number] = recon;
-      taxRefundByMonth[rm.month as number] = recon.totalRefundAmount;
+      taxRefundReconByMonth[rm.month] = recon;
+      taxRefundByMonth[rm.month] = recon.totalRefundAmount;
     }
   });
 
@@ -886,20 +877,20 @@ export function runScenarioBatches(
 
   for (let i = 0; i < rawMonths.length; i++) {
     const rm = rawMonths[i];
-    const m = rm.month as number;
-    const calMonth = rm.calendarMonthNum as number;
+    const m = rm.month;
+    const calMonth = rm.calendarMonthNum;
     const year = rm.year;
 
     // 13th Month Salary Events triggered on configured calendar months
     let bonus40Amount = toEuroAmount(0);
     let bonus60Amount = toEuroAmount(0);
-    const currentHusbandNet = rm.husbandSalary as number;
+    const currentHusbandNet = rm.husbandSalary;
 
     if (preexisting.enable13thSalary) {
-      if (calMonth === (preexisting.bonus40Month as number)) {
+      if (calMonth === preexisting.bonus40Month) {
         bonus40Amount = toEuroAmount(Math.round(0.4 * currentHusbandNet));
       }
-      if (calMonth === (preexisting.bonus60Month as number)) {
+      if (calMonth === preexisting.bonus60Month) {
         bonus60Amount = toEuroAmount(Math.round(0.6 * currentHusbandNet));
       }
     }
@@ -908,7 +899,7 @@ export function runScenarioBatches(
 
     // Build Accounting Transactions for Audit Trail
     const txs: AccountingTransaction[] = [];
-    if ((rm.husbandSalary as number) > 0) {
+    if (rm.husbandSalary > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-HUSBAND-SALARY`,
@@ -927,7 +918,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((rm.wifeSalary as number) > 0) {
+    if (rm.wifeSalary > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-WIFE-SALARY`,
@@ -946,7 +937,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((bonus40Amount as number) > 0) {
+    if (bonus40Amount > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-BONUS-40`,
@@ -965,7 +956,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((bonus60Amount as number) > 0) {
+    if (bonus60Amount > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-BONUS-60`,
@@ -984,7 +975,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((rm.mutterschutz as number) > 0) {
+    if (rm.mutterschutz > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-MUTTERSCHUTZ`,
@@ -1002,7 +993,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((rm.wifeElterngeld as number) > 0) {
+    if (rm.wifeElterngeld > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-WIFE-ELTERNGELD`,
@@ -1021,7 +1012,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((rm.husbandElterngeld as number) > 0) {
+    if (rm.husbandElterngeld > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-HUSBAND-ELTERNGELD`,
@@ -1042,7 +1033,7 @@ export function runScenarioBatches(
       );
     }
 
-    if ((rm.kindergeld as number) > 0) {
+    if (rm.kindergeld > 0) {
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-KINDERGELD`,
@@ -1060,14 +1051,10 @@ export function runScenarioBatches(
       );
     }
 
-    if ((taxRefund as number) > 0) {
+    if (taxRefund > 0) {
       const recon = taxRefundReconByMonth[m];
-      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund
-        ? (recon.guenstigerpruefung.extraTaxRefund as number)
-        : 0;
-      const swapDeficit = recon?.accumulatedSwapDeficit
-        ? (recon.accumulatedSwapDeficit as number)
-        : 0;
+      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund ?? 0;
+      const swapDeficit = recon?.accumulatedSwapDeficit ?? 0;
       const isDeficitRefund = swapDeficit > 0;
 
       const descParts: string[] = [];
@@ -1077,7 +1064,7 @@ export function runScenarioBatches(
         );
       }
       descParts.push(
-        `statutory deductions return (+${((recon?.baseDeductionsRefund as number) || 850).toLocaleString("de-DE")} €)`,
+        `statutory deductions return (+${(recon?.baseDeductionsRefund || 850).toLocaleString("de-DE")} €)`,
       );
       if (extraGuenstiger > 0) {
         descParts.push(
@@ -1115,8 +1102,8 @@ export function runScenarioBatches(
     }
 
     pregnancies.forEach((preg) => {
-      const pTest = preg.positiveTestSimulationMonth as number;
-      const del = preg.calculatedDeliverySimulationMonth as number;
+      const pTest = preg.positiveTestSimulationMonth;
+      const del = preg.calculatedDeliverySimulationMonth;
       if (m === pTest) {
         eventTag = `Pregnancy ${preg.childIndex} Positive (${rm.calendarLabel})`;
         eventType = "preg";
@@ -1128,7 +1115,7 @@ export function runScenarioBatches(
     });
 
     taxClassSwitches.forEach((sw, sIdx) => {
-      const eff = sw.effectiveSimulationMonth as number;
+      const eff = sw.effectiveSimulationMonth;
       if (m === eff && scenarioKey === ScenarioId.C) {
         eventTag = `Tax Swap ${sIdx + 1} (${rm.calendarLabel})`;
         eventType = "swap";
@@ -1137,7 +1124,7 @@ export function runScenarioBatches(
 
     // Build Special Events for UI display (table sub-rows)
     const specialEvents: SpecialEventItem[] = [];
-    if ((bonus40Amount as number) > 0) {
+    if (bonus40Amount > 0) {
       specialEvents.push({
         eventId: toEventId(`EVENT-${rm.monthId}-BONUS40`),
         monthId: rm.monthId,
@@ -1159,7 +1146,7 @@ export function runScenarioBatches(
       });
     }
 
-    if ((bonus60Amount as number) > 0) {
+    if (bonus60Amount > 0) {
       specialEvents.push({
         eventId: toEventId(`EVENT-${rm.monthId}-BONUS60`),
         monthId: rm.monthId,
@@ -1181,14 +1168,10 @@ export function runScenarioBatches(
       });
     }
 
-    if ((taxRefund as number) > 0) {
+    if (taxRefund > 0) {
       const recon = taxRefundReconByMonth[m];
-      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund
-        ? (recon.guenstigerpruefung.extraTaxRefund as number)
-        : 0;
-      const swapDeficit = recon?.accumulatedSwapDeficit
-        ? (recon.accumulatedSwapDeficit as number)
-        : 0;
+      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund ?? 0;
+      const swapDeficit = recon?.accumulatedSwapDeficit ?? 0;
       const isDeficitRefund = swapDeficit > 0;
       const reconciledCalYear = rm.calendarYearNum - 1;
 
@@ -1199,7 +1182,7 @@ export function runScenarioBatches(
         );
       }
       descParts.push(
-        `statutory deductions return (+${((recon?.baseDeductionsRefund as number) || 850).toLocaleString("de-DE")} €)`,
+        `statutory deductions return (+${(recon?.baseDeductionsRefund || 850).toLocaleString("de-DE")} €)`,
       );
       if (extraGuenstiger > 0) {
         descParts.push(
@@ -1235,16 +1218,14 @@ export function runScenarioBatches(
     }
 
     // Preexisting: Annual Recurring Performance Bonus (Gross taxed under § 39b EStG)
-    const annualBonusMonth = (preexisting.annualBonusMonth as number) || 12;
+    const annualBonusMonth = preexisting.annualBonusMonth || 12;
     if (
       preexisting.annualBonusGross &&
-      (preexisting.annualBonusGross as number) > 0 &&
+      preexisting.annualBonusGross > 0 &&
       calMonth === annualBonusMonth
     ) {
-      const grossBonus = preexisting.annualBonusGross as number;
-      const hGrossMonthly = preexisting.husbandGross
-        ? (preexisting.husbandGross as number)
-        : 6000;
+      const grossBonus = preexisting.annualBonusGross;
+      const hGrossMonthly = preexisting.husbandGross ?? 6000;
       const hTaxClass = rm.isSwapActive ? TaxClass.V : TaxClass.III;
       const breakdown = computeGrossToNetBreakdown(
         toGrossSalary(hGrossMonthly),
@@ -1257,10 +1238,10 @@ export function runScenarioBatches(
           0,
           Math.round(
             grossBonus -
-                (breakdown.bonusTaxDeduction as number) -
+                breakdown.bonusTaxDeduction -
                 grossBonus *
-                  ((breakdown.totalSocialSecurity as number) /
-                    (breakdown.monthlyGross as number)),
+                  (breakdown.totalSocialSecurity /
+                    breakdown.monthlyGross),
           ),
         )
         : Math.round(grossBonus * 0.58);
@@ -1305,7 +1286,7 @@ export function runScenarioBatches(
     // Preexisting: Monthly Investment Returns & Capital Income (§ 20 EStG)
     if (
       preexisting.investmentReturnMonthly &&
-      (preexisting.investmentReturnMonthly as number) > 0
+      preexisting.investmentReturnMonthly > 0
     ) {
       const invNet = preexisting.investmentReturnMonthly;
       specialEvents.push({
@@ -1319,7 +1300,7 @@ export function runScenarioBatches(
         relativeBirthLabel: rm.relativeBirthLabel,
         relativeMonthLabel: rm.relativeMonthLabel,
         type: SpecialEventType.CustomIncome,
-        title: `Investment & Capital Return (+${(invNet as number).toLocaleString("de-DE")} €)`,
+        title: `Investment & Capital Return (+${invNet.toLocaleString("de-DE")} €)`,
         category: SpecialEventCategory.InvestmentReturn,
         statutory: toStatutoryCitation("§ 20 EStG (Kapitalerträge)"),
         taxClassLabel: "Capital Yield",
@@ -1347,13 +1328,13 @@ export function runScenarioBatches(
 
     // Batch 4: Custom Financial Events (One-Off Costs, Expenses, Grants & Extra Income)
     financialEvents.forEach((fe) => {
-      const effM = fe.effectiveSimulationMonth as number;
+      const effM = fe.effectiveSimulationMonth;
       if (effM === m) {
         if (
           !fe.appliesToScenarios ||
           fe.appliesToScenarios.includes(scenarioKey)
         ) {
-          const amt = fe.amount as number;
+          const amt = fe.amount;
           const isCost = amt < 0;
 
           specialEvents.push({
@@ -1413,8 +1394,8 @@ export function runScenarioBatches(
 
     // Batch 1: Pregnancies starting at Month m (Positive test or Delivery)
     pregnancies.forEach((preg) => {
-      const pTest = preg.positiveTestSimulationMonth as number;
-      const del = preg.calculatedDeliverySimulationMonth as number;
+      const pTest = preg.positiveTestSimulationMonth;
+      const del = preg.calculatedDeliverySimulationMonth;
       if (m === pTest) {
         startingActions.push({
           actionId: toActionId(`${preg.pregnancyId}-${rm.monthId}-POSITIVE`),
@@ -1449,8 +1430,8 @@ export function runScenarioBatches(
 
     // Batch 2: Tax Class Switches starting at Month m (Effective or Revert)
     taxClassSwitches.forEach((sw) => {
-      const eff = sw.effectiveSimulationMonth as number;
-      const rev = sw.revertSimulationMonth as number;
+      const eff = sw.effectiveSimulationMonth;
+      const rev = sw.revertSimulationMonth;
       const effH =
         sw.targetHusbandTaxClass + (sw.targetUseTaxFactor ? " (F)" : "");
       const effW =
@@ -1505,7 +1486,7 @@ export function runScenarioBatches(
 
     // Batch 3: Salary Raises starting at Month m
     salaryRaises.forEach((sr) => {
-      const eff = sr.effectiveSimulationMonth as number;
+      const eff = sr.effectiveSimulationMonth;
       if (m === eff) {
         startingActions.push({
           actionId: toActionId(`${sr.raiseId}-${rm.monthId}-EFFECTIVE`),
@@ -1527,7 +1508,7 @@ export function runScenarioBatches(
 
     // Batch 3: Working Hours Changes starting at Month m
     workingHoursChanges.forEach((whc) => {
-      const eff = whc.effectiveSimulationMonth as number;
+      const eff = whc.effectiveSimulationMonth;
       if (m === eff) {
         startingActions.push({
           actionId: toActionId(`${whc.changeId}-${rm.monthId}-EFFECTIVE`),
@@ -1602,40 +1583,40 @@ export function runScenarioBatches(
 
   // Summary Metrics
   const totalSalaries = months.reduce(
-    (sum, m) => sum + (m.earnedSalaries as number),
+    (sum, m) => sum + m.earnedSalaries,
     0,
   );
   const totalBenefits = months.reduce(
-    (sum, m) => sum + (m.stateBenefits as number),
+    (sum, m) => sum + m.stateBenefits,
     0,
   );
   const totalTaxRefunds = months.reduce(
-    (sum, m) => sum + (m.taxRefund as number),
+    (sum, m) => sum + m.taxRefund,
     0,
   );
   const grandTotal = months.reduce(
-    (sum, m) => sum + (m.monthlyTotal as number),
+    (sum, m) => sum + m.monthlyTotal,
     0,
   );
 
   const totalMutterschutz = months.reduce(
-    (sum, m) => sum + (m.mutterschutz as number),
+    (sum, m) => sum + m.mutterschutz,
     0,
   );
   const totalWifeElterngeld = months.reduce(
-    (sum, m) => sum + (m.wifeElterngeld as number),
+    (sum, m) => sum + m.wifeElterngeld,
     0,
   );
   const totalHusbandElterngeld = months.reduce(
-    (sum, m) => sum + (m.husbandElterngeld as number),
+    (sum, m) => sum + m.husbandElterngeld,
     0,
   );
   const totalKindergeld = months.reduce(
-    (sum, m) => sum + (m.kindergeld as number),
+    (sum, m) => sum + m.kindergeld,
     0,
   );
   const total13thSalaries = months.reduce(
-    (sum, m) => sum + (m.specialBonusTotal as number),
+    (sum, m) => sum + m.specialBonusTotal,
     0,
   );
 
@@ -1665,10 +1646,10 @@ export function generateTimelineSimulation(
   const startYear = params.startCalendarYear
     ? toFullCalendarYear(params.startCalendarYear)
     : toFullCalendarYear(2026);
-  const startMonth = (params.startCalendarMonth as number) ?? 1;
+  const startMonth = params.startCalendarMonth ?? 1;
   const duration = toMonthDuration(params.simulationDurationMonths ?? 60);
 
-  const b1 = params.child1BirthMonth as number;
+  const b1 = params.child1BirthMonth;
   const spacing = params.birthSpacingMonths;
   const b2 = b1 + spacing;
   const lead = params.swapLeadMonths;
