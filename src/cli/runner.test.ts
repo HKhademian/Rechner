@@ -407,6 +407,48 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("EStG § 26b") && stdout.includes("§ 31"));
     });
 
+    it('executes CLI simulation with "--scenario-file src/data/testScenario.json"', async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "--scenario-file",
+        "src/data/testScenario.json",
+        "-f",
+        "summary",
+      ]);
+      assert.equal(stderr, "");
+      assert.ok(stdout.includes("GERMAN ELTERNGELD SIMULATION KPI SCORECARD"));
+      assert.ok(stdout.includes("Scenario C (Optimized)"));
+    });
+
+    it('executes CLI simulation with "-i src/data/testScenario.json -f json"', async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "-i",
+        "src/data/testScenario.json",
+        "-f",
+        "json",
+      ]);
+      assert.equal(stderr, "");
+      const parsed = JSON.parse(stdout);
+      assert.ok(parsed.scenarioC);
+      assert.equal(parsed.scenarioC.months.length, 72);
+      assert.ok(parsed.scenarioC.summary.grandTotal > 0);
+    });
+
+    it("fails with helpful error message when specified --scenario-file does not exist", async () => {
+      try {
+        await execFileAsync("node", [
+          "src/cli/runner.ts",
+          "--scenario-file",
+          "non_existent_file.json",
+        ]);
+        assert.fail("Should have thrown exit error");
+      }
+      catch (err: any) {
+        assert.ok(err.stderr.includes("Specified scenario file not found"));
+      }
+    });
+
     it("executes quality audit runner cleanly and verifies repo integrity", async () => {
       const { stdout, stderr } = await execFileAsync("node", [
         "src/cli/qualityAudit.ts",
