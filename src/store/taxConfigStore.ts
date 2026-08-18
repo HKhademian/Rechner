@@ -1,4 +1,6 @@
-import { signal, effect, type Signal } from "@preact/signals";
+import {
+  signal, effect, type Signal, 
+} from "@preact/signals";
 
 function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
   let initial = initialValue;
@@ -7,7 +9,8 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
     if (stored !== null) {
       try {
         initial = JSON.parse(stored);
-      } catch {
+      }
+      catch {
         // Fall back to default
       }
     }

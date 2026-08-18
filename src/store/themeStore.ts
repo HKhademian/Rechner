@@ -1,5 +1,9 @@
-import { signal, effect } from "@preact/signals";
-import { ThemeMode, toThemeMode } from "#engine/types";
+import {
+  signal, effect, 
+} from "@preact/signals";
+import {
+  ThemeMode, toThemeMode, 
+} from "#engine/types";
 
 const THEME_STORAGE_KEY = "german_calc_theme_mode";
 
@@ -15,7 +19,8 @@ function getInitialThemeMode(): ThemeMode {
     if (stored) {
       return toThemeMode(stored);
     }
-  } catch {
+  }
+  catch {
     // Ignore storage read exceptions (e.g. private browsing)
   }
   return ThemeMode.Light;
@@ -37,7 +42,8 @@ export function applyThemeToDocument(mode: ThemeMode): void {
   let effectiveDark = false;
   if (mode === ThemeMode.Dark) {
     effectiveDark = true;
-  } else if (mode === ThemeMode.System) {
+  }
+  else if (mode === ThemeMode.System) {
     if (typeof window !== "undefined" && window.matchMedia) {
       effectiveDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
@@ -46,7 +52,8 @@ export function applyThemeToDocument(mode: ThemeMode): void {
   const root = document.documentElement;
   if (effectiveDark) {
     root.setAttribute("data-theme", "dark");
-  } else {
+  }
+  else {
     root.setAttribute("data-theme", "light");
   }
 }
@@ -61,7 +68,8 @@ export function setThemeMode(newMode: ThemeMode): void {
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, newMode);
-    } catch {
+    }
+    catch {
       // Ignore storage write exceptions
     }
   }

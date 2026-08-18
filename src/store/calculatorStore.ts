@@ -1,4 +1,6 @@
-import { signal, computed, effect, type Signal } from "@preact/signals";
+import {
+  signal, computed, effect, type Signal, 
+} from "@preact/signals";
 import {
   configHealthCap,
   configPensionCap,
@@ -21,7 +23,8 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
     if (stored !== null) {
       try {
         initial = JSON.parse(stored);
-      } catch {
+      }
+      catch {
         // Fallback to initialValue if parsing fails
       }
     }
@@ -378,7 +381,8 @@ function calculateForPerson(
   let careInsuranceRate = configCareRateBase.value;
   if (numChildren === 0) {
     careInsuranceRate += configCareChildlessPenalty.value;
-  } else if (numChildren > 1) {
+  }
+  else if (numChildren > 1) {
     const extraChildren = Math.min(numChildren - 1, 4);
     careInsuranceRate -= extraChildren * 0.0025;
   }
@@ -404,11 +408,14 @@ function calculateForPerson(
 
   if (bracket === "3") {
     tax = getBaseTax(taxableIncome / 2, basicAllowance) * 2;
-  } else if (bracket === "5") {
+  }
+  else if (bracket === "5") {
     tax = getBaseTax(taxableIncome, basicAllowance) * 1.6;
-  } else if (bracket === "6") {
+  }
+  else if (bracket === "6") {
     tax = getBaseTax(taxableIncome + basicAllowance, basicAllowance);
-  } else {
+  }
+  else {
     tax = getBaseTax(taxableIncome, basicAllowance);
     if (bracket === "2") {
       let class2ZvE = taxableIncome - 4260;

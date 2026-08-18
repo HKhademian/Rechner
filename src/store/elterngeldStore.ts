@@ -1,4 +1,6 @@
-import { signal, computed, effect } from "@preact/signals";
+import {
+  signal, computed, effect, 
+} from "@preact/signals";
 import {
   type ScenarioId as ScenarioIdType,
   ScenarioId,
@@ -39,7 +41,9 @@ import {
   runScenarioBatches,
   calculateSimulationStartDate,
 } from "#engine/simulator/timelineGenerator";
-import { deriveSpousalNetSalaries } from "#engine/tax/wageTax";
+import {
+  deriveSpousalNetSalaries, 
+} from "#engine/tax/wageTax";
 import {
   getDefaultPersistedState,
   loadFromStorage,
@@ -389,8 +393,8 @@ export function updatePregnancyAction(
   updates: Partial<PregnancyAction>,
 ) {
   customPregnancies.value = customPregnancies.value.map((p) =>
-    p.pregnancyId === pregnancyId ? { ...p, ...updates } : p,
-  );
+    p.pregnancyId === pregnancyId ? { ...p,
+      ...updates } : p);
 }
 
 export function removePregnancyAction(pregnancyId: PregnancyId | string) {
@@ -409,8 +413,8 @@ export function updateTaxClassSwitchAction(
   updates: Partial<TaxClassSwitchAction>,
 ) {
   customTaxClassSwitches.value = customTaxClassSwitches.value.map((s) =>
-    s.switchId === switchId ? { ...s, ...updates } : s,
-  );
+    s.switchId === switchId ? { ...s,
+      ...updates } : s);
 }
 
 export function removeTaxClassSwitchAction(switchId: SwitchId | string) {
@@ -429,8 +433,8 @@ export function updateSalaryRaiseAction(
   updates: Partial<SalaryRaiseAction>,
 ) {
   customSalaryRaises.value = customSalaryRaises.value.map((r) =>
-    r.raiseId === raiseId ? { ...r, ...updates } : r,
-  );
+    r.raiseId === raiseId ? { ...r,
+      ...updates } : r);
 }
 
 export function removeSalaryRaiseAction(raiseId: RaiseId | string) {
@@ -452,8 +456,8 @@ export function updateWorkingHoursChangeAction(
   updates: Partial<WorkingHoursChangeAction>,
 ) {
   customWorkingHoursChanges.value = customWorkingHoursChanges.value.map((h) =>
-    h.changeId === changeId ? { ...h, ...updates } : h,
-  );
+    h.changeId === changeId ? { ...h,
+      ...updates } : h);
 }
 
 export function removeWorkingHoursChangeAction(
@@ -474,8 +478,8 @@ export function updateFinancialEventAction(
   updates: Partial<FinancialEventAction>,
 ) {
   customFinancialEvents.value = customFinancialEvents.value.map((e) =>
-    e.eventId === eventId ? { ...e, ...updates } : e,
-  );
+    e.eventId === eventId ? { ...e,
+      ...updates } : e);
 }
 
 export function removeFinancialEventAction(eventId: FinancialEventId | string) {
@@ -926,7 +930,8 @@ export function scrollToLegalRule(ruleKey: LegalRuleKeyType): void {
   if (typeof document !== "undefined") {
     const container = document.getElementById("statutory-legal-framework");
     if (container) {
-      container.scrollIntoView({ behavior: "smooth", block: "start" });
+      container.scrollIntoView({ behavior: "smooth",
+        block: "start" });
     }
   }
 }
