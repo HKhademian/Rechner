@@ -74,7 +74,6 @@ const YELLOW = "\x1b[33m";
 const CYAN = "\x1b[36m";
 const BLUE = "\x1b[34m";
 const MAGENTA = "\x1b[35m";
-const GRAY = "\x1b[90m";
 
 function formatEuro(amount: number): string {
   return `${amount.toLocaleString("de-DE")} €`;
