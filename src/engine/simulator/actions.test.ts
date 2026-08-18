@@ -1116,4 +1116,69 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       });
     });
   });
+
+  describe("Empty Scenario Simulation & Zero-Action Baseline", () => {
+    it("simulates cleanly across Scenarios A, B, and C with 0 actions across all batches", () => {
+      const resA = runScenarioBatches({
+        scenarioKey: ScenarioId.A,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        workingHoursChanges: [],
+        financialEvents: [],
+      });
+
+      const resB = runScenarioBatches({
+        scenarioKey: ScenarioId.B,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        workingHoursChanges: [],
+        financialEvents: [],
+      });
+
+      const resC = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting: basePreexisting,
+        pregnancies: [],
+        taxClassSwitches: [],
+        salaryRaises: [],
+        workingHoursChanges: [],
+        financialEvents: [],
+      });
+
+      // 60 months generated for each scenario
+      assert.equal(resA.months.length, 60);
+      assert.equal(resB.months.length, 60);
+      assert.equal(resC.months.length, 60);
+
+      // Verify relative month labels have no pregnancy tags
+      assert.equal(resB.months[0].monthRef, "M1");
+      assert.equal(resB.months[11].monthRef, "M12");
+      assert.equal(resB.months[0].phaseLabel, "Regular Baseline");
+      assert.equal(resB.months[12].phaseLabel, "Regular Baseline");
+
+      // Verify zero benefit replacement
+      assert.equal(resB.summary.totalMutterschutz, 0);
+      assert.equal(resB.summary.totalWifeElterngeld, 0);
+      assert.equal(resB.summary.totalHusbandElterngeld, 0);
+      assert.equal(resB.summary.totalKindergeld, 0);
+
+      // Wife maintains regular full-time salary throughout (1975 €)
+      for (let m = 0; m < 60; m++) {
+        assert.equal(resB.months[m].wifeSalary, 1975);
+        assert.equal(resB.months[m].isMutterschutz, false);
+        assert.equal(resB.months[m].wifeElterngeld, 0);
+        assert.equal(resB.months[m].husbandElterngeld, 0);
+      }
+
+
+      // Grand totals between A, B, and C should be identical with zero switches and zero benefits
+      assert.equal(resA.summary.grandTotal, resB.summary.grandTotal);
+      assert.equal(resB.summary.grandTotal, resC.summary.grandTotal);
+    });
+  });
 });
+

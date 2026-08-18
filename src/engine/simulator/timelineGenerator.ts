@@ -264,34 +264,43 @@ export function runScenarioBatches(
     const monthInYear = toCalendarMonth(((m - 1) % 12) + 1);
 
     // Mx counter starting from first pregnancy positive test (M1 = Positive Test)
-    const preg1PositiveMonth =
-      pregnancies[0]?.positiveTestSimulationMonth ??
-      Math.max(1, child1Delivery - 8);
     let relativeMonthIndex: number;
     let relativeBirthLabel: MonthRef;
     let relativeMonthLabel: MonthRef;
 
-    if (m < preg1PositiveMonth) {
-      relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
-      relativeMonthLabel = toMonthRef(relativeMonthIndex);
+    if (pregnancies.length === 0) {
+      relativeMonthIndex = m;
+      relativeMonthLabel = toMonthRef(m);
       relativeBirthLabel = relativeMonthLabel;
     }
     else {
-      relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
-      if (m === preg1PositiveMonth) {
-        relativeMonthLabel = toMonthRef(1, "Pregnancy Positive");
-      }
-      else if (m === child1Delivery) {
-        relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 1");
-      }
-      else if (m === child2Delivery) {
-        relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 2");
+      const preg1PositiveMonth =
+        pregnancies[0]?.positiveTestSimulationMonth ??
+        Math.max(1, child1Delivery - 8);
+
+      if (m < preg1PositiveMonth) {
+        relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
+        relativeMonthLabel = toMonthRef(relativeMonthIndex);
+        relativeBirthLabel = relativeMonthLabel;
       }
       else {
-        relativeMonthLabel = toMonthRef(relativeMonthIndex);
+        relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
+        if (m === preg1PositiveMonth) {
+          relativeMonthLabel = toMonthRef(1, "Pregnancy Positive");
+        }
+        else if (m === child1Delivery) {
+          relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 1");
+        }
+        else if (pregnancies.length > 1 && m === child2Delivery) {
+          relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 2");
+        }
+        else {
+          relativeMonthLabel = toMonthRef(relativeMonthIndex);
+        }
+        relativeBirthLabel = relativeMonthLabel;
       }
-      relativeBirthLabel = relativeMonthLabel;
     }
+
 
     // --- Batch 3: Evaluate Dynamic Working Hours & Schedules ---
     let activeHusbandHours = preexisting.husbandWeeklyHours ?? 40;
@@ -726,7 +735,7 @@ export function runScenarioBatches(
 
       // If not in active maternity or parental allowance
       if (!inSpecialPhase) {
-        if (m > child1Delivery) {
+        if (pregnancies.length > 0 && m > child1Delivery) {
           wifeSalary = toEuroAmount(isSwapActive ? curW3PT : curW5PT);
           phaseLabel = isSwapActive
             ? "Swap Active (Part-Time)"
@@ -735,10 +744,14 @@ export function runScenarioBatches(
         else {
           wifeSalary = toEuroAmount(isSwapActive ? curW3FT : curW5FT);
           phaseLabel = isSwapActive
-            ? "Swap Active (Pre-Mutterschutz)"
-            : m < (pregnancies[0]?.positiveTestSimulationMonth ?? 4)
-              ? "Pre-Pregnancy Planning"
-              : "Pre-Birth Full-Time";
+            ? (pregnancies.length > 0
+              ? "Swap Active (Pre-Mutterschutz)"
+              : "Swap Active")
+            : pregnancies.length === 0
+              ? "Regular Baseline"
+              : m < (pregnancies[0]?.positiveTestSimulationMonth ?? 4)
+                ? "Pre-Pregnancy Planning"
+                : "Pre-Birth Full-Time";
         }
       }
     }
@@ -746,7 +759,9 @@ export function runScenarioBatches(
     // Exact Wage Withholding Deficit during active swap
     let monthlyWithholdingDeficit = toEuroAmount(0);
     if (scenarioKey === ScenarioId.C && isSwapActive) {
-      const isPT = m > child1Delivery || phaseLabel.includes("Part-Time");
+      const isPT =
+        (pregnancies.length > 0 && m > child1Delivery) ||
+        phaseLabel.includes("Part-Time");
       monthlyWithholdingDeficit = computeMonthlySwapWithholdingVariance(
         toNetSalary(curH3Net),
         toNetSalary(curH5Net),
@@ -754,6 +769,7 @@ export function runScenarioBatches(
         toNetSalary(isPT ? curW5PT : curW5FT),
       );
     }
+
 
     rawMonths.push({
       monthId,
