@@ -12,6 +12,8 @@
       "#store/*": ["./src/store/*"],
       "#components/*": ["./src/components/*"],
       "#engine/*": ["./src/engine/*"],
+      "#cli/*": ["./src/cli/*"],
+      "#utils/*": ["./src/utils/*"],
       "#styles/*": ["./src/styles/*"],
       "#/*": ["./src/*"]
     },

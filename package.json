@@ -10,6 +10,7 @@
     "#components/*": "./src/components/*.tsx",
     "#engine/*": "./src/engine/*.ts",
     "#cli/*": "./src/cli/*.ts",
+    "#utils/*": "./src/utils/*.ts",
     "#styles/*": "./src/styles/*",
     "#/*": "./src/*"
   },
