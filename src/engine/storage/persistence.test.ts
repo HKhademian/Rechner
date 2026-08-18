@@ -7,7 +7,9 @@ import {
   getDefaultPersistedState,
   getDefaultScenarioPersistedState,
   getTestPersistedState,
+  getEmptyPersistedState,
   getUserPersistedState,
+
   hasUserScenario,
   setUserScenarioOverride,
   validateAndSanitizePersistedState,
@@ -249,6 +251,40 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.equal(sanitized.customSalaryRaises[1].percentageIncrease, 0.03);
   });
 
+  it("loads canonical empty scenario with 0 actions across all batches", () => {
+    const emptyState = getEmptyPersistedState();
+
+    assert.equal(emptyState.customPregnancies.length, 0);
+    assert.equal(emptyState.customTaxClassSwitches.length, 0);
+    assert.equal(emptyState.customSalaryRaises.length, 0);
+    assert.equal(emptyState.customWorkingHoursChanges?.length, 0);
+    assert.equal(emptyState.customFinancialEvents.length, 0);
+    assert.equal(emptyState.husbandGross, 4000);
+    assert.equal(emptyState.wifeGross, 3000);
+  });
+
+  it("strictly preserves empty arrays for custom action collections during validation", () => {
+    const emptyActionsPayload = {
+      husbandGross: 6000,
+      wifeGross: 3000,
+      customPregnancies: [],
+      customTaxClassSwitches: [],
+      customSalaryRaises: [],
+      customWorkingHoursChanges: [],
+      customFinancialEvents: [],
+    };
+
+    const sanitized = validateAndSanitizePersistedState(emptyActionsPayload);
+
+    assert.equal(sanitized.husbandGross, 6000);
+    assert.equal(sanitized.customPregnancies.length, 0);
+    assert.equal(sanitized.customTaxClassSwitches.length, 0);
+    assert.equal(sanitized.customSalaryRaises.length, 0);
+    assert.equal(sanitized.customWorkingHoursChanges?.length, 0);
+    assert.equal(sanitized.customFinancialEvents.length, 0);
+  });
+
+
   describe("Storage Mocking & Browser Environment Guards", () => {
     let mockStorage: Record<string, string> = {};
 
@@ -312,5 +348,27 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       const afterClear = loadFromStorage();
       assert.equal(afterClear.husbandGross, getDefaultPersistedState().husbandGross); // defaults restored
     });
+
+    it("correctly persists and restores empty action arrays without reviving defaults", () => {
+      const emptyState: ElterngeldPersistedState = {
+        ...getDefaultPersistedState(),
+        customPregnancies: [],
+        customTaxClassSwitches: [],
+        customSalaryRaises: [],
+        customWorkingHoursChanges: [],
+        customFinancialEvents: [],
+      };
+
+      const saved = saveToStorage(emptyState);
+      assert.equal(saved, true);
+
+      const loaded = loadFromStorage();
+      assert.equal(loaded.customPregnancies.length, 0);
+      assert.equal(loaded.customTaxClassSwitches.length, 0);
+      assert.equal(loaded.customSalaryRaises.length, 0);
+      assert.equal(loaded.customWorkingHoursChanges?.length, 0);
+      assert.equal(loaded.customFinancialEvents.length, 0);
+    });
   });
 });
+

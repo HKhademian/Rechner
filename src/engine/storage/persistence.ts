@@ -58,6 +58,7 @@ import {
 
 import defaultScenarioData from "../../data/defaultScenario.json" with { type: "json" };
 import testScenarioData from "../../data/testScenario.json" with { type: "json" };
+import emptyScenarioData from "../../data/emptyScenario.json" with { type: "json" };
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
@@ -635,6 +636,26 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
 export function getTestPersistedState(): ElterngeldPersistedState {
   return parseRawScenarioData(testScenarioData);
 }
+
+/**
+ * Returns the canonical empty scenario simulation state parsed directly from emptyScenario.json.
+ * Has zero custom pregnancies, tax class switches, salary raises, hours changes, or financial events.
+ *
+ * @returns Canonical empty `ElterngeldPersistedState` specification.
+ */
+export function getEmptyScenarioPersistedState(): ElterngeldPersistedState {
+  return parseRawScenarioData(emptyScenarioData);
+}
+
+/**
+ * Convenience alias for `getEmptyScenarioPersistedState()`.
+ *
+ * @returns Canonical empty `ElterngeldPersistedState` specification.
+ */
+export function getEmptyPersistedState(): ElterngeldPersistedState {
+  return getEmptyScenarioPersistedState();
+}
+
 
 /**
  * Validates, bounds-checks, and sanitizes an arbitrary raw object into a complete, strongly-typed
