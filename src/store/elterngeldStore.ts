@@ -20,6 +20,10 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -44,6 +48,10 @@ import {
   type EuroAmount,
   type CalendarMonth,
   type SimulationMonth,
+  type MonthDuration,
+  type ChildrenCount,
+  type ChildIndex,
+  type PercentageRate,
   type HoursChangeId,
 } from "#engine/types";
 import {
@@ -291,21 +299,25 @@ export const startCalendarYear = signal(initialPersisted.startCalendarYear); // 
 export const startCalendarMonth = signal<CalendarMonth>(
   initialPersisted.startCalendarMonth,
 ); // Default 1 (January)
-export const simulationDurationMonths = signal(
+export const simulationDurationMonths = signal<MonthDuration>(
   initialPersisted.simulationDurationMonths,
 ); // Default 60 months (5 years)
-export const prePregnancyPlanningMonths = signal(
+export const prePregnancyPlanningMonths = signal<MonthDuration>(
   initialPersisted.prePregnancyPlanningMonths,
 ); // Default 8 months planning -> Pregnancy starts in September 2026 (09.2026)
 export const child1BirthMonth = signal<SimulationMonth>(
   initialPersisted.child1BirthMonth,
 ); // Month 17 (05.2027 / 9 months pregnancy)
-export const birthSpacingMonths = signal(initialPersisted.birthSpacingMonths); // Gap of 27 months -> Child 2 born at Month 44
-export const swapLeadMonths = signal(initialPersisted.swapLeadMonths); // 7 months prior to Mutterschutz phase
-export const preMutterschutzMonths = signal(
+export const birthSpacingMonths = signal<MonthDuration>(
+  initialPersisted.birthSpacingMonths,
+); // Gap of 27 months -> Child 2 born at Month 44
+export const swapLeadMonths = signal<MonthDuration>(
+  initialPersisted.swapLeadMonths,
+); // 7 months prior to Mutterschutz phase
+export const preMutterschutzMonths = signal<MonthDuration>(
   initialPersisted.preMutterschutzMonths,
 ); // 6 weeks
-export const postMutterschutzMonths = signal(
+export const postMutterschutzMonths = signal<MonthDuration>(
   initialPersisted.postMutterschutzMonths,
 ); // 8 weeks
 
@@ -832,7 +844,7 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     annualBonusGross: toEuroAmount(annualBonusGross.value),
     annualBonusMonth: toCalendarMonth(annualBonusMonth.value),
     investmentReturnMonthly: toEuroAmount(investmentReturnMonthly.value),
-    existingChildrenCount: 0,
+    existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: toEuroAmount(kindergeldPerChild.value),
     enable13thSalary: enable13thSalary.value,
     bonus40Month: toCalendarMonth(bonus40Month.value),
