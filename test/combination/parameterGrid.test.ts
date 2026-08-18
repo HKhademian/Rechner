@@ -1,6 +1,10 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
-import { generateTimelineSimulation } from "#engine/simulator/timelineGenerator";
+import {
+  generateTimelineSimulation, 
+} from "#engine/simulator/timelineGenerator";
 import {
   toNetSalary,
   toEuroAmount,
@@ -12,16 +16,29 @@ import {
 
 describe("Combinatorial Parameter Grid Sweep & Invariance Tests", () => {
   const husbandSalaries = [
-    { h3: 3000, h5: 2600 },
-    { h3: 2895, h5: 2191 },
-    { h3: 4500, h5: 3400 },
-    { h3: 5500, h5: 4100 },
+    { h3: 3000,
+      h5: 2600 },
+    { h3: 2895,
+      h5: 2191 },
+    { h3: 4500,
+      h5: 3400 },
+    { h3: 5500,
+      h5: 4100 },
   ];
 
   const wifeSalaries = [
-    { w5FT: 1800, w3FT: 2400, w5PT: 1100, w3PT: 1500 },
-    { w5FT: 1975, w3FT: 2603, w5PT: 1328, w3PT: 1648 },
-    { w5FT: 2500, w3FT: 3300, w5PT: 1600, w3PT: 2100 },
+    { w5FT: 1800,
+      w3FT: 2400,
+      w5PT: 1100,
+      w3PT: 1500 },
+    { w5FT: 1975,
+      w3FT: 2603,
+      w5PT: 1328,
+      w3PT: 1648 },
+    { w5FT: 2500,
+      w3FT: 3300,
+      w5PT: 1600,
+      w3PT: 2100 },
   ];
 
   const birthSpacings = [18, 24, 27, 30, 36];
