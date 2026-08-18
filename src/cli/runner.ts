@@ -935,24 +935,27 @@ export function resolveCliScenarioState(
     }
   }
 
-  // Check if unversioned userScenario.json exists in filesystem
-  const userCandidates = [
-    path.resolve(process.cwd(), "src/data/userScenario.json"),
-    path.resolve(process.cwd(), "userScenario.json"),
-  ];
-  for (const candidate of userCandidates) {
-    if (fs.existsSync(candidate)) {
-      try {
-        const content = fs.readFileSync(candidate, "utf-8");
-        const parsed = JSON.parse(content);
-        setUserScenarioOverride(parsed);
-        break;
-      }
-      catch {
-        // Fall back gracefully
+  // Check if unversioned userScenario.json exists in filesystem (when not in automated test mode)
+  if (process.env.NODE_ENV !== "test" && !process.env.SIMULATOR_TEST_MODE) {
+    const userCandidates = [
+      path.resolve(process.cwd(), "src/data/userScenario.json"),
+      path.resolve(process.cwd(), "userScenario.json"),
+    ];
+    for (const candidate of userCandidates) {
+      if (fs.existsSync(candidate)) {
+        try {
+          const content = fs.readFileSync(candidate, "utf-8");
+          const parsed = JSON.parse(content);
+          setUserScenarioOverride(parsed);
+          break;
+        }
+        catch {
+          // Fall back gracefully
+        }
       }
     }
   }
+
 
   return getDefaultPersistedState();
 }

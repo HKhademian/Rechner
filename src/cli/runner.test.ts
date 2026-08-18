@@ -15,7 +15,14 @@ import {
   FieldColumnKey, 
 } from "#engine/types";
 
-const execFileAsync = promisify(execFile);
+const rawExecFileAsync = promisify(execFile);
+const execFileAsync = (cmd: string, args: readonly string[]) =>
+  rawExecFileAsync(cmd, args, {
+    env: { ...process.env,
+      NODE_ENV: "test",
+      SIMULATOR_TEST_MODE: "true" },
+  });
+
 
 describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
   describe("Argument Parsers (parseMonthArg & parseFieldArg)", () => {
