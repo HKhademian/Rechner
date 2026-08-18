@@ -235,7 +235,9 @@ export function runScenarioBatches(
     readonly isPartnerschaftsbonus: boolean;
     readonly hasSiblingBonus: boolean;
     readonly monthlyWithholdingDeficit: EuroAmount;
+    readonly husbandBaselineNet: EuroAmount;
     readonly transactions: AccountingTransaction[];
+
   }
 
   const rawMonths: RawMonth[] = [];
@@ -757,6 +759,7 @@ export function runScenarioBatches(
     }
 
     // Exact Wage Withholding Deficit during active swap
+
     let monthlyWithholdingDeficit = toEuroAmount(0);
     if (scenarioKey === ScenarioId.C && isSwapActive) {
       const isPT =
@@ -769,7 +772,6 @@ export function runScenarioBatches(
         toNetSalary(isPT ? curW5PT : curW5FT),
       );
     }
-
 
     rawMonths.push({
       monthId,
@@ -797,9 +799,11 @@ export function runScenarioBatches(
       isPartnerschaftsbonus,
       hasSiblingBonus,
       monthlyWithholdingDeficit,
+      husbandBaselineNet: toEuroAmount(curH3Net),
       transactions,
     });
   }
+
 
   // PASS 2: Aggregate Annual Tax Return Reconciliations by Calendar Year (§ 26b EStG)
   const deficitsByCalYear: Record<number, EuroAmount[]> = {};
@@ -926,19 +930,20 @@ export function runScenarioBatches(
     const calMonth = rm.calendarMonthNum;
     const year = rm.year;
 
-    // 13th Month Salary Events triggered on configured calendar months
+    // 13th Month Salary Events triggered on configured calendar months (anchored to baseline compensation)
     let bonus40Amount = toEuroAmount(0);
     let bonus60Amount = toEuroAmount(0);
-    const currentHusbandNet = rm.husbandSalary;
+    const husbandBonusBase = rm.husbandBaselineNet;
 
     if (preexisting.enable13thSalary) {
       if (calMonth === preexisting.bonus40Month) {
-        bonus40Amount = toEuroAmount(Math.round(0.4 * currentHusbandNet));
+        bonus40Amount = toEuroAmount(Math.round(0.4 * husbandBonusBase));
       }
       if (calMonth === preexisting.bonus60Month) {
-        bonus60Amount = toEuroAmount(Math.round(0.6 * currentHusbandNet));
+        bonus60Amount = toEuroAmount(Math.round(0.6 * husbandBonusBase));
       }
     }
+
 
     const taxRefund = taxRefundByMonth[m] || toEuroAmount(0);
 
@@ -996,7 +1001,7 @@ export function runScenarioBatches(
             "§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)",
           taxClassLabel: rm.taxClassLabel,
           description: `13th Month Salary: 40% Vacation Bonus (${rm.calendarLabel})`,
-          auditTrail: `40% of Husband Base Net (${currentHusbandNet} €)`,
+          auditTrail: `40% of Husband Base Net (${husbandBonusBase} €)`,
         }),
       );
     }
@@ -1015,10 +1020,11 @@ export function runScenarioBatches(
             "§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)",
           taxClassLabel: rm.taxClassLabel,
           description: `13th Month Salary: 60% Christmas Bonus (${rm.calendarLabel})`,
-          auditTrail: `60% of Husband Base Net (${currentHusbandNet} €)`,
+          auditTrail: `60% of Husband Base Net (${husbandBonusBase} €)`,
         }),
       );
     }
+
 
     if (rm.mutterschutz > 0) {
       txs.push(
