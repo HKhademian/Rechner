@@ -38,6 +38,10 @@ import {
   toCalendarMonth,
   toFullCalendarYear,
   toTaxFactor,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   type GrossSalary,
   type NetSalary,
   type WorkingHours,
@@ -45,6 +49,10 @@ import {
   type SimulationMonth,
   type CalendarMonth,
   type FullCalendarYear,
+  type MonthDuration,
+  type ChildrenCount,
+  type ChildIndex,
+  type PercentageRate,
   type TaxFactor,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -95,13 +103,13 @@ export interface ElterngeldPersistedState {
   // Simulation Duration & Milestones
   readonly startCalendarYear: FullCalendarYear;
   readonly startCalendarMonth: CalendarMonth;
-  readonly simulationDurationMonths: number;
-  readonly prePregnancyPlanningMonths: number;
+  readonly simulationDurationMonths: MonthDuration;
+  readonly prePregnancyPlanningMonths: MonthDuration;
   readonly child1BirthMonth: SimulationMonth;
-  readonly birthSpacingMonths: number;
-  readonly swapLeadMonths: number;
-  readonly preMutterschutzMonths: number;
-  readonly postMutterschutzMonths: number;
+  readonly birthSpacingMonths: MonthDuration;
+  readonly swapLeadMonths: MonthDuration;
+  readonly preMutterschutzMonths: MonthDuration;
+  readonly postMutterschutzMonths: MonthDuration;
 
   // Dynamic Batch Action Collections
   readonly customPregnancies: readonly PregnancyAction[];
@@ -205,14 +213,23 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
   const startCalendarMonth = toCalendarMonth(
     Number(obj.startCalendarMonth) || 1,
   );
-  const simulationDurationMonths = Number(obj.simulationDurationMonths) || 60;
-  const prePregnancyPlanningMonths =
-    Number(obj.prePregnancyPlanningMonths) || 0;
+  const simulationDurationMonths = toMonthDuration(
+    Number(obj.simulationDurationMonths) || 60,
+  );
+  const prePregnancyPlanningMonths = toMonthDuration(
+    Number(obj.prePregnancyPlanningMonths) || 0,
+  );
   const child1BirthMonth = toSimulationMonth(Number(obj.child1BirthMonth) || 1);
-  const birthSpacingMonths = Number(obj.birthSpacingMonths) || 0;
-  const swapLeadMonths = Number(obj.swapLeadMonths) || 0;
-  const preMutterschutzMonths = Number(obj.preMutterschutzMonths) || 0;
-  const postMutterschutzMonths = Number(obj.postMutterschutzMonths) || 0;
+  const birthSpacingMonths = toMonthDuration(
+    Number(obj.birthSpacingMonths) || 0,
+  );
+  const swapLeadMonths = toMonthDuration(Number(obj.swapLeadMonths) || 0);
+  const preMutterschutzMonths = toMonthDuration(
+    Number(obj.preMutterschutzMonths) || 0,
+  );
+  const postMutterschutzMonths = toMonthDuration(
+    Number(obj.postMutterschutzMonths) || 0,
+  );
 
   const customPregnancies: readonly PregnancyAction[] = Array.isArray(
     obj.customPregnancies,
@@ -228,7 +245,7 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
               ? pObj.pregnancyId
               : `PREG-CHILD-${idx + 1}`,
           ),
-          childIndex: Number(pObj.childIndex) || idx + 1,
+          childIndex: toChildIndex(Number(pObj.childIndex) || idx + 1),
           positiveTestCalendarMonth: toCalendarMonth(
             Number(pObj.positiveTestCalendarMonth) || startCalendarMonth,
           ),
@@ -250,7 +267,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           motherPostBirthPartTimeClass3Net: toNetSalary(
             Number(pObj.motherPostBirthPartTimeClass3Net) || 0,
           ),
-          fatherPartnerMonthsCount: Number(pObj.fatherPartnerMonthsCount) || 0,
+          fatherPartnerMonthsCount: toMonthDuration(
+            Number(pObj.fatherPartnerMonthsCount) || 0,
+          ),
         };
       })
     : [];
@@ -349,7 +368,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
             typeof rObj.targetPerson === "string"
               ? toTargetPerson(rObj.targetPerson)
               : TargetPerson.Both,
-          percentageIncrease: Math.min(1.0, Math.max(0, rawPct)),
+          percentageIncrease: toPercentageRate(
+            Math.min(1.0, Math.max(0, rawPct)),
+          ),
           reason: typeof rObj.reason === "string" ? rObj.reason : "",
         };
       })
@@ -623,7 +644,9 @@ export function validateAndSanitizePersistedState(
               ? pObj.pregnancyId
               : defP?.pregnancyId || `PREG-CHILD-${idx + 1}`,
           ),
-          childIndex: num(pObj.childIndex, defP?.childIndex ?? idx + 1, 1, 10),
+          childIndex: toChildIndex(
+            num(pObj.childIndex, defP?.childIndex ?? idx + 1, 1, 10),
+          ),
           positiveTestCalendarMonth: toCalendarMonth(
             num(
               pObj.positiveTestCalendarMonth,
@@ -683,11 +706,13 @@ export function validateAndSanitizePersistedState(
               100000,
             ),
           ),
-          fatherPartnerMonthsCount: num(
-            pObj.fatherPartnerMonthsCount,
-            defP?.fatherPartnerMonthsCount ?? 0,
-            0,
-            14,
+          fatherPartnerMonthsCount: toMonthDuration(
+            num(
+              pObj.fatherPartnerMonthsCount,
+              defP?.fatherPartnerMonthsCount ?? 0,
+              0,
+              14,
+            ),
           ),
         };
       })
@@ -867,7 +892,7 @@ export function validateAndSanitizePersistedState(
             ),
           ),
           targetPerson: tp,
-          percentageIncrease: rawPct,
+          percentageIncrease: toPercentageRate(rawPct),
           reason: str(
             rObj.reason,
             defR?.reason || "Annual Merit / Tariff Raise",
@@ -1153,39 +1178,36 @@ export function validateAndSanitizePersistedState(
     startCalendarMonth: toCalendarMonth(
       num(obj.startCalendarMonth, defaults.startCalendarMonth, 1, 12),
     ),
-    simulationDurationMonths: num(
-      obj.simulationDurationMonths,
-      defaults.simulationDurationMonths,
-      12,
-      120,
+    simulationDurationMonths: toMonthDuration(
+      num(
+        obj.simulationDurationMonths,
+        defaults.simulationDurationMonths,
+        12,
+        120,
+      ),
     ),
-    prePregnancyPlanningMonths: num(
-      obj.prePregnancyPlanningMonths,
-      defaults.prePregnancyPlanningMonths,
-      0,
-      36,
+    prePregnancyPlanningMonths: toMonthDuration(
+      num(
+        obj.prePregnancyPlanningMonths,
+        defaults.prePregnancyPlanningMonths,
+        0,
+        36,
+      ),
     ),
     child1BirthMonth: toSimulationMonth(
       num(obj.child1BirthMonth, defaults.child1BirthMonth, 1, 120),
     ),
-    birthSpacingMonths: num(
-      obj.birthSpacingMonths,
-      defaults.birthSpacingMonths,
-      6,
-      60,
+    birthSpacingMonths: toMonthDuration(
+      num(obj.birthSpacingMonths, defaults.birthSpacingMonths, 6, 60),
     ),
-    swapLeadMonths: num(obj.swapLeadMonths, defaults.swapLeadMonths, 1, 18),
-    preMutterschutzMonths: num(
-      obj.preMutterschutzMonths,
-      defaults.preMutterschutzMonths,
-      0,
-      6,
+    swapLeadMonths: toMonthDuration(
+      num(obj.swapLeadMonths, defaults.swapLeadMonths, 1, 18),
     ),
-    postMutterschutzMonths: num(
-      obj.postMutterschutzMonths,
-      defaults.postMutterschutzMonths,
-      0,
-      6,
+    preMutterschutzMonths: toMonthDuration(
+      num(obj.preMutterschutzMonths, defaults.preMutterschutzMonths, 0, 6),
+    ),
+    postMutterschutzMonths: toMonthDuration(
+      num(obj.postMutterschutzMonths, defaults.postMutterschutzMonths, 0, 6),
     ),
 
     customPregnancies: pregnancies,

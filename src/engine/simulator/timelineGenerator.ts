@@ -37,11 +37,19 @@ import {
   type GrossSalary,
   type WorkingHours,
   type FullCalendarYear,
+  type MonthDuration,
+  type ChildrenCount,
+  type ChildIndex,
+  type PercentageRate,
   FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
   toCalendarMonth,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
@@ -83,10 +91,10 @@ export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
   readonly startCalendarYear?: FullCalendarYear;
   readonly startCalendarMonth?: CalendarMonth;
-  readonly simulationDurationMonths?: number;
+  readonly simulationDurationMonths?: MonthDuration;
   readonly husbandGross?: GrossSalary;
   readonly wifeGross?: GrossSalary;
-  readonly wifePostBirthHours?: number;
+  readonly wifePostBirthHours?: WorkingHours;
   readonly husbandClass3Net: NetSalary;
   readonly husbandClass5Net: NetSalary;
   readonly wifeClass5FullTimeNet: NetSalary;
@@ -94,10 +102,10 @@ export interface TimelineSimulationParams {
   readonly wifeClass5PartTimeNet: NetSalary;
   readonly wifeClass3PartTimeNet: NetSalary;
   readonly kindergeldPerChild: EuroAmount;
-  readonly prePregnancyPlanningMonths: number;
+  readonly prePregnancyPlanningMonths: MonthDuration;
   readonly child1BirthMonth: SimulationMonth;
-  readonly birthSpacingMonths: number;
-  readonly swapLeadMonths: number;
+  readonly birthSpacingMonths: MonthDuration;
+  readonly swapLeadMonths: MonthDuration;
   readonly enable13thSalary: boolean;
   readonly bonus40Month: CalendarMonth;
   readonly bonus60Month: CalendarMonth;
@@ -113,16 +121,18 @@ export interface TimelineSimulationParams {
  * Example 2: Positive in 02.2028 -> 02.2028 - 3M = 11.2027 -> First month of 2027 is 01.2027 (prePregBuffer = 13 months, pregSimMonth = 14).
  */
 export function calculateSimulationStartDate(
-  pregPositiveYear: number,
-  pregPositiveMonth: number,
+  pregPositiveYear: FullCalendarYear | number,
+  pregPositiveMonth: CalendarMonth | number,
 ): {
   startCalendarYear: FullCalendarYear;
   startCalendarMonth: CalendarMonth;
-  prePregnancyPlanningMonths: number;
-  pregnancySimulationMonth: number;
+  prePregnancyPlanningMonths: MonthDuration;
+  pregnancySimulationMonth: SimulationMonth;
 } {
+  const pYear = pregPositiveYear as number;
+  const pMonth = pregPositiveMonth as number;
   // 1. Subtract 3 months
-  const totalMonths = pregPositiveYear * 12 + (pregPositiveMonth - 1) - 3;
+  const totalMonths = pYear * 12 + (pMonth - 1) - 3;
   const resultYear = Math.floor(totalMonths / 12);
 
   // 2. First month of the resulting year (January)
@@ -130,11 +140,14 @@ export function calculateSimulationStartDate(
   const startCalendarMonth = toCalendarMonth(1);
 
   // 3. Pre-pregnancy buffer months in the simulation (simulation months before pregnancy positive)
-  const pregnancySimulationMonth =
-    (pregPositiveYear - (startCalendarYear as number)) * 12 +
-    (pregPositiveMonth - (startCalendarMonth as number)) +
-    1;
-  const prePregnancyPlanningMonths = pregnancySimulationMonth - 1;
+  const pregnancySimulationMonth = toSimulationMonth(
+    (pYear - (startCalendarYear as number)) * 12 +
+      (pMonth - (startCalendarMonth as number)) +
+      1,
+  );
+  const prePregnancyPlanningMonths = toMonthDuration(
+    (pregnancySimulationMonth as number) - 1,
+  );
 
   return {
     startCalendarYear,
@@ -424,7 +437,7 @@ export function runScenarioBatches(
       );
     } else {
       // Calculate living children count for Kindergeld
-      let livingChildren = preexisting.existingChildrenCount;
+      let livingChildren = preexisting.existingChildrenCount as number;
       pregnancies.forEach((preg) => {
         const del = preg.calculatedDeliverySimulationMonth as number;
         if (m >= del) {
@@ -754,10 +767,10 @@ export function runScenarioBatches(
       // Identify children present in the reconciled calendar year
       const childrenInYear: ChildYearPresence[] = [];
       // Any preexisting children
-      for (let c = 0; c < preexisting.existingChildrenCount; c++) {
+      for (let c = 0; c < (preexisting.existingChildrenCount as number); c++) {
         childrenInYear.push({
-          childIndex: c + 1,
-          birthCalendarYear: reconciledCalYear - 1,
+          childIndex: toChildIndex(c + 1),
+          birthCalendarYear: toFullCalendarYear(reconciledCalYear - 1),
           birthCalendarMonth: 1,
         });
       }
@@ -1584,7 +1597,7 @@ export function generateTimelineSimulation(
     ? toFullCalendarYear(params.startCalendarYear)
     : toFullCalendarYear(2026);
   const startMonth = (params.startCalendarMonth as number) ?? 1;
-  const duration = params.simulationDurationMonths ?? 60;
+  const duration = toMonthDuration(params.simulationDurationMonths ?? 60);
 
   const b1 = params.child1BirthMonth as number;
   const spacing = params.birthSpacingMonths;
@@ -1611,7 +1624,7 @@ export function generateTimelineSimulation(
     wifePostBirthWeeklyHours: params.wifePostBirthHours
       ? toWorkingHours(params.wifePostBirthHours)
       : undefined,
-    existingChildrenCount: 0,
+    existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: params.kindergeldPerChild,
     enable13thSalary: params.enable13thSalary,
     bonus40Month: params.bonus40Month,
@@ -1623,7 +1636,7 @@ export function generateTimelineSimulation(
   const pregnancies: PregnancyAction[] = [
     {
       pregnancyId: toPregnancyId("PREG-CHILD-1"),
-      childIndex: 1,
+      childIndex: toChildIndex(1),
       positiveTestCalendarMonth: toCalendarMonth(
         ((startMonth - 1 + params.prePregnancyPlanningMonths) % 12) + 1,
       ),
@@ -1638,11 +1651,11 @@ export function generateTimelineSimulation(
       motherPostBirthPartTimeHours: toWorkingHours(24),
       motherPostBirthPartTimeClass5Net: params.wifeClass5PartTimeNet,
       motherPostBirthPartTimeClass3Net: params.wifeClass3PartTimeNet,
-      fatherPartnerMonthsCount: 4,
+      fatherPartnerMonthsCount: toMonthDuration(4),
     },
     {
       pregnancyId: toPregnancyId("PREG-CHILD-2"),
-      childIndex: 2,
+      childIndex: toChildIndex(2),
       positiveTestCalendarMonth: toCalendarMonth(
         ((startMonth - 1 + (b2 - 9)) % 12) + 1,
       ),
@@ -1654,7 +1667,7 @@ export function generateTimelineSimulation(
       motherPostBirthPartTimeHours: toWorkingHours(24),
       motherPostBirthPartTimeClass5Net: params.wifeClass5PartTimeNet,
       motherPostBirthPartTimeClass3Net: params.wifeClass3PartTimeNet,
-      fatherPartnerMonthsCount: 4,
+      fatherPartnerMonthsCount: toMonthDuration(4),
     },
   ];
 
