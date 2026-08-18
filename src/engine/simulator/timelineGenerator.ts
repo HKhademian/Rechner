@@ -515,6 +515,7 @@ export function runScenarioBatches(
           inSpecialPhase = true;
           isMutterschutz = true;
           wifeSalary = toEuroAmount(0);
+          wifeElterngeld = toEuroAmount(0);
 
           if (scenarioKey === ScenarioId.C) {
             const mRate = pIdx === 0 ? curW3FT : curW3PT;
@@ -531,6 +532,33 @@ export function runScenarioBatches(
               m === preM
                 ? `Pre-Birth Mutterschutz (Child ${preg.childIndex})`
                 : `Post-Birth Mutterschutz (Child ${preg.childIndex})`;
+          }
+
+          // § 3 Abs. 1 & § 7 Abs. 2 BEEG: Check if previous pregnancy has active EG+ months to reallocate to Father
+          if (pIdx > 0) {
+            const prevPreg = pregnancies[pIdx - 1];
+            const prevB = prevPreg.calculatedDeliverySimulationMonth;
+            const prevEgStart = prevB + 2;
+            const prevEgEnd = prevEgStart + 11;
+            const prevEgBonusEnd = prevEgEnd + 4;
+
+            if (m >= prevEgStart && m <= prevEgBonusEnd) {
+              const fatherHours = activeHusbandHours;
+              if (isElterngeldHoursEligible(fatherHours)) {
+                const prevPtHours = prevPreg.motherPostBirthPartTimeHours ?? 24;
+                const prevPtW5 = prevPreg.motherPostBirthPartTimeClass5Net || curW5PT;
+                const dynamicW5PT =
+                  prevPtHours > 0 && prevPtW5 > 0
+                    ? Math.round(prevPtW5 * (prevPtHours / (preexisting.wifeWeeklyHours || 40)))
+                    : curW5PT;
+                const egEntitlement = computeElterngeldBenefits(
+                  toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+                  toNetSalary(dynamicW5PT),
+                  prevPtHours,
+                );
+                husbandElterngeld = egEntitlement.elterngeldPlus;
+              }
+            }
           }
         }
         // ElterngeldPlus Phase (Standard EG+ months and Partnerschaftsbonus months)
@@ -1426,6 +1454,35 @@ export function runScenarioBatches(
           type: ActionType.ChildDelivery,
           taxClassLabel: rm.taxClassLabel,
         });
+      }
+    });
+
+    // Batch 1: Elterngeld Reallocation (*Partnerübertragung* § 4, § 7 BEEG) starting at Month m
+    pregnancies.forEach((pregJ, jIdx) => {
+      if (jIdx > 0) {
+        const preM = pregJ.calculatedDeliverySimulationMonth - 1;
+        const pregI = pregnancies[jIdx - 1];
+        const bI = pregI.calculatedDeliverySimulationMonth;
+        const egStartI = bI + 2;
+        const egEndI = egStartI + 11;
+        const egBonusEndI = egEndI + 4;
+        if (m === preM && preM >= egStartI && preM <= egBonusEndI) {
+          startingActions.push({
+            actionId: toActionId(
+              `REALLOC-CHILD${pregI.childIndex}-TO-CHILD${pregJ.childIndex}-${rm.monthId}`,
+            ),
+            monthId: rm.monthId,
+            month: rm.month,
+            calendarLabel: rm.calendarLabel,
+            relativeBirthLabel: rm.relativeBirthLabel,
+            relativeMonthLabel: rm.relativeMonthLabel,
+            title: "ACTION: Elterngeld Reallocation (*Partnerübertragung* § 4, § 7 BEEG)",
+            description: `Mother enters Mutterschutz for Child #${pregJ.childIndex}. Remaining Child #${pregI.childIndex} ElterngeldPlus is automatically transferred to Father under § 7 Abs. 2 BEEG to avoid benefit forfeiture.`,
+            category: ActionCategory.ElterngeldReallocation,
+            type: ActionType.ElterngeldReallocation,
+            taxClassLabel: rm.taxClassLabel,
+          });
+        }
       }
     });
 
