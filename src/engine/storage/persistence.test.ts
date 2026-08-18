@@ -210,27 +210,41 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
   describe("Storage Mocking & Browser Environment Guards", () => {
     let mockStorage: Record<string, string> = {};
 
+    const createMockStorage = (): Storage => ({
+      getItem: (k: string) => mockStorage[k] ?? null,
+      setItem: (k: string, v: string) => {
+        mockStorage[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete mockStorage[k];
+      },
+      clear: () => {
+        mockStorage = {};
+      },
+      key: (index: number) => Object.keys(mockStorage)[index] ?? null,
+      get length() {
+        return Object.keys(mockStorage).length;
+      },
+    });
+
     beforeEach(() => {
       mockStorage = {};
-      // Mock global window & localStorage in node environment
-      (globalThis as any).window = globalThis;
-      (globalThis as any).localStorage = {
-        getItem: (k: string) => mockStorage[k] ?? null,
-        setItem: (k: string, v: string) => {
-          mockStorage[k] = v;
-        },
-        removeItem: (k: string) => {
-          delete mockStorage[k];
-        },
-        clear: () => {
-          mockStorage = {};
-        },
-      };
+      // Mock global window & localStorage in node environment using ES reflection
+      Object.defineProperty(globalThis, "window", {
+        value: globalThis,
+        configurable: true,
+        writable: true,
+      });
+      Object.defineProperty(globalThis, "localStorage", {
+        value: createMockStorage(),
+        configurable: true,
+        writable: true,
+      });
     });
 
     afterEach(() => {
-      delete (globalThis as any).window;
-      delete (globalThis as any).localStorage;
+      Reflect.deleteProperty(globalThis, "window");
+      Reflect.deleteProperty(globalThis, "localStorage");
     });
 
     it("saves state, loads state, and clears state via localStorage adapter", () => {

@@ -1034,6 +1034,40 @@ export function toFinancialEventCategory(val: string): FinancialEventCategory {
 }
 
 /**
+ * Validates and normalizes string or FinancialEventCategory input into a strongly-typed `SpecialEventCategory`.
+ * @throws {TypeError} if input does not match any valid category member.
+ */
+export function toSpecialEventCategory(
+  val: string | FinancialEventCategory | SpecialEventCategory,
+): SpecialEventCategory {
+  for (const [k, v] of Object.entries(SpecialEventCategory)) {
+    if (v === val) {
+      return v;
+    }
+    if (k.toLowerCase() === val.toLowerCase().replace(/_/g, "")) {
+      return v;
+    }
+  }
+  if (val === FinancialEventCategory.TaxAdjustment) {
+    return SpecialEventCategory.TaxOffice;
+  }
+  const values = Object.values(SpecialEventCategory) as string[];
+  throw new TypeError(
+    `Invalid SpecialEventCategory: ${val}. Expected one of: ${values.join(", ")}.`,
+  );
+}
+
+/** Type guard confirming whether a value is a valid `SpecialEventCategory`. */
+export function isSpecialEventCategory(
+  val: unknown,
+): val is SpecialEventCategory {
+  return (
+    typeof val === "string" &&
+    Object.values(SpecialEventCategory).includes(val as SpecialEventCategory)
+  );
+}
+
+/**
  * Validates and casts an arbitrary string into a strongly-typed `ActionCategory`.
  * @throws {TypeError} if input does not match a valid `ActionCategory` member.
  */

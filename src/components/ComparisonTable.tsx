@@ -416,10 +416,10 @@ export default function ComparisonTable(): JSX.Element | null {
     );
   };
 
-  const renderInputRow = (
+  const renderInputRow = <K extends keyof CalculatorInputs>(
     label: string,
     currentVal: string | number,
-    fieldKey: keyof CalculatorInputs,
+    fieldKey: K,
     type: "select" | "checkbox" | "number",
     options: { value: string;
       label: string }[] | null,
@@ -447,9 +447,7 @@ export default function ComparisonTable(): JSX.Element | null {
         isActive && scenarioDraft.value
           ? scenarioDraft.value.inputs
           : scenario.inputs || {};
-      const rawVal = (inputsToUse as unknown as Record<string, unknown>)[
-        fieldKey
-      ];
+      const rawVal = inputsToUse[fieldKey];
       const savedVal = formatFn(inputsToUse);
 
       let content: JSX.Element | string | number = savedVal;
@@ -459,11 +457,11 @@ export default function ComparisonTable(): JSX.Element | null {
         if (type === "select" && options) {
           content = (
             <select
-              value={rawVal as string}
+              value={String(rawVal ?? "")}
               onChange={(e) =>
                 updateScenarioInput(
                   fieldKey,
-                  (e.target as HTMLSelectElement).value as never,
+                  (e.target as HTMLSelectElement).value as CalculatorInputs[K],
                 )
               }
               style={inputStyle}
@@ -487,11 +485,11 @@ export default function ComparisonTable(): JSX.Element | null {
             >
               <input
                 type="checkbox"
-                checked={rawVal as boolean}
+                checked={Boolean(rawVal)}
                 onChange={(e) =>
                   updateScenarioInput(
                     fieldKey,
-                    (e.target as HTMLInputElement).checked as never,
+                    (e.target as HTMLInputElement).checked as CalculatorInputs[K],
                   )
                 }
                 style={{ transform: "scale(1.2)",
@@ -509,7 +507,7 @@ export default function ComparisonTable(): JSX.Element | null {
                 updateScenarioInput(
                   fieldKey,
                   (parseFloat((e.target as HTMLInputElement).value) ||
-                    0) as never,
+                    0) as CalculatorInputs[K],
                 )
               }
               style={inputStyle}

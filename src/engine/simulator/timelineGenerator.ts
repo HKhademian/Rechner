@@ -52,6 +52,7 @@ import {
   toSwitchId,
   toStatutoryCitation,
   toTaxFactor,
+  toSpecialEventCategory,
 } from "#engine/types";
 import {
   createTransaction, 
@@ -1351,7 +1352,7 @@ export function runScenarioBatches(
               ? SpecialEventType.CustomCost
               : SpecialEventType.CustomIncome,
             title: fe.title,
-            category: fe.category as unknown as SpecialEventCategory,
+            category: toSpecialEventCategory(fe.category),
             statutory: toStatutoryCitation(
               isCost ? "Out-of-Pocket Expense" : "Special Financial Inflow",
             ),

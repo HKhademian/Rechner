@@ -37,6 +37,8 @@ import {
   toActionType,
   toTargetPerson,
   toFinancialEventCategory,
+  toSpecialEventCategory,
+  isSpecialEventCategory,
   isEuroAmount,
   isGrossSalary,
   isNetSalary,
@@ -613,6 +615,31 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         "13th Salary (*13. Monatsgehalt*)",
       );
       assert.equal(SpecialEventCategory.TaxOffice, "Tax Office (*Finanzamt*)");
+    });
+
+    it("toSpecialEventCategory converts valid strings and FinancialEventCategory values", () => {
+      assert.equal(
+        toSpecialEventCategory(SpecialEventCategory.BabyEquipment),
+        SpecialEventCategory.BabyEquipment,
+      );
+      assert.equal(
+        toSpecialEventCategory(FinancialEventCategory.BabyEquipment),
+        SpecialEventCategory.BabyEquipment,
+      );
+      assert.equal(
+        toSpecialEventCategory(FinancialEventCategory.TaxAdjustment),
+        SpecialEventCategory.TaxOffice,
+      );
+      assert.equal(
+        toSpecialEventCategory("babyequipment"),
+        SpecialEventCategory.BabyEquipment,
+      );
+      assert.equal(
+        isSpecialEventCategory(SpecialEventCategory.BabyEquipment),
+        true,
+      );
+      assert.equal(isSpecialEventCategory("invalid"), false);
+      assert.throws(() => toSpecialEventCategory("totally_invalid"), TypeError);
     });
   });
 
