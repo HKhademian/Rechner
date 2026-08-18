@@ -29,56 +29,113 @@ function formatCurrency(amount: number): string {
   }).format(amount || 0);
 }
 
+/**
+ * Contributing Factor in a Financial Derivation Breakdown.
+ * Itemizes key input assumptions, legal parameters, or intermediate calculation values.
+ */
 export interface CalculationFactor {
+  /** Name or title of the contributing factor (e.g. 'Statutory Replacement Rate'). */
   readonly name: string;
+  /** Formatted display value (e.g. '65.0%', '1.975 €'). */
   readonly value: string;
+  /** Optional contextual note or statutory justification. */
   readonly description?: string;
 }
 
+/**
+ * Sequential Step in a Mathematical Derivation Breakdown.
+ * Shows intermediate calculation steps and formulas in human-readable notation.
+ */
 export interface CalculationStep {
+  /** 1-based sequential step order number. */
   readonly stepNumber: number;
+  /** Description of what this calculation step performs. */
   readonly description: string;
+  /** Mathematical formula string with substituted numbers. */
   readonly formula: string;
+  /** Intermediate or final computed result of the step. */
   readonly result: string;
 }
 
+/**
+ * Detailed Field-Level Explanation Structure.
+ * Supplies comprehensive mathematical, statutory, and comparative drill-down data for a single column cell.
+ */
 export interface FieldExplanation {
+  /** Field column key being explained. */
   readonly fieldKey: ExplanationFieldKey;
+  /** User-facing display title header. */
   readonly fieldTitle: string;
+  /** Formatted financial value string (e.g. '2.603 €'). */
   readonly valueFormatted: string;
+  /** High-level mathematical derivation formula string. */
   readonly derivationFormula?: string;
+  /** Rich explanatory text with domain rules and legal context. */
   readonly explanation: string;
+  /** Itemized list of contributing calculation factors. */
   readonly contributingFactors?: readonly CalculationFactor[];
+  /** Step-by-step arithmetic derivation steps. */
   readonly calculationSteps?: readonly CalculationStep[];
+  /** Formal statutory legal citation reference. */
   readonly legalCitation?: StatutoryCitation;
+  /** Key identifying the corresponding statutory legal framework card for deep linking. */
   readonly legalRuleKey?: LegalRuleKeyType;
+  /** Formatted financial variance versus unoptimized Scenario B (e.g. '+720 €'). */
   readonly diffVsBFormatted?: string;
 }
 
+/**
+ * Itemized Cash Flow Stream within a Timeline Row Explanation.
+ */
 export interface RowItemStream {
+  /** Stream display label (e.g. "Husband's Salary", "ElterngeldPlus"). */
   readonly label: string;
+  /** Numeric euro monetary value. */
   readonly value: EuroAmount;
+  /** Formatted euro currency string. */
   readonly valueFormatted: string;
+  /** Arithmetic formula describing the stream's origin. */
   readonly formula?: string;
+  /** Explanatory notes or statutory basis. */
   readonly notes?: string;
 }
 
+/**
+ * Comprehensive Full-Row Explanation Structure.
+ * Supplies complete month, action milestone, or special event cash flow breakdowns and scenario delta comparisons.
+ */
 export interface RowExplanation {
+  /** Explainer row structural type (MONTH, ACTION, or SPECIAL_EVENT). */
   readonly rowType: ExplainerRowType;
+  /** Primary modal header title. */
   readonly title: string;
+  /** Secondary subtitle (e.g. calendar date and simulation month). */
   readonly subtitle: string;
+  /** Life phase or action category description. */
   readonly phaseOrCategory: string;
+  /** Active tax class bracket configuration during this row. */
   readonly taxClasses?: string;
+  /** High-level summary description of the row's financial events. */
   readonly summaryDescription: string;
+  /** Itemized cash flow component streams making up total inflow. */
   readonly streams: readonly RowItemStream[];
+  /** Total net household cash inflow for the month in EUR. */
   readonly totalNetInflow: EuroAmount;
+  /** Formatted total net inflow string. */
   readonly totalNetInflowFormatted: string;
+  /** Running cumulative household net total from simulation start through this row in EUR. */
   readonly cumulatedTotal: EuroAmount;
+  /** Formatted running cumulative total string. */
   readonly cumulatedTotalFormatted: string;
+  /** Net cash flow variance versus unoptimized Scenario B in EUR. */
   readonly diffVsB?: EuroAmount;
+  /** Formatted delta versus Scenario B string (e.g. '+720 €'). */
   readonly diffVsBFormatted?: string;
+  /** Statutory legal citation reference. */
   readonly legalCitation?: StatutoryCitation;
+  /** Key identifying the statutory legal framework card for deep linking. */
   readonly legalRuleKey?: LegalRuleKeyType;
+  /** Detailed structural properties for milestone action rows. */
   readonly actionDetails?: {
     readonly category: ActionCategory;
     readonly targetPerson?: string;
@@ -208,7 +265,15 @@ function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
 }
 
 /**
- * Builds a field-level explanation for any column in a standard monthly row.
+ * Builds a comprehensive field-level explanation for any column in a standard monthly row.
+ * Generates mathematical formulas, step-by-step calculation proofs, statutory legal citations,
+ * and scenario comparison deltas.
+ *
+ * @param columnKey - The ledger column key being queried.
+ * @param m - The monthly timeline ledger entry.
+ * @param bMonth - Optional corresponding month in unoptimized Scenario B for delta comparison.
+ * @param scenarioId - Active scenario identifier (defaults to Scenario C).
+ * @returns Fully populated `FieldExplanation` structure.
  */
 export function getFieldExplanation(
   columnKey: FieldColumnKey,
@@ -1392,7 +1457,14 @@ export function getSpecialEventFieldExplanation(
 }
 
 /**
- * Builds a comprehensive full-row explanation for an entire standard monthly row.
+ * Builds a comprehensive full-row explanation for an entire standard monthly timeline row.
+ * Aggregates all itemized cash flow streams, computes comparative variance versus Scenario B,
+ * and attaches relevant statutory legal citations.
+ *
+ * @param m - The monthly timeline ledger entry.
+ * @param bMonth - Optional corresponding month in unoptimized Scenario B for delta comparison.
+ * @param scenarioId - Active scenario identifier (defaults to Scenario C).
+ * @returns Fully populated `RowExplanation` structure.
  */
 export function getRowExplanation(
   m: TimelineMonth,
