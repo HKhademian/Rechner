@@ -27,7 +27,6 @@ import {
   setAnnualBonusGross,
   setAnnualBonusMonth,
   setInvestmentReturnMonthly,
-  setSalaryInputMode,
   setSalaryPeriod,
   derivedSpousalSet,
   husbandHours,
@@ -43,7 +42,6 @@ import {
   prePregnancyPlanningMonths,
   child1BirthMonth,
   birthSpacingMonths,
-  swapLeadMonths,
   setPregnancy1PositiveDate,
   customPregnancies,
   customTaxClassSwitches,
@@ -68,6 +66,7 @@ import {
   removeAllCustomActions,
   resetToDefaults,
   resetToEmptyScenario,
+  importSimulationState,
   openExportImportModal,
   scrollToLegalRule,
   LegalRuleKey,
@@ -77,16 +76,15 @@ import {
   TaxClass,
   TargetPerson,
   FinancialEventCategory,
-  SalaryInputMode,
   SalaryPeriod,
-  toSalaryInputMode,
+  toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
   toEuroAmount,
   toNetSalary,
-  toWorkingHours,
   toFullCalendarYear,
   toMonthDuration,
+
   toChildIndex,
   toPercentageRate,
   toPregnancyId,
@@ -105,46 +103,12 @@ import {
 } from "#engine/types";
 import {
   getDefaultPersistedState, 
+  validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
-import scenarioPresetsData from "../../data/scenarioPresets.json" with { type: "json" };
+import {
+  BUILTIN_SCENARIO_CATALOG,
+} from "#data/scenarios/scenarioRegistry";
 
-/**
- * Preset Configuration Schema for Sandbox Simulation Scenarios.
- */
-export interface ScenarioPresetConfig {
-  /** Unique preset identifier key (e.g. 'standard_equal_income'). */
-  readonly id: string;
-  /** Human-readable preset display name. */
-  readonly name: string;
-  /** Contextual explanation of preset financial dynamics. */
-  readonly description?: string;
-  /** If true, resets state entirely to baseline default before applying. */
-  readonly useDefaultReset?: boolean;
-  /** Salary input format ('gross' or 'net'). */
-  readonly salaryInputMode?: string;
-  /** Husband's regular gross salary in EUR. */
-  readonly husbandGross?: number;
-  /** Wife's pre-birth regular gross salary in EUR. */
-  readonly wifeGross?: number;
-  /** Wife's initial full-time weekly working hours. */
-  readonly wifeInitialHours?: number;
-  /** Wife's post-birth part-time weekly working hours during leave. */
-  readonly wifePostBirthHours?: number;
-  /** Pre-pregnancy planning buffer in months. */
-  readonly prePregnancyPlanningMonths?: number;
-  /** First child delivery simulation month index. */
-  readonly child1BirthMonth?: number;
-  /** Birth spacing elapsed months between deliveries. */
-  readonly birthSpacingMonths?: number;
-  /** Proactive tax class swap lead time in months before conception. */
-  readonly swapLeadMonths?: number;
-}
-
-/** Dictionary mapping preset keys to `ScenarioPresetConfig` items. */
-export type ScenarioPresetsMap = Record<string, ScenarioPresetConfig>;
-
-const SCENARIO_PRESETS: ScenarioPresetsMap =
-  scenarioPresetsData satisfies ScenarioPresetsMap;
 import {
   ConfigureSandboxIcon,
   SimulationPeriodIcon,
@@ -275,56 +239,18 @@ export default function SandboxControls(): JSX.Element {
 
   // Preset Handlers
   const applyPreset = (presetKey: string): void => {
-    const preset = SCENARIO_PRESETS[presetKey];
-    if (!preset) {
-      return;
-    }
-
-    if (preset.useDefaultReset) {
-      resetToDefaults();
-      return;
-    }
-
-    if (preset.id === "empty") {
+    if (presetKey === "empty") {
       resetToEmptyScenario();
       return;
     }
-
-    if (preset.salaryInputMode) {
-      try {
-        setSalaryInputMode(toSalaryInputMode(preset.salaryInputMode));
-      }
-      catch {
-        setSalaryInputMode(SalaryInputMode.Gross);
-      }
+    const item = BUILTIN_SCENARIO_CATALOG.find((sc) => sc.id === presetKey);
+    if (item) {
+      importSimulationState(validateAndSanitizePersistedState(item.data));
+      return;
     }
-    if (preset.husbandGross !== undefined) {
-      setHusbandGross(preset.husbandGross);
-    }
-    if (preset.wifeGross !== undefined) {
-      setWifeGross(preset.wifeGross);
-    }
-    if (preset.wifeInitialHours !== undefined) {
-      setWifeInitialHours(preset.wifeInitialHours);
-    }
-    if (preset.wifePostBirthHours !== undefined) {
-      setWifePostBirthHours(preset.wifePostBirthHours);
-    }
-    if (preset.prePregnancyPlanningMonths !== undefined) {
-      prePregnancyPlanningMonths.value = toMonthDuration(
-        preset.prePregnancyPlanningMonths,
-      );
-    }
-    if (preset.child1BirthMonth !== undefined) {
-      child1BirthMonth.value = toSimulationMonth(preset.child1BirthMonth);
-    }
-    if (preset.birthSpacingMonths !== undefined) {
-      birthSpacingMonths.value = toMonthDuration(preset.birthSpacingMonths);
-    }
-    if (preset.swapLeadMonths !== undefined) {
-      swapLeadMonths.value = toMonthDuration(preset.swapLeadMonths);
-    }
+    resetToDefaults();
   };
+
 
 
 
@@ -442,7 +368,7 @@ export default function SandboxControls(): JSX.Element {
               >
                 Scenario Presets:
               </span>
-              {Object.values(SCENARIO_PRESETS).map((preset) => (
+              {BUILTIN_SCENARIO_CATALOG.map((preset) => (
                 <button
                   key={preset.id}
                   type="button"
@@ -451,23 +377,28 @@ export default function SandboxControls(): JSX.Element {
                     padding: "4px 10px",
                     borderRadius: "4px",
                     border:
-                      preset.id === "default"
+                      preset.id === "empty"
                         ? "1px solid var(--color-primary-border)"
                         : "1px solid var(--border-subtle)",
-                    background: "var(--bg-surface)",
+                    background:
+                      preset.id === "empty"
+                        ? "var(--color-primary-bg)"
+                        : "var(--bg-surface)",
                     color:
-                      preset.id === "default"
+                      preset.id === "empty"
                         ? "var(--color-primary)"
                         : "var(--text-primary)",
                     fontSize: "0.72rem",
                     fontWeight: 600,
                     cursor: "pointer",
                   }}
+                  title={preset.description}
                 >
                   {preset.name}
                 </button>
               ))}
             </div>
+
 
             <div style={{ display: "flex",
               alignItems: "center",
