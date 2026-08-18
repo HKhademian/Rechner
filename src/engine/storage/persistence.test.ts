@@ -34,16 +34,16 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
 
     assert.equal(defaults.salaryInputMode, SalaryInputMode.Gross);
     assert.equal(defaults.salaryPeriod, SalaryPeriod.Monthly);
-    assert.equal(defaults.husbandGross, 4500);
+    assert.equal(defaults.husbandGross, 4000);
     assert.equal(defaults.wifeGross, 3000);
     assert.equal(defaults.husbandHours, 32);
     assert.equal(defaults.wifeInitialHours, 40);
-    assert.equal(defaults.wifePostBirthHours, 24);
+    assert.equal(defaults.wifePostBirthHours, 32);
     assert.equal(defaults.startCalendarYear, 2026);
-    assert.equal(defaults.simulationDurationMonths, 60);
+    assert.equal(defaults.simulationDurationMonths, 72);
 
-    assert.equal(defaults.customPregnancies.length, 2);
-    assert.equal(defaults.customTaxClassSwitches.length, 2);
+    assert.equal(defaults.customPregnancies.length, 3);
+    assert.equal(defaults.customTaxClassSwitches.length, 1);
     assert.equal(defaults.customFinancialEvents.length, 2);
     assert.equal(defaults.activeScenario, ActiveScenarioView.C);
     assert.equal(defaults.chartMode, TimelineChartMode.StackedBar);
@@ -109,7 +109,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
 
   it("recovers gracefully from corrupted JSON strings by returning statutory defaults", () => {
     const corrupt1 = deserializeState("{ invalid json string ...");
-    assert.equal(corrupt1.husbandGross, 4500);
+    assert.equal(corrupt1.husbandGross, 4000);
 
     const corrupt2 = deserializeState("");
     assert.equal(corrupt2.wifeGross, 3000);
@@ -133,7 +133,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     const sanitized = validateAndSanitizePersistedState(partialRaw);
 
     // Fallbacks to default for invalid types
-    assert.equal(sanitized.husbandGross, 4500);
+    assert.equal(sanitized.husbandGross, 4000);
     assert.equal(sanitized.salaryInputMode, SalaryInputMode.Gross);
 
     // Preserves valid fields
@@ -144,7 +144,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.equal(sanitized.wifePostBirthHours, 0);
 
     // Reconstructs defaults for non-array collections
-    assert.equal(sanitized.customPregnancies.length, 2);
+    assert.equal(sanitized.customPregnancies.length, 3);
     assert.equal(sanitized.customFinancialEvents.length, 2);
   });
 
@@ -253,7 +253,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       assert.equal(mockStorage[ELTERNGELD_STORAGE_KEY], undefined);
 
       const afterClear = loadFromStorage();
-      assert.equal(afterClear.husbandGross, 4500); // defaults restored
+      assert.equal(afterClear.husbandGross, 4000); // defaults restored
     });
   });
 });

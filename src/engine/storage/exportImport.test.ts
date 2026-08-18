@@ -262,13 +262,20 @@ describe("User Data Export & Import Engine", () => {
       );
 
       const lines = csv.split("\r\n");
-      assert.equal(lines.length, 61); // 1 Header + 60 Months
+      assert.equal(
+        lines.length,
+        (defaultState.simulationDurationMonths as number) + 1,
+      ); // 1 Header + N Months
       assert.ok(lines[1].startsWith('"M01.2026";"M-8";"Sim1";M1;'));
       assert.ok(
         lines[9].startsWith('"M09.2026";"M1 (Pregnancy Positive)";"Sim9";M9;'),
       );
       assert.ok(lines[17].startsWith('"M05.2027";"M9 (Birth 1)";"Sim17";M17;'));
-      assert.ok(lines[60].startsWith('"M12.2030";"M52";"Sim60";M60;'));
+      assert.ok(
+        lines[lines.length - 1].includes(
+          `"Sim${defaultState.simulationDurationMonths}"`,
+        ),
+      );
     });
   });
 
