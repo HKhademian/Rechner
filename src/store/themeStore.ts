@@ -30,7 +30,9 @@ export const activeThemeMode = signal<ThemeMode>(getInitialThemeMode());
  * @param mode - Theme mode to activate.
  */
 export function applyThemeToDocument(mode: ThemeMode): void {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined") {
+    return;
+  }
 
   let effectiveDark = false;
   if (mode === ThemeMode.Dark) {

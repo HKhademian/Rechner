@@ -2,45 +2,29 @@ import { signal, computed, effect } from "@preact/signals";
 import {
   type ScenarioId as ScenarioIdType,
   ScenarioId,
-  ActiveScenarioView,
-  TimelineChartMode,
-  TimelineTimeRangeFilter,
+  type ActiveScenarioView,
+  type TimelineChartMode,
+  type TimelineTimeRangeFilter,
   TaxClass,
-  TargetPerson,
   SalaryInputMode,
-  SalaryPeriod,
+  type SalaryPeriod,
   type PregnancyId,
   type SwitchId,
   type RaiseId,
   type FinancialEventId,
-  FinancialEventCategory,
   toNetSalary,
   toGrossSalary,
   toEuroAmount,
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
-  toMonthDuration,
   toChildrenCount,
-  toChildIndex,
-  toPercentageRate,
-  toPregnancyId,
-  toSwitchId,
-  toRaiseId,
-  toHoursChangeId,
-  toFinancialEventId,
-  toSalaryInputMode,
-  toSalaryPeriod,
-  toActiveScenarioView,
-  toTimelineChartMode,
-  toTimelineTimeRangeFilter,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
   type WorkingHoursChangeAction,
   type FinancialEventAction,
-  type GrossToNetBreakdown,
   type SpousalGrossToNetSet,
   type GrossSalary,
   type NetSalary,
@@ -49,19 +33,13 @@ import {
   type CalendarMonth,
   type SimulationMonth,
   type MonthDuration,
-  type ChildrenCount,
-  type ChildIndex,
-  type PercentageRate,
   type HoursChangeId,
 } from "#engine/types";
 import {
   runScenarioBatches,
   calculateSimulationStartDate,
 } from "#engine/simulator/timelineGenerator";
-import {
-  deriveSpousalNetSalaries,
-  computeGrossToNetBreakdown,
-} from "#engine/tax/wageTax";
+import { deriveSpousalNetSalaries } from "#engine/tax/wageTax";
 import {
   getDefaultPersistedState,
   loadFromStorage,
@@ -76,7 +54,6 @@ import {
   exportStateToZip,
   triggerFileDownload,
   triggerPrintableReport,
-  importStateFromJson,
 } from "#engine/storage/exportImport";
 
 // Initial state loaded from localStorage (or statutory defaults)
@@ -878,8 +855,12 @@ export const scenarioCData = computed(() => computeTimelineData(ScenarioId.C));
 // Current active scenario data
 export const currentScenarioData = computed(() => {
   const key = activeScenario.value;
-  if (key === ScenarioId.A) return scenarioAData.value;
-  if (key === ScenarioId.B) return scenarioBData.value;
+  if (key === ScenarioId.A) {
+    return scenarioAData.value;
+  }
+  if (key === ScenarioId.B) {
+    return scenarioBData.value;
+  }
   return scenarioCData.value;
 });
 

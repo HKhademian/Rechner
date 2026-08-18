@@ -312,7 +312,9 @@ export function loadScenario(id: string): void {
 
 // Exact Tax Formula (Grundtarif) - Shifts according to configBasicAllowance
 function getBaseTax(zve: number, basicAllowance: number): number {
-  if (zve <= basicAllowance) return 0;
+  if (zve <= basicAllowance) {
+    return 0;
+  }
 
   const band2Cap = basicAllowance + 5401;
   if (zve <= band2Cap) {
@@ -392,7 +394,9 @@ function calculateForPerson(
   const deductibleSocialSecurity = totalSocialSecurity * 0.8;
   const workExpense = configWorkExpenseAllowance.value;
   let taxableIncome = grossYearly - deductibleSocialSecurity - workExpense;
-  if (taxableIncome < 0) taxableIncome = 0;
+  if (taxableIncome < 0) {
+    taxableIncome = 0;
+  }
 
   // 3. Tax Calculation
   let tax = 0;
@@ -408,7 +412,9 @@ function calculateForPerson(
     tax = getBaseTax(taxableIncome, basicAllowance);
     if (bracket === "2") {
       let class2ZvE = taxableIncome - 4260;
-      if (class2ZvE < 0) class2ZvE = 0;
+      if (class2ZvE < 0) {
+        class2ZvE = 0;
+      }
       tax = getBaseTax(class2ZvE, basicAllowance);
     }
   }
@@ -416,7 +422,9 @@ function calculateForPerson(
   const childTaxReductionAmount = configChildTaxReduction.value;
   const childTaxReduction = numChildren * childTaxReductionAmount;
   tax -= childTaxReduction;
-  if (tax < 0) tax = 0;
+  if (tax < 0) {
+    tax = 0;
+  }
 
   let soli = 0;
   const soliThreshold = bracket === "3" ? 36260 : 18130;
