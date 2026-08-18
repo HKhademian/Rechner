@@ -12,10 +12,10 @@ import {
   APPLICATION_NAME,
 } from "#engine/storage/exportImport";
 import {
-  getDefaultPersistedState, 
+  getTestPersistedState,
 } from "#engine/storage/persistence";
 import {
-  runScenarioBatches, 
+  runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
   ScenarioId,
@@ -29,7 +29,7 @@ import {
 } from "#engine/types";
 
 describe("User Data Export & Import Engine", () => {
-  const defaultState = getDefaultPersistedState();
+  const defaultState = getTestPersistedState();
 
   describe("JSON Export and Serialization (exportStateToJson)", () => {
     it("serializes state into versioned metadata envelope with standard JSON formatting", () => {

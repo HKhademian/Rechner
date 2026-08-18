@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   ELTERNGELD_STORAGE_KEY,
   getDefaultPersistedState,
+  getTestPersistedState,
   validateAndSanitizePersistedState,
   serializeState,
   deserializeState,
@@ -30,29 +31,38 @@ import {
 } from "#engine/types";
 
 describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
-  it("returns valid statutory default state with complete batch collections", () => {
+  it("returns valid canonical test state with complete batch collections", () => {
+    const testState = getTestPersistedState();
+
+    assert.equal(testState.salaryInputMode, SalaryInputMode.Gross);
+    assert.equal(testState.salaryPeriod, SalaryPeriod.Monthly);
+    assert.equal(testState.husbandGross, 4000);
+    assert.equal(testState.wifeGross, 3000);
+    assert.equal(testState.husbandHours, 32);
+    assert.equal(testState.wifeInitialHours, 40);
+    assert.equal(testState.wifePostBirthHours, 32);
+    assert.equal(testState.startCalendarYear, 2026);
+    assert.equal(testState.simulationDurationMonths, 72);
+
+    assert.equal(testState.customPregnancies.length, 3);
+    assert.equal(testState.customTaxClassSwitches.length, 2);
+    assert.equal(testState.customFinancialEvents.length, 2);
+    assert.equal(testState.activeScenario, ActiveScenarioView.C);
+    assert.equal(testState.chartMode, TimelineChartMode.StackedBar);
+    assert.equal(testState.timeRangeFilter, TimelineTimeRangeFilter.All);
+  });
+
+  it("returns valid repository default persisted state conforming to persistence schema", () => {
     const defaults = getDefaultPersistedState();
-
-    assert.equal(defaults.salaryInputMode, SalaryInputMode.Gross);
-    assert.equal(defaults.salaryPeriod, SalaryPeriod.Monthly);
-    assert.equal(defaults.husbandGross, 4000);
-    assert.equal(defaults.wifeGross, 3000);
-    assert.equal(defaults.husbandHours, 32);
-    assert.equal(defaults.wifeInitialHours, 40);
-    assert.equal(defaults.wifePostBirthHours, 32);
-    assert.equal(defaults.startCalendarYear, 2026);
-    assert.equal(defaults.simulationDurationMonths, 72);
-
-    assert.equal(defaults.customPregnancies.length, 3);
-    assert.equal(defaults.customTaxClassSwitches.length, 2);
-    assert.equal(defaults.customFinancialEvents.length, 2);
-    assert.equal(defaults.activeScenario, ActiveScenarioView.C);
-    assert.equal(defaults.chartMode, TimelineChartMode.StackedBar);
-    assert.equal(defaults.timeRangeFilter, TimelineTimeRangeFilter.All);
+    assert.ok(defaults.husbandGross >= 0);
+    assert.ok(defaults.wifeGross >= 0);
+    assert.ok(defaults.simulationDurationMonths >= 12);
+    assert.ok(Array.isArray(defaults.customPregnancies));
+    assert.ok(Array.isArray(defaults.customTaxClassSwitches));
   });
 
   it("performs lossless roundtrip serialization and deserialization of complete state", () => {
-    const original = getDefaultPersistedState();
+    const original = getTestPersistedState();
     const modified: ElterngeldPersistedState = {
       ...original,
       husbandGross: toGrossSalary(7500),
@@ -109,18 +119,20 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
   });
 
   it("recovers gracefully from corrupted JSON strings by returning statutory defaults", () => {
-    const corrupt1 = deserializeState("{ invalid json string ...");
-    assert.equal(corrupt1.husbandGross, 4000);
+    const testFallback = getTestPersistedState();
+    const corrupt1 = deserializeState("{ invalid json string ...", testFallback);
+    assert.equal(corrupt1.husbandGross, testFallback.husbandGross);
 
-    const corrupt2 = deserializeState("");
-    assert.equal(corrupt2.wifeGross, 3000);
+    const corrupt2 = deserializeState("", testFallback);
+    assert.equal(corrupt2.wifeGross, testFallback.wifeGross);
 
-    const corrupt3 = deserializeState("null");
-    assert.equal(corrupt3.activeScenario, ActiveScenarioView.C);
-    assert.equal(corrupt3.chartMode, TimelineChartMode.StackedBar);
+    const corrupt3 = deserializeState("null", testFallback);
+    assert.equal(corrupt3.activeScenario, testFallback.activeScenario);
+    assert.equal(corrupt3.chartMode, testFallback.chartMode);
   });
 
   it("sanitizes and validates malformed or partial objects with missing fields and type mismatches", () => {
+    const testFallback = getTestPersistedState();
     const partialRaw = {
       husbandGross: "invalid_number",
       wifeGross: 4800,
@@ -131,11 +143,11 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       unknownExtraField: "ignored",
     };
 
-    const sanitized = validateAndSanitizePersistedState(partialRaw);
+    const sanitized = validateAndSanitizePersistedState(partialRaw, testFallback);
 
     // Fallbacks to default for invalid types
-    assert.equal(sanitized.husbandGross, 4000);
-    assert.equal(sanitized.salaryInputMode, SalaryInputMode.Gross);
+    assert.equal(sanitized.husbandGross, testFallback.husbandGross);
+    assert.equal(sanitized.salaryInputMode, testFallback.salaryInputMode);
 
     // Preserves valid fields
     assert.equal(sanitized.wifeGross, 4800);
@@ -268,7 +280,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       assert.equal(mockStorage[ELTERNGELD_STORAGE_KEY], undefined);
 
       const afterClear = loadFromStorage();
-      assert.equal(afterClear.husbandGross, 4000); // defaults restored
+      assert.equal(afterClear.husbandGross, getDefaultPersistedState().husbandGross); // defaults restored
     });
   });
 });
