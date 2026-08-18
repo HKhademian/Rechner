@@ -33,6 +33,7 @@ import {
   FinancialInflowIcon,
   ExternalLegalSourceIcon,
   InformationalNoticeIcon,
+  StepTransitionIcon,
 } from "#components/Icons";
 import FieldExplainerModal from "./FieldExplainerModal";
 import RowExplainerModal from "./RowExplainerModal";
@@ -918,6 +919,8 @@ export default function TimelineTable(): JSX.Element {
                       act.type === ActionType.PregnancyPositive;
                     const isTaxSwitch =
                       act.category === ActionCategory.TaxSwitch;
+                    const isReallocation =
+                      act.type === ActionType.ElterngeldReallocation;
 
                     const badgeClass = isDelivery
                       ? "badge-brand"
@@ -925,7 +928,9 @@ export default function TimelineTable(): JSX.Element {
                         ? "badge-warning"
                         : isTaxSwitch
                           ? "badge-brand"
-                          : "badge-neutral";
+                          : isReallocation
+                            ? "badge-success"
+                            : "badge-neutral";
 
                     const badgeLabel = isDelivery ? (
                       <>
@@ -949,6 +954,11 @@ export default function TimelineTable(): JSX.Element {
                           <span>TAX CLASS SWITCH</span>
                         </>
                       )
+                    ) : isReallocation ? (
+                      <>
+                        <StepTransitionIcon size={12} />
+                        <span>ELTERNGELD REALLOCATION</span>
+                      </>
                     ) : (
                       <>
                         <CareerPromotionMilestoneIcon size={12} />
