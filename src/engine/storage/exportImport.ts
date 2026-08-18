@@ -302,34 +302,44 @@ export function exportStateToTextReport(
     "--------------------------------------------------------------------------------",
   );
   lines.push(" • Pregnancies & Births (Batch 1):");
-  state.customPregnancies.forEach((p: PregnancyAction) => {
-    const posId = toMonthId(
-      p.positiveTestCalendarMonth,
-      p.positiveTestCalendarYear,
-    );
-    const delCalMonth = ((p.positiveTestCalendarMonth - 1 + 8) % 12) + 1;
-    const delCalYear =
-      p.positiveTestCalendarYear +
-      Math.floor((p.positiveTestCalendarMonth - 1 + 8) / 12);
-    const delId = toMonthId(delCalMonth, delCalYear);
-    lines.push(
-      `   - Child #${p.childIndex}: Positive Test ${posId} (${toCalendarLabel(p.positiveTestCalendarMonth, p.positiveTestCalendarYear)} · M${p.childIndex === 1 ? "1 (Pregnancy Positive)" : p.positiveTestSimulationMonth}) -> Delivery ${delId} (${toCalendarLabel(delCalMonth, delCalYear)} · M${p.childIndex === 1 ? "9 (Birth 1)" : p.calculatedDeliverySimulationMonth}) (Father: ${p.fatherPartnerMonthsCount} partner months)`,
-    );
-  });
+  if (state.customPregnancies.length === 0) {
+    lines.push("   - None configured");
+  }
+  else {
+    state.customPregnancies.forEach((p: PregnancyAction) => {
+      const posId = toMonthId(
+        p.positiveTestCalendarMonth,
+        p.positiveTestCalendarYear,
+      );
+      const delCalMonth = ((p.positiveTestCalendarMonth - 1 + 8) % 12) + 1;
+      const delCalYear =
+        p.positiveTestCalendarYear +
+        Math.floor((p.positiveTestCalendarMonth - 1 + 8) / 12);
+      const delId = toMonthId(delCalMonth, delCalYear);
+      lines.push(
+        `   - Child #${p.childIndex}: Positive Test ${posId} (${toCalendarLabel(p.positiveTestCalendarMonth, p.positiveTestCalendarYear)} · M${p.childIndex === 1 ? "1 (Pregnancy Positive)" : p.positiveTestSimulationMonth}) -> Delivery ${delId} (${toCalendarLabel(delCalMonth, delCalYear)} · M${p.childIndex === 1 ? "9 (Birth 1)" : p.calculatedDeliverySimulationMonth}) (Father: ${p.fatherPartnerMonthsCount} partner months)`,
+      );
+    });
+  }
 
   lines.push(" • Strategic Tax Class Switches (Batch 2):");
-  state.customTaxClassSwitches.forEach(
-    (s: TaxClassSwitchAction, idx: number) => {
-      const effId = toMonthId(
-        s.effectiveCalendarMonth,
-        s.effectiveCalendarYear,
-      );
-      lines.push(
-        `   - Swap #${idx + 1}: Effective ${effId} (${toCalendarLabel(s.effectiveCalendarMonth, s.effectiveCalendarYear)}) -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
-      );
-      lines.push(`     ↳ Reason: ${s.statutoryReason}`);
-    },
-  );
+  if (state.customTaxClassSwitches.length === 0) {
+    lines.push("   - None configured");
+  }
+  else {
+    state.customTaxClassSwitches.forEach(
+      (s: TaxClassSwitchAction, idx: number) => {
+        const effId = toMonthId(
+          s.effectiveCalendarMonth,
+          s.effectiveCalendarYear,
+        );
+        lines.push(
+          `   - Swap #${idx + 1}: Effective ${effId} (${toCalendarLabel(s.effectiveCalendarMonth, s.effectiveCalendarYear)}) -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
+        );
+        lines.push(`     ↳ Reason: ${s.statutoryReason}`);
+      },
+    );
+  }
 
   if (
     state.customWorkingHoursChanges &&
@@ -364,6 +374,7 @@ export function exportStateToTextReport(
     );
   }
   lines.push("");
+
 
   // Section 5: Statutory Legal Citations
   lines.push(
