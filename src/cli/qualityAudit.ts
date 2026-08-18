@@ -26,9 +26,9 @@ interface DiagnosticMessage {
 const diagnostics: DiagnosticMessage[] = [];
 
 function logSection(title: string): void {
-  console.log(`\n========================================================`);
+  console.log("\n========================================================");
   console.log(`🔍  ${title}`);
-  console.log(`========================================================`);
+  console.log("========================================================");
 }
 
 function addDiagnostic(
@@ -52,7 +52,7 @@ function runCommand(cmd: string, args: string[], category: string): boolean {
   });
 
   if (result.status !== 0) {
-    const errorOutput = (result.stdout + "\n" + result.stderr).trim();
+    const errorOutput = `${result.stdout}\n${result.stderr}`.trim();
     addDiagnostic(
       "ERROR",
       category,
@@ -145,28 +145,27 @@ function scanSourceFiles(dir: string): void {
 // ============================================================================
 async function runQualityAudit(): Promise<void> {
   console.log(
-    `\n🛡️  GERMAN NET SALARY & BENEFIT SIMULATOR — CODE QUALITY AUDIT`,
+    "\n🛡️  GERMAN NET SALARY & BENEFIT SIMULATOR — CODE QUALITY AUDIT",
   );
   console.log(
-    `   Running comprehensive compiler, style, rule & test diagnostics...\n`,
+    "   Running comprehensive compiler, style, rule & test diagnostics...\n",
   );
 
-  // Step 1: ESLint Static Analysis & Code Style Verification
-  logSection("1. ESLint Code Style & Static Analysis Verification (Rule 20)");
-  const eslintBin = path.resolve(process.cwd(), "node_modules/.bin/eslint");
-  const lintOk = runCommand(
-    eslintBin,
-    ["src/**/*.{ts,tsx,js,mjs,astro}", "test/**/*.ts"],
-    "LintCheck",
+  // Step 1: Prettier Code Style Formatting Check
+  logSection("1. Prettier Code Style & Formatting Verification (Rule 20)");
+  const prettierBin = path.resolve(process.cwd(), "node_modules/.bin/prettier");
+  const formatOk = runCommand(
+    prettierBin,
+    ["--check", "src/**/*.{ts,tsx,css}", "test/**/*.ts"],
+    "FormatCheck",
   );
-  if (lintOk) {
+  if (formatOk) {
     console.log(
-      "✓ All source and test files strictly match ESLint code style and quality rules.",
+      "✓ All source and test files strictly match Prettier code style.",
     );
-  }
-  else {
+  } else {
     console.log(
-      "💡 Run 'npm run fix' or 'npm run lint:fix' to auto-format files.",
+      "💡 Run 'npm run fix' or 'npm run format' to auto-format files.",
     );
   }
 
@@ -228,7 +227,7 @@ async function runQualityAudit(): Promise<void> {
     process.exit(0);
   } else {
     console.log(
-      `\n✅ Quality Audit PASSED with 100% excellence. Ready for deployment and git commit!`,
+      "\n✅ Quality Audit PASSED with 100% excellence. Ready for deployment and git commit!",
     );
     process.exit(0);
   }

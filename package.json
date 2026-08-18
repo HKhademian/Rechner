@@ -30,15 +30,15 @@
     "check": "npm run check:audit",
     "check:types": "npm run typecheck",
     "check:lint": "npm run lint",
-    "check:format": "npm run lint",
+    "check:format": "npm run format:check",
     "check:test": "npm run test",
     "check:build": "npm run build",
     "check:audit": "node --no-warnings src/cli/qualityAudit.ts",
     "verify": "npm run check:audit",
-    "format": "npm run lint:fix",
-    "format:check": "npm run lint",
-    "fix": "npm run lint:fix",
-    "apply": "npm run fix && npm run check"
+    "format": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 prettier --write \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\"",
+    "format:check": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 prettier --check \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\"",
+    "fix": "npm run format",
+    "apply": "npm run format && npm run check"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.1",

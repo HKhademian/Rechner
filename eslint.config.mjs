@@ -26,16 +26,14 @@ export default [
     files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs"],
   })),
 
-  // Astro files
-  ...astroPlugin.configs.recommended.map((config) => ({
-    ...config,
-    files: ["**/*.astro"],
-  })),
+  // Astro files recommended configuration
+  ...astroPlugin.configs.recommended,
 
-  // Comprehensive Stylistic & Code Quality Rules
+  // Comprehensive Stylistic & Code Quality Rules for TypeScript & JavaScript
   {
-    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.astro"],
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs"],
     plugins: {
+      "@typescript-eslint": tseslint.plugin,
       "@stylistic": stylistic,
       "unused-imports": unusedImports,
     },
@@ -115,6 +113,30 @@ export default [
       "@stylistic/spaced-comment": ["error", "always", { markers: ["/"] }],
       "@stylistic/key-spacing": ["error", { beforeColon: false, afterColon: true }],
       "@stylistic/comma-spacing": ["error", { before: false, after: true }],
+    },
+  },
+
+  // Stylistic Rules for Astro files
+  {
+    files: ["**/*.astro"],
+    plugins: {
+      "@stylistic": stylistic,
+    },
+    rules: {
+      "@stylistic/linebreak-style": ["error", "unix"],
+      "@stylistic/eol-last": ["error", "always"],
+      "@stylistic/quotes": ["error", "double", { avoidEscape: true }],
+      "@stylistic/semi": ["error", "always"],
+      "@stylistic/brace-style": ["error", "stroustrup", { allowSingleLine: false }],
+      "curly": ["error", "all"],
+    },
+  },
+
+  // Test files relaxed any rule for negative testing / raw type verification
+  {
+    files: ["**/*.test.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ];
