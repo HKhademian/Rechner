@@ -1,3 +1,11 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Financial Simulator - Statutory Wage Tax Engine
+ *
+ * Implements the German statutory income tax tariff (§ 32a EStG), wage tax withholding (§ 38b EStG),
+ * solidarity surcharge (SolzG 1995), statutory social security deductions (SGB IV/V/VI/XI),
+ * bonus differential tax (Sonstige Bezüge § 39b Abs. 3 EStG), and spousal factor method (§ 39f EStG).
+ */
+
 import {
   type GrossSalary,
   type NetSalary,
@@ -19,7 +27,17 @@ import {
 } from "#engine/types";
 
 /**
- * Determines the statutory § 32a EStG income tax tariff zone.
+ * Determines the statutory income tax tariff zone under § 32a Abs. 1 EStG based on annual taxable income (ZvE).
+ *
+ * Statutory Zones:
+ * - Zone 1: Nullzone (ZvE <= 11.784 €) - Basic tax-free allowance (Grundfreibetrag).
+ * - Zone 2: Progressionszone 1 (11.785 € to 17.005 €) - Initial progressive entry rate (14% to ~24%).
+ * - Zone 3: Progressionszone 2 (17.006 € to 66.760 €) - Linear progressive bracket (24% to 42%).
+ * - Zone 4: Proportionalzone 1 (66.761 € to 277.825 €) - Fixed top tax rate of 42% (Spitzensteuersatz).
+ * - Zone 5: Proportionalzone 2 (> 277.825 €) - Fixed wealth tax rate of 45% (Reichensteuer).
+ *
+ * @param zve - Annual taxable income (zu versteuerndes Einkommen) in EUR.
+ * @returns Strongly-typed `WageTaxZone` enum member.
  */
 export function computeWageTaxZone(zve: number): WageTaxZone {
   if (zve <= 11784) return WageTaxZone.Zone1Null;
@@ -30,8 +48,11 @@ export function computeWageTaxZone(zve: number): WageTaxZone {
 }
 
 /**
- * Statutory Income Tax Tariff (§ 32a Abs. 1 EStG) - 2024–2026 Tariff Formula
- * Calculates annual income tax on taxable income (ZvE).
+ * Calculates statutory annual income tax under the German income tax tariff (§ 32a Abs. 1 EStG).
+ * Implements the 2024–2026 progressive tariff polynomial formulas.
+ *
+ * @param zve - Annual taxable income (zu versteuerndes Einkommen) in EUR.
+ * @returns Exact annual income tax liability in EUR.
  */
 export function computeAnnualIncomeTax(zve: number): EuroAmount {
   if (zve <= 0) return toEuroAmount(0);
@@ -69,7 +90,12 @@ export function computeAnnualIncomeTax(zve: number): EuroAmount {
 }
 
 /**
- * Statutory Solidarity Surcharge (§ 32a, SolzG 1995 § 3, § 4)
+ * Calculates the statutory solidarity surcharge under SolzG 1995 (§ 3, § 4).
+ * Incorporates exemption thresholds (€18.130 single / €36.260 married) and the 11.9% mitigation zone (Milderungszone).
+ *
+ * @param annualTax - Annual income tax liability in EUR.
+ * @param isMarriedJoint - True if married joint filing threshold applies.
+ * @returns Annual solidarity surcharge in EUR.
  */
 export function computeSolidaritySurcharge(
   annualTax: EuroAmount,
@@ -88,21 +114,39 @@ export function computeSolidaritySurcharge(
 }
 
 /**
- * Monthly Social Insurance Contribution Determination
- * Caps at statutory Beitragsbemessungsgrenzen (BBG).
+ * Itemized Monthly Statutory Social Insurance Deductions (§§ 20, 55 SGB).
+ * Encapsulates statutory employee contributions capped at Beitragsbemessungsgrenzen (BBG).
  */
 export interface SocialInsuranceDeductions {
+  /** Statutory health insurance employee monthly contribution in EUR (GKV: 7.3% base + 0.85% Zusatzbeitrag = 8.15%). */
   readonly healthInsurance: EuroAmount;
+  /** Effective health insurance employee percentage rate (0.0815). */
   readonly healthInsuranceRate: number;
+  /** Statutory public pension insurance employee monthly contribution in EUR (GRV: 9.30%). */
   readonly pensionInsurance: EuroAmount;
+  /** Effective pension insurance employee percentage rate (0.093). */
   readonly pensionInsuranceRate: number;
+  /** Statutory unemployment insurance employee monthly contribution in EUR (AV: 1.30%). */
   readonly unemploymentInsurance: EuroAmount;
+  /** Effective unemployment insurance employee percentage rate (0.013). */
   readonly unemploymentInsuranceRate: number;
+  /** Statutory long-term nursing care insurance employee contribution in EUR (PV: 2.2% base + child discount/childless surcharge). */
   readonly careInsurance: EuroAmount;
+  /** Effective care insurance employee percentage rate. */
   readonly careInsuranceRate: number;
+  /** Total combined statutory social security employee deductions per month in EUR. */
   readonly totalSocialSecurity: EuroAmount;
 }
 
+/**
+ * Computes monthly statutory employee social security contributions under SGB IV, V, VI, and XI.
+ * Caps contributions at statutory monthly assessment ceilings (BBG 2024–2026: GKV €5.175/mo, GRV €7.550/mo)
+ * and adjusts nursing care rates for child discounts (§ 55 Abs. 3 SGB XI).
+ *
+ * @param monthlyGross - Monthly gross employment earnings in EUR.
+ * @param childrenCount - Count of dependent children.
+ * @returns Complete `SocialInsuranceDeductions` itemization.
+ */
 export function computeMonthlySocialSecurity(
   monthlyGross: GrossSalary,
   childrenCount: number = 0,
@@ -156,7 +200,13 @@ export function computeMonthlySocialSecurity(
 }
 
 /**
- * Computes Annual Wage Tax Withholding under § 38b EStG for a given Tax Class.
+ * Computes annual wage tax withholding under § 38b EStG for a specified tax class (I through VI).
+ * Incorporates standard statutory employee lump sums (Arbeitnehmer-Pauschbetrag €1.230, Sonderausgaben €36, Vorsorgeaufwand).
+ *
+ * @param annualGross - Projected annual gross salary in EUR.
+ * @param annualSocialSecurity - Projected annual statutory social security contributions in EUR.
+ * @param taxClass - German statutory wage tax class (§ 38b EStG).
+ * @returns Annual tax amount and approximate annual taxable income (ZvE).
  */
 export function computeAnnualWageTaxForClass(
   annualGross: number,
@@ -211,7 +261,14 @@ export function computeAnnualWageTaxForClass(
 }
 
 /**
- * Calculates § 39b Abs. 3 EStG Differential Wage Tax on Non-Recurrent Bonuses (Sonstige Bezüge).
+ * Calculates differential wage tax assessed on one-off bonus payments (Sonstige Bezüge) under § 39b Abs. 3 EStG.
+ * Determines the difference between projected annual wage tax with bonus versus without bonus.
+ *
+ * @param regularAnnualGross - Regular annual gross salary excluding bonus in EUR.
+ * @param regularAnnualSocialSecurity - Regular annual social security deductions in EUR.
+ * @param bonusAmount - Gross one-off bonus payment in EUR.
+ * @param taxClass - Active wage tax class.
+ * @returns Additional differential wage tax deduction in EUR.
  */
 export function computeSonstigeBezuegeTax(
   regularAnnualGross: number,
@@ -237,9 +294,14 @@ export function computeSonstigeBezuegeTax(
 }
 
 /**
- * Calculates the statutory tax factor for married couples under § 39f EStG (Faktorverfahren).
+ * Calculates the statutory income tax factor for married couples under § 39f EStG (Faktorverfahren).
  * Factor F = Projected Joint Tax (Splitting § 32a Abs. 5) / (Husband Tax IV + Wife Tax IV)
  * Rounded to 3 decimal places (0 < F <= 1.000).
+ *
+ * @param husbandAnnualGross - Husband's projected annual gross earnings in EUR.
+ * @param wifeAnnualGross - Wife's projected annual gross earnings in EUR.
+ * @param childrenCount - Count of dependent children.
+ * @returns Statutory `TaxFactor` ratio.
  */
 export function computeTaxFactor(
   husbandAnnualGross: number,
@@ -289,8 +351,16 @@ export function computeTaxFactor(
 }
 
 /**
- * Comprehensive Itemized Gross-to-Net Breakdown Determination.
- * Handles both regular wage and one-off bonuses per § 38b, § 39b, and § 39f EStG.
+ * Comprehensive Itemized German Gross-to-Net Payroll & Statutory Tax Breakdown.
+ * Computes social security deductions, wage taxes under § 38b/§ 39f EStG, one-off bonus taxes (§ 39b Abs. 3),
+ * actual net take-home pay, and the clean synthetic net baseline for Elterngeld under § 2c BEEG.
+ *
+ * @param monthlyGross - Monthly gross employment compensation in EUR.
+ * @param taxClass - Active German wage tax class.
+ * @param childrenCount - Count of dependent children (for nursing care insurance rate).
+ * @param oneOffBonus - Optional one-off special bonus payment in EUR.
+ * @param taxFactor - Optional § 39f EStG factor ratio for Tax Class IV.
+ * @returns Complete `GrossToNetBreakdown` specification.
  */
 export function computeGrossToNetBreakdown(
   monthlyGross: GrossSalary,
@@ -405,7 +475,14 @@ export function computeGrossToNetBreakdown(
 }
 
 /**
- * Monthly Net Salary Determination based on Tax Class (§ 38b EStG).
+ * Computes monthly net take-home salary for a given gross salary and tax class under § 38b EStG.
+ *
+ * @param monthlyGross - Monthly gross salary in EUR.
+ * @param taxClass - German wage tax class.
+ * @param childrenCount - Count of dependent children.
+ * @param oneOffBonus - Optional one-off bonus payment.
+ * @param taxFactor - Optional § 39f EStG factor ratio.
+ * @returns Monthly post-withholding `NetSalary`.
  */
 export function computeMonthlyNetSalary(
   monthlyGross: GrossSalary,
@@ -425,7 +502,15 @@ export function computeMonthlyNetSalary(
 }
 
 /**
- * Derives complete Spousal Household Net Set across all Tax Class & Factor combinations.
+ * Derives the complete spousal household gross-to-net matrix across all tax class combinations
+ * (III/V, V/III, IV/IV, IV+Factor) for full-time and part-time employment configurations.
+ *
+ * @param husbandGross - Husband's full-time monthly gross salary.
+ * @param wifeGrossFullTime - Wife's full-time pre-birth monthly gross salary.
+ * @param wifePtHours - Wife's post-birth part-time weekly hours (defaults to 24h).
+ * @param wifeFtHours - Wife's full-time weekly hours (defaults to 40h).
+ * @param childrenCount - Count of dependent children.
+ * @returns Complete `SpousalGrossToNetSet` matrix.
  */
 export function deriveSpousalNetSalaries(
   husbandGross: GrossSalary,

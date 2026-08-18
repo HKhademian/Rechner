@@ -1,3 +1,11 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Financial Simulator - Spousal Joint Assessment Engine
+ *
+ * Implements spousal splitting tax liability (§ 26b, § 32a Abs. 5 EStG), monthly tax class swap
+ * withholding variance reconciliation, statutory child allowance favorability checks
+ * (Kinderfreibetrag Günstigerprüfung § 31, § 32 Abs. 6 EStG), and annual tax return refunds (§ 46 EStG).
+ */
+
 import {
   type EuroAmount,
   type NetSalary,
@@ -15,7 +23,12 @@ import {
 } from "#engine/tax/wageTax";
 
 /**
- * Annual Joint Tax Liability under Ehegatten-Splitting (§ 26b, § 32a Abs. 5 EStG)
+ * Calculates spousal joint tax liability under Ehegatten-Splitting (§ 26b, § 32a Abs. 5 EStG).
+ * Joint Tax = 2 * Tarif((Husband ZvE + Wife ZvE) / 2).
+ *
+ * @param husbandAnnualZvE - Husband's annual taxable income (ZvE) in EUR.
+ * @param wifeAnnualZvE - Wife's annual taxable income (ZvE) in EUR.
+ * @returns Joint tax, solidarity surcharge, and total joint tax liability in EUR.
  */
 export function computeJointTaxLiability(
   husbandAnnualZvE: number,
@@ -43,9 +56,16 @@ export function computeJointTaxLiability(
 }
 
 /**
- * Monthly Tax Withholding Deficit during Proactive Tax Swap Phase (§ 38b EStG)
- * When husband swaps to Class V and wife to Class III:
- * Monthly Deficit = (Husband Class III Net - Husband Class V Net) - (Wife Class III Net - Wife Class V Net)
+ * Calculates the monthly temporary tax withholding variance during the proactive tax class swap phase (§ 38b EStG).
+ * When husband swaps from Class III to V and wife swaps from Class V to III:
+ * Monthly Deficit = (Husband Class III Net - Husband Class V Net) - (Wife Class III Net - Wife Class V Net).
+ * This deficit is fully restored upon annual tax reconciliation.
+ *
+ * @param husbandClass3Net - Husband's standard take-home net in Tax Class III.
+ * @param husbandClass5Net - Husband's take-home net in swapped Tax Class V.
+ * @param wifeClass3Net - Wife's take-home net in swapped Tax Class III.
+ * @param wifeClass5Net - Wife's standard take-home net in Tax Class V.
+ * @returns Monthly cash flow withholding deficit in EUR.
  */
 export function computeMonthlySwapWithholdingVariance(
   husbandClass3Net: NetSalary,
@@ -61,19 +81,29 @@ export function computeMonthlySwapWithholdingVariance(
 }
 
 /**
- * Child Presence Data for Calendar Year Tax Assessment
+ * Child Presence Record for Annual Calendar Year Tax Assessment.
+ * Tracks birth year and month to determine full-year or prorated child tax allowance eligibility.
  */
 export interface ChildYearPresence {
+  /** Ordinal index of the child. */
   readonly childIndex: ChildIndex | number;
+  /** 4-digit Gregorian calendar birth year (e.g. 2026). */
   readonly birthCalendarYear: FullCalendarYear | number;
-  readonly birthCalendarMonth: number; // 1..12
+  /** 1-based calendar birth month (1..12). */
+  readonly birthCalendarMonth: number;
 }
 
 /**
- * Statutory Child Allowance Favorability Assessment (§ 31, § 32 Abs. 6 EStG Günstigerprüfung)
+ * Statutory Child Allowance Favorability Assessment (§ 31, § 32 Abs. 6 EStG Günstigerprüfung).
  * Compares tax relief from Kinderfreibetrag + BEA (9.540 €/child/yr, prorated in birth year)
  * against total Kindergeld received (§ 66 EStG).
  * Any excess tax savings is added to the annual tax refund.
+ *
+ * @param jointAnnualZvE - Combined spousal annual taxable income (ZvE) in EUR.
+ * @param children - Array of child presence records in the household.
+ * @param reconciledYear - Calendar year being reconciled.
+ * @param monthlyKindergeldPerChild - Monthly Kindergeld amount per child (defaults to 259 €).
+ * @returns Complete `GuenstigerpruefungResult` structure.
  */
 export function computeKinderfreibetragGuenstigerpruefung(
   jointAnnualZvE: number,
@@ -152,20 +182,37 @@ export function computeKinderfreibetragGuenstigerpruefung(
 }
 
 /**
- * Annual Calendar Tax Return Reconciliation (§ 26b, § 31, § 46 Abs. 2 Nr. 3a EStG)
- * Aggregates monthly withholding deficits for a given calendar year, computes the statutory refund,
- * and incorporates Günstigerprüfung child tax relief.
+ * Annual Calendar Tax Return Reconciliation Result (§ 26b, § 31, § 46 Abs. 2 Nr. 3a EStG).
+ * Encapsulates accumulated monthly withholding deficit recoveries, base deductions refunds, and child tax relief.
  */
 export interface AnnualTaxReconciliationResult {
+  /** Simulation year in which the tax return was filed. */
   readonly taxYear: CalendarYear;
+  /** Simulation month in which the refund is paid out. */
   readonly refundMonth: SimulationMonth;
+  /** Total withholding deficit accumulated during the tax swap period in EUR. */
   readonly accumulatedSwapDeficit: EuroAmount;
+  /** Standard baseline itemized deductions refund in EUR (e.g. 850 €). */
   readonly baseDeductionsRefund: EuroAmount;
+  /** Statutory Günstigerprüfung assessment result. */
   readonly guenstigerpruefung: GuenstigerpruefungResult;
+  /** Total combined tax refund disbursement in EUR. */
   readonly totalRefundAmount: EuroAmount;
+  /** Statutory legal citations governing the reconciliation. */
   readonly statutoryCitation: string;
 }
 
+/**
+ * Computes annual calendar tax return reconciliation under § 26b, § 31, and § 46 Abs. 2 Nr. 3a EStG.
+ * Aggregates monthly swap deficits, base deduction refunds, and favorable child tax relief.
+ *
+ * @param taxYear - Simulation year being reconciled.
+ * @param refundMonth - Simulation month when refund check is credited.
+ * @param monthlyDeficitsInYear - Array of monthly withholding deficit amounts for the tax year.
+ * @param baseStandardRefund - Baseline standard deductions refund (defaults to 850 €).
+ * @param guenstigerpruefung - Optional Günstigerprüfung assessment result.
+ * @returns Complete `AnnualTaxReconciliationResult`.
+ */
 export function computeAnnualTaxReconciliation(
   taxYear: CalendarYear,
   refundMonth: SimulationMonth,
