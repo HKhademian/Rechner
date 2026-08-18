@@ -12,6 +12,7 @@ import {
   toEuroAmount,
   toCalendarMonth,
   toSimulationMonth,
+  toFullCalendarYear,
   toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction,
@@ -155,7 +156,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
 
   describe("Simulation Timeline Tax Reconciliation Integration", () => {
     const basePreexisting: PreexistingConditions = {
-      startCalendarYear: 2026,
+      startCalendarYear: toFullCalendarYear(2026),
       startCalendarMonth: toCalendarMonth(1),
       simulationDurationMonths: 48,
       salaryPeriod: SalaryPeriod.Monthly,
@@ -185,7 +186,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         pregnancyId: toPregnancyId("PREG-1"),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(9),
-        positiveTestCalendarYear: 2026,
+        positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(9),
         calculatedDeliverySimulationMonth: toSimulationMonth(17), // May 2027 (Month 5 of 2027)
         motherPostBirthPartTimeHours: toWorkingHours(24),

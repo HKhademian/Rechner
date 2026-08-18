@@ -5,6 +5,7 @@ import {
   toSimulationMonth,
   toCalendarMonth,
   toWorkingHours,
+  toFullCalendarYear,
   type PreexistingConditions,
 } from "#engine/types";
 
@@ -34,7 +35,7 @@ export const standardHouseholdParams = {
  * Baseline preexisting conditions fixture for discrete multi-batch lifecycle testing.
  */
 export const standardPreexistingConditions: PreexistingConditions = {
-  startCalendarYear: 2026,
+  startCalendarYear: toFullCalendarYear(2026),
   startCalendarMonth: toCalendarMonth(1),
   simulationDurationMonths: 60,
   husbandInitialTaxClass: TaxClass.III,

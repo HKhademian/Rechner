@@ -7,6 +7,7 @@ import {
   toNetSalary,
   toEuroAmount,
   toWorkingHours,
+  toFullCalendarYear,
   toSimulationMonth,
   toCalendarMonth,
   type PreexistingConditions,
@@ -17,7 +18,7 @@ import {
 
 describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => {
   const basePreexisting: PreexistingConditions = {
-    startCalendarYear: 2026,
+    startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: 60,
     husbandInitialTaxClass: TaxClass.III,

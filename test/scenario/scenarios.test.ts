@@ -8,6 +8,7 @@ import {
   toSimulationMonth,
   toCalendarMonth,
   toWorkingHours,
+  toFullCalendarYear,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -163,7 +164,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(9),
         simulationDurationMonths: 12,
       });
@@ -198,7 +199,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(9),
         simulationDurationMonths: 24,
         bonus40Month: toCalendarMonth(5), // May
@@ -227,7 +228,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(9),
         simulationDurationMonths: 36,
         taxReturnMonth: toCalendarMonth(3), // March
@@ -258,7 +259,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       const { TaxClass } = await import("#engine/types");
 
       const preexisting = {
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(1),
         simulationDurationMonths: 36,
         husbandInitialTaxClass: TaxClass.III,
@@ -284,7 +285,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
           pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(9),
-          positiveTestCalendarYear: 2026,
+          positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(9),
           calculatedDeliverySimulationMonth: toSimulationMonth(18),
           motherPostBirthPartTimeHours: toWorkingHours(24),
@@ -299,7 +300,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
           switchId: toSwitchId("SWAP-1"),
           effectiveSimulationMonth: toSimulationMonth(10),
           effectiveCalendarMonth: toCalendarMonth(10),
-          effectiveCalendarYear: 2026,
+          effectiveCalendarYear: toFullCalendarYear(2026),
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
           statutoryReason:
@@ -313,7 +314,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
           raiseId: toRaiseId("RAISE-Y2"),
           effectiveSimulationMonth: toSimulationMonth(13),
           effectiveCalendarMonth: toCalendarMonth(1),
-          effectiveCalendarYear: 2027,
+          effectiveCalendarYear: toFullCalendarYear(2027),
           targetPerson: TargetPerson.Both,
           percentageIncrease: 0.05, // +5% raise in Year 2
           reason: "Annual Tariff / Promotion",

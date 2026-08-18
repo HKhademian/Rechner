@@ -9,6 +9,7 @@ import {
   toSimulationMonth,
   toCalendarMonth,
   toWorkingHours,
+  toFullCalendarYear,
   toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction,
@@ -20,7 +21,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
   const createBasePreexisting = (
     overrides: Partial<PreexistingConditions> = {},
   ): PreexistingConditions => ({
-    startCalendarYear: 2026,
+    startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: 24,
     husbandInitialTaxClass: TaxClass.III,
@@ -131,7 +132,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
     it("correctly sets calendar labels and years across all 12 starting calendar months", () => {
       for (let startM = 1; startM <= 12; startM++) {
         const preexisting = createBasePreexisting({
-          startCalendarYear: 2026,
+          startCalendarYear: toFullCalendarYear(2026),
           startCalendarMonth: toCalendarMonth(startM),
           simulationDurationMonths: 12,
         });
@@ -166,7 +167,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
 
       for (const y of years) {
         const preexisting = createBasePreexisting({
-          startCalendarYear: y,
+          startCalendarYear: toFullCalendarYear(y),
           startCalendarMonth: toCalendarMonth(6), // June
           simulationDurationMonths: 24,
         });
@@ -229,7 +230,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
           pregnancyId: toPregnancyId("PREG-1"),
           childIndex: 1,
           positiveTestCalendarMonth: toCalendarMonth(9),
-          positiveTestCalendarYear: 2026,
+          positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(
             r1.pregnancySimulationMonth,
           ),
@@ -299,7 +300,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
     it("places 40% Vacation Bonus and 60% Christmas Bonus on custom configured calendar months", () => {
       const preexisting = createBasePreexisting({
         enable13thSalary: true,
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(1),
         bonus40Month: toCalendarMonth(6), // June
         bonus60Month: toCalendarMonth(12), // December
@@ -328,7 +329,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
 
     it("places Annual Tax Return refunds on custom configured filing month", () => {
       const preexisting = createBasePreexisting({
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(1),
         taxReturnMonth: toCalendarMonth(4), // April
         simulationDurationMonths: 24,

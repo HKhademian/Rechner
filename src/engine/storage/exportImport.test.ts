@@ -16,6 +16,7 @@ import {
   TaxClass,
   toGrossSalary,
   toWorkingHours,
+  toFullCalendarYear,
   toTaxFactor,
   type PreexistingConditions,
   type SimulationResult,
@@ -132,7 +133,7 @@ describe("User Data Export & Import Engine", () => {
   describe("Plaintext / Markdown Financial Report (exportStateToTextReport)", () => {
     it("generates structured audit report with comparison matrix and legal basis", () => {
       const preexisting: PreexistingConditions = {
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: defaultState.startCalendarMonth,
         husbandGross: toGrossSalary(4500),
         wifeGross: toGrossSalary(3000),
@@ -218,7 +219,7 @@ describe("User Data Export & Import Engine", () => {
   describe("CSV Scenario Ledger Export (exportScenarioToCsv)", () => {
     it("generates standard semicolon-delimited CSV ledger spreadsheet", () => {
       const preexisting: PreexistingConditions = {
-        startCalendarYear: 2026,
+        startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: defaultState.startCalendarMonth,
         husbandGross: toGrossSalary(4500),
         wifeGross: toGrossSalary(3000),

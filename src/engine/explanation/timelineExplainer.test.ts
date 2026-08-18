@@ -30,6 +30,7 @@ import {
   toSimulationMonth,
   toCalendarMonth,
   toCalendarYear,
+  toFullCalendarYear,
   toMonthId,
   toPregnancyId,
   toSwitchId,
@@ -44,7 +45,7 @@ import {
 
 describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
   const basePreexisting: PreexistingConditions = {
-    startCalendarYear: 2026,
+    startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: 60,
     husbandInitialTaxClass: TaxClass.III,
@@ -69,7 +70,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     pregnancyId: toPregnancyId("PREG-1"),
     childIndex: 1,
     positiveTestCalendarMonth: toCalendarMonth(4),
-    positiveTestCalendarYear: 2026,
+    positiveTestCalendarYear: toFullCalendarYear(2026),
     positiveTestSimulationMonth: toSimulationMonth(4),
     calculatedDeliverySimulationMonth: toSimulationMonth(12),
     motherPostBirthPartTimeHours: toWorkingHours(24),
@@ -340,7 +341,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         amount: toEuroAmount(3154),
         month: toSimulationMonth(15),
         year: toCalendarYear(2),
-        calendarYearNum: 2027,
+        calendarYearNum: toFullCalendarYear(2027),
         calendarMonthNum: toCalendarMonth(3),
         calendarLabel: "Mar 2027",
         relativeBirthLabel: "M+3",
@@ -393,7 +394,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         taxClassLabel: "Joint Assessment (*Splitting*)",
         month: toSimulationMonth(15),
         year: toCalendarYear(2),
-        calendarYearNum: 2027,
+        calendarYearNum: toFullCalendarYear(2027),
         calendarMonthNum: toCalendarMonth(3),
         calendarLabel: "Mar 2027",
         relativeBirthLabel: "M+3",

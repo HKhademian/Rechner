@@ -25,6 +25,7 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
+  toFullCalendarYear,
   toFinancialEventId,
 } from "#engine/types";
 
@@ -71,7 +72,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
           eventId: toFinancialEventId("FIN-CUSTOM-VACATION"),
           effectiveSimulationMonth: toSimulationMonth(30),
           effectiveCalendarMonth: toCalendarMonth(6),
-          effectiveCalendarYear: 2028,
+          effectiveCalendarYear: toFullCalendarYear(2028),
           title: "Family Summer Vacation",
           amount: toEuroAmount(-2500),
           category: FinancialEventCategory.CustomSpecial,

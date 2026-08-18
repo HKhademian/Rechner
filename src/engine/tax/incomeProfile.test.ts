@@ -13,6 +13,7 @@ import {
   toEuroAmount,
   toCalendarMonth,
   toSimulationMonth,
+  toFullCalendarYear,
   toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction,
@@ -71,7 +72,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
 
   describe("Simulation Cash Flows with Unified Income Channels", () => {
     const basePreexisting: PreexistingConditions = {
-      startCalendarYear: 2026,
+      startCalendarYear: toFullCalendarYear(2026),
       startCalendarMonth: toCalendarMonth(1),
       simulationDurationMonths: 24,
       salaryPeriod: SalaryPeriod.Monthly,
@@ -101,7 +102,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
         pregnancyId: toPregnancyId("PREG-1"),
         childIndex: 1,
         positiveTestCalendarMonth: toCalendarMonth(9),
-        positiveTestCalendarYear: 2026,
+        positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(9),
         calculatedDeliverySimulationMonth: toSimulationMonth(17),
         motherPostBirthPartTimeHours: toWorkingHours(24),
