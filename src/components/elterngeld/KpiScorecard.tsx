@@ -33,15 +33,15 @@ export default function KpiScorecard(): JSX.Element {
   const isScenarioB = scenario === "B";
 
   const totalHusbandSalary = current.months.reduce(
-    (acc, m) => acc + (m.husbandSalary as number),
+    (acc, m) => acc + m.husbandSalary,
     0,
   );
   const totalWifeSalary = current.months.reduce(
-    (acc, m) => acc + (m.wifeSalary as number),
+    (acc, m) => acc + m.wifeSalary,
     0,
   );
   const percentGainCvsB = (
-    (metrics.gainCvsB / ((bSummary.grandTotal as number) || 1)) *
+    (metrics.gainCvsB / (bSummary.grandTotal || 1)) *
     100
   ).toFixed(1);
 
@@ -92,7 +92,7 @@ export default function KpiScorecard(): JSX.Element {
               }}
               className="tabular-nums"
             >
-              {formatCurrency(current.summary.totalSalaries as number)}
+              {formatCurrency(current.summary.totalSalaries)}
             </div>
             <div
               style={{
@@ -171,7 +171,7 @@ export default function KpiScorecard(): JSX.Element {
               }}
               className="tabular-nums"
             >
-              {formatCurrency(current.summary.totalBenefits as number)}
+              {formatCurrency(current.summary.totalBenefits)}
             </div>
             <div
               style={{
@@ -186,8 +186,8 @@ export default function KpiScorecard(): JSX.Element {
                 EG+:{" "}
                 <strong className="tabular-nums">
                   {formatCurrency(
-                    (current.summary.totalWifeElterngeld as number) +
-                      (current.summary.totalHusbandElterngeld as number),
+                    current.summary.totalWifeElterngeld +
+                      current.summary.totalHusbandElterngeld,
                   )}
                 </strong>
               </span>
@@ -195,14 +195,14 @@ export default function KpiScorecard(): JSX.Element {
               <span>
                 KG:{" "}
                 <strong className="tabular-nums">
-                  {formatCurrency(current.summary.totalKindergeld as number)}
+                  {formatCurrency(current.summary.totalKindergeld)}
                 </strong>
               </span>
               <span>•</span>
               <span>
                 Tax:{" "}
                 <strong className="tabular-nums">
-                  +{formatCurrency(current.summary.totalTaxRefunds as number)}
+                  +{formatCurrency(current.summary.totalTaxRefunds)}
                 </strong>
               </span>
             </div>
@@ -288,7 +288,7 @@ export default function KpiScorecard(): JSX.Element {
               }}
               className="tabular-nums"
             >
-              {formatCurrency(current.summary.grandTotal as number)}
+              {formatCurrency(current.summary.grandTotal)}
             </div>
             <div
               style={{
@@ -301,7 +301,7 @@ export default function KpiScorecard(): JSX.Element {
               <span>
                 Average / Month:{" "}
                 <strong className="tabular-nums">
-                  {formatCurrency((current.summary.grandTotal as number) / 60)}
+                  {formatCurrency(current.summary.grandTotal / 60)}
                 </strong>
               </span>
             </div>
@@ -358,7 +358,7 @@ export default function KpiScorecard(): JSX.Element {
               }}
               className="tabular-nums"
             >
-              +{formatCurrency(metrics.gainCvsB as number)}
+              +{formatCurrency(metrics.gainCvsB)}
             </div>
             <div
               style={{
@@ -375,7 +375,7 @@ export default function KpiScorecard(): JSX.Element {
                   style={{ color: "var(--color-gain)" }}
                   className="tabular-nums"
                 >
-                  +{formatCurrency(metrics.wifeEgGainCvsB as number)}
+                  +{formatCurrency(metrics.wifeEgGainCvsB)}
                 </strong>
               </span>
             </div>

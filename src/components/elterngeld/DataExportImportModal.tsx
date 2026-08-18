@@ -1076,7 +1076,7 @@ export function DataExportImportModal() {
                           style: "currency",
                           currency: "EUR",
                           maximumFractionDigits: 0,
-                        }).format(importResult.state.husbandGross as number)}
+                        }).format(importResult.state.husbandGross)}
                       </div>
                       <div
                         style={{
@@ -1116,7 +1116,7 @@ export function DataExportImportModal() {
                           style: "currency",
                           currency: "EUR",
                           maximumFractionDigits: 0,
-                        }).format(importResult.state.wifeGross as number)}
+                        }).format(importResult.state.wifeGross)}
                       </div>
                       <div
                         style={{

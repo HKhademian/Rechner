@@ -87,7 +87,7 @@ export default function ComparisonTable(): JSX.Element | null {
       return 0;
     }
     const divider = isMonthly && useDivider ? person.monthsWorked : 1;
-    return (person[metricKey] as number) / divider;
+    return person[metricKey] / divider;
   };
 
   const getHouseholdMetric = (
@@ -504,7 +504,7 @@ export default function ComparisonTable(): JSX.Element | null {
           content = (
             <input
               type="number"
-              value={rawVal as number}
+              value={Number(rawVal) || 0}
               onChange={(e) =>
                 updateScenarioInput(
                   fieldKey,

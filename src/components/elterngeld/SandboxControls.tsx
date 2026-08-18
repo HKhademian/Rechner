@@ -218,18 +218,15 @@ export default function SandboxControls(): JSX.Element {
   // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1), M12)
   const getRelativeMonthLabel = (simMonth: number): MonthRef => {
     const p1 =
-      (customPregnancies.value[0]?.positiveTestSimulationMonth as number) ??
+      customPregnancies.value[0]?.positiveTestSimulationMonth ??
       Math.max(
         1,
-        ((customPregnancies.value[0]
-          ?.calculatedDeliverySimulationMonth as number) ?? 12) - 8,
+        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) - 8,
       );
     const d1 =
-      (customPregnancies.value[0]
-        ?.calculatedDeliverySimulationMonth as number) ?? 12;
+      customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12;
     const d2 =
-      (customPregnancies.value[1]
-        ?.calculatedDeliverySimulationMonth as number) ?? 999;
+      customPregnancies.value[1]?.calculatedDeliverySimulationMonth ?? 999;
 
     if (simMonth < p1) {
       return toMonthRef(simMonth - p1);
@@ -250,11 +247,10 @@ export default function SandboxControls(): JSX.Element {
   // Helper for short relative month label (e.g. M-8, M1, M9, M12)
   const getShortMonthLabel = (simMonth: number): MonthRef => {
     const p1 =
-      (customPregnancies.value[0]?.positiveTestSimulationMonth as number) ??
+      customPregnancies.value[0]?.positiveTestSimulationMonth ??
       Math.max(
         1,
-        ((customPregnancies.value[0]
-          ?.calculatedDeliverySimulationMonth as number) ?? 12) - 8,
+        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) - 8,
       );
     if (simMonth < p1) {
       return toMonthRef(simMonth - p1);
@@ -580,7 +576,7 @@ export default function SandboxControls(): JSX.Element {
                     const count = customPregnancies.value.length;
                     const lastPreg = customPregnancies.value[count - 1];
                     const lastDeliv =
-                      lastPreg.calculatedDeliverySimulationMonth as number;
+                      lastPreg.calculatedDeliverySimulationMonth;
                     const newSimMonth = Math.min(
                       simulationDurationMonths.value - 10,
                       lastDeliv + 19,
@@ -648,9 +644,8 @@ export default function SandboxControls(): JSX.Element {
                 }}
               >
                 {customPregnancies.value.map((preg, idx) => {
-                  const pSimMonth = preg.positiveTestSimulationMonth as number;
-                  const dSimMonth =
-                    preg.calculatedDeliverySimulationMonth as number;
+                  const pSimMonth = preg.positiveTestSimulationMonth;
+                  const dSimMonth = preg.calculatedDeliverySimulationMonth;
                   const isFirst = idx === 0;
 
                   return (
@@ -1042,8 +1037,8 @@ export default function SandboxControls(): JSX.Element {
                                 fontSize: "0.66rem",
                                 color:
                                   dSimMonth -
-                                    ((customPregnancies.value[idx - 1]
-                                      ?.calculatedDeliverySimulationMonth as number) ||
+                                    (customPregnancies.value[idx - 1]
+                                      ?.calculatedDeliverySimulationMonth ||
                                       0) <
                                   36
                                     ? "var(--color-gain)"
@@ -1055,8 +1050,8 @@ export default function SandboxControls(): JSX.Element {
                               }}
                             >
                               {dSimMonth -
-                                ((customPregnancies.value[idx - 1]
-                                  ?.calculatedDeliverySimulationMonth as number) ||
+                                (customPregnancies.value[idx - 1]
+                                  ?.calculatedDeliverySimulationMonth ||
                                   0) <
                               36 ? (
                                   <>
@@ -1064,8 +1059,8 @@ export default function SandboxControls(): JSX.Element {
                                     <span>
                                       Sibling Bonus (+10%) eligible (
                                       {dSimMonth -
-                                      ((customPregnancies.value[idx - 1]
-                                        ?.calculatedDeliverySimulationMonth as number) ||
+                                      (customPregnancies.value[idx - 1]
+                                        ?.calculatedDeliverySimulationMonth ||
                                         0)}
                                       M spacing)
                                     </span>
@@ -1076,8 +1071,8 @@ export default function SandboxControls(): JSX.Element {
                                     <span>
                                       Sibling bonus expired (
                                       {dSimMonth -
-                                      ((customPregnancies.value[idx - 1]
-                                        ?.calculatedDeliverySimulationMonth as number) ||
+                                      (customPregnancies.value[idx - 1]
+                                        ?.calculatedDeliverySimulationMonth ||
                                         0)}
                                       M spacing)
                                     </span>
@@ -1196,7 +1191,7 @@ export default function SandboxControls(): JSX.Element {
                         customPregnancies.value.length - 1
                       ];
                     const delivery =
-                      (nextChild?.calculatedDeliverySimulationMonth as number) ||
+                      nextChild?.calculatedDeliverySimulationMonth ||
                       child1BirthMonth.value + birthSpacingMonths.value;
                     const start = Math.max(1, delivery - 8);
                     const totalElapsed =
@@ -1492,8 +1487,10 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* Dynamic Switch Cards */}
                 {customTaxClassSwitches.value.map((sw, idx) => {
-                  const sMonth = sw.effectiveSimulationMonth as number;
-                  const rMonth = sw.revertSimulationMonth as number;
+                  const sMonth = sw.effectiveSimulationMonth;
+                  const rMonth =
+                    sw.revertSimulationMonth ??
+                    toSimulationMonth(Math.min(60, sMonth + 8));
                   const targetH = sw.targetHusbandTaxClass;
                   const targetW = sw.targetWifeTaxClass;
                   const useFac = sw.targetUseTaxFactor ?? false;
@@ -1924,10 +1921,8 @@ export default function SandboxControls(): JSX.Element {
                         >
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
-                              ? (derivedSpousalSet.value
-                                .wifeClass3FullTimeNet as number) * 12
-                              : (derivedSpousalSet.value
-                                .wifeClass3FullTimeNet as number),
+                              ? derivedSpousalSet.value.wifeClass3FullTimeNet * 12
+                              : derivedSpousalSet.value.wifeClass3FullTimeNet,
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -1946,10 +1941,8 @@ export default function SandboxControls(): JSX.Element {
                         <span>
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
-                              ? (derivedSpousalSet.value
-                                .wifeClass5FullTimeNet as number) * 12
-                              : (derivedSpousalSet.value
-                                .wifeClass5FullTimeNet as number),
+                              ? derivedSpousalSet.value.wifeClass5FullTimeNet * 12
+                              : derivedSpousalSet.value.wifeClass5FullTimeNet,
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -1966,10 +1959,8 @@ export default function SandboxControls(): JSX.Element {
                       >
                         ↳ +
                         {formatCurrency(
-                          (derivedSpousalSet.value
-                            .wifeClass3FullTimeNet as number) -
-                            (derivedSpousalSet.value
-                              .wifeClass5FullTimeNet as number),
+                          derivedSpousalSet.value.wifeClass3FullTimeNet -
+                            derivedSpousalSet.value.wifeClass5FullTimeNet,
                         )}
                         /mo assessment booster!
                       </div>
@@ -2004,10 +1995,8 @@ export default function SandboxControls(): JSX.Element {
                         >
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
-                              ? (derivedSpousalSet.value
-                                .husbandClass5Net as number) * 12
-                              : (derivedSpousalSet.value
-                                .husbandClass5Net as number),
+                              ? derivedSpousalSet.value.husbandClass5Net * 12
+                              : derivedSpousalSet.value.husbandClass5Net,
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -2026,10 +2015,8 @@ export default function SandboxControls(): JSX.Element {
                         <span>
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
-                              ? (derivedSpousalSet.value
-                                .husbandClass3Net as number) * 12
-                              : (derivedSpousalSet.value
-                                .husbandClass3Net as number),
+                              ? derivedSpousalSet.value.husbandClass3Net * 12
+                              : derivedSpousalSet.value.husbandClass3Net,
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -2067,12 +2054,11 @@ export default function SandboxControls(): JSX.Element {
                         >
                           H:{" "}
                           {formatCurrency(
-                            derivedSpousalSet.value.husbandClass4Net as number,
+                            derivedSpousalSet.value.husbandClass4Net,
                           )}{" "}
                           · W:{" "}
                           {formatCurrency(
-                            derivedSpousalSet.value
-                              .wifeClass4FullTimeNet as number,
+                            derivedSpousalSet.value.wifeClass4FullTimeNet,
                           )}
                         </span>
                       </div>
@@ -2100,13 +2086,11 @@ export default function SandboxControls(): JSX.Element {
                         >
                           H:{" "}
                           {formatCurrency(
-                            derivedSpousalSet.value
-                              .husbandClass4WithFactorNet as number,
+                            derivedSpousalSet.value.husbandClass4WithFactorNet,
                           )}{" "}
                           · W:{" "}
                           {formatCurrency(
-                            derivedSpousalSet.value
-                              .wifeClass4WithFactorNet as number,
+                            derivedSpousalSet.value.wifeClass4WithFactorNet,
                           )}
                         </strong>
                       </div>
@@ -2136,13 +2120,10 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       {formatCurrency(
-                        (derivedSpousalSet.value.husbandClass5Net as number) +
-                          (derivedSpousalSet.value
-                            .wifeClass3FullTimeNet as number) -
-                          ((derivedSpousalSet.value
-                            .husbandClass3Net as number) +
-                            (derivedSpousalSet.value
-                              .wifeClass5FullTimeNet as number)),
+                        derivedSpousalSet.value.husbandClass5Net +
+                          derivedSpousalSet.value.wifeClass3FullTimeNet -
+                          (derivedSpousalSet.value.husbandClass3Net +
+                            derivedSpousalSet.value.wifeClass5FullTimeNet),
                       )}
                       /mo
                     </strong>
@@ -2210,7 +2191,7 @@ export default function SandboxControls(): JSX.Element {
                           : TargetPerson.Husband;
                       const defaultMonth = Math.min(
                         simulationDurationMonths.value,
-                        (child1BirthMonth.value as number) +
+                        child1BirthMonth.value +
                           (count === 0 ? 2 : 14),
                       );
                       const totalElapsed =
@@ -2602,10 +2583,10 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? (derivedSpousalSet.value
-                              .husbandClass3Net as number) * 12
-                            : (derivedSpousalSet.value
-                              .husbandClass3Net as number),
+                            ? derivedSpousalSet.value
+                              .husbandClass3Net * 12
+                            : derivedSpousalSet.value
+                              .husbandClass3Net,
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -2615,10 +2596,10 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? (derivedSpousalSet.value
-                              .husbandClass5Net as number) * 12
-                            : (derivedSpousalSet.value
-                              .husbandClass5Net as number),
+                            ? derivedSpousalSet.value
+                              .husbandClass5Net * 12
+                            : derivedSpousalSet.value
+                              .husbandClass5Net,
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -2627,10 +2608,10 @@ export default function SandboxControls(): JSX.Element {
                       Class IV:{" "}
                       {formatCurrency(
                         salaryPeriod.value === SalaryPeriod.Yearly
-                          ? (derivedSpousalSet.value
-                            .husbandClass4Net as number) * 12
-                          : (derivedSpousalSet.value
-                            .husbandClass4Net as number),
+                          ? derivedSpousalSet.value
+                            .husbandClass4Net * 12
+                          : derivedSpousalSet.value
+                            .husbandClass4Net,
                       )}
                     </span>
                   </div>
@@ -2815,10 +2796,10 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? (derivedSpousalSet.value
-                              .wifeClass5FullTimeNet as number) * 12
-                            : (derivedSpousalSet.value
-                              .wifeClass5FullTimeNet as number),
+                            ? derivedSpousalSet.value
+                              .wifeClass5FullTimeNet * 12
+                            : derivedSpousalSet.value
+                              .wifeClass5FullTimeNet,
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -2828,10 +2809,10 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? (derivedSpousalSet.value
-                              .wifeClass3FullTimeNet as number) * 12
-                            : (derivedSpousalSet.value
-                              .wifeClass3FullTimeNet as number),
+                            ? derivedSpousalSet.value
+                              .wifeClass3FullTimeNet * 12
+                            : derivedSpousalSet.value
+                              .wifeClass3FullTimeNet,
                         )}
                       </strong>{" "}
                       (Booster!)
@@ -2843,7 +2824,7 @@ export default function SandboxControls(): JSX.Element {
                 {customWorkingHoursChanges.value.map((whc, idx) => {
                   const isWife = whc.targetPerson === TargetPerson.Wife;
                   const isHusband = whc.targetPerson === TargetPerson.Husband;
-                  const hours = whc.weeklyHours as number;
+                  const hours = whc.weeklyHours;
 
                   // Proportional earnings & benefits estimation
                   const baselineWifeH = wifeInitialHours.value || 40;
@@ -2859,11 +2840,11 @@ export default function SandboxControls(): JSX.Element {
 
                   const ptNet = isWife
                     ? Math.round(
-                      (derivedSpousalSet.value
-                        .wifeClass5FullTimeNet as number) * wifeRatio,
+                      derivedSpousalSet.value
+                        .wifeClass5FullTimeNet * wifeRatio,
                     )
                     : Math.round(
-                      (derivedSpousalSet.value.husbandClass3Net as number) *
+                      derivedSpousalSet.value.husbandClass3Net *
                           husbandRatio,
                     );
 
@@ -2877,8 +2858,8 @@ export default function SandboxControls(): JSX.Element {
                           Math.round(
                             Math.max(
                               0,
-                              (derivedSpousalSet.value
-                                .wifeClass3FullTimeNet as number) - ptNet,
+                              derivedSpousalSet.value
+                                .wifeClass3FullTimeNet - ptNet,
                             ) * 0.65,
                           ),
                         ),
@@ -3405,7 +3386,7 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 5: Career Raises & Promotions Cards */}
                 {customSalaryRaises.value.map((sr, idx) => {
-                  const sMonth = sr.effectiveSimulationMonth as number;
+                  const sMonth = sr.effectiveSimulationMonth;
 
                   return (
                     <div
@@ -3865,8 +3846,8 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* One-Off Events List */}
                 {customFinancialEvents.value.map((fe, idx) => {
-                  const sMonth = fe.effectiveSimulationMonth as number;
-                  const isCost = (fe.amount as number) < 0;
+                  const sMonth = fe.effectiveSimulationMonth;
+                  const isCost = fe.amount < 0;
 
                   return (
                     <div
@@ -3939,7 +3920,7 @@ export default function SandboxControls(): JSX.Element {
                                   : "var(--color-gain)",
                               }}
                             >
-                              {formatCurrency(fe.amount as number)}
+                              {formatCurrency(fe.amount)}
                             </span>
                             <button
                               type="button"
@@ -4473,10 +4454,10 @@ export default function SandboxControls(): JSX.Element {
                         >
                           Husband (Class III):{" "}
                           {formatCurrency(
-                            ((derivedSpousalSet.value.husbandBreakdownClass3
-                              .monthlyGross as number) -
-                              (derivedSpousalSet.value.husbandBreakdownClass3
-                                .monthlyNetTakeHome as number)) *
+                            (derivedSpousalSet.value.husbandBreakdownClass3
+                              .monthlyGross -
+                              derivedSpousalSet.value.husbandBreakdownClass3
+                                .monthlyNetTakeHome) *
                               (salaryPeriod.value === SalaryPeriod.Yearly
                                 ? 12
                                 : 1),
@@ -4500,8 +4481,8 @@ export default function SandboxControls(): JSX.Element {
                           <span>
                             • Social:{" "}
                             {formatCurrency(
-                              (derivedSpousalSet.value.husbandBreakdownClass3
-                                .totalSocialSecurity as number) *
+                              derivedSpousalSet.value.husbandBreakdownClass3
+                                .totalSocialSecurity *
                                 (salaryPeriod.value === SalaryPeriod.Yearly
                                   ? 12
                                   : 1),
@@ -4510,8 +4491,8 @@ export default function SandboxControls(): JSX.Element {
                           <span>
                             • Tax:{" "}
                             {formatCurrency(
-                              (derivedSpousalSet.value.husbandBreakdownClass3
-                                .monthlyWageTax as number) *
+                              derivedSpousalSet.value.husbandBreakdownClass3
+                                .monthlyWageTax *
                                 (salaryPeriod.value === SalaryPeriod.Yearly
                                   ? 12
                                   : 1),
@@ -4527,10 +4508,10 @@ export default function SandboxControls(): JSX.Element {
                         >
                           Wife FT (Class V):{" "}
                           {formatCurrency(
-                            ((derivedSpousalSet.value.wifeBreakdownClass5FT
-                              .monthlyGross as number) -
-                              (derivedSpousalSet.value.wifeBreakdownClass5FT
-                                .monthlyNetTakeHome as number)) *
+                            (derivedSpousalSet.value.wifeBreakdownClass5FT
+                              .monthlyGross -
+                              derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .monthlyNetTakeHome) *
                               (salaryPeriod.value === SalaryPeriod.Yearly
                                 ? 12
                                 : 1),
@@ -4553,8 +4534,8 @@ export default function SandboxControls(): JSX.Element {
                           <span>
                             • Social:{" "}
                             {formatCurrency(
-                              (derivedSpousalSet.value.wifeBreakdownClass5FT
-                                .totalSocialSecurity as number) *
+                              derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .totalSocialSecurity *
                                 (salaryPeriod.value === SalaryPeriod.Yearly
                                   ? 12
                                   : 1),
@@ -4563,8 +4544,8 @@ export default function SandboxControls(): JSX.Element {
                           <span>
                             • Tax:{" "}
                             {formatCurrency(
-                              (derivedSpousalSet.value.wifeBreakdownClass5FT
-                                .monthlyWageTax as number) *
+                              derivedSpousalSet.value.wifeBreakdownClass5FT
+                                .monthlyWageTax *
                                 (salaryPeriod.value === SalaryPeriod.Yearly
                                   ? 12
                                   : 1),

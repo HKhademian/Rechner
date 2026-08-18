@@ -80,7 +80,7 @@ export default function TimelineTable(): JSX.Element {
           return false;
         }
       }
-      else if ((m.year as number) !== Number(selectedYear)) {
+      else if (m.year !== Number(selectedYear)) {
         return false;
       }
     }
@@ -152,7 +152,7 @@ export default function TimelineTable(): JSX.Element {
     const rows: (string | number)[][] = [];
 
     current.months.forEach((m: TimelineMonth) => {
-      const bMonth = bData.months[(m.month as number) - 1];
+      const bMonth = bData.months[m.month - 1];
       const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
 
       // 1. Action Milestones
@@ -164,7 +164,7 @@ export default function TimelineTable(): JSX.Element {
             act.relativeMonthLabel || relLabel,
             `M${m.month}`,
             m.calendarLabel,
-            m.year as number,
+            m.year,
             act.title,
             act.taxClassLabel || "—",
             "—",
@@ -203,8 +203,8 @@ export default function TimelineTable(): JSX.Element {
               it.title === ev.title ||
               it.type === ev.type,
           );
-          const bAmount = bMatch ? (bMatch.amount as number) : 0;
-          const evDiff = (ev.amount as number) - bAmount;
+          const bAmount = bMatch ? bMatch.amount : 0;
+          const evDiff = ev.amount - bAmount;
 
           rows.push([
             "FISCAL_EVENT",
@@ -212,7 +212,7 @@ export default function TimelineTable(): JSX.Element {
             ev.relativeMonthLabel || relLabel,
             `M${m.month}`,
             ev.calendarLabel,
-            m.year as number,
+            m.year,
             `${ev.category}: ${ev.title}`,
             ev.taxClassLabel || "—",
             "—",
@@ -227,9 +227,9 @@ export default function TimelineTable(): JSX.Element {
             0,
             "—",
             0,
-            ev.amount as number,
+            ev.amount,
             evDiff,
-            ev.amount as number,
+            ev.amount,
             evDiff,
             "—",
             "—",
@@ -239,27 +239,27 @@ export default function TimelineTable(): JSX.Element {
 
       // 3. Regular Monthly Baseline Row
       const diffHusband =
-        (m.husbandSalary as number) -
-        (bMonth ? (bMonth.husbandSalary as number) : 0);
+        m.husbandSalary -
+        (bMonth ? bMonth.husbandSalary : 0);
       const diffWife =
-        (m.wifeSalary as number) - (bMonth ? (bMonth.wifeSalary as number) : 0);
+        m.wifeSalary - (bMonth ? bMonth.wifeSalary : 0);
       const diffMutterschutz =
-        (m.mutterschutz as number) -
-        (bMonth ? (bMonth.mutterschutz as number) : 0);
+        m.mutterschutz -
+        (bMonth ? bMonth.mutterschutz : 0);
       const diffWifeElterngeld =
-        (m.wifeElterngeld as number) -
-        (bMonth ? (bMonth.wifeElterngeld as number) : 0);
+        m.wifeElterngeld -
+        (bMonth ? bMonth.wifeElterngeld : 0);
       const diffHusbandElterngeld =
-        (m.husbandElterngeld as number) -
-        (bMonth ? (bMonth.husbandElterngeld as number) : 0);
+        m.husbandElterngeld -
+        (bMonth ? bMonth.husbandElterngeld : 0);
       const diffKindergeld =
-        (m.kindergeld as number) - (bMonth ? (bMonth.kindergeld as number) : 0);
+        m.kindergeld - (bMonth ? bMonth.kindergeld : 0);
       const diffNetInflow =
-        (m.regularMonthlyTotal as number) -
-        (bMonth ? (bMonth.regularMonthlyTotal as number) : 0);
+        m.regularMonthlyTotal -
+        (bMonth ? bMonth.regularMonthlyTotal : 0);
       const diffCumulated =
-        (m.cumulatedTotal as number) -
-        (bMonth ? (bMonth.cumulatedTotal as number) : 0);
+        m.cumulatedTotal -
+        (bMonth ? bMonth.cumulatedTotal : 0);
 
       rows.push([
         "MONTH_BASE",
@@ -267,26 +267,26 @@ export default function TimelineTable(): JSX.Element {
         relLabel,
         `M${m.month}`,
         m.calendarLabel,
-        m.year as number,
+        m.year,
         m.phaseLabel,
         m.taxClassLabel,
-        m.husbandSalary as number,
+        m.husbandSalary,
         diffHusband,
-        m.wifeSalary as number,
+        m.wifeSalary,
         diffWife,
-        m.mutterschutz as number,
+        m.mutterschutz,
         diffMutterschutz,
-        m.wifeElterngeld as number,
+        m.wifeElterngeld,
         diffWifeElterngeld,
-        m.husbandElterngeld as number,
+        m.husbandElterngeld,
         diffHusbandElterngeld,
-        m.kindergeld as number,
+        m.kindergeld,
         diffKindergeld,
         0,
         0,
-        m.regularMonthlyTotal as number,
+        m.regularMonthlyTotal,
         diffNetInflow,
-        m.cumulatedTotal as number,
+        m.cumulatedTotal,
         diffCumulated,
       ]);
     });
@@ -872,36 +872,36 @@ export default function TimelineTable(): JSX.Element {
           <tbody>
             {filteredMonths.map((m: TimelineMonth) => {
               const isHovered = hoveredMonth.value === m.month;
-              const bMonth = bData.months[(m.month as number) - 1];
+              const bMonth = bData.months[m.month - 1];
 
               // Per-column diff calculations vs Reference Scenario B
               const diffHusband =
-                (m.husbandSalary as number) -
-                (bMonth ? (bMonth.husbandSalary as number) : 0);
+                m.husbandSalary -
+                (bMonth ? bMonth.husbandSalary : 0);
               const diffWife =
-                (m.wifeSalary as number) -
-                (bMonth ? (bMonth.wifeSalary as number) : 0);
+                m.wifeSalary -
+                (bMonth ? bMonth.wifeSalary : 0);
               const diffMutterschutz =
-                (m.mutterschutz as number) -
-                (bMonth ? (bMonth.mutterschutz as number) : 0);
+                m.mutterschutz -
+                (bMonth ? bMonth.mutterschutz : 0);
               const diffWifeElterngeld =
-                (m.wifeElterngeld as number) -
-                (bMonth ? (bMonth.wifeElterngeld as number) : 0);
+                m.wifeElterngeld -
+                (bMonth ? bMonth.wifeElterngeld : 0);
               const diffHusbandElterngeld =
-                (m.husbandElterngeld as number) -
-                (bMonth ? (bMonth.husbandElterngeld as number) : 0);
+                m.husbandElterngeld -
+                (bMonth ? bMonth.husbandElterngeld : 0);
               const diffKindergeld =
-                (m.kindergeld as number) -
-                (bMonth ? (bMonth.kindergeld as number) : 0);
+                m.kindergeld -
+                (bMonth ? bMonth.kindergeld : 0);
               const diffSpecialEvents =
-                (m.specialEventsTotal as number) -
-                (bMonth ? (bMonth.specialEventsTotal as number) : 0);
+                m.specialEventsTotal -
+                (bMonth ? bMonth.specialEventsTotal : 0);
               const diffNetInflow =
-                (m.monthlyTotal as number) -
-                (bMonth ? (bMonth.monthlyTotal as number) : 0);
+                m.monthlyTotal -
+                (bMonth ? bMonth.monthlyTotal : 0);
               const diffCumulated =
-                (m.cumulatedTotal as number) -
-                (bMonth ? (bMonth.cumulatedTotal as number) : 0);
+                m.cumulatedTotal -
+                (bMonth ? bMonth.cumulatedTotal : 0);
 
               const hasEvents =
                 isSpecialRowsActive &&
@@ -1216,32 +1216,30 @@ export default function TimelineTable(): JSX.Element {
                         it.type === ev.type,
                     );
                     const bEv = bMatchIdx >= 0 ? bEvents[bMatchIdx] : undefined;
-                    const bEvAmount = bEv ? (bEv.amount as number) : 0;
-                    const evDiff = (ev.amount as number) - bEvAmount;
-                    const isCost = (ev.amount as number) < 0;
+                    const bEvAmount = bEv ? bEv.amount : 0;
+                    const evDiff = ev.amount - bEvAmount;
+                    const isCost = ev.amount < 0;
 
                     // Progressive Cumulative Total calculation at this event row
-                    const prevMonthIdx = (m.month as number) - 2;
+                    const prevMonthIdx = m.month - 2;
                     const prevCumulated =
                       prevMonthIdx >= 0
-                        ? (current.months[prevMonthIdx]
-                          ?.cumulatedTotal as number) || 0
+                        ? current.months[prevMonthIdx]?.cumulatedTotal || 0
                         : 0;
                     const bPrevCumulated =
                       prevMonthIdx >= 0
-                        ? (bData.months[prevMonthIdx]
-                          ?.cumulatedTotal as number) || 0
+                        ? bData.months[prevMonthIdx]?.cumulatedTotal || 0
                         : 0;
 
                     const priorEventsSum = m.specialEvents
                       .slice(0, evIdx)
                       .reduce(
                         (acc: number, it: SpecialEventItem) =>
-                          acc + (it.amount as number),
+                          acc + it.amount,
                         0,
                       );
                     const evCumulated =
-                      prevCumulated + priorEventsSum + (ev.amount as number);
+                      prevCumulated + priorEventsSum + ev.amount;
 
                     const bPriorSum =
                       bMatchIdx >= 0
@@ -1249,7 +1247,7 @@ export default function TimelineTable(): JSX.Element {
                           .slice(0, bMatchIdx + 1)
                           .reduce(
                             (acc: number, it: SpecialEventItem) =>
-                              acc + (it.amount as number),
+                              acc + it.amount,
                             0,
                           )
                         : 0;
@@ -1517,7 +1515,7 @@ export default function TimelineTable(): JSX.Element {
                           }
                         >
                           {renderCell(
-                            ev.amount as number,
+                            ev.amount,
                             evDiff,
                             false,
                             valColor,
@@ -1541,7 +1539,7 @@ export default function TimelineTable(): JSX.Element {
                           }
                         >
                           {renderCell(
-                            ev.amount as number,
+                            ev.amount,
                             evDiff,
                             false,
                             valColor,
@@ -1768,7 +1766,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.husbandSalary as number,
+                      m.husbandSalary,
                       diffHusband,
                       true,
                       "var(--series-salary-husband)",
@@ -1791,7 +1789,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.wifeSalary as number,
+                      m.wifeSalary,
                       diffWife,
                       true,
                       "var(--series-salary-wife)",
@@ -1814,7 +1812,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.mutterschutz as number,
+                      m.mutterschutz,
                       diffMutterschutz,
                       true,
                       "var(--series-mutterschutz)",
@@ -1837,7 +1835,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.wifeElterngeld as number,
+                      m.wifeElterngeld,
                       diffWifeElterngeld,
                       true,
                       "var(--series-elterngeld-mother)",
@@ -1860,7 +1858,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.husbandElterngeld as number,
+                      m.husbandElterngeld,
                       diffHusbandElterngeld,
                       true,
                       "var(--series-elterngeld-father)",
@@ -1883,7 +1881,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.kindergeld as number,
+                      m.kindergeld,
                       diffKindergeld,
                       true,
                       "var(--series-kindergeld)",
@@ -1908,7 +1906,7 @@ export default function TimelineTable(): JSX.Element {
                     {renderCell(
                       isSpecialRowsActive
                         ? 0
-                        : (m.specialEventsTotal as number),
+                        : m.specialEventsTotal,
                       isSpecialRowsActive ? 0 : diffSpecialEvents,
                       true,
                       "var(--color-warning)",
@@ -1932,12 +1930,12 @@ export default function TimelineTable(): JSX.Element {
                   >
                     {renderCell(
                       isSpecialRowsActive
-                        ? (m.regularMonthlyTotal as number)
-                        : (m.monthlyTotal as number),
+                        ? m.regularMonthlyTotal
+                        : m.monthlyTotal,
                       isSpecialRowsActive
                         ? diffNetInflow
-                        : (m.monthlyTotal as number) -
-                            (bMonth ? (bMonth.monthlyTotal as number) : 0),
+                        : m.monthlyTotal -
+                            (bMonth ? bMonth.monthlyTotal : 0),
                       false,
                       "var(--text-primary)",
                       true,
@@ -1959,7 +1957,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.cumulatedTotal as number,
+                      m.cumulatedTotal,
                       diffCumulated,
                       false,
                       "var(--text-primary)",

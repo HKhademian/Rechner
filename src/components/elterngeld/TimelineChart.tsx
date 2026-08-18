@@ -112,17 +112,17 @@ export default function TimelineChart(): JSX.Element {
   let displayedMonths = currentData.months;
   if (filter === TimelineTimeRangeFilter.Child1) {
     displayedMonths = currentData.months.filter(
-      (m) => (m.month as number) <= 24,
+      (m) => m.month <= 24,
     );
   }
   else if (filter === TimelineTimeRangeFilter.Child2) {
     displayedMonths = currentData.months.filter(
-      (m) => (m.month as number) >= 25 && (m.month as number) <= 48,
+      (m) => m.month >= 25 && m.month <= 48,
     );
   }
   else if (filter === TimelineTimeRangeFilter.Post) {
     displayedMonths = currentData.months.filter(
-      (m) => (m.month as number) >= 49,
+      (m) => m.month >= 49,
     );
   }
 
@@ -130,25 +130,25 @@ export default function TimelineChart(): JSX.Element {
   const getMonthActiveTotal = (m: TimelineMonth): number => {
     let total = 0;
     if (visibleSeries.husbandSalary) {
-      total += (m.husbandSalary as number) || 0;
+      total += m.husbandSalary || 0;
     }
     if (visibleSeries.wifeSalary) {
-      total += (m.wifeSalary as number) || 0;
+      total += m.wifeSalary || 0;
     }
     if (visibleSeries.mutterschutz) {
-      total += (m.mutterschutz as number) || 0;
+      total += m.mutterschutz || 0;
     }
     if (visibleSeries.wifeElterngeld) {
-      total += (m.wifeElterngeld as number) || 0;
+      total += m.wifeElterngeld || 0;
     }
     if (visibleSeries.husbandElterngeld) {
-      total += (m.husbandElterngeld as number) || 0;
+      total += m.husbandElterngeld || 0;
     }
     if (visibleSeries.kindergeld) {
-      total += (m.kindergeld as number) || 0;
+      total += m.kindergeld || 0;
     }
     if (visibleSeries.taxRefund) {
-      total += (m.taxRefund as number) || 0;
+      total += m.taxRefund || 0;
     }
     return total;
   };
@@ -167,7 +167,7 @@ export default function TimelineChart(): JSX.Element {
   const maxMonthValue = Math.max(
     6000,
     ...displayedMonths.map((m) => getMonthActiveTotal(m)),
-    ...cData.months.map((m) => m.monthlyTotal as number),
+    ...cData.months.map((m) => m.monthlyTotal),
   );
   const yMax = Math.max(2000, Math.ceil(maxMonthValue / 1000) * 1000 + 500);
 
@@ -277,7 +277,7 @@ export default function TimelineChart(): JSX.Element {
     }
     return displayedMonths.reduce((acc, m, i) => {
       const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-      const val = (m[fieldKey as keyof TimelineMonth] as number) || 0;
+      const val = m[fieldKey] || 0;
       const y = margin.top + scaleY(val);
       return `${acc} ${i === 0 ? "M" : "L"} ${x} ${y}`;
     }, "");
@@ -292,7 +292,7 @@ export default function TimelineChart(): JSX.Element {
     }
     return subset.reduce((acc, m, i) => {
       const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-      const y = margin.top + scaleY(m.monthlyTotal as number);
+      const y = margin.top + scaleY(m.monthlyTotal);
       return `${acc} ${i === 0 ? "M" : "L"} ${x} ${y}`;
     }, "");
   };
@@ -674,7 +674,7 @@ export default function TimelineChart(): JSX.Element {
           {/* Year Background Bands & Vertical Separators */}
           {displayedMonths.map((m, i) => {
             const isYearStart =
-              (m.monthInYear as number) === 1 && (m.month as number) !== 1;
+              m.monthInYear === 1 && m.month !== 1;
             const x = margin.left + i * barSlotWidth;
             return isYearStart ? (
               <g key={`year-sep-${m.month}`}>
@@ -714,44 +714,44 @@ export default function TimelineChart(): JSX.Element {
                 {
                   key: "husbandSalary",
                   val: visibleSeries.husbandSalary
-                    ? (m.husbandSalary as number)
+                    ? m.husbandSalary
                     : 0,
                   fill: colors.husbandSalary,
                 },
                 {
                   key: "wifeSalary",
-                  val: visibleSeries.wifeSalary ? (m.wifeSalary as number) : 0,
+                  val: visibleSeries.wifeSalary ? m.wifeSalary : 0,
                   fill: colors.wifeSalary,
                 },
                 {
                   key: "mutterschutz",
                   val: visibleSeries.mutterschutz
-                    ? (m.mutterschutz as number)
+                    ? m.mutterschutz
                     : 0,
                   fill: colors.mutterschutz,
                 },
                 {
                   key: "wifeElterngeld",
                   val: visibleSeries.wifeElterngeld
-                    ? (m.wifeElterngeld as number)
+                    ? m.wifeElterngeld
                     : 0,
                   fill: colors.wifeElterngeld,
                 },
                 {
                   key: "husbandElterngeld",
                   val: visibleSeries.husbandElterngeld
-                    ? (m.husbandElterngeld as number)
+                    ? m.husbandElterngeld
                     : 0,
                   fill: colors.husbandElterngeld,
                 },
                 {
                   key: "kindergeld",
-                  val: visibleSeries.kindergeld ? (m.kindergeld as number) : 0,
+                  val: visibleSeries.kindergeld ? m.kindergeld : 0,
                   fill: colors.kindergeld,
                 },
                 {
                   key: "taxRefund",
-                  val: visibleSeries.taxRefund ? (m.taxRefund as number) : 0,
+                  val: visibleSeries.taxRefund ? m.taxRefund : 0,
                   fill: colors.taxRefund,
                 },
               ];
@@ -812,8 +812,7 @@ export default function TimelineChart(): JSX.Element {
                     />
                     {/* Points on each month */}
                     {displayedMonths.map((m, i) => {
-                      const val =
-                        (m[s.key as keyof TimelineMonth] as number) || 0;
+                      const val = m[s.key] || 0;
                       if (val <= 0) {
                         return null;
                       }
@@ -860,7 +859,7 @@ export default function TimelineChart(): JSX.Element {
               {visibleSeries.husbandSalary && (
                 <path
                   d={getStackedAreaPath(
-                    (m) => m.husbandSalary as number,
+                    (m) => m.husbandSalary,
                     () => 0,
                   )}
                   fill={colors.husbandSalary}
@@ -873,11 +872,11 @@ export default function TimelineChart(): JSX.Element {
                   d={getStackedAreaPath(
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
-                        : 0) + (m.wifeSalary as number),
+                        ? m.husbandSalary
+                        : 0) + m.wifeSalary,
                     (m) =>
                       visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0,
                   )}
                   fill={colors.wifeSalary}
@@ -890,17 +889,17 @@ export default function TimelineChart(): JSX.Element {
                   d={getStackedAreaPath(
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
-                      (m.mutterschutz as number),
+                      m.mutterschutz,
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
-                      (visibleSeries.wifeSalary ? (m.wifeSalary as number) : 0),
+                      (visibleSeries.wifeSalary ? m.wifeSalary : 0),
                   )}
                   fill={colors.mutterschutz}
                   opacity="0.85"
@@ -912,24 +911,24 @@ export default function TimelineChart(): JSX.Element {
                   d={getStackedAreaPath(
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
                       (visibleSeries.mutterschutz
-                        ? (m.mutterschutz as number)
+                        ? m.mutterschutz
                         : 0) +
-                      (m.wifeElterngeld as number),
+                      m.wifeElterngeld,
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
                       (visibleSeries.mutterschutz
-                        ? (m.mutterschutz as number)
+                        ? m.mutterschutz
                         : 0),
                   )}
                   fill={colors.wifeElterngeld}
@@ -942,30 +941,30 @@ export default function TimelineChart(): JSX.Element {
                   d={getStackedAreaPath(
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
                       (visibleSeries.mutterschutz
-                        ? (m.mutterschutz as number)
+                        ? m.mutterschutz
                         : 0) +
                       (visibleSeries.wifeElterngeld
-                        ? (m.wifeElterngeld as number)
+                        ? m.wifeElterngeld
                         : 0) +
-                      (m.husbandElterngeld as number),
+                      m.husbandElterngeld,
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
                       (visibleSeries.mutterschutz
-                        ? (m.mutterschutz as number)
+                        ? m.mutterschutz
                         : 0) +
                       (visibleSeries.wifeElterngeld
-                        ? (m.wifeElterngeld as number)
+                        ? m.wifeElterngeld
                         : 0),
                   )}
                   fill={colors.husbandElterngeld}
@@ -978,36 +977,36 @@ export default function TimelineChart(): JSX.Element {
                   d={getStackedAreaPath(
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
                       (visibleSeries.mutterschutz
-                        ? (m.mutterschutz as number)
+                        ? m.mutterschutz
                         : 0) +
                       (visibleSeries.wifeElterngeld
-                        ? (m.wifeElterngeld as number)
+                        ? m.wifeElterngeld
                         : 0) +
                       (visibleSeries.husbandElterngeld
-                        ? (m.husbandElterngeld as number)
+                        ? m.husbandElterngeld
                         : 0) +
-                      (m.kindergeld as number),
+                      m.kindergeld,
                     (m) =>
                       (visibleSeries.husbandSalary
-                        ? (m.husbandSalary as number)
+                        ? m.husbandSalary
                         : 0) +
                       (visibleSeries.wifeSalary
-                        ? (m.wifeSalary as number)
+                        ? m.wifeSalary
                         : 0) +
                       (visibleSeries.mutterschutz
-                        ? (m.mutterschutz as number)
+                        ? m.mutterschutz
                         : 0) +
                       (visibleSeries.wifeElterngeld
-                        ? (m.wifeElterngeld as number)
+                        ? m.wifeElterngeld
                         : 0) +
                       (visibleSeries.husbandElterngeld
-                        ? (m.husbandElterngeld as number)
+                        ? m.husbandElterngeld
                         : 0),
                   )}
                   fill={colors.kindergeld}
@@ -1019,7 +1018,7 @@ export default function TimelineChart(): JSX.Element {
                 <path
                   d={getStackedAreaPath(
                     (m) => getMonthActiveTotal(m),
-                    (m) => getMonthActiveTotal(m) - (m.taxRefund as number),
+                    (m) => getMonthActiveTotal(m) - m.taxRefund,
                   )}
                   fill={colors.taxRefund}
                   opacity="0.85"
@@ -1109,9 +1108,9 @@ export default function TimelineChart(): JSX.Element {
                     ? 3
                     : 6;
             const isLabel =
-              (m.month as number) === 1 ||
-              (m.month as number) % step === 0 ||
-              (m.month as number) === totalCount;
+              m.month === 1 ||
+              m.month % step === 0 ||
+              m.month === totalCount;
             const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
             return isLabel ? (
               <g key={`x-tick-${m.monthId}`}>
@@ -1247,7 +1246,7 @@ export default function TimelineChart(): JSX.Element {
               }}
             >
               {visibleSeries.husbandSalary &&
-                (tooltipState.month.husbandSalary as number) > 0 && (
+                tooltipState.month.husbandSalary > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1275,13 +1274,13 @@ export default function TimelineChart(): JSX.Element {
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
                     {formatCurrency(
-                      tooltipState.month.husbandSalary as number,
+                      tooltipState.month.husbandSalary,
                     )}
                   </span>
                 </div>
               )}
               {visibleSeries.wifeSalary &&
-                (tooltipState.month.wifeSalary as number) > 0 && (
+                tooltipState.month.wifeSalary > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1308,12 +1307,12 @@ export default function TimelineChart(): JSX.Element {
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.wifeSalary as number)}
+                    {formatCurrency(tooltipState.month.wifeSalary)}
                   </span>
                 </div>
               )}
               {visibleSeries.mutterschutz &&
-                (tooltipState.month.mutterschutz as number) > 0 && (
+                tooltipState.month.mutterschutz > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1341,13 +1340,13 @@ export default function TimelineChart(): JSX.Element {
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
                     {formatCurrency(
-                      tooltipState.month.mutterschutz as number,
+                      tooltipState.month.mutterschutz,
                     )}
                   </span>
                 </div>
               )}
               {visibleSeries.wifeElterngeld &&
-                (tooltipState.month.wifeElterngeld as number) > 0 && (
+                tooltipState.month.wifeElterngeld > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1375,13 +1374,13 @@ export default function TimelineChart(): JSX.Element {
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
                     {formatCurrency(
-                      tooltipState.month.wifeElterngeld as number,
+                      tooltipState.month.wifeElterngeld,
                     )}
                   </span>
                 </div>
               )}
               {visibleSeries.husbandElterngeld &&
-                (tooltipState.month.husbandElterngeld as number) > 0 && (
+                tooltipState.month.husbandElterngeld > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1409,13 +1408,13 @@ export default function TimelineChart(): JSX.Element {
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
                     {formatCurrency(
-                      tooltipState.month.husbandElterngeld as number,
+                      tooltipState.month.husbandElterngeld,
                     )}
                   </span>
                 </div>
               )}
               {visibleSeries.kindergeld &&
-                (tooltipState.month.kindergeld as number) > 0 && (
+                tooltipState.month.kindergeld > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1442,12 +1441,12 @@ export default function TimelineChart(): JSX.Element {
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.kindergeld as number)}
+                    {formatCurrency(tooltipState.month.kindergeld)}
                   </span>
                 </div>
               )}
               {visibleSeries.taxRefund &&
-                (tooltipState.month.taxRefund as number) > 0 && (
+                tooltipState.month.taxRefund > 0 && (
                 <div
                   style={{
                     display: "flex",
@@ -1474,7 +1473,7 @@ export default function TimelineChart(): JSX.Element {
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
-                    +{formatCurrency(tooltipState.month.taxRefund as number)}
+                    +{formatCurrency(tooltipState.month.taxRefund)}
                   </span>
                 </div>
               )}
