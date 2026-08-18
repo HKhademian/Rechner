@@ -741,20 +741,43 @@ export function getFieldExplanation(
         ? bMonth.husbandElterngeld
         : hElterngeld;
       const diffHeg = hElterngeld - bHusbandEg;
+      const isReallocated = m.isMutterschutz && hElterngeld > 0;
+
       return {
         fieldKey: ExplanationFieldKey.HusbandElterngeld,
-        fieldTitle: "Father's Partner Months / Partnership Bonus Allowance",
+        fieldTitle: isReallocated
+          ? "Father's Reallocated ElterngeldPlus (*Partnerübertragung* § 4, § 7 BEEG)"
+          : "Father's Partner Months / Partnership Bonus Allowance",
         valueFormatted: formatCurrency(hElterngeld),
-        derivationFormula:
-          hElterngeld > 0
+        derivationFormula: isReallocated
+          ? "Transferred remaining Child 1 ElterngeldPlus to Father under § 7 Abs. 2 BEEG due to Mother's Mutterschutz"
+          : hElterngeld > 0
             ? "Statutory Minimum Floor 150 € / month (or 65% of salary loss up to 900 € / month)"
             : "0 € (Outside partner leave months / outside 24-32h partnership corridor)",
-        explanation:
-          hElterngeld > 0
+        explanation: isReallocated
+          ? `Under § 3 Abs. 1 BEEG, the mother's Child #1 Elterngeld is offset by her new Mutterschutz wage replacement for Child #2. Under § 7 Abs. 2 BEEG, the remaining Child #1 ElterngeldPlus is automatically reallocated to the father (${formatCurrency(hElterngeld)}) to avoid benefit forfeiture.`
+          : hElterngeld > 0
             ? `The father receives ${formatCurrency(hElterngeld)} under § 4 Abs. 3 (Partner Months) or § 4b BEEG (Partnerschaftsbonus). In the Partnership Bonus months, both parents work concurrently between 24 and 32 hours per week, unlocking extra allowance for both.`
             : `0 € because the father is not claiming parental allowance in Month ${m.month}.`,
-        contributingFactors:
-          hElterngeld > 0
+        contributingFactors: isReallocated
+          ? [
+            {
+              name: "Statutory Mechanism",
+              value: "Partnerübertragung (§ 7 Abs. 2 BEEG)",
+              description: "Transferred from mother to father",
+            },
+            {
+              name: "Mother Status",
+              value: "Mutterschutz (100% Wage Replacement)",
+              description: "Offsetting mother's Elterngeld under § 3 Abs. 1 BEEG",
+            },
+            {
+              name: "Father Status",
+              value: "Part-Time <= 32h/week",
+              description: "Eligible to receive Elterngeld under § 1 Abs. 1 Nr. 4 BEEG",
+            },
+          ]
+          : hElterngeld > 0
             ? [
               {
                 name: "Father Post-Birth Hours",
@@ -781,8 +804,22 @@ export function getFieldExplanation(
                 description: "Not claiming parental allowance in this month",
               },
             ],
-        calculationSteps:
-          hElterngeld > 0
+        calculationSteps: isReallocated
+          ? [
+            {
+              stepNumber: 1,
+              description: "Apply Mutterschutz offset for Mother",
+              formula: "Mother Child 1 EG -> 0 € (§ 3 Abs. 1 BEEG)",
+              result: "0 € for Mother",
+            },
+            {
+              stepNumber: 2,
+              description: "Reallocate remaining Child 1 entitlement to Father",
+              formula: "Transfer Child 1 EGPlus to Father (§ 7 Abs. 2 BEEG)",
+              result: formatCurrency(hElterngeld),
+            },
+          ]
+          : hElterngeld > 0
             ? [
               {
                 stepNumber: 1,
@@ -807,7 +844,9 @@ export function getFieldExplanation(
               },
             ],
         legalCitation: toStatutoryCitation(
-          "BEEG § 4 Abs. 3 (Partnermonate) & § 4b (Partnerschaftsbonus)",
+          isReallocated
+            ? "BEEG § 3 Abs. 1 (Anrechnung) & § 7 Abs. 2 (Partnerübertragung)"
+            : "BEEG § 4 Abs. 3 (Partnermonate) & § 4b (Partnerschaftsbonus)",
         ),
         legalRuleKey: LegalRuleKey.BEEG_PartnershipBonus,
         diffVsBFormatted:
@@ -1584,6 +1623,7 @@ export function getActionRowExplanation(
 ): RowExplanation {
   const isDelivery = act.type === ActionType.ChildDelivery;
   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
+  const isReallocation = act.type === ActionType.ElterngeldReallocation;
 
   return {
     rowType: ExplainerRowType.Action,
@@ -1598,15 +1638,19 @@ export function getActionRowExplanation(
     cumulatedTotal: toEuroAmount(0),
     cumulatedTotalFormatted: "—",
     legalCitation: toStatutoryCitation(
-      isTaxSwitch
-        ? "EStG § 38b & BFH VI R 2/13 (Steuerklassenwahl)"
-        : isDelivery
-          ? "MuSchG § 3 Abs. 2 (Schutzfrist nach der Entbindung)"
-          : "MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)",
+      isReallocation
+        ? "BEEG § 3 Abs. 1 & § 7 Abs. 2 (Partnerübertragung)"
+        : isTaxSwitch
+          ? "EStG § 38b & BFH VI R 2/13 (Steuerklassenwahl)"
+          : isDelivery
+            ? "MuSchG § 3 Abs. 2 (Schutzfrist nach der Entbindung)"
+            : "MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)",
     ),
-    legalRuleKey: isTaxSwitch
-      ? LegalRuleKey.BEEG_TaxSwap
-      : LegalRuleKey.MuSchG_Maternity,
+    legalRuleKey: isReallocation
+      ? LegalRuleKey.BEEG_SyntheticNet
+      : isTaxSwitch
+        ? LegalRuleKey.BEEG_TaxSwap
+        : LegalRuleKey.MuSchG_Maternity,
     actionDetails: {
       category: act.category,
       effectiveMonth: m.month,
