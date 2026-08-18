@@ -538,12 +538,91 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
   };
 }
 
+// Detect optional untracked user scenario at compile-time (Vite / Astro bundler)
+let userScenarioData: unknown | null = null;
+try {
+  const meta = import.meta as unknown as {
+    glob?: (
+      pattern: string,
+      opts?: { eager: boolean },
+    ) => Record<string, { default?: unknown }>;
+  };
+  if (typeof meta?.glob === "function") {
+    const glob = meta.glob("../../data/userScenario.json", {
+      eager: true,
+    });
+    const mod = Object.values(glob)[0];
+    if (mod) {
+      userScenarioData = mod.default ?? mod;
+    }
+  }
+}
+catch {
+  // Gracefully fallback if glob is unsupported in current runtime
+}
+
+/**
+ * Checks whether an optional unversioned userScenario.json is currently loaded.
+ *
+ * @returns True if a custom user scenario is detected; false otherwise.
+ */
+export function hasUserScenario(): boolean {
+  return userScenarioData !== null;
+}
+
+/**
+ * Sets or overrides the in-memory user scenario data dynamically.
+ * Useful for runtime injection in CLI, Node scripts, or unit tests.
+ *
+ * @param data - Raw scenario object or null to clear override.
+ */
+export function setUserScenarioOverride(data: unknown | null): void {
+  userScenarioData = data;
+}
+
+/**
+ * Returns the parsed user scenario if present, or null if absent.
+ *
+ * @returns Sanitized `ElterngeldPersistedState` from userScenario.json, or null.
+ */
+export function getUserPersistedState(): ElterngeldPersistedState | null {
+  if (!userScenarioData) {
+    return null;
+  }
+  try {
+    return parseRawScenarioData(userScenarioData);
+  }
+  catch {
+    return null;
+  }
+}
+
 /**
  * Returns the repository default persisted simulation state parsed directly from defaultScenario.json.
  *
- * @returns Baseline `ElterngeldPersistedState` specification.
+ * @returns Baseline `ElterngeldPersistedState` specification from defaultScenario.json.
+ */
+export function getDefaultScenarioPersistedState(): ElterngeldPersistedState {
+  return parseRawScenarioData(defaultScenarioData);
+}
+
+/**
+ * Returns the effective default persisted simulation state.
+ * Priority:
+ *   1. Optional unversioned userScenario.json (if present)
+ *   2. Default repository defaultScenario.json (fallback)
+ *
+ * @returns Effective baseline `ElterngeldPersistedState` specification.
  */
 export function getDefaultPersistedState(): ElterngeldPersistedState {
+  if (userScenarioData) {
+    try {
+      return parseRawScenarioData(userScenarioData);
+    }
+    catch {
+      // Fall back to default scenario if user scenario is malformed
+    }
+  }
   return parseRawScenarioData(defaultScenarioData);
 }
 
