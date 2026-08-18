@@ -1,7 +1,6 @@
 import type { JSX } from "preact";
 import { useState } from "preact/hooks";
 import {
-  salaryInputMode,
   salaryPeriod,
   husbandGross,
   wifeGross,
@@ -27,22 +26,13 @@ import {
   setSalaryInputMode,
   setSalaryPeriod,
   derivedSpousalSet,
-  husbandClass3Net,
-  husbandClass5Net,
   husbandHours,
-  wifeClass5FullTimeNet,
-  wifeClass3FullTimeNet,
   wifeClass5PartTimeNet,
   wifeClass3PartTimeNet,
   wifeInitialHours,
   wifePostBirthHours,
   kindergeldPerChild,
   enable13thSalary,
-  bonus40Month,
-  bonus60Month,
-  taxReturnMonth,
-  enableSalaryRaises,
-  annualSalaryRaisePercent,
   startCalendarYear,
   startCalendarMonth,
   simulationDurationMonths,
@@ -69,7 +59,6 @@ import {
   removeWorkingHoursChangeAction,
   addFinancialEventAction,
   removeFinancialEventAction,
-  updateFinancialEventAction,
   resetToDefaults,
   openExportImportModal,
   scrollToLegalRule,
@@ -77,7 +66,6 @@ import {
 } from "#store/elterngeldStore";
 import {
   TaxClass,
-  toTaxClass,
   TargetPerson,
   FinancialEventCategory,
   SalaryInputMode,
@@ -90,7 +78,6 @@ import {
   toWorkingHours,
   toFullCalendarYear,
   toMonthDuration,
-  toChildrenCount,
   toChildIndex,
   toPercentageRate,
   toPregnancyId,
@@ -98,8 +85,6 @@ import {
   toRaiseId,
   toHoursChangeId,
   toFinancialEventId,
-  type WorkingHoursChangeAction,
-  type TaxClassSwitchAction,
   type MonthId,
   type MonthRef,
   type MonthSimRef,
@@ -153,7 +138,6 @@ import {
   ChildBirthMilestoneIcon,
   EmploymentCompensationIcon,
   TaxClassSwapMilestoneIcon,
-  CareerPromotionMilestoneIcon,
   FinancialInflowIcon,
   AddActionIcon,
   RemoveItemIcon,
@@ -197,28 +181,6 @@ const MONTH_NAMES = [
   "10 - October (Oktober)",
   "11 - November (November)",
   "12 - December (Dezember)",
-];
-
-const INITIAL_TAX_OPTIONS: {
-  value: TaxClass;
-  label: string;
-  desc: string;
-}[] = [
-  {
-    value: TaxClass.III,
-    label: "Class III (Primary Earner)",
-    desc: "Optimizes net pay for higher earner (partner in Class V)",
-  },
-  {
-    value: TaxClass.IV,
-    label: "Class IV (Equal / Standard)",
-    desc: "Standard equal withholding without factor",
-  },
-  {
-    value: TaxClass.V,
-    label: "Class V (Secondary Earner)",
-    desc: "Higher withholding for secondary earner (partner in Class III)",
-  },
 ];
 
 export default function SandboxControls(): JSX.Element {
@@ -267,9 +229,15 @@ export default function SandboxControls(): JSX.Element {
       return toMonthRef(simMonth - p1);
     }
     const idx = simMonth - p1 + 1;
-    if (simMonth === p1) return toMonthRef(idx, "Pregnancy Positive");
-    if (simMonth === d1) return toMonthRef(idx, "Birth 1");
-    if (simMonth === d2) return toMonthRef(idx, "Birth 2");
+    if (simMonth === p1) {
+      return toMonthRef(idx, "Pregnancy Positive");
+    }
+    if (simMonth === d1) {
+      return toMonthRef(idx, "Birth 1");
+    }
+    if (simMonth === d2) {
+      return toMonthRef(idx, "Birth 2");
+    }
     return toMonthRef(idx);
   };
 
@@ -291,7 +259,9 @@ export default function SandboxControls(): JSX.Element {
   // Preset Handlers
   const applyPreset = (presetKey: string): void => {
     const preset = SCENARIO_PRESETS[presetKey];
-    if (!preset) return;
+    if (!preset) {
+      return;
+    }
 
     if (preset.useDefaultReset) {
       resetToDefaults();
@@ -2249,8 +2219,8 @@ export default function SandboxControls(): JSX.Element {
                         ),
                         reason:
                           target === TargetPerson.Husband
-                            ? `Husband Parental Leave Hours (§ 4b BEEG)`
-                            : `Wife Post-Birth Part-Time Return`,
+                            ? "Husband Parental Leave Hours (§ 4b BEEG)"
+                            : "Wife Post-Birth Part-Time Return",
                       });
                     }}
                     style={{
@@ -2293,7 +2263,7 @@ export default function SandboxControls(): JSX.Element {
                         effectiveCalendarYear: toFullCalendarYear(sYear),
                         targetPerson: TargetPerson.Both,
                         percentageIncrease: toPercentageRate(0.05),
-                        reason: `Merit Promotion / Tariff Adjustment (+5%)`,
+                        reason: "Merit Promotion / Tariff Adjustment (+5%)",
                       });
                     }}
                     style={{
@@ -2847,10 +2817,8 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 4: DYNAMIC SCHEDULE & WORKING TIME ADJUSTMENT CARDS */}
                 {customWorkingHoursChanges.value.map((whc, idx) => {
-                  const sMonth = whc.effectiveSimulationMonth as number;
                   const isWife = whc.targetPerson === TargetPerson.Wife;
                   const isHusband = whc.targetPerson === TargetPerson.Husband;
-                  const isBoth = whc.targetPerson === TargetPerson.Both;
                   const hours = whc.weeklyHours as number;
 
                   // Proportional earnings & benefits estimation

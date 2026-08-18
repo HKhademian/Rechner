@@ -31,14 +31,16 @@ export default function ResultsDisplay(): JSX.Element {
 
   // Percentage of gross
   const pct = (val: number, gross: number): string =>
-    gross > 0 ? ((val / gross) * 100).toFixed(1) + " %" : "0 %";
+    gross > 0 ? `${((val / gross) * 100).toFixed(1)} %` : "0 %";
 
   const renderPerson = (
     title: string,
     personData: PersonDeductions | null,
     personSalaries: number,
   ): JSX.Element | null => {
-    if (!personData || personData.grossYearly <= 0) return null;
+    if (!personData || personData.grossYearly <= 0) {
+      return null;
+    }
 
     // Divide by the number of salaries received (e.g. 12, 13) in monthly view
     const divider = isMonthly ? personSalaries : 1;

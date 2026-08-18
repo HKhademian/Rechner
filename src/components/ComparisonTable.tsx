@@ -56,7 +56,9 @@ export default function ComparisonTable(): JSX.Element | null {
 
   const displayMode = useSignal<"yearly" | "monthly">("yearly");
 
-  if (!mounted || savedScenarios.value.length === 0) return null;
+  if (!mounted || savedScenarios.value.length === 0) {
+    return null;
+  }
 
   const format = (num: number): string => {
     return new Intl.NumberFormat("de-DE", {
@@ -75,7 +77,9 @@ export default function ComparisonTable(): JSX.Element | null {
     useDivider = true,
   ): number => {
     const person = snapshot[personKey];
-    if (!person) return 0;
+    if (!person) {
+      return 0;
+    }
     const divider = isMonthly && useDivider ? person.monthsWorked : 1;
     return (person[metricKey] as number) / divider;
   };
@@ -84,7 +88,9 @@ export default function ComparisonTable(): JSX.Element | null {
     snapshot: HouseholdScenarioData,
     metricKey: "grossYearly" | "netIncome" | "totalDeductions",
   ): number => {
-    if (!isMonthly) return snapshot.household[metricKey];
+    if (!isMonthly) {
+      return snapshot.household[metricKey];
+    }
     const p1Monthly = getMetric(snapshot, "person1", metricKey);
     const p2Monthly = snapshot.partner
       ? getMetric(snapshot, "partner", metricKey)
@@ -96,7 +102,9 @@ export default function ComparisonTable(): JSX.Element | null {
     personKey: "person1" | "partner" | null,
     isHousehold = false,
   ): JSX.Element | null => {
-    if (!isMonthly) return null;
+    if (!isMonthly) {
+      return null;
+    }
     const cells: JSX.Element[] = [];
 
     const getPaycheckVal = (
@@ -110,7 +118,9 @@ export default function ComparisonTable(): JSX.Element | null {
         return { val: p1Val + p2Val, hint: "" };
       } else if (personKey) {
         const p = snapshot[personKey];
-        if (!p) return { val: 0, hint: "" };
+        if (!p) {
+          return { val: 0, hint: "" };
+        }
         const salaries = p.salariesReceived || 12;
         return { val: p.netIncome / salaries, hint: `(x${salaries})` };
       }

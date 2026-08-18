@@ -24,7 +24,9 @@ export default function RowExplainerModal({
   explanation,
   onClose,
 }: RowExplainerModalProps): JSX.Element | null {
-  if (!explanation) return null;
+  if (!explanation) {
+    return null;
+  }
 
   const isMonth = explanation.rowType === ExplainerRowType.Month;
   const isAction = explanation.rowType === ExplainerRowType.Action;

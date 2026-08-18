@@ -26,7 +26,6 @@ import {
   TaxClassSwapMilestoneIcon,
   CareerPromotionMilestoneIcon,
   FinancialInflowIcon,
-  StatutorySectionIcon,
   ExternalLegalSourceIcon,
   InformationalNoticeIcon,
 } from "#components/Icons";
@@ -73,7 +72,9 @@ export default function TimelineTable(): JSX.Element {
     if (selectedYear !== "all") {
       if (selectedYear.startsWith("cal_")) {
         const calYearNum = Number(selectedYear.replace("cal_", ""));
-        if (m.calendarYearNum !== calYearNum) return false;
+        if (m.calendarYearNum !== calYearNum) {
+          return false;
+        }
       } else if ((m.year as number) !== Number(selectedYear)) {
         return false;
       }
@@ -105,8 +106,9 @@ export default function TimelineTable(): JSX.Element {
         !matchTax &&
         !matchEvent &&
         !matchSpecial
-      )
+      ) {
         return false;
+      }
     }
     return true;
   });
@@ -284,9 +286,10 @@ export default function TimelineTable(): JSX.Element {
       ]);
     });
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const csvContent = `data:text/csv;charset=utf-8,${[
+      headers.join(","),
+      ...rows.map((e) => e.join(",")),
+    ].join("\n")}`;
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);

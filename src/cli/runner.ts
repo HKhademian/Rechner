@@ -32,7 +32,6 @@ import {
   toWorkingHours,
   toCliOutputFormat,
   toSalaryPeriod,
-  toNetSalary,
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
@@ -48,7 +47,6 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
-  type FullCalendarYear,
   type SimulationResult,
   type TimelineMonth,
   type GrossToNetBreakdown,
@@ -80,12 +78,6 @@ const GRAY = "\x1b[90m";
 
 function formatEuro(amount: number): string {
   return `${amount.toLocaleString("de-DE")} €`;
-}
-
-function formatDiff(val: number): string {
-  if (val > 0) return `${GREEN}+${val.toLocaleString("de-DE")} €${RESET}`;
-  if (val < 0) return `${RED}${val.toLocaleString("de-DE")} €${RESET}`;
-  return `${GRAY}0 €${RESET}`;
 }
 
 /**
@@ -1083,7 +1075,7 @@ function printSummaryScorecard(
     `  ${BOLD}Category${RESET}                       ${BOLD}Scenario A (Status Quo)${RESET}  ${BOLD}Scenario B (Unoptimized)${RESET} ${BOLD}Scenario C (Optimized)${RESET}`,
   );
   console.log(
-    `  --------------------------------------------------------------------------------------`,
+    "  --------------------------------------------------------------------------------------",
   );
   console.log(
     `  Earned Net Salaries:          ${String(formatEuro(resA.summary.totalSalaries as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalSalaries as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalSalaries as number)).padStart(15)}`,
@@ -1098,13 +1090,13 @@ function printSummaryScorecard(
     `  Annual Tax Returns (§ 26b):   ${String(formatEuro(resA.summary.totalTaxRefunds as number)).padStart(15)}  ${String(formatEuro(resB.summary.totalTaxRefunds as number)).padStart(16)}  ${String(formatEuro(resC.summary.totalTaxRefunds as number)).padStart(15)}`,
   );
   console.log(
-    `  --------------------------------------------------------------------------------------`,
+    "  --------------------------------------------------------------------------------------",
   );
   console.log(
     `  ${BOLD}Grand Total Cash Inflow:      ${String(formatEuro(resA.summary.grandTotal as number)).padStart(15)}  ${String(formatEuro(resB.summary.grandTotal as number)).padStart(16)}  ${GREEN}${BOLD}${String(formatEuro(resC.summary.grandTotal as number)).padStart(15)}${RESET}`,
   );
   console.log(
-    `  ======================================================================================\n`,
+    "  ======================================================================================\n",
   );
 
   console.log(
@@ -1135,27 +1127,35 @@ function printMilestones(res: SimulationResult) {
     }
 
     const events: string[] = [];
-    if (m.isMutterschutz)
+    if (m.isMutterschutz) {
       events.push(
         `${MAGENTA}Mutterschutz (${formatEuro(m.mutterschutz as number)})${RESET}`,
       );
-    if ((m.wifeElterngeld as number) > 0)
+    }
+    if ((m.wifeElterngeld as number) > 0) {
       events.push(
         `${CYAN}ElterngeldPlus (${formatEuro(m.wifeElterngeld as number)})${RESET}`,
       );
-    if (m.hasSiblingBonus) events.push(`${GREEN}Sibling Bonus (+10%)${RESET}`);
-    if (m.isPartnerschaftsbonus)
+    }
+    if (m.hasSiblingBonus) {
+      events.push(`${GREEN}Sibling Bonus (+10%)${RESET}`);
+    }
+    if (m.isPartnerschaftsbonus) {
       events.push(`${BLUE}Partnerschaftsbonus${RESET}`);
-    if (m.isSwapActive)
+    }
+    if (m.isSwapActive) {
       events.push(`${YELLOW}Tax Swap Active (H: V | W: III)${RESET}`);
-    if ((m.specialBonusTotal as number) > 0)
+    }
+    if ((m.specialBonusTotal as number) > 0) {
       events.push(
         `${GREEN}13th Salary Bonus (${formatEuro(m.specialBonusTotal as number)})${RESET}`,
       );
-    if ((m.taxRefund as number) > 0)
+    }
+    if ((m.taxRefund as number) > 0) {
       events.push(
         `${BOLD}${GREEN}Tax Return Refund (§ 26b EStG: ${formatEuro(m.taxRefund as number)})${RESET}`,
       );
+    }
 
     if (
       events.length > 0 ||
@@ -1239,7 +1239,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     const targetSim = buildSimulation(scenarioKey, opts);
     const bSim = buildSimulation(ScenarioId.B, opts);
 
-    let monthIdx = -1;
+    let monthIdx: number;
     if (typeof opts.explainMonth === "number") {
       monthIdx = opts.explainMonth - 1;
     } else {
@@ -1353,14 +1353,16 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
 
 function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
   console.log(
-    `\n${BOLD}Simulation Ledger: ${res.scenarioKey === ScenarioId.C ? "Scenario C (Optimized Tax Classes)" : "Scenario " + res.scenarioKey}${RESET}`,
+    `\n${BOLD}Simulation Ledger: ${res.scenarioKey === ScenarioId.C ? "Scenario C (Optimized Tax Classes)" : `Scenario ${res.scenarioKey}`}${RESET}`,
   );
   console.log(
     `${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`,
   );
 
-  const header = `| Rel. Month (monthRef)    | Month ID  | Sim Ref | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |`;
-  const sep = `|--------------------------|-----------|---------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|`;
+  const header =
+    "| Rel. Month (monthRef)    | Month ID  | Sim Ref | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |";
+  const sep =
+    "|--------------------------|-----------|---------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|";
 
   console.log(header);
   console.log(sep);
@@ -1382,7 +1384,6 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
         const isPregnancy = act.type === "PREGNANCY_POSITIVE";
         const isTaxRevert = act.type === "TAX_CLASS_SWITCH_REVERT";
         const isTaxSwitch = act.category === "TAX_SWITCH";
-        const isRaise = act.category === "SALARY_RAISE";
 
         const color = isDelivery
           ? CYAN
@@ -1518,7 +1519,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     console.log(`| ${row} |`);
   });
 
-  console.log(sep + "\n");
+  console.log(`${sep}\n`);
 }
 
 const isDirectRun = Boolean(

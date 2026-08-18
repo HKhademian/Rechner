@@ -2,10 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeAnnualIncomeTax,
-  computeSolidaritySurcharge,
   computeMonthlySocialSecurity,
-  computeAnnualWageTaxForClass,
-  computeSonstigeBezuegeTax,
   computeGrossToNetBreakdown,
   computeMonthlyNetSalary,
   deriveSpousalNetSalaries,

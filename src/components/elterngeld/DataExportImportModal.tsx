@@ -37,7 +37,9 @@ import {
 
 export function DataExportImportModal() {
   const isOpen = isExportImportModalOpen.value;
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const [activeTab, setActiveTab] = useState<"export" | "import">(
     exportImportActiveTab.value,

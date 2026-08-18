@@ -5,7 +5,7 @@ import {
   openExportImportModal,
 } from "#store/elterngeldStore";
 import { ActiveScenarioView } from "#engine/types";
-import { ImportDataIcon, DownloadFileIcon } from "#components/Icons";
+import { DownloadFileIcon } from "#components/Icons";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("de-DE", {

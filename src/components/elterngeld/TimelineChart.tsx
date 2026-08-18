@@ -123,15 +123,27 @@ export default function TimelineChart(): JSX.Element {
   // Calculate dynamic active sum for each month based on visible series
   const getMonthActiveTotal = (m: TimelineMonth): number => {
     let total = 0;
-    if (visibleSeries.husbandSalary) total += (m.husbandSalary as number) || 0;
-    if (visibleSeries.wifeSalary) total += (m.wifeSalary as number) || 0;
-    if (visibleSeries.mutterschutz) total += (m.mutterschutz as number) || 0;
-    if (visibleSeries.wifeElterngeld)
+    if (visibleSeries.husbandSalary) {
+      total += (m.husbandSalary as number) || 0;
+    }
+    if (visibleSeries.wifeSalary) {
+      total += (m.wifeSalary as number) || 0;
+    }
+    if (visibleSeries.mutterschutz) {
+      total += (m.mutterschutz as number) || 0;
+    }
+    if (visibleSeries.wifeElterngeld) {
       total += (m.wifeElterngeld as number) || 0;
-    if (visibleSeries.husbandElterngeld)
+    }
+    if (visibleSeries.husbandElterngeld) {
       total += (m.husbandElterngeld as number) || 0;
-    if (visibleSeries.kindergeld) total += (m.kindergeld as number) || 0;
-    if (visibleSeries.taxRefund) total += (m.taxRefund as number) || 0;
+    }
+    if (visibleSeries.kindergeld) {
+      total += (m.kindergeld as number) || 0;
+    }
+    if (visibleSeries.taxRefund) {
+      total += (m.taxRefund as number) || 0;
+    }
     return total;
   };
 
@@ -222,7 +234,9 @@ export default function TimelineChart(): JSX.Element {
 
   // Handle Mouse Move for Tooltip
   const handleMouseMove = (e: JSX.TargetedMouseEvent<SVGSVGElement>): void => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left - margin.left;
     if (mouseX >= 0 && mouseX <= plotWidth) {
@@ -249,7 +263,9 @@ export default function TimelineChart(): JSX.Element {
 
   // Individual Field Line Path Generator
   const getFieldLinePath = (fieldKey: keyof VisibleSeriesState): string => {
-    if (!visibleSeries[fieldKey]) return "";
+    if (!visibleSeries[fieldKey]) {
+      return "";
+    }
     return displayedMonths.reduce((acc, m, i) => {
       const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
       const val = (m[fieldKey as keyof TimelineMonth] as number) || 0;
@@ -263,7 +279,9 @@ export default function TimelineChart(): JSX.Element {
     const subset = scenarioDataset.months.filter((m) =>
       displayedMonths.some((dm) => dm.month === m.month),
     );
-    if (subset.length === 0) return "";
+    if (subset.length === 0) {
+      return "";
+    }
     return subset.reduce((acc, m, i) => {
       const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
       const y = margin.top + scaleY(m.monthlyTotal as number);
@@ -276,7 +294,9 @@ export default function TimelineChart(): JSX.Element {
     topFn: (m: TimelineMonth) => number,
     bottomFn: (m: TimelineMonth) => number,
   ): string => {
-    if (displayedMonths.length === 0) return "";
+    if (displayedMonths.length === 0) {
+      return "";
+    }
     const topPoints = displayedMonths
       .map((m, i) => {
         const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
@@ -609,7 +629,9 @@ export default function TimelineChart(): JSX.Element {
         >
           {/* Grid lines (Horizontal Y-Axis) */}
           {[0, 2000, 4000, 6000, 8000].map((tick) => {
-            if (tick > yMax) return null;
+            if (tick > yMax) {
+              return null;
+            }
             const y = margin.top + scaleY(tick);
             return (
               <g key={tick}>
@@ -733,7 +755,9 @@ export default function TimelineChart(): JSX.Element {
                     />
                   )}
                   {segments.map((seg) => {
-                    if (seg.val <= 0) return null;
+                    if (seg.val <= 0) {
+                      return null;
+                    }
                     const segHeight = (seg.val / yMax) * plotHeight;
                     const segY = margin.top + scaleY(currentY + seg.val);
                     currentY += seg.val;
@@ -759,7 +783,9 @@ export default function TimelineChart(): JSX.Element {
             <g>
               {seriesMeta.map((s) => {
                 const pathData = getFieldLinePath(s.key);
-                if (!pathData) return null;
+                if (!pathData) {
+                  return null;
+                }
                 return (
                   <g key={`line-series-${s.key}`}>
                     <path
@@ -774,7 +800,9 @@ export default function TimelineChart(): JSX.Element {
                     {displayedMonths.map((m, i) => {
                       const val =
                         (m[s.key as keyof TimelineMonth] as number) || 0;
-                      if (val <= 0) return null;
+                      if (val <= 0) {
+                        return null;
+                      }
                       const cx =
                         margin.left + i * barSlotWidth + barSlotWidth / 2;
                       const cy = margin.top + scaleY(val);

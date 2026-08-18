@@ -17,7 +17,9 @@ export default function FieldExplainerModal({
   explanation,
   onClose,
 }: FieldExplainerModalProps): JSX.Element | null {
-  if (!explanation) return null;
+  if (!explanation) {
+    return null;
+  }
 
   return (
     <div
