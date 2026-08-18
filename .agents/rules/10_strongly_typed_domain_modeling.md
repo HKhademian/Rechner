@@ -20,5 +20,9 @@ All mathematical models, domain calculations, financial ledgers, and simulation 
     export const TransactionType = { SalaryBase: 'SALARY_BASE', ... } as const;
     export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType];
     ```
+- **No Loose Primitive Union Fallbacks (e.g. `WorkingHours | number` is FORBIDDEN)**:
+  - Domain functions, calculators, ledger builders, and interfaces must strictly require nominal branded types (e.g., `weeklyHours: WorkingHours`, `childIndex: ChildIndex`).
+  - Adding fallback unions like `| number` or `| string` to internal domain signatures defeats the compile-time safety of branded types by allowing unvalidated raw primitives to bypass constructor boundaries.
+  - Only dedicated constructor/factory parser functions (e.g., `toWorkingHours`, `toEuroAmount`, `toFullCalendarYear`) located at the system boundary may accept primitive `number | string` inputs.
 - **Strict Compile-Time Safety**: Type checking must be configured with `"strict": true`, `"noImplicitAny": true`, `"strictNullChecks": true`, preventing unit confusion, rounding discrepancies, and logical errors at compile time.
 - **Pure Functional Core**: Domain calculation primitives must be pure, immutable, and fully testable in isolation.

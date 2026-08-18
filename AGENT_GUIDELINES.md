@@ -80,4 +80,5 @@ The simulator processes state transitions in 4 modular batches:
 
 - Nominal branded types (`Brand<number, Tag>`) are intersection types with `number` and natively support all arithmetic (`+`, `-`, `*`, `/`), comparisons (`<`, `>`, `<=`, `>=`), and math utilities.
 - **Strictly Prohibited**: Never cast branded types to primitives (`as number`, `as string`). Use variables directly in calculations without casting noise.
+- **No Loose Fallback Union Signatures**: Never type domain parameters as `Type | number` or `Type | string`. Domain functions must strictly require the branded type (`WorkingHours`, `NetSalary`, `ChildIndex`, etc.). Raw primitives may only be passed to designated constructor functions (`toWorkingHours`, `toNetSalary`, `toChildIndex`) at system boundaries.
 - Only cast/validate when constructing branded types from raw inputs via runtime constructors (`toEuroAmount`, `toNetSalary`, `toWorkingHours`, etc.).
