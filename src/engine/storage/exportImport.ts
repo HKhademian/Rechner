@@ -24,6 +24,8 @@ import {
   type SimulationResult,
   type MonthlyLedgerEntry,
   toMonthId,
+  toMonthRef,
+  toMonthSimRef,
 } from "#engine/types";
 import {
   type ElterngeldPersistedState,
@@ -436,8 +438,8 @@ export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
       const row = [
         `"${m.monthId}"`,
         `"${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel}"`,
-        `"${m.monthSimRef || `Sim${m.month}`}"`,
-        `M${m.month}`,
+        `"${m.monthSimRef || toMonthSimRef(m.month)}"`,
+        toMonthRef(m.month),
         `"${m.calendarLabel}"`,
         m.calendarYearNum,
         m.calendarMonthNum,

@@ -15,9 +15,15 @@ import {
   toCalendarMonth,
   toMonthId,
   toMonthRef,
+  toMonthSimRef,
   toEuroAmount,
+  toEventId,
+  toStatutoryCitation,
   TransactionType,
   TransactionDirection,
+  SpecialEventType,
+  SpecialEventCategory,
+  type SpecialEventItem,
 } from "#engine/types";
 
 describe("Atomic Ledger & Transaction Integrity Engine", () => {
@@ -33,8 +39,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         amount: toEuroAmount(2895),
         statutoryCitation: "§ 19 EStG",
         taxClassLabel: "H: III",
-        description: "Husband salary",
-        auditTrail: "Monthly net salary",
+        description: "Husband Monthly Salary",
+        auditTrail: "Gross €4.500 -> Class III Net €2.895",
       });
 
       assert.equal(tx.transactionId, "TX-M01.2026-TEST");
@@ -52,6 +58,9 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const cm = toCalendarMonth(((m - 1) % 12) + 1);
         const calYearNum = toFullCalendarYear(2026 + cy - 1);
         const mId = toMonthId(cm, calYearNum);
+        const mRef = toMonthRef(sMonth);
+        const mSimRef = toMonthSimRef(sMonth);
+        const calLabel = `${String(cm).padStart(2, "0")}.${calYearNum}`;
 
         const hSalary = toEuroAmount(4000);
         const wSalary = toEuroAmount(2000);
@@ -62,14 +71,16 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const { entry } = buildMonthlyLedgerEntry(
           {
             monthId: mId,
+            monthRef: mRef,
+            monthSimRef: mSimRef,
             month: sMonth,
             year: cy,
             monthInYear: cm,
             calendarYearNum: calYearNum,
             calendarMonthNum: cm,
-            calendarLabel: `M${sMonth}`,
-            relativeBirthLabel: `M${sMonth}`,
-            relativeMonthLabel: toMonthRef(sMonth),
+            calendarLabel: calLabel,
+            relativeBirthLabel: mRef,
+            relativeMonthLabel: mRef,
             relativeMonthIndex: m,
             husbandSalary: hSalary,
             wifeSalary: wSalary,
@@ -103,7 +114,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const expectedTotal = expectedRegular + expectedSpecial;
 
         assert.equal(entry.monthId, mId);
-        assert.equal(entry.monthRef, `M${sMonth}`);
+        assert.equal(entry.monthRef, mRef);
         assert.equal(entry.regularMonthlyTotal, expectedRegular);
         assert.equal(entry.specialEventsTotal, expectedSpecial);
         assert.equal(entry.monthlyTotal, expectedTotal);
@@ -122,8 +133,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const kindergeld = toEuroAmount(259);
 
       // One-off baby equipment cost (-1500 €)
-      const costEvent = {
-        eventId: "EVENT-M05.2027-EQUIPMENT" as any,
+      const costEvent: SpecialEventItem = {
+        eventId: toEventId("EVENT-M05.2027-EQUIPMENT"),
         monthId: mId,
         monthRef: toMonthRef("M9 (Birth 1)"),
         month: sMonth,
@@ -133,10 +144,10 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         calendarLabel: "05.2027",
         relativeBirthLabel: "M9 (Birth 1)",
         relativeMonthLabel: toMonthRef("M9 (Birth 1)"),
-        type: "custom_cost" as any,
+        type: SpecialEventType.CustomCost,
         title: "Child #1 Initial Equipment",
-        category: "Baby Equipment (*Erstausstattung*)" as any,
-        statutory: "Out-of-Pocket Expense" as any,
+        category: SpecialEventCategory.BabyEquipment,
+        statutory: toStatutoryCitation("Out-of-Pocket Expense"),
         taxClassLabel: "H: V | W: III",
         amount: toEuroAmount(-1500),
         description: "Baby nursery and stroller",
@@ -204,8 +215,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const kindergeld = toEuroAmount(0);
 
       // One-off bonus grant (+2000 €)
-      const grantEvent = {
-        eventId: "EVENT-M12.2026-GRANT" as any,
+      const grantEvent: SpecialEventItem = {
+        eventId: toEventId("EVENT-M12.2026-GRANT"),
         monthId: mId,
         monthRef: toMonthRef("M-5"),
         month: sMonth,
@@ -215,10 +226,10 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         calendarLabel: "04.2026",
         relativeBirthLabel: "M-5",
         relativeMonthLabel: toMonthRef("M-5"),
-        type: "custom_income" as any,
+        type: SpecialEventType.CustomIncome,
         title: "Employer Grant",
-        category: "Career Bonus / Extra Income" as any,
-        statutory: "Voluntary Benefit" as any,
+        category: SpecialEventCategory.CareerBonus,
+        statutory: toStatutoryCitation("Voluntary Benefit"),
         taxClassLabel: "H: III | W: V",
         amount: toEuroAmount(2000),
         description: "Family bonus grant",

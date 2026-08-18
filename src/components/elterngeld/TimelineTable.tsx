@@ -23,6 +23,7 @@ import {
   type TimelineMonth,
   type SpecialEventItem,
   type ActionRowItem,
+  toMonthSimRef,
 } from "#engine/types";
 import {
   ExportDataIcon,
@@ -162,7 +163,7 @@ export default function TimelineTable(): JSX.Element {
             "ACTION",
             act.monthId,
             act.relativeMonthLabel || relLabel,
-            `M${m.month}`,
+            act.monthSimRef || m.monthSimRef || toMonthSimRef(m.month),
             m.calendarLabel,
             m.year,
             act.title,
@@ -210,7 +211,7 @@ export default function TimelineTable(): JSX.Element {
             "FISCAL_EVENT",
             ev.monthId,
             ev.relativeMonthLabel || relLabel,
-            `M${m.month}`,
+            ev.monthSimRef || m.monthSimRef || toMonthSimRef(m.month),
             ev.calendarLabel,
             m.year,
             `${ev.category}: ${ev.title}`,
@@ -265,7 +266,7 @@ export default function TimelineTable(): JSX.Element {
         "MONTH_BASE",
         m.monthId,
         relLabel,
-        `M${m.month}`,
+        m.monthSimRef || toMonthSimRef(m.month),
         m.calendarLabel,
         m.year,
         m.phaseLabel,
@@ -1650,7 +1651,7 @@ export default function TimelineTable(): JSX.Element {
                             fontWeight: 500,
                           }}
                         >
-                          {m.monthId} · {m.monthSimRef || `Sim${m.month}`} · Y
+                          {m.monthId} · {m.monthSimRef || toMonthSimRef(m.month)} · Y
                           {m.year}
                         </div>
                       </div>

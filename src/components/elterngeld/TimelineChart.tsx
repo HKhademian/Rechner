@@ -18,6 +18,7 @@ import {
   TimelineTimeRangeFilter,
   type TimelineMonth,
   type ScenarioTimelineResult,
+  toMonthSimRef,
 } from "#engine/types";
 
 function formatCurrency(amount: number): string {
@@ -1201,7 +1202,7 @@ export default function TimelineChart(): JSX.Element {
                     color: "var(--text-muted)" }}
                 >
                   {tooltipState.month.monthSimRef ||
-                    `Sim${tooltipState.month.month}`}{" "}
+                    toMonthSimRef(tooltipState.month.month)}{" "}
                   · Year {tooltipState.month.year}
                 </div>
               </div>

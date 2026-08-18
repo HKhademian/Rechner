@@ -45,6 +45,8 @@ import {
   toPregnancyId,
   toSwitchId,
   toRaiseId,
+  toMonthId,
+  toMonthSimRef,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -124,7 +126,7 @@ export function parseMonthArg(val: string): string | number {
   const trimmed = val.trim();
   const matchMonthId = trimmed.match(/^M(0[1-9]|1[0-2])\.?(\d{4})$/i);
   if (matchMonthId) {
-    return `M${matchMonthId[1]}.${matchMonthId[2]}`;
+    return toMonthId(trimmed);
   }
   const matchSim = trimmed.match(/^Sim(\d+)$/i);
   if (matchSim) {
@@ -763,7 +765,7 @@ function printFieldExplanation(
   const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
   console.log(
-    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.monthSimRef || `Sim${m.month}`} · ${m.calendarLabel})${RESET}`,
+    `${BOLD}${CYAN}FIELD EXPLANATION: ${exp.fieldTitle} (${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.monthSimRef || toMonthSimRef(m.month)} · ${m.calendarLabel})${RESET}`,
   );
   console.log(
     `${DIM}Scenario: ${scenarioId} · Spousal Tax Classes: ${m.taxClassLabel}${RESET}`,
@@ -823,7 +825,7 @@ function printMonthExplanation(
   const line = "═".repeat(80);
   console.log(`\n${BOLD}${CYAN}${line}${RESET}`);
   console.log(
-    `${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title} (${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.monthSimRef || `Sim${m.month}`} · ${m.calendarLabel})${RESET}`,
+    `${BOLD}${CYAN}FULL MONTHLY AUDIT: ${rowExp.title} (${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel} · ${m.monthId} · ${m.monthSimRef || toMonthSimRef(m.month)} · ${m.calendarLabel})${RESET}`,
   );
   console.log(`${DIM}${rowExp.subtitle} · Scenario: ${scenarioId}${RESET}`);
   console.log(`${BOLD}${CYAN}${line}${RESET}\n`);
@@ -1206,7 +1208,7 @@ function printMilestones(res: SimulationResult) {
       (m.relativeMonthLabel || m.relativeBirthLabel).includes("M-8")
     ) {
       console.log(
-        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel}${RESET} · ${m.monthId} · ${m.monthSimRef || `Sim${m.month}`}): ${m.phaseLabel}`,
+        `  ${BOLD}${m.calendarLabel}${RESET} (${BOLD}${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel}${RESET} · ${m.monthId} · ${m.monthSimRef || toMonthSimRef(m.month)}): ${m.phaseLabel}`,
       );
       if (events.length > 0) {
         console.log(`    ↳ ${events.join(" • ")}`);
@@ -1458,7 +1460,11 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
             .slice(0, 24)
             .padEnd(24),
           (act.monthId || m.monthId).padEnd(9),
-          (act.monthSimRef || m.monthSimRef || `Sim${m.month}`).padEnd(7),
+          (
+            act.monthSimRef ||
+            m.monthSimRef ||
+            toMonthSimRef(m.month)
+          ).padEnd(7),
           m.calendarLabel.padEnd(8),
           `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1526,7 +1532,11 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
             .slice(0, 24)
             .padEnd(24),
           (ev.monthId || m.monthId).padEnd(9),
-          (ev.monthSimRef || m.monthSimRef || `Sim${m.month}`).padEnd(7),
+          (
+            ev.monthSimRef ||
+            m.monthSimRef ||
+            toMonthSimRef(m.month)
+          ).padEnd(7),
           ev.calendarLabel.padEnd(8),
           `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,

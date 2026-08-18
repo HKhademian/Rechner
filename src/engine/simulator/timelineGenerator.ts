@@ -270,27 +270,24 @@ export function runScenarioBatches(
 
     if (m < preg1PositiveMonth) {
       relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
-      relativeBirthLabel = `M${relativeMonthIndex}`;
       relativeMonthLabel = toMonthRef(relativeMonthIndex);
+      relativeBirthLabel = relativeMonthLabel;
     }
     else {
       relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
       if (m === preg1PositiveMonth) {
-        relativeBirthLabel = "M1 (Pregnancy Positive)";
         relativeMonthLabel = toMonthRef(1, "Pregnancy Positive");
       }
       else if (m === child1Delivery) {
-        relativeBirthLabel = `M${relativeMonthIndex} (Birth 1)`;
         relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 1");
       }
       else if (m === child2Delivery) {
-        relativeBirthLabel = `M${relativeMonthIndex} (Birth 2)`;
         relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 2");
       }
       else {
-        relativeBirthLabel = `M${relativeMonthIndex}`;
         relativeMonthLabel = toMonthRef(relativeMonthIndex);
       }
+      relativeBirthLabel = relativeMonthLabel;
     }
 
     // --- Batch 3: Evaluate Dynamic Working Hours & Schedules ---
