@@ -1,4 +1,6 @@
-import type { JSX } from "preact";
+import type {
+  JSX, 
+} from "preact";
 import InputForm from "#components/InputForm";
 import ResultsDisplay from "#components/ResultsDisplay";
 import ComparisonTable from "#components/ComparisonTable";

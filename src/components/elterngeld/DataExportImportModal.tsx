@@ -1,4 +1,6 @@
-import { useState } from "preact/hooks";
+import {
+  useState, 
+} from "preact/hooks";
 import {
   isExportImportModalOpen,
   exportImportActiveTab,
@@ -17,8 +19,12 @@ import {
   APPLICATION_NAME,
   EXPORT_SCHEMA_VERSION,
 } from "#engine/storage/exportImport";
-import { type ImportValidationResult, ScenarioId } from "#engine/types";
-import { type ElterngeldPersistedState } from "#engine/storage/persistence";
+import {
+  type ImportValidationResult, ScenarioId, 
+} from "#engine/types";
+import {
+  type ElterngeldPersistedState, 
+} from "#engine/storage/persistence";
 import {
   ImportDataIcon,
   JsonExportIcon,
@@ -107,7 +113,8 @@ export function DataExportImportModal() {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
       }
-    } catch {
+    }
+    catch {
       // Fallback
     }
   };
@@ -174,7 +181,9 @@ export function DataExportImportModal() {
             background: "var(--bg-surface-secondary)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ display: "flex",
+            alignItems: "center",
+            gap: "12px" }}>
             <div
               style={{
                 padding: "8px",
@@ -321,7 +330,9 @@ export function DataExportImportModal() {
         >
           {activeTab === "export" ? (
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "18px" }}
+              style={{ display: "flex",
+                flexDirection: "column",
+                gap: "18px" }}
             >
               {/* Primary 4 Export Cards Grid */}
               <div
@@ -491,7 +502,8 @@ export function DataExportImportModal() {
                       backup and instant re-importing.
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
+                  <div style={{ display: "flex",
+                    gap: "8px" }}>
                     <button
                       type="button"
                       onClick={exportSimulationJson}
@@ -830,7 +842,9 @@ export function DataExportImportModal() {
             </div>
           ) : (
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+              style={{ display: "flex",
+                flexDirection: "column",
+                gap: "16px" }}
             >
               {/* Dropzone */}
               <div
@@ -858,7 +872,8 @@ export function DataExportImportModal() {
                 }}
               >
                 <div
-                  style={{ color: "var(--text-muted)", marginBottom: "8px" }}
+                  style={{ color: "var(--text-muted)",
+                    marginBottom: "8px" }}
                 >
                   <UploadFileIcon size={28} />
                 </div>
@@ -1190,20 +1205,20 @@ export function DataExportImportModal() {
 
                   {importResult.warnings &&
                     importResult.warnings.length > 0 && (
-                      <div
-                        style={{
-                          padding: "6px 8px",
-                          borderRadius: "4px",
-                          background: "var(--color-warning-bg)",
-                          border: "1px solid var(--color-warning-border)",
-                          fontSize: "0.70rem",
-                          color: "var(--color-warning)",
-                        }}
-                      >
-                        <strong>Adjustments:</strong>{" "}
-                        {importResult.warnings.join(", ")}
-                      </div>
-                    )}
+                    <div
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: "4px",
+                        background: "var(--color-warning-bg)",
+                        border: "1px solid var(--color-warning-border)",
+                        fontSize: "0.70rem",
+                        color: "var(--color-warning)",
+                      }}
+                    >
+                      <strong>Adjustments:</strong>{" "}
+                      {importResult.warnings.join(", ")}
+                    </div>
+                  )}
 
                   <button
                     type="button"

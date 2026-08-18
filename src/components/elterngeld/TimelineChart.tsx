@@ -1,5 +1,9 @@
-import type { JSX } from "preact";
-import { useState, useRef } from "preact/hooks";
+import type {
+  JSX, 
+} from "preact";
+import {
+  useState, useRef, 
+} from "preact/hooks";
 import {
   chartMode,
   timeRangeFilter,
@@ -110,11 +114,13 @@ export default function TimelineChart(): JSX.Element {
     displayedMonths = currentData.months.filter(
       (m) => (m.month as number) <= 24,
     );
-  } else if (filter === TimelineTimeRangeFilter.Child2) {
+  }
+  else if (filter === TimelineTimeRangeFilter.Child2) {
     displayedMonths = currentData.months.filter(
       (m) => (m.month as number) >= 25 && (m.month as number) <= 48,
     );
-  } else if (filter === TimelineTimeRangeFilter.Post) {
+  }
+  else if (filter === TimelineTimeRangeFilter.Post) {
     displayedMonths = currentData.months.filter(
       (m) => (m.month as number) >= 49,
     );
@@ -150,7 +156,10 @@ export default function TimelineChart(): JSX.Element {
   // Dimensions
   const svgWidth = 1050;
   const svgHeight = 440;
-  const margin = { top: 40, right: 30, bottom: 55, left: 65 };
+  const margin = { top: 40,
+    right: 30,
+    bottom: 55,
+    left: 65 };
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
@@ -277,8 +286,7 @@ export default function TimelineChart(): JSX.Element {
   // Comparison curves path generator for Compare mode
   const getComparePath = (scenarioDataset: ScenarioTimelineResult): string => {
     const subset = scenarioDataset.months.filter((m) =>
-      displayedMonths.some((dm) => dm.month === m.month),
-    );
+      displayedMonths.some((dm) => dm.month === m.month));
     if (subset.length === 0) {
       return "";
     }
@@ -322,7 +330,9 @@ export default function TimelineChart(): JSX.Element {
   return (
     <div
       className="glass-panel"
-      style={{ padding: "24px", marginBottom: "28px", position: "relative" }}
+      style={{ padding: "24px",
+        marginBottom: "28px",
+        position: "relative" }}
     >
       {/* Chart Top Header & Controls */}
       <div
@@ -575,7 +585,9 @@ export default function TimelineChart(): JSX.Element {
           })}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{ display: "flex",
+          alignItems: "center",
+          gap: "6px" }}>
           <button
             type="button"
             onClick={() => setAllSeries(true)}
@@ -614,7 +626,9 @@ export default function TimelineChart(): JSX.Element {
       {/* SVG Chart Plot Area */}
       <div
         ref={containerRef}
-        style={{ position: "relative", width: "100%", overflowX: "auto" }}
+        style={{ position: "relative",
+          width: "100%",
+          overflowX: "auto" }}
       >
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -1184,7 +1198,8 @@ export default function TimelineChart(): JSX.Element {
                   {tooltipState.month.monthId}
                 </span>
                 <div
-                  style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}
+                  style={{ fontSize: "0.68rem",
+                    color: "var(--text-muted)" }}
                 >
                   {tooltipState.month.monthSimRef ||
                     `Sim${tooltipState.month.month}`}{" "}
@@ -1217,7 +1232,8 @@ export default function TimelineChart(): JSX.Element {
               }}
             >
               Status:{" "}
-              <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+              <span style={{ color: "var(--text-primary)",
+                fontWeight: 600 }}>
                 {tooltipState.month.taxClassLabel}
               </span>
             </div>
@@ -1232,229 +1248,236 @@ export default function TimelineChart(): JSX.Element {
             >
               {visibleSeries.husbandSalary &&
                 (tooltipState.month.husbandSalary as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--text-secondary)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.husbandSalary,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.husbandSalary,
-                        }}
-                      ></span>
-                      Husband Net Salary:
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      {formatCurrency(
-                        tooltipState.month.husbandSalary as number,
-                      )}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    Husband Net Salary:
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    {formatCurrency(
+                      tooltipState.month.husbandSalary as number,
+                    )}
+                  </span>
+                </div>
+              )}
               {visibleSeries.wifeSalary &&
                 (tooltipState.month.wifeSalary as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--text-secondary)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.wifeSalary,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.wifeSalary,
-                        }}
-                      ></span>
-                      Wife Net Salary:
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      {formatCurrency(tooltipState.month.wifeSalary as number)}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    Wife Net Salary:
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    {formatCurrency(tooltipState.month.wifeSalary as number)}
+                  </span>
+                </div>
+              )}
               {visibleSeries.mutterschutz &&
                 (tooltipState.month.mutterschutz as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--text-secondary)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.mutterschutz,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.mutterschutz,
-                        }}
-                      ></span>
-                      Maternity Pay (*MuSchG*):
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      {formatCurrency(
-                        tooltipState.month.mutterschutz as number,
-                      )}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    Maternity Pay (*MuSchG*):
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    {formatCurrency(
+                      tooltipState.month.mutterschutz as number,
+                    )}
+                  </span>
+                </div>
+              )}
               {visibleSeries.wifeElterngeld &&
                 (tooltipState.month.wifeElterngeld as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--color-gain)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--color-gain)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.wifeElterngeld,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.wifeElterngeld,
-                        }}
-                      ></span>
-                      ElterngeldPlus (Mother / § 4 BEEG):
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      {formatCurrency(
-                        tooltipState.month.wifeElterngeld as number,
-                      )}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    ElterngeldPlus (Mother / § 4 BEEG):
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    {formatCurrency(
+                      tooltipState.month.wifeElterngeld as number,
+                    )}
+                  </span>
+                </div>
+              )}
               {visibleSeries.husbandElterngeld &&
                 (tooltipState.month.husbandElterngeld as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--color-warning)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--color-warning)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.husbandElterngeld,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.husbandElterngeld,
-                        }}
-                      ></span>
-                      Partner Months (*Partnermonate* § 4 BEEG):
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      {formatCurrency(
-                        tooltipState.month.husbandElterngeld as number,
-                      )}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    Partner Months (*Partnermonate* § 4 BEEG):
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    {formatCurrency(
+                      tooltipState.month.husbandElterngeld as number,
+                    )}
+                  </span>
+                </div>
+              )}
               {visibleSeries.kindergeld &&
                 (tooltipState.month.kindergeld as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--color-loss)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--color-loss)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.kindergeld,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.kindergeld,
-                        }}
-                      ></span>
-                      Child Benefit (*Kindergeld* § 66 EStG):
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      {formatCurrency(tooltipState.month.kindergeld as number)}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    Child Benefit (*Kindergeld* § 66 EStG):
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    {formatCurrency(tooltipState.month.kindergeld as number)}
+                  </span>
+                </div>
+              )}
               {visibleSeries.taxRefund &&
                 (tooltipState.month.taxRefund as number) > 0 && (
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--color-gain)",
+                  }}
+                >
+                  <span
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--color-gain)",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
                     <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: colors.taxRefund,
                       }}
-                    >
-                      <span
-                        style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: colors.taxRefund,
-                        }}
-                      ></span>
-                      Tax Office Refund (*Finanzamt* § 26b EStG):
-                    </span>
-                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
-                      +{formatCurrency(tooltipState.month.taxRefund as number)}
-                    </span>
-                  </div>
-                )}
+                    ></span>
+                    Tax Office Refund (*Finanzamt* § 26b EStG):
+                  </span>
+                  <span style={{ fontFamily: "monospace",
+                    fontWeight: 600 }}>
+                    +{formatCurrency(tooltipState.month.taxRefund as number)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

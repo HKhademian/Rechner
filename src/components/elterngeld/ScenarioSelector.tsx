@@ -1,11 +1,17 @@
-import type { JSX } from "preact";
+import type {
+  JSX, 
+} from "preact";
 import {
   activeScenario,
   comparisonMetrics,
   openExportImportModal,
 } from "#store/elterngeldStore";
-import { ActiveScenarioView } from "#engine/types";
-import { DownloadFileIcon } from "#components/Icons";
+import {
+  ActiveScenarioView, 
+} from "#engine/types";
+import {
+  DownloadFileIcon, 
+} from "#components/Icons";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("de-DE", {
@@ -114,7 +120,9 @@ export default function ScenarioSelector(): JSX.Element {
           gap: "8px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex",
+          alignItems: "center",
+          gap: "8px" }}>
           <span
             style={{
               display: "inline-block",

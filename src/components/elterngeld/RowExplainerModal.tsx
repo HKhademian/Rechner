@@ -1,7 +1,15 @@
-import type { JSX } from "preact";
-import { type RowExplanation } from "#engine/explanation/timelineExplainer";
-import { ExplainerRowType } from "#engine/types";
-import { scrollToLegalRule } from "#store/elterngeldStore";
+import type {
+  JSX, 
+} from "preact";
+import {
+  type RowExplanation, 
+} from "#engine/explanation/timelineExplainer";
+import {
+  ExplainerRowType, 
+} from "#engine/types";
+import {
+  scrollToLegalRule, 
+} from "#store/elterngeldStore";
 import {
   SimulationPeriodIcon,
   SpecialEventTriggerIcon,

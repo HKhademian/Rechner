@@ -1,5 +1,9 @@
-import type { JSX } from "preact";
-import type { Signal } from "@preact/signals";
+import type {
+  JSX, 
+} from "preact";
+import type {
+  Signal, 
+} from "@preact/signals";
 import {
   configHealthCap,
   configPensionCap,
@@ -161,7 +165,8 @@ export default function TaxSettings(): JSX.Element {
           margin: "20px 0",
         }}
       />
-      <h4 style={{ marginTop: 0, color: "var(--text-secondary)" }}>
+      <h4 style={{ marginTop: 0,
+        color: "var(--text-secondary)" }}>
         Social Security Contribution Rates (*Sozialversicherungsbeiträge*)
       </h4>
 

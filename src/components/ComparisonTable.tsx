@@ -1,6 +1,12 @@
-import type { JSX } from "preact";
-import { useState, useEffect } from "preact/hooks";
-import { useSignal } from "@preact/signals";
+import type {
+  JSX, 
+} from "preact";
+import {
+  useState, useEffect, 
+} from "preact/hooks";
+import {
+  useSignal, 
+} from "@preact/signals";
 import {
   grossIncome,
   taxBracket,
@@ -109,22 +115,28 @@ export default function ComparisonTable(): JSX.Element | null {
 
     const getPaycheckVal = (
       snapshot: HouseholdScenarioData,
-    ): { val: number; hint: string } => {
+    ): { val: number;
+      hint: string } => {
       if (isHousehold) {
         const p1 = snapshot.person1;
         const p2 = snapshot.partner;
         const p1Val = p1 ? p1.netIncome / (p1.salariesReceived || 12) : 0;
         const p2Val = p2 ? p2.netIncome / (p2.salariesReceived || 12) : 0;
-        return { val: p1Val + p2Val, hint: "" };
-      } else if (personKey) {
+        return { val: p1Val + p2Val,
+          hint: "" };
+      }
+      else if (personKey) {
         const p = snapshot[personKey];
         if (!p) {
-          return { val: 0, hint: "" };
+          return { val: 0,
+            hint: "" };
         }
         const salaries = p.salariesReceived || 12;
-        return { val: p.netIncome / salaries, hint: `(x${salaries})` };
+        return { val: p.netIncome / salaries,
+          hint: `(x${salaries})` };
       }
-      return { val: 0, hint: "" };
+      return { val: 0,
+        hint: "" };
     };
 
     // Current Story
@@ -220,7 +232,8 @@ export default function ComparisonTable(): JSX.Element | null {
     const getAvgVal = (snapshot: HouseholdScenarioData): number => {
       if (isHousehold) {
         return snapshot.household.netIncome / 12;
-      } else if (personKey) {
+      }
+      else if (personKey) {
         const p = snapshot[personKey];
         return p ? p.netIncome / 12 : 0;
       }
@@ -242,7 +255,8 @@ export default function ComparisonTable(): JSX.Element | null {
         }}
       >
         {format(currentVal)}{" "}
-        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+        <span style={{ fontSize: "0.8rem",
+          color: "var(--text-muted)" }}>
           / mo
         </span>
       </td>,
@@ -269,7 +283,8 @@ export default function ComparisonTable(): JSX.Element | null {
           }}
         >
           {format(savedVal)}{" "}
-          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+          <span style={{ fontSize: "0.8rem",
+            color: "var(--text-muted)" }}>
             / mo
           </span>
         </td>,
@@ -319,15 +334,15 @@ export default function ComparisonTable(): JSX.Element | null {
     // Current Story
     const currentVal = isHousehold
       ? getHouseholdMetric(
-          deductions.value,
-          metricKey as "grossYearly" | "netIncome" | "totalDeductions",
-        )
+        deductions.value,
+        metricKey as "grossYearly" | "netIncome" | "totalDeductions",
+      )
       : personKey
         ? getMetric(
-            deductions.value,
-            personKey,
-            metricKey as keyof PersonDeductions,
-          )
+          deductions.value,
+          personKey,
+          metricKey as keyof PersonDeductions,
+        )
         : 0;
 
     cells.push(
@@ -355,9 +370,9 @@ export default function ComparisonTable(): JSX.Element | null {
 
       const savedVal = isHousehold
         ? getHouseholdMetric(
-            dataToUse,
-            metricKey as "grossYearly" | "netIncome" | "totalDeductions",
-          )
+          dataToUse,
+          metricKey as "grossYearly" | "netIncome" | "totalDeductions",
+        )
         : personKey
           ? getMetric(dataToUse, personKey, metricKey as keyof PersonDeductions)
           : 0;
@@ -406,7 +421,8 @@ export default function ComparisonTable(): JSX.Element | null {
     currentVal: string | number,
     fieldKey: keyof CalculatorInputs,
     type: "select" | "checkbox" | "number",
-    options: { value: string; label: string }[] | null,
+    options: { value: string;
+      label: string }[] | null,
     formatFn: (inputs: Partial<CalculatorInputs>) => string | number,
   ): JSX.Element => {
     const cells: JSX.Element[] = [];
@@ -459,7 +475,8 @@ export default function ComparisonTable(): JSX.Element | null {
               ))}
             </select>
           );
-        } else if (type === "checkbox") {
+        }
+        else if (type === "checkbox") {
           content = (
             <div
               style={{
@@ -477,11 +494,13 @@ export default function ComparisonTable(): JSX.Element | null {
                     (e.target as HTMLInputElement).checked as never,
                   )
                 }
-                style={{ transform: "scale(1.2)", cursor: "pointer" }}
+                style={{ transform: "scale(1.2)",
+                  cursor: "pointer" }}
               />
             </div>
           );
-        } else if (type === "number") {
+        }
+        else if (type === "number") {
           content = (
             <input
               type="number"
@@ -576,7 +595,9 @@ export default function ComparisonTable(): JSX.Element | null {
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+        <div style={{ display: "flex",
+          gap: "15px",
+          alignItems: "center" }}>
           <div
             style={{
               display: "flex",
@@ -627,7 +648,8 @@ export default function ComparisonTable(): JSX.Element | null {
         </div>
       </div>
 
-      <div style={{ overflowX: "auto", paddingBottom: "10px" }}>
+      <div style={{ overflowX: "auto",
+        paddingBottom: "10px" }}>
         <table
           style={{
             tableLayout: "fixed",
@@ -833,7 +855,8 @@ export default function ComparisonTable(): JSX.Element | null {
                           />
                         </div>
 
-                        <div style={{ display: "flex", gap: "4px" }}>
+                        <div style={{ display: "flex",
+                          gap: "4px" }}>
                           {!isActive && (
                             <>
                               <button
@@ -902,7 +925,8 @@ export default function ComparisonTable(): JSX.Element | null {
                       </div>
 
                       {isActive && (
-                        <div style={{ display: "flex", gap: "5px" }}>
+                        <div style={{ display: "flex",
+                          gap: "5px" }}>
                           <button
                             onClick={saveDraft}
                             style={{
@@ -1053,12 +1077,18 @@ export default function ComparisonTable(): JSX.Element | null {
             </tr>
             {(() => {
               const taxBracketOptions = [
-                { value: "1", label: "Class I" },
-                { value: "2", label: "Class II" },
-                { value: "3", label: "Class III" },
-                { value: "4", label: "Class IV" },
-                { value: "5", label: "Class V" },
-                { value: "6", label: "Class VI" },
+                { value: "1",
+                  label: "Class I" },
+                { value: "2",
+                  label: "Class II" },
+                { value: "3",
+                  label: "Class III" },
+                { value: "4",
+                  label: "Class IV" },
+                { value: "5",
+                  label: "Class V" },
+                { value: "6",
+                  label: "Class VI" },
               ];
               const stateOptions = [
                 "Baden-Württemberg",
@@ -1077,7 +1107,8 @@ export default function ComparisonTable(): JSX.Element | null {
                 "Sachsen-Anhalt",
                 "Schleswig-Holstein",
                 "Thüringen",
-              ].map((s) => ({ value: s, label: s }));
+              ].map((s) => ({ value: s,
+                label: s }));
 
               return (
                 <>
@@ -1202,12 +1233,18 @@ export default function ComparisonTable(): JSX.Element | null {
                 </tr>
                 {(() => {
                   const taxBracketOptions = [
-                    { value: "1", label: "Class I" },
-                    { value: "2", label: "Class II" },
-                    { value: "3", label: "Class III" },
-                    { value: "4", label: "Class IV" },
-                    { value: "5", label: "Class V" },
-                    { value: "6", label: "Class VI" },
+                    { value: "1",
+                      label: "Class I" },
+                    { value: "2",
+                      label: "Class II" },
+                    { value: "3",
+                      label: "Class III" },
+                    { value: "4",
+                      label: "Class IV" },
+                    { value: "5",
+                      label: "Class V" },
+                    { value: "6",
+                      label: "Class VI" },
                   ];
                   const stateOptions = [
                     "Baden-Württemberg",
@@ -1226,7 +1263,8 @@ export default function ComparisonTable(): JSX.Element | null {
                     "Sachsen-Anhalt",
                     "Schleswig-Holstein",
                     "Thüringen",
-                  ].map((s) => ({ value: s, label: s }));
+                  ].map((s) => ({ value: s,
+                    label: s }));
 
                   return (
                     <>

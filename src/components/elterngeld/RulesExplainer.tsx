@@ -1,4 +1,6 @@
-import type { JSX } from "preact";
+import type {
+  JSX, 
+} from "preact";
 import {
   activeLegalRuleKey,
   LegalRuleKey,
@@ -142,7 +144,8 @@ export default function RulesExplainer(): JSX.Element {
                 border: "1px solid var(--border-subtle)",
               }}
             >
-              <div style={{ color: "var(--color-loss)", fontWeight: 700 }}>
+              <div style={{ color: "var(--color-loss)",
+                fontWeight: 700 }}>
                 Unoptimized (Tax Class V)
               </div>
               <div>
@@ -163,7 +166,8 @@ export default function RulesExplainer(): JSX.Element {
                 border: "1px solid var(--color-primary-border)",
               }}
             >
-              <div style={{ color: "var(--color-gain)", fontWeight: 700 }}>
+              <div style={{ color: "var(--color-gain)",
+                fontWeight: 700 }}>
                 Optimized (Tax Class III)
               </div>
               <div>
@@ -877,7 +881,8 @@ export default function RulesExplainer(): JSX.Element {
                 border: "1px solid var(--border-subtle)",
               }}
             >
-              <div style={{ color: "var(--color-loss)", fontWeight: 700 }}>
+              <div style={{ color: "var(--color-loss)",
+                fontWeight: 700 }}>
                 Scenario B (No 2nd Swap)
               </div>
               <div>
@@ -901,7 +906,8 @@ export default function RulesExplainer(): JSX.Element {
                 border: "1px solid var(--color-primary-border)",
               }}
             >
-              <div style={{ color: "var(--color-gain)", fontWeight: 700 }}>
+              <div style={{ color: "var(--color-gain)",
+                fontWeight: 700 }}>
                 Scenario C (2nd Swap to Class III)
               </div>
               <div>
@@ -1072,7 +1078,9 @@ export default function RulesExplainer(): JSX.Element {
           paddingBottom: "16px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex",
+          alignItems: "center",
+          gap: "12px" }}>
           <div
             style={{
               background: "var(--color-primary-bg)",
@@ -1134,7 +1142,9 @@ export default function RulesExplainer(): JSX.Element {
         }}
       >
         {/* Left: Interactive Rule List */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div style={{ display: "flex",
+          flexDirection: "column",
+          gap: "8px" }}>
           {rules.map((rule) => {
             const isSelected = rule.key === currentRule.key;
             return (
@@ -1349,7 +1359,9 @@ export default function RulesExplainer(): JSX.Element {
               <span>Official Legislation &amp; Government References</span>
             </div>
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+              style={{ display: "flex",
+                flexDirection: "column",
+                gap: "8px" }}
             >
               {currentRule.links.map((link) => (
                 <a

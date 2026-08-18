@@ -1,4 +1,6 @@
-import type { JSX } from "preact";
+import type {
+  JSX, 
+} from "preact";
 
 /**
  * Standard SVG Icon Component Properties.

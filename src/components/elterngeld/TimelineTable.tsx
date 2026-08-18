@@ -1,5 +1,9 @@
-import type { JSX } from "preact";
-import { useState } from "preact/hooks";
+import type {
+  JSX, 
+} from "preact";
+import {
+  useState, 
+} from "preact/hooks";
 import {
   currentScenarioData,
   activeScenario,
@@ -75,7 +79,8 @@ export default function TimelineTable(): JSX.Element {
         if (m.calendarYearNum !== calYearNum) {
           return false;
         }
-      } else if ((m.year as number) !== Number(selectedYear)) {
+      }
+      else if ((m.year as number) !== Number(selectedYear)) {
         return false;
       }
     }
@@ -372,7 +377,8 @@ export default function TimelineTable(): JSX.Element {
   return (
     <div
       className="glass-panel"
-      style={{ padding: "24px", marginBottom: "32px" }}
+      style={{ padding: "24px",
+        marginBottom: "32px" }}
     >
       {/* Top Table Controls */}
       <div
@@ -594,13 +600,16 @@ export default function TimelineTable(): JSX.Element {
                 fontWeight: 700,
               }}
             >
-              <th style={{ padding: "10px 12px", textAlign: "left" }}>
+              <th style={{ padding: "10px 12px",
+                textAlign: "left" }}>
                 Month / Entry
               </th>
-              <th style={{ padding: "10px 12px", textAlign: "left" }}>
+              <th style={{ padding: "10px 12px",
+                textAlign: "left" }}>
                 Phase / Milestone / Event
               </th>
-              <th style={{ padding: "10px 12px", textAlign: "left" }}>
+              <th style={{ padding: "10px 12px",
+                textAlign: "left" }}>
                 Tax Classes (*Steuerklassen*)
               </th>
               <th style={{ padding: "10px 12px" }}>
@@ -784,7 +793,8 @@ export default function TimelineTable(): JSX.Element {
                 )}
               </th>
               <th
-                style={{ padding: "10px 12px", color: "var(--color-warning)" }}
+                style={{ padding: "10px 12px",
+                  color: "var(--color-warning)" }}
               >
                 <div>
                   <span>Special / Tax </span>
@@ -824,7 +834,8 @@ export default function TimelineTable(): JSX.Element {
                 )}
               </th>
               <th
-                style={{ padding: "10px 12px", color: "var(--text-primary)" }}
+                style={{ padding: "10px 12px",
+                  color: "var(--text-primary)" }}
               >
                 <div>Net Inflow</div>
                 {showDelta && scenario === "C" && (
@@ -840,7 +851,8 @@ export default function TimelineTable(): JSX.Element {
                 )}
               </th>
               <th
-                style={{ padding: "10px 12px", color: "var(--text-secondary)" }}
+                style={{ padding: "10px 12px",
+                  color: "var(--text-secondary)" }}
               >
                 <div>Cumulated</div>
                 {showDelta && scenario === "C" && (
@@ -1213,12 +1225,12 @@ export default function TimelineTable(): JSX.Element {
                     const prevCumulated =
                       prevMonthIdx >= 0
                         ? (current.months[prevMonthIdx]
-                            ?.cumulatedTotal as number) || 0
+                          ?.cumulatedTotal as number) || 0
                         : 0;
                     const bPrevCumulated =
                       prevMonthIdx >= 0
                         ? (bData.months[prevMonthIdx]
-                            ?.cumulatedTotal as number) || 0
+                          ?.cumulatedTotal as number) || 0
                         : 0;
 
                     const priorEventsSum = m.specialEvents
@@ -1234,12 +1246,12 @@ export default function TimelineTable(): JSX.Element {
                     const bPriorSum =
                       bMatchIdx >= 0
                         ? bEvents
-                            .slice(0, bMatchIdx + 1)
-                            .reduce(
-                              (acc: number, it: SpecialEventItem) =>
-                                acc + (it.amount as number),
-                              0,
-                            )
+                          .slice(0, bMatchIdx + 1)
+                          .reduce(
+                            (acc: number, it: SpecialEventItem) =>
+                              acc + (it.amount as number),
+                            0,
+                          )
                         : 0;
                     const bEvCumulated = bPrevCumulated + bPriorSum;
                     const diffEvCumulated = evCumulated - bEvCumulated;
@@ -1489,7 +1501,8 @@ export default function TimelineTable(): JSX.Element {
                           —
                         </td>
                         <td
-                          style={{ padding: "6px 12px", cursor: "pointer" }}
+                          style={{ padding: "6px 12px",
+                            cursor: "pointer" }}
                           title="Click to view transaction amount and formula derivation"
                           onClick={() =>
                             setSelectedFieldExplanation(
@@ -1512,7 +1525,8 @@ export default function TimelineTable(): JSX.Element {
                           )}
                         </td>
                         <td
-                          style={{ padding: "6px 12px", cursor: "pointer" }}
+                          style={{ padding: "6px 12px",
+                            cursor: "pointer" }}
                           title="Click to view net inflow calculation"
                           onClick={() =>
                             setSelectedFieldExplanation(
@@ -1535,7 +1549,8 @@ export default function TimelineTable(): JSX.Element {
                           )}
                         </td>
                         <td
-                          style={{ padding: "6px 12px", cursor: "pointer" }}
+                          style={{ padding: "6px 12px",
+                            cursor: "pointer" }}
                           title="Click to view cumulative balance derivation"
                           onClick={() =>
                             setSelectedFieldExplanation(
@@ -1738,7 +1753,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view husband gross-to-net calculation"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1760,7 +1776,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view wife gross-to-net calculation"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1782,7 +1799,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view statutory Mutterschutz wage replacement formula"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1804,7 +1822,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view § 4 BEEG synthetic net and Elterngeld derivation"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1826,7 +1845,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view partner months calculation"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1848,7 +1868,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view § 66 EStG Kindergeld calculation"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1870,7 +1891,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view 13th month / special tax events"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1894,7 +1916,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view total monthly inflow sum"
                     onClick={() =>
                       setSelectedFieldExplanation(
@@ -1921,7 +1944,8 @@ export default function TimelineTable(): JSX.Element {
                     )}
                   </td>
                   <td
-                    style={{ padding: "8px 12px", cursor: "pointer" }}
+                    style={{ padding: "8px 12px",
+                      cursor: "pointer" }}
                     title="Click to view cumulative total balance"
                     onClick={() =>
                       setSelectedFieldExplanation(

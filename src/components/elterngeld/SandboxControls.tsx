@@ -1,5 +1,9 @@
-import type { JSX } from "preact";
-import { useState } from "preact/hooks";
+import type {
+  JSX, 
+} from "preact";
+import {
+  useState, 
+} from "preact/hooks";
 import {
   salaryPeriod,
   husbandGross,
@@ -92,7 +96,9 @@ import {
   toMonthRef,
   toMonthSimRef,
 } from "#engine/types";
-import { getDefaultPersistedState } from "#engine/storage/persistence";
+import {
+  getDefaultPersistedState, 
+} from "#engine/storage/persistence";
 import scenarioPresetsData from "../../data/scenarioPresets.json" with { type: "json" };
 
 /**
@@ -271,7 +277,8 @@ export default function SandboxControls(): JSX.Element {
     if (preset.salaryInputMode) {
       try {
         setSalaryInputMode(toSalaryInputMode(preset.salaryInputMode));
-      } catch {
+      }
+      catch {
         setSalaryInputMode(SalaryInputMode.Gross);
       }
     }
@@ -308,7 +315,8 @@ export default function SandboxControls(): JSX.Element {
   return (
     <div
       className="glass-panel"
-      style={{ padding: "22px", marginBottom: "28px" }}
+      style={{ padding: "22px",
+        marginBottom: "28px" }}
     >
       {/* Header with Collapsible Toggle */}
       <div
@@ -320,7 +328,9 @@ export default function SandboxControls(): JSX.Element {
         }}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ display: "flex",
+          alignItems: "center",
+          gap: "10px" }}>
           <div
             style={{
               background: "var(--color-primary-bg)",
@@ -359,7 +369,9 @@ export default function SandboxControls(): JSX.Element {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex",
+          alignItems: "center",
+          gap: "8px" }}>
           <span
             style={{
               fontSize: "0.8rem",
@@ -439,7 +451,9 @@ export default function SandboxControls(): JSX.Element {
               ))}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex",
+              alignItems: "center",
+              gap: "8px" }}>
               <button
                 type="button"
                 onClick={() => openExportImportModal("export")}
@@ -1045,30 +1059,30 @@ export default function SandboxControls(): JSX.Element {
                                   ?.calculatedDeliverySimulationMonth as number) ||
                                   0) <
                               36 ? (
-                                <>
-                                  <EligibilityConfirmedIcon size={11} />
-                                  <span>
-                                    Sibling Bonus (+10%) eligible (
-                                    {dSimMonth -
+                                  <>
+                                    <EligibilityConfirmedIcon size={11} />
+                                    <span>
+                                      Sibling Bonus (+10%) eligible (
+                                      {dSimMonth -
                                       ((customPregnancies.value[idx - 1]
                                         ?.calculatedDeliverySimulationMonth as number) ||
                                         0)}
-                                    M spacing)
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <RemoveItemIcon size={11} />
-                                  <span>
-                                    Sibling bonus expired (
-                                    {dSimMonth -
+                                      M spacing)
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <RemoveItemIcon size={11} />
+                                    <span>
+                                      Sibling bonus expired (
+                                      {dSimMonth -
                                       ((customPregnancies.value[idx - 1]
                                         ?.calculatedDeliverySimulationMonth as number) ||
                                         0)}
-                                    M spacing)
-                                  </span>
-                                </>
-                              )}
+                                      M spacing)
+                                    </span>
+                                  </>
+                                )}
                             </div>
                           </div>
                         )}
@@ -1306,8 +1320,8 @@ export default function SandboxControls(): JSX.Element {
                         {husbandInitialTaxClass.value === TaxClass.III &&
                           wifeInitialTaxClass.value === TaxClass.V &&
                           !useInitialTaxFactor.value && (
-                            <EligibilityConfirmedIcon size={12} />
-                          )}
+                          <EligibilityConfirmedIcon size={12} />
+                        )}
                       </button>
 
                       <button
@@ -1349,8 +1363,8 @@ export default function SandboxControls(): JSX.Element {
                         {husbandInitialTaxClass.value === TaxClass.IV &&
                           wifeInitialTaxClass.value === TaxClass.IV &&
                           !useInitialTaxFactor.value && (
-                            <EligibilityConfirmedIcon size={12} />
-                          )}
+                          <EligibilityConfirmedIcon size={12} />
+                        )}
                       </button>
 
                       <button
@@ -1415,8 +1429,8 @@ export default function SandboxControls(): JSX.Element {
                           {husbandInitialTaxClass.value === TaxClass.IV &&
                             wifeInitialTaxClass.value === TaxClass.IV &&
                             useInitialTaxFactor.value && (
-                              <EligibilityConfirmedIcon size={12} />
-                            )}
+                            <EligibilityConfirmedIcon size={12} />
+                          )}
                         </span>
                       </button>
 
@@ -1459,8 +1473,8 @@ export default function SandboxControls(): JSX.Element {
                         {husbandInitialTaxClass.value === TaxClass.V &&
                           wifeInitialTaxClass.value === TaxClass.III &&
                           !useInitialTaxFactor.value && (
-                            <EligibilityConfirmedIcon size={12} />
-                          )}
+                          <EligibilityConfirmedIcon size={12} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1911,9 +1925,9 @@ export default function SandboxControls(): JSX.Element {
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
                               ? (derivedSpousalSet.value
-                                  .wifeClass3FullTimeNet as number) * 12
+                                .wifeClass3FullTimeNet as number) * 12
                               : (derivedSpousalSet.value
-                                  .wifeClass3FullTimeNet as number),
+                                .wifeClass3FullTimeNet as number),
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -1933,9 +1947,9 @@ export default function SandboxControls(): JSX.Element {
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
                               ? (derivedSpousalSet.value
-                                  .wifeClass5FullTimeNet as number) * 12
+                                .wifeClass5FullTimeNet as number) * 12
                               : (derivedSpousalSet.value
-                                  .wifeClass5FullTimeNet as number),
+                                .wifeClass5FullTimeNet as number),
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -1991,9 +2005,9 @@ export default function SandboxControls(): JSX.Element {
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
                               ? (derivedSpousalSet.value
-                                  .husbandClass5Net as number) * 12
+                                .husbandClass5Net as number) * 12
                               : (derivedSpousalSet.value
-                                  .husbandClass5Net as number),
+                                .husbandClass5Net as number),
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -2013,9 +2027,9 @@ export default function SandboxControls(): JSX.Element {
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
                               ? (derivedSpousalSet.value
-                                  .husbandClass3Net as number) * 12
+                                .husbandClass3Net as number) * 12
                               : (derivedSpousalSet.value
-                                  .husbandClass3Net as number),
+                                .husbandClass3Net as number),
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
                             ? "/yr"
@@ -2182,7 +2196,9 @@ export default function SandboxControls(): JSX.Element {
                   </span>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap" }}>
                   {/* Add Working Hours Adjustment Button */}
                   <button
                     type="button"
@@ -2531,10 +2547,14 @@ export default function SandboxControls(): JSX.Element {
                         }}
                       >
                         {[
-                          { label: "40h (5d)", val: 40 },
-                          { label: "32h (4d)", val: 32 },
-                          { label: "24h (3d)", val: 24 },
-                          { label: "0h (Leave)", val: 0 },
+                          { label: "40h (5d)",
+                            val: 40 },
+                          { label: "32h (4d)",
+                            val: 32 },
+                          { label: "24h (3d)",
+                            val: 24 },
+                          { label: "0h (Leave)",
+                            val: 0 },
                         ].map((pill) => (
                           <button
                             key={`h-pill-${pill.val}`}
@@ -2583,9 +2603,9 @@ export default function SandboxControls(): JSX.Element {
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
                             ? (derivedSpousalSet.value
-                                .husbandClass3Net as number) * 12
+                              .husbandClass3Net as number) * 12
                             : (derivedSpousalSet.value
-                                .husbandClass3Net as number),
+                              .husbandClass3Net as number),
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -2596,9 +2616,9 @@ export default function SandboxControls(): JSX.Element {
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
                             ? (derivedSpousalSet.value
-                                .husbandClass5Net as number) * 12
+                              .husbandClass5Net as number) * 12
                             : (derivedSpousalSet.value
-                                .husbandClass5Net as number),
+                              .husbandClass5Net as number),
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -2608,9 +2628,9 @@ export default function SandboxControls(): JSX.Element {
                       {formatCurrency(
                         salaryPeriod.value === SalaryPeriod.Yearly
                           ? (derivedSpousalSet.value
-                              .husbandClass4Net as number) * 12
+                            .husbandClass4Net as number) * 12
                           : (derivedSpousalSet.value
-                              .husbandClass4Net as number),
+                            .husbandClass4Net as number),
                       )}
                     </span>
                   </div>
@@ -2740,10 +2760,14 @@ export default function SandboxControls(): JSX.Element {
                         }}
                       >
                         {[
-                          { label: "40h (5d)", val: 40 },
-                          { label: "32h (4d)", val: 32 },
-                          { label: "24h (3d)", val: 24 },
-                          { label: "0h (Leave)", val: 0 },
+                          { label: "40h (5d)",
+                            val: 40 },
+                          { label: "32h (4d)",
+                            val: 32 },
+                          { label: "24h (3d)",
+                            val: 24 },
+                          { label: "0h (Leave)",
+                            val: 0 },
                         ].map((pill) => (
                           <button
                             key={`w-pill-${pill.val}`}
@@ -2792,9 +2816,9 @@ export default function SandboxControls(): JSX.Element {
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
                             ? (derivedSpousalSet.value
-                                .wifeClass5FullTimeNet as number) * 12
+                              .wifeClass5FullTimeNet as number) * 12
                             : (derivedSpousalSet.value
-                                .wifeClass5FullTimeNet as number),
+                              .wifeClass5FullTimeNet as number),
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -2805,9 +2829,9 @@ export default function SandboxControls(): JSX.Element {
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
                             ? (derivedSpousalSet.value
-                                .wifeClass3FullTimeNet as number) * 12
+                              .wifeClass3FullTimeNet as number) * 12
                             : (derivedSpousalSet.value
-                                .wifeClass3FullTimeNet as number),
+                              .wifeClass3FullTimeNet as number),
                         )}
                       </strong>{" "}
                       (Booster!)
@@ -2835,30 +2859,30 @@ export default function SandboxControls(): JSX.Element {
 
                   const ptNet = isWife
                     ? Math.round(
-                        (derivedSpousalSet.value
-                          .wifeClass5FullTimeNet as number) * wifeRatio,
-                      )
+                      (derivedSpousalSet.value
+                        .wifeClass5FullTimeNet as number) * wifeRatio,
+                    )
                     : Math.round(
-                        (derivedSpousalSet.value.husbandClass3Net as number) *
+                      (derivedSpousalSet.value.husbandClass3Net as number) *
                           husbandRatio,
-                      );
+                    );
 
                   const estimatedEgPlus = isWife
                     ? hours > 32
                       ? 0
                       : Math.min(
-                          900,
-                          Math.max(
-                            150,
-                            Math.round(
-                              Math.max(
-                                0,
-                                (derivedSpousalSet.value
-                                  .wifeClass3FullTimeNet as number) - ptNet,
-                              ) * 0.65,
-                            ),
+                        900,
+                        Math.max(
+                          150,
+                          Math.round(
+                            Math.max(
+                              0,
+                              (derivedSpousalSet.value
+                                .wifeClass3FullTimeNet as number) - ptNet,
+                            ) * 0.65,
                           ),
-                        )
+                        ),
+                      )
                     : hours >= 24 && hours <= 32
                       ? 150
                       : 0;
@@ -3093,11 +3117,16 @@ export default function SandboxControls(): JSX.Element {
                             }}
                           >
                             {[
-                              { label: "40h (5d)", val: 40 },
-                              { label: "32h (4d PB)", val: 32 },
-                              { label: "24h (3d PB)", val: 24 },
-                              { label: "16h (2d)", val: 16 },
-                              { label: "0h (Leave)", val: 0 },
+                              { label: "40h (5d)",
+                                val: 40 },
+                              { label: "32h (4d PB)",
+                                val: 32 },
+                              { label: "24h (3d PB)",
+                                val: 24 },
+                              { label: "16h (2d)",
+                                val: 16 },
+                              { label: "0h (Leave)",
+                                val: 0 },
                             ].map((pill) => (
                               <button
                                 key={`whc-${whc.changeId}-pill-${pill.val}`}
@@ -3512,7 +3541,9 @@ export default function SandboxControls(): JSX.Element {
                 </div>
 
                 {/* Add Cost and Inflow Buttons */}
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap" }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -4348,7 +4379,8 @@ export default function SandboxControls(): JSX.Element {
                   >
                     ↳ Reconciled in tax return (
                     <span
-                      style={{ color: "var(--color-primary)", fontWeight: 600 }}
+                      style={{ color: "var(--color-primary)",
+                        fontWeight: 600 }}
                     >
                       Günstigerprüfung § 31 EStG
                     </span>

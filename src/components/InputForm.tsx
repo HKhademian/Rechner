@@ -1,4 +1,6 @@
-import type { JSX } from "preact";
+import type {
+  JSX, 
+} from "preact";
 import {
   grossIncome,
   taxBracket,
@@ -16,9 +18,13 @@ import {
   salariesPerYear,
   inputMode,
 } from "#store/calculatorStore";
-import { useState, useEffect } from "preact/hooks";
+import {
+  useState, useEffect, 
+} from "preact/hooks";
 import TaxSettings from "#components/TaxSettings";
-import { ConfigureSandboxIcon } from "#components/Icons";
+import {
+  ConfigureSandboxIcon, 
+} from "#components/Icons";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 
 const GERMAN_STATES: readonly string[] =
@@ -38,7 +44,9 @@ export default function InputForm(): JSX.Element {
     <div class="glass-panel fade-in">
       <h2>Household &amp; Salary Parameters</h2>
 
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+      <div style={{ display: "flex",
+        gap: "10px",
+        marginBottom: "20px" }}>
         <button
           style={{
             flex: 1,
@@ -450,11 +458,14 @@ export default function InputForm(): JSX.Element {
             padding: "5px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex",
+            alignItems: "center",
+            gap: "8px" }}>
             <ConfigureSandboxIcon size={16} /> Advanced Tax Settings &amp;
             Social Thresholds (2024–2026)
           </div>
-          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+          <span style={{ fontSize: "0.8rem",
+            color: "var(--text-muted)" }}>
             Expand
           </span>
         </summary>

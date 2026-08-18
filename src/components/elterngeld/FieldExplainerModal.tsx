@@ -1,7 +1,15 @@
-import type { JSX } from "preact";
-import { type FieldExplanation } from "#engine/explanation/timelineExplainer";
-import { scrollToLegalRule } from "#store/elterngeldStore";
-import { DismissIcon, StepTransitionIcon } from "#components/Icons";
+import type {
+  JSX, 
+} from "preact";
+import {
+  type FieldExplanation, 
+} from "#engine/explanation/timelineExplainer";
+import {
+  scrollToLegalRule, 
+} from "#store/elterngeldStore";
+import {
+  DismissIcon, StepTransitionIcon, 
+} from "#components/Icons";
 
 /**
  * Field-Level Drill-Down Explanation Modal Component Properties.
@@ -161,155 +169,155 @@ export default function FieldExplainerModal({
         {/* Contributing Factors & Input Parameters */}
         {explanation.contributingFactors &&
           explanation.contributingFactors.length > 0 && (
-            <div>
-              <div
-                style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  color: "var(--text-muted)",
-                  textTransform: "uppercase",
-                  marginBottom: "8px",
-                }}
-              >
-                Contributing Factors &amp; Baseline Inputs
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                  gap: "8px",
-                }}
-              >
-                {explanation.contributingFactors.map((f, i) => (
-                  <div
-                    key={i}
+          <div>
+            <div
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                marginBottom: "8px",
+              }}
+            >
+              Contributing Factors &amp; Baseline Inputs
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "8px",
+              }}
+            >
+              {explanation.contributingFactors.map((f, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    border: "1px solid var(--border-subtle)",
+                    borderRadius: "var(--border-radius-sm)",
+                    padding: "8px 12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                  }}
+                >
+                  <span
                     style={{
-                      background: "var(--bg-surface-secondary)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--border-radius-sm)",
-                      padding: "8px 12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "2px",
+                      fontSize: "0.72rem",
+                      color: "var(--text-muted)",
                     }}
                   >
+                    {f.name}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.86rem",
+                      fontWeight: 700,
+                      color: "var(--text-primary)",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {f.value}
+                  </span>
+                  {f.description && (
                     <span
                       style={{
-                        fontSize: "0.72rem",
+                        fontSize: "0.66rem",
                         color: "var(--text-muted)",
                       }}
                     >
-                      {f.name}
+                      {f.description}
                     </span>
-                    <span
-                      style={{
-                        fontSize: "0.86rem",
-                        fontWeight: 700,
-                        color: "var(--text-primary)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {f.value}
-                    </span>
-                    {f.description && (
-                      <span
-                        style={{
-                          fontSize: "0.66rem",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        {f.description}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
         {/* Step-by-Step Calculation Breakdown */}
         {explanation.calculationSteps &&
           explanation.calculationSteps.length > 0 && (
-            <div>
-              <div
-                style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  color: "var(--text-muted)",
-                  textTransform: "uppercase",
-                  marginBottom: "8px",
-                }}
-              >
-                Step-by-Step Mathematical Derivation
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px",
-                }}
-              >
-                {explanation.calculationSteps.map((step, idx) => (
+          <div>
+            <div
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                marginBottom: "8px",
+              }}
+            >
+              Step-by-Step Mathematical Derivation
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+              }}
+            >
+              {explanation.calculationSteps.map((step, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    borderLeft: "3px solid var(--color-primary)",
+                    padding: "8px 12px",
+                    borderRadius: "0 6px 6px 0",
+                    borderTop: "1px solid var(--border-subtle)",
+                    borderRight: "1px solid var(--border-subtle)",
+                    borderBottom: "1px solid var(--border-subtle)",
+                  }}
+                >
                   <div
-                    key={idx}
                     style={{
-                      background: "var(--bg-surface-secondary)",
-                      borderLeft: "3px solid var(--color-primary)",
-                      padding: "8px 12px",
-                      borderRadius: "0 6px 6px 0",
-                      borderTop: "1px solid var(--border-subtle)",
-                      borderRight: "1px solid var(--border-subtle)",
-                      borderBottom: "1px solid var(--border-subtle)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        color: "var(--text-primary)",
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: "0.78rem",
-                          fontWeight: 600,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        Step {step.stepNumber}: {step.description}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.84rem",
-                          fontWeight: 700,
-                          color: "var(--color-primary)",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        {step.result}
-                      </span>
-                    </div>
-                    {step.formula && (
-                      <div
-                        style={{
-                          fontSize: "0.72rem",
-                          color: "var(--text-muted)",
-                          fontVariantNumeric: "tabular-nums",
-                          background: "var(--bg-surface)",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          border: "1px solid var(--border-subtle)",
-                          marginTop: "4px",
-                        }}
-                      >
-                        {step.formula}
-                      </div>
-                    )}
+                      Step {step.stepNumber}: {step.description}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.84rem",
+                        fontWeight: 700,
+                        color: "var(--color-primary)",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {step.result}
+                    </span>
                   </div>
-                ))}
-              </div>
+                  {step.formula && (
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--text-muted)",
+                        fontVariantNumeric: "tabular-nums",
+                        background: "var(--bg-surface)",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {step.formula}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
         {/* Narrative Description & Rationale */}
         <div>

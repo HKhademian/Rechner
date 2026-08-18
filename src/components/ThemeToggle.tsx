@@ -1,6 +1,12 @@
-import type { JSX } from "preact";
-import { activeThemeMode, setThemeMode } from "#store/themeStore";
-import { ThemeMode } from "#engine/types";
+import type {
+  JSX, 
+} from "preact";
+import {
+  activeThemeMode, setThemeMode, 
+} from "#store/themeStore";
+import {
+  ThemeMode, 
+} from "#engine/types";
 import {
   LightThemeIcon,
   DarkThemeIcon,

@@ -1,6 +1,12 @@
-import type { JSX } from "preact";
-import { useState, useEffect } from "preact/hooks";
-import { useSignal } from "@preact/signals";
+import type {
+  JSX, 
+} from "preact";
+import {
+  useState, useEffect, 
+} from "preact/hooks";
+import {
+  useSignal, 
+} from "@preact/signals";
 import {
   deductions,
   hasPartner,
@@ -212,7 +218,8 @@ export default function ResultsDisplay(): JSX.Element {
           <span>Net Take-Home Pay</span>
           <span
             class="tabular-nums"
-            style={{ color: "var(--color-gain)", fontWeight: 800 }}
+            style={{ color: "var(--color-gain)",
+              fontWeight: 800 }}
           >
             {format(personData.netIncome / divider)}
           </span>
@@ -282,7 +289,9 @@ export default function ResultsDisplay(): JSX.Element {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ display: "flex",
+        flexDirection: "column",
+        gap: "10px" }}>
         {renderPerson("Person 1", d.person1, salariesPerYear.value)}
         {hasPartner.value &&
           renderPerson(
@@ -317,11 +326,11 @@ export default function ResultsDisplay(): JSX.Element {
         <span style={{ alignSelf: "center" }} class="tabular-nums">
           {isMonthly
             ? format(
-                d.person1.netIncome / salariesPerYear.value +
+              d.person1.netIncome / salariesPerYear.value +
                   (hasPartner.value && d.partner
                     ? d.partner.netIncome / partnerSalariesPerYear.value
                     : 0),
-              )
+            )
             : format(d.household.netIncome)}
         </span>
       </div>

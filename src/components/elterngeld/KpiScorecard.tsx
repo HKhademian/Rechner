@@ -1,4 +1,6 @@
-import type { JSX } from "preact";
+import type {
+  JSX, 
+} from "preact";
 import {
   currentScenarioData,
   comparisonMetrics,
@@ -390,7 +392,8 @@ export default function KpiScorecard(): JSX.Element {
             gap: "6px",
           }}
         >
-          <span style={{ color: "var(--color-gain)", fontWeight: 700 }}>
+          <span style={{ color: "var(--color-gain)",
+            fontWeight: 700 }}>
             +{percentGainCvsB}% net cash gain
           </span>
           <button
