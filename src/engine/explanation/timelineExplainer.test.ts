@@ -40,6 +40,7 @@ import {
   toChildrenCount,
   toChildIndex,
   toMonthId,
+  toMonthRef,
   toPregnancyId,
   toActionId,
   toEventId,
@@ -277,7 +278,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         monthId: toMonthId(4, 2026),
         month: toSimulationMonth(4),
         calendarLabel: toCalendarLabel(4, 2026),
-        relativeBirthLabel: "M0",
+        relativeBirthLabel: toMonthRef("M0"),
         title: "ACTION: Positive Pregnancy Test (Child 1)",
         category: ActionCategory.Pregnancy,
         type: ActionType.PregnancyPositive,
@@ -305,7 +306,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         monthId: toMonthId(4, 2026),
         month: toSimulationMonth(4),
         calendarLabel: toCalendarLabel(4, 2026),
-        relativeBirthLabel: "M0",
+        relativeBirthLabel: toMonthRef("M0"),
         title: "ACTION: Tax Class Switch (III / V Swap)",
         category: ActionCategory.TaxSwitch,
         type: ActionType.TaxClassSwitchEffective,
@@ -347,7 +348,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         calendarYearNum: toFullCalendarYear(2027),
         calendarMonthNum: toCalendarMonth(3),
         calendarLabel: toCalendarLabel(3, 2027),
-        relativeBirthLabel: "M+3",
+        relativeBirthLabel: toMonthRef(3),
         title: "Annual Tax Return (Tax Year 2026)",
       };
 
@@ -400,7 +401,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         calendarYearNum: toFullCalendarYear(2027),
         calendarMonthNum: toCalendarMonth(3),
         calendarLabel: toCalendarLabel(3, 2027),
-        relativeBirthLabel: "M+3",
+        relativeBirthLabel: toMonthRef(3),
         statutory: toStatutoryCitation("§ 26b EStG"),
       };
 

@@ -1338,8 +1338,8 @@ export interface SpecialEventItem {
   readonly calendarMonthNum: CalendarMonth;
   /** Formatted calendar label (e.g. '09.2027'). */
   readonly calendarLabel: CalendarLabel;
-  /** Relative birth label reference (e.g. 'Birth 1 + 3M'). */
-  readonly relativeBirthLabel: string;
+  /** Relative birth label reference (e.g. 'M9 (Birth 1)'). */
+  readonly relativeBirthLabel: MonthRef;
   /** Relative month reference notation. */
   readonly relativeMonthLabel?: MonthRef;
   /** Internal event type discriminator. */
@@ -1376,7 +1376,7 @@ export interface ActionRowItem {
   /** Formatted calendar date label (e.g. '01.2026'). */
   readonly calendarLabel: CalendarLabel;
   /** Relative birth timing reference. */
-  readonly relativeBirthLabel: string;
+  readonly relativeBirthLabel: MonthRef;
   /** Relative month reference notation. */
   readonly relativeMonthLabel?: MonthRef;
   /** Action milestone title header. */
@@ -1414,8 +1414,8 @@ export interface MonthlyLedgerEntry {
   readonly calendarMonthNum: CalendarMonth;
   /** Formatted calendar month label (e.g. '09.2027'). */
   readonly calendarLabel: CalendarLabel;
-  /** Relative birth timing reference label (e.g. 'Birth 1 + 3M'). */
-  readonly relativeBirthLabel: string;
+  /** Relative birth timing reference label (e.g. 'M9 (Birth 1)'). */
+  readonly relativeBirthLabel: MonthRef;
   /** Display relative month reference. */
   readonly relativeMonthLabel: MonthRef;
   /** Relative month signed integer offset from first positive pregnancy test. */

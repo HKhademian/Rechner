@@ -216,7 +216,7 @@ export function runScenarioBatches(
     readonly calendarYearNum: FullCalendarYear;
     readonly calendarMonthNum: CalendarMonth;
     readonly calendarLabel: CalendarLabel;
-    readonly relativeBirthLabel: string;
+    readonly relativeBirthLabel: MonthRef;
     readonly relativeMonthLabel: MonthRef;
     readonly monthRef: MonthRef;
     readonly monthSimRef: MonthSimRef;
@@ -267,7 +267,7 @@ export function runScenarioBatches(
       pregnancies[0]?.positiveTestSimulationMonth ??
       Math.max(1, child1Delivery - 8);
     let relativeMonthIndex: number;
-    let relativeBirthLabel: string;
+    let relativeBirthLabel: MonthRef;
     let relativeMonthLabel: MonthRef;
 
     if (m < preg1PositiveMonth) {

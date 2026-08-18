@@ -50,8 +50,8 @@ export interface LedgerMonthInput {
   readonly calendarMonthNum: CalendarMonth;
   /** Formatted calendar label (e.g. '09.2027'). */
   readonly calendarLabel: CalendarLabel;
-  /** Relative birth timing reference label (e.g. 'Birth 1 + 3M'). */
-  readonly relativeBirthLabel: string;
+  /** Relative birth timing reference label (e.g. 'M9 (Birth 1)'). */
+  readonly relativeBirthLabel: MonthRef;
   /** Display relative month reference. */
   readonly relativeMonthLabel?: MonthRef;
   /** Relative month signed integer offset from first pregnancy positive test. */
@@ -172,7 +172,7 @@ export function buildMonthlyLedgerEntry(
     calendarYearNum: toFullCalendarYear(input.calendarYearNum),
     calendarMonthNum: input.calendarMonthNum,
     calendarLabel: toCalendarLabel(input.calendarLabel),
-    relativeBirthLabel: input.relativeBirthLabel,
+    relativeBirthLabel: toMonthRef(input.relativeBirthLabel || relLabel),
     relativeMonthLabel: relLabel,
     relativeMonthIndex: relIndex,
     husbandSalary: input.husbandSalary,
