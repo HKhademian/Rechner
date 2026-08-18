@@ -72,10 +72,18 @@ import {
 } from "#engine/explanation/timelineExplainer";
 import {
   getDefaultPersistedState,
+  getTestPersistedState,
+  loadScenarioById,
   setUserScenarioOverride,
   validateAndSanitizePersistedState,
   type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
+import {
+  BUILTIN_SCENARIO_CATALOG,
+} from "#data/scenarios/scenarioRegistry";
+
+
+
 
 // ANSI Color Codes
 const RESET = "\x1b[0m";
@@ -267,6 +275,7 @@ export const CliMode = {
   Simulate: "SIMULATE",
   GrossToNet: "GROSS_TO_NET",
   SpousalNet: "SPOUSAL_NET",
+  ListScenarios: "LIST_SCENARIOS",
 } as const;
 export type CliMode = (typeof CliMode)[keyof typeof CliMode];
 
@@ -320,6 +329,14 @@ function parseArgs(args: string[]): CliOptions {
       process.exit(0);
     }
     else if (
+      arg === "--list-scenarios" ||
+      arg === "--scenarios" ||
+      arg === "scenarios" ||
+      arg === "list-scenarios"
+    ) {
+      opts.mode = CliMode.ListScenarios;
+    }
+    else if (
       arg === "gross-to-net" ||
       arg === "gross2net" ||
       arg === "brutto-netto"
@@ -359,13 +376,23 @@ function parseArgs(args: string[]): CliOptions {
     else if (
       arg === "--scenario-file" ||
       arg === "--file" ||
+      arg === "--preset" ||
+      arg === "--scenario-name" ||
       arg === "-i"
     ) {
       opts.scenarioFile = args[++i];
     }
     else if (arg === "--scenario" || arg === "-s") {
-      opts.scenario = toCliScenarioTarget(args[++i] || "compare");
+      const val = args[++i] || "compare";
+      const upper = val.toUpperCase();
+      if (upper === "A" || upper === "B" || upper === "C" || upper === "COMPARE") {
+        opts.scenario = toCliScenarioTarget(val);
+      }
+      else {
+        opts.scenarioFile = val;
+      }
     }
+
     else if (arg === "--start-year") {
       opts.startYear = Number(args[++i]) || 2026;
     }
@@ -480,6 +507,7 @@ ${BOLD}Usage:${RESET}
   npm run sim -- explain <month> [field <fieldName>] [options]
 
 ${BOLD}Commands:${RESET}
+  scenarios, --list-scenarios      List all available built-in scenarios and local *.local.json scenario files
   gross-to-net                     Compute full itemized § 38b/§ 39b Gross-to-Net breakdown
   spousal-net                      Derive complete household spousal net set across all tax class combinations
   explain <month>                  Full statutory and cash flow audit for a specific month (e.g. explain M21 or explain 14)
@@ -505,9 +533,11 @@ ${BOLD}Gross-to-Net Options:${RESET}
   --wife-hours <hours>             Wife post-birth part-time weekly hours (default: 24)
 
 ${BOLD}Simulation Options:${RESET}
-  -i, --scenario-file <path>       Path to custom scenario JSON file (overrides default/user scenario)
-  -s, --scenario <A|B|C|compare>   Scenario to execute (default: compare)
+  -s, --scenario <id|path|A|B|C>   Built-in scenario ID (e.g. empty, standard_3_children), path, or target A/B/C
+  -i, --scenario-file <path>       Path to custom scenario JSON or *.local.json file
+  --preset <name>                  Load a built-in scenario preset by ID
   -d, --duration <months>          Simulation horizon in months (default: 60)
+
   --start-year <year>              Simulation start calendar year (default: 2026)
   --start-month <1..12>            Simulation start calendar month (default: 1)
   --preg-start <month>             Child 1 positive test simulation month (default: 9 / Sep 2026)
@@ -901,64 +931,185 @@ function printMonthExplanation(
 }
 
 /**
- * Loads the active scenario baseline state for CLI execution.
- * Priority:
- * 1. Explicitly provided CLI scenario file (`--scenario-file <path>`, `--file <path>`, `-i <path>`)
- * 2. Unversioned `src/data/userScenario.json` or `./userScenario.json` (if present)
- * 3. Repository default `defaultScenario.json` (via `getDefaultPersistedState()`)
- *
- * @param scenarioFilePath - Optional path to custom scenario JSON.
- * @returns Fully validated and sanitized `ElterngeldPersistedState`.
+ * Prints the scenario catalog of all built-in scenarios and discovered *.local.json scenario files.
  */
-export function resolveCliScenarioState(
-  scenarioFilePath?: string,
-): ElterngeldPersistedState {
-  if (scenarioFilePath) {
-    const resolved = path.resolve(process.cwd(), scenarioFilePath);
-    if (!fs.existsSync(resolved)) {
-      console.error(
-        `${RED}${BOLD}Error:${RESET} Specified scenario file not found: "${resolved}"`,
-      );
-      process.exit(1);
-    }
-    try {
-      const content = fs.readFileSync(resolved, "utf-8");
-      const parsed = JSON.parse(content);
-      return validateAndSanitizePersistedState(parsed);
-    }
-    catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(
-        `${RED}${BOLD}Error:${RESET} Failed to parse scenario file "${resolved}": ${msg}`,
-      );
-      process.exit(1);
-    }
+export function runListScenarios(): void {
+  const border = "═".repeat(78);
+  console.log(`\n${BOLD}${CYAN}${border}${RESET}`);
+  console.log(
+    `${BOLD}${CYAN}   GERMAN ELTERNGELD & FINANCIAL SIMULATOR — AVAILABLE SCENARIOS CATALOG${RESET}`,
+  );
+  console.log(`${BOLD}${CYAN}${border}${RESET}\n`);
+
+  console.log(`${BOLD}Built-in Scenarios (src/data/scenarios/):${RESET}\n`);
+  for (const item of BUILTIN_SCENARIO_CATALOG) {
+    const defaultTag = item.isDefault
+      ? ` ${GREEN}${BOLD}(Default / Base)${RESET}`
+      : "";
+    console.log(` • ${BOLD}${CYAN}${item.id}${RESET}${defaultTag}`);
+    console.log(`   ${BOLD}Name:${RESET} ${item.name}`);
+    console.log(`   ${DIM}${item.description}${RESET}\n`);
   }
 
-  // Check if unversioned userScenario.json exists in filesystem (when not in automated test mode)
-  if (process.env.NODE_ENV !== "test" && !process.env.SIMULATOR_TEST_MODE) {
-    const userCandidates = [
-      path.resolve(process.cwd(), "src/data/userScenario.json"),
-      path.resolve(process.cwd(), "userScenario.json"),
-    ];
-    for (const candidate of userCandidates) {
-      if (fs.existsSync(candidate)) {
-        try {
-          const content = fs.readFileSync(candidate, "utf-8");
-          const parsed = JSON.parse(content);
-          setUserScenarioOverride(parsed);
-          break;
+  // Check for any local untracked scenario files (*.local.json)
+  const localDirs = [
+    path.resolve(process.cwd(), "src/data/scenarios"),
+    path.resolve(process.cwd(), "src/data"),
+    process.cwd(),
+  ];
+  interface LocalFileEntry {
+    name: string;
+    path: string;
+  }
+  const localFound: LocalFileEntry[] = [];
+
+  for (const dir of localDirs) {
+    if (fs.existsSync(dir)) {
+      try {
+        const entries = fs.readdirSync(dir);
+        for (const entry of entries) {
+          if (entry.endsWith(".local.json")) {
+            const fullPath = path.join(dir, entry);
+            if (!localFound.some((f) => f.path === fullPath)) {
+              localFound.push({
+                name: entry,
+                path: fullPath,
+              });
+            }
+
+          }
         }
-        catch {
-          // Fall back gracefully
-        }
+      }
+      catch {
+        // Ignore read errors
       }
     }
   }
 
+  if (localFound.length > 0) {
+    console.log(`${BOLD}Local Untracked Scenarios (*.local.json):${RESET}\n`);
+    for (const loc of localFound) {
+      console.log(
+        ` • ${BOLD}${YELLOW}${loc.name}${RESET} (${DIM}${loc.path}${RESET})`,
+      );
+    }
+    console.log("");
+  }
+
+  console.log(
+    `${DIM}Run any scenario with: npm run simulate -- -s <scenario_id_or_path>${RESET}\n`,
+  );
+}
+
+/**
+ * Loads the active scenario baseline state for CLI execution.
+ * Priority:
+ * 1. Matching built-in scenario ID from catalog (e.g. "empty", "standard_3_children", "high_earner_household")
+ * 2. Explicitly provided CLI scenario file path or scenario name (`-s <id|path>`, `--scenario-file <path>`)
+ * 3. Unversioned `*.local.json` or `userScenario.json` (if present and not in test mode)
+ * 4. Repository default base empty scenario (via `getDefaultPersistedState()`)
+ *
+ * @param identifierOrPath - Optional scenario identifier key or path to custom JSON.
+ * @returns Fully validated and sanitized `ElterngeldPersistedState`.
+ */
+export function resolveCliScenarioState(
+  identifierOrPath?: string,
+): ElterngeldPersistedState {
+  if (identifierOrPath) {
+    // 1. Check if matching built-in scenario ID
+    const builtin = loadScenarioById(identifierOrPath);
+    if (builtin) {
+      return builtin;
+    }
+
+    // 2. Check if direct file exists
+    const directPath = path.resolve(process.cwd(), identifierOrPath);
+    if (fs.existsSync(directPath)) {
+      try {
+        const content = fs.readFileSync(directPath, "utf-8");
+        const parsed = JSON.parse(content);
+        return validateAndSanitizePersistedState(parsed);
+      }
+      catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(
+          `${RED}${BOLD}Error:${RESET} Failed to parse scenario file "${directPath}": ${msg}`,
+        );
+        process.exit(1);
+      }
+    }
+
+    // 3. Check inside src/data/scenarios/ folder
+    const scenarioDirCandidates = [
+      path.resolve(process.cwd(), "src/data/scenarios", identifierOrPath),
+      path.resolve(
+        process.cwd(),
+        "src/data/scenarios",
+        `${identifierOrPath}.json`,
+      ),
+      path.resolve(
+        process.cwd(),
+        "src/data/scenarios",
+        `${identifierOrPath}.local.json`,
+      ),
+      path.resolve(process.cwd(), "src/data", identifierOrPath),
+      path.resolve(process.cwd(), "src/data", `${identifierOrPath}.json`),
+      path.resolve(process.cwd(), "src/data", `${identifierOrPath}.local.json`),
+    ];
+    for (const candidate of scenarioDirCandidates) {
+      if (fs.existsSync(candidate)) {
+        try {
+          const content = fs.readFileSync(candidate, "utf-8");
+          const parsed = JSON.parse(content);
+          return validateAndSanitizePersistedState(parsed);
+        }
+        catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(
+            `${RED}${BOLD}Error:${RESET} Failed to parse scenario file "${candidate}": ${msg}`,
+          );
+          process.exit(1);
+        }
+      }
+    }
+
+    console.error(
+      `${RED}${BOLD}Error:${RESET} Scenario "${identifierOrPath}" not found as built-in preset or file path. Run with --list-scenarios to view catalog.`,
+    );
+    process.exit(1);
+  }
+
+  // In test mode without explicit scenario flag, use canonical test scenario for deterministic assertions
+  if (process.env.NODE_ENV === "test" || process.env.SIMULATOR_TEST_MODE) {
+    return getTestPersistedState();
+  }
+
+  // Check if unversioned *.local.json or userScenario.json exists in filesystem
+  const userCandidates = [
+    path.resolve(process.cwd(), "src/data/scenarios/user.local.json"),
+    path.resolve(process.cwd(), "src/data/userScenario.local.json"),
+    path.resolve(process.cwd(), "userScenario.local.json"),
+    path.resolve(process.cwd(), "src/data/userScenario.json"),
+    path.resolve(process.cwd(), "userScenario.json"),
+  ];
+  for (const candidate of userCandidates) {
+    if (fs.existsSync(candidate)) {
+      try {
+        const content = fs.readFileSync(candidate, "utf-8");
+        const parsed = JSON.parse(content);
+        setUserScenarioOverride(parsed);
+        break;
+      }
+      catch {
+        // Fall back gracefully
+      }
+    }
+  }
 
   return getDefaultPersistedState();
 }
+
+
 
 function buildSimulation(
   scenarioKey: ScenarioId,
@@ -1299,7 +1450,14 @@ function printMilestones(res: SimulationResult) {
 // Main Execution
 export function runCli(argv: string[] = process.argv.slice(2)): void {
   const opts = parseArgs(argv);
+
+  if (opts.mode === CliMode.ListScenarios) {
+    runListScenarios();
+    return;
+  }
+
   const baseState = resolveCliScenarioState(opts.scenarioFile);
+
 
   if (opts.mode === CliMode.GrossToNet) {
     const grossMonthly = opts.gross

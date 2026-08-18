@@ -452,9 +452,110 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
         assert.fail("Should have thrown exit error");
       }
       catch (err: any) {
-        assert.ok(err.stderr.includes("Specified scenario file not found"));
+        assert.ok(
+          err.stderr.includes("Specified scenario file not found") ||
+            err.stderr.includes("not found as built-in preset"),
+        );
       }
     });
+
+    it("lists all built-in scenarios when --list-scenarios is invoked", async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "--list-scenarios",
+      ]);
+      assert.equal(stderr, "");
+      assert.ok(stdout.includes("AVAILABLE SCENARIOS CATALOG"));
+      assert.ok(stdout.includes("empty"));
+      assert.ok(stdout.includes("standard_3_children"));
+      assert.ok(stdout.includes("high_earner_household"));
+      assert.ok(stdout.includes("Default / Base"));
+    });
+
+    it("runs simulation with built-in scenario by identifier (-s standard_3_children)", async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "-s",
+        "standard_3_children",
+        "-f",
+        "json",
+      ]);
+      assert.equal(stderr, "");
+      const parsed = JSON.parse(stdout);
+      assert.ok(parsed.scenarioC);
+      assert.equal(parsed.scenarioC.months.length, 72);
+      assert.ok(parsed.scenarioC.summary.grandTotal > 0);
+    });
+
+    it("runs simulation with base empty scenario (-s empty)", async () => {
+      const { stdout, stderr } = await execFileAsync("node", [
+        "src/cli/runner.ts",
+        "-s",
+        "empty",
+        "-f",
+        "json",
+      ]);
+      assert.equal(stderr, "");
+      const parsed = JSON.parse(stdout);
+      assert.ok(parsed.scenarioC);
+      assert.equal(parsed.scenarioC.months.length, 72);
+      // In empty scenario with no actions, Scenario C equals Scenario B
+      assert.equal(
+        parsed.scenarioC.summary.grandTotal,
+        parsed.scenarioB.summary.grandTotal,
+      );
+    });
+
+    it("loads and executes untracked *.local.json scenario files seamlessly", async () => {
+      const fsModule = await import("node:fs");
+      const pathModule = await import("node:path");
+      const testLocalPath = pathModule.resolve(
+        process.cwd(),
+        "src/data/scenarios/test_sample.local.json",
+      );
+
+      const sampleData = {
+        metadata: {
+          version: 1,
+          id: "test_sample_local",
+          name: "Test Local Scenario",
+          description: "Temporary local untracked test scenario",
+        },
+        simulationState: {
+          husbandGross: 5000,
+          wifeGross: 4200,
+          simulationDurationMonths: 48,
+          customPregnancies: [],
+          customTaxClassSwitches: [],
+        },
+      };
+
+      try {
+        fsModule.writeFileSync(
+          testLocalPath,
+          JSON.stringify(sampleData, null, 2),
+          "utf-8",
+        );
+
+        const { stdout, stderr } = await execFileAsync("node", [
+          "src/cli/runner.ts",
+          "-s",
+          "test_sample.local.json",
+          "-f",
+          "json",
+        ]);
+        assert.equal(stderr, "");
+        const parsed = JSON.parse(stdout);
+        assert.ok(parsed.scenarioC);
+        assert.equal(parsed.scenarioC.months.length, 48);
+      }
+      finally {
+        if (fsModule.existsSync(testLocalPath)) {
+          fsModule.unlinkSync(testLocalPath);
+        }
+      }
+    });
+
 
     it("executes quality audit runner cleanly and verifies repo integrity", async () => {
       const { stdout, stderr } = await execFileAsync("node", [
