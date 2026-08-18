@@ -22,6 +22,10 @@ import {
   toRaiseId,
   toHoursChangeId,
   toFinancialEventId,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toTaxFactor,
   toTaxClass,
   toScenarioId,
@@ -63,6 +67,10 @@ import {
   type CalendarYear,
   type FullCalendarYear,
   type CalendarMonth,
+  type MonthDuration,
+  type ChildrenCount,
+  type ChildIndex,
+  type PercentageRate,
   type MonthId,
   type MonthRef,
   type MonthSimRef,
@@ -169,6 +177,94 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.throws(() => toCalendarMonth(13), TypeError);
       assert.throws(() => toCalendarMonth(-1), TypeError);
       assert.throws(() => toCalendarMonth(6.2), TypeError);
+    });
+  });
+
+  describe("MonthDuration (Feature Test)", () => {
+    it("accepts valid month durations between 0 and 120, including fractional durations", () => {
+      const d0: MonthDuration = toMonthDuration(0);
+      const d1_5: MonthDuration = toMonthDuration(1.5);
+      const d8: MonthDuration = toMonthDuration(8);
+      const d27: MonthDuration = toMonthDuration("27");
+      const d60: MonthDuration = toMonthDuration(60);
+      const d120: MonthDuration = toMonthDuration(120);
+
+      assert.equal(d0, 0);
+      assert.equal(d1_5, 1.5);
+      assert.equal(d8, 8);
+      assert.equal(d27, 27);
+      assert.equal(d60, 60);
+      assert.equal(d120, 120);
+    });
+
+    it("rejects negative, out-of-bounds, or NaN month durations", () => {
+      assert.throws(() => toMonthDuration(-1), TypeError);
+      assert.throws(() => toMonthDuration(121), TypeError);
+      assert.throws(() => toMonthDuration(NaN), TypeError);
+      assert.throws(() => toMonthDuration("invalid"), TypeError);
+    });
+  });
+
+  describe("ChildrenCount (Feature Test)", () => {
+    it("accepts valid children counts between 0 and 10", () => {
+      const c0: ChildrenCount = toChildrenCount(0);
+      const c1: ChildrenCount = toChildrenCount(1);
+      const c3: ChildrenCount = toChildrenCount("3");
+      const c10: ChildrenCount = toChildrenCount(10);
+
+      assert.equal(c0, 0);
+      assert.equal(c1, 1);
+      assert.equal(c3, 3);
+      assert.equal(c10, 10);
+    });
+
+    it("rejects negative, float, or out-of-bounds children counts", () => {
+      assert.throws(() => toChildrenCount(-1), TypeError);
+      assert.throws(() => toChildrenCount(11), TypeError);
+      assert.throws(() => toChildrenCount(1.5), TypeError);
+      assert.throws(() => toChildrenCount(NaN), TypeError);
+    });
+  });
+
+  describe("ChildIndex (Feature Test)", () => {
+    it("accepts valid 1-indexed child numbers between 1 and 10", () => {
+      const c1: ChildIndex = toChildIndex(1);
+      const c2: ChildIndex = toChildIndex("2");
+      const c10: ChildIndex = toChildIndex(10);
+
+      assert.equal(c1, 1);
+      assert.equal(c2, 2);
+      assert.equal(c10, 10);
+    });
+
+    it("rejects zero, negative, float, or out-of-bounds child indices", () => {
+      assert.throws(() => toChildIndex(0), TypeError);
+      assert.throws(() => toChildIndex(-1), TypeError);
+      assert.throws(() => toChildIndex(11), TypeError);
+      assert.throws(() => toChildIndex(2.5), TypeError);
+    });
+  });
+
+  describe("PercentageRate (Feature Test)", () => {
+    it("accepts valid decimal rates and auto-converts percentages", () => {
+      const r1: PercentageRate = toPercentageRate(0.05);
+      const r2: PercentageRate = toPercentageRate(0.5);
+      const r3: PercentageRate = toPercentageRate(1.0);
+      const r4: PercentageRate = toPercentageRate(5); // 5% -> 0.05
+      const r5: PercentageRate = toPercentageRate("15"); // 15% -> 0.15
+
+      assert.equal(r1, 0.05);
+      assert.equal(r2, 0.5);
+      assert.equal(r3, 1.0);
+      assert.equal(r4, 0.05);
+      assert.equal(r5, 0.15);
+    });
+
+    it("rejects negative, out-of-bounds, or NaN percentage rates", () => {
+      assert.throws(() => toPercentageRate(-0.1), TypeError);
+      assert.throws(() => toPercentageRate(101), TypeError);
+      assert.throws(() => toPercentageRate(NaN), TypeError);
+      assert.throws(() => toPercentageRate("invalid"), TypeError);
     });
   });
 
