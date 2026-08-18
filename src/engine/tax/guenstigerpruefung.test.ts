@@ -13,6 +13,9 @@ import {
   toCalendarMonth,
   toSimulationMonth,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
   toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction,
@@ -158,7 +161,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
     const basePreexisting: PreexistingConditions = {
       startCalendarYear: toFullCalendarYear(2026),
       startCalendarMonth: toCalendarMonth(1),
-      simulationDurationMonths: 48,
+      simulationDurationMonths: toMonthDuration(48),
       salaryPeriod: SalaryPeriod.Monthly,
       husbandGross: toGrossSalary(4500),
       wifeGross: toGrossSalary(3000),
@@ -173,7 +176,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       wifeInitialPartTimeClass3Net: toNetSalary(1648),
       wifeWeeklyHours: toWorkingHours(40),
       wifePostBirthWeeklyHours: toWorkingHours(24),
-      existingChildrenCount: 0,
+      existingChildrenCount: toChildrenCount(0),
       kindergeldPerChild: toEuroAmount(259),
       enable13thSalary: true,
       bonus40Month: toCalendarMonth(5),
@@ -184,7 +187,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
     const dummyPregnancies: PregnancyAction[] = [
       {
         pregnancyId: toPregnancyId("PREG-1"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(9),
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(9),
@@ -192,7 +195,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         motherPostBirthPartTimeHours: toWorkingHours(24),
         motherPostBirthPartTimeClass5Net: toNetSalary(1328),
         motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       },
     ];
 

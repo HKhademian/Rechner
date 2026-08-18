@@ -8,6 +8,8 @@ import {
   toEuroAmount,
   toWorkingHours,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
   toSimulationMonth,
   toCalendarMonth,
   type PreexistingConditions,
@@ -20,7 +22,7 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
   const basePreexisting: PreexistingConditions = {
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
-    simulationDurationMonths: 60,
+    simulationDurationMonths: toMonthDuration(60),
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: toNetSalary(2895),
     husbandInitialClass5Net: toNetSalary(2191),
@@ -31,7 +33,7 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
     wifeInitialPartTimeClass5Net: toNetSalary(1328),
     wifeInitialPartTimeClass3Net: toNetSalary(1648),
     wifeWeeklyHours: toWorkingHours(40),
-    existingChildrenCount: 0,
+    existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: true,
     bonus40Month: toCalendarMonth(5),
@@ -49,7 +51,7 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
     for (const duration of durations) {
       const preexisting = {
         ...basePreexisting,
-        simulationDurationMonths: duration,
+        simulationDurationMonths: toMonthDuration(duration),
       };
       const res = runScenarioBatches({
         scenarioKey: ScenarioId.A,
@@ -73,7 +75,7 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
     for (const duration of [12, 36, 60, 120]) {
       const preexisting = {
         ...basePreexisting,
-        simulationDurationMonths: duration,
+        simulationDurationMonths: toMonthDuration(duration),
       };
       const res = runScenarioBatches({
         scenarioKey: ScenarioId.A,
@@ -111,7 +113,10 @@ describe("Sandbox Unit Tests: Simulation Duration & Horizon Calibration", () => 
   });
 
   it("creates valid, non-empty audit transactions for every single active month regardless of duration", () => {
-    const preexisting = { ...basePreexisting, simulationDurationMonths: 72 };
+    const preexisting = {
+      ...basePreexisting,
+      simulationDurationMonths: toMonthDuration(72),
+    };
     const res = runScenarioBatches({
       scenarioKey: ScenarioId.A,
       preexisting,

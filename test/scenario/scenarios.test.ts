@@ -12,6 +12,10 @@ import {
   toCalendarMonth,
   toWorkingHours,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -24,7 +28,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
   const defaultParams = {
     husbandGross: toGrossSalary(4500),
     wifeGross: toGrossSalary(3000),
-    wifePostBirthHours: 24,
+    wifePostBirthHours: toWorkingHours(24),
     husbandClass3Net: toNetSalary(2895),
     husbandClass5Net: toNetSalary(2191),
     wifeClass5FullTimeNet: toNetSalary(1975),
@@ -32,10 +36,10 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
     wifeClass5PartTimeNet: toNetSalary(1328),
     wifeClass3PartTimeNet: toNetSalary(1648),
     kindergeldPerChild: toEuroAmount(259),
-    prePregnancyPlanningMonths: 3,
+    prePregnancyPlanningMonths: toMonthDuration(3),
     child1BirthMonth: toSimulationMonth(12),
-    birthSpacingMonths: 27,
-    swapLeadMonths: 7,
+    birthSpacingMonths: toMonthDuration(27),
+    swapLeadMonths: toMonthDuration(7),
     enable13thSalary: true,
     bonus40Month: toCalendarMonth(5),
     bonus60Month: toCalendarMonth(11),
@@ -169,7 +173,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         scenarioKey: ScenarioId.C,
         startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(9),
-        simulationDurationMonths: 12,
+        simulationDurationMonths: toMonthDuration(12),
       });
 
       assert.equal(res.months.length, 12);
@@ -204,7 +208,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         scenarioKey: ScenarioId.C,
         startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(9),
-        simulationDurationMonths: 24,
+        simulationDurationMonths: toMonthDuration(24),
         bonus40Month: toCalendarMonth(5), // May
         bonus60Month: toCalendarMonth(11), // November
       });
@@ -233,7 +237,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         scenarioKey: ScenarioId.C,
         startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(9),
-        simulationDurationMonths: 36,
+        simulationDurationMonths: toMonthDuration(36),
         taxReturnMonth: toCalendarMonth(3), // March
       });
 
@@ -260,7 +264,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       const preexisting = {
         startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(1),
-        simulationDurationMonths: 36,
+        simulationDurationMonths: toMonthDuration(36),
         husbandInitialTaxClass: TaxClass.III,
         husbandInitialNet: toNetSalary(4000),
         husbandInitialClass5Net: toNetSalary(3000),
@@ -271,7 +275,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         wifeInitialPartTimeClass5Net: toNetSalary(1200),
         wifeInitialPartTimeClass3Net: toNetSalary(1600),
         wifeWeeklyHours: toWorkingHours(40),
-        existingChildrenCount: 0,
+        existingChildrenCount: toChildrenCount(0),
         kindergeldPerChild: toEuroAmount(250),
         enable13thSalary: true,
         bonus40Month: toCalendarMonth(5),
@@ -282,7 +286,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       const pregnancies = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(9),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(9),
@@ -290,7 +294,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1200),
           motherPostBirthPartTimeClass3Net: toNetSalary(1600),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -315,7 +319,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: toFullCalendarYear(2027),
           targetPerson: TargetPerson.Both,
-          percentageIncrease: 0.05, // +5% raise in Year 2
+          percentageIncrease: toPercentageRate(0.05), // +5% raise in Year 2
           reason: "Annual Tariff / Promotion",
         },
       ];

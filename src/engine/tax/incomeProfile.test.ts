@@ -14,6 +14,9 @@ import {
   toCalendarMonth,
   toSimulationMonth,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
   toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction,
@@ -74,7 +77,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
     const basePreexisting: PreexistingConditions = {
       startCalendarYear: toFullCalendarYear(2026),
       startCalendarMonth: toCalendarMonth(1),
-      simulationDurationMonths: 24,
+      simulationDurationMonths: toMonthDuration(24),
       salaryPeriod: SalaryPeriod.Monthly,
       husbandGross: toGrossSalary(4500),
       wifeGross: toGrossSalary(3000),
@@ -89,7 +92,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       wifeInitialPartTimeClass3Net: toNetSalary(1650),
       wifeWeeklyHours: toWorkingHours(40),
       wifePostBirthWeeklyHours: toWorkingHours(24),
-      existingChildrenCount: 0,
+      existingChildrenCount: toChildrenCount(0),
       kindergeldPerChild: toEuroAmount(259),
       enable13thSalary: true,
       bonus40Month: toCalendarMonth(5),
@@ -100,7 +103,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
     const dummyPregnancies: PregnancyAction[] = [
       {
         pregnancyId: toPregnancyId("PREG-1"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(9),
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(9),
@@ -108,7 +111,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
         motherPostBirthPartTimeHours: toWorkingHours(24),
         motherPostBirthPartTimeClass5Net: toNetSalary(1302),
         motherPostBirthPartTimeClass3Net: toNetSalary(1650),
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       },
     ];
 

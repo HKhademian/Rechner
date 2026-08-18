@@ -13,6 +13,9 @@ import {
   toCalendarMonth,
   toWorkingHours,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
   toPregnancyId,
   type PreexistingConditions,
   type PregnancyAction,
@@ -26,7 +29,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
   ): PreexistingConditions => ({
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
-    simulationDurationMonths: 24,
+    simulationDurationMonths: toMonthDuration(24),
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: toNetSalary(2895),
     husbandInitialClass5Net: toNetSalary(2191),
@@ -37,7 +40,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
     wifeInitialPartTimeClass5Net: toNetSalary(1328),
     wifeInitialPartTimeClass3Net: toNetSalary(1648),
     wifeWeeklyHours: toWorkingHours(40),
-    existingChildrenCount: 0,
+    existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: true,
     bonus40Month: toCalendarMonth(5),
@@ -111,7 +114,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
 
       for (const count of childCounts) {
         const preexisting = createBasePreexisting({
-          existingChildrenCount: count,
+          existingChildrenCount: toChildrenCount(count),
           kindergeldPerChild: toEuroAmount(250),
         });
 
@@ -137,7 +140,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
         const preexisting = createBasePreexisting({
           startCalendarYear: toFullCalendarYear(2026),
           startCalendarMonth: toCalendarMonth(startM),
-          simulationDurationMonths: 12,
+          simulationDurationMonths: toMonthDuration(12),
         });
 
         const res = runScenarioBatches({
@@ -172,7 +175,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
         const preexisting = createBasePreexisting({
           startCalendarYear: toFullCalendarYear(y),
           startCalendarMonth: toCalendarMonth(6), // June
-          simulationDurationMonths: 24,
+          simulationDurationMonths: toMonthDuration(24),
         });
 
         const res = runScenarioBatches({
@@ -222,13 +225,13 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
       const preexisting = createBasePreexisting({
         startCalendarYear: r1.startCalendarYear,
         startCalendarMonth: toCalendarMonth(r1.startCalendarMonth),
-        simulationDurationMonths: 24,
+        simulationDurationMonths: toMonthDuration(24),
       });
 
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(9),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(
@@ -240,7 +243,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -332,7 +335,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
         startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(1),
         taxReturnMonth: toCalendarMonth(4), // April
-        simulationDurationMonths: 24,
+        simulationDurationMonths: toMonthDuration(24),
       });
 
       const res = runScenarioBatches({

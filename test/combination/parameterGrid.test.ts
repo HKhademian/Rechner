@@ -6,6 +6,7 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toMonthDuration,
   ScenarioId,
 } from "#engine/types";
 
@@ -44,10 +45,10 @@ describe("Combinatorial Parameter Grid Sweep & Invariance Tests", () => {
               wifeClass5PartTimeNet: toNetSalary(w.w5PT),
               wifeClass3PartTimeNet: toNetSalary(w.w3PT),
               kindergeldPerChild: toEuroAmount(259),
-              prePregnancyPlanningMonths: 3,
+              prePregnancyPlanningMonths: toMonthDuration(3),
               child1BirthMonth: toSimulationMonth(12),
-              birthSpacingMonths: spacing,
-              swapLeadMonths: lead,
+              birthSpacingMonths: toMonthDuration(spacing),
+              swapLeadMonths: toMonthDuration(lead),
               enable13thSalary: true,
               bonus40Month: toCalendarMonth(5),
               bonus60Month: toCalendarMonth(11),

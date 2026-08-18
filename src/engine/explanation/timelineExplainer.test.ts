@@ -31,6 +31,9 @@ import {
   toCalendarMonth,
   toCalendarYear,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
   toMonthId,
   toPregnancyId,
   toSwitchId,
@@ -47,7 +50,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
   const basePreexisting: PreexistingConditions = {
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
-    simulationDurationMonths: 60,
+    simulationDurationMonths: toMonthDuration(60),
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: toNetSalary(2895),
     husbandInitialClass5Net: toNetSalary(2191),
@@ -58,7 +61,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     wifeInitialPartTimeClass5Net: toNetSalary(1328),
     wifeInitialPartTimeClass3Net: toNetSalary(1648),
     wifeWeeklyHours: toWorkingHours(40),
-    existingChildrenCount: 0,
+    existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: toEuroAmount(250),
     enable13thSalary: true,
     bonus40Month: toCalendarMonth(6),
@@ -68,7 +71,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
 
   const preg: PregnancyAction = {
     pregnancyId: toPregnancyId("PREG-1"),
-    childIndex: 1,
+    childIndex: toChildIndex(1),
     positiveTestCalendarMonth: toCalendarMonth(4),
     positiveTestCalendarYear: toFullCalendarYear(2026),
     positiveTestSimulationMonth: toSimulationMonth(4),
@@ -76,7 +79,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     motherPostBirthPartTimeHours: toWorkingHours(24),
     motherPostBirthPartTimeClass5Net: toNetSalary(1328),
     motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-    fatherPartnerMonthsCount: 4,
+    fatherPartnerMonthsCount: toMonthDuration(4),
   };
 
   const simC = runScenarioBatches({

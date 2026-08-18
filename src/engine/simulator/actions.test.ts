@@ -10,6 +10,10 @@ import {
   toEuroAmount,
   toWorkingHours,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toSimulationMonth,
   toCalendarMonth,
   toPregnancyId,
@@ -33,7 +37,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
   const basePreexisting: PreexistingConditions = {
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
-    simulationDurationMonths: 60,
+    simulationDurationMonths: toMonthDuration(60),
     husbandGross: toGrossSalary(4500),
     wifeGross: toGrossSalary(3000),
     husbandInitialTaxClass: TaxClass.III,
@@ -47,7 +51,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     wifeInitialPartTimeClass3Net: toNetSalary(1648),
     wifeWeeklyHours: toWorkingHours(40),
     wifePostBirthWeeklyHours: toWorkingHours(24),
-    existingChildrenCount: 0,
+    existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: toEuroAmount(259),
     enable13thSalary: true,
     bonus40Month: toCalendarMonth(5),
@@ -60,7 +64,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(4),
@@ -68,7 +72,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -125,7 +129,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         const pregnancies: PregnancyAction[] = [
           {
             pregnancyId: toPregnancyId("PREG-1"),
-            childIndex: 1,
+            childIndex: toChildIndex(1),
             positiveTestCalendarMonth: toCalendarMonth(4),
             positiveTestCalendarYear: toFullCalendarYear(2026),
             positiveTestSimulationMonth: toSimulationMonth(4),
@@ -133,11 +137,11 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
             motherPostBirthPartTimeHours: toWorkingHours(24),
             motherPostBirthPartTimeClass5Net: toNetSalary(1328),
             motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-            fatherPartnerMonthsCount: 4,
+            fatherPartnerMonthsCount: toMonthDuration(4),
           },
           {
             pregnancyId: toPregnancyId("PREG-2"),
-            childIndex: 2,
+            childIndex: toChildIndex(2),
             positiveTestCalendarMonth: toCalendarMonth(1),
             positiveTestCalendarYear: toFullCalendarYear(2028),
             positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
@@ -145,13 +149,16 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
             motherPostBirthPartTimeHours: toWorkingHours(24),
             motherPostBirthPartTimeClass5Net: toNetSalary(1328),
             motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-            fatherPartnerMonthsCount: 4,
+            fatherPartnerMonthsCount: toMonthDuration(4),
           },
         ];
 
         const res = runScenarioBatches({
           scenarioKey: ScenarioId.C,
-          preexisting: { ...basePreexisting, simulationDurationMonths: 72 },
+          preexisting: {
+            ...basePreexisting,
+            simulationDurationMonths: toMonthDuration(72),
+          },
           pregnancies,
           taxClassSwitches: [],
           salaryRaises: [],
@@ -183,7 +190,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const basePregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(4),
@@ -191,11 +198,11 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
         {
           pregnancyId: toPregnancyId("PREG-2"),
-          childIndex: 2,
+          childIndex: toChildIndex(2),
           positiveTestCalendarMonth: toCalendarMonth(2),
           positiveTestCalendarYear: toFullCalendarYear(2027),
           positiveTestSimulationMonth: toSimulationMonth(initialP2Positive),
@@ -205,14 +212,17 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
       // Run with initial Child 2 date (Delivery at M22)
       const resInitial = runScenarioBatches({
         scenarioKey: ScenarioId.C,
-        preexisting: { ...basePreexisting, simulationDurationMonths: 60 },
+        preexisting: {
+          ...basePreexisting,
+          simulationDurationMonths: toMonthDuration(60),
+        },
         pregnancies: basePregnancies,
         taxClassSwitches: [],
         salaryRaises: [],
@@ -240,7 +250,10 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       const resUpdated = runScenarioBatches({
         scenarioKey: ScenarioId.C,
-        preexisting: { ...basePreexisting, simulationDurationMonths: 60 },
+        preexisting: {
+          ...basePreexisting,
+          simulationDurationMonths: toMonthDuration(60),
+        },
         pregnancies: updatedPregnancies,
         taxClassSwitches: [],
         salaryRaises: [],
@@ -260,7 +273,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(4),
@@ -268,7 +281,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -331,7 +344,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(4),
@@ -339,7 +352,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -383,7 +396,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: toFullCalendarYear(2027),
           targetPerson: TargetPerson.Both,
-          percentageIncrease: 0.1, // +10% raise
+          percentageIncrease: toPercentageRate(0.1), // +10% raise
           reason: "Promotion to Staff Engineer",
         },
       ];
@@ -415,7 +428,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(4),
@@ -423,7 +436,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -447,7 +460,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: toFullCalendarYear(2027),
           targetPerson: TargetPerson.Both,
-          percentageIncrease: 0.05, // +5% in Year 2
+          percentageIncrease: toPercentageRate(0.05), // +5% in Year 2
           reason: "Tariff increase",
         },
       ];
@@ -480,7 +493,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
-          childIndex: 1,
+          childIndex: toChildIndex(1),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2026),
           positiveTestSimulationMonth: toSimulationMonth(4),
@@ -488,11 +501,11 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
         {
           pregnancyId: toPregnancyId("PREG-2"),
-          childIndex: 2,
+          childIndex: toChildIndex(2),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2028),
           positiveTestSimulationMonth: toSimulationMonth(28),
@@ -500,11 +513,11 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
         {
           pregnancyId: toPregnancyId("PREG-3"),
-          childIndex: 3,
+          childIndex: toChildIndex(3),
           positiveTestCalendarMonth: toCalendarMonth(4),
           positiveTestCalendarYear: toFullCalendarYear(2030),
           positiveTestSimulationMonth: toSimulationMonth(52),
@@ -512,7 +525,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           motherPostBirthPartTimeHours: toWorkingHours(24),
           motherPostBirthPartTimeClass5Net: toNetSalary(1328),
           motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-          fatherPartnerMonthsCount: 4,
+          fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
@@ -558,7 +571,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           effectiveCalendarMonth: toCalendarMonth(1),
           effectiveCalendarYear: toFullCalendarYear(2028),
           targetPerson: TargetPerson.Husband,
-          percentageIncrease: 0.1, // +10% Husband Promotion
+          percentageIncrease: toPercentageRate(0.1), // +10% Husband Promotion
           reason: "Senior Staff Promotion",
         },
         {
@@ -567,7 +580,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           effectiveCalendarMonth: toCalendarMonth(4),
           effectiveCalendarYear: toFullCalendarYear(2029),
           targetPerson: TargetPerson.Wife,
-          percentageIncrease: 0.08, // +8% Wife Merit Step
+          percentageIncrease: toPercentageRate(0.08), // +8% Wife Merit Step
           reason: "Wife Merit Step",
         },
       ];
@@ -808,7 +821,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     it("disqualifies mother from Elterngeld when part-time hours exceed 32h/week (0 € benefit paid)", () => {
       const highHoursPregnancy: PregnancyAction = {
         pregnancyId: toPregnancyId("PREG-HIGH-HOURS"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(4),
@@ -816,7 +829,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         motherPostBirthPartTimeHours: toWorkingHours(35), // > 32h/week -> Disqualified under § 1 BEEG
         motherPostBirthPartTimeClass5Net: toNetSalary(1800),
         motherPostBirthPartTimeClass3Net: toNetSalary(2400),
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       };
 
       const res = runScenarioBatches({
@@ -847,7 +860,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     it("denies Partnerschaftsbonus when mother works < 24h/week (outside 24-32h corridor § 4b BEEG)", () => {
       const lowHoursPregnancy: PregnancyAction = {
         pregnancyId: toPregnancyId("PREG-LOW-HOURS"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(4),
@@ -855,7 +868,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         motherPostBirthPartTimeHours: toWorkingHours(20), // 20h < 24h -> Qualifies for EG+, but NOT Partnerschaftsbonus
         motherPostBirthPartTimeClass5Net: toNetSalary(1045),
         motherPostBirthPartTimeClass3Net: toNetSalary(1405),
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       };
 
       const res = runScenarioBatches({
@@ -894,7 +907,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     it("grants full ElterngeldPlus AND Partnerschaftsbonus when working 24-32h/week", () => {
       const optimalHoursPregnancy: PregnancyAction = {
         pregnancyId: toPregnancyId("PREG-OPTIMAL-HOURS"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(4),
@@ -902,7 +915,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         motherPostBirthPartTimeHours: toWorkingHours(24), // 24h -> in corridor 24-32h
         motherPostBirthPartTimeClass5Net: toNetSalary(1328),
         motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       };
 
       const res = runScenarioBatches({
@@ -935,7 +948,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     it("evaluates generalized dynamic WorkingHoursChangeActions for both husband and wife across the timeline", () => {
       const pregnancy: PregnancyAction = {
         pregnancyId: toPregnancyId("PREG-DYNAMIC-SCHEDULE"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(4),
         positiveTestCalendarYear: toFullCalendarYear(2026),
         positiveTestSimulationMonth: toSimulationMonth(4),
@@ -943,7 +956,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         motherPostBirthPartTimeHours: toWorkingHours(24),
         motherPostBirthPartTimeClass5Net: toNetSalary(1328),
         motherPostBirthPartTimeClass3Net: toNetSalary(1648),
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       };
 
       const workingHoursChanges: WorkingHoursChangeAction[] = [

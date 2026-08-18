@@ -6,6 +6,7 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toMonthDuration,
   ScenarioId,
 } from "#engine/types";
 
@@ -26,10 +27,10 @@ describe("Granular Simulation Matrix Tests (250 Individual Scenario Assertions)"
         wifeClass5PartTimeNet: toNetSalary(Math.round(w3Net * 0.5)),
         wifeClass3PartTimeNet: toNetSalary(Math.round(w3Net * 0.65)),
         kindergeldPerChild: toEuroAmount(259),
-        prePregnancyPlanningMonths: 3,
+        prePregnancyPlanningMonths: toMonthDuration(3),
         child1BirthMonth: toSimulationMonth(12),
-        birthSpacingMonths: spacing,
-        swapLeadMonths: 7,
+        birthSpacingMonths: toMonthDuration(spacing),
+        swapLeadMonths: toMonthDuration(7),
         enable13thSalary: true,
         bonus40Month: toCalendarMonth(5),
         bonus60Month: toCalendarMonth(11),
