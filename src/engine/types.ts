@@ -24,11 +24,17 @@ export type SimulationYear = Brand<number, "SimulationYear">; // Y1..Y10 (simula
 export type CalendarYear = SimulationYear; // Alias for simulation horizon year (1..10)
 export type FullCalendarYear = Brand<number, "FullCalendarYear">; // 4-digit Gregorian calendar year (1900..2100 e.g. 2025, 2026, 2027)
 export type CalendarMonth = Brand<number, "CalendarMonth">; // M1..M12 (1=Jan, 12=Dec)
+export type MonthDuration = Brand<number, "MonthDuration">; // 0..120 duration / span / offset in months
 export type MonthId = SubBrand<EntityId, "MonthId">; // Immutable absolute calendar month identifier (e.g. 'M09.2027')
 export type MonthRef = SubBrand<EntityId, "MonthRef">; // Statutory pregnancy-relative month reference (e.g. 'M1 (Pregnancy Positive)', 'M-8', 'M12')
 export type MonthSimRef = SubBrand<EntityId, "MonthSimRef">; // Simulation start relative reference (e.g. 'Sim1', 'Sim21', 'Sim60')
 export type WorkingHours = Brand<number, "WorkingHours">; // e.g. 24, 32, 40
 export type TaxFactor = Brand<number, "TaxFactor">; // § 39f EStG factor ratio (0.001..1.000)
+export type PercentageRate = Brand<number, "PercentageRate">; // Decimal ratio 0.0..1.0 (or percentage)
+
+// Demographic & Child Nominal Types
+export type ChildrenCount = Brand<number, "ChildrenCount">; // 0..10 children count
+export type ChildIndex = Brand<number, "ChildIndex">; // 1..10 ordinal child number
 
 // Monetary Hierarchy (GrossSalary and NetSalary are nominal subtypes of EuroAmount)
 export type EuroAmount = Brand<number, "EuroAmount">; // Exact EUR rounded/scaled
@@ -335,6 +341,75 @@ export function toCalendarMonth(val: number): CalendarMonth {
     );
   }
   return val as CalendarMonth;
+}
+
+export function toMonthDuration(val: number | string): MonthDuration {
+  const num = typeof val === "string" ? Number(val) : val;
+  if (
+    typeof num !== "number" ||
+    Number.isNaN(num) ||
+    !Number.isFinite(num) ||
+    num < 0 ||
+    num > 120
+  ) {
+    throw new TypeError(
+      `Invalid MonthDuration: ${val}. Must be finite number between 0 and 120.`,
+    );
+  }
+  return num as MonthDuration;
+}
+
+export function toChildrenCount(val: number | string): ChildrenCount {
+  const num = typeof val === "string" ? Number(val) : val;
+  if (
+    typeof num !== "number" ||
+    Number.isNaN(num) ||
+    !Number.isFinite(num) ||
+    !Number.isInteger(num) ||
+    num < 0 ||
+    num > 10
+  ) {
+    throw new TypeError(
+      `Invalid ChildrenCount: ${val}. Must be integer between 0 and 10.`,
+    );
+  }
+  return num as ChildrenCount;
+}
+
+export function toChildIndex(val: number | string): ChildIndex {
+  const num = typeof val === "string" ? Number(val) : val;
+  if (
+    typeof num !== "number" ||
+    Number.isNaN(num) ||
+    !Number.isFinite(num) ||
+    !Number.isInteger(num) ||
+    num < 1 ||
+    num > 10
+  ) {
+    throw new TypeError(
+      `Invalid ChildIndex: ${val}. Must be integer between 1 and 10.`,
+    );
+  }
+  return num as ChildIndex;
+}
+
+export function toPercentageRate(val: number | string): PercentageRate {
+  let num = typeof val === "string" ? Number(val) : val;
+  if (
+    typeof num !== "number" ||
+    Number.isNaN(num) ||
+    !Number.isFinite(num) ||
+    num < 0 ||
+    num > 100
+  ) {
+    throw new TypeError(
+      `Invalid PercentageRate: ${val}. Must be numeric value between 0.0 and 1.0 (or 0%..100%).`,
+    );
+  }
+  if (num > 1.0) {
+    num = num / 100;
+  }
+  return (Math.round(num * 100000) / 100000) as PercentageRate;
 }
 
 export function toWorkingHours(val: number): WorkingHours {
@@ -1003,17 +1078,17 @@ export interface GrossToNetBreakdown {
   readonly monthlyGross: GrossSalary;
   readonly annualGross: GrossSalary;
   readonly taxClass: TaxClass;
-  readonly childrenCount: number;
+  readonly childrenCount: ChildrenCount;
 
   // Itemized Social Insurance Deductions (§§ 20, 55 SGB)
   readonly healthInsurance: EuroAmount;
-  readonly healthInsuranceRate: number;
+  readonly healthInsuranceRate: PercentageRate;
   readonly pensionInsurance: EuroAmount;
-  readonly pensionInsuranceRate: number;
+  readonly pensionInsuranceRate: PercentageRate;
   readonly unemploymentInsurance: EuroAmount;
-  readonly unemploymentInsuranceRate: number;
+  readonly unemploymentInsuranceRate: PercentageRate;
   readonly careInsurance: EuroAmount;
-  readonly careInsuranceRate: number;
+  readonly careInsuranceRate: PercentageRate;
   readonly totalSocialSecurity: EuroAmount;
 
   // Statutory Wage Taxes (§§ 32a, 38b EStG, SolzG)
@@ -1031,8 +1106,8 @@ export interface GrossToNetBreakdown {
   // Final Net Take-Home & Elterngeld Synthetic Net
   readonly monthlyNetTakeHome: NetSalary;
   readonly elterngeldSyntheticNet: NetSalary; // § 2c BEEG (Clean baseline excluding non-recurrent bonuses)
-  readonly effectiveTaxRatePercent: number;
-  readonly effectiveTotalDeductionRatePercent: number;
+  readonly effectiveTaxRatePercent: PercentageRate;
+  readonly effectiveTotalDeductionRatePercent: PercentageRate;
   readonly statutoryCitation: StatutoryCitation;
 }
 
@@ -1089,7 +1164,7 @@ export interface SpousalGrossToNetSet {
 export interface PreexistingConditions {
   readonly startCalendarYear: FullCalendarYear;
   readonly startCalendarMonth: CalendarMonth;
-  readonly simulationDurationMonths: number;
+  readonly simulationDurationMonths: MonthDuration;
   readonly salaryInputMode?: SalaryInputMode;
   readonly salaryPeriod?: SalaryPeriod;
   readonly husbandGross?: GrossSalary;
@@ -1113,7 +1188,7 @@ export interface PreexistingConditions {
   readonly annualBonusGross?: EuroAmount;
   readonly annualBonusMonth?: CalendarMonth;
   readonly investmentReturnMonthly?: EuroAmount;
-  readonly existingChildrenCount: number;
+  readonly existingChildrenCount: ChildrenCount;
   readonly kindergeldPerChild: EuroAmount;
   readonly enable13thSalary: boolean;
   readonly bonus40Month: CalendarMonth;
@@ -1126,7 +1201,7 @@ export interface PreexistingConditions {
  */
 export interface PregnancyAction {
   readonly pregnancyId: PregnancyId;
-  readonly childIndex: number;
+  readonly childIndex: ChildIndex;
   readonly positiveTestCalendarMonth: CalendarMonth;
   readonly positiveTestCalendarYear: FullCalendarYear;
   readonly positiveTestSimulationMonth: SimulationMonth;
@@ -1134,7 +1209,7 @@ export interface PregnancyAction {
   readonly motherPostBirthPartTimeHours: WorkingHours;
   readonly motherPostBirthPartTimeClass5Net: NetSalary;
   readonly motherPostBirthPartTimeClass3Net: NetSalary;
-  readonly fatherPartnerMonthsCount: number;
+  readonly fatherPartnerMonthsCount: MonthDuration;
 }
 
 /**
@@ -1165,7 +1240,7 @@ export interface SalaryRaiseAction {
   readonly effectiveCalendarMonth: CalendarMonth;
   readonly effectiveCalendarYear: FullCalendarYear;
   readonly targetPerson: TargetPerson;
-  readonly percentageIncrease?: number;
+  readonly percentageIncrease?: PercentageRate;
   readonly newHusbandClass3Net?: NetSalary;
   readonly newHusbandClass5Net?: NetSalary;
   readonly newWifeClass5FTNet?: NetSalary;
