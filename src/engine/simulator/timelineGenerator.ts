@@ -87,38 +87,64 @@ import {
 } from "#engine/benefits/elterngeldPlus";
 import { computeSiblingBonus } from "#engine/benefits/siblingBonus";
 
+/**
+ * Input Parameter Specification for Legacy Timeline Simulation.
+ */
 export interface TimelineSimulationParams {
+  /** Target scenario key (A, B, or C). */
   readonly scenarioKey: ScenarioId;
+  /** 4-digit Gregorian simulation start year (e.g. 2025). */
   readonly startCalendarYear?: FullCalendarYear;
+  /** 1-based Gregorian simulation start month (1..12). */
   readonly startCalendarMonth?: CalendarMonth;
+  /** Total simulation duration in months (e.g. 60 or 120). */
   readonly simulationDurationMonths?: MonthDuration;
+  /** Husband's regular monthly gross salary in EUR. */
   readonly husbandGross?: GrossSalary;
+  /** Wife's pre-birth monthly gross salary in EUR. */
   readonly wifeGross?: GrossSalary;
+  /** Wife's post-birth part-time weekly working hours (e.g. 24h..32h). */
   readonly wifePostBirthHours?: WorkingHours;
+  /** Husband's net salary in Tax Class III in EUR. */
   readonly husbandClass3Net: NetSalary;
+  /** Husband's net salary in Tax Class V in EUR. */
   readonly husbandClass5Net: NetSalary;
+  /** Wife's full-time net salary in Tax Class V in EUR. */
   readonly wifeClass5FullTimeNet: NetSalary;
+  /** Wife's full-time net salary in Tax Class III in EUR. */
   readonly wifeClass3FullTimeNet: NetSalary;
+  /** Wife's part-time net salary in Tax Class V in EUR. */
   readonly wifeClass5PartTimeNet: NetSalary;
+  /** Wife's part-time net salary in Tax Class III in EUR. */
   readonly wifeClass3PartTimeNet: NetSalary;
+  /** Statutory monthly Kindergeld rate per child in EUR. */
   readonly kindergeldPerChild: EuroAmount;
+  /** Pre-pregnancy planning buffer duration in months. */
   readonly prePregnancyPlanningMonths: MonthDuration;
+  /** Simulation month of Child 1 delivery. */
   readonly child1BirthMonth: SimulationMonth;
+  /** Spacing between Child 1 and Child 2 deliveries in months. */
   readonly birthSpacingMonths: MonthDuration;
+  /** Lead time for proactive tax class swap prior to conception in months. */
   readonly swapLeadMonths: MonthDuration;
+  /** Toggle enabling 13th salary bonus payments. */
   readonly enable13thSalary: boolean;
+  /** Calendar month of vacation bonus disbursement (1..12). */
   readonly bonus40Month: CalendarMonth;
+  /** Calendar month of Christmas bonus disbursement (1..12). */
   readonly bonus60Month: CalendarMonth;
+  /** Calendar month of annual tax return reconciliation refund (1..12). */
   readonly taxReturnMonth: CalendarMonth;
 }
 
 /**
- * Calculates the statutory simulation start calendar date based on the first pregnancy positive test:
+ * Calculates the statutory simulation start calendar date anchored to the first positive pregnancy test:
  * 1. Subtract at least 3 months prior to pregnancy positive test date.
  * 2. Snap to the first month (January) of that resulting calendar year.
  *
- * Example 1: Positive in 09.2026 -> 09.2026 - 3M = 06.2026 -> First month of 2026 is 01.2026 (prePregBuffer = 8 months, pregSimMonth = 9).
- * Example 2: Positive in 02.2028 -> 02.2028 - 3M = 11.2027 -> First month of 2027 is 01.2027 (prePregBuffer = 13 months, pregSimMonth = 14).
+ * @param pregPositiveYear - 4-digit calendar year of positive pregnancy test.
+ * @param pregPositiveMonth - 1-based calendar month of positive test (1..12).
+ * @returns Start year/month, pre-pregnancy planning buffer, and positive test simulation month.
  */
 export function calculateSimulationStartDate(
   pregPositiveYear: FullCalendarYear | number,
@@ -158,11 +184,15 @@ export function calculateSimulationStartDate(
 }
 
 /**
- * Executes a simulation scenario from discrete action batches:
- * 0. Preexisting conditions (baseline tax classes, salaries, children, dates)
- * 1. Pregnancy positive decisions (positive test date, delivery date, parental leave)
- * 2. Tax class switches (proactive switches, optimization intent, reversions)
- * 3. Salary raises and career progression events
+ * Executes a deterministic multi-year simulation scenario from discrete action batches:
+ * - Batch 0: Preexisting baseline conditions (tax classes, baseline salaries, existing children).
+ * - Batch 1: Pregnancy positive timeline decisions (positive test date, delivery date, leave hours).
+ * - Batch 2: Proactive tax class switch actions (optimization intent, reversion timing).
+ * - Batch 3: Salary raises, career compensation adjustments, and contractual working hours changes.
+ * - Batch 4: Discrete financial events (one-off expenses, grants, capital inflows).
+ *
+ * @param batches - Strongly-typed `ScenarioActionBatches` payload.
+ * @returns Complete `SimulationResult` containing monthly ledger entries and aggregated KPI summary.
  */
 export function runScenarioBatches(
   batches: ScenarioActionBatches,
