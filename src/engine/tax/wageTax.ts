@@ -184,7 +184,7 @@ export function computeMonthlySocialSecurity(
   const unemployment = Math.round(assessedPensionGross * unemploymentRate);
 
   // PV: Base 2.2% employee share (Childless: +0.6% surcharge = 2.8%; With children: discount down to 1.2%)
-  let careRate = 0.022;
+  let careRate: number;
   if (childrenCount === 0) {
     careRate = 0.028; // Childless surcharge (§ 55 Abs. 3 SGB XI)
   } else {
