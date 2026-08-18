@@ -37,6 +37,10 @@ import {
   toSimulationMonth,
   toCalendarMonth,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -866,7 +870,7 @@ function buildSimulation(
   const preexisting: PreexistingConditions = {
     startCalendarYear: toFullCalendarYear(startYear),
     startCalendarMonth: toCalendarMonth(startMonth),
-    simulationDurationMonths: duration,
+    simulationDurationMonths: toMonthDuration(duration),
     salaryInputMode: def.salaryInputMode,
     salaryPeriod: opts.period,
     husbandGross: toGrossSalary(husbandGrossMonthly),
@@ -905,7 +909,7 @@ function buildSimulation(
     investmentReturnMonthly: opts.investmentReturnMonthly
       ? toEuroAmount(opts.investmentReturnMonthly)
       : def.investmentReturnMonthly,
-    existingChildrenCount: opts.childrenCount,
+    existingChildrenCount: toChildrenCount(opts.childrenCount),
     kindergeldPerChild: def.kindergeldPerChild,
     enable13thSalary: opts.enable13th,
     bonus40Month: def.bonus40Month,
@@ -936,7 +940,7 @@ function buildSimulation(
     pregnancies = [
       {
         pregnancyId: toPregnancyId("PREG-CHILD-1"),
-        childIndex: 1,
+        childIndex: toChildIndex(1),
         positiveTestCalendarMonth: toCalendarMonth(
           ((startMonth - 1 + pregStart - 1) % 12) + 1,
         ),
@@ -950,11 +954,11 @@ function buildSimulation(
         ),
         motherPostBirthPartTimeClass5Net: ptNet5,
         motherPostBirthPartTimeClass3Net: ptNet3,
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       },
       {
         pregnancyId: toPregnancyId("PREG-CHILD-2"),
-        childIndex: 2,
+        childIndex: toChildIndex(2),
         positiveTestCalendarMonth: toCalendarMonth(
           ((startMonth - 1 + (b2 - 9)) % 12) + 1,
         ),
@@ -968,7 +972,7 @@ function buildSimulation(
         ),
         motherPostBirthPartTimeClass5Net: ptNet5,
         motherPostBirthPartTimeClass3Net: ptNet3,
-        fatherPartnerMonthsCount: 4,
+        fatherPartnerMonthsCount: toMonthDuration(4),
       },
     ];
 
@@ -1024,7 +1028,7 @@ function buildSimulation(
           effectiveCalendarMonth: toCalendarMonth(startMonth),
           effectiveCalendarYear: toFullCalendarYear(startYear + y - 1),
           targetPerson: TargetPerson.Both,
-          percentageIncrease: opts.annualRaise,
+          percentageIncrease: toPercentageRate(opts.annualRaise),
           reason: `Year ${y} Tariff Adjustment (+${(opts.annualRaise * 100).toFixed(1)}%)`,
         });
       }

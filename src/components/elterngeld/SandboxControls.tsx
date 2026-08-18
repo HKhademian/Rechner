@@ -89,6 +89,10 @@ import {
   toNetSalary,
   toWorkingHours,
   toFullCalendarYear,
+  toMonthDuration,
+  toChildrenCount,
+  toChildIndex,
+  toPercentageRate,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -297,16 +301,18 @@ export default function SandboxControls(): JSX.Element {
       setWifePostBirthHours(preset.wifePostBirthHours);
     }
     if (preset.prePregnancyPlanningMonths !== undefined) {
-      prePregnancyPlanningMonths.value = preset.prePregnancyPlanningMonths;
+      prePregnancyPlanningMonths.value = toMonthDuration(
+        preset.prePregnancyPlanningMonths,
+      );
     }
     if (preset.child1BirthMonth !== undefined) {
       child1BirthMonth.value = toSimulationMonth(preset.child1BirthMonth);
     }
     if (preset.birthSpacingMonths !== undefined) {
-      birthSpacingMonths.value = preset.birthSpacingMonths;
+      birthSpacingMonths.value = toMonthDuration(preset.birthSpacingMonths);
     }
     if (preset.swapLeadMonths !== undefined) {
-      swapLeadMonths.value = preset.swapLeadMonths;
+      swapLeadMonths.value = toMonthDuration(preset.swapLeadMonths);
     }
   };
 
@@ -588,7 +594,7 @@ export default function SandboxControls(): JSX.Element {
                     const defs = getDefaultPersistedState();
                     addPregnancyAction({
                       pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
-                      childIndex: count + 1,
+                      childIndex: toChildIndex(count + 1),
                       positiveTestCalendarMonth: calMonth,
                       positiveTestCalendarYear: toFullCalendarYear(calYear),
                       positiveTestSimulationMonth:
@@ -605,9 +611,10 @@ export default function SandboxControls(): JSX.Element {
                       motherPostBirthPartTimeClass3Net: toNetSalary(
                         wifeClass3PartTimeNet.value,
                       ),
-                      fatherPartnerMonthsCount:
+                      fatherPartnerMonthsCount: toMonthDuration(
                         defs.customPregnancies[0]?.fatherPartnerMonthsCount ??
-                        4,
+                          4,
+                      ),
                     });
                   }}
                   style={{
@@ -2268,7 +2275,7 @@ export default function SandboxControls(): JSX.Element {
                         effectiveCalendarMonth: sMonth,
                         effectiveCalendarYear: toFullCalendarYear(sYear),
                         targetPerson: TargetPerson.Both,
-                        percentageIncrease: 0.05,
+                        percentageIncrease: toPercentageRate(0.05),
                         reason: `Merit Promotion / Tariff Adjustment (+5%)`,
                       });
                     }}
@@ -4170,7 +4177,7 @@ export default function SandboxControls(): JSX.Element {
                         key={`dur-btn-${dur}`}
                         type="button"
                         onClick={() => {
-                          simulationDurationMonths.value = dur;
+                          simulationDurationMonths.value = toMonthDuration(dur);
                         }}
                         style={{
                           padding: "3px 8px",
