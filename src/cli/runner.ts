@@ -62,6 +62,8 @@ import {
   computeGrossToNetBreakdown,
   deriveSpousalNetSalaries,
 } from "#engine/tax/wageTax";
+import fs from "node:fs";
+import path from "node:path";
 import {
   getFieldExplanation,
   getRowExplanation,
@@ -69,7 +71,10 @@ import {
   type RowExplanation,
 } from "#engine/explanation/timelineExplainer";
 import {
-  getDefaultPersistedState, 
+  getDefaultPersistedState,
+  setUserScenarioOverride,
+  validateAndSanitizePersistedState,
+  type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 
 // ANSI Color Codes
@@ -293,6 +298,7 @@ interface CliOptions {
   pregMonth?: number;
   explainMonth?: string | number;
   explainField?: FieldColumnKey;
+  scenarioFile?: string;
 }
 
 function parseArgs(args: string[]): CliOptions {
@@ -349,6 +355,13 @@ function parseArgs(args: string[]): CliOptions {
     }
     else if (arg === "--explain-field" || arg === "--field") {
       opts.explainField = parseFieldArg(args[++i]);
+    }
+    else if (
+      arg === "--scenario-file" ||
+      arg === "--file" ||
+      arg === "-i"
+    ) {
+      opts.scenarioFile = args[++i];
     }
     else if (arg === "--scenario" || arg === "-s") {
       opts.scenario = toCliScenarioTarget(args[++i] || "compare");
@@ -492,6 +505,7 @@ ${BOLD}Gross-to-Net Options:${RESET}
   --wife-hours <hours>             Wife post-birth part-time weekly hours (default: 24)
 
 ${BOLD}Simulation Options:${RESET}
+  -i, --scenario-file <path>       Path to custom scenario JSON file (overrides default/user scenario)
   -s, --scenario <A|B|C|compare>   Scenario to execute (default: compare)
   -d, --duration <months>          Simulation horizon in months (default: 60)
   --start-year <year>              Simulation start calendar year (default: 2026)
@@ -507,6 +521,7 @@ ${BOLD}Simulation Options:${RESET}
   -h, --help                       Show this help message
 
 ${BOLD}Examples:${RESET}
+  npm run sim -- -i src/data/testScenario.json   # Run simulation using explicit scenario file
   npm run sim -- gross-to-net -g 4500 -c III     # Itemized breakdown for 4.500 € Gross in Tax Class III
   npm run sim -- gross-to-net -g 3000 -c V -b 2000 # With 2.000 € 13th month bonus in Class V
   npm run sim -- spousal-net --husband-gross 4500 --wife-gross 3000 # Full spousal tax class matrix
@@ -885,11 +900,69 @@ function printMonthExplanation(
   console.log(`\n${CYAN}${line}${RESET}\n`);
 }
 
+/**
+ * Loads the active scenario baseline state for CLI execution.
+ * Priority:
+ * 1. Explicitly provided CLI scenario file (`--scenario-file <path>`, `--file <path>`, `-i <path>`)
+ * 2. Unversioned `src/data/userScenario.json` or `./userScenario.json` (if present)
+ * 3. Repository default `defaultScenario.json` (via `getDefaultPersistedState()`)
+ *
+ * @param scenarioFilePath - Optional path to custom scenario JSON.
+ * @returns Fully validated and sanitized `ElterngeldPersistedState`.
+ */
+export function resolveCliScenarioState(
+  scenarioFilePath?: string,
+): ElterngeldPersistedState {
+  if (scenarioFilePath) {
+    const resolved = path.resolve(process.cwd(), scenarioFilePath);
+    if (!fs.existsSync(resolved)) {
+      console.error(
+        `${RED}${BOLD}Error:${RESET} Specified scenario file not found: "${resolved}"`,
+      );
+      process.exit(1);
+    }
+    try {
+      const content = fs.readFileSync(resolved, "utf-8");
+      const parsed = JSON.parse(content);
+      return validateAndSanitizePersistedState(parsed);
+    }
+    catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(
+        `${RED}${BOLD}Error:${RESET} Failed to parse scenario file "${resolved}": ${msg}`,
+      );
+      process.exit(1);
+    }
+  }
+
+  // Check if unversioned userScenario.json exists in filesystem
+  const userCandidates = [
+    path.resolve(process.cwd(), "src/data/userScenario.json"),
+    path.resolve(process.cwd(), "userScenario.json"),
+  ];
+  for (const candidate of userCandidates) {
+    if (fs.existsSync(candidate)) {
+      try {
+        const content = fs.readFileSync(candidate, "utf-8");
+        const parsed = JSON.parse(content);
+        setUserScenarioOverride(parsed);
+        break;
+      }
+      catch {
+        // Fall back gracefully
+      }
+    }
+  }
+
+  return getDefaultPersistedState();
+}
+
 function buildSimulation(
   scenarioKey: ScenarioId,
   opts: CliOptions,
+  baseState?: ElterngeldPersistedState,
 ): SimulationResult {
-  const def = getDefaultPersistedState();
+  const def = baseState ?? resolveCliScenarioState(opts.scenarioFile);
   const startYear = opts.startYear ?? def.startCalendarYear;
   const startMonth = opts.startMonth ?? def.startCalendarMonth;
   const duration = opts.duration ?? def.simulationDurationMonths;
@@ -1223,6 +1296,7 @@ function printMilestones(res: SimulationResult) {
 // Main Execution
 export function runCli(argv: string[] = process.argv.slice(2)): void {
   const opts = parseArgs(argv);
+  const baseState = resolveCliScenarioState(opts.scenarioFile);
 
   if (opts.mode === CliMode.GrossToNet) {
     const grossMonthly = opts.gross
@@ -1251,7 +1325,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
   }
 
   if (opts.mode === CliMode.SpousalNet) {
-    const def = getDefaultPersistedState();
+    const def = baseState;
     const hGrossMonthly = opts.husbandGross
       ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
         ? Math.round(opts.husbandGross / 12)
@@ -1286,8 +1360,8 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       opts.scenario === CliScenarioTarget.Compare
         ? ScenarioId.C
         : (opts.scenario as ScenarioId);
-    const targetSim = buildSimulation(scenarioKey, opts);
-    const bSim = buildSimulation(ScenarioId.B, opts);
+    const targetSim = buildSimulation(scenarioKey, opts, baseState);
+    const bSim = buildSimulation(ScenarioId.B, opts, baseState);
 
     let monthIdx: number;
     if (typeof opts.explainMonth === "number") {
@@ -1369,9 +1443,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     }
   }
   else if (opts.format === CliOutputFormat.Json) {
-    const resA = buildSimulation(ScenarioId.A, opts);
-    const resB = buildSimulation(ScenarioId.B, opts);
-    const resC = buildSimulation(ScenarioId.C, opts);
+    const resA = buildSimulation(ScenarioId.A, opts, baseState);
+    const resB = buildSimulation(ScenarioId.B, opts, baseState);
+    const resC = buildSimulation(ScenarioId.C, opts, baseState);
     console.log(
       JSON.stringify(
         { options: opts,
@@ -1384,9 +1458,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     );
   }
   else {
-    const resA = buildSimulation(ScenarioId.A, opts);
-    const resB = buildSimulation(ScenarioId.B, opts);
-    const resC = buildSimulation(ScenarioId.C, opts);
+    const resA = buildSimulation(ScenarioId.A, opts, baseState);
+    const resB = buildSimulation(ScenarioId.B, opts, baseState);
+    const resC = buildSimulation(ScenarioId.C, opts, baseState);
 
     printSummaryScorecard(resA, resB, resC);
 
