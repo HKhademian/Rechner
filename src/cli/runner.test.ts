@@ -1,9 +1,19 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { parseMonthArg, parseFieldArg } from "#cli/runner";
-import { FieldColumnKey } from "#engine/types";
+import {
+  execFile, 
+} from "node:child_process";
+import {
+  promisify, 
+} from "node:util";
+import {
+  parseMonthArg, parseFieldArg, 
+} from "#cli/runner";
+import {
+  FieldColumnKey, 
+} from "#engine/types";
 
 const execFileAsync = promisify(execFile);
 
@@ -398,12 +408,15 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
     });
 
     it("executes quality audit runner cleanly and verifies repo integrity", async () => {
-      const { stdout, stderr } = await execFileAsync("node", [
+      const {
+        stdout,
+        stderr,
+      } = await execFileAsync("node", [
         "src/cli/qualityAudit.ts",
       ]);
       assert.equal(stderr, "");
       assert.ok(stdout.includes("CODE QUALITY AUDIT"));
-      assert.ok(stdout.includes("Prettier Code Style & Formatting"));
+      assert.ok(stdout.includes("ESLint Code Style & Static Analysis"));
       assert.ok(stdout.includes("TypeScript Compiler Diagnostics"));
       assert.ok(stdout.includes("Quality Audit PASSED"));
     });

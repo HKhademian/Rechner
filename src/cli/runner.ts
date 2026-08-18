@@ -14,7 +14,9 @@ process.env.CHECKPOINT_DISABLE = "1";
  * without requiring web browser rendering or DOM captures.
  */
 
-import { fileURLToPath } from "node:url";
+import {
+  fileURLToPath, 
+} from "node:url";
 import {
   runScenarioBatches,
   calculateSimulationStartDate,
@@ -62,7 +64,9 @@ import {
   type FieldExplanation,
   type RowExplanation,
 } from "#engine/explanation/timelineExplainer";
-import { getDefaultPersistedState } from "#engine/storage/persistence";
+import {
+  getDefaultPersistedState, 
+} from "#engine/storage/persistence";
 
 // ANSI Color Codes
 const RESET = "\x1b[0m";
@@ -304,19 +308,22 @@ function parseArgs(args: string[]): CliOptions {
     if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
-    } else if (
+    }
+    else if (
       arg === "gross-to-net" ||
       arg === "gross2net" ||
       arg === "brutto-netto"
     ) {
       opts.mode = CliMode.GrossToNet;
-    } else if (
+    }
+    else if (
       arg === "spousal-net" ||
       arg === "spousal" ||
       arg === "couple-net"
     ) {
       opts.mode = CliMode.SpousalNet;
-    } else if (arg === "explain") {
+    }
+    else if (arg === "explain") {
       const nextArg = args[++i];
       if (nextArg) {
         opts.explainMonth = parseMonthArg(nextArg);
@@ -329,71 +336,100 @@ function parseArgs(args: string[]): CliOptions {
           opts.explainField = parseFieldArg(args[++i]);
         }
       }
-    } else if (arg === "--explain" || arg === "-e") {
+    }
+    else if (arg === "--explain" || arg === "-e") {
       opts.explainMonth = parseMonthArg(args[++i]);
-    } else if (arg === "--explain-month") {
+    }
+    else if (arg === "--explain-month") {
       opts.explainMonth = parseMonthArg(args[++i]);
-    } else if (arg === "--explain-field" || arg === "--field") {
+    }
+    else if (arg === "--explain-field" || arg === "--field") {
       opts.explainField = parseFieldArg(args[++i]);
-    } else if (arg === "--scenario" || arg === "-s") {
+    }
+    else if (arg === "--scenario" || arg === "-s") {
       opts.scenario = toCliScenarioTarget(args[++i] || "compare");
-    } else if (arg === "--start-year") {
+    }
+    else if (arg === "--start-year") {
       opts.startYear = Number(args[++i]) || 2026;
-    } else if (arg === "--start-month") {
+    }
+    else if (arg === "--start-month") {
       opts.startMonth = Number(args[++i]) || 1;
-    } else if (arg === "--duration" || arg === "-d") {
+    }
+    else if (arg === "--duration" || arg === "-d") {
       opts.duration = Number(args[++i]) || 60;
-    } else if (arg === "--preg-start") {
+    }
+    else if (arg === "--preg-start") {
       opts.pregStartSimMonth = Number(args[++i]) || 9;
-    } else if (arg === "--preg-year") {
+    }
+    else if (arg === "--preg-year") {
       opts.pregYear = Number(args[++i]);
-    } else if (arg === "--preg-month") {
+    }
+    else if (arg === "--preg-month") {
       opts.pregMonth = Number(args[++i]);
-    } else if (arg === "--spacing") {
+    }
+    else if (arg === "--spacing") {
       opts.birthSpacing = Number(args[++i]) || 27;
-    } else if (arg === "--raise" || arg === "-r") {
+    }
+    else if (arg === "--raise" || arg === "-r") {
       opts.annualRaise = Number(args[++i]) || 0;
-    } else if (arg === "--format" || arg === "-f") {
+    }
+    else if (arg === "--format" || arg === "-f") {
       opts.format = toCliOutputFormat(args[++i] || "table");
-    } else if (arg === "--no-13th") {
+    }
+    else if (arg === "--no-13th") {
       opts.enable13th = false;
-    } else if (arg === "--tax-month") {
+    }
+    else if (arg === "--tax-month") {
       opts.taxReturnMonth = Number(args[++i]) || 3;
-    } else if (arg === "--period") {
+    }
+    else if (arg === "--period") {
       opts.period = toSalaryPeriod(args[++i]);
-    } else if (arg === "--yearly" || arg === "-y" || arg === "--annual") {
+    }
+    else if (arg === "--yearly" || arg === "-y" || arg === "--annual") {
       opts.period = SalaryPeriod.Yearly;
-    } else if (arg === "--monthly") {
+    }
+    else if (arg === "--monthly") {
       opts.period = SalaryPeriod.Monthly;
-    } else if (arg === "--gross" || arg === "-g") {
+    }
+    else if (arg === "--gross" || arg === "-g") {
       opts.gross = Number(args[++i]);
-    } else if (arg === "--tax-class" || arg === "--class" || arg === "-c") {
+    }
+    else if (arg === "--tax-class" || arg === "--class" || arg === "-c") {
       opts.taxClass = toTaxClass(args[++i]);
-    } else if (arg === "--children" || arg === "--kids") {
+    }
+    else if (arg === "--children" || arg === "--kids") {
       opts.childrenCount = Number(args[++i]) || 0;
-    } else if (arg === "--bonus" || arg === "-b") {
+    }
+    else if (arg === "--bonus" || arg === "-b") {
       opts.bonus = Number(args[++i]);
-    } else if (arg === "--husband-gross" || arg === "--h-gross") {
+    }
+    else if (arg === "--husband-gross" || arg === "--h-gross") {
       opts.husbandGross = Number(args[++i]);
-    } else if (arg === "--wife-gross" || arg === "--w-gross") {
+    }
+    else if (arg === "--wife-gross" || arg === "--w-gross") {
       opts.wifeGross = Number(args[++i]);
-    } else if (arg === "--husband-hours" || arg === "--h-hours") {
+    }
+    else if (arg === "--husband-hours" || arg === "--h-hours") {
       opts.husbandHours = Number(args[++i]);
-    } else if (arg === "--wife-hours" || arg === "--w-hours") {
+    }
+    else if (arg === "--wife-hours" || arg === "--w-hours") {
       opts.wifeHours = Number(args[++i]);
-    } else if (
+    }
+    else if (
       arg === "--annual-bonus" ||
       arg === "--annual-bonus-gross" ||
       arg === "--bonus-gross"
     ) {
       opts.annualBonusGross = Number(args[++i]);
-    } else if (
+    }
+    else if (
       arg === "--investment" ||
       arg === "--investment-return" ||
       arg === "--capital-inflow"
     ) {
       opts.investmentReturnMonthly = Number(args[++i]);
-    } else if (arg === "--salary-mode") {
+    }
+    else if (arg === "--salary-mode") {
       opts.salaryMode =
         args[++i]?.toUpperCase() === "GROSS"
           ? SalaryInputMode.Gross
@@ -491,7 +527,8 @@ function printGrossToNetBreakdown(
     console.log(
       `  ${BOLD}Annual Gross Salary:${RESET}      ${GREEN}${BOLD}${formatEuro(b.annualGross as number)}${RESET} (${formatEuro(b.monthlyGross as number)} / month)`,
     );
-  } else {
+  }
+  else {
     console.log(
       `  ${BOLD}Monthly Gross Salary:${RESET}     ${GREEN}${BOLD}${formatEuro(b.monthlyGross as number)}${RESET} (${formatEuro(b.annualGross as number)} / year)`,
     );
@@ -552,7 +589,8 @@ function printGrossToNetBreakdown(
     console.log(
       `  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet as number)}${RESET} / month baseline (${formatEuro((b.elterngeldSyntheticNet as number) * 12)} / year)`,
     );
-  } else {
+  }
+  else {
     console.log(
       `  ${BOLD}✔ Monthly Net Take-Home Pay:${RESET}        ${GREEN}${BOLD}${formatEuro(b.monthlyNetTakeHome as number)}${RESET}`,
     );
@@ -582,7 +620,8 @@ function printSpousalGrossToNetSet(
     console.log(
       `${DIM}Husband Gross: ${formatEuro((set.husbandGross as number) * 12)} / yr (${formatEuro(set.husbandGross as number)} / mo) · Wife Gross FT: ${formatEuro((set.wifeGrossFullTime as number) * 12)} / yr (${formatEuro(set.wifeGrossFullTime as number)} / mo) (PT: ${formatEuro((set.wifeGrossPartTime as number) * 12)} / yr)${RESET}`,
     );
-  } else {
+  }
+  else {
     console.log(
       `${DIM}Husband Gross: ${formatEuro(set.husbandGross as number)} · Wife Gross FT: ${formatEuro(set.wifeGrossFullTime as number)} (PT: ${formatEuro(set.wifeGrossPartTime as number)})${RESET}`,
     );
@@ -655,7 +694,8 @@ function printSpousalGrossToNetSet(
     console.log(
       `  • Annual Temporary Tax Gap:               ${diff < 0 ? RED : GREEN}${diff >= 0 ? "+" : ""}${formatEuro(diff * 12)} / yr${RESET} ${DIM}(${formatEuro(diff)} / mo, Reconciled via § 26b Annual Tax Return)${RESET}`,
     );
-  } else {
+  }
+  else {
     console.log(`  ${BOLD}Husband Salary Breakdown:${RESET}`);
     console.log(
       `  • Tax Class III (Default):      ${GREEN}${BOLD}${formatEuro(set.husbandClass3Net as number)}${RESET} net / mo (${formatEuro((set.husbandClass3Net as number) * 12)} / yr)`,
@@ -1193,9 +1233,11 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
 
     if (opts.format === CliOutputFormat.Json) {
       console.log(
-        JSON.stringify({ ...breakdown, period: opts.period }, null, 2),
+        JSON.stringify({ ...breakdown,
+          period: opts.period }, null, 2),
       );
-    } else {
+    }
+    else {
       printGrossToNetBreakdown(breakdown, opts.period);
     }
     return;
@@ -1223,8 +1265,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     );
 
     if (opts.format === CliOutputFormat.Json) {
-      console.log(JSON.stringify({ ...spousal, period: opts.period }, null, 2));
-    } else {
+      console.log(JSON.stringify({ ...spousal,
+        period: opts.period }, null, 2));
+    }
+    else {
       printSpousalGrossToNetSet(spousal, opts.period);
     }
     return;
@@ -1241,7 +1285,8 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
     let monthIdx: number;
     if (typeof opts.explainMonth === "number") {
       monthIdx = opts.explainMonth - 1;
-    } else {
+    }
+    else {
       const q = String(opts.explainMonth).trim();
       monthIdx = targetSim.months.findIndex(
         (m) =>
@@ -1287,10 +1332,12 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
             2,
           ),
         );
-      } else {
+      }
+      else {
         printFieldExplanation(fieldExp, m.month as number, scenarioKey, m);
       }
-    } else {
+    }
+    else {
       const rowExp = getRowExplanation(m, bMonth, scenarioKey);
       if (opts.format === CliOutputFormat.Json) {
         console.log(
@@ -1308,22 +1355,28 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
             2,
           ),
         );
-      } else {
+      }
+      else {
         printMonthExplanation(rowExp, m, scenarioKey);
       }
     }
-  } else if (opts.format === CliOutputFormat.Json) {
+  }
+  else if (opts.format === CliOutputFormat.Json) {
     const resA = buildSimulation(ScenarioId.A, opts);
     const resB = buildSimulation(ScenarioId.B, opts);
     const resC = buildSimulation(ScenarioId.C, opts);
     console.log(
       JSON.stringify(
-        { options: opts, scenarioA: resA, scenarioB: resB, scenarioC: resC },
+        { options: opts,
+          scenarioA: resA,
+          scenarioB: resB,
+          scenarioC: resC },
         null,
         2,
       ),
     );
-  } else {
+  }
+  else {
     const resA = buildSimulation(ScenarioId.A, opts);
     const resB = buildSimulation(ScenarioId.B, opts);
     const resC = buildSimulation(ScenarioId.C, opts);
@@ -1332,7 +1385,8 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
 
     if (opts.format === CliOutputFormat.Milestones) {
       printMilestones(resC);
-    } else if (opts.format === CliOutputFormat.Table) {
+    }
+    else if (opts.format === CliOutputFormat.Table) {
       const target =
         opts.scenario === CliScenarioTarget.A
           ? resA
@@ -1454,8 +1508,8 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
         const bPriorSum =
           bMatchIdx >= 0
             ? bEvents
-                .slice(0, bMatchIdx + 1)
-                .reduce((acc, it) => acc + (it.amount as number), 0)
+              .slice(0, bMatchIdx + 1)
+              .reduce((acc, it) => acc + (it.amount as number), 0)
             : 0;
         const bEvCumulated = bPrevCum + bPriorSum;
         const diffEvCumulated = resB ? evCumulated - bEvCumulated : 0;

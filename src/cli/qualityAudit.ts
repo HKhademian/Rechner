@@ -1,4 +1,6 @@
-import { spawnSync } from "node:child_process";
+import {
+  spawnSync, 
+} from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -38,7 +40,11 @@ function addDiagnostic(
   file?: string,
   line?: number,
 ): void {
-  diagnostics.push({ type, category, message, file, line });
+  diagnostics.push({ type,
+    category,
+    message,
+    file,
+    line });
   const icon = type === "ERROR" ? "❌" : type === "WARN" ? "⚠️ " : "ℹ️ ";
   const loc = file ? (line ? ` [${file}:${line}]` : ` [${file}]`) : "";
   console.log(`${icon} [${type}] ${category}${loc}: ${message}`);
@@ -48,7 +54,9 @@ function runCommand(cmd: string, args: string[], category: string): boolean {
   const result = spawnSync(cmd, args, {
     stdio: "pipe",
     encoding: "utf-8",
-    env: { ...process.env, ASTRO_TELEMETRY_DISABLED: "1", DO_NOT_TRACK: "1" },
+    env: { ...process.env,
+      ASTRO_TELEMETRY_DISABLED: "1",
+      DO_NOT_TRACK: "1" },
   });
 
   if (result.status !== 0) {
@@ -77,7 +85,8 @@ function scanSourceFiles(dir: string): void {
       ) {
         scanSourceFiles(fullPath);
       }
-    } else if (
+    }
+    else if (
       entry.isFile() &&
       (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))
     ) {
@@ -151,21 +160,22 @@ async function runQualityAudit(): Promise<void> {
     "   Running comprehensive compiler, style, rule & test diagnostics...\n",
   );
 
-  // Step 1: Prettier Code Style Formatting Check
-  logSection("1. Prettier Code Style & Formatting Verification (Rule 20)");
-  const prettierBin = path.resolve(process.cwd(), "node_modules/.bin/prettier");
-  const formatOk = runCommand(
-    prettierBin,
-    ["--check", "src/**/*.{ts,tsx,css}", "test/**/*.ts"],
-    "FormatCheck",
+  // Step 1: ESLint Static Analysis & Code Style Verification
+  logSection("1. ESLint Code Style & Static Analysis Verification (Rule 20)");
+  const eslintBin = path.resolve(process.cwd(), "node_modules/.bin/eslint");
+  const lintOk = runCommand(
+    eslintBin,
+    ["src/**/*.{ts,tsx,js,mjs,astro}", "test/**/*.ts"],
+    "LintCheck",
   );
-  if (formatOk) {
+  if (lintOk) {
     console.log(
-      "✓ All source and test files strictly match Prettier code style.",
+      "✓ All source and test files strictly match ESLint code style and quality rules.",
     );
-  } else {
+  }
+  else {
     console.log(
-      "💡 Run 'npm run fix' or 'npm run format' to auto-format files.",
+      "💡 Run 'npm run fix' or 'npm run lint:fix' to auto-format files.",
     );
   }
 
@@ -196,7 +206,8 @@ async function runQualityAudit(): Promise<void> {
     console.log(
       "ℹ️  Invoked inside parent test runner; skipping recursive test suite execution.",
     );
-  } else {
+  }
+  else {
     const testOk = runCommand(
       "node",
       ["--test", "src/**/*.test.ts", "test/**/*.test.ts"],
@@ -222,10 +233,12 @@ async function runQualityAudit(): Promise<void> {
       `\n❌ Quality Audit FAILED with ${errorCount} error(s). Please resolve them before proceeding.`,
     );
     process.exit(1);
-  } else if (warnCount > 0) {
+  }
+  else if (warnCount > 0) {
     console.log(`\n⚠️  Quality Audit PASSED with ${warnCount} warning(s).`);
     process.exit(0);
-  } else {
+  }
+  else {
     console.log(
       "\n✅ Quality Audit PASSED with 100% excellence. Ready for deployment and git commit!",
     );
