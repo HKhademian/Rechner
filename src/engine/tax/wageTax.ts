@@ -13,6 +13,8 @@ import {
   toNetSalary,
   toWorkingHours,
   toTaxFactor,
+  toChildrenCount,
+  toPercentageRate,
   toStatutoryCitation,
 } from "#engine/types";
 
@@ -359,15 +361,17 @@ export function computeGrossToNetBreakdown(
     monthlyGross: toGrossSalary(gross),
     annualGross: toGrossSalary(annualGross),
     taxClass,
-    childrenCount,
+    childrenCount: toChildrenCount(childrenCount),
     healthInsurance: social.healthInsurance,
-    healthInsuranceRate: social.healthInsuranceRate,
+    healthInsuranceRate: toPercentageRate(social.healthInsuranceRate),
     pensionInsurance: social.pensionInsurance,
-    pensionInsuranceRate: social.pensionInsuranceRate,
+    pensionInsuranceRate: toPercentageRate(social.pensionInsuranceRate),
     unemploymentInsurance: social.unemploymentInsurance,
-    unemploymentInsuranceRate: social.unemploymentInsuranceRate,
+    unemploymentInsuranceRate: toPercentageRate(
+      social.unemploymentInsuranceRate,
+    ),
     careInsurance: social.careInsurance,
-    careInsuranceRate: social.careInsuranceRate,
+    careInsuranceRate: toPercentageRate(social.careInsuranceRate),
     totalSocialSecurity: social.totalSocialSecurity,
     taxableIncomeZvE: toEuroAmount(Math.round(approxZvE / 12)),
     wageTaxZone: computeWageTaxZone(approxZvE),
@@ -384,9 +388,12 @@ export function computeGrossToNetBreakdown(
     bonusTaxDeduction: bonus > 0 ? toEuroAmount(bonusTax) : undefined,
     monthlyNetTakeHome: toNetSalary(takeHomeNet),
     elterngeldSyntheticNet,
-    effectiveTaxRatePercent: Math.round(effectiveTaxRate * 10) / 10,
-    effectiveTotalDeductionRatePercent:
+    effectiveTaxRatePercent: toPercentageRate(
+      Math.round(effectiveTaxRate * 10) / 10,
+    ),
+    effectiveTotalDeductionRatePercent: toPercentageRate(
       Math.round(effectiveTotalDeductionRate * 10) / 10,
+    ),
     statutoryCitation: toStatutoryCitation(
       bonus > 0
         ? "EStG § 38b (Lohnsteuer), § 39b Abs. 3 (Sonstige Bezüge) & BEEG § 2c"

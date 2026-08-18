@@ -3,6 +3,7 @@ import {
   type NetSalary,
   type CalendarYear,
   type FullCalendarYear,
+  type ChildIndex,
   type SimulationMonth,
   type GuenstigerpruefungResult,
   toEuroAmount,
@@ -63,7 +64,7 @@ export function computeMonthlySwapWithholdingVariance(
  * Child Presence Data for Calendar Year Tax Assessment
  */
 export interface ChildYearPresence {
-  readonly childIndex: number;
+  readonly childIndex: ChildIndex | number;
   readonly birthCalendarYear: FullCalendarYear | number;
   readonly birthCalendarMonth: number; // 1..12
 }
