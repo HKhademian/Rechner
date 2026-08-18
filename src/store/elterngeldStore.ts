@@ -905,23 +905,41 @@ export const comparisonMetrics = computed(() => {
 // Legal Framework & Statutory Precedents Navigation
 // ============================================================================
 
+/**
+ * Statutory Legal Framework Rule Identifiers for Deep-Linking and Precedent Explanations.
+ */
 export const LegalRuleKey = {
+  /** Maternity protection wage replacement (§§ 19, 20 MuSchG). */
   MuSchG_Maternity: "muschg-maternity",
+  /** Proactive spousal tax class optimization (§ 2b Abs. 1 Satz 3 BEEG, BFH VI R 2/13). */
   BEEG_TaxSwap: "beeg-tax-swap",
+  /** Clean synthetic net income baseline (§ 2c BEEG). */
   BEEG_SyntheticNet: "beeg-synthetic-net",
+  /** Spousal splitting tariff joint assessment (§ 26b, § 32a Abs. 5 EStG). */
   EStG_TaxSplitting: "estg-tax-splitting",
+  /** Partnerschaftsbonus part-time window (§ 4b BEEG). */
   BEEG_PartnershipBonus: "beeg-partnership-bonus",
+  /** Geschwisterbonus older sibling addition (§ 2a BEEG). */
   BEEG_SiblingBonus: "beeg-sibling-bonus",
+  /** Child 2 sequential birth baseline dilution mitigation (§ 2b BEEG). */
   BEEG_Child2Dilution: "beeg-child2-dilution",
+  /** Monthly child benefit (§ 66 EStG Kindergeld). */
   EStG_Kindergeld: "estg-kindergeld",
 } as const;
 
+/** Type alias for statutory legal rule keys. */
 export type LegalRuleKeyType = (typeof LegalRuleKey)[keyof typeof LegalRuleKey];
 
+/** Active highlighted legal framework card identifier. */
 export const activeLegalRuleKey = signal<LegalRuleKeyType>(
   LegalRuleKey.BEEG_TaxSwap,
 );
 
+/**
+ * Smoothly scrolls the viewport to the statutory legal framework card corresponding to `ruleKey`.
+ *
+ * @param ruleKey - Statutory legal rule identifier.
+ */
 export function scrollToLegalRule(ruleKey: LegalRuleKeyType): void {
   activeLegalRuleKey.value = ruleKey;
   if (typeof document !== "undefined") {

@@ -38,55 +38,106 @@ function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
   return s;
 }
 
+/**
+ * User Input Parameters for the General German Tax & Salary Calculator.
+ */
 export interface CalculatorInputs {
+  /** Salary input frequency ("yearly" or "monthly"). */
   inputMode: "yearly" | "monthly";
+  /** Primary earner gross income amount in EUR. */
   grossIncome: number;
+  /** Primary earner tax class bracket (e.g. "I", "III", "IV", "V"). */
   taxBracket: string;
+  /** True if primary earner is subject to statutory church tax (Kirchensteuer). */
   hasChurchTax: boolean;
+  /** Federal state of employment (e.g. "bayern", "berlin"). */
   state: string;
+  /** Count of qualifying dependent children. */
   children: number;
+  /** Active working months in the calendar year (1..12). */
   workingMonths: number;
+  /** Number of salary disbursements per year (e.g. 12, 13). */
   salariesPerYear: number;
+  /** True if household includes a spouse / partner. */
   hasPartner: boolean;
+  /** Partner's gross income amount in EUR. */
   partnerGrossIncome: number;
+  /** Partner's tax class bracket. */
   partnerTaxBracket: string;
+  /** True if partner is subject to church tax. */
   partnerHasChurchTax: boolean;
+  /** Partner's federal state of employment. */
   partnerState: string;
+  /** Partner's active working months in the year (1..12). */
   partnerWorkingMonths: number;
+  /** Partner's salary disbursements per year. */
   partnerSalariesPerYear: number;
 }
 
+/**
+ * Itemized Annual Social Security and Tax Deductions for an Individual Earner.
+ */
 export interface PersonDeductions {
+  /** Annualized gross income in EUR. */
   grossYearly: number;
+  /** Annual statutory health insurance employee contribution in EUR. */
   healthCare: number;
+  /** Annual statutory public pension insurance employee contribution in EUR. */
   pension: number;
+  /** Annual statutory unemployment insurance employee contribution in EUR. */
   unemployment: number;
+  /** Annual statutory nursing care insurance employee contribution in EUR. */
   care: number;
+  /** Annual statutory wage tax withholding deduction in EUR. */
   tax: number;
+  /** Annual church tax withholding deduction in EUR. */
   churchTax: number;
+  /** Total annual social security employee deductions in EUR. */
   totalSocialSecurity: number;
+  /** Total annual deductions (taxes + social insurance) in EUR. */
   totalDeductions: number;
+  /** Annualized net take-home income in EUR. */
   netIncome: number;
+  /** Active working months count. */
   monthsWorked: number;
+  /** Number of salary payments received in the year. */
   salariesReceived: number;
 }
 
+/**
+ * Combined Spousal Household Financial Assessment Data.
+ */
 export interface HouseholdScenarioData {
+  /** Primary earner itemized deductions and net income. */
   person1: PersonDeductions;
+  /** Partner itemized deductions and net income, or null if single household. */
   partner: PersonDeductions | null;
+  /** Aggregated household financial summary. */
   household: {
+    /** Combined household annual gross earnings in EUR. */
     grossYearly: number;
+    /** Combined household annual net take-home income in EUR. */
     netIncome: number;
+    /** Total combined household tax and social deductions in EUR. */
     totalDeductions: number;
   };
 }
 
+/**
+ * Saved Household Financial Scenario Item in Local Storage.
+ */
 export interface SavedScenarioItem {
+  /** Unique scenario bookmark identifier. */
   id: string;
+  /** User-defined scenario title header. */
   title: string;
+  /** User-defined scenario notes description. */
   description: string;
+  /** ISO-8601 creation timestamp string. */
   timestamp: string;
+  /** Input parameters associated with this scenario. */
   inputs: CalculatorInputs;
+  /** Precomputed household deduction results. */
   data: HouseholdScenarioData;
 }
 

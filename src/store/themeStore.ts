@@ -21,10 +21,13 @@ function getInitialThemeMode(): ThemeMode {
   return ThemeMode.Light;
 }
 
+/** Reactive signal tracking the active theme mode preference (light, dark, or system). */
 export const activeThemeMode = signal<ThemeMode>(getInitialThemeMode());
 
 /**
- * Applies the effective theme (light / dark) to the root document element
+ * Applies the effective theme (light / dark) to the root document element.
+ *
+ * @param mode - Theme mode to activate.
  */
 export function applyThemeToDocument(mode: ThemeMode): void {
   if (typeof document === "undefined") return;
@@ -46,6 +49,11 @@ export function applyThemeToDocument(mode: ThemeMode): void {
   }
 }
 
+/**
+ * Updates the active theme mode signal, persists preference to localStorage, and updates document DOM attribute.
+ *
+ * @param newMode - Selected `ThemeMode` (Light, Dark, or System).
+ */
 export function setThemeMode(newMode: ThemeMode): void {
   activeThemeMode.value = newMode;
   if (typeof window !== "undefined") {
