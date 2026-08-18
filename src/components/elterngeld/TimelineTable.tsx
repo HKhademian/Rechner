@@ -476,13 +476,13 @@ export default function TimelineTable(): JSX.Element {
               padding: "6px 12px",
               borderRadius: "var(--border-radius-sm)",
               border: isSpecialRowsActive
-                ? "1px solid var(--color-warning)"
+                ? "1px solid var(--color-primary)"
                 : "1px solid var(--border-subtle)",
               background: isSpecialRowsActive
-                ? "var(--color-warning-bg)"
+                ? "var(--color-primary-bg)"
                 : "var(--bg-surface-secondary)",
               color: isSpecialRowsActive
-                ? "var(--color-warning)"
+                ? "var(--color-primary)"
                 : "var(--text-muted)",
               fontSize: "0.75rem",
               fontWeight: 700,
@@ -499,10 +499,11 @@ export default function TimelineTable(): JSX.Element {
                 height: "7px",
                 borderRadius: "50%",
                 backgroundColor: isSpecialRowsActive
-                  ? "var(--color-warning)"
+                  ? "var(--color-primary)"
                   : "var(--text-muted)",
               }}
             ></span>
+
             {isSpecialRowsActive
               ? "Special Rows: Separate"
               : "Special Rows: Combined"}
@@ -795,12 +796,10 @@ export default function TimelineTable(): JSX.Element {
                   </div>
                 )}
               </th>
-              <th
-                style={{ padding: "10px 12px",
-                  color: "var(--color-warning)" }}
-              >
+              <th style={{ padding: "10px 12px" }}>
                 <div>
                   <span>Special / Tax </span>
+
                   <button
                     type="button"
                     onClick={() =>
@@ -1273,14 +1272,13 @@ export default function TimelineTable(): JSX.Element {
                     const badgeClass = isCost
                       ? "badge-loss"
                       : (ev.type as string).startsWith("bonus")
-                        ? "badge-warning"
+                        ? "badge-brand"
                         : "badge-gain";
 
                     const valColor = isCost
                       ? "var(--color-loss)"
-                      : (ev.type as string).startsWith("bonus")
-                        ? "var(--color-warning)"
-                        : "var(--color-gain)";
+                      : "var(--color-gain)";
+
 
                     return (
                       <tr
@@ -1926,9 +1924,14 @@ export default function TimelineTable(): JSX.Element {
                         : m.specialEventsTotal,
                       isSpecialRowsActive ? 0 : diffSpecialEvents,
                       true,
-                      "var(--color-warning)",
+                      isSpecialRowsActive
+                        ? "var(--text-primary)"
+                        : m.specialEventsTotal < 0
+                          ? "var(--color-loss)"
+                          : "var(--color-gain)",
                       true,
                     )}
+
                   </td>
                   <td
                     style={{ padding: "8px 12px",
