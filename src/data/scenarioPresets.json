@@ -32,5 +32,16 @@
     "child1BirthMonth": 17,
     "birthSpacingMonths": 24,
     "swapLeadMonths": 7
+  },
+  "empty": {
+    "id": "empty",
+    "name": "Empty Sandbox (Zero Actions)",
+    "description": "Clean baseline state with zero action milestones or pregnancy events",
+    "customPregnancies": [],
+    "customTaxClassSwitches": [],
+    "customSalaryRaises": [],
+    "customWorkingHoursChanges": [],
+    "customFinancialEvents": []
   }
 }
+
