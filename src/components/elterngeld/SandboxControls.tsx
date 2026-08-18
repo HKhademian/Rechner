@@ -53,9 +53,11 @@ import {
   addPregnancyAction,
   updatePregnancyAction,
   removePregnancyAction,
+  removeAllPregnancyActions,
   addTaxClassSwitchAction,
   updateTaxClassSwitchAction,
   removeTaxClassSwitchAction,
+  removeAllTaxClassSwitchActions,
   addSalaryRaiseAction,
   removeSalaryRaiseAction,
   addWorkingHoursChangeAction,
@@ -63,11 +65,14 @@ import {
   removeWorkingHoursChangeAction,
   addFinancialEventAction,
   removeFinancialEventAction,
+  removeAllCustomActions,
   resetToDefaults,
+  resetToEmptyScenario,
   openExportImportModal,
   scrollToLegalRule,
   LegalRuleKey,
 } from "#store/elterngeldStore";
+
 import {
   TaxClass,
   TargetPerson,
@@ -149,7 +154,9 @@ import {
   FinancialInflowIcon,
   AddActionIcon,
   RemoveItemIcon,
+  DeleteActionIcon,
   EligibilityConfirmedIcon,
+
   StatutoryLimitationWarningIcon,
   ExternalLegalSourceIcon,
   ExpandSectionIcon,
@@ -219,6 +226,9 @@ export default function SandboxControls(): JSX.Element {
 
   // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1), M12)
   const getRelativeMonthLabel = (simMonth: number): MonthRef => {
+    if (customPregnancies.value.length === 0) {
+      return toMonthRef(simMonth);
+    }
     const p1 =
       customPregnancies.value[0]?.positiveTestSimulationMonth ??
       Math.max(
@@ -248,6 +258,9 @@ export default function SandboxControls(): JSX.Element {
 
   // Helper for short relative month label (e.g. M-8, M1, M9, M12)
   const getShortMonthLabel = (simMonth: number): MonthRef => {
+    if (customPregnancies.value.length === 0) {
+      return toMonthRef(simMonth);
+    }
     const p1 =
       customPregnancies.value[0]?.positiveTestSimulationMonth ??
       Math.max(
@@ -269,6 +282,11 @@ export default function SandboxControls(): JSX.Element {
 
     if (preset.useDefaultReset) {
       resetToDefaults();
+      return;
+    }
+
+    if (preset.id === "empty") {
+      resetToEmptyScenario();
       return;
     }
 
@@ -307,6 +325,8 @@ export default function SandboxControls(): JSX.Element {
       swapLeadMonths.value = toMonthDuration(preset.swapLeadMonths);
     }
   };
+
+
 
   const endSimMonth = simulationDurationMonths.value;
 
@@ -516,8 +536,31 @@ export default function SandboxControls(): JSX.Element {
                 <ResetDefaultsIcon size={13} />
                 Reset to Defaults
               </button>
+
+              <button
+                type="button"
+                onClick={removeAllCustomActions}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "4px",
+                  border: "1px solid var(--color-loss-border)",
+                  background: "var(--color-loss-bg)",
+                  color: "var(--color-loss)",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+                title="Remove all custom actions across all batches"
+              >
+                <DeleteActionIcon size={13} />
+                Clear All Actions
+              </button>
             </div>
           </div>
+
 
           {/* Discrete Batches: Full-Width Rows Layout with Auto-Wrapping Column Entries */}
           <div
@@ -569,6 +612,29 @@ export default function SandboxControls(): JSX.Element {
                   <span className="badge-loss">
                     {customPregnancies.value.length} Pregnancies Active
                   </span>
+                  {customPregnancies.value.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={removeAllPregnancyActions}
+                      style={{
+                        padding: "2px 6px",
+                        background: "none",
+                        border: "1px solid var(--color-loss-border)",
+                        borderRadius: "3px",
+                        color: "var(--color-loss)",
+                        fontSize: "0.65rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                      }}
+                      title="Remove all pregnancy actions"
+                    >
+                      <RemoveItemIcon size={10} />
+                      <span>Clear</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Add Pregnancy Action Button */}
@@ -576,13 +642,24 @@ export default function SandboxControls(): JSX.Element {
                   type="button"
                   onClick={() => {
                     const count = customPregnancies.value.length;
-                    const lastPreg = customPregnancies.value[count - 1];
-                    const lastDeliv =
-                      lastPreg.calculatedDeliverySimulationMonth;
-                    const newSimMonth = Math.min(
-                      simulationDurationMonths.value - 10,
-                      lastDeliv + 19,
-                    );
+                    let newSimMonth: number;
+                    if (count === 0) {
+                      newSimMonth = Math.min(
+                        simulationDurationMonths.value - 10,
+                        prePregnancyPlanningMonths.value > 0
+                          ? prePregnancyPlanningMonths.value + 1
+                          : 9,
+                      );
+                    }
+                    else {
+                      const lastPreg = customPregnancies.value[count - 1];
+                      const lastDeliv =
+                        lastPreg.calculatedDeliverySimulationMonth;
+                      newSimMonth = Math.min(
+                        simulationDurationMonths.value - 10,
+                        lastDeliv + 19,
+                      );
+                    }
 
                     const totalElapsed =
                       startCalendarMonth.value - 1 + (newSimMonth - 1);
@@ -638,50 +715,65 @@ export default function SandboxControls(): JSX.Element {
               </div>
 
               {/* Dynamic Pregnancies Auto-Wrapping Columns */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
-                  gap: "14px",
-                }}
-              >
-                {customPregnancies.value.map((preg, idx) => {
-                  const pSimMonth = preg.positiveTestSimulationMonth;
-                  const dSimMonth = preg.calculatedDeliverySimulationMonth;
-                  const isFirst = idx === 0;
+              {customPregnancies.value.length === 0 ? (
+                <div
+                  style={{
+                    padding: "16px 20px",
+                    background: "var(--bg-surface-secondary)",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px dashed var(--border-subtle)",
+                    color: "var(--text-muted)",
+                    fontSize: "0.78rem",
+                    textAlign: "center",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Zero pregnancy milestone actions currently active. Click &quot;Add Pregnancy&quot; above to model maternity protection, parental leave, and ElterngeldPlus benefits.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+                    gap: "14px",
+                  }}
+                >
+                  {customPregnancies.value.map((preg, idx) => {
+                    const pSimMonth = preg.positiveTestSimulationMonth;
+                    const dSimMonth = preg.calculatedDeliverySimulationMonth;
+                    const isFirst = idx === 0;
 
-                  return (
-                    <div
-                      key={preg.pregnancyId || `preg-${idx}`}
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          <span
+                    return (
+                      <div
+                        key={preg.pregnancyId || `preg-${idx}`}
+                        style={{
+                          background: "var(--bg-surface-secondary)",
+                          padding: "12px 14px",
+                          borderRadius: "var(--border-radius-sm)",
+                          border: "1px solid var(--border-subtle)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <div>
+                          <div
                             style={{
-                              fontSize: "0.80rem",
-                              fontWeight: 800,
-                              color: "var(--color-loss)",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: "8px",
                             }}
                           >
-                            Child #{preg.childIndex} Pregnancy
-                          </span>
-                          {customPregnancies.value.length > 1 && (
+                            <span
+                              style={{
+                                fontSize: "0.80rem",
+                                fontWeight: 800,
+                                color: "var(--color-loss)",
+                              }}
+                            >
+                              Child #{preg.childIndex} Pregnancy
+                            </span>
                             <button
                               type="button"
                               onClick={() =>
@@ -704,340 +796,340 @@ export default function SandboxControls(): JSX.Element {
                               <RemoveItemIcon size={11} />
                               <span>Remove</span>
                             </button>
-                          )}
-                        </div>
-
-                        {isFirst ? (
-                          <div>
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: "6px",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              <div>
-                                <label
-                                  style={{
-                                    fontSize: "0.68rem",
-                                    color: "var(--text-muted)",
-                                    display: "block",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  Positive Month:
-                                </label>
-                                <select
-                                  value={
-                                    ((startCalendarMonth.value -
-                                      1 +
-                                      pSimMonth -
-                                      1) %
-                                      12) +
-                                    1
-                                  }
-                                  onChange={(e) => {
-                                    const m = Number(
-                                      (e.target as HTMLSelectElement).value,
-                                    );
-                                    const curY =
-                                      startCalendarYear.value +
-                                      Math.floor(
-                                        (startCalendarMonth.value -
-                                          1 +
-                                          (pSimMonth - 1)) /
-                                          12,
-                                      );
-                                    setPregnancy1PositiveDate(curY, m);
-                                  }}
-                                  style={{
-                                    width: "100%",
-                                    background: "var(--bg-surface)",
-                                    color: "var(--text-primary)",
-                                    border: "1px solid var(--border-subtle)",
-                                    borderRadius: "4px",
-                                    padding: "4px 5px",
-                                    fontSize: "0.72rem",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {MONTH_NAMES.map((name, mIdx) => (
-                                    <option key={mIdx + 1} value={mIdx + 1}>
-                                      {name.slice(0, 14)}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div>
-                                <label
-                                  style={{
-                                    fontSize: "0.68rem",
-                                    color: "var(--text-muted)",
-                                    display: "block",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  Positive Year:
-                                </label>
-                                <select
-                                  value={
-                                    startCalendarYear.value +
-                                    Math.floor(
-                                      (startCalendarMonth.value -
-                                        1 +
-                                        (pSimMonth - 1)) /
-                                        12,
-                                    )
-                                  }
-                                  onChange={(e) => {
-                                    const y = Number(
-                                      (e.target as HTMLSelectElement).value,
-                                    );
-                                    const curM =
-                                      ((startCalendarMonth.value -
-                                        1 +
-                                        pSimMonth -
-                                        1) %
-                                        12) +
-                                      1;
-                                    setPregnancy1PositiveDate(y, curM);
-                                  }}
-                                  style={{
-                                    width: "100%",
-                                    background: "var(--bg-surface)",
-                                    color: "var(--text-primary)",
-                                    border: "1px solid var(--border-subtle)",
-                                    borderRadius: "4px",
-                                    padding: "4px 5px",
-                                    fontSize: "0.72rem",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {[
-                                    2024, 2025, 2026, 2027, 2028, 2029, 2030,
-                                    2031, 2032, 2033, 2034, 2035,
-                                  ].map((y) => (
-                                    <option key={y} value={y}>
-                                      {y}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                fontSize: "0.72rem",
-                                color: "var(--text-secondary)",
-                                marginBottom: "6px",
-                              }}
-                            >
-                              <span>
-                                Positive:{" "}
-                                <strong style={{ color: "var(--color-loss)" }}>
-                                  {getCalDate(pSimMonth)}
-                                </strong>{" "}
-                                ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
-                                {getMonthId(pSimMonth)}
-                              </span>
-                              <span>
-                                Birth 1:{" "}
-                                <strong
-                                  style={{ color: "var(--color-primary)" }}
-                                >
-                                  {getCalDate(dSimMonth)}
-                                </strong>{" "}
-                                ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
-                                {getMonthId(dSimMonth)}
-                              </span>
-                            </div>
                           </div>
-                        ) : (
-                          <div>
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: "6px",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              <div>
-                                <label
-                                  style={{
-                                    fontSize: "0.68rem",
-                                    color: "var(--text-muted)",
-                                    display: "block",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  Positive Month:
-                                </label>
-                                <select
-                                  value={
-                                    ((startCalendarMonth.value -
+
+
+                          {isFirst ? (
+                            <div>
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1fr 1fr",
+                                  gap: "6px",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                <div>
+                                  <label
+                                    style={{
+                                      fontSize: "0.68rem",
+                                      color: "var(--text-muted)",
+                                      display: "block",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    Positive Month:
+                                  </label>
+                                  <select
+                                    value={
+                                      ((startCalendarMonth.value -
                                       1 +
                                       pSimMonth -
                                       1) %
                                       12) +
                                     1
-                                  }
-                                  onChange={(e) => {
-                                    const m = Number(
-                                      (e.target as HTMLSelectElement).value,
-                                    );
-                                    const curY =
-                                      startCalendarYear.value +
+                                    }
+                                    onChange={(e) => {
+                                      const m = Number(
+                                        (e.target as HTMLSelectElement).value,
+                                      );
+                                      const curY =
+                                        startCalendarYear.value +
                                       Math.floor(
                                         (startCalendarMonth.value -
                                           1 +
                                           (pSimMonth - 1)) /
                                           12,
                                       );
-                                    const totalElapsed =
-                                      (curY - startCalendarYear.value) * 12 +
-                                      (m - startCalendarMonth.value);
-                                    const newPSim = Math.max(
-                                      1,
-                                      totalElapsed + 1,
-                                    );
-                                    const newDSim = newPSim + 8;
-                                    updatePregnancyAction(preg.pregnancyId, {
-                                      positiveTestCalendarMonth:
-                                        toCalendarMonth(m),
-                                      positiveTestCalendarYear:
-                                        toFullCalendarYear(curY),
-                                      positiveTestSimulationMonth:
-                                        toSimulationMonth(newPSim),
-                                      calculatedDeliverySimulationMonth:
-                                        toSimulationMonth(newDSim),
-                                    });
-                                  }}
-                                  style={{
-                                    width: "100%",
-                                    background: "var(--bg-surface)",
-                                    color: "var(--text-primary)",
-                                    border: "1px solid var(--border-subtle)",
-                                    borderRadius: "4px",
-                                    padding: "4px 5px",
-                                    fontSize: "0.72rem",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {MONTH_NAMES.map((name, mIdx) => (
-                                    <option key={mIdx + 1} value={mIdx + 1}>
-                                      {name.slice(0, 14)}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div>
-                                <label
-                                  style={{
-                                    fontSize: "0.68rem",
-                                    color: "var(--text-muted)",
-                                    display: "block",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  Positive Year:
-                                </label>
-                                <select
-                                  value={
-                                    startCalendarYear.value +
+                                      setPregnancy1PositiveDate(curY, m);
+                                    }}
+                                    style={{
+                                      width: "100%",
+                                      background: "var(--bg-surface)",
+                                      color: "var(--text-primary)",
+                                      border: "1px solid var(--border-subtle)",
+                                      borderRadius: "4px",
+                                      padding: "4px 5px",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {MONTH_NAMES.map((name, mIdx) => (
+                                      <option key={mIdx + 1} value={mIdx + 1}>
+                                        {name.slice(0, 14)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label
+                                    style={{
+                                      fontSize: "0.68rem",
+                                      color: "var(--text-muted)",
+                                      display: "block",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    Positive Year:
+                                  </label>
+                                  <select
+                                    value={
+                                      startCalendarYear.value +
                                     Math.floor(
                                       (startCalendarMonth.value -
                                         1 +
                                         (pSimMonth - 1)) /
                                         12,
                                     )
-                                  }
-                                  onChange={(e) => {
-                                    const y = Number(
-                                      (e.target as HTMLSelectElement).value,
-                                    );
-                                    const curM =
-                                      ((startCalendarMonth.value -
+                                    }
+                                    onChange={(e) => {
+                                      const y = Number(
+                                        (e.target as HTMLSelectElement).value,
+                                      );
+                                      const curM =
+                                        ((startCalendarMonth.value -
                                         1 +
                                         pSimMonth -
                                         1) %
                                         12) +
                                       1;
-                                    const totalElapsed =
-                                      (y - startCalendarYear.value) * 12 +
-                                      (curM - startCalendarMonth.value);
-                                    const newPSim = Math.max(
-                                      1,
-                                      totalElapsed + 1,
-                                    );
-                                    const newDSim = newPSim + 8;
-                                    updatePregnancyAction(preg.pregnancyId, {
-                                      positiveTestCalendarMonth:
-                                        toCalendarMonth(curM),
-                                      positiveTestCalendarYear:
-                                        toFullCalendarYear(y),
-                                      positiveTestSimulationMonth:
-                                        toSimulationMonth(newPSim),
-                                      calculatedDeliverySimulationMonth:
-                                        toSimulationMonth(newDSim),
-                                    });
-                                  }}
-                                  style={{
-                                    width: "100%",
-                                    background: "var(--bg-surface)",
-                                    color: "var(--text-primary)",
-                                    border: "1px solid var(--border-subtle)",
-                                    borderRadius: "4px",
-                                    padding: "4px 5px",
-                                    fontSize: "0.72rem",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {[
-                                    2024, 2025, 2026, 2027, 2028, 2029, 2030,
-                                    2031, 2032, 2033, 2034, 2035,
-                                  ].map((y) => (
-                                    <option key={y} value={y}>
-                                      {y}
-                                    </option>
-                                  ))}
-                                </select>
+                                      setPregnancy1PositiveDate(y, curM);
+                                    }}
+                                    style={{
+                                      width: "100%",
+                                      background: "var(--bg-surface)",
+                                      color: "var(--text-primary)",
+                                      border: "1px solid var(--border-subtle)",
+                                      borderRadius: "4px",
+                                      padding: "4px 5px",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {[
+                                      2024, 2025, 2026, 2027, 2028, 2029, 2030,
+                                      2031, 2032, 2033, 2034, 2035,
+                                    ].map((y) => (
+                                      <option key={y} value={y}>
+                                        {y}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  fontSize: "0.72rem",
+                                  color: "var(--text-secondary)",
+                                  marginBottom: "6px",
+                                }}
+                              >
+                                <span>
+                                  Positive:{" "}
+                                  <strong style={{ color: "var(--color-loss)" }}>
+                                    {getCalDate(pSimMonth)}
+                                  </strong>{" "}
+                                  ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
+                                  {getMonthId(pSimMonth)}
+                                </span>
+                                <span>
+                                  Birth 1:{" "}
+                                  <strong
+                                    style={{ color: "var(--color-primary)" }}
+                                  >
+                                    {getCalDate(dSimMonth)}
+                                  </strong>{" "}
+                                  ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
+                                  {getMonthId(dSimMonth)}
+                                </span>
                               </div>
                             </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                fontSize: "0.72rem",
-                                color: "var(--text-secondary)",
-                                marginBottom: "6px",
-                              }}
-                            >
-                              <span>
-                                Positive:{" "}
-                                <strong style={{ color: "var(--color-loss)" }}>
-                                  {getCalDate(pSimMonth)}
-                                </strong>{" "}
-                                ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
-                                {getMonthId(pSimMonth)}
-                              </span>
-                              <span>
-                                Birth #{preg.childIndex}:{" "}
-                                <strong
-                                  style={{ color: "var(--color-primary)" }}
-                                >
-                                  {getCalDate(dSimMonth)}
-                                </strong>{" "}
-                                ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
-                                {getMonthId(dSimMonth)}
-                              </span>
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "0.66rem",
-                                color:
+                          ) : (
+                            <div>
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1fr 1fr",
+                                  gap: "6px",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                <div>
+                                  <label
+                                    style={{
+                                      fontSize: "0.68rem",
+                                      color: "var(--text-muted)",
+                                      display: "block",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    Positive Month:
+                                  </label>
+                                  <select
+                                    value={
+                                      ((startCalendarMonth.value -
+                                      1 +
+                                      pSimMonth -
+                                      1) %
+                                      12) +
+                                    1
+                                    }
+                                    onChange={(e) => {
+                                      const m = Number(
+                                        (e.target as HTMLSelectElement).value,
+                                      );
+                                      const curY =
+                                        startCalendarYear.value +
+                                      Math.floor(
+                                        (startCalendarMonth.value -
+                                          1 +
+                                          (pSimMonth - 1)) /
+                                          12,
+                                      );
+                                      const totalElapsed =
+                                        (curY - startCalendarYear.value) * 12 +
+                                      (m - startCalendarMonth.value);
+                                      const newPSim = Math.max(
+                                        1,
+                                        totalElapsed + 1,
+                                      );
+                                      const newDSim = newPSim + 8;
+                                      updatePregnancyAction(preg.pregnancyId, {
+                                        positiveTestCalendarMonth:
+                                        toCalendarMonth(m),
+                                        positiveTestCalendarYear:
+                                        toFullCalendarYear(curY),
+                                        positiveTestSimulationMonth:
+                                        toSimulationMonth(newPSim),
+                                        calculatedDeliverySimulationMonth:
+                                        toSimulationMonth(newDSim),
+                                      });
+                                    }}
+                                    style={{
+                                      width: "100%",
+                                      background: "var(--bg-surface)",
+                                      color: "var(--text-primary)",
+                                      border: "1px solid var(--border-subtle)",
+                                      borderRadius: "4px",
+                                      padding: "4px 5px",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {MONTH_NAMES.map((name, mIdx) => (
+                                      <option key={mIdx + 1} value={mIdx + 1}>
+                                        {name.slice(0, 14)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label
+                                    style={{
+                                      fontSize: "0.68rem",
+                                      color: "var(--text-muted)",
+                                      display: "block",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    Positive Year:
+                                  </label>
+                                  <select
+                                    value={
+                                      startCalendarYear.value +
+                                    Math.floor(
+                                      (startCalendarMonth.value -
+                                        1 +
+                                        (pSimMonth - 1)) /
+                                        12,
+                                    )
+                                    }
+                                    onChange={(e) => {
+                                      const y = Number(
+                                        (e.target as HTMLSelectElement).value,
+                                      );
+                                      const curM =
+                                        ((startCalendarMonth.value -
+                                        1 +
+                                        pSimMonth -
+                                        1) %
+                                        12) +
+                                      1;
+                                      const totalElapsed =
+                                        (y - startCalendarYear.value) * 12 +
+                                      (curM - startCalendarMonth.value);
+                                      const newPSim = Math.max(
+                                        1,
+                                        totalElapsed + 1,
+                                      );
+                                      const newDSim = newPSim + 8;
+                                      updatePregnancyAction(preg.pregnancyId, {
+                                        positiveTestCalendarMonth:
+                                        toCalendarMonth(curM),
+                                        positiveTestCalendarYear:
+                                        toFullCalendarYear(y),
+                                        positiveTestSimulationMonth:
+                                        toSimulationMonth(newPSim),
+                                        calculatedDeliverySimulationMonth:
+                                        toSimulationMonth(newDSim),
+                                      });
+                                    }}
+                                    style={{
+                                      width: "100%",
+                                      background: "var(--bg-surface)",
+                                      color: "var(--text-primary)",
+                                      border: "1px solid var(--border-subtle)",
+                                      borderRadius: "4px",
+                                      padding: "4px 5px",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {[
+                                      2024, 2025, 2026, 2027, 2028, 2029, 2030,
+                                      2031, 2032, 2033, 2034, 2035,
+                                    ].map((y) => (
+                                      <option key={y} value={y}>
+                                        {y}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  fontSize: "0.72rem",
+                                  color: "var(--text-secondary)",
+                                  marginBottom: "6px",
+                                }}
+                              >
+                                <span>
+                                  Positive:{" "}
+                                  <strong style={{ color: "var(--color-loss)" }}>
+                                    {getCalDate(pSimMonth)}
+                                  </strong>{" "}
+                                  ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
+                                  {getMonthId(pSimMonth)}
+                                </span>
+                                <span>
+                                  Birth #{preg.childIndex}:{" "}
+                                  <strong
+                                    style={{ color: "var(--color-primary)" }}
+                                  >
+                                    {getCalDate(dSimMonth)}
+                                  </strong>{" "}
+                                  ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
+                                  {getMonthId(dSimMonth)}
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.66rem",
+                                  color:
                                   dSimMonth -
                                     (customPregnancies.value[idx - 1]
                                       ?.calculatedDeliverySimulationMonth ||
@@ -1045,75 +1137,80 @@ export default function SandboxControls(): JSX.Element {
                                   36
                                     ? "var(--color-gain)"
                                     : "var(--color-warning)",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                marginBottom: "4px",
-                              }}
-                            >
-                              {dSimMonth -
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  marginBottom: "4px",
+                                }}
+                              >
+                                {dSimMonth -
                                 (customPregnancies.value[idx - 1]
                                   ?.calculatedDeliverySimulationMonth ||
                                   0) <
                               36 ? (
-                                  <>
-                                    <EligibilityConfirmedIcon size={11} />
-                                    <span>
-                                      Sibling Bonus (+10%) eligible (
-                                      {dSimMonth -
+                                    <>
+                                      <EligibilityConfirmedIcon size={11} />
+                                      <span>
+                                        Sibling Bonus (+10%) eligible (
+                                        {dSimMonth -
                                       (customPregnancies.value[idx - 1]
                                         ?.calculatedDeliverySimulationMonth ||
                                         0)}
-                                      M spacing)
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <RemoveItemIcon size={11} />
-                                    <span>
-                                      Sibling bonus expired (
-                                      {dSimMonth -
+                                        M spacing)
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <RemoveItemIcon size={11} />
+                                      <span>
+                                        Sibling bonus expired (
+                                        {dSimMonth -
                                       (customPregnancies.value[idx - 1]
                                         ?.calculatedDeliverySimulationMonth ||
                                         0)}
-                                      M spacing)
-                                    </span>
-                                  </>
-                                )}
+                                        M spacing)
+                                      </span>
+                                    </>
+                                  )}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
 
-                      <div
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
-                          background: "var(--bg-surface)",
-                          padding: "3px 6px",
-                          borderRadius: "3px",
-                          marginTop: "6px",
-                        }}
-                      >
-                        {isFirst ? (
-                          <>
-                            ↳ Sim Start:{" "}
-                            <strong>01.{startCalendarYear.value}</strong> (
-                            {prePregnancyPlanningMonths.value}M planning before
-                            pregnancy)
-                          </>
-                        ) : (
-                          <>
-                            ↳ Assessment period based on prior 12-month net
-                            earnings (§ 2b BEEG).
-                          </>
-                        )}
+                        <div
+                          style={{
+                            fontSize: "0.65rem",
+                            color: "var(--text-muted)",
+                            background: "var(--bg-surface)",
+                            padding: "3px 6px",
+                            borderRadius: "3px",
+                            marginTop: "6px",
+                          }}
+                        >
+                          {isFirst ? (
+                            <>
+                              ↳ Sim Start:{" "}
+                              <strong>01.{startCalendarYear.value}</strong> (
+                              {prePregnancyPlanningMonths.value}M planning before
+                              pregnancy)
+                            </>
+                          ) : (
+                            <>
+                              ↳ Assessment period based on prior 12-month net
+                              earnings (§ 2b BEEG).
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
+
+
+
+
 
             {/* ======================================================== */}
             {/* BATCH 2: TAX CLASSES & STRATEGY (§ 2b BEEG) */}
@@ -1180,6 +1277,29 @@ export default function SandboxControls(): JSX.Element {
                   <span className="badge-gain">
                     {customTaxClassSwitches.value.length} Switches Active
                   </span>
+                  {customTaxClassSwitches.value.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={removeAllTaxClassSwitchActions}
+                      style={{
+                        padding: "2px 6px",
+                        background: "none",
+                        border: "1px solid var(--color-loss-border)",
+                        borderRadius: "3px",
+                        color: "var(--color-loss)",
+                        fontSize: "0.65rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                      }}
+                      title="Remove all tax class switch actions"
+                    >
+                      <RemoveItemIcon size={10} />
+                      <span>Clear</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Add Tax Class Switch Button */}
@@ -1194,7 +1314,9 @@ export default function SandboxControls(): JSX.Element {
                       ];
                     const delivery =
                       nextChild?.calculatedDeliverySimulationMonth ||
-                      child1BirthMonth.value + birthSpacingMonths.value;
+                      (customPregnancies.value.length === 0
+                        ? 12
+                        : child1BirthMonth.value + birthSpacingMonths.value);
                     const start = Math.max(1, delivery - 8);
                     const totalElapsed =
                       startCalendarMonth.value - 1 + (start - 1);
@@ -1233,6 +1355,7 @@ export default function SandboxControls(): JSX.Element {
                     {customTaxClassSwitches.value.length + 1})
                   </span>
                 </button>
+
               </div>
 
               {/* Dynamic Tax Class Switches Auto-Wrapping Columns */}
@@ -1540,30 +1663,29 @@ export default function SandboxControls(): JSX.Element {
                               {useFac && targetW === TaxClass.IV ? " (F)" : ""}
                             </span>
                           </span>
-                          {customTaxClassSwitches.value.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                removeTaxClassSwitchAction(sw.switchId)
-                              }
-                              style={{
-                                background: "var(--color-loss-bg)",
-                                color: "var(--color-loss)",
-                                border: "1px solid var(--color-loss-border)",
-                                borderRadius: "3px",
-                                padding: "2px 6px",
-                                fontSize: "0.65rem",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <RemoveItemIcon size={11} />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeTaxClassSwitchAction(sw.switchId)
+                            }
+                            style={{
+                              background: "var(--color-loss-bg)",
+                              color: "var(--color-loss)",
+                              border: "1px solid var(--color-loss-border)",
+                              borderRadius: "3px",
+                              padding: "2px 6px",
+                              fontSize: "0.65rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <RemoveItemIcon size={11} />
+                          </button>
                         </div>
+
 
                         {/* Quick Presets for Target Tax Class Combination */}
                         <div
