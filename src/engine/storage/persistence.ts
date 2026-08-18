@@ -57,6 +57,7 @@ import {
 } from "#engine/types";
 
 import defaultScenarioData from "../../data/defaultScenario.json" with { type: "json" };
+import testScenarioData from "../../data/testScenario.json" with { type: "json" };
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
@@ -544,6 +545,16 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
  */
 export function getDefaultPersistedState(): ElterngeldPersistedState {
   return parseRawScenarioData(defaultScenarioData);
+}
+
+/**
+ * Returns the canonical test scenario simulation state parsed directly from testScenario.json.
+ * Used across the test suite for deterministic assertions decoupled from user default modifications.
+ *
+ * @returns Canonical testing `ElterngeldPersistedState` specification.
+ */
+export function getTestPersistedState(): ElterngeldPersistedState {
+  return parseRawScenarioData(testScenarioData);
 }
 
 /**
@@ -1305,13 +1316,16 @@ export function serializeState(state: ElterngeldPersistedState): string {
  * @param jsonStr - Raw JSON string.
  * @returns Validated `ElterngeldPersistedState`.
  */
-export function deserializeState(jsonStr: string): ElterngeldPersistedState {
+export function deserializeState(
+  jsonStr: string,
+  fallback?: ElterngeldPersistedState,
+): ElterngeldPersistedState {
   try {
     const raw = JSON.parse(jsonStr);
-    return validateAndSanitizePersistedState(raw);
+    return validateAndSanitizePersistedState(raw, fallback);
   }
   catch {
-    return getDefaultPersistedState();
+    return fallback ?? getDefaultPersistedState();
   }
 }
 
