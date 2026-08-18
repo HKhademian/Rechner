@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Local custom user scenario (optional, unversioned)
+src/data/userScenario.json
