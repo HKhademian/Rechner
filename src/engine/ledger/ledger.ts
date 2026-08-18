@@ -13,12 +13,14 @@ import {
   type MonthRef,
   type MonthSimRef,
   type FullCalendarYear,
+  type CalendarLabel,
   type EuroAmount,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
   type SpecialEventItem,
   toEuroAmount,
   toFullCalendarYear,
+  toCalendarLabel,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
@@ -46,8 +48,8 @@ export interface LedgerMonthInput {
   readonly calendarYearNum: FullCalendarYear;
   /** 1-based Gregorian calendar month (1..12). */
   readonly calendarMonthNum: CalendarMonth;
-  /** Formatted calendar label (e.g. 'September 2027'). */
-  readonly calendarLabel: string;
+  /** Formatted calendar label (e.g. '09.2027'). */
+  readonly calendarLabel: CalendarLabel;
   /** Relative birth timing reference label (e.g. 'Birth 1 + 3M'). */
   readonly relativeBirthLabel: string;
   /** Display relative month reference. */
@@ -169,7 +171,7 @@ export function buildMonthlyLedgerEntry(
     monthInYear: input.monthInYear,
     calendarYearNum: toFullCalendarYear(input.calendarYearNum),
     calendarMonthNum: input.calendarMonthNum,
-    calendarLabel: input.calendarLabel,
+    calendarLabel: toCalendarLabel(input.calendarLabel),
     relativeBirthLabel: input.relativeBirthLabel,
     relativeMonthLabel: relLabel,
     relativeMonthIndex: relIndex,

@@ -13,6 +13,7 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toCalendarLabel,
   toWorkingHours,
   toFullCalendarYear,
   toMonthDuration,
@@ -166,14 +167,14 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
         // Month 1
         assert.equal(res.months[0].calendarMonthNum, startM);
         assert.equal(res.months[0].calendarYearNum, 2026);
-        const expectedM1Label = `${String(startM).padStart(2, "0")}.2026`;
+        const expectedM1Label = toCalendarLabel(startM, 2026);
         assert.equal(res.months[0].calendarLabel, expectedM1Label);
 
         // Month 12
         const totalElapsed = startM - 1 + 11;
         const endMonthNum = (totalElapsed % 12) + 1;
         const endYearNum = 2026 + Math.floor(totalElapsed / 12);
-        const expectedM12Label = `${String(endMonthNum).padStart(2, "0")}.${endYearNum}`;
+        const expectedM12Label = toCalendarLabel(endMonthNum, endYearNum);
         assert.equal(res.months[11].calendarLabel, expectedM12Label);
       }
     });
@@ -196,9 +197,9 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
           salaryRaises: emptyRaises,
         });
 
-        assert.equal(res.months[0].calendarLabel, `06.${y}`);
-        assert.equal(res.months[12].calendarLabel, `06.${y + 1}`);
-        assert.equal(res.months[23].calendarLabel, `05.${y + 2}`);
+        assert.equal(res.months[0].calendarLabel, toCalendarLabel(6, y));
+        assert.equal(res.months[12].calendarLabel, toCalendarLabel(6, y + 1));
+        assert.equal(res.months[23].calendarLabel, toCalendarLabel(5, y + 2));
       }
     });
 
@@ -341,13 +342,13 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
 
       // Month 6 (June 2026): 40% Vacation Bonus
       const m6 = res.months[5];
-      assert.equal(m6.calendarLabel, "06.2026");
+      assert.equal(m6.calendarLabel, toCalendarLabel("06.2026"));
       assert.equal(m6.bonus40Amount, Math.round(0.4 * 2895));
       assert.equal(m6.bonus60Amount, 0);
 
       // Month 12 (December 2026): 60% Christmas Bonus
       const m12 = res.months[11];
-      assert.equal(m12.calendarLabel, "12.2026");
+      assert.equal(m12.calendarLabel, toCalendarLabel("12.2026"));
       assert.equal(m12.bonus40Amount, 0);
       assert.equal(m12.bonus60Amount, Math.round(0.6 * 2895));
     });
@@ -370,12 +371,12 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
 
       // Month 4 (April 2026) -> Receives refund for 2025
       const m4 = res.months[3];
-      assert.equal(m4.calendarLabel, "04.2026");
+      assert.equal(m4.calendarLabel, toCalendarLabel("04.2026"));
       assert.equal(m4.taxRefund, 850);
 
       // Month 16 (April 2027) -> Receives refund for 2026
       const m16 = res.months[15];
-      assert.equal(m16.calendarLabel, "04.2027");
+      assert.equal(m16.calendarLabel, toCalendarLabel("04.2027"));
       assert.equal(m16.taxRefund, 850);
 
       // Other months have 0 tax refund

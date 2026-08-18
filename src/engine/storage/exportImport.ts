@@ -26,6 +26,7 @@ import {
   toMonthId,
   toMonthRef,
   toMonthSimRef,
+  toCalendarLabel,
 } from "#engine/types";
 import {
   type ElterngeldPersistedState,
@@ -306,7 +307,7 @@ export function exportStateToTextReport(
       Math.floor((p.positiveTestCalendarMonth - 1 + 8) / 12);
     const delId = toMonthId(delCalMonth, delCalYear);
     lines.push(
-      `   - Child #${p.childIndex}: Positive Test ${posId} (${String(p.positiveTestCalendarMonth).padStart(2, "0")}.${p.positiveTestCalendarYear} · M${p.childIndex === 1 ? "1 (Pregnancy Positive)" : p.positiveTestSimulationMonth}) -> Delivery ${delId} (${String(delCalMonth).padStart(2, "0")}.${delCalYear} · M${p.childIndex === 1 ? "9 (Birth 1)" : p.calculatedDeliverySimulationMonth}) (Father: ${p.fatherPartnerMonthsCount} partner months)`,
+      `   - Child #${p.childIndex}: Positive Test ${posId} (${toCalendarLabel(p.positiveTestCalendarMonth, p.positiveTestCalendarYear)} · M${p.childIndex === 1 ? "1 (Pregnancy Positive)" : p.positiveTestSimulationMonth}) -> Delivery ${delId} (${toCalendarLabel(delCalMonth, delCalYear)} · M${p.childIndex === 1 ? "9 (Birth 1)" : p.calculatedDeliverySimulationMonth}) (Father: ${p.fatherPartnerMonthsCount} partner months)`,
     );
   });
 
@@ -318,7 +319,7 @@ export function exportStateToTextReport(
         s.effectiveCalendarYear,
       );
       lines.push(
-        `   - Swap #${idx + 1}: Effective ${effId} (${String(s.effectiveCalendarMonth).padStart(2, "0")}.${s.effectiveCalendarYear}) -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
+        `   - Swap #${idx + 1}: Effective ${effId} (${toCalendarLabel(s.effectiveCalendarMonth, s.effectiveCalendarYear)}) -> Target H: ${s.targetHusbandTaxClass} | W: ${s.targetWifeTaxClass}${s.targetUseTaxFactor ? " (Faktorverfahren)" : ""} (Revert: M${s.revertSimulationMonth ?? "End"})`,
       );
       lines.push(`     ↳ Reason: ${s.statutoryReason}`);
     },
@@ -336,7 +337,7 @@ export function exportStateToTextReport(
           w.effectiveCalendarYear,
         );
         lines.push(
-          `   - Hours Change #${idx + 1}: Effective ${effId} (${String(w.effectiveCalendarMonth).padStart(2, "0")}.${w.effectiveCalendarYear}) -> ${w.targetPerson}: ${w.weeklyHours} h/week (${w.reason})`,
+          `   - Hours Change #${idx + 1}: Effective ${effId} (${toCalendarLabel(w.effectiveCalendarMonth, w.effectiveCalendarYear)}) -> ${w.targetPerson}: ${w.weeklyHours} h/week (${w.reason})`,
         );
       },
     );
@@ -351,7 +352,7 @@ export function exportStateToTextReport(
           e.effectiveCalendarYear,
         );
         lines.push(
-          `   - Event #${idx + 1}: ${effId} (${String(e.effectiveCalendarMonth).padStart(2, "0")}.${e.effectiveCalendarYear}) -> ${e.title}: ${fmtEur(e.amount)} [${e.category}]`,
+          `   - Event #${idx + 1}: ${effId} (${toCalendarLabel(e.effectiveCalendarMonth, e.effectiveCalendarYear)}) -> ${e.title}: ${fmtEur(e.amount)} [${e.category}]`,
         );
       },
     );

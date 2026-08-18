@@ -92,9 +92,11 @@ import {
   type MonthId,
   type MonthRef,
   type MonthSimRef,
+  type CalendarLabel,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
+  toCalendarLabel,
 } from "#engine/types";
 import {
   getDefaultPersistedState, 
@@ -195,11 +197,11 @@ export default function SandboxControls(): JSX.Element {
     useState<boolean>(false);
 
   // Helper to compute calendar date for simulation month offset (e.g. 09.2026)
-  const getCalDate = (simMonth: number): string => {
+  const getCalDate = (simMonth: number): CalendarLabel => {
     const totalElapsed = startCalendarMonth.value - 1 + (simMonth - 1);
     const m = (totalElapsed % 12) + 1;
     const y = startCalendarYear.value + Math.floor(totalElapsed / 12);
-    return `${String(m).padStart(2, "0")}.${y}`;
+    return toCalendarLabel(m, y);
   };
 
   // Helper to compute statutory absolute MonthId (e.g. M09.2027)

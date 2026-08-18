@@ -29,11 +29,13 @@ import {
   type GrossSalary,
   type WorkingHours,
   type FullCalendarYear,
+  type CalendarLabel,
   type MonthDuration,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
   toCalendarMonth,
+  toCalendarLabel,
   toMonthDuration,
   toChildrenCount,
   toChildIndex,
@@ -213,7 +215,7 @@ export function runScenarioBatches(
     readonly monthInYear: CalendarMonth;
     readonly calendarYearNum: FullCalendarYear;
     readonly calendarMonthNum: CalendarMonth;
-    readonly calendarLabel: string;
+    readonly calendarLabel: CalendarLabel;
     readonly relativeBirthLabel: string;
     readonly relativeMonthLabel: MonthRef;
     readonly monthRef: MonthRef;
@@ -255,7 +257,7 @@ export function runScenarioBatches(
     const calendarYearNum = toFullCalendarYear(
       startYear + Math.floor(totalElapsedMonths / 12),
     );
-    const calendarLabel = `${String(calendarMonthNum).padStart(2, "0")}.${calendarYearNum}`;
+    const calendarLabel = toCalendarLabel(calendarMonthNum, calendarYearNum);
     const monthId = toMonthId(calendarMonthNum, calendarYearNum);
     const year = toCalendarYear(Math.min(10, Math.ceil(m / 12)));
     const monthInYear = toCalendarMonth(((m - 1) % 12) + 1);

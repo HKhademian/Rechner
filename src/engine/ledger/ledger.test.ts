@@ -13,6 +13,7 @@ import {
   toCalendarYear,
   toFullCalendarYear,
   toCalendarMonth,
+  toCalendarLabel,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
@@ -60,7 +61,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const mId = toMonthId(cm, calYearNum);
         const mRef = toMonthRef(sMonth);
         const mSimRef = toMonthSimRef(sMonth);
-        const calLabel = `${String(cm).padStart(2, "0")}.${calYearNum}`;
+        const calLabel = toCalendarLabel(cm, calYearNum);
 
         const hSalary = toEuroAmount(4000);
         const wSalary = toEuroAmount(2000);
@@ -141,7 +142,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         year: cy,
         calendarYearNum: toFullCalendarYear(2027),
         calendarMonthNum: cm,
-        calendarLabel: "05.2027",
+        calendarLabel: toCalendarLabel("05.2027"),
         relativeBirthLabel: "M9 (Birth 1)",
         relativeMonthLabel: toMonthRef("M9 (Birth 1)"),
         type: SpecialEventType.CustomCost,
@@ -162,7 +163,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
           monthInYear: cm,
           calendarYearNum: toFullCalendarYear(2027),
           calendarMonthNum: cm,
-          calendarLabel: "05.2027",
+          calendarLabel: toCalendarLabel("05.2027"),
           relativeBirthLabel: "M9 (Birth 1)",
           relativeMonthLabel: toMonthRef("M9 (Birth 1)"),
           husbandSalary: hSalary,
@@ -223,7 +224,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         year: cy,
         calendarYearNum: toFullCalendarYear(2026),
         calendarMonthNum: cm,
-        calendarLabel: "04.2026",
+        calendarLabel: toCalendarLabel("04.2026"),
         relativeBirthLabel: "M-5",
         relativeMonthLabel: toMonthRef("M-5"),
         type: SpecialEventType.CustomIncome,
@@ -244,7 +245,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
           monthInYear: cm,
           calendarYearNum: toFullCalendarYear(2026),
           calendarMonthNum: cm,
-          calendarLabel: "12.2026",
+          calendarLabel: toCalendarLabel("12.2026"),
           relativeBirthLabel: "M-5",
           relativeMonthLabel: toMonthRef("M-5"),
           husbandSalary: hSalary,

@@ -69,6 +69,9 @@ export type MonthRef = SubBrand<EntityId, "MonthRef">;
 /** Simulation-start relative reference notation (e.g. 'Sim1', 'Sim21', 'Sim60'). */
 export type MonthSimRef = SubBrand<EntityId, "MonthSimRef">;
 
+/** Formatted Gregorian calendar date label formatted as 'MM.YYYY' (e.g. '01.2026', '09.2027'). */
+export type CalendarLabel = SubBrand<EntityId, "CalendarLabel">;
+
 /** Weekly contractual or actual employment working hours (0..60 hours/week). */
 export type WorkingHours = Brand<number, "WorkingHours">;
 
@@ -891,6 +894,51 @@ export function isMonthSimRef(val: unknown): val is MonthSimRef {
 }
 
 /**
+ * Constructs an immutable, nominal `CalendarLabel` formatted as 'MM.YYYY'.
+ * Examples: `toCalendarLabel(1, 2026)` -> `'01.2026'`, `toCalendarLabel("01.2026")` -> `'01.2026'`.
+ *
+ * @param calendarMonthOrStr - 1-based calendar month number (1..12) or pre-formatted 'MM.YYYY' string.
+ * @param calendarYear - Optional 4-digit calendar year (1900..2100).
+ * @returns Strongly-typed `CalendarLabel`.
+ * @throws {TypeError} if month or year are out of valid Gregorian calendar bounds or format is invalid.
+ */
+export function toCalendarLabel(
+  calendarMonthOrStr: number | string,
+  calendarYear?: number,
+): CalendarLabel {
+  if (typeof calendarMonthOrStr === "string") {
+    const cleaned = calendarMonthOrStr.trim();
+    const match = cleaned.match(/^(0[1-9]|1[0-2])\.(\d{4})$/);
+    if (!match) {
+      throw new TypeError(
+        `Invalid CalendarLabel string format: "${calendarMonthOrStr}". Expected format '<MM>.<YYYY>' (e.g. '01.2026', '09.2027').`,
+      );
+    }
+    return `${match[1]}.${match[2]}` as CalendarLabel;
+  }
+  const m = Number(calendarMonthOrStr);
+  const y = Number(calendarYear);
+  if (
+    !Number.isInteger(m) ||
+    m < 1 ||
+    m > 12 ||
+    !Number.isInteger(y) ||
+    y < 1900 ||
+    y > 2100
+  ) {
+    throw new TypeError(
+      `Invalid CalendarLabel parameters: month=${calendarMonthOrStr}, year=${calendarYear}. Must be integer month 1..12 and 4-digit year 1900..2100.`,
+    );
+  }
+  return `${String(m).padStart(2, "0")}.${y}` as CalendarLabel;
+}
+
+/** Type guard verifying if an unknown value satisfies the `CalendarLabel` format '<MM>.<YYYY>'. */
+export function isCalendarLabel(val: unknown): val is CalendarLabel {
+  return typeof val === "string" && /^(0[1-9]|1[0-2])\.\d{4}$/.test(val.trim());
+}
+
+/**
  * Constructs a validated `KinderfreibetragAnnualAmount` in EUR.
  * @throws {TypeError} if allowance amount is negative or non-finite.
  */
@@ -1288,8 +1336,8 @@ export interface SpecialEventItem {
   readonly calendarYearNum: FullCalendarYear;
   /** 1-based Gregorian calendar month (1..12). */
   readonly calendarMonthNum: CalendarMonth;
-  /** Formatted calendar label (e.g. 'September 2027'). */
-  readonly calendarLabel: string;
+  /** Formatted calendar label (e.g. '09.2027'). */
+  readonly calendarLabel: CalendarLabel;
   /** Relative birth label reference (e.g. 'Birth 1 + 3M'). */
   readonly relativeBirthLabel: string;
   /** Relative month reference notation. */
@@ -1325,8 +1373,8 @@ export interface ActionRowItem {
   readonly monthSimRef?: MonthSimRef;
   /** 1-based simulation month index. */
   readonly month: SimulationMonth;
-  /** Formatted calendar date label (e.g. 'January 2026'). */
-  readonly calendarLabel: string;
+  /** Formatted calendar date label (e.g. '01.2026'). */
+  readonly calendarLabel: CalendarLabel;
   /** Relative birth timing reference. */
   readonly relativeBirthLabel: string;
   /** Relative month reference notation. */
@@ -1364,8 +1412,8 @@ export interface MonthlyLedgerEntry {
   readonly calendarYearNum: FullCalendarYear;
   /** 1-based Gregorian calendar month number (1..12). */
   readonly calendarMonthNum: CalendarMonth;
-  /** Formatted calendar month label (e.g. 'September 2027'). */
-  readonly calendarLabel: string;
+  /** Formatted calendar month label (e.g. '09.2027'). */
+  readonly calendarLabel: CalendarLabel;
   /** Relative birth timing reference label (e.g. 'Birth 1 + 3M'). */
   readonly relativeBirthLabel: string;
   /** Display relative month reference. */

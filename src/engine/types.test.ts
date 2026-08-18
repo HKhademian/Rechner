@@ -49,8 +49,10 @@ import {
   isMonthId,
   isMonthRef,
   isMonthSimRef,
+  isCalendarLabel,
   toMonthRef,
   toMonthSimRef,
+  toCalendarLabel,
   TaxClass,
   ScenarioId,
   ActiveScenarioView,
@@ -73,6 +75,7 @@ import {
   type ChildIndex,
   type PercentageRate,
   type MonthId,
+  type CalendarLabel,
   type WorkingHours,
   type EuroAmount,
   type EuroCents,
@@ -299,6 +302,43 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(isMonthId("invalid"), false);
       assert.equal(isMonthId(123), false);
       assert.equal(isMonthId(null), false);
+    });
+  });
+
+  describe("CalendarLabel (Feature Test)", () => {
+    it("constructs valid CalendarLabel from month and year numbers", () => {
+      const c1: CalendarLabel = toCalendarLabel(1, 2026);
+      const c2: CalendarLabel = toCalendarLabel(9, 2027);
+      const c3: CalendarLabel = toCalendarLabel(12, 2030);
+
+      assert.equal(c1, "01.2026");
+      assert.equal(c2, "09.2027");
+      assert.equal(c3, "12.2030");
+      assert.equal(isCalendarLabel(c1), true);
+      assert.equal(isCalendarLabel(c2), true);
+      assert.equal(isCalendarLabel(c3), true);
+    });
+
+    it("constructs and validates CalendarLabel from valid string representation", () => {
+      const c: CalendarLabel = toCalendarLabel("09.2027");
+      assert.equal(c, "09.2027");
+      assert.equal(isCalendarLabel("09.2027"), true);
+      assert.equal(isCalendarLabel("01.2026"), true);
+      assert.equal(isCalendarLabel("12.2030"), true);
+    });
+
+    it("rejects invalid month numbers, out-of-range years, or malformed strings", () => {
+      assert.throws(() => toCalendarLabel(0, 2026), TypeError);
+      assert.throws(() => toCalendarLabel(13, 2026), TypeError);
+      assert.throws(() => toCalendarLabel(9, 1800), TypeError);
+      assert.throws(() => toCalendarLabel(9, 2200), TypeError);
+      assert.throws(() => toCalendarLabel("9.2026"), TypeError);
+      assert.throws(() => toCalendarLabel("00.2026"), TypeError);
+      assert.throws(() => toCalendarLabel("13.2026"), TypeError);
+      assert.throws(() => toCalendarLabel("invalid"), TypeError);
+      assert.equal(isCalendarLabel("invalid"), false);
+      assert.equal(isCalendarLabel(123), false);
+      assert.equal(isCalendarLabel(null), false);
     });
   });
 
