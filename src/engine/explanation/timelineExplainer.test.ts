@@ -36,7 +36,6 @@ import {
   toChildIndex,
   toMonthId,
   toPregnancyId,
-  toSwitchId,
   toActionId,
   toEventId,
   toStatutoryCitation,

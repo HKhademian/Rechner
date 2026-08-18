@@ -6,7 +6,6 @@
  */
 
 import {
-  type TransactionId,
   type MonthId,
   type MonthRef,
   type MonthSimRef,
@@ -15,7 +14,6 @@ import {
   type TransactionType,
   type TransactionDirection,
   type EuroAmount,
-  type StatutoryCitation,
   type AccountingTransaction,
   toTransactionId,
   toStatutoryCitation,

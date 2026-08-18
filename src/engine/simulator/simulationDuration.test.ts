@@ -10,7 +10,6 @@ import {
   toFullCalendarYear,
   toMonthDuration,
   toChildrenCount,
-  toSimulationMonth,
   toCalendarMonth,
   type PreexistingConditions,
   type PregnancyAction,

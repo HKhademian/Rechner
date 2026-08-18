@@ -18,7 +18,6 @@ import {
   toWorkingHours,
   toFullCalendarYear,
   toChildrenCount,
-  toTaxFactor,
   type PreexistingConditions,
   type SimulationResult,
 } from "#engine/types";

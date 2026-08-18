@@ -23,8 +23,6 @@ import {
   toFinancialEventId,
   toTaxFactor,
   FinancialEventCategory,
-  type WorkingHours,
-  type FullCalendarYear,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -100,7 +98,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         assert.equal(
           m.wifeSalary,
           0,
-          `Wife working salary during Mutterschutz must be 0`,
+          "Wife working salary during Mutterschutz must be 0",
         );
       });
 

@@ -5,12 +5,7 @@
  * sliding-scale wage replacement rates, and part-time hours eligibility under BEEG.
  */
 
-import {
-  type NetSalary,
-  type EuroAmount,
-  toEuroAmount,
-  toStatutoryCitation,
-} from "#engine/types";
+import { type NetSalary, type EuroAmount, toEuroAmount } from "#engine/types";
 
 /**
  * Calculates the statutory wage replacement rate under § 2 Abs. 1 & 2 BEEG.
@@ -28,7 +23,9 @@ export function computeStatutoryReplacementRate(
   preBirthNet: NetSalary,
 ): number {
   const net = preBirthNet as number;
-  if (net <= 0) return 0.67;
+  if (net <= 0) {
+    return 0.67;
+  }
 
   // Low income scale (§ 2 Abs. 2: < 1.000 € -> increases up to 100%)
   if (net < 1000) {

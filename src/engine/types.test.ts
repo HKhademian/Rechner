@@ -11,7 +11,6 @@ import {
   toEuroCents,
   toGrossSalary,
   toNetSalary,
-  toEntityId,
   toKinderfreibetragAnnualAmount,
   toStatutoryCitation,
   toTransactionId,
@@ -72,8 +71,6 @@ import {
   type ChildIndex,
   type PercentageRate,
   type MonthId,
-  type MonthRef,
-  type MonthSimRef,
   type WorkingHours,
   type EuroAmount,
   type EuroCents,
@@ -89,7 +86,6 @@ import {
   type FinancialEventId,
   type EntityId,
   type KinderfreibetragAnnualAmount,
-  type HoursChangeId,
 } from "#engine/types";
 
 describe("Strongly-Typed Domain Types & Constructors", () => {

@@ -40,10 +40,18 @@ import {
  * @returns Strongly-typed `WageTaxZone` enum member.
  */
 export function computeWageTaxZone(zve: number): WageTaxZone {
-  if (zve <= 11784) return WageTaxZone.Zone1Null;
-  if (zve <= 17005) return WageTaxZone.Zone2Progression1;
-  if (zve <= 66760) return WageTaxZone.Zone3Progression2;
-  if (zve <= 277825) return WageTaxZone.Zone4Proportional42;
+  if (zve <= 11784) {
+    return WageTaxZone.Zone1Null;
+  }
+  if (zve <= 17005) {
+    return WageTaxZone.Zone2Progression1;
+  }
+  if (zve <= 66760) {
+    return WageTaxZone.Zone3Progression2;
+  }
+  if (zve <= 277825) {
+    return WageTaxZone.Zone4Proportional42;
+  }
   return WageTaxZone.Zone5Reichensteuer45;
 }
 
@@ -55,7 +63,9 @@ export function computeWageTaxZone(zve: number): WageTaxZone {
  * @returns Exact annual income tax liability in EUR.
  */
 export function computeAnnualIncomeTax(zve: number): EuroAmount {
-  if (zve <= 0) return toEuroAmount(0);
+  if (zve <= 0) {
+    return toEuroAmount(0);
+  }
 
   const grundfreibetrag = 11784; // 2024-2026 Statutory Basic Tax-Free Allowance (§ 32a Abs. 1 Nr. 1)
 
@@ -276,7 +286,9 @@ export function computeSonstigeBezuegeTax(
   bonusAmount: number,
   taxClass: TaxClass,
 ): number {
-  if (bonusAmount <= 0) return 0;
+  if (bonusAmount <= 0) {
+    return 0;
+  }
 
   const baseResult = computeAnnualWageTaxForClass(
     regularAnnualGross,
@@ -308,7 +320,9 @@ export function computeTaxFactor(
   wifeAnnualGross: number,
   childrenCount: number = 0,
 ): TaxFactor {
-  if (husbandAnnualGross <= 0 && wifeAnnualGross <= 0) return toTaxFactor(1.0);
+  if (husbandAnnualGross <= 0 && wifeAnnualGross <= 0) {
+    return toTaxFactor(1.0);
+  }
 
   const hMonthlyGross = toGrossSalary(
     Math.max(0, Math.round(husbandAnnualGross / 12)),
@@ -336,7 +350,9 @@ export function computeTaxFactor(
   );
 
   const sumTax4 = hTax4.annualTax + wTax4.annualTax;
-  if (sumTax4 <= 0) return toTaxFactor(1.0);
+  if (sumTax4 <= 0) {
+    return toTaxFactor(1.0);
+  }
 
   const combinedZvE = hTax4.approxZvE + wTax4.approxZvE;
   const jointTax = Math.floor(

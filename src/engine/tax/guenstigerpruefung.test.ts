@@ -5,7 +5,6 @@ import {
   TaxClass,
   SalaryPeriod,
   SpecialEventType,
-  SpecialEventCategory,
   toGrossSalary,
   toNetSalary,
   toWorkingHours,
@@ -22,7 +21,6 @@ import {
 } from "#engine/types";
 import {
   computeKinderfreibetragGuenstigerpruefung,
-  computeAnnualTaxReconciliation,
   type ChildYearPresence,
 } from "#engine/tax/jointAssessment";
 import { runScenarioBatches } from "#engine/simulator/timelineGenerator";

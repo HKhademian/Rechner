@@ -39,7 +39,6 @@ import {
   toFullCalendarYear,
   toTaxFactor,
   toMonthDuration,
-  toChildrenCount,
   toChildIndex,
   toPercentageRate,
   type GrossSalary,
@@ -50,10 +49,6 @@ import {
   type CalendarMonth,
   type FullCalendarYear,
   type MonthDuration,
-  type ChildrenCount,
-  type ChildIndex,
-  type PercentageRate,
-  type TaxFactor,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
@@ -396,7 +391,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           unknown
         >;
         let rawPct = Number(rObj.percentageIncrease) || 0;
-        if (rawPct > 1) rawPct = rawPct / 100;
+        if (rawPct > 1) {
+          rawPct = rawPct / 100;
+        }
         return {
           raiseId: toRaiseId(
             typeof rObj.raiseId === "string"

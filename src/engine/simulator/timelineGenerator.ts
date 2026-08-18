@@ -4,12 +4,6 @@ import {
   type CalendarMonth,
   type NetSalary,
   type EuroAmount,
-  type EventId,
-  type ActionId,
-  type PregnancyId,
-  type SwitchId,
-  type RaiseId,
-  type HoursChangeId,
   TaxClass,
   ScenarioId,
   TransactionType,
@@ -28,8 +22,6 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
-  type WorkingHoursChangeAction,
-  type FinancialEventAction,
   type ScenarioActionBatches,
   type MonthId,
   type MonthRef,
@@ -38,10 +30,6 @@ import {
   type WorkingHours,
   type FullCalendarYear,
   type MonthDuration,
-  type ChildrenCount,
-  type ChildIndex,
-  type PercentageRate,
-  FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
@@ -49,7 +37,6 @@ import {
   toMonthDuration,
   toChildrenCount,
   toChildIndex,
-  toPercentageRate,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
@@ -61,9 +48,6 @@ import {
   toActionId,
   toPregnancyId,
   toSwitchId,
-  toRaiseId,
-  toHoursChangeId,
-  toFinancialEventId,
   toStatutoryCitation,
 } from "#engine/types";
 import { createTransaction } from "#engine/ledger/transaction";
@@ -340,14 +324,24 @@ export function runScenarioBatches(
           curW5PT = Math.round(curW5PT * factor);
           curW3PT = Math.round(curW3PT * factor);
         } else {
-          if (sr.newHusbandClass3Net)
+          if (sr.newHusbandClass3Net) {
             curH3Net = sr.newHusbandClass3Net as number;
-          if (sr.newHusbandClass5Net)
+          }
+          if (sr.newHusbandClass5Net) {
             curH5Net = sr.newHusbandClass5Net as number;
-          if (sr.newWifeClass5FTNet) curW5FT = sr.newWifeClass5FTNet as number;
-          if (sr.newWifeClass3FTNet) curW3FT = sr.newWifeClass3FTNet as number;
-          if (sr.newWifeClass5PTNet) curW5PT = sr.newWifeClass5PTNet as number;
-          if (sr.newWifeClass3PTNet) curW3PT = sr.newWifeClass3PTNet as number;
+          }
+          if (sr.newWifeClass5FTNet) {
+            curW5FT = sr.newWifeClass5FTNet as number;
+          }
+          if (sr.newWifeClass3FTNet) {
+            curW3FT = sr.newWifeClass3FTNet as number;
+          }
+          if (sr.newWifeClass5PTNet) {
+            curW5PT = sr.newWifeClass5PTNet as number;
+          }
+          if (sr.newWifeClass3PTNet) {
+            curW3PT = sr.newWifeClass3PTNet as number;
+          }
         }
       }
     });
@@ -375,18 +369,27 @@ export function runScenarioBatches(
           activeHTaxClass = sw.targetHusbandTaxClass;
           activeWTaxClass = sw.targetWifeTaxClass;
           activeUseFactor = sw.targetUseTaxFactor ?? false;
-          if (sw.targetTaxFactor) activeTaxFactor = sw.targetTaxFactor;
+          if (sw.targetTaxFactor) {
+            activeTaxFactor = sw.targetTaxFactor;
+          }
         } else if (m >= rev) {
-          if (sw.revertHusbandTaxClass)
+          if (sw.revertHusbandTaxClass) {
             activeHTaxClass = sw.revertHusbandTaxClass;
-          else activeHTaxClass = initialHTaxClass;
+          } else {
+            activeHTaxClass = initialHTaxClass;
+          }
 
-          if (sw.revertWifeTaxClass) activeWTaxClass = sw.revertWifeTaxClass;
-          else activeWTaxClass = initialWTaxClass;
+          if (sw.revertWifeTaxClass) {
+            activeWTaxClass = sw.revertWifeTaxClass;
+          } else {
+            activeWTaxClass = initialWTaxClass;
+          }
 
-          if (sw.revertUseTaxFactor !== undefined)
+          if (sw.revertUseTaxFactor !== undefined) {
             activeUseFactor = sw.revertUseTaxFactor;
-          else activeUseFactor = initialUseFactor;
+          } else {
+            activeUseFactor = initialUseFactor;
+          }
         }
       });
     }
@@ -978,7 +981,8 @@ export function runScenarioBatches(
           statutoryCitation: "BEEG § 4a (ElterngeldPlus)",
           taxClassLabel: rm.taxClassLabel,
           description: `ElterngeldPlus (Mother) - ${rm.calendarLabel}`,
-          auditTrail: `Statutory Parental Allowance with synthetic net evaluation`,
+          auditTrail:
+            "Statutory Parental Allowance with synthetic net evaluation",
         }),
       );
     }
@@ -1017,7 +1021,7 @@ export function runScenarioBatches(
           statutoryCitation: "EStG § 66 (Kindergeld)",
           taxClassLabel: rm.taxClassLabel,
           description: `Statutory Child Benefit (*Kindergeld*) - ${rm.calendarLabel}`,
-          auditTrail: `Monthly allowance per living child`,
+          auditTrail: "Monthly allowance per living child",
         }),
       );
     }
@@ -1286,7 +1290,8 @@ export function runScenarioBatches(
         statutory: toStatutoryCitation("§ 20 EStG (Kapitalerträge)"),
         taxClassLabel: "Capital Yield",
         amount: invNet,
-        description: `Monthly capital return, dividend distribution, or net investment cash flow`,
+        description:
+          "Monthly capital return, dividend distribution, or net investment cash flow",
       });
 
       txs.push(
@@ -1441,7 +1446,7 @@ export function runScenarioBatches(
           title: `ACTION: Tax Class Switch Active (H: ${effH} | W: ${effW})`,
           description:
             sw.statutoryReason ||
-            `Proactive tax class switch to optimize Elterngeld assessment baseline (§ 2b BEEG).`,
+            "Proactive tax class switch to optimize Elterngeld assessment baseline (§ 2b BEEG).",
           category: ActionCategory.TaxSwitch,
           type: ActionType.TaxClassSwitchEffective,
           taxClassLabel: `H: ${effH} | W: ${effW}`,
@@ -1478,7 +1483,7 @@ export function runScenarioBatches(
           title: `ACTION: Salary Raise Effective (${sr.targetPerson.toUpperCase()} +${((sr.percentageIncrease || 0) * 100).toFixed(0)}%)`,
           description:
             sr.reason ||
-            `Annual wage progression / tariff merit step adjustment.`,
+            "Annual wage progression / tariff merit step adjustment.",
           category: ActionCategory.SalaryRaise,
           type: ActionType.SalaryRaiseEffective,
           taxClassLabel: rm.taxClassLabel,

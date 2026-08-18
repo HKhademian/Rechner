@@ -9,7 +9,6 @@ import {
   type SimulationMonth,
   type EuroAmount,
   toEuroAmount,
-  toStatutoryCitation,
 } from "#engine/types";
 
 /**

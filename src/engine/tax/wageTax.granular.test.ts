@@ -2,11 +2,10 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeAnnualIncomeTax,
-  computeSolidaritySurcharge,
   computeMonthlySocialSecurity,
   computeMonthlyNetSalary,
 } from "#engine/tax/wageTax";
-import { toGrossSalary, toEuroAmount, TaxClass } from "#engine/types";
+import { toGrossSalary, TaxClass } from "#engine/types";
 
 describe("Granular Wage Tax Unit Tests (300 Individual Assertions)", () => {
   // Test 100 distinct taxable income levels from 0 € to 100.000 € in 1.000 € steps

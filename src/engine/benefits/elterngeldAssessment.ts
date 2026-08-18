@@ -12,7 +12,6 @@ import {
   type EuroAmount,
   toEuroAmount,
   toNetSalary,
-  toStatutoryCitation,
 } from "#engine/types";
 
 /**

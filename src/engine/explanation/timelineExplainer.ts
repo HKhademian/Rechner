@@ -3,17 +3,14 @@ import {
   type SpecialEventItem,
   type ActionRowItem,
   ScenarioId,
-  TaxClass,
   ActionType,
   ActionCategory,
   SpecialEventType,
-  SpecialEventCategory,
   FieldColumnKey,
   ExplanationFieldKey,
   ExplainerRowType,
   toFieldColumnKey,
   toExplanationFieldKey,
-  toExplainerRowType,
   toStatutoryCitation,
   toEuroAmount,
   type StatutoryCitation,
@@ -1469,7 +1466,7 @@ export function getSpecialEventFieldExplanation(
 export function getRowExplanation(
   m: TimelineMonth,
   bMonth?: TimelineMonth,
-  scenarioId: ScenarioId = ScenarioId.C,
+  _scenarioId: ScenarioId = ScenarioId.C,
 ): RowExplanation {
   const hSalary = m.husbandSalary as number;
   const wSalary = m.wifeSalary as number;
@@ -1483,7 +1480,6 @@ export function getRowExplanation(
 
   const bNetInflow = bMonth ? (bMonth.monthlyTotal as number) : 0;
   const diffNet = netInflow - bNetInflow;
-  const diffCum = bMonth ? cumTotal - (bMonth.cumulatedTotal as number) : 0;
 
   const streams: RowItemStream[] = [];
 
@@ -1582,10 +1578,9 @@ export function getRowExplanation(
 export function getActionRowExplanation(
   act: ActionRowItem,
   m: TimelineMonth,
-  scenarioId: ScenarioId = ScenarioId.C,
+  _scenarioId: ScenarioId = ScenarioId.C,
 ): RowExplanation {
   const isDelivery = act.type === ActionType.ChildDelivery;
-  const isPregnancy = act.type === ActionType.PregnancyPositive;
   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
 
   return {
@@ -1632,7 +1627,7 @@ export function getSpecialEventRowExplanation(
   m: TimelineMonth,
   bMonth?: TimelineMonth,
   prevMonthCumulated: number = 0,
-  scenarioId: ScenarioId = ScenarioId.C,
+  _scenarioId: ScenarioId = ScenarioId.C,
 ): RowExplanation {
   const evAmount = ev.amount as number;
   const isCost = evAmount < 0;
