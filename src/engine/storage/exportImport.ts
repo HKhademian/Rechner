@@ -76,8 +76,7 @@ export function importStateFromJson(
   let raw: unknown;
   try {
     raw = JSON.parse(jsonStr);
-  }
-  catch (err) {
+  } catch (err) {
     return {
       success: false,
       error: `Invalid JSON syntax: ${err instanceof Error ? err.message : String(err)}`,
@@ -103,8 +102,7 @@ export function importStateFromJson(
       state: validatedState,
       warnings,
     };
-  }
-  catch (err) {
+  } catch (err) {
     return {
       success: false,
       error: `Validation error: ${err instanceof Error ? err.message : String(err)}`,
@@ -486,8 +484,7 @@ function getCrcTable(): Uint32Array {
     for (let k = 0; k < 8; k++) {
       if (c & 1) {
         c = 0xedb88320 ^ (c >>> 1);
-      }
-      else {
+      } else {
         c = c >>> 1;
       }
     }
