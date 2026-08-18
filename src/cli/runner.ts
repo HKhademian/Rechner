@@ -439,7 +439,10 @@ function parseArgs(args: string[]): CliOptions {
 
   // Auto-calibrate start date if pregYear & pregMonth are passed
   if (opts.pregYear && opts.pregMonth) {
-    const cal = calculateSimulationStartDate(opts.pregYear, opts.pregMonth);
+    const cal = calculateSimulationStartDate(
+      toFullCalendarYear(opts.pregYear),
+      toCalendarMonth(opts.pregMonth),
+    );
     opts.startYear = cal.startCalendarYear;
     opts.startMonth = cal.startCalendarMonth;
     opts.pregStartSimMonth = cal.pregnancySimulationMonth;

@@ -20,6 +20,7 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
+  toFullCalendarYear,
   toChildrenCount,
   type PreexistingConditions,
   type PregnancyAction,
@@ -32,6 +33,7 @@ import {
   type NetSalary,
   type WorkingHours,
   type EuroAmount,
+  type FullCalendarYear,
   type CalendarMonth,
   type SimulationMonth,
   type MonthDuration,
@@ -312,10 +314,16 @@ export const hoveredMonth = signal<number | null>(null);
  * calibrating the simulation start date (-3 months snapped to January of resulting year)
  * per statutory rules.
  */
-export function setPregnancy1PositiveDate(year: number, month: number) {
-  const result = calculateSimulationStartDate(year, month);
+export function setPregnancy1PositiveDate(
+  year: number | FullCalendarYear,
+  month: number | CalendarMonth,
+) {
+  const result = calculateSimulationStartDate(
+    toFullCalendarYear(year),
+    toCalendarMonth(month),
+  );
   startCalendarYear.value = result.startCalendarYear;
-  startCalendarMonth.value = toCalendarMonth(result.startCalendarMonth);
+  startCalendarMonth.value = result.startCalendarMonth;
   prePregnancyPlanningMonths.value = result.prePregnancyPlanningMonths;
   child1BirthMonth.value = toSimulationMonth(
     result.pregnancySimulationMonth + 8,
