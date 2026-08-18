@@ -767,7 +767,7 @@ export default function TimelineTable(): JSX.Element {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "var(--color-loss)",
+                      color: "var(--series-kindergeld)",
                       cursor: "pointer",
                       padding: 0,
                       textDecoration: "underline",
@@ -776,6 +776,7 @@ export default function TimelineTable(): JSX.Element {
                       alignItems: "center",
                       gap: "2px",
                     }}
+
                     title="Click to view § 66 EStG Kindergeld statutory rule and example"
                   >
                     <span>(*§ 66 EStG*)</span>
@@ -898,12 +899,16 @@ export default function TimelineTable(): JSX.Element {
               const diffSpecialEvents =
                 m.specialEventsTotal -
                 (bMonth ? bMonth.specialEventsTotal : 0);
+              const diffRegularNetInflow =
+                m.regularMonthlyTotal -
+                (bMonth ? bMonth.regularMonthlyTotal : 0);
               const diffNetInflow =
                 m.monthlyTotal -
                 (bMonth ? bMonth.monthlyTotal : 0);
               const diffCumulated =
                 m.cumulatedTotal -
                 (bMonth ? bMonth.cumulatedTotal : 0);
+
 
               const hasEvents =
                 isSpecialRowsActive &&
@@ -1282,8 +1287,8 @@ export default function TimelineTable(): JSX.Element {
                         key={ev.eventId}
                         style={{
                           borderBottom: "1px dashed var(--border-subtle)",
-                          background: isCost
-                            ? "var(--color-loss-bg)"
+                          background: isHovered
+                            ? "var(--color-primary-bg)"
                             : "var(--bg-surface-secondary)",
                           transition: "background 0.15s ease",
                         }}
@@ -1298,11 +1303,12 @@ export default function TimelineTable(): JSX.Element {
                           style={{
                             padding: "6px 12px",
                             textAlign: "left",
-                            color: valColor,
+                            color: "var(--text-primary)",
                             fontVariantNumeric: "tabular-nums",
                             fontSize: "0.72rem",
                             cursor: "pointer",
                           }}
+
                           title="Click to view event derivation or inspect full row"
                           onClick={() =>
                             setSelectedFieldExplanation(
@@ -1944,9 +1950,9 @@ export default function TimelineTable(): JSX.Element {
                         ? m.regularMonthlyTotal
                         : m.monthlyTotal,
                       isSpecialRowsActive
-                        ? diffNetInflow
-                        : m.monthlyTotal -
-                            (bMonth ? bMonth.monthlyTotal : 0),
+                        ? diffRegularNetInflow
+                        : diffNetInflow,
+
                       false,
                       "var(--text-primary)",
                       true,
