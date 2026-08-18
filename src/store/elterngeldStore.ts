@@ -48,11 +48,13 @@ import {
 } from "#engine/tax/wageTax";
 import {
   getDefaultPersistedState,
+  getEmptyPersistedState,
   loadFromStorage,
   saveToStorage,
   clearStorage,
   type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
+
 import {
   exportStateToJson,
   exportStateToTextReport,
@@ -352,36 +354,31 @@ export function createDefaultFinancialEvents(): FinancialEventAction[] {
 
 // User-Defined Dynamic Action Collections (Initialized with persisted state or defaults)
 export const customPregnancies = signal<PregnancyAction[]>([
-  ...(initialPersisted.customPregnancies &&
-  initialPersisted.customPregnancies.length > 0
+  ...(Array.isArray(initialPersisted.customPregnancies)
     ? (initialPersisted.customPregnancies as PregnancyAction[])
     : getDefaultPersistedState().customPregnancies),
 ]);
 
 export const customTaxClassSwitches = signal<TaxClassSwitchAction[]>([
-  ...(initialPersisted.customTaxClassSwitches &&
-  initialPersisted.customTaxClassSwitches.length > 0
+  ...(Array.isArray(initialPersisted.customTaxClassSwitches)
     ? (initialPersisted.customTaxClassSwitches as TaxClassSwitchAction[])
     : getDefaultPersistedState().customTaxClassSwitches),
 ]);
 
 export const customSalaryRaises = signal<SalaryRaiseAction[]>([
-  ...(initialPersisted.customSalaryRaises &&
-  initialPersisted.customSalaryRaises.length > 0
+  ...(Array.isArray(initialPersisted.customSalaryRaises)
     ? (initialPersisted.customSalaryRaises as SalaryRaiseAction[])
     : getDefaultPersistedState().customSalaryRaises),
 ]);
 
 export const customWorkingHoursChanges = signal<WorkingHoursChangeAction[]>([
-  ...(initialPersisted.customWorkingHoursChanges &&
-  initialPersisted.customWorkingHoursChanges.length > 0
+  ...(Array.isArray(initialPersisted.customWorkingHoursChanges)
     ? (initialPersisted.customWorkingHoursChanges as WorkingHoursChangeAction[])
     : getDefaultPersistedState().customWorkingHoursChanges || []),
 ]);
 
 export const customFinancialEvents = signal<FinancialEventAction[]>([
-  ...(initialPersisted.customFinancialEvents &&
-  initialPersisted.customFinancialEvents.length > 0
+  ...(Array.isArray(initialPersisted.customFinancialEvents)
     ? (initialPersisted.customFinancialEvents as FinancialEventAction[])
     : getDefaultPersistedState().customFinancialEvents),
 ]);
@@ -406,6 +403,10 @@ export function removePregnancyAction(pregnancyId: PregnancyId | string) {
   );
 }
 
+export function removeAllPregnancyActions(): void {
+  customPregnancies.value = [];
+}
+
 // Batch 2 Mutation Helpers
 export function addTaxClassSwitchAction(action: TaxClassSwitchAction) {
   customTaxClassSwitches.value = [...customTaxClassSwitches.value, action];
@@ -426,6 +427,10 @@ export function removeTaxClassSwitchAction(switchId: SwitchId | string) {
   );
 }
 
+export function removeAllTaxClassSwitchActions(): void {
+  customTaxClassSwitches.value = [];
+}
+
 // Batch 3 Mutation Helpers (Salary Raises)
 export function addSalaryRaiseAction(action: SalaryRaiseAction) {
   customSalaryRaises.value = [...customSalaryRaises.value, action];
@@ -444,6 +449,10 @@ export function removeSalaryRaiseAction(raiseId: RaiseId | string) {
   customSalaryRaises.value = customSalaryRaises.value.filter(
     (r) => r.raiseId !== raiseId,
   );
+}
+
+export function removeAllSalaryRaiseActions(): void {
+  customSalaryRaises.value = [];
 }
 
 // Batch 3 Mutation Helpers (Working Hours Changes)
@@ -471,6 +480,10 @@ export function removeWorkingHoursChangeAction(
   );
 }
 
+export function removeAllWorkingHoursChangeActions(): void {
+  customWorkingHoursChanges.value = [];
+}
+
 // Batch 4 Mutation Helpers
 export function addFinancialEventAction(action: FinancialEventAction) {
   customFinancialEvents.value = [...customFinancialEvents.value, action];
@@ -490,6 +503,22 @@ export function removeFinancialEventAction(eventId: FinancialEventId | string) {
     (e) => e.eventId !== eventId,
   );
 }
+
+export function removeAllFinancialEventActions(): void {
+  customFinancialEvents.value = [];
+}
+
+/**
+ * Removes all custom user actions across all batches (Pregnancies, Switches, Raises, Hours, Events).
+ */
+export function removeAllCustomActions(): void {
+  customPregnancies.value = [];
+  customTaxClassSwitches.value = [];
+  customSalaryRaises.value = [];
+  customWorkingHoursChanges.value = [];
+  customFinancialEvents.value = [];
+}
+
 
 /**
  * Persists the entire reactive state of the simulator into localStorage.
@@ -788,7 +817,16 @@ export function resetToDefaults() {
   persistCurrentState();
 }
 
+/**
+ * Resets the simulator state to a clean empty scenario with zero action milestones.
+ */
+export function resetToEmptyScenario(): void {
+  const emptyState = getEmptyPersistedState();
+  importSimulationState(emptyState);
+}
+
 // 60-Month Cash Flow Engine for a given scenario ('A', 'B', or 'C')
+
 export function computeTimelineData(scenarioKey: ScenarioIdType) {
   const startYear = startCalendarYear.value;
   const startMonth = startCalendarMonth.value;
