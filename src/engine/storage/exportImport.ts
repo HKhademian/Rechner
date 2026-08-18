@@ -32,6 +32,12 @@ import {
   type ElterngeldPersistedState,
   validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
+import {
+  createZipArchive,
+  type ZipFileContent,
+  type ZipEntry,
+  type ParsedZipEntry,
+} from "#utils/zip";
 
 /** Schema serialization version identifier. */
 export const EXPORT_SCHEMA_VERSION = 1;
@@ -467,42 +473,9 @@ export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
 }
 
 /**
- * Standard CRC-32 Lookup Table & Checksum Engine for PKZIP compliance.
- */
-let crcTable: Uint32Array | null = null;
-function getCrcTable(): Uint32Array {
-  if (crcTable) {
-    return crcTable;
-  }
-  const table = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) {
-      if (c & 1) {
-        c = 0xedb88320 ^ (c >>> 1);
-      }
-      else {
-        c = c >>> 1;
-      }
-    }
-    table[n] = c >>> 0;
-  }
-  crcTable = table;
-  return table;
-}
-
-function computeCrc32(bytes: Uint8Array): number {
-  const table = getCrcTable();
-  let crc = 0 ^ -1;
-  for (let i = 0; i < bytes.length; i++) {
-    crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff];
-  }
-  return (crc ^ -1) >>> 0;
-}
-
-/**
  * Pure TypeScript Zero-Dependency PKZIP Archive Packager.
  * Bundles multiple files into a standard, fully compliant uncompressed (STORE) ZIP binary.
+ * Delegates directly to the generalized ZIP archiver utility engine.
  *
  * @param files - Map of internal archive file paths to string or binary byte contents.
  * @returns Uint8Array containing complete ZIP archive binary payload.
@@ -510,115 +483,15 @@ function computeCrc32(bytes: Uint8Array): number {
 export function exportStateToZip(
   files: Record<string, string | Uint8Array>,
 ): Uint8Array {
-  const encoder = new TextEncoder();
-  const fileEntries: {
-    nameBytes: Uint8Array;
-    contentBytes: Uint8Array;
-    crc: number;
-    offset: number;
-  }[] = [];
-
-  let currentOffset = 0;
-  const localHeadersAndData: Uint8Array[] = [];
-
-  for (const [filename, content] of Object.entries(files)) {
-    const nameBytes = encoder.encode(filename);
-    const contentBytes =
-      typeof content === "string" ? encoder.encode(content) : content;
-    const crc = computeCrc32(contentBytes);
-    const offset = currentOffset;
-
-    fileEntries.push({
-      nameBytes,
-      contentBytes,
-      crc,
-      offset,
-    });
-
-    // Local file header (30 bytes + filename + data)
-    const header = new Uint8Array(30 + nameBytes.length + contentBytes.length);
-    const view = new DataView(header.buffer);
-
-    view.setUint32(0, 0x02895b50, true); // Local file header signature
-    view.setUint16(4, 10, true); // Version needed to extract (1.0)
-    view.setUint16(6, 0, true); // General purpose bit flag
-    view.setUint16(8, 0, true); // Compression method (0 = STORE)
-    view.setUint16(10, 0, true); // Last mod file time
-    view.setUint16(12, 0, true); // Last mod file date
-    view.setUint32(14, crc, true); // CRC-32
-    view.setUint32(18, contentBytes.length, true); // Compressed size
-    view.setUint32(22, contentBytes.length, true); // Uncompressed size
-    view.setUint16(26, nameBytes.length, true); // Filename length
-    view.setUint16(28, 0, true); // Extra field length
-
-    header.set(nameBytes, 30);
-    header.set(contentBytes, 30 + nameBytes.length);
-
-    localHeadersAndData.push(header);
-    currentOffset += header.length;
-  }
-
-  // Central directory records
-  const centralDirRecords: Uint8Array[] = [];
-  const centralDirStartOffset = currentOffset;
-  let centralDirSize = 0;
-
-  for (const entry of fileEntries) {
-    const record = new Uint8Array(46 + entry.nameBytes.length);
-    const view = new DataView(record.buffer);
-
-    view.setUint32(0, 0x02014b50, true); // Central file header signature
-    view.setUint16(4, 20, true); // Version made by
-    view.setUint16(6, 10, true); // Version needed to extract
-    view.setUint16(8, 0, true); // General purpose bit flag
-    view.setUint16(10, 0, true); // Compression method (STORE)
-    view.setUint16(12, 0, true); // Last mod file time
-    view.setUint16(14, 0, true); // Last mod file date
-    view.setUint32(16, entry.crc, true); // CRC-32
-    view.setUint32(20, entry.contentBytes.length, true); // Compressed size
-    view.setUint32(24, entry.contentBytes.length, true); // Uncompressed size
-    view.setUint16(28, entry.nameBytes.length, true); // Filename length
-    view.setUint16(30, 0, true); // Extra field length
-    view.setUint16(32, 0, true); // File comment length
-    view.setUint16(34, 0, true); // Disk number start
-    view.setUint16(36, 0, true); // Internal file attributes
-    view.setUint32(38, 0, true); // External file attributes
-    view.setUint32(42, entry.offset, true); // Relative offset of local header
-
-    record.set(entry.nameBytes, 46);
-    centralDirRecords.push(record);
-    centralDirSize += record.length;
-  }
-
-  // End of Central Directory Record (22 bytes)
-  const eocd = new Uint8Array(22);
-  const eocdView = new DataView(eocd.buffer);
-  eocdView.setUint32(0, 0x06054b50, true); // End of central dir signature
-  eocdView.setUint16(4, 0, true); // Number of this disk
-  eocdView.setUint16(6, 0, true); // Disk where central directory starts
-  eocdView.setUint16(8, fileEntries.length, true); // Total entries on this disk
-  eocdView.setUint16(10, fileEntries.length, true); // Total entries in central directory
-  eocdView.setUint32(12, centralDirSize, true); // Size of central directory
-  eocdView.setUint32(16, centralDirStartOffset, true); // Offset of start of central directory
-  eocdView.setUint16(20, 0, true); // Comment length
-
-  // Combine into single Uint8Array
-  const totalLength = currentOffset + centralDirSize + eocd.length;
-  const result = new Uint8Array(totalLength);
-  let pos = 0;
-
-  for (const chunk of localHeadersAndData) {
-    result.set(chunk, pos);
-    pos += chunk.length;
-  }
-  for (const chunk of centralDirRecords) {
-    result.set(chunk, pos);
-    pos += chunk.length;
-  }
-  result.set(eocd, pos);
-
-  return result;
+  return createZipArchive(files);
 }
+
+export {
+  createZipArchive,
+  type ZipFileContent,
+  type ZipEntry,
+  type ParsedZipEntry,
+};
 
 /**
  * Triggers a browser file download for text or binary byte payloads.
