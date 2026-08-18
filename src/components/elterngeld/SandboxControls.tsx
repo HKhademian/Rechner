@@ -604,12 +604,12 @@ export default function SandboxControls(): JSX.Element {
                     style={{
                       fontWeight: 800,
                       fontSize: "0.92rem",
-                      color: "var(--color-loss)",
+                      color: "var(--color-primary)",
                     }}
                   >
                     1. Pregnancy Positive Decisions &amp; Milestones
                   </span>
-                  <span className="badge-loss">
+                  <span className="badge-brand">
                     {customPregnancies.value.length} Pregnancies Active
                   </span>
                   {customPregnancies.value.length > 0 && (
@@ -695,9 +695,9 @@ export default function SandboxControls(): JSX.Element {
                   }}
                   style={{
                     padding: "5px 12px",
-                    background: "var(--color-loss-bg)",
-                    color: "var(--color-loss)",
-                    border: "1px solid var(--color-loss-border)",
+                    background: "var(--color-primary-bg)",
+                    color: "var(--color-primary)",
+                    border: "1px solid var(--color-primary-border)",
                     borderRadius: "var(--border-radius-sm)",
                     fontSize: "0.74rem",
                     fontWeight: 800,
@@ -713,6 +713,7 @@ export default function SandboxControls(): JSX.Element {
                   </span>
                 </button>
               </div>
+
 
               {/* Dynamic Pregnancies Auto-Wrapping Columns */}
               {customPregnancies.value.length === 0 ? (
@@ -3736,15 +3737,16 @@ export default function SandboxControls(): JSX.Element {
                     style={{
                       fontWeight: 800,
                       fontSize: "0.92rem",
-                      color: "var(--color-loss)",
+                      color: "var(--color-primary)",
                     }}
                   >
                     4. Financial Events, Recurring Inflows &amp; Costs
                   </span>
-                  <span className="badge-loss">
+                  <span className="badge-neutral">
                     {customFinancialEvents.value.length} Events Active
                   </span>
                 </div>
+
 
                 {/* Add Cost and Inflow Buttons */}
                 <div style={{ display: "flex",
