@@ -6,9 +6,14 @@ import {
   runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
+  deriveSpousalNetSalaries,
+} from "#engine/tax/wageTax";
+import {
   TaxClass,
   ScenarioId,
   TargetPerson,
+  SalaryInputMode,
+  SalaryPeriod,
   toGrossSalary,
   toNetSalary,
   toEuroAmount,
@@ -35,6 +40,7 @@ import {
   type WorkingHoursChangeAction,
   type FinancialEventAction,
 } from "#engine/types";
+
 
 describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
   const basePreexisting: PreexistingConditions = {
@@ -1179,6 +1185,118 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(resA.summary.grandTotal, resB.summary.grandTotal);
       assert.equal(resB.summary.grandTotal, resC.summary.grandTotal);
     });
+
+    it("demonstrates perfect annual tax neutrality for 72-month zero-pregnancy scenario with 13th salary bonus and temporary tax switch", () => {
+      const spousal = deriveSpousalNetSalaries(
+        toGrossSalary(4000),
+        toGrossSalary(3000),
+        toWorkingHours(32),
+        toWorkingHours(40),
+        0,
+      );
+
+      const preexisting: PreexistingConditions = {
+        startCalendarYear: toFullCalendarYear(2026),
+        startCalendarMonth: toCalendarMonth(1),
+        simulationDurationMonths: toMonthDuration(72),
+        salaryInputMode: SalaryInputMode.Gross,
+        salaryPeriod: SalaryPeriod.Monthly,
+        husbandGross: toGrossSalary(4000),
+        wifeGross: toGrossSalary(3000),
+        husbandInitialTaxClass: TaxClass.III,
+        husbandInitialNet: toNetSalary(spousal.husbandClass3Net),
+        husbandInitialClass5Net: toNetSalary(spousal.husbandClass5Net),
+        husbandInitialClass4Net: toNetSalary(spousal.husbandClass4Net),
+        husbandWeeklyHours: toWorkingHours(32),
+        wifeInitialTaxClass: TaxClass.V,
+        wifeInitialFullTimeNet: toNetSalary(spousal.wifeClass5FullTimeNet),
+        wifeInitialClass3FullTimeNet: toNetSalary(spousal.wifeClass3FullTimeNet),
+        wifeInitialClass4FullTimeNet: toNetSalary(spousal.wifeClass4FullTimeNet),
+        wifeInitialPartTimeClass5Net: toNetSalary(spousal.wifeClass5PartTimeNet),
+        wifeInitialPartTimeClass3Net: toNetSalary(spousal.wifeClass3PartTimeNet),
+        wifeInitialPartTimeClass4Net: toNetSalary(spousal.wifeClass4PartTimeNet),
+        wifeWeeklyHours: toWorkingHours(40),
+        wifePostBirthWeeklyHours: toWorkingHours(32),
+        initialUseTaxFactor: false,
+        initialTaxFactor: spousal.taxFactor,
+        annualBonusGross: toEuroAmount(0),
+        annualBonusMonth: toCalendarMonth(12),
+        investmentReturnMonthly: toEuroAmount(0),
+        existingChildrenCount: toChildrenCount(0),
+        kindergeldPerChild: toEuroAmount(259),
+        enable13thSalary: true,
+        bonus40Month: toCalendarMonth(5),
+        bonus60Month: toCalendarMonth(11),
+        taxReturnMonth: toCalendarMonth(3),
+      };
+
+      const customTaxClassSwitches = [
+        {
+          switchId: toSwitchId("SWAP-CHILD-1"),
+          effectiveSimulationMonth: toSimulationMonth(6),
+          effectiveCalendarMonth: toCalendarMonth(6),
+          effectiveCalendarYear: toFullCalendarYear(2026),
+          targetHusbandTaxClass: TaxClass.V,
+          targetWifeTaxClass: TaxClass.III,
+          statutoryReason: "Optimize Child 1 Elterngeld assessment baseline (§ 2b BEEG)",
+          revertSimulationMonth: toSimulationMonth(12),
+        },
+      ];
+
+      const customFinancialEvents = [
+        {
+          eventId: toFinancialEventId("FIN-CHILD1-EQUIPMENT"),
+          effectiveSimulationMonth: toSimulationMonth(17),
+          effectiveCalendarMonth: toCalendarMonth(5),
+          effectiveCalendarYear: toFullCalendarYear(2027),
+          title: "Child #1 Initial Equipment (*Erstausstattung*)",
+          amount: toEuroAmount(-1500),
+          category: FinancialEventCategory.BabyEquipment,
+          description: "Crib, stroller, car seat, changing table, and initial newborn essentials",
+        },
+        {
+          eventId: toFinancialEventId("FIN-CHILD1-KITA-DEPOSIT"),
+          effectiveSimulationMonth: toSimulationMonth(26),
+          effectiveCalendarMonth: toCalendarMonth(2),
+          effectiveCalendarYear: toFullCalendarYear(2028),
+          title: "Kita Childcare Enrollment & Equipment (*Kita-Start*)",
+          amount: toEuroAmount(-600),
+          category: FinancialEventCategory.ChildcareFees,
+          description: "One-off daycare entrance fee, activity deposit, and outdoor gear",
+        },
+      ];
+
+
+      const resA = runScenarioBatches({
+        scenarioKey: ScenarioId.A,
+        preexisting,
+        pregnancies: [],
+        taxClassSwitches: customTaxClassSwitches,
+        salaryRaises: [],
+        workingHoursChanges: [],
+        financialEvents: customFinancialEvents,
+      });
+
+      const resC = runScenarioBatches({
+        scenarioKey: ScenarioId.C,
+        preexisting,
+        pregnancies: [],
+        taxClassSwitches: customTaxClassSwitches,
+        salaryRaises: [],
+        workingHoursChanges: [],
+        financialEvents: customFinancialEvents,
+      });
+
+      // Exactly 72 months generated
+      assert.equal(resA.months.length, 72);
+      assert.equal(resC.months.length, 72);
+
+      // Verify exact neutral parity under joint assessment (§ 26b EStG)
+      assert.equal(resA.summary.grandTotal, 354882);
+      assert.equal(resC.summary.grandTotal, 354882);
+      assert.equal(resC.summary.grandTotal - resA.summary.grandTotal, 0);
+    });
   });
 });
+
 
