@@ -1035,7 +1035,6 @@ export function runScenarioBatches(
         ? (recon.accumulatedSwapDeficit as number)
         : 0;
       const isDeficitRefund = swapDeficit > 0;
-      const reconciledCalYear = rm.calendarYearNum - 1;
 
       const descParts: string[] = [];
       if (isDeficitRefund) {
