@@ -149,14 +149,12 @@ export function syncGrossToNet() {
 }
 
 export function setHusbandGross(gross: number | GrossSalary) {
-  const g = typeof gross === "number" ? gross : (gross as number);
-  husbandGross.value = toGrossSalary(Math.max(0, isNaN(g) ? 0 : g));
+  husbandGross.value = toGrossSalary(Math.max(0, Number(gross) || 0));
   syncGrossToNet();
 }
 
 export function setWifeGross(gross: number | GrossSalary) {
-  const g = typeof gross === "number" ? gross : (gross as number);
-  wifeGross.value = toGrossSalary(Math.max(0, isNaN(g) ? 0 : g));
+  wifeGross.value = toGrossSalary(Math.max(0, Number(gross) || 0));
   syncGrossToNet();
 }
 
@@ -169,25 +167,22 @@ export function setWifeGrossYearly(yearly: number) {
 }
 
 export function setHusbandHours(hours: number | WorkingHours) {
-  const h = typeof hours === "number" ? hours : (hours as number);
   husbandHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, isNaN(h) ? 0 : h)),
+    Math.max(0, Math.min(60, Number(hours) || 0)),
   );
   syncGrossToNet();
 }
 
 export function setWifeInitialHours(hours: number | WorkingHours) {
-  const h = typeof hours === "number" ? hours : (hours as number);
   wifeInitialHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, isNaN(h) ? 0 : h)),
+    Math.max(0, Math.min(60, Number(hours) || 0)),
   );
   syncGrossToNet();
 }
 
 export function setWifePostBirthHours(hours: number | WorkingHours) {
-  const h = typeof hours === "number" ? hours : (hours as number);
   wifePostBirthHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, isNaN(h) ? 0 : h)),
+    Math.max(0, Math.min(60, Number(hours) || 0)),
   );
   syncGrossToNet();
 }
@@ -228,7 +223,7 @@ export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
 
 export const wifeClass5PartTimeNet = computed(() => {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
-    return derivedSpousalSet.value.wifeClass5PartTimeNet as number;
+    return derivedSpousalSet.value.wifeClass5PartTimeNet;
   }
   const defaults = getDefaultPersistedState();
   const ft = wifeClass5FullTimeNet.value;
@@ -240,7 +235,7 @@ export const wifeClass5PartTimeNet = computed(() => {
 
 export const wifeClass3PartTimeNet = computed(() => {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
-    return derivedSpousalSet.value.wifeClass3PartTimeNet as number;
+    return derivedSpousalSet.value.wifeClass3PartTimeNet;
   }
   const defaults = getDefaultPersistedState();
   const ft = wifeClass3FullTimeNet.value;
@@ -875,14 +870,12 @@ export const comparisonMetrics = computed(() => {
   const c = scenarioCData.value.summary;
 
   return {
-    gainCvsB: (c.grandTotal as number) - (b.grandTotal as number),
-    benefitsGainCvsB: (c.totalBenefits as number) - (b.totalBenefits as number),
+    gainCvsB: c.grandTotal - b.grandTotal,
+    benefitsGainCvsB: c.totalBenefits - b.totalBenefits,
     taxRefundC: c.totalTaxRefunds,
-    gainCvsA: (c.grandTotal as number) - (a.grandTotal as number),
-    wifeEgGainCvsB:
-      (c.totalWifeElterngeld as number) - (b.totalWifeElterngeld as number),
-    mutterschutzGainCvsB:
-      (c.totalMutterschutz as number) - (b.totalMutterschutz as number),
+    gainCvsA: c.grandTotal - a.grandTotal,
+    wifeEgGainCvsB: c.totalWifeElterngeld - b.totalWifeElterngeld,
+    mutterschutzGainCvsB: c.totalMutterschutz - b.totalMutterschutz,
   };
 });
 
