@@ -152,10 +152,10 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       });
 
       const netGain =
-        (c.summary.grandTotal as number) - (b.summary.grandTotal as number);
+        c.summary.grandTotal - b.summary.grandTotal;
       const benefitsGain =
-        (c.summary.totalBenefits as number) -
-        (b.summary.totalBenefits as number);
+        c.summary.totalBenefits -
+        b.summary.totalBenefits;
 
       assert.ok(
         netGain > 10000,

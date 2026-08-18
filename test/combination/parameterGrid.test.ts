@@ -77,17 +77,17 @@ describe("Combinatorial Parameter Grid Sweep & Invariance Tests", () => {
 
             // Verify each month satisfies conservation
             res.months.forEach((m) => {
-              const reg = m.regularMonthlyTotal as number;
-              const sp = m.specialEventsTotal as number;
-              const tot = m.monthlyTotal as number;
+              const reg = m.regularMonthlyTotal;
+              const sp = m.specialEventsTotal;
+              const tot = m.monthlyTotal;
               assert.equal(tot, reg + sp);
             });
 
             // Verify cumulative grand total matches sum of components
-            const sumSalaries = res.summary.totalSalaries as number;
-            const sumBenefits = res.summary.totalBenefits as number;
-            const sumTax = res.summary.totalTaxRefunds as number;
-            const grand = res.summary.grandTotal as number;
+            const sumSalaries = res.summary.totalSalaries;
+            const sumBenefits = res.summary.totalBenefits;
+            const sumTax = res.summary.totalTaxRefunds;
+            const grand = res.summary.grandTotal;
 
             assert.equal(grand, sumSalaries + sumBenefits + sumTax);
           }

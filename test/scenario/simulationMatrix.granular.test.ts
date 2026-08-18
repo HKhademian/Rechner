@@ -44,10 +44,10 @@ describe("Granular Simulation Matrix Tests (250 Individual Scenario Assertions)"
       assert.equal(sim.months.length, 60);
 
       // Verify mathematical balance for Month 1, Month 12 (Birth 1), Month 15 (Tax Return 1), and Month 60 (End)
-      assert.ok((sim.months[0].monthlyTotal as number) > 0);
-      assert.ok((sim.months[11].monthlyTotal as number) > 0);
-      assert.ok((sim.months[14].monthlyTotal as number) > 0);
-      assert.ok((sim.months[59].cumulatedTotal as number) > 200000);
+      assert.ok(sim.months[0].monthlyTotal > 0);
+      assert.ok(sim.months[11].monthlyTotal > 0);
+      assert.ok(sim.months[14].monthlyTotal > 0);
+      assert.ok(sim.months[59].cumulatedTotal > 200000);
       assert.equal(sim.summary.grandTotal, sim.months[59].cumulatedTotal);
     });
   }
