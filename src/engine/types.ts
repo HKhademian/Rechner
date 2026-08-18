@@ -207,6 +207,7 @@ export const ActionCategory = {
   SalaryRaise: "SALARY_RAISE",
   WorkingHours: "WORKING_HOURS",
   FinancialEvent: "FINANCIAL_EVENT",
+  ElterngeldReallocation: "ELTERNGELD_REALLOCATION",
 } as const;
 export type ActionCategory =
   (typeof ActionCategory)[keyof typeof ActionCategory];
@@ -221,6 +222,7 @@ export const ActionType = {
   WorkingHoursChangeEffective: "WORKING_HOURS_CHANGE_EFFECTIVE",
   FinancialCostOutflow: "FINANCIAL_COST_OUTFLOW",
   FinancialIncomeInflow: "FINANCIAL_INCOME_INFLOW",
+  ElterngeldReallocation: "ELTERNGELD_REALLOCATION",
 } as const;
 export type ActionType = (typeof ActionType)[keyof typeof ActionType];
 

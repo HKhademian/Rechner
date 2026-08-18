@@ -662,6 +662,14 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         toActionCategory("WORKING_HOURS"),
         ActionCategory.WorkingHours,
       );
+      assert.equal(
+        ActionCategory.ElterngeldReallocation,
+        "ELTERNGELD_REALLOCATION",
+      );
+      assert.equal(
+        toActionCategory("ELTERNGELD_REALLOCATION"),
+        ActionCategory.ElterngeldReallocation,
+      );
       assert.throws(() => toActionCategory("invalid"), TypeError);
     });
   });
@@ -680,6 +688,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         ActionType.WorkingHoursChangeEffective,
         "WORKING_HOURS_CHANGE_EFFECTIVE",
       );
+      assert.equal(
+        ActionType.ElterngeldReallocation,
+        "ELTERNGELD_REALLOCATION",
+      );
     });
 
     it("toActionType validates valid action types and rejects invalid strings", () => {
@@ -691,6 +703,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(
         toActionType("WORKING_HOURS_CHANGE_EFFECTIVE"),
         ActionType.WorkingHoursChangeEffective,
+      );
+      assert.equal(
+        toActionType("ELTERNGELD_REALLOCATION"),
+        ActionType.ElterngeldReallocation,
       );
       assert.throws(() => toActionType("invalid"), TypeError);
     });
