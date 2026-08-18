@@ -29,6 +29,8 @@ import {
   FieldColumnKey,
   SalaryInputMode,
   SalaryPeriod,
+  ActionCategory,
+  ActionType,
   toTaxClass,
   toGrossSalary,
   toWorkingHours,
@@ -1438,10 +1440,12 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     // Print Action Milestone Rows immediately BEFORE Month m
     if (m.startingActions && m.startingActions.length > 0) {
       m.startingActions.forEach((act) => {
-        const isDelivery = act.type === "CHILD_DELIVERY";
-        const isPregnancy = act.type === "PREGNANCY_POSITIVE";
-        const isTaxRevert = act.type === "TAX_CLASS_SWITCH_REVERT";
-        const isTaxSwitch = act.category === "TAX_SWITCH";
+        const isDelivery = act.type === ActionType.ChildDelivery;
+        const isPregnancy = act.type === ActionType.PregnancyPositive;
+        const isTaxRevert = act.type === ActionType.TaxClassSwitchRevert;
+        const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
+        const isReallocation =
+          act.type === ActionType.ElterngeldReallocation;
 
         const color = isDelivery
           ? CYAN
@@ -1451,7 +1455,9 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
               ? BLUE
               : isTaxSwitch
                 ? BLUE
-                : YELLOW;
+                : isReallocation
+                  ? GREEN
+                  : YELLOW;
         const cleanTitle = act.title.replace(/^ACTION:\s*/, "");
         const actTitle = `↳ ${cleanTitle}`;
 
