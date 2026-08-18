@@ -36,6 +36,7 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
+  toFullCalendarYear,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -43,6 +44,7 @@ import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
+  type FullCalendarYear,
   type SimulationResult,
   type TimelineMonth,
   type GrossToNetBreakdown,
@@ -862,7 +864,7 @@ function buildSimulation(
 
   // Batch 0: Preexisting conditions
   const preexisting: PreexistingConditions = {
-    startCalendarYear: startYear,
+    startCalendarYear: toFullCalendarYear(startYear),
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: duration,
     salaryInputMode: def.salaryInputMode,
@@ -938,8 +940,9 @@ function buildSimulation(
         positiveTestCalendarMonth: toCalendarMonth(
           ((startMonth - 1 + pregStart - 1) % 12) + 1,
         ),
-        positiveTestCalendarYear:
+        positiveTestCalendarYear: toFullCalendarYear(
           startYear + Math.floor((startMonth - 1 + pregStart - 1) / 12),
+        ),
         positiveTestSimulationMonth: toSimulationMonth(pregStart),
         calculatedDeliverySimulationMonth: toSimulationMonth(b1),
         motherPostBirthPartTimeHours: toWorkingHours(
@@ -955,8 +958,9 @@ function buildSimulation(
         positiveTestCalendarMonth: toCalendarMonth(
           ((startMonth - 1 + (b2 - 9)) % 12) + 1,
         ),
-        positiveTestCalendarYear:
+        positiveTestCalendarYear: toFullCalendarYear(
           startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
+        ),
         positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
         calculatedDeliverySimulationMonth: toSimulationMonth(b2),
         motherPostBirthPartTimeHours: toWorkingHours(
@@ -980,8 +984,9 @@ function buildSimulation(
         effectiveCalendarMonth: toCalendarMonth(
           ((startMonth - 1 + swap1Start - 1) % 12) + 1,
         ),
-        effectiveCalendarYear:
+        effectiveCalendarYear: toFullCalendarYear(
           startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
+        ),
         targetHusbandTaxClass: TaxClass.V,
         targetWifeTaxClass: TaxClass.III,
         statutoryReason:
@@ -994,8 +999,9 @@ function buildSimulation(
         effectiveCalendarMonth: toCalendarMonth(
           ((startMonth - 1 + swap2Start - 1) % 12) + 1,
         ),
-        effectiveCalendarYear:
+        effectiveCalendarYear: toFullCalendarYear(
           startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),
+        ),
         targetHusbandTaxClass: TaxClass.V,
         targetWifeTaxClass: TaxClass.III,
         statutoryReason:
@@ -1016,7 +1022,7 @@ function buildSimulation(
           raiseId: toRaiseId(`RAISE-Y${y}`),
           effectiveSimulationMonth: toSimulationMonth(raiseMonth),
           effectiveCalendarMonth: toCalendarMonth(startMonth),
-          effectiveCalendarYear: startYear + y - 1,
+          effectiveCalendarYear: toFullCalendarYear(startYear + y - 1),
           targetPerson: TargetPerson.Both,
           percentageIncrease: opts.annualRaise,
           reason: `Year ${y} Tariff Adjustment (+${(opts.annualRaise * 100).toFixed(1)}%)`,

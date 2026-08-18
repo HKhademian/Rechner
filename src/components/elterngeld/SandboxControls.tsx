@@ -88,6 +88,7 @@ import {
   toEuroAmount,
   toNetSalary,
   toWorkingHours,
+  toFullCalendarYear,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -589,7 +590,7 @@ export default function SandboxControls(): JSX.Element {
                       pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
                       childIndex: count + 1,
                       positiveTestCalendarMonth: calMonth,
-                      positiveTestCalendarYear: calYear,
+                      positiveTestCalendarYear: toFullCalendarYear(calYear),
                       positiveTestSimulationMonth:
                         toSimulationMonth(newSimMonth),
                       calculatedDeliverySimulationMonth: toSimulationMonth(
@@ -901,7 +902,8 @@ export default function SandboxControls(): JSX.Element {
                                     updatePregnancyAction(preg.pregnancyId, {
                                       positiveTestCalendarMonth:
                                         toCalendarMonth(m),
-                                      positiveTestCalendarYear: curY,
+                                      positiveTestCalendarYear:
+                                        toFullCalendarYear(curY),
                                       positiveTestSimulationMonth:
                                         toSimulationMonth(newPSim),
                                       calculatedDeliverySimulationMonth:
@@ -969,7 +971,8 @@ export default function SandboxControls(): JSX.Element {
                                     updatePregnancyAction(preg.pregnancyId, {
                                       positiveTestCalendarMonth:
                                         toCalendarMonth(curM),
-                                      positiveTestCalendarYear: y,
+                                      positiveTestCalendarYear:
+                                        toFullCalendarYear(y),
                                       positiveTestSimulationMonth:
                                         toSimulationMonth(newPSim),
                                       calculatedDeliverySimulationMonth:
@@ -1198,7 +1201,7 @@ export default function SandboxControls(): JSX.Element {
                       switchId: toSwitchId(`SWAP-CHILD-${count + 1}`),
                       effectiveSimulationMonth: toSimulationMonth(start),
                       effectiveCalendarMonth: sMonth,
-                      effectiveCalendarYear: sYear,
+                      effectiveCalendarYear: toFullCalendarYear(sYear),
                       targetHusbandTaxClass: TaxClass.V,
                       targetWifeTaxClass: TaxClass.III,
                       statutoryReason: `Optimize Child ${count + 1} Elterngeld assessment baseline (§ 2b BEEG)`,
@@ -1759,9 +1762,10 @@ export default function SandboxControls(): JSX.Element {
                                   effectiveCalendarMonth: toCalendarMonth(
                                     (totalElapsed % 12) + 1,
                                   ),
-                                  effectiveCalendarYear:
+                                  effectiveCalendarYear: toFullCalendarYear(
                                     startCalendarYear.value +
-                                    Math.floor(totalElapsed / 12),
+                                      Math.floor(totalElapsed / 12),
+                                  ),
                                 });
                               }}
                               style={{
@@ -2211,7 +2215,7 @@ export default function SandboxControls(): JSX.Element {
                         effectiveSimulationMonth:
                           toSimulationMonth(defaultMonth),
                         effectiveCalendarMonth: sMonth,
-                        effectiveCalendarYear: sYear,
+                        effectiveCalendarYear: toFullCalendarYear(sYear),
                         targetPerson: target,
                         weeklyHours: toWorkingHours(
                           target === TargetPerson.Husband
@@ -2262,7 +2266,7 @@ export default function SandboxControls(): JSX.Element {
                           Math.min(simulationDurationMonths.value, newSimMonth),
                         ),
                         effectiveCalendarMonth: sMonth,
-                        effectiveCalendarYear: sYear,
+                        effectiveCalendarYear: toFullCalendarYear(sYear),
                         targetPerson: TargetPerson.Both,
                         percentageIncrease: 0.05,
                         reason: `Merit Promotion / Tariff Adjustment (+5%)`,
@@ -3018,7 +3022,8 @@ export default function SandboxControls(): JSX.Element {
                                   effectiveSimulationMonth:
                                     toSimulationMonth(newMonth),
                                   effectiveCalendarMonth: calM,
-                                  effectiveCalendarYear: calY,
+                                  effectiveCalendarYear:
+                                    toFullCalendarYear(calY),
                                 });
                               }}
                               style={{
@@ -3537,7 +3542,7 @@ export default function SandboxControls(): JSX.Element {
                         effectiveSimulationMonth:
                           toSimulationMonth(defaultMonth),
                         effectiveCalendarMonth: sMonth,
-                        effectiveCalendarYear: sYear,
+                        effectiveCalendarYear: toFullCalendarYear(sYear),
                         title: `Child Expense / Equipment #${count + 1}`,
                         amount: toEuroAmount(-1000),
                         category: FinancialEventCategory.BabyEquipment,
@@ -3585,7 +3590,7 @@ export default function SandboxControls(): JSX.Element {
                         effectiveSimulationMonth:
                           toSimulationMonth(defaultMonth),
                         effectiveCalendarMonth: sMonth,
-                        effectiveCalendarYear: sYear,
+                        effectiveCalendarYear: toFullCalendarYear(sYear),
                         title: `Family Bonus / Grant #${count + 1}`,
                         amount: toEuroAmount(1500),
                         category: FinancialEventCategory.CareerBonus,
@@ -4130,8 +4135,8 @@ export default function SandboxControls(): JSX.Element {
                       <select
                         value={startCalendarYear.value}
                         onChange={(e) => {
-                          startCalendarYear.value = Number(
-                            (e.target as HTMLSelectElement).value,
+                          startCalendarYear.value = toFullCalendarYear(
+                            Number((e.target as HTMLSelectElement).value),
                           );
                         }}
                         style={{
