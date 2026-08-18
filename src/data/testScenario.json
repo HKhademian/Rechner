@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "version": 1,
+    "exportedAt": "2026-08-18T12:00:00.000Z",
+    "application": "German Elterngeld & Parental Leave 5-Year Financial Simulator",
+    "format": "JSON"
+  },
+  "simulationState": {
+    "salaryInputMode": "GROSS",
+    "salaryPeriod": "MONTHLY",
+    "husbandGross": 4000,
+    "wifeGross": 3000,
+    "husbandHours": 32,
+    "wifeInitialHours": 40,
+    "wifePostBirthHours": 32,
+    "husbandClass3Net": 2895,
+    "husbandClass5Net": 2191,
+    "wifeClass5FullTimeNet": 1975,
+    "wifeClass3FullTimeNet": 2603,
+    "husbandInitialTaxClass": "III",
+    "wifeInitialTaxClass": "V",
+    "useInitialTaxFactor": false,
+    "annualBonusGross": 0,
+    "annualBonusMonth": 12,
+    "investmentReturnMonthly": 0,
+    "kindergeldPerChild": 259,
+    "enable13thSalary": true,
+    "bonus40Month": 5,
+    "bonus60Month": 11,
+    "taxReturnMonth": 3,
+    "showSpecialEventRows": true,
+    "enableSalaryRaises": false,
+    "annualSalaryRaisePercent": 0,
+    "startCalendarYear": 2026,
+    "startCalendarMonth": 1,
+    "simulationDurationMonths": 72,
+    "prePregnancyPlanningMonths": 8,
+    "child1BirthMonth": 17,
+    "birthSpacingMonths": 27,
+    "swapLeadMonths": 7,
+    "preMutterschutzMonths": 1.5,
+    "postMutterschutzMonths": 2,
+    "customPregnancies": [
+      {
+        "pregnancyId": "PREG-CHILD-1",
+        "childIndex": 1,
+        "positiveTestCalendarMonth": 9,
+        "positiveTestCalendarYear": 2026,
+        "positiveTestSimulationMonth": 9,
+        "calculatedDeliverySimulationMonth": 17,
+        "motherPostBirthPartTimeHours": 24,
+        "motherPostBirthPartTimeClass5Net": 1328,
+        "motherPostBirthPartTimeClass3Net": 1648,
+        "fatherPartnerMonthsCount": 4
+      },
+      {
+        "pregnancyId": "PREG-CHILD-2",
+        "childIndex": 2,
+        "positiveTestCalendarMonth": 11,
+        "positiveTestCalendarYear": 2027,
+        "positiveTestSimulationMonth": 23,
+        "calculatedDeliverySimulationMonth": 31,
+        "motherPostBirthPartTimeHours": 24,
+        "motherPostBirthPartTimeClass5Net": 1328,
+        "motherPostBirthPartTimeClass3Net": 1648,
+        "fatherPartnerMonthsCount": 4
+      },
+      {
+        "pregnancyId": "PREG-CUSTOM-3",
+        "childIndex": 3,
+        "positiveTestCalendarMonth": 11,
+        "positiveTestCalendarYear": 2029,
+        "positiveTestSimulationMonth": 47,
+        "calculatedDeliverySimulationMonth": 55,
+        "motherPostBirthPartTimeHours": 24,
+        "motherPostBirthPartTimeClass5Net": 1328,
+        "motherPostBirthPartTimeClass3Net": 1648,
+        "fatherPartnerMonthsCount": 4
+      }
+    ],
+    "customTaxClassSwitches": [
+      {
+        "switchId": "SWAP-CHILD-1",
+        "effectiveSimulationMonth": 9,
+        "effectiveCalendarMonth": 9,
+        "effectiveCalendarYear": 2026,
+        "targetHusbandTaxClass": "V",
+        "targetWifeTaxClass": "III",
+        "statutoryReason": "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
+        "revertSimulationMonth": 17
+      },
+      {
+        "switchId": "SWAP-CHILD-2",
+        "effectiveSimulationMonth": 47,
+        "effectiveCalendarMonth": 11,
+        "effectiveCalendarYear": 2029,
+        "targetHusbandTaxClass": "V",
+        "targetWifeTaxClass": "III",
+        "statutoryReason": "Optimize Child 2 Elterngeld assessment baseline (§ 2b BEEG)",
+        "revertSimulationMonth": 56
+      }
+    ],
+    "customSalaryRaises": [],
+    "customWorkingHoursChanges": [
+      {
+        "changeId": "HOURS-WIFE-RETURN",
+        "effectiveSimulationMonth": 19,
+        "effectiveCalendarMonth": 7,
+        "effectiveCalendarYear": 2027,
+        "targetPerson": "WIFE",
+        "weeklyHours": 32,
+        "reason": "Post-birth Part-time return (Partnerschaftsbonus § 4b BEEG eligible)"
+      },
+      {
+        "changeId": "HOURS-HUSBAND-BONUS",
+        "effectiveSimulationMonth": 19,
+        "effectiveCalendarMonth": 7,
+        "effectiveCalendarYear": 2027,
+        "targetPerson": "HUSBAND",
+        "weeklyHours": 32,
+        "reason": "Parental leave reduction (24-32h Partnerschaftsbonus § 4b BEEG)"
+      }
+    ],
+    "customFinancialEvents": [
+      {
+        "eventId": "FIN-CHILD1-EQUIPMENT",
+        "effectiveSimulationMonth": 17,
+        "effectiveCalendarMonth": 5,
+        "effectiveCalendarYear": 2027,
+        "title": "Child #1 Initial Equipment (*Erstausstattung*)",
+        "amount": -1500,
+        "category": "Baby Equipment (*Erstausstattung*)",
+        "description": "Crib, stroller, car seat, changing table, and initial newborn essentials"
+      },
+      {
+        "eventId": "FIN-CHILD1-KITA-DEPOSIT",
+        "effectiveSimulationMonth": 26,
+        "effectiveCalendarMonth": 2,
+        "effectiveCalendarYear": 2028,
+        "title": "Kita Childcare Enrollment & Equipment (*Kita-Start*)",
+        "amount": -600,
+        "category": "Childcare (*Kita/Betreuung*)",
+        "description": "One-off daycare entrance fee, activity deposit, and outdoor gear"
+      }
+    ],
+    "activeScenario": "C",
+    "chartMode": "stacked_bar",
+    "timeRangeFilter": "all"
+  }
+}
