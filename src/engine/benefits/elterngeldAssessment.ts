@@ -1,3 +1,11 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Financial Simulator - Assessment Period Engine
+ *
+ * Implements the statutory 12-month pre-birth assessment window (Bemessungszeitraum § 2b BEEG),
+ * the predominant tax class rule (§ 2b Abs. 1 Satz 3 BEEG, BFH VI R 2/13), and the exclusion
+ * of non-recurrent special bonuses (Sonstige Bezüge § 2c Abs. 1 Satz 2 BEEG).
+ */
+
 import {
   type NetSalary,
   TaxClass,
@@ -8,18 +16,26 @@ import {
 } from "#engine/types";
 
 /**
- * Monthly Record in the 12-Month Assessment Period (Bemessungszeitraum § 2b BEEG)
+ * Monthly Record in the 12-Month Assessment Period (Bemessungszeitraum § 2b BEEG).
+ * Tracks individual monthly net income, applied tax class, and bonus flags.
  */
 export interface AssessmentMonthRecord {
-  readonly monthIndex: number; // 1..12
+  /** 1-based index within the 12-month pre-birth window (1..12). */
+  readonly monthIndex: number;
+  /** Earned net salary in this assessment month in EUR. */
   readonly earnedNetSalary: NetSalary;
+  /** Active tax class for withholding in this assessment month (§ 38b EStG). */
   readonly taxClass: TaxClass;
-  readonly isOneOffBonus: boolean; // § 2c Abs. 1 Satz 2 (Sonstige Bezüge) - exempt from assessment
+  /** True if payment is a non-recurrent special bonus (Sonstige Bezüge § 2c Abs. 1 Satz 2 BEEG) excluded from baseline. */
+  readonly isOneOffBonus: boolean;
 }
 
 /**
- * Predominant Tax Class Evaluation (§ 2b Abs. 1 Satz 3 BEEG)
- * The tax class active in at least 7 of the 12 months is locked as the dominant tax class.
+ * Evaluates the predominant tax class across the 12-month assessment period under § 2b Abs. 1 Satz 3 BEEG.
+ * The tax class active for at least 7 of the 12 months is legally locked as the dominant tax class for synthetic net determination.
+ *
+ * @param records - Array of 12 monthly assessment records.
+ * @returns Result object containing the dominant tax class, month count, synthetic flag, and legal citation.
  */
 export function determinePredominantTaxClass(
   records: readonly AssessmentMonthRecord[],
@@ -76,8 +92,13 @@ export function determinePredominantTaxClass(
 }
 
 /**
- * Calculates the Statutory 12-Month Pre-Birth Average Net Income (Bemessungsentgelt § 2 BEEG)
- * Exempts one-off special payments (Sonstige Bezüge § 2c Abs. 1 Satz 2).
+ * Calculates the statutory 12-month pre-birth average net income (Bemessungsentgelt § 2 BEEG).
+ * Automatically excludes non-recurrent bonus payments (Sonstige Bezüge § 2c Abs. 1 Satz 2 BEEG)
+ * and determines the average monthly baseline net salary.
+ *
+ * @param records - Exactly 12 monthly assessment records for the pre-birth period.
+ * @returns Average monthly net, dominant tax class, total eligible net, and excluded bonus totals.
+ * @throws {Error} if records length is not exactly 12.
  */
 export function computeAssessmentBaselineNet(
   records: readonly AssessmentMonthRecord[],

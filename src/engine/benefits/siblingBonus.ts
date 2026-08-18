@@ -1,3 +1,10 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Financial Simulator - Sibling Bonus Engine
+ *
+ * Implements the statutory Geschwisterbonus calculation under § 2a BEEG, adding a 10% premium
+ * (minimum +€75/month for ElterngeldPlus) when at least one older sibling under 3 years resides in the household.
+ */
+
 import {
   type SimulationMonth,
   type EuroAmount,
@@ -6,18 +13,32 @@ import {
 } from "#engine/types";
 
 /**
- * Sibling Bonus Determination (§ 2a BEEG)
- * Applies when at least one older sibling under 3 years (36 months) lives in the household.
+ * Statutory Sibling Bonus Calculation Result (§ 2a BEEG).
+ * Contains bonus eligibility, added premium amount, and resulting total parental allowance.
  */
 export interface SiblingBonusCalculation {
+  /** True if older sibling is currently under 36 months of age (§ 2a Abs. 1 BEEG). */
   readonly isEligible: boolean;
+  /** Baseline ElterngeldPlus amount before bonus addition in EUR. */
   readonly baseElterngeldPlus: EuroAmount;
+  /** Sibling bonus addition in EUR (+10% of base, statutory minimum +€75/mo under § 2a Abs. 4 BEEG). */
   readonly siblingBonusAmount: EuroAmount;
+  /** Total ElterngeldPlus benefit including bonus in EUR (capped at statutory ceiling €900/mo). */
   readonly totalElterngeldPlusWithBonus: EuroAmount;
+  /** Current calculated age of older sibling in elapsed months. */
   readonly olderChildAgeInMonths: number;
+  /** Statutory legal citation reference. */
   readonly statutoryCitation: string;
 }
 
+/**
+ * Computes statutory sibling bonus under § 2a BEEG for a given simulation month.
+ *
+ * @param baseElterngeldPlus - Monthly un-augmented ElterngeldPlus benefit.
+ * @param olderChildBirthMonth - Simulation month when older child was delivered.
+ * @param currentMonth - Current simulation month being evaluated.
+ * @returns Complete `SiblingBonusCalculation` structure.
+ */
 export function computeSiblingBonus(
   baseElterngeldPlus: EuroAmount,
   olderChildBirthMonth: SimulationMonth,
