@@ -271,7 +271,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Sonstige Bezüge § 39b EStG"));
     });
 
-    it('executes "spousal-net --husband-gross 4500 --wife-gross 3000" and outputs comparison set', async () => {
+    it('executes "spousal-net --husband-gross 4500 --wife-gross 3000 --wife-hours 24" and outputs comparison set', async () => {
       const { stdout, stderr } = await execFileAsync("node", [
         "src/cli/runner.ts",
         "spousal-net",
@@ -279,6 +279,8 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
         "4500",
         "--wife-gross",
         "3000",
+        "--wife-hours",
+        "24",
       ]);
       assert.equal(stderr, "");
       assert.ok(
