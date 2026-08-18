@@ -408,10 +408,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
     });
 
     it("executes quality audit runner cleanly and verifies repo integrity", async () => {
-      const {
-        stdout,
-        stderr,
-      } = await execFileAsync("node", [
+      const { stdout, stderr } = await execFileAsync("node", [
         "src/cli/qualityAudit.ts",
       ]);
       assert.equal(stderr, "");

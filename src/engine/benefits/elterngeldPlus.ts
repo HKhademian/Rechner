@@ -6,7 +6,12 @@
  */
 
 import {
-  type NetSalary, type EuroAmount, toEuroAmount, 
+  type NetSalary,
+  type EuroAmount,
+  type PercentageRate,
+  type WorkingHours,
+  toEuroAmount,
+  toPercentageRate,
 } from "#engine/types";
 
 /**
@@ -19,35 +24,35 @@ import {
  * - Net > 1.240 €: Fixed statutory minimum replacement rate of 65%.
  *
  * @param preBirthNet - Monthly pre-birth average net income assessment baseline (§ 2b BEEG).
- * @returns Wage replacement ratio as a decimal fraction between 0.65 and 1.00.
+ * @returns Wage replacement ratio as a branded `PercentageRate` between 0.65 and 1.00.
  */
 export function computeStatutoryReplacementRate(
   preBirthNet: NetSalary,
-): number {
+): PercentageRate {
   const net = preBirthNet as number;
   if (net <= 0) {
-    return 0.67;
+    return toPercentageRate(0.67);
   }
 
   // Low income scale (§ 2 Abs. 2: < 1.000 € -> increases up to 100%)
   if (net < 1000) {
     const increase = (1000 - net) * 0.0005; // +0.1% per 2 €
-    return Math.min(1.0, 0.67 + increase);
+    return toPercentageRate(Math.min(1.0, 0.67 + increase));
   }
 
   // Standard zone: 1.000 € to 1.200 €
   if (net <= 1200) {
-    return 0.67;
+    return toPercentageRate(0.67);
   }
 
   // High income scale (§ 2 Abs. 1: 1.200 € to 1.240 € -> decreases to 65%)
   if (net < 1240) {
     const decrease = (net - 1200) * 0.0005; // -0.1% per 2 €
-    return Math.max(0.65, 0.67 - decrease);
+    return toPercentageRate(Math.max(0.65, 0.67 - decrease));
   }
 
   // > 1.240 € -> 65%
-  return 0.65;
+  return toPercentageRate(0.65);
 }
 
 /**
@@ -61,8 +66,8 @@ export interface ElterngeldEntitlement {
   readonly partTimeNet: NetSalary;
   /** Net monthly income loss suffered due to parental leave in EUR (preBirthNet - partTimeNet). */
   readonly netIncomeLoss: EuroAmount;
-  /** Statutory wage replacement rate applied (0.65..1.00). */
-  readonly replacementRate: number;
+  /** Statutory wage replacement rate applied (0.65..1.00) as a branded `PercentageRate`. */
+  readonly replacementRate: PercentageRate;
   /** Monthly full Basiselterngeld entitlement in EUR (min €300, max €1.800 under § 2 Abs. 1 BEEG). */
   readonly basiselterngeld: EuroAmount;
   /** Monthly ElterngeldPlus entitlement in EUR (min €150, max €900 under § 4a BEEG). */
@@ -82,8 +87,11 @@ export interface ElterngeldEntitlement {
  * @param weeklyHours - Contractual weekly working hours during parental leave.
  * @returns True if hours are within the statutory 0..32 hours/week window; false if disqualified.
  */
-export function isElterngeldHoursEligible(weeklyHours: number): boolean {
-  return weeklyHours >= 0 && weeklyHours <= 32;
+export function isElterngeldHoursEligible(
+  weeklyHours: WorkingHours | number,
+): boolean {
+  const h = weeklyHours as number;
+  return h >= 0 && h <= 32;
 }
 
 /**
@@ -95,15 +103,12 @@ export function isElterngeldHoursEligible(weeklyHours: number): boolean {
  * @returns True if both parents concurrently satisfy the 24..32 hours/week criterion.
  */
 export function isPartnerschaftsbonusEligible(
-  motherHours: number,
-  fatherHours: number,
+  motherHours: WorkingHours | number,
+  fatherHours: WorkingHours | number,
 ): boolean {
-  return (
-    motherHours >= 24 &&
-    motherHours <= 32 &&
-    fatherHours >= 24 &&
-    fatherHours <= 32
-  );
+  const m = motherHours as number;
+  const f = fatherHours as number;
+  return m >= 24 && m <= 32 && f >= 24 && f <= 32;
 }
 
 /**
@@ -118,19 +123,19 @@ export function isPartnerschaftsbonusEligible(
 export function computeElterngeldBenefits(
   preBirthNet: NetSalary,
   partTimeNetDuringLeave: NetSalary = 0 as unknown as NetSalary,
-  weeklyHours?: number,
+  weeklyHours?: WorkingHours | number,
 ): ElterngeldEntitlement {
   const pre = preBirthNet as number;
   const pt = partTimeNetDuringLeave as number;
 
   // Statutory Exclusion (§ 1 Abs. 1 Nr. 4 BEEG):
   // Working more than 32 hours/week disqualifies from parental allowance entirely.
-  if (weeklyHours !== undefined && weeklyHours > 32) {
+  if (weeklyHours !== undefined && (weeklyHours as number) > 32) {
     return {
       preBirthNet,
       partTimeNet: partTimeNetDuringLeave,
       netIncomeLoss: toEuroAmount(0),
-      replacementRate: 0,
+      replacementRate: toPercentageRate(0),
       basiselterngeld: toEuroAmount(0),
       elterngeldPlus: toEuroAmount(0),
       isMaxCapped: false,
@@ -143,7 +148,7 @@ export function computeElterngeldBenefits(
   const loss = Math.max(0, pre - pt);
   const rate = computeStatutoryReplacementRate(preBirthNet);
 
-  const rawBenefit = loss * rate;
+  const rawBenefit = loss * (rate as number);
 
   // Basiselterngeld: min €300, max €1.800 (§ 2 Abs. 1 BEEG)
   const basis = Math.min(1800, Math.max(300, Math.round(rawBenefit)));
