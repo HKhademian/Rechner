@@ -7,11 +7,19 @@ import process from "node:process";
 process.env.ASTRO_TELEMETRY_DISABLED = "1";
 process.env.DO_NOT_TRACK = "1";
 
+/**
+ * Quality Verification Diagnostic Message Entry.
+ */
 interface DiagnosticMessage {
+  /** Diagnostic severity level. */
   readonly type: "ERROR" | "WARN" | "INFO";
+  /** Quality category rule name (e.g. 'Types', 'Formatting', 'DesignSystem'). */
   readonly category: string;
+  /** Relative source file path where issue occurred. */
   readonly file?: string;
+  /** Source code line number. */
   readonly line?: number;
+  /** Diagnostic description message. */
   readonly message: string;
 }
 

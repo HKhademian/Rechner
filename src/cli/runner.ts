@@ -88,6 +88,9 @@ function formatDiff(val: number): string {
   return `${GRAY}0 €${RESET}`;
 }
 
+/**
+ * CLI Scenario Execution Target Filter (A, B, C, or Compare).
+ */
 export const CliScenarioTarget = {
   A: ScenarioId.A,
   B: ScenarioId.B,
@@ -97,6 +100,13 @@ export const CliScenarioTarget = {
 export type CliScenarioTarget =
   (typeof CliScenarioTarget)[keyof typeof CliScenarioTarget];
 
+/**
+ * Validates and normalizes string input into a strongly-typed `CliScenarioTarget`.
+ *
+ * @param val - Scenario target flag argument ('A', 'B', 'C', or 'compare').
+ * @returns Strongly-typed `CliScenarioTarget`.
+ * @throws {TypeError} if input does not match expected target options.
+ */
 export function toCliScenarioTarget(val: string): CliScenarioTarget {
   const upper = val.toUpperCase();
   if (upper === "A" || upper === "B" || upper === "C") {
