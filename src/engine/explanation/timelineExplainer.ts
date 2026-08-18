@@ -1054,14 +1054,14 @@ export function getFieldExplanation(
  * Builds a field-level explanation for an action milestone row.
  */
 export function getActionFieldExplanation(
-  fieldKey: ExplanationFieldKey | string,
+  fieldKey: ExplanationFieldKey,
   act: ActionRowItem,
   m: TimelineMonth,
 ): FieldExplanation {
   const isDelivery = act.type === ActionType.ChildDelivery;
   const isPregnancy = act.type === ActionType.PregnancyPositive;
   const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
-  const key = toExplanationFieldKey(fieldKey);
+  const key = fieldKey;
   const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
 
   switch (key) {

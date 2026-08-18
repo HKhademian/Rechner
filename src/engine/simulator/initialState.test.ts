@@ -204,28 +204,40 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
 
     it("accurately calculates statutory simulation start date (-3M snapped to January) and Mx counter from pregnancy positive", () => {
       // Example 1: Pregnancy in 09.2026 -> 09.2026 - 3M = 06.2026 -> 01.2026
-      const r1 = calculateSimulationStartDate(2026, 9);
+      const r1 = calculateSimulationStartDate(
+        toFullCalendarYear(2026),
+        toCalendarMonth(9),
+      );
       assert.equal(r1.startCalendarYear, 2026);
       assert.equal(r1.startCalendarMonth, 1);
       assert.equal(r1.prePregnancyPlanningMonths, 8);
       assert.equal(r1.pregnancySimulationMonth, 9);
 
       // Example 2: Pregnancy in 02.2028 -> 02.2028 - 3M = 11.2027 -> 01.2027
-      const r2 = calculateSimulationStartDate(2028, 2);
+      const r2 = calculateSimulationStartDate(
+        toFullCalendarYear(2028),
+        toCalendarMonth(2),
+      );
       assert.equal(r2.startCalendarYear, 2027);
       assert.equal(r2.startCalendarMonth, 1);
       assert.equal(r2.prePregnancyPlanningMonths, 13);
       assert.equal(r2.pregnancySimulationMonth, 14);
 
       // Example 3: Pregnancy in 03.2027 -> 03.2027 - 3M = 12.2026 -> 01.2026
-      const r3 = calculateSimulationStartDate(2027, 3);
+      const r3 = calculateSimulationStartDate(
+        toFullCalendarYear(2027),
+        toCalendarMonth(3),
+      );
       assert.equal(r3.startCalendarYear, 2026);
       assert.equal(r3.startCalendarMonth, 1);
       assert.equal(r3.prePregnancyPlanningMonths, 14);
       assert.equal(r3.pregnancySimulationMonth, 15);
 
       // Example 4: Pregnancy in 04.2027 -> 04.2027 - 3M = 01.2027 -> 01.2027
-      const r4 = calculateSimulationStartDate(2027, 4);
+      const r4 = calculateSimulationStartDate(
+        toFullCalendarYear(2027),
+        toCalendarMonth(4),
+      );
       assert.equal(r4.startCalendarYear, 2027);
       assert.equal(r4.startCalendarMonth, 1);
       assert.equal(r4.prePregnancyPlanningMonths, 3);

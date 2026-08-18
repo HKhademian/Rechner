@@ -34,9 +34,11 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
     it("Scenario 1: Low-income couple (< 70k zvE) where Kindergeld is more favorable", () => {
       // 40.000 € joint taxable income (20k each in splitting)
       const children: ChildYearPresence[] = [
-        { childIndex: 1,
-          birthCalendarYear: 2025,
-          birthCalendarMonth: 1 },
+        {
+          childIndex: toChildIndex(1),
+          birthCalendarYear: toFullCalendarYear(2025),
+          birthCalendarMonth: toCalendarMonth(1),
+        },
       ];
       const result = computeKinderfreibetragGuenstigerpruefung(
         40000,
@@ -56,9 +58,11 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
     it("Scenario 2: Baseline middle-to-high income couple (~95k zvE) where Kinderfreibetrag is favorable", () => {
       // 95.000 € joint taxable income (~47.5k each in splitting -> ~35-37% marginal rate)
       const children: ChildYearPresence[] = [
-        { childIndex: 1,
-          birthCalendarYear: 2025,
-          birthCalendarMonth: 1 },
+        {
+          childIndex: toChildIndex(1),
+          birthCalendarYear: toFullCalendarYear(2025),
+          birthCalendarMonth: toCalendarMonth(1),
+        },
       ];
       const result = computeKinderfreibetragGuenstigerpruefung(
         95000,
@@ -88,9 +92,11 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
     it("Scenario 3: High-income couple (160k zvE, 42% bracket) achieving maximum statutory tax relief", () => {
       // 160.000 € joint taxable income (80k each in splitting -> 42% Spitzensteuersatz)
       const children: ChildYearPresence[] = [
-        { childIndex: 1,
-          birthCalendarYear: 2025,
-          birthCalendarMonth: 1 },
+        {
+          childIndex: toChildIndex(1),
+          birthCalendarYear: toFullCalendarYear(2025),
+          birthCalendarMonth: toCalendarMonth(1),
+        },
       ];
       const result = computeKinderfreibetragGuenstigerpruefung(
         160000,
@@ -108,9 +114,11 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
     it("Scenario 4: Prorated birth year calculation (§ 32 Abs. 6 Satz 5 EStG)", () => {
       // Child born in May (Month 5) -> Alive for 8 months of the year (May to Dec = 8/12)
       const children: ChildYearPresence[] = [
-        { childIndex: 1,
-          birthCalendarYear: 2026,
-          birthCalendarMonth: 5 },
+        {
+          childIndex: toChildIndex(1),
+          birthCalendarYear: toFullCalendarYear(2026),
+          birthCalendarMonth: toCalendarMonth(5),
+        },
       ];
       const result = computeKinderfreibetragGuenstigerpruefung(
         120000,
@@ -129,12 +137,16 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
 
     it("Scenario 5: Multiple children scaling (2 children)", () => {
       const children: ChildYearPresence[] = [
-        { childIndex: 1,
-          birthCalendarYear: 2024,
-          birthCalendarMonth: 1 },
-        { childIndex: 2,
-          birthCalendarYear: 2025,
-          birthCalendarMonth: 1 },
+        {
+          childIndex: toChildIndex(1),
+          birthCalendarYear: toFullCalendarYear(2024),
+          birthCalendarMonth: toCalendarMonth(1),
+        },
+        {
+          childIndex: toChildIndex(2),
+          birthCalendarYear: toFullCalendarYear(2025),
+          birthCalendarMonth: toCalendarMonth(1),
+        },
       ];
       const result = computeKinderfreibetragGuenstigerpruefung(
         120000,
@@ -162,9 +174,13 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
 
       const res0Income = computeKinderfreibetragGuenstigerpruefung(
         0,
-        [{ childIndex: 1,
-          birthCalendarYear: 2025,
-          birthCalendarMonth: 1 }],
+        [
+          {
+            childIndex: toChildIndex(1),
+            birthCalendarYear: toFullCalendarYear(2025),
+            birthCalendarMonth: toCalendarMonth(1),
+          },
+        ],
         2026,
         259,
       );

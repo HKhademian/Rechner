@@ -29,13 +29,13 @@ export interface CreateTransactionParams {
   /** Raw or nominal transaction identifier. */
   readonly transactionId: string;
   /** Absolute calendar month identifier (e.g. 'M09.2027'). */
-  readonly monthId: MonthId | string;
+  readonly monthId: MonthId;
   /** Statutory relative month reference notation (e.g. 'M9 (Birth 1)'). */
-  readonly monthRef?: MonthRef | string;
+  readonly monthRef?: MonthRef;
   /** Simulation start relative index notation (e.g. 'Sim21'). */
-  readonly monthSimRef?: MonthSimRef | string;
+  readonly monthSimRef?: MonthSimRef;
   /** Optional display label for relative month reference. */
-  readonly relativeMonthLabel?: MonthRef | string;
+  readonly relativeMonthLabel?: MonthRef;
   /** 1-based chronological simulation month index (1..120). */
   readonly month: SimulationMonth;
   /** 1-based simulation horizon year index (1..10). */

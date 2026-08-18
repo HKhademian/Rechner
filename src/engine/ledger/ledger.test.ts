@@ -50,7 +50,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         const sMonth = toSimulationMonth(m);
         const cy = toCalendarYear(Math.ceil(m / 12));
         const cm = toCalendarMonth(((m - 1) % 12) + 1);
-        const calYearNum = 2026 + cy - 1;
+        const calYearNum = toFullCalendarYear(2026 + cy - 1);
         const mId = toMonthId(cm, calYearNum);
 
         const hSalary = toEuroAmount(4000);
@@ -69,7 +69,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
             calendarMonthNum: cm,
             calendarLabel: `M${sMonth}`,
             relativeBirthLabel: `M${sMonth}`,
-            relativeMonthLabel: `M${sMonth}`,
+            relativeMonthLabel: toMonthRef(sMonth),
             relativeMonthIndex: m,
             husbandSalary: hSalary,
             wifeSalary: wSalary,

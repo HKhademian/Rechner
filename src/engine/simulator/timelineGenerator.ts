@@ -49,6 +49,7 @@ import {
   toPregnancyId,
   toSwitchId,
   toStatutoryCitation,
+  toTaxFactor,
 } from "#engine/types";
 import {
   createTransaction, 
@@ -139,8 +140,8 @@ export interface TimelineSimulationParams {
  * @returns Start year/month, pre-pregnancy planning buffer, and positive test simulation month.
  */
 export function calculateSimulationStartDate(
-  pregPositiveYear: FullCalendarYear | number,
-  pregPositiveMonth: CalendarMonth | number,
+  pregPositiveYear: FullCalendarYear,
+  pregPositiveMonth: CalendarMonth,
 ): {
   startCalendarYear: FullCalendarYear;
   startCalendarMonth: CalendarMonth;
@@ -361,7 +362,7 @@ export function runScenarioBatches(
     const initialHTaxClass = preexisting.husbandInitialTaxClass ?? TaxClass.III;
     const initialWTaxClass = preexisting.wifeInitialTaxClass ?? TaxClass.V;
     const initialUseFactor = preexisting.initialUseTaxFactor ?? false;
-    const initialTaxFactor = preexisting.initialTaxFactor ?? 1.0;
+    const initialTaxFactor = preexisting.initialTaxFactor ?? toTaxFactor(1.0);
 
     let activeHTaxClass = initialHTaxClass;
     let activeWTaxClass = initialWTaxClass;
@@ -829,7 +830,7 @@ export function runScenarioBatches(
         childrenInYear.push({
           childIndex: toChildIndex(c + 1),
           birthCalendarYear: toFullCalendarYear(reconciledCalYear - 1),
-          birthCalendarMonth: 1,
+          birthCalendarMonth: toCalendarMonth(1),
         });
       }
       // Pregnancies delivered on or before reconciledCalYear

@@ -10,6 +10,7 @@ import {
   type EuroAmount,
   type NetSalary,
   type CalendarYear,
+  type CalendarMonth,
   type FullCalendarYear,
   type ChildIndex,
   type SimulationMonth,
@@ -85,11 +86,11 @@ export function computeMonthlySwapWithholdingVariance(
  */
 export interface ChildYearPresence {
   /** Ordinal index of the child. */
-  readonly childIndex: ChildIndex | number;
+  readonly childIndex: ChildIndex;
   /** 4-digit Gregorian calendar birth year (e.g. 2026). */
-  readonly birthCalendarYear: FullCalendarYear | number;
+  readonly birthCalendarYear: FullCalendarYear;
   /** 1-based calendar birth month (1..12). */
-  readonly birthCalendarMonth: number;
+  readonly birthCalendarMonth: CalendarMonth;
 }
 
 /**

@@ -381,7 +381,7 @@ export function computeGrossToNetBreakdown(
   taxClass: TaxClass,
   childrenCount: number = 0,
   oneOffBonus?: EuroAmount,
-  taxFactor?: TaxFactor | number,
+  taxFactor?: TaxFactor,
 ): GrossToNetBreakdown {
   const bonus = oneOffBonus ?? 0;
   const annualGross = monthlyGross * 12;
@@ -501,7 +501,7 @@ export function computeMonthlyNetSalary(
   taxClass: TaxClass,
   childrenCount: number = 0,
   oneOffBonus?: EuroAmount,
-  taxFactor?: TaxFactor | number,
+  taxFactor?: TaxFactor,
 ): NetSalary {
   const breakdown = computeGrossToNetBreakdown(
     monthlyGross,

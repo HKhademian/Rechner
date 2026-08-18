@@ -10,7 +10,10 @@ import {
   computeTaxFactor,
 } from "#engine/tax/wageTax";
 import {
-  toGrossSalary, toEuroAmount, TaxClass, 
+  toGrossSalary,
+  toEuroAmount,
+  toTaxFactor,
+  TaxClass,
 } from "#engine/types";
 
 describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
@@ -190,7 +193,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
 
     it("applies factor F to reduce wage tax withholding in Tax Class IV", () => {
       const hGross = toGrossSalary(4500);
-      const factor = 0.905;
+      const factor = toTaxFactor(0.905);
 
       const net4Standard = computeMonthlyNetSalary(
         hGross,

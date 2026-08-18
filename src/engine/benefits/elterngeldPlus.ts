@@ -12,6 +12,7 @@ import {
   type WorkingHours,
   toEuroAmount,
   toPercentageRate,
+  toNetSalary,
 } from "#engine/types";
 
 /**
@@ -87,7 +88,7 @@ export interface ElterngeldEntitlement {
  * @returns True if hours are within the statutory 0..32 hours/week window; false if disqualified.
  */
 export function isElterngeldHoursEligible(
-  weeklyHours: WorkingHours | number,
+  weeklyHours: WorkingHours,
 ): boolean {
   return weeklyHours >= 0 && weeklyHours <= 32;
 }
@@ -101,8 +102,8 @@ export function isElterngeldHoursEligible(
  * @returns True if both parents concurrently satisfy the 24..32 hours/week criterion.
  */
 export function isPartnerschaftsbonusEligible(
-  motherHours: WorkingHours | number,
-  fatherHours: WorkingHours | number,
+  motherHours: WorkingHours,
+  fatherHours: WorkingHours,
 ): boolean {
   return (
     motherHours >= 24 &&
@@ -123,8 +124,8 @@ export function isPartnerschaftsbonusEligible(
  */
 export function computeElterngeldBenefits(
   preBirthNet: NetSalary,
-  partTimeNetDuringLeave: NetSalary = 0 as NetSalary,
-  weeklyHours?: WorkingHours | number,
+  partTimeNetDuringLeave: NetSalary = toNetSalary(0),
+  weeklyHours?: WorkingHours,
 ): ElterngeldEntitlement {
   // Statutory Exclusion (§ 1 Abs. 1 Nr. 4 BEEG):
   // Working more than 32 hours/week disqualifies from parental allowance entirely.

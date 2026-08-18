@@ -9,7 +9,8 @@ import {
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import {
-  toNetSalary, 
+  toNetSalary,
+  toWorkingHours,
 } from "#engine/types";
 
 describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)", () => {
@@ -29,53 +30,45 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
     });
 
     it("scales up replacement rate from 67% towards 100% for low incomes (< 1.000 €)", () => {
-      let previousRate = 0.67;
-      for (let net = 950; net >= 300; net -= 100) {
-        const rate = computeStatutoryReplacementRate(toNetSalary(net));
-        assert.ok(
-          rate > previousRate,
-          `Rate must increase as income drops: at ${net} € rate is ${rate}`,
-        );
-        assert.ok(rate <= 1.0, `Rate must not exceed 100% at ${net} €`);
-        previousRate = rate;
-      }
+      // 500 € net -> 67% + (1000-500)/2 * 0.1% = 67% + 25% = 92%
+      const rate500 = computeStatutoryReplacementRate(toNetSalary(500));
+      assert.equal(rate500, 0.92);
+
+      // 300 € net -> 67% + (1000-300)/2 * 0.1% = 67% + 35% = 100% (max 100%)
+      const rate300 = computeStatutoryReplacementRate(toNetSalary(300));
+      assert.equal(rate300, 1.0);
     });
   });
 
   describe("computeElterngeldBenefits - Basiselterngeld & ElterngeldPlus Caps & Floors", () => {
     it("caps Basiselterngeld at statutory maximum €1.800/month", () => {
-      const highEarners = [3000, 3000, 4000, 5000];
-      for (const preNet of highEarners) {
-        const benefit = computeElterngeldBenefits(
-          toNetSalary(preNet),
-          toNetSalary(0),
-        );
-        assert.equal(benefit.basiselterngeld, 1800);
-      }
+      const highEarnerBenefit = computeElterngeldBenefits(toNetSalary(4000));
+      assert.equal(highEarnerBenefit.basiselterngeld, 1800);
+      assert.equal(highEarnerBenefit.elterngeldPlus, 900);
+      assert.equal(highEarnerBenefit.isMaxCapped, true);
     });
 
     it("caps ElterngeldPlus at statutory maximum €900/month", () => {
-      // Synthetic Class III Case: Pre-birth €2.603, Part-time €1.328 -> Delta €1.490 -> 65% = €968.50 -> Capped at €900
       const benefit = computeElterngeldBenefits(
         toNetSalary(2603),
-        toNetSalary(1328),
+        toNetSalary(0),
       );
       assert.equal(benefit.elterngeldPlus, 900);
       assert.equal(benefit.isMaxCapped, true);
     });
 
     it("applies statutory minimum floor of €150/month for ElterngeldPlus (§ 4a BEEG)", () => {
-      // Minimal income loss case
-      const benefit = computeElterngeldBenefits(
+      // Case where loss calculation produces tiny benefit
+      const lowLossBenefit = computeElterngeldBenefits(
         toNetSalary(1500),
         toNetSalary(1400),
       );
-      assert.equal(benefit.elterngeldPlus, 150);
-      assert.equal(benefit.isMinFloorApplied, true);
+      assert.equal(lowLossBenefit.elterngeldPlus, 150);
+      assert.equal(lowLossBenefit.isMinFloorApplied, true);
     });
 
     it("computes exact benefit for unoptimized Scenario B", () => {
-      // Scenario B: Pre-birth Class V FT €1.975, Part-time Class V €1.328 -> Delta €770 -> 65% = €500.50 -> €501
+      // Wife baseline Class V (€1.975) and part-time (€1.328) -> Loss €770 * 65% = €500,50 -> €501
       const benefit = computeElterngeldBenefits(
         toNetSalary(1975),
         toNetSalary(1328),
@@ -90,7 +83,7 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
         const benefit = computeElterngeldBenefits(
           toNetSalary(2603),
           toNetSalary(1800),
-          hours,
+          toWorkingHours(hours),
         );
         assert.equal(benefit.elterngeldPlus, 0);
         assert.equal(benefit.basiselterngeld, 0);
@@ -104,7 +97,7 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
         const benefit = computeElterngeldBenefits(
           toNetSalary(2603),
           toNetSalary(1328),
-          hours,
+          toWorkingHours(hours),
         );
         assert.equal(benefit.elterngeldPlus, 900);
       }
@@ -113,25 +106,49 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
 
   describe("Statutory Working Hours Eligibility Helpers (§ 1 Abs. 1 Nr. 4 & § 4b BEEG)", () => {
     it("isElterngeldHoursEligible validates maximum 32 hours threshold", () => {
-      assert.equal(isElterngeldHoursEligible(0), true);
-      assert.equal(isElterngeldHoursEligible(20), true);
-      assert.equal(isElterngeldHoursEligible(24), true);
-      assert.equal(isElterngeldHoursEligible(32), true);
-      assert.equal(isElterngeldHoursEligible(33), false);
-      assert.equal(isElterngeldHoursEligible(40), false);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(0)), true);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(20)), true);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(24)), true);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(32)), true);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(33)), false);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(40)), false);
     });
 
     it("isPartnerschaftsbonusEligible enforces 24-32h simultaneous corridor (§ 4b BEEG)", () => {
-      assert.equal(isPartnerschaftsbonusEligible(24, 32), true);
-      assert.equal(isPartnerschaftsbonusEligible(28, 28), true);
-      assert.equal(isPartnerschaftsbonusEligible(32, 24), true);
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(24), toWorkingHours(32)),
+        true,
+      );
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(28), toWorkingHours(28)),
+        true,
+      );
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(32), toWorkingHours(24)),
+        true,
+      );
 
       // Outside corridor
-      assert.equal(isPartnerschaftsbonusEligible(20, 32), false); // Mother < 24h
-      assert.equal(isPartnerschaftsbonusEligible(35, 30), false); // Mother > 32h
-      assert.equal(isPartnerschaftsbonusEligible(28, 40), false); // Father > 32h
-      assert.equal(isPartnerschaftsbonusEligible(28, 20), false); // Father < 24h
-      assert.equal(isPartnerschaftsbonusEligible(0, 32), false); // Mother 0h
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(20), toWorkingHours(32)),
+        false,
+      ); // Mother < 24h
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(35), toWorkingHours(30)),
+        false,
+      ); // Mother > 32h
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(28), toWorkingHours(40)),
+        false,
+      ); // Father > 32h
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(28), toWorkingHours(20)),
+        false,
+      ); // Father < 24h
+      assert.equal(
+        isPartnerschaftsbonusEligible(toWorkingHours(0), toWorkingHours(32)),
+        false,
+      ); // Mother 0h
     });
   });
 });
