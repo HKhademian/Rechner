@@ -59,6 +59,11 @@ import {
 import defaultScenarioData from "../../data/defaultScenario.json" with { type: "json" };
 import testScenarioData from "../../data/testScenario.json" with { type: "json" };
 import emptyScenarioData from "../../data/emptyScenario.json" with { type: "json" };
+import {
+  findBuiltinScenario,
+} from "#data/scenarios/scenarioRegistry";
+
+
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
@@ -621,9 +626,18 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
       return parseRawScenarioData(userScenarioData);
     }
     catch {
-      // Fall back to default scenario if user scenario is malformed
+      // Fall back to empty scenario if user scenario is malformed
     }
   }
+  return parseRawScenarioData(emptyScenarioData);
+}
+
+/**
+ * Returns the canonical 3-children lifecycle scenario simulation state parsed from standard_3_children.json.
+ *
+ * @returns Canonical 3-children `ElterngeldPersistedState` specification.
+ */
+export function getStandard3ChildrenPersistedState(): ElterngeldPersistedState {
   return parseRawScenarioData(defaultScenarioData);
 }
 
@@ -655,6 +669,23 @@ export function getEmptyScenarioPersistedState(): ElterngeldPersistedState {
 export function getEmptyPersistedState(): ElterngeldPersistedState {
   return getEmptyScenarioPersistedState();
 }
+
+/**
+ * Loads a built-in scenario by its catalog identifier or alias.
+ *
+ * @param identifier - Scenario ID (e.g., 'empty', 'standard_3_children', 'high_earner_household')
+ * @returns Parsed and validated ElterngeldPersistedState, or undefined if not found.
+ */
+export function loadScenarioById(
+  identifier: string,
+): ElterngeldPersistedState | undefined {
+  const item = findBuiltinScenario(identifier);
+  if (item) {
+    return parseRawScenarioData(item.data);
+  }
+  return undefined;
+}
+
 
 
 /**

@@ -25,3 +25,7 @@ pnpm-debug.log*
 
 # Local custom user scenario (optional, unversioned)
 src/data/userScenario.json
+*.local.json
+**/*.local.json
+src/data/scenarios/*.local.json
+

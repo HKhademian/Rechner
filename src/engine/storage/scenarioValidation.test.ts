@@ -148,6 +148,47 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
     });
   });
 
+  describe("Built-in Scenarios in src/data/scenarios/ Catalog Verification", () => {
+    it("validates that all scenarios in BUILTIN_SCENARIO_CATALOG are valid, complete, and executable", async () => {
+      const { BUILTIN_SCENARIO_CATALOG } = await import(
+        "#data/scenarios/scenarioRegistry",
+      );
+
+      assert.ok(
+        BUILTIN_SCENARIO_CATALOG.length >= 7,
+        "Catalog must contain all built-in scenarios",
+      );
+
+      for (const item of BUILTIN_SCENARIO_CATALOG) {
+        assert.ok(item.id, "Scenario item must have an id");
+        assert.ok(item.name, `Scenario "${item.id}" must have a name`);
+
+        assert.ok(
+          item.description,
+          `Scenario "${item.id}" must have a description`,
+        );
+
+        const sanitized = validateAndSanitizePersistedState(item.data);
+        assert.ok(
+          sanitized,
+          `Scenario "${item.id}" must produce valid sanitized state`,
+        );
+
+        const params = buildParamsFromState(sanitized, ScenarioId.C);
+        const res = runScenarioBatches(params);
+        assert.equal(
+          res.months.length,
+          sanitized.simulationDurationMonths,
+          `Scenario "${item.id}" must generate expected month count`,
+        );
+        assert.ok(
+          res.summary.grandTotal > 0,
+          `Scenario "${item.id}" must have positive grand total`,
+        );
+      }
+    });
+  });
+
   describe("Preset Scenarios in scenarioPresets.json Verification", () => {
     it("validates that all preset scenarios in scenarioPresets.json are valid and executable", () => {
       const presetsList = Object.values(presetsRaw);
@@ -169,3 +210,4 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
     });
   });
 });
+

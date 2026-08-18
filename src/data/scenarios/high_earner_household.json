@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "version": 1,
+    "exportedAt": "2026-08-18T12:00:00.000Z",
+    "application": "German Elterngeld & Parental Leave 5-Year Financial Simulator",
+    "format": "JSON",
+    "id": "high_earner_household",
+    "name": "High Earner Household",
+    "description": "High earner household (8,200 € / 4,500 € gross split) reaching statutory Elterngeld cap (1,800 € / 900 €)"
+  },
+  "simulationState": {
+    "salaryInputMode": "GROSS",
+    "salaryPeriod": "MONTHLY",
+    "husbandGross": 8200,
+    "wifeGross": 4500,
+    "husbandHours": 40,
+    "wifeInitialHours": 40,
+    "wifePostBirthHours": 24,
+    "husbandClass3Net": 5230,
+    "husbandClass5Net": 3890,
+    "wifeClass5FullTimeNet": 2460,
+    "wifeClass3FullTimeNet": 3180,
+    "husbandInitialTaxClass": "III",
+    "wifeInitialTaxClass": "V",
+    "useInitialTaxFactor": false,
+    "annualBonusGross": 0,
+    "annualBonusMonth": 12,
+    "investmentReturnMonthly": 0,
+    "kindergeldPerChild": 259,
+    "enable13thSalary": false,
+    "bonus40Month": 5,
+    "bonus60Month": 11,
+    "taxReturnMonth": 3,
+    "showSpecialEventRows": true,
+    "enableSalaryRaises": false,
+    "annualSalaryRaisePercent": 0,
+    "startCalendarYear": 2026,
+    "startCalendarMonth": 1,
+    "simulationDurationMonths": 72,
+    "prePregnancyPlanningMonths": 8,
+    "child1BirthMonth": 17,
+    "birthSpacingMonths": 27,
+    "swapLeadMonths": 7,
+    "preMutterschutzMonths": 1.5,
+    "postMutterschutzMonths": 2,
+    "customPregnancies": [
+      {
+        "pregnancyId": "PREG-CHILD-1",
+        "childIndex": 1,
+        "positiveTestCalendarMonth": 9,
+        "positiveTestCalendarYear": 2026,
+        "positiveTestSimulationMonth": 9,
+        "calculatedDeliverySimulationMonth": 17,
+        "motherPostBirthPartTimeHours": 24,
+        "motherPostBirthPartTimeClass5Net": 1476,
+        "motherPostBirthPartTimeClass3Net": 1908,
+        "fatherPartnerMonthsCount": 4
+      }
+    ],
+    "customTaxClassSwitches": [
+      {
+        "switchId": "SWAP-CHILD-1",
+        "effectiveSimulationMonth": 9,
+        "effectiveCalendarMonth": 9,
+        "effectiveCalendarYear": 2026,
+        "targetHusbandTaxClass": "V",
+        "targetWifeTaxClass": "III",
+        "statutoryReason": "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
+        "revertSimulationMonth": 17
+      }
+    ],
+    "customSalaryRaises": [],
+    "customWorkingHoursChanges": [],
+    "customFinancialEvents": [],
+    "activeScenario": "C",
+    "chartMode": "stacked_bar",
+    "timeRangeFilter": "all"
+  }
+}

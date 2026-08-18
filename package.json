@@ -10,10 +10,14 @@
     "#components/*": "./src/components/*.tsx",
     "#engine/*": "./src/engine/*.ts",
     "#cli/*": "./src/cli/*.ts",
+    "#data/scenarios/*": "./src/data/scenarios/*.ts",
+    "#data/*": "./src/data/*.ts",
     "#utils/*": "./src/utils/*.ts",
     "#styles/*": "./src/styles/*",
     "#/*": "./src/*"
   },
+
+
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro dev",
     "build": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro build",

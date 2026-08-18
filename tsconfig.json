@@ -13,10 +13,14 @@
       "#components/*": ["./src/components/*"],
       "#engine/*": ["./src/engine/*"],
       "#cli/*": ["./src/cli/*"],
+      "#data/scenarios/*": ["./src/data/scenarios/*"],
+      "#data/*": ["./src/data/*"],
       "#utils/*": ["./src/utils/*"],
+
       "#styles/*": ["./src/styles/*"],
       "#/*": ["./src/*"]
     },
+
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "types": [
