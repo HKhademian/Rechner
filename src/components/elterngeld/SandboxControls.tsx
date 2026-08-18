@@ -816,7 +816,7 @@ export default function SandboxControls(): JSX.Element {
                                 >
                                   {[
                                     2024, 2025, 2026, 2027, 2028, 2029, 2030,
-                                    2031, 2032,
+                                    2031, 2032, 2033, 2034, 2035,
                                   ].map((y) => (
                                     <option key={y} value={y}>
                                       {y}
@@ -997,7 +997,7 @@ export default function SandboxControls(): JSX.Element {
                                 >
                                   {[
                                     2024, 2025, 2026, 2027, 2028, 2029, 2030,
-                                    2031, 2032,
+                                    2031, 2032, 2033, 2034, 2035,
                                   ].map((y) => (
                                     <option key={y} value={y}>
                                       {y}
@@ -1492,7 +1492,7 @@ export default function SandboxControls(): JSX.Element {
                   const sMonth = sw.effectiveSimulationMonth;
                   const rMonth =
                     sw.revertSimulationMonth ??
-                    toSimulationMonth(Math.min(60, sMonth + 8));
+                    toSimulationMonth(Math.min(120, sMonth + 8));
                   const targetH = sw.targetHusbandTaxClass;
                   const targetW = sw.targetWifeTaxClass;
                   const useFac = sw.targetUseTaxFactor ?? false;
@@ -1751,10 +1751,62 @@ export default function SandboxControls(): JSX.Element {
                               Effective ({getShortMonthLabel(sMonth)} ·{" "}
                               {getMonthId(sMonth)} · {getMonthSimRef(sMonth)}):
                             </label>
+                            <select
+                              value={sMonth}
+                              onChange={(e) => {
+                                const newM = parseInt(
+                                  (e.target as HTMLSelectElement).value,
+                                  10,
+                                );
+                                const totalElapsed =
+                                  startCalendarMonth.value - 1 + (newM - 1);
+                                updateTaxClassSwitchAction(sw.switchId, {
+                                  effectiveSimulationMonth:
+                                    toSimulationMonth(newM),
+                                  effectiveCalendarMonth: toCalendarMonth(
+                                    (totalElapsed % 12) + 1,
+                                  ),
+                                  effectiveCalendarYear: toFullCalendarYear(
+                                    startCalendarYear.value +
+                                      Math.floor(totalElapsed / 12),
+                                  ),
+                                });
+                              }}
+                              style={{
+                                width: "100%",
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "4px 5px",
+                                fontSize: "0.70rem",
+                                fontWeight: 700,
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {Array.from(
+                                {
+                                  length: Math.max(
+                                    120,
+                                    simulationDurationMonths.value,
+                                  ),
+                                },
+                                (_, i) => i + 1,
+                              ).map((m) => (
+                                <option
+                                  key={`sw-eff-opt-${sw.switchId}-${m}`}
+                                  value={m}
+                                >
+                                  {getMonthSimRef(m)} · {getCalDate(m)} (
+                                  {getRelativeMonthLabel(m)}) ·{" "}
+                                  {getMonthId(m)}
+                                </option>
+                              ))}
+                            </select>
                             <input
                               type="range"
                               min="1"
-                              max="60"
+                              max={Math.max(120, simulationDurationMonths.value)}
                               value={sMonth}
                               onChange={(e) => {
                                 const newM = parseInt(
@@ -1787,9 +1839,9 @@ export default function SandboxControls(): JSX.Element {
                                 fontWeight: 700,
                               }}
                             >
-                              {getCalDate(sMonth)} (
+                              {getMonthSimRef(sMonth)} · {getCalDate(sMonth)} (
                               {getRelativeMonthLabel(sMonth)}) ·{" "}
-                              {getMonthId(sMonth)} · {getMonthSimRef(sMonth)}
+                              {getMonthId(sMonth)}
                             </div>
                           </div>
                           <div>
@@ -1804,10 +1856,53 @@ export default function SandboxControls(): JSX.Element {
                               Revert ({getShortMonthLabel(rMonth)} ·{" "}
                               {getMonthId(rMonth)} · {getMonthSimRef(rMonth)}):
                             </label>
+                            <select
+                              value={rMonth}
+                              onChange={(e) => {
+                                const newM = parseInt(
+                                  (e.target as HTMLSelectElement).value,
+                                  10,
+                                );
+                                updateTaxClassSwitchAction(sw.switchId, {
+                                  revertSimulationMonth:
+                                    toSimulationMonth(newM),
+                                });
+                              }}
+                              style={{
+                                width: "100%",
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "4px 5px",
+                                fontSize: "0.70rem",
+                                fontWeight: 700,
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {Array.from(
+                                {
+                                  length: Math.max(
+                                    120,
+                                    simulationDurationMonths.value,
+                                  ),
+                                },
+                                (_, i) => i + 1,
+                              ).map((m) => (
+                                <option
+                                  key={`sw-rev-opt-${sw.switchId}-${m}`}
+                                  value={m}
+                                >
+                                  {getMonthSimRef(m)} · {getCalDate(m)} (
+                                  {getRelativeMonthLabel(m)}) ·{" "}
+                                  {getMonthId(m)}
+                                </option>
+                              ))}
+                            </select>
                             <input
                               type="range"
                               min="1"
-                              max="60"
+                              max={Math.max(120, simulationDurationMonths.value)}
                               value={rMonth}
                               onChange={(e) => {
                                 const newM = parseInt(
@@ -1831,9 +1926,9 @@ export default function SandboxControls(): JSX.Element {
                                 fontWeight: 700,
                               }}
                             >
-                              {getCalDate(rMonth)} (
+                              {getMonthSimRef(rMonth)} · {getCalDate(rMonth)} (
                               {getRelativeMonthLabel(rMonth)}) ·{" "}
-                              {getMonthId(rMonth)} · {getMonthSimRef(rMonth)}
+                              {getMonthId(rMonth)}
                             </div>
                           </div>
                         </div>
@@ -3036,11 +3131,17 @@ export default function SandboxControls(): JSX.Element {
                               }}
                             >
                               {Array.from(
-                                { length: simulationDurationMonths.value },
+                                {
+                                  length: Math.max(
+                                    120,
+                                    simulationDurationMonths.value,
+                                  ),
+                                },
                                 (_, i) => i + 1,
                               ).map((m) => (
                                 <option key={`whc-m-${m}`} value={m}>
-                                  {getCalDate(m)} ({getRelativeMonthLabel(m)}) ·{" "}
+                                  {getMonthSimRef(m)} · {getCalDate(m)} (
+                                  {getRelativeMonthLabel(m)}) ·{" "}
                                   {getMonthId(m)}
                                 </option>
                               ))}
@@ -3454,7 +3555,7 @@ export default function SandboxControls(): JSX.Element {
                           <span>
                             Effective:{" "}
                             <strong style={{ color: "var(--color-warning)" }}>
-                              {getCalDate(sMonth)}
+                              {getMonthSimRef(sMonth)} · {getCalDate(sMonth)}
                             </strong>{" "}
                             ({getRelativeMonthLabel(sMonth)}) ·{" "}
                             {getMonthId(sMonth)}
@@ -3965,7 +4066,7 @@ export default function SandboxControls(): JSX.Element {
                                   : "var(--color-gain)",
                               }}
                             >
-                              {getCalDate(sMonth)}
+                              {getMonthSimRef(sMonth)} · {getCalDate(sMonth)}
                             </strong>{" "}
                             ({getRelativeMonthLabel(sMonth)}) ·{" "}
                             {getMonthId(sMonth)}
@@ -4154,13 +4255,14 @@ export default function SandboxControls(): JSX.Element {
                           fontSize: "0.74rem",
                         }}
                       >
-                        {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(
-                          (yr) => (
-                            <option key={`start-y-${yr}`} value={yr}>
-                              Year {yr}
-                            </option>
-                          ),
-                        )}
+                        {[
+                          2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032,
+                          2033, 2034, 2035,
+                        ].map((yr) => (
+                          <option key={`start-y-${yr}`} value={yr}>
+                            Year {yr}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -4171,7 +4273,7 @@ export default function SandboxControls(): JSX.Element {
                       flexWrap: "wrap",
                     }}
                   >
-                    {[12, 24, 36, 48, 60, 72].map((dur) => (
+                    {[12, 24, 36, 48, 60, 72, 84, 96, 100, 108, 120].map((dur) => (
                       <button
                         key={`dur-btn-${dur}`}
                         type="button"
