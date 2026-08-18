@@ -63,70 +63,118 @@ import {
 
 import defaultScenarioData from "../../data/defaultScenario.json" with { type: "json" };
 
+/** LocalStorage key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
 
 /**
- * Strongly-typed persisted state interface with nominal branded types and const enums.
+ * Strongly-Typed Simulator State Persistence Schema.
+ * Contains all baseline financial parameters, action batch collections, and view preferences.
  */
 export interface ElterngeldPersistedState {
   // Input Modes & Salaries
+  /** Salary input format specification (Gross pre-tax vs Net take-home). */
   readonly salaryInputMode: SalaryInputMode;
+  /** Salary payment frequency (Monthly vs Yearly). */
   readonly salaryPeriod: SalaryPeriod;
+  /** Husband's regular full-time gross salary in EUR. */
   readonly husbandGross: GrossSalary;
+  /** Wife's pre-birth regular full-time gross salary in EUR. */
   readonly wifeGross: GrossSalary;
+  /** Husband's regular weekly working hours (e.g. 40h). */
   readonly husbandHours: WorkingHours;
+  /** Wife's pre-birth weekly working hours (e.g. 40h). */
   readonly wifeInitialHours: WorkingHours;
+  /** Wife's post-birth part-time weekly working hours during leave (e.g. 24h..32h). */
   readonly wifePostBirthHours: WorkingHours;
+  /** Husband's monthly net salary in Tax Class III in EUR. */
   readonly husbandClass3Net: NetSalary;
+  /** Husband's monthly net salary in Tax Class V in EUR. */
   readonly husbandClass5Net: NetSalary;
+  /** Wife's full-time monthly net salary in Tax Class V in EUR. */
   readonly wifeClass5FullTimeNet: NetSalary;
+  /** Wife's full-time monthly net salary in Tax Class III in EUR. */
   readonly wifeClass3FullTimeNet: NetSalary;
+  /** Husband's starting tax class at simulation commencement (§ 38b EStG). */
   readonly husbandInitialTaxClass?: TaxClass;
+  /** Wife's starting tax class at simulation commencement (§ 38b EStG). */
   readonly wifeInitialTaxClass?: TaxClass;
+  /** True if § 39f EStG factor method is enabled on starting Tax Class IV. */
   readonly useInitialTaxFactor?: boolean;
 
   // Additional Inflows
+  /** Annual bonus gross compensation in EUR if applicable. */
   readonly annualBonusGross: GrossSalary;
+  /** Calendar month when annual bonus is paid out (1..12). */
   readonly annualBonusMonth: CalendarMonth;
+  /** Recurring monthly capital or investment income in EUR. */
   readonly investmentReturnMonthly: EuroAmount;
 
   // Benefits & Calendar Timelines
+  /** Statutory monthly Kindergeld rate per child in EUR (§ 66 EStG). */
   readonly kindergeldPerChild: EuroAmount;
+  /** Toggle enabling 13th salary bonus payments (vacation and Christmas bonuses). */
   readonly enable13thSalary: boolean;
+  /** Month in which 40% mid-year vacation bonus is disbursed (1..12). */
   readonly bonus40Month: CalendarMonth;
+  /** Month in which 60% year-end Christmas bonus is disbursed (1..12). */
   readonly bonus60Month: CalendarMonth;
+  /** Month in which annual tax return refund is disbursed (1..12). */
   readonly taxReturnMonth: CalendarMonth;
+  /** Boolean toggle controlling visibility of special event sub-rows in the table. */
   readonly showSpecialEventRows: boolean;
+  /** Boolean toggle enabling annual salary raise modeling. */
   readonly enableSalaryRaises: boolean;
+  /** Annual career salary increase percentage (e.g. 0.05 for +5%). */
   readonly annualSalaryRaisePercent: number;
 
   // Simulation Duration & Milestones
+  /** 4-digit Gregorian simulation start year (e.g. 2025). */
   readonly startCalendarYear: FullCalendarYear;
+  /** 1-based Gregorian simulation start month (1..12). */
   readonly startCalendarMonth: CalendarMonth;
+  /** Total simulation duration in months (e.g. 60 or 120). */
   readonly simulationDurationMonths: MonthDuration;
+  /** Pre-pregnancy planning buffer duration in months before first positive pregnancy test. */
   readonly prePregnancyPlanningMonths: MonthDuration;
+  /** Simulation month when Child 1 is delivered. */
   readonly child1BirthMonth: SimulationMonth;
+  /** Spacing between Child 1 and Child 2 deliveries in elapsed months. */
   readonly birthSpacingMonths: MonthDuration;
+  /** Proactive tax class swap lead time prior to conception in months. */
   readonly swapLeadMonths: MonthDuration;
+  /** Pre-delivery maternity protection period in months (typically 1.5 months ~ 6 weeks). */
   readonly preMutterschutzMonths: MonthDuration;
+  /** Post-delivery maternity protection period in months (typically 2 months ~ 8 weeks). */
   readonly postMutterschutzMonths: MonthDuration;
 
   // Dynamic Batch Action Collections
+  /** Batch 1: User-configured pregnancy timeline milestone actions. */
   readonly customPregnancies: readonly PregnancyAction[];
+  /** Batch 2: User-configured proactive spousal tax class switches. */
   readonly customTaxClassSwitches: readonly TaxClassSwitchAction[];
+  /** Batch 3: User-configured salary raise and compensation adjustments. */
   readonly customSalaryRaises: readonly SalaryRaiseAction[];
+  /** Batch 3: User-configured working hours and employment schedule adjustments. */
   readonly customWorkingHoursChanges?: readonly WorkingHoursChangeAction[];
+  /** Batch 4: User-configured discrete financial expense and inflow events. */
   readonly customFinancialEvents: readonly FinancialEventAction[];
 
   // UI View Preferences
+  /** Active scenario tab selection in the user interface (A, B, C, or Compare). */
   readonly activeScenario: ActiveScenarioView;
+  /** Visual chart render mode (stacked_bar, lines, area, compare). */
   readonly chartMode: TimelineChartMode;
+  /** Timeline horizontal zoom and milestone filtering selection. */
   readonly timeRangeFilter: TimelineTimeRangeFilter;
 }
 
 /**
- * Parses and validates raw scenario JSON (such as src/data/defaultScenario.json)
- * into a strongly-typed ElterngeldPersistedState with zero hardcoded default values.
+ * Parses and validates raw scenario JSON payload into a strongly-typed `ElterngeldPersistedState`
+ * with nominal branded types and strict range validation.
+ *
+ * @param raw - Arbitrary raw parsed JSON object.
+ * @returns Strongly-typed and normalized `ElterngeldPersistedState`.
+ * @throws {TypeError} if payload is not a non-null object or contains corrupted properties.
  */
 export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
   if (!raw || typeof raw !== "object") {
@@ -493,15 +541,22 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
 }
 
 /**
- * Returns the project default persisted state loaded directly from src/data/defaultScenario.json.
+ * Returns the repository default persisted simulation state parsed directly from defaultScenario.json.
+ *
+ * @returns Baseline `ElterngeldPersistedState` specification.
  */
 export function getDefaultPersistedState(): ElterngeldPersistedState {
   return parseRawScenarioData(defaultScenarioData);
 }
 
 /**
- * Validates and sanitizes a raw object loaded from JSON storage into a complete ElterngeldPersistedState.
- * If any fields are invalid, missing, or corrupted, it gracefully substitutes the statutory default.
+ * Validates, bounds-checks, and sanitizes an arbitrary raw object into a complete, strongly-typed
+ * `ElterngeldPersistedState`. Missing or out-of-bounds fields are gracefully substituted with defaults.
+ *
+ * @param raw - Arbitrary parsed JSON or storage payload.
+ * @param fallback - Optional explicit fallback state (defaults to repository default state).
+ * @param warnings - Optional array collecting non-fatal clamping or migration warnings.
+ * @returns Fully validated and normalized `ElterngeldPersistedState`.
  */
 export function validateAndSanitizePersistedState(
   raw: unknown,
@@ -1223,14 +1278,21 @@ export function validateAndSanitizePersistedState(
 }
 
 /**
- * Serializes the state to a JSON string.
+ * Serializes a strongly-typed `ElterngeldPersistedState` into a formatted JSON string.
+ *
+ * @param state - Complete persisted simulator state.
+ * @returns JSON string representation.
  */
 export function serializeState(state: ElterngeldPersistedState): string {
   return JSON.stringify(state);
 }
 
 /**
- * Deserializes and validates a JSON string into an ElterngeldPersistedState.
+ * Deserializes and validates a JSON string into an `ElterngeldPersistedState`,
+ * falling back to default values if parsing fails.
+ *
+ * @param jsonStr - Raw JSON string.
+ * @returns Validated `ElterngeldPersistedState`.
  */
 export function deserializeState(jsonStr: string): ElterngeldPersistedState {
   try {
@@ -1242,7 +1304,11 @@ export function deserializeState(jsonStr: string): ElterngeldPersistedState {
 }
 
 /**
- * Saves state directly into localStorage if in browser environment.
+ * Saves simulator state directly into browser `localStorage`.
+ *
+ * @param state - Complete simulator state to persist.
+ * @param key - Storage key (defaults to `ELTERNGELD_STORAGE_KEY`).
+ * @returns True if successfully persisted; false if storage is unavailable or quota exceeded.
  */
 export function saveToStorage(
   state: ElterngeldPersistedState,
@@ -1261,7 +1327,10 @@ export function saveToStorage(
 }
 
 /**
- * Loads state directly from localStorage if in browser environment, falling back to defaults.
+ * Loads and validates simulator state from browser `localStorage`, falling back to statutory defaults.
+ *
+ * @param key - Storage key (defaults to `ELTERNGELD_STORAGE_KEY`).
+ * @returns Validated `ElterngeldPersistedState`.
  */
 export function loadFromStorage(
   key: string = ELTERNGELD_STORAGE_KEY,
@@ -1281,7 +1350,10 @@ export function loadFromStorage(
 }
 
 /**
- * Clears simulator state from localStorage.
+ * Removes persisted simulator state from browser `localStorage`.
+ *
+ * @param key - Storage key to purge (defaults to `ELTERNGELD_STORAGE_KEY`).
+ * @returns True if successfully removed.
  */
 export function clearStorage(key: string = ELTERNGELD_STORAGE_KEY): boolean {
   if (typeof window === "undefined" || typeof localStorage === "undefined") {

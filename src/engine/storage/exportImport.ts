@@ -13,67 +13,35 @@
  */
 
 import {
-  type SimulationMonth,
-  type CalendarMonth,
-  type NetSalary,
-  type EuroAmount,
-  type WorkingHours,
-  type GrossSalary,
-  type TaxFactor,
   type PregnancyAction,
   type TaxClassSwitchAction,
-  type SalaryRaiseAction,
   type WorkingHoursChangeAction,
   type FinancialEventAction,
-  TaxClass,
-  TargetPerson,
   ScenarioId,
   ExportFormat,
-  SalaryInputMode,
-  SalaryPeriod,
-  ActiveScenarioView,
-  TimelineChartMode,
-  TimelineTimeRangeFilter,
   type SimulationExportEnvelope,
   type ImportValidationResult,
   type SimulationResult,
   type MonthlyLedgerEntry,
-  toSimulationMonth,
-  toCalendarMonth,
-  toEuroAmount,
-  toGrossSalary,
-  toNetSalary,
-  toWorkingHours,
-  toTaxFactor,
-  toTaxClass,
-  toSalaryInputMode,
-  toSalaryPeriod,
-  toActiveScenarioView,
-  toTimelineChartMode,
-  toTimelineTimeRangeFilter,
-  toPregnancyId,
-  toSwitchId,
-  toRaiseId,
-  toHoursChangeId,
-  toFinancialEventId,
-  toTargetPerson,
-  toFinancialEventCategory,
   toMonthId,
-  toMonthRef,
-  toMonthSimRef,
 } from "#engine/types";
 import {
   type ElterngeldPersistedState,
-  getDefaultPersistedState,
   validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
 
+/** Schema serialization version identifier. */
 export const EXPORT_SCHEMA_VERSION = 1;
+
+/** Generator application name identification string. */
 export const APPLICATION_NAME =
   "German Elterngeld & Parental Leave 5-Year Financial Simulator";
 
 /**
- * Serializes the complete simulator state into a validated JSON envelope.
+ * Serializes the complete simulator state into a validated JSON envelope with metadata header.
+ *
+ * @param state - Complete persisted simulator state.
+ * @returns Formatted JSON envelope string.
  */
 export function exportStateToJson(state: ElterngeldPersistedState): string {
   const envelope: SimulationExportEnvelope<ElterngeldPersistedState> = {
@@ -89,8 +57,11 @@ export function exportStateToJson(state: ElterngeldPersistedState): string {
 }
 
 /**
- * Safely parses and validates an imported JSON string into a strongly-typed ElterngeldPersistedState.
- * Delegates to validateAndSanitizePersistedState for comprehensive bounds enforcement and normalization.
+ * Safely parses and validates an imported JSON string into a strongly-typed `ElterngeldPersistedState`.
+ * Delegates to `validateAndSanitizePersistedState` for bounds checking and normalization.
+ *
+ * @param jsonStr - Raw JSON text payload.
+ * @returns `ImportValidationResult` with either validated state and warnings or error message.
  */
 export function importStateFromJson(
   jsonStr: string,
@@ -105,7 +76,8 @@ export function importStateFromJson(
   let raw: unknown;
   try {
     raw = JSON.parse(jsonStr);
-  } catch (err) {
+  }
+  catch (err) {
     return {
       success: false,
       error: `Invalid JSON syntax: ${err instanceof Error ? err.message : String(err)}`,
@@ -131,7 +103,8 @@ export function importStateFromJson(
       state: validatedState,
       warnings,
     };
-  } catch (err) {
+  }
+  catch (err) {
     return {
       success: false,
       error: `Validation error: ${err instanceof Error ? err.message : String(err)}`,
@@ -151,7 +124,12 @@ function fmtEur(amount: number): string {
 }
 
 /**
- * Generates an executive, comprehensive Plaintext / Markdown financial audit report.
+ * Generates an executive, comprehensive plaintext / Markdown financial audit report
+ * covering all three scenarios, benefit breakdowns, and statutory citations.
+ *
+ * @param state - Complete simulator configuration state.
+ * @param timelines - Record mapping ScenarioId (A, B, C) to their respective simulation results.
+ * @returns Plaintext formatted audit report string.
  */
 export function exportStateToTextReport(
   state: ElterngeldPersistedState,
@@ -259,10 +237,10 @@ export function exportStateToTextReport(
     : 0;
 
   lines.push(
-    ` Metric                               Scenario A        Scenario B        Scenario C`,
+    " Metric                               Scenario A        Scenario B        Scenario C",
   );
   lines.push(
-    ` ----------------------------------------------------------------------------------`,
+    " ----------------------------------------------------------------------------------",
   );
   lines.push(
     ` Total 60-Month Net Family Inflow:   ${fmtEur(totalA).padEnd(16)}  ${fmtEur(totalB).padEnd(16)}  ${fmtEur(totalC).padEnd(16)}`,
@@ -424,7 +402,11 @@ export function exportStateToTextReport(
 }
 
 /**
- * Exports a specific simulation scenario ledger as a CSV spreadsheet string.
+ * Exports a specific simulation scenario ledger as a formatted CSV spreadsheet string
+ * with semicolons as delimiters for Excel compatibility.
+ *
+ * @param scenarioResult - Complete multi-year simulation result.
+ * @returns Semicolon-delimited CSV text.
  */
 export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
   const headers = [
@@ -495,14 +477,17 @@ export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
  */
 let crcTable: Uint32Array | null = null;
 function getCrcTable(): Uint32Array {
-  if (crcTable) return crcTable;
+  if (crcTable) {
+    return crcTable;
+  }
   const table = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
     let c = n;
     for (let k = 0; k < 8; k++) {
       if (c & 1) {
         c = 0xedb88320 ^ (c >>> 1);
-      } else {
+      }
+      else {
         c = c >>> 1;
       }
     }
@@ -524,6 +509,9 @@ function computeCrc32(bytes: Uint8Array): number {
 /**
  * Pure TypeScript Zero-Dependency PKZIP Archive Packager.
  * Bundles multiple files into a standard, fully compliant uncompressed (STORE) ZIP binary.
+ *
+ * @param files - Map of internal archive file paths to string or binary byte contents.
+ * @returns Uint8Array containing complete ZIP archive binary payload.
  */
 export function exportStateToZip(
   files: Record<string, string | Uint8Array>,
@@ -640,6 +628,10 @@ export function exportStateToZip(
 
 /**
  * Triggers a browser file download for text or binary byte payloads.
+ *
+ * @param filename - Destination file name for download (e.g. 'elterngeld_simulation.json').
+ * @param data - String or Uint8Array binary data payload.
+ * @param mimeType - MIME type header (defaults to 'application/octet-stream').
  */
 export function triggerFileDownload(
   filename: string,
@@ -666,13 +658,18 @@ export function triggerFileDownload(
 }
 
 /**
- * Triggers browser system print dialog for a clean, executive printable financial report.
+ * Triggers the browser system print dialog for a clean, executive printable financial audit report.
+ *
+ * @param state - Complete simulator configuration state.
+ * @param timelines - Record mapping ScenarioId (A, B, C) to their respective simulation results.
  */
 export function triggerPrintableReport(
   state: ElterngeldPersistedState,
   timelines: Record<ScenarioId, SimulationResult>,
 ): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   const reportText = exportStateToTextReport(state, timelines);
 
