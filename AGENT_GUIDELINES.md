@@ -60,3 +60,16 @@ The simulator processes state transitions in 4 modular batches:
 - Prefer running and testing simulations headlessly via `npm run sim -- [options]`.
 - Minimize web browser captures and DOM recordings to essential UI/CSS styling validations only.
 
+---
+
+## 8. Code Style & Automated Quality Checks ([`20_code_style_and_formatting.md`](file:///Users/ho/Projects/calculator/.agents/rules/20_code_style_and_formatting.md), [`21_automated_quality_checks.md`](file:///Users/ho/Projects/calculator/.agents/rules/21_automated_quality_checks.md))
+
+- **Automated Linting & Formatting**: Enforce strict ESLint 9 + `@stylistic` rules:
+  - Unix `\n` line endings, 2-space indentation (no tabs)
+  - Double quotes `"` for strings and imports, trailing commas everywhere
+  - Mandatory `{ ... }` blocks for all conditionals and loops (zero blockless code)
+  - Stroustrup brace style (`}\nelse {`, `}\ncatch {`)
+  - Inline type imports (`import {\n  type X,\n} from "..."`)
+  - Multiline import specifiers (one item per line)
+  - Zero unused imports and no duplicate imports
+- **Verification Matrix**: Run `npm run check` / `npm run check:audit` before committing.

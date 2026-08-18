@@ -1,9 +1,9 @@
 # Code Style and Formatting Guidelines
 
-All TypeScript, TSX, and JavaScript source files in this repository must adhere to the following code style and formatting standards:
+All TypeScript, TSX, Astro, and JavaScript source and test files in this repository must adhere strictly to the following code style, formatting, and cleanliness standards, enforced automatically by ESLint and `@stylistic`:
 
 ## 1. Double Quotes for Strings and Imports
-- Always use double quotes (`"`) for strings, imports, and object property keys where quotes are required.
+- Always use double quotes (`"`) for strings, ESM imports, and object property keys where quotes are required.
 - Do not use single quotes (`'`) for string literals or ESM import specifiers.
 - Template literals (`` `...` ``) are reserved for string interpolation or multiline text.
 
@@ -15,7 +15,50 @@ All TypeScript, TSX, and JavaScript source files in this repository must adhere 
   - Import and export specifier lists
   - Enum definitions
 
-## 3. Multiline Formatting for Maintainability
-- Avoid long, unwieldy single-line JSX elements, inline style objects, or deeply nested callbacks.
-- Break JSX attributes and properties onto separate lines when there are multiple attributes or complex inline styles.
-- Break long parameter lists, object properties, and method chains across multiple clearly indented lines to maximize readability and diff clarity in version control.
+## 3. Unix Line Endings & 2-Space Indentation
+- All files must use standard Unix line endings (`\n` / LF).
+- Indentation must strictly use 2 spaces per indentation level. Tabs are disallowed.
+
+## 4. Strict Mandatory Blocks for All Control Flow and Loops
+- Zero blockless statements allowed across the codebase.
+- All conditional statements (`if`, `else`, `else if`) and loops (`for`, `for...in`, `for...of`, `while`, `do...while`) MUST enclose their bodies within explicit `{ ... }` curly brace blocks.
+
+## 5. Stroustrup Brace Style (Else on New Line)
+- Closing curly braces must be followed by a newline before `else`, `else if`, `catch`, or `finally`:
+```ts
+if (condition) {
+  // branch A
+}
+else if (otherCondition) {
+  // branch B
+}
+else {
+  // branch C
+}
+```
+
+## 6. Inline Type Imports
+- Type imports must use inline `type` specifiers within the named import list:
+```ts
+import {
+  type SimulationMonth,
+  type EuroAmount,
+  ScenarioId,
+} from "#engine/types";
+```
+
+## 7. Multiline Import & Export Formatting (One Item Per Line)
+- Import and export specifier blocks must place each imported/exported identifier on its own line for clean, readable git diffs.
+
+## 8. No Unused Imports and Duplicate Imports
+- Unused imports are strictly prohibited and auto-removed by `npm run fix` / `npm run lint:fix`.
+- Duplicate import declarations from the same module must be merged.
+
+## 9. Long Function Signatures and Parameter Wrapping
+- Function signatures with multiple parameters or long signatures must wrap each parameter onto its own line with clear indentation and trailing commas.
+
+## 10. Code Quality & Financial Precision Standards
+- **Strict Equality**: Always use `===` and `!==` (`eqeqeq: always`).
+- **Immutable Bindings**: Use `const` by default; `var` is disallowed.
+- **Object Shorthand**: Use `{ key }` syntax instead of `{ key: key }`.
+- **Template Literals**: Prefer template strings over concatenation with `+`.
