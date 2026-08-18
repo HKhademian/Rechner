@@ -1,6 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
+import {
+  runScenarioBatches,
+  calculateSimulationStartDate,
+} from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,
@@ -186,10 +189,7 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
       }
     });
 
-    it("accurately calculates statutory simulation start date (-3M snapped to January) and Mx counter from pregnancy positive", async () => {
-      const { calculateSimulationStartDate } =
-        await import("#engine/simulator/timelineGenerator");
-
+    it("accurately calculates statutory simulation start date (-3M snapped to January) and Mx counter from pregnancy positive", () => {
       // Example 1: Pregnancy in 09.2026 -> 09.2026 - 3M = 06.2026 -> 01.2026
       const r1 = calculateSimulationStartDate(2026, 9);
       assert.equal(r1.startCalendarYear, 2026);

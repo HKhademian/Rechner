@@ -1,6 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { generateTimelineSimulation } from "#engine/simulator/timelineGenerator";
+import {
+  generateTimelineSimulation,
+  runScenarioBatches,
+} from "#engine/simulator/timelineGenerator";
 import {
   toGrossSalary,
   toNetSalary,
@@ -253,11 +256,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
   });
 
   describe("Discrete Batch Action Simulation Architecture (runScenarioBatches)", () => {
-    it("executes simulation with discrete batches: preexisting, pregnancy, tax switches, and raises", async () => {
-      const { runScenarioBatches } =
-        await import("#engine/simulator/timelineGenerator");
-      const { TaxClass } = await import("#engine/types");
-
+    it("executes simulation with discrete batches: preexisting, pregnancy, tax switches, and raises", () => {
       const preexisting = {
         startCalendarYear: toFullCalendarYear(2026),
         startCalendarMonth: toCalendarMonth(1),
