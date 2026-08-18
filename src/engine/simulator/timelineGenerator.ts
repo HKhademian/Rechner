@@ -34,6 +34,7 @@ import {
   type MonthId,
   type MonthRef,
   type MonthSimRef,
+  type GrossSalary,
   FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
@@ -44,6 +45,7 @@ import {
   toEuroAmount,
   toGrossSalary,
   toNetSalary,
+  toWorkingHours,
   toEventId,
   toActionId,
   toPregnancyId,
@@ -79,6 +81,9 @@ export interface TimelineSimulationParams {
   readonly startCalendarYear?: number;
   readonly startCalendarMonth?: CalendarMonth;
   readonly simulationDurationMonths?: number;
+  readonly husbandGross?: GrossSalary;
+  readonly wifeGross?: GrossSalary;
+  readonly wifePostBirthHours?: number;
   readonly husbandClass3Net: NetSalary;
   readonly husbandClass5Net: NetSalary;
   readonly wifeClass5FullTimeNet: NetSalary;
@@ -1584,20 +1589,21 @@ export function generateTimelineSimulation(
     startCalendarYear: startYear,
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: duration,
+    husbandGross: params.husbandGross,
+    wifeGross: params.wifeGross,
     husbandInitialTaxClass: TaxClass.III,
     husbandInitialNet: params.husbandClass3Net,
     husbandInitialClass5Net: params.husbandClass5Net,
-    husbandWeeklyHours: toEuroAmount(
-      32,
-    ) as unknown as import("#engine/types").WorkingHours,
+    husbandWeeklyHours: toWorkingHours(32),
     wifeInitialTaxClass: TaxClass.V,
     wifeInitialFullTimeNet: params.wifeClass5FullTimeNet,
     wifeInitialClass3FullTimeNet: params.wifeClass3FullTimeNet,
     wifeInitialPartTimeClass5Net: params.wifeClass5PartTimeNet,
     wifeInitialPartTimeClass3Net: params.wifeClass3PartTimeNet,
-    wifeWeeklyHours: toEuroAmount(
-      40,
-    ) as unknown as import("#engine/types").WorkingHours,
+    wifeWeeklyHours: toWorkingHours(40),
+    wifePostBirthWeeklyHours: params.wifePostBirthHours
+      ? toWorkingHours(params.wifePostBirthHours)
+      : undefined,
     existingChildrenCount: 0,
     kindergeldPerChild: params.kindergeldPerChild,
     enable13thSalary: params.enable13thSalary,
