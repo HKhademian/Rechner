@@ -5,7 +5,11 @@ import assert from "node:assert/strict";
 import {
   ELTERNGELD_STORAGE_KEY,
   getDefaultPersistedState,
+  getDefaultScenarioPersistedState,
   getTestPersistedState,
+  getUserPersistedState,
+  hasUserScenario,
+  setUserScenarioOverride,
   validateAndSanitizePersistedState,
   serializeState,
   deserializeState,
@@ -59,6 +63,32 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.ok(defaults.simulationDurationMonths >= 12);
     assert.ok(Array.isArray(defaults.customPregnancies));
     assert.ok(Array.isArray(defaults.customTaxClassSwitches));
+  });
+
+  it("correctly prioritizes optional user scenario over default scenario when provided", () => {
+    setUserScenarioOverride(null);
+    assert.equal(hasUserScenario(), false);
+    assert.equal(getUserPersistedState(), null);
+
+    const repoDefault = getDefaultScenarioPersistedState();
+    assert.equal(getDefaultPersistedState().husbandGross, repoDefault.husbandGross);
+
+    const customUserPayload = {
+      simulationState: {
+        ...repoDefault,
+        husbandGross: 9876,
+        wifeGross: 5432,
+      },
+    };
+    setUserScenarioOverride(customUserPayload);
+    assert.equal(hasUserScenario(), true);
+    assert.equal(getUserPersistedState()?.husbandGross, 9876);
+    assert.equal(getDefaultPersistedState().husbandGross, 9876);
+    assert.equal(getDefaultPersistedState().wifeGross, 5432);
+
+    setUserScenarioOverride(null);
+    assert.equal(hasUserScenario(), false);
+    assert.equal(getDefaultPersistedState().husbandGross, repoDefault.husbandGross);
   });
 
   it("performs lossless roundtrip serialization and deserialization of complete state", () => {
