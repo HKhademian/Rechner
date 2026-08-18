@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   toSimulationMonth,
   toCalendarYear,
+  toFullCalendarYear,
   toCalendarMonth,
   toMonthId,
   toWorkingHours,
@@ -60,6 +61,7 @@ import {
   TargetPerson,
   type SimulationMonth,
   type CalendarYear,
+  type FullCalendarYear,
   type CalendarMonth,
   type MonthId,
   type MonthRef,
@@ -79,6 +81,7 @@ import {
   type FinancialEventId,
   type EntityId,
   type KinderfreibetragAnnualAmount,
+  type HoursChangeId,
 } from "#engine/types";
 
 describe("Strongly-Typed Domain Types & Constructors", () => {
@@ -122,6 +125,34 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.throws(() => toCalendarYear(11), TypeError);
       assert.throws(() => toCalendarYear(2.5), TypeError);
       assert.throws(() => toCalendarYear(Infinity), TypeError);
+    });
+  });
+
+  describe("FullCalendarYear (Feature Test)", () => {
+    it("accepts valid 4-digit Gregorian calendar years between 1900 and 2100", () => {
+      const y2025: FullCalendarYear = toFullCalendarYear(2025);
+      const y2026: FullCalendarYear = toFullCalendarYear(2026);
+      const y2030: FullCalendarYear = toFullCalendarYear("2030");
+      const y1900: FullCalendarYear = toFullCalendarYear(1900);
+      const y2100: FullCalendarYear = toFullCalendarYear(2100);
+
+      assert.equal(y2025, 2025);
+      assert.equal(y2026, 2026);
+      assert.equal(y2030, 2030);
+      assert.equal(y1900, 1900);
+      assert.equal(y2100, 2100);
+    });
+
+    it("rejects invalid or out-of-bounds calendar years (e.g. 901, 0, negative, non-integer)", () => {
+      assert.throws(() => toFullCalendarYear(901), TypeError);
+      assert.throws(() => toFullCalendarYear(0), TypeError);
+      assert.throws(() => toFullCalendarYear(-2025), TypeError);
+      assert.throws(() => toFullCalendarYear(1899), TypeError);
+      assert.throws(() => toFullCalendarYear(2150), TypeError);
+      assert.throws(() => toFullCalendarYear(2025.5), TypeError);
+      assert.throws(() => toFullCalendarYear(NaN), TypeError);
+      assert.throws(() => toFullCalendarYear(Infinity), TypeError);
+      assert.throws(() => toFullCalendarYear("invalid"), TypeError);
     });
   });
 

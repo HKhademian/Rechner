@@ -20,7 +20,9 @@ export type ActionSubBrand<ParentBrand, SubTag extends string> = ParentBrand & {
 
 // Temporal & Timeline Nominal Types
 export type SimulationMonth = Brand<number, "SimulationMonth">; // M1..M120
-export type CalendarYear = Brand<number, "CalendarYear">; // Y1..Y10
+export type SimulationYear = Brand<number, "SimulationYear">; // Y1..Y10 (simulation horizon year 1..10)
+export type CalendarYear = SimulationYear; // Alias for simulation horizon year (1..10)
+export type FullCalendarYear = Brand<number, "FullCalendarYear">; // 4-digit Gregorian calendar year (1900..2100 e.g. 2025, 2026, 2027)
 export type CalendarMonth = Brand<number, "CalendarMonth">; // M1..M12 (1=Jan, 12=Dec)
 export type MonthId = SubBrand<EntityId, "MonthId">; // Immutable absolute calendar month identifier (e.g. 'M09.2027')
 export type MonthRef = SubBrand<EntityId, "MonthRef">; // Statutory pregnancy-relative month reference (e.g. 'M1 (Pregnancy Positive)', 'M-8', 'M12')
@@ -307,6 +309,23 @@ export function toCalendarYear(val: number): CalendarYear {
     );
   }
   return val as CalendarYear;
+}
+
+export function toFullCalendarYear(val: number | string): FullCalendarYear {
+  const num = typeof val === "string" ? Number(val) : val;
+  if (
+    typeof num !== "number" ||
+    Number.isNaN(num) ||
+    !Number.isFinite(num) ||
+    !Number.isInteger(num) ||
+    num < 1900 ||
+    num > 2100
+  ) {
+    throw new TypeError(
+      `Invalid FullCalendarYear: ${val}. Must be integer 4-digit calendar year between 1900 and 2100 (e.g. 2025, 2026).`,
+    );
+  }
+  return num as FullCalendarYear;
 }
 
 export function toCalendarMonth(val: number): CalendarMonth {
@@ -874,7 +893,7 @@ export interface SpecialEventItem {
   readonly monthSimRef?: MonthSimRef;
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
-  readonly calendarYearNum: number;
+  readonly calendarYearNum: FullCalendarYear;
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
@@ -917,7 +936,7 @@ export interface MonthlyLedgerEntry {
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
-  readonly calendarYearNum: number;
+  readonly calendarYearNum: FullCalendarYear;
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
@@ -1068,7 +1087,7 @@ export interface SpousalGrossToNetSet {
  * Batch 0: Preexisting Baseline Conditions
  */
 export interface PreexistingConditions {
-  readonly startCalendarYear: number;
+  readonly startCalendarYear: FullCalendarYear;
   readonly startCalendarMonth: CalendarMonth;
   readonly simulationDurationMonths: number;
   readonly salaryInputMode?: SalaryInputMode;
@@ -1109,7 +1128,7 @@ export interface PregnancyAction {
   readonly pregnancyId: PregnancyId;
   readonly childIndex: number;
   readonly positiveTestCalendarMonth: CalendarMonth;
-  readonly positiveTestCalendarYear: number;
+  readonly positiveTestCalendarYear: FullCalendarYear;
   readonly positiveTestSimulationMonth: SimulationMonth;
   readonly calculatedDeliverySimulationMonth: SimulationMonth;
   readonly motherPostBirthPartTimeHours: WorkingHours;
@@ -1125,7 +1144,7 @@ export interface TaxClassSwitchAction {
   readonly switchId: SwitchId;
   readonly effectiveSimulationMonth: SimulationMonth;
   readonly effectiveCalendarMonth: CalendarMonth;
-  readonly effectiveCalendarYear: number;
+  readonly effectiveCalendarYear: FullCalendarYear;
   readonly targetHusbandTaxClass: TaxClass;
   readonly targetWifeTaxClass: TaxClass;
   readonly targetUseTaxFactor?: boolean;
@@ -1144,7 +1163,7 @@ export interface SalaryRaiseAction {
   readonly raiseId: RaiseId;
   readonly effectiveSimulationMonth: SimulationMonth;
   readonly effectiveCalendarMonth: CalendarMonth;
-  readonly effectiveCalendarYear: number;
+  readonly effectiveCalendarYear: FullCalendarYear;
   readonly targetPerson: TargetPerson;
   readonly percentageIncrease?: number;
   readonly newHusbandClass3Net?: NetSalary;
@@ -1163,7 +1182,7 @@ export interface WorkingHoursChangeAction {
   readonly changeId: HoursChangeId;
   readonly effectiveSimulationMonth: SimulationMonth;
   readonly effectiveCalendarMonth: CalendarMonth;
-  readonly effectiveCalendarYear: number;
+  readonly effectiveCalendarYear: FullCalendarYear;
   readonly targetPerson: TargetPerson;
   readonly weeklyHours: WorkingHours;
   readonly reason: string;
@@ -1176,7 +1195,7 @@ export interface FinancialEventAction {
   readonly eventId: FinancialEventId;
   readonly effectiveSimulationMonth: SimulationMonth;
   readonly effectiveCalendarMonth: CalendarMonth;
-  readonly effectiveCalendarYear: number;
+  readonly effectiveCalendarYear: FullCalendarYear;
   readonly title: string;
   readonly amount: EuroAmount; // Positive = Income/Grant/Bonus, Negative = Expense/Cost
   readonly category: FinancialEventCategory;
