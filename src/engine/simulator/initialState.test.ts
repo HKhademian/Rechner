@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   runScenarioBatches,
@@ -56,10 +58,18 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
   describe("Initial Incomes & Tax Classes", () => {
     it("accurately establishes Scenario A monthly inflow across various income levels", () => {
       const salaryPairs = [
-        { hNet: 3000, wNet: 1500, expected: 4500 },
-        { hNet: 2895, wNet: 1975, expected: 6125 },
-        { hNet: 5200, wNet: 2600, expected: 7800 },
-        { hNet: 5000, wNet: 3000, expected: 10000 },
+        { hNet: 3000,
+          wNet: 1500,
+          expected: 4500 },
+        { hNet: 2895,
+          wNet: 1975,
+          expected: 6125 },
+        { hNet: 5200,
+          wNet: 2600,
+          expected: 7800 },
+        { hNet: 5000,
+          wNet: 3000,
+          expected: 10000 },
       ];
 
       for (const pair of salaryPairs) {

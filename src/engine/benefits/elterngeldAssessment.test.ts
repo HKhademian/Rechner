@@ -1,11 +1,15 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   determinePredominantTaxClass,
   computeAssessmentBaselineNet,
   type AssessmentMonthRecord,
 } from "#engine/benefits/elterngeldAssessment";
-import { toNetSalary, TaxClass } from "#engine/types";
+import {
+  toNetSalary, TaxClass, 
+} from "#engine/types";
 
 describe("Elterngeld Assessment Baseline & Predominant Tax Class Engine (BEEG § 2b, § 2c)", () => {
   describe("determinePredominantTaxClass - 7-Month Rule (§ 2b Abs. 1 Satz 3 BEEG)", () => {

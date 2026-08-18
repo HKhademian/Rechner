@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   computeStatutoryReplacementRate,
@@ -6,7 +8,9 @@ import {
   isElterngeldHoursEligible,
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
-import { toNetSalary } from "#engine/types";
+import {
+  toNetSalary, 
+} from "#engine/types";
 
 describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)", () => {
   describe("computeStatutoryReplacementRate - Sliding Replacement Scale (§ 2 BEEG)", () => {

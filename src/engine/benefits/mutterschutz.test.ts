@@ -1,7 +1,13 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
-import { computeMonthlyMutterschutz } from "#engine/benefits/mutterschutz";
-import { toNetSalary } from "#engine/types";
+import {
+  computeMonthlyMutterschutz, 
+} from "#engine/benefits/mutterschutz";
+import {
+  toNetSalary, 
+} from "#engine/types";
 
 describe("Maternity Protection Benefits Engine (MuSchG § 19, § 20)", () => {
   it("guarantees 100% net wage replacement across all income levels", () => {

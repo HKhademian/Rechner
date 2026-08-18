@@ -50,13 +50,19 @@ import {
   toSwitchId,
   toStatutoryCitation,
 } from "#engine/types";
-import { createTransaction } from "#engine/ledger/transaction";
-import { buildMonthlyLedgerEntry } from "#engine/ledger/ledger";
+import {
+  createTransaction, 
+} from "#engine/ledger/transaction";
+import {
+  buildMonthlyLedgerEntry, 
+} from "#engine/ledger/ledger";
 import {
   computeGrossToNetBreakdown,
   computeMonthlyNetSalary,
 } from "#engine/tax/wageTax";
-import { getDefaultPersistedState } from "#engine/storage/persistence";
+import {
+  getDefaultPersistedState, 
+} from "#engine/storage/persistence";
 import {
   computeMonthlySwapWithholdingVariance,
   computeAnnualTaxReconciliation,
@@ -69,7 +75,9 @@ import {
   isElterngeldHoursEligible,
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
-import { computeSiblingBonus } from "#engine/benefits/siblingBonus";
+import {
+  computeSiblingBonus, 
+} from "#engine/benefits/siblingBonus";
 
 /**
  * Input Parameter Specification for Legacy Timeline Simulation.
@@ -263,18 +271,22 @@ export function runScenarioBatches(
       relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
       relativeBirthLabel = `M${relativeMonthIndex}`;
       relativeMonthLabel = toMonthRef(relativeMonthIndex);
-    } else {
+    }
+    else {
       relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
       if (m === preg1PositiveMonth) {
         relativeBirthLabel = "M1 (Pregnancy Positive)";
         relativeMonthLabel = toMonthRef(1, "Pregnancy Positive");
-      } else if (m === child1Delivery) {
+      }
+      else if (m === child1Delivery) {
         relativeBirthLabel = `M${relativeMonthIndex} (Birth 1)`;
         relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 1");
-      } else if (m === child2Delivery) {
+      }
+      else if (m === child2Delivery) {
         relativeBirthLabel = `M${relativeMonthIndex} (Birth 2)`;
         relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 2");
-      } else {
+      }
+      else {
         relativeBirthLabel = `M${relativeMonthIndex}`;
         relativeMonthLabel = toMonthRef(relativeMonthIndex);
       }
@@ -323,7 +335,8 @@ export function runScenarioBatches(
           curW3FT = Math.round(curW3FT * factor);
           curW5PT = Math.round(curW5PT * factor);
           curW3PT = Math.round(curW3PT * factor);
-        } else {
+        }
+        else {
           if (sr.newHusbandClass3Net) {
             curH3Net = sr.newHusbandClass3Net as number;
           }
@@ -372,22 +385,26 @@ export function runScenarioBatches(
           if (sw.targetTaxFactor) {
             activeTaxFactor = sw.targetTaxFactor;
           }
-        } else if (m >= rev) {
+        }
+        else if (m >= rev) {
           if (sw.revertHusbandTaxClass) {
             activeHTaxClass = sw.revertHusbandTaxClass;
-          } else {
+          }
+          else {
             activeHTaxClass = initialHTaxClass;
           }
 
           if (sw.revertWifeTaxClass) {
             activeWTaxClass = sw.revertWifeTaxClass;
-          } else {
+          }
+          else {
             activeWTaxClass = initialWTaxClass;
           }
 
           if (sw.revertUseTaxFactor !== undefined) {
             activeUseFactor = sw.revertUseTaxFactor;
-          } else {
+          }
+          else {
             activeUseFactor = initialUseFactor;
           }
         }
@@ -410,19 +427,21 @@ export function runScenarioBatches(
     let husbandSalaryNum: number;
     if (activeHTaxClass === TaxClass.V) {
       husbandSalaryNum = curH5Net;
-    } else if (activeHTaxClass === TaxClass.IV) {
+    }
+    else if (activeHTaxClass === TaxClass.IV) {
       husbandSalaryNum =
         activeUseFactor && preexisting.husbandGross
           ? (computeMonthlyNetSalary(
-              preexisting.husbandGross,
-              TaxClass.IV,
-              0,
-              undefined,
-              activeTaxFactor,
-            ) as number)
+            preexisting.husbandGross,
+            TaxClass.IV,
+            0,
+            undefined,
+            activeTaxFactor,
+          ) as number)
           : (preexisting.husbandInitialClass4Net as number) ||
             Math.round(curH3Net * 0.88);
-    } else {
+    }
+    else {
       husbandSalaryNum = curH3Net;
     }
     let husbandSalary = toEuroAmount(husbandSalaryNum);
@@ -431,19 +450,21 @@ export function runScenarioBatches(
     let wifeFTNetNum: number;
     if (activeWTaxClass === TaxClass.III) {
       wifeFTNetNum = curW3FT;
-    } else if (activeWTaxClass === TaxClass.IV) {
+    }
+    else if (activeWTaxClass === TaxClass.IV) {
       wifeFTNetNum =
         activeUseFactor && preexisting.wifeGross
           ? (computeMonthlyNetSalary(
-              preexisting.wifeGross,
-              TaxClass.IV,
-              0,
-              undefined,
-              activeTaxFactor,
-            ) as number)
+            preexisting.wifeGross,
+            TaxClass.IV,
+            0,
+            undefined,
+            activeTaxFactor,
+          ) as number)
           : (preexisting.wifeInitialClass4FullTimeNet as number) ||
             Math.round(curW5FT * 1.15);
-    } else {
+    }
+    else {
       wifeFTNetNum = curW5FT;
     }
 
@@ -468,7 +489,8 @@ export function runScenarioBatches(
         initialWTaxClass,
         initialUseFactor,
       );
-    } else {
+    }
+    else {
       // Calculate living children count for Kindergeld
       let livingChildren = preexisting.existingChildrenCount as number;
       pregnancies.forEach((preg) => {
@@ -504,7 +526,8 @@ export function runScenarioBatches(
               m === preM
                 ? `Pre-Birth Mutterschutz (Child ${preg.childIndex})`
                 : `Post-Birth Mutterschutz (Child ${preg.childIndex})`;
-          } else {
+          }
+          else {
             const mRate = pIdx === 0 ? curW5FT : curW5PT;
             mutterschutz = toEuroAmount(mRate);
             phaseLabel =
@@ -535,16 +558,20 @@ export function runScenarioBatches(
           if (motherHours === defaultPtHours && basePtW5 > 0) {
             dynamicW5PT = basePtW5;
             dynamicW3PT = basePtW3;
-          } else if (motherHours === 0) {
+          }
+          else if (motherHours === 0) {
             dynamicW5PT = 0;
             dynamicW3PT = 0;
-          } else if (motherHours === 40) {
+          }
+          else if (motherHours === 40) {
             dynamicW5PT = curW5FT;
             dynamicW3PT = curW3FT;
-          } else if (basePtW5 > 0 && defaultPtHours > 0) {
+          }
+          else if (basePtW5 > 0 && defaultPtHours > 0) {
             dynamicW5PT = Math.round(basePtW5 * (motherHours / defaultPtHours));
             dynamicW3PT = Math.round(basePtW3 * (motherHours / defaultPtHours));
-          } else {
+          }
+          else {
             const baselineWifeH =
               (preexisting.wifeWeeklyHours as unknown as number) || 40;
             const wifeRatio =
@@ -574,7 +601,8 @@ export function runScenarioBatches(
                   motherHours,
                 );
                 wifeElterngeld = egEntitlement.elterngeldPlus;
-              } else {
+              }
+              else {
                 const blendedNet = toNetSalary(
                   Math.round(
                     (10 *
@@ -600,7 +628,8 @@ export function runScenarioBatches(
                 hasSiblingBonus = sibling.isEligible;
                 wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
               }
-            } else {
+            }
+            else {
               // Ineligible for Partnerschaftsbonus (§ 4b BEEG) - hours outside 24-32h corridor
               isPartnerschaftsbonus = false;
               husbandElterngeld = toEuroAmount(0);
@@ -612,7 +641,8 @@ export function runScenarioBatches(
                     ? `Child ${preg.childIndex} Post-Leave (Hours <24h: No PB § 4b BEEG)`
                     : `Child ${preg.childIndex} Post-Leave (Father Outside 24-32h)`;
             }
-          } else {
+          }
+          else {
             // Standard ElterngeldPlus window (egStart to egEnd)
             if (isMotherEgEligible) {
               if (pIdx === 0) {
@@ -624,7 +654,8 @@ export function runScenarioBatches(
                 );
                 wifeElterngeld = egEntitlement.elterngeldPlus;
                 phaseLabel = `Child ${preg.childIndex} EGPlus (Mother)`;
-              } else {
+              }
+              else {
                 // Child 2+ with blended pre-birth assessment baseline (10M PT + 2M FT)
                 const blendedNet = toNetSalary(
                   Math.round(
@@ -654,7 +685,8 @@ export function runScenarioBatches(
                 wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
                 phaseLabel = `Child ${preg.childIndex} EGPlus (Sibling Bonus)`;
               }
-            } else {
+            }
+            else {
               wifeElterngeld = toEuroAmount(0);
               phaseLabel = `Child ${preg.childIndex} Post-Leave (Hours >32h: No EG § 1 BEEG)`;
             }
@@ -674,7 +706,8 @@ export function runScenarioBatches(
           phaseLabel = isSwapActive
             ? "Swap Active (Part-Time)"
             : "Family Part-Time (Post-Leave)";
-        } else {
+        }
+        else {
           wifeSalary = toEuroAmount(isSwapActive ? curW3FT : curW5FT);
           phaseLabel = isSwapActive
             ? "Swap Active (Pre-Mutterschutz)"
@@ -784,7 +817,8 @@ export function runScenarioBatches(
         .forEach((r) => {
           if (r.month > child1Delivery) {
             wifeEarnedGrossInYear += wifePTGross;
-          } else {
+          }
+          else {
             wifeEarnedGrossInYear += wifeFTGross;
           }
         });
@@ -1086,7 +1120,8 @@ export function runScenarioBatches(
       if (m === pTest) {
         eventTag = `Pregnancy ${preg.childIndex} Positive (${rm.calendarLabel})`;
         eventType = "preg";
-      } else if (m === del) {
+      }
+      else if (m === del) {
         eventTag = `Child ${preg.childIndex} Birth (${rm.calendarLabel})`;
         eventType = "birth";
       }
@@ -1219,15 +1254,15 @@ export function runScenarioBatches(
       );
       const netBonus = breakdown.bonusTaxDeduction
         ? Math.max(
-            0,
-            Math.round(
-              grossBonus -
+          0,
+          Math.round(
+            grossBonus -
                 (breakdown.bonusTaxDeduction as number) -
                 grossBonus *
                   ((breakdown.totalSocialSecurity as number) /
                     (breakdown.monthlyGross as number)),
-            ),
-          )
+          ),
+        )
         : Math.round(grossBonus * 0.58);
       const netBonusEuro = toEuroAmount(netBonus);
 

@@ -121,7 +121,8 @@ export function computeKinderfreibetragGuenstigerpruefung(
       // Child alive for the entire reconciled calendar year
       totalKinderfreibetrag += FULL_KINDERFREIBETRAG_PER_CHILD;
       totalKindergeldReceived += monthlyKindergeldPerChild * 12;
-    } else if (child.birthCalendarYear === reconciledYear) {
+    }
+    else if (child.birthCalendarYear === reconciledYear) {
       // Child born during the reconciled calendar year -> Prorated by months (§ 32 Abs. 6 Satz 5 EStG)
       const monthsAlive = Math.max(1, 12 - child.birthCalendarMonth + 1);
       const proratedAllowance = Math.round(

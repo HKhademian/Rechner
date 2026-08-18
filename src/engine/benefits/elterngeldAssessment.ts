@@ -120,7 +120,8 @@ export function computeAssessmentBaselineNet(
     if (r.isOneOffBonus) {
       // Excluded under § 2c Abs. 1 Satz 2 BEEG
       excludedBonusSum += r.earnedNetSalary as number;
-    } else {
+    }
+    else {
       eligibleSum += r.earnedNetSalary as number;
     }
   });

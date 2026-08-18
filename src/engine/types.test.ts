@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   toSimulationMonth,
@@ -852,8 +854,7 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       ];
 
       const mapped = views.map((v) =>
-        v === ActiveScenarioView.Compare ? ScenarioId.C : toScenarioId(v),
-      );
+        v === ActiveScenarioView.Compare ? ScenarioId.C : toScenarioId(v));
 
       assert.deepEqual(mapped, [
         ScenarioId.A,

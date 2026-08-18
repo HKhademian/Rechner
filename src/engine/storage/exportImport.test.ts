@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   exportStateToJson,
@@ -9,8 +11,12 @@ import {
   EXPORT_SCHEMA_VERSION,
   APPLICATION_NAME,
 } from "#engine/storage/exportImport";
-import { getDefaultPersistedState } from "#engine/storage/persistence";
-import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
+import {
+  getDefaultPersistedState, 
+} from "#engine/storage/persistence";
+import {
+  runScenarioBatches, 
+} from "#engine/simulator/timelineGenerator";
 import {
   ScenarioId,
   TaxClass,

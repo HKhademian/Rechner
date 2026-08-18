@@ -1,7 +1,13 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
-import { createTransaction } from "#engine/ledger/transaction";
-import { buildMonthlyLedgerEntry } from "#engine/ledger/ledger";
+import {
+  createTransaction, 
+} from "#engine/ledger/transaction";
+import {
+  buildMonthlyLedgerEntry, 
+} from "#engine/ledger/ledger";
 import {
   toSimulationMonth,
   toCalendarYear,

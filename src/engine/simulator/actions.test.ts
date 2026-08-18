@@ -1,6 +1,10 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
-import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
+import {
+  runScenarioBatches, 
+} from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,
@@ -111,13 +115,20 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
     it("validates Sibling Bonus (+10%) eligibility for spacing < 36 months vs expiration at >= 36 months", () => {
       const testCases = [
-        { spacing: 18, expectBonus: true }, // b2 = 30, EG starts M32 -> Child 1 is 20M (<36)
-        { spacing: 24, expectBonus: true }, // b2 = 36, EG starts M38 -> Child 1 is 26M (<36)
-        { spacing: 27, expectBonus: true }, // b2 = 39, EG starts M41 -> Child 1 is 29M (<36)
-        { spacing: 33, expectBonus: true }, // b2 = 45, EG starts M47 -> Child 1 is 35M (<36)
-        { spacing: 34, expectBonus: false }, // b2 = 46, EG starts M48 -> Child 1 is 36M (=36, expired)
-        { spacing: 36, expectBonus: false }, // b2 = 48, EG starts M50 -> Child 1 is 38M (>36)
-        { spacing: 40, expectBonus: false },
+        { spacing: 18,
+          expectBonus: true }, // b2 = 30, EG starts M32 -> Child 1 is 20M (<36)
+        { spacing: 24,
+          expectBonus: true }, // b2 = 36, EG starts M38 -> Child 1 is 26M (<36)
+        { spacing: 27,
+          expectBonus: true }, // b2 = 39, EG starts M41 -> Child 1 is 29M (<36)
+        { spacing: 33,
+          expectBonus: true }, // b2 = 45, EG starts M47 -> Child 1 is 35M (<36)
+        { spacing: 34,
+          expectBonus: false }, // b2 = 46, EG starts M48 -> Child 1 is 36M (=36, expired)
+        { spacing: 36,
+          expectBonus: false }, // b2 = 48, EG starts M50 -> Child 1 is 38M (>36)
+        { spacing: 40,
+          expectBonus: false },
       ];
 
       for (const tc of testCases) {
@@ -170,7 +181,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
             true,
             `Spacing ${tc.spacing}M must qualify for Sibling Bonus at Month ${b2 + 2}`,
           );
-        } else {
+        }
+        else {
           assert.equal(
             child2EgFirstMonth.hasSiblingBonus,
             false,
@@ -235,16 +247,15 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const updatedPregnancies = basePregnancies.map((p) =>
         p.pregnancyId === "PREG-2"
           ? {
-              ...p,
-              positiveTestCalendarMonth: toCalendarMonth(12),
-              positiveTestCalendarYear: toFullCalendarYear(2027),
-              positiveTestSimulationMonth: toSimulationMonth(updatedP2Positive),
-              calculatedDeliverySimulationMonth: toSimulationMonth(
-                updatedP2Positive + 8,
-              ),
-            }
-          : p,
-      );
+            ...p,
+            positiveTestCalendarMonth: toCalendarMonth(12),
+            positiveTestCalendarYear: toFullCalendarYear(2027),
+            positiveTestSimulationMonth: toSimulationMonth(updatedP2Positive),
+            calculatedDeliverySimulationMonth: toSimulationMonth(
+              updatedP2Positive + 8,
+            ),
+          }
+          : p);
 
       const resUpdated = runScenarioBatches({
         scenarioKey: ScenarioId.C,
@@ -620,8 +631,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const m4ActionTitles = res.months[3].startingActions!.map((a) => a.title);
       assert.ok(
         m4ActionTitles.some((t) =>
-          t.includes("Positive Pregnancy Test (Child #1)"),
-        ),
+          t.includes("Positive Pregnancy Test (Child #1)")),
       );
       assert.ok(
         m4ActionTitles.some((t) => t.includes("Tax Class Switch Active")),
@@ -1002,8 +1012,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.ok(m14.startingActions && m14.startingActions.length >= 1);
       assert.ok(
         m14.startingActions!.some((a) =>
-          a.title.includes("Working Hours Adjustment (WIFE: 24 h/wk)"),
-        ),
+          a.title.includes("Working Hours Adjustment (WIFE: 24 h/wk)")),
       );
       assert.equal((m14.wifeSalary as number) > 0, true);
 
@@ -1012,8 +1021,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.ok(m26.startingActions && m26.startingActions.length >= 1);
       assert.ok(
         m26.startingActions!.some((a) =>
-          a.title.includes("Working Hours Adjustment (HUSBAND: 32 h/wk)"),
-        ),
+          a.title.includes("Working Hours Adjustment (HUSBAND: 32 h/wk)")),
       );
       assert.equal(m26.isPartnerschaftsbonus, true);
       assert.equal(m26.husbandElterngeld as number, 150);
@@ -1023,8 +1031,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.ok(m36.startingActions && m36.startingActions.length >= 1);
       assert.ok(
         m36.startingActions!.some((a) =>
-          a.title.includes("Working Hours Adjustment (WIFE: 32 h/wk)"),
-        ),
+          a.title.includes("Working Hours Adjustment (WIFE: 32 h/wk)")),
       );
     });
 
@@ -1097,16 +1104,14 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         assert.equal(res.months[4].taxClassLabel, "H: V | W: III");
         assert.ok(
           res.months[4].startingActions!.some((a) =>
-            a.title.includes("ACTION: Tax Class Switch Active"),
-          ),
+            a.title.includes("ACTION: Tax Class Switch Active")),
         );
 
         // Month 12: Revert back to IV (F)
         assert.equal(res.months[11].taxClassLabel, "H: IV (F) | W: IV (F)");
         assert.ok(
           res.months[11].startingActions!.some((a) =>
-            a.title.includes("ACTION: Tax Class Reversion"),
-          ),
+            a.title.includes("ACTION: Tax Class Reversion")),
         );
       });
     });

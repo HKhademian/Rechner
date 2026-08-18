@@ -1,6 +1,10 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
-import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
+import {
+  runScenarioBatches, 
+} from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,

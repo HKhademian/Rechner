@@ -16,7 +16,9 @@ import {
   type StatutoryCitation,
   type EuroAmount,
 } from "#engine/types";
-import { LegalRuleKey, type LegalRuleKeyType } from "#store/elterngeldStore";
+import {
+  LegalRuleKey, type LegalRuleKeyType, 
+} from "#store/elterngeldStore";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("de-DE", {
@@ -562,66 +564,66 @@ export function getFieldExplanation(
         contributingFactors:
           mutterschutzVal > 0
             ? [
-                {
-                  name: "Pre-Birth Average Net Baseline",
-                  value: `${formatCurrency(preNet)} / month`,
-                  description: `Evaluated in ${scenarioId === ScenarioId.C ? "Tax Class III (Optimized)" : "Tax Class V"}`,
-                },
-                {
-                  name: "Health Insurance Mutterschaftsgeld",
-                  value: "13 € / day (390 € / mo)",
-                  description:
+              {
+                name: "Pre-Birth Average Net Baseline",
+                value: `${formatCurrency(preNet)} / month`,
+                description: `Evaluated in ${scenarioId === ScenarioId.C ? "Tax Class III (Optimized)" : "Tax Class V"}`,
+              },
+              {
+                name: "Health Insurance Mutterschaftsgeld",
+                value: "13 € / day (390 € / mo)",
+                description:
                     "Statutory health insurance daily benefit (§ 19 MuSchG)",
-                },
-                {
-                  name: "Employer Mandatory Supplement",
-                  value: `${formatCurrency(Math.max(0, preNet - 390))} / month`,
-                  description: "Arbeitgeberzuschuss under § 20 MuSchG",
-                },
-                {
-                  name: "Statutory Protection Window",
-                  value: "6 weeks pre-birth + 8 weeks post-birth",
-                  description: "Mandatory paid leave (§ 3 MuSchG)",
-                },
-              ]
+              },
+              {
+                name: "Employer Mandatory Supplement",
+                value: `${formatCurrency(Math.max(0, preNet - 390))} / month`,
+                description: "Arbeitgeberzuschuss under § 20 MuSchG",
+              },
+              {
+                name: "Statutory Protection Window",
+                value: "6 weeks pre-birth + 8 weeks post-birth",
+                description: "Mandatory paid leave (§ 3 MuSchG)",
+              },
+            ]
             : [
-                {
-                  name: "Protection Window Status",
-                  value: "Inactive (0 €)",
-                  description:
+              {
+                name: "Protection Window Status",
+                value: "Inactive (0 €)",
+                description:
                     "Outside 6-week pre-birth / 8-week post-birth window",
-                },
-              ],
+              },
+            ],
         calculationSteps:
           mutterschutzVal > 0
             ? [
-                {
-                  stepNumber: 1,
-                  description: "Compute health insurance daily grant",
-                  formula: "30 days × 13 € / day",
-                  result: "390 €",
-                },
-                {
-                  stepNumber: 2,
-                  description: "Compute mandatory employer supplement",
-                  formula: `${formatCurrency(preNet)} - 390 €`,
-                  result: formatCurrency(Math.max(0, preNet - 390)),
-                },
-                {
-                  stepNumber: 3,
-                  description: "Combine for 100% wage guarantee",
-                  formula: `390 € + ${formatCurrency(Math.max(0, preNet - 390))}`,
-                  result: formatCurrency(mutterschutzVal),
-                },
-              ]
+              {
+                stepNumber: 1,
+                description: "Compute health insurance daily grant",
+                formula: "30 days × 13 € / day",
+                result: "390 €",
+              },
+              {
+                stepNumber: 2,
+                description: "Compute mandatory employer supplement",
+                formula: `${formatCurrency(preNet)} - 390 €`,
+                result: formatCurrency(Math.max(0, preNet - 390)),
+              },
+              {
+                stepNumber: 3,
+                description: "Combine for 100% wage guarantee",
+                formula: `390 € + ${formatCurrency(Math.max(0, preNet - 390))}`,
+                result: formatCurrency(mutterschutzVal),
+              },
+            ]
             : [
-                {
-                  stepNumber: 1,
-                  description: "Check statutory maternity window",
-                  formula: "Month in [delivery - 1, delivery, delivery + 1]",
-                  result: "0 € (Outside protection window)",
-                },
-              ],
+              {
+                stepNumber: 1,
+                description: "Check statutory maternity window",
+                formula: "Month in [delivery - 1, delivery, delivery + 1]",
+                result: "0 € (Outside protection window)",
+              },
+            ],
         legalCitation: toStatutoryCitation(
           "MuSchG § 19, § 20 & BEEG § 3 Abs. 1",
         ),
@@ -655,74 +657,74 @@ export function getFieldExplanation(
         contributingFactors:
           wElterngeld > 0
             ? [
-                {
-                  name: "Pre-Birth Assessment Net (§ 2b BEEG)",
-                  value: `${formatCurrency(preNet)} / month`,
-                  description:
+              {
+                name: "Pre-Birth Assessment Net (§ 2b BEEG)",
+                value: `${formatCurrency(preNet)} / month`,
+                description:
                     scenarioId === ScenarioId.C
                       ? "Locked at Tax Class III Synthetic Net"
                       : "Unoptimized Tax Class V Net",
-                },
-                {
-                  name: "Post-Birth Part-Time Net (24h/wk)",
-                  value: `${formatCurrency(ptNet)} / month`,
-                  description: "Actual earned employment income",
-                },
-                {
-                  name: "Net Income Loss (ΔNet)",
-                  value: `${formatCurrency(netLoss)} / month`,
-                  description: "Pre-Birth Net - Post-Birth Net",
-                },
-                {
-                  name: "Statutory Replacement Rate (§ 2 BEEG)",
-                  value: "65.0%",
-                  description: "Wage replacement percentage",
-                },
-                {
-                  name: "Statutory Maximum Cap (§ 4a BEEG)",
-                  value: "900 € / month",
-                  description: "50% of monthly full entitlement cap",
-                },
-              ]
+              },
+              {
+                name: "Post-Birth Part-Time Net (24h/wk)",
+                value: `${formatCurrency(ptNet)} / month`,
+                description: "Actual earned employment income",
+              },
+              {
+                name: "Net Income Loss (ΔNet)",
+                value: `${formatCurrency(netLoss)} / month`,
+                description: "Pre-Birth Net - Post-Birth Net",
+              },
+              {
+                name: "Statutory Replacement Rate (§ 2 BEEG)",
+                value: "65.0%",
+                description: "Wage replacement percentage",
+              },
+              {
+                name: "Statutory Maximum Cap (§ 4a BEEG)",
+                value: "900 € / month",
+                description: "50% of monthly full entitlement cap",
+              },
+            ]
             : [
-                {
-                  name: "Benefit Status",
-                  value: "0 € / month",
-                  description: "Outside claim window or working > 32h/week",
-                },
-              ],
+              {
+                name: "Benefit Status",
+                value: "0 € / month",
+                description: "Outside claim window or working > 32h/week",
+              },
+            ],
         calculationSteps:
           wElterngeld > 0
             ? [
-                {
-                  stepNumber: 1,
-                  description: "Calculate monthly net salary drop (ΔNet)",
-                  formula: `${formatCurrency(preNet)} - ${formatCurrency(ptNet)}`,
-                  result: formatCurrency(netLoss),
-                },
-                {
-                  stepNumber: 2,
-                  description: "Apply 65% statutory replacement rate",
-                  formula: `${formatCurrency(netLoss)} × 65%`,
-                  result: `${formatCurrency(rawBenefit)} / month`,
-                },
-                {
-                  stepNumber: 3,
-                  description: "Apply statutory ElterngeldPlus cap / floor",
-                  formula: `Min(900 €, Max(150 €, ${formatCurrency(rawBenefit)}))`,
-                  result: formatCurrency(wElterngeld),
-                },
-              ]
+              {
+                stepNumber: 1,
+                description: "Calculate monthly net salary drop (ΔNet)",
+                formula: `${formatCurrency(preNet)} - ${formatCurrency(ptNet)}`,
+                result: formatCurrency(netLoss),
+              },
+              {
+                stepNumber: 2,
+                description: "Apply 65% statutory replacement rate",
+                formula: `${formatCurrency(netLoss)} × 65%`,
+                result: `${formatCurrency(rawBenefit)} / month`,
+              },
+              {
+                stepNumber: 3,
+                description: "Apply statutory ElterngeldPlus cap / floor",
+                formula: `Min(900 €, Max(150 €, ${formatCurrency(rawBenefit)}))`,
+                result: formatCurrency(wElterngeld),
+              },
+            ]
             : [
-                {
-                  stepNumber: 1,
-                  description:
+              {
+                stepNumber: 1,
+                description:
                     "Evaluate statutory eligibility (§ 1 & § 4 BEEG)",
-                  formula:
+                formula:
                     "Check active leave phase and working hours (<= 32h)",
-                  result: "0 € (Ineligible in this month)",
-                },
-              ],
+                result: "0 € (Ineligible in this month)",
+              },
+            ],
         legalCitation: toStatutoryCitation(
           "BEEG § 2 (Ersatzrate), § 2b (Bemessungszeitraum), § 4a (ElterngeldPlus)",
         ),
@@ -754,56 +756,56 @@ export function getFieldExplanation(
         contributingFactors:
           hElterngeld > 0
             ? [
-                {
-                  name: "Father Post-Birth Hours",
-                  value: "32 hours / week (Part-Time)",
-                  description: "Working within statutory 24-32h corridor",
-                },
-                {
-                  name: "Entitlement Type",
-                  value: m.phaseLabel.includes("Partnerschaftsbonus")
-                    ? "Partnerschaftsbonus (§ 4b BEEG)"
-                    : "Partner Months (§ 4 Abs. 3 BEEG)",
-                  description: "Statutory benefit category",
-                },
-                {
-                  name: "Statutory Minimum Allowance Floor",
-                  value: "150 € / month",
-                  description: "Guaranteed statutory minimum benefit",
-                },
-              ]
+              {
+                name: "Father Post-Birth Hours",
+                value: "32 hours / week (Part-Time)",
+                description: "Working within statutory 24-32h corridor",
+              },
+              {
+                name: "Entitlement Type",
+                value: m.phaseLabel.includes("Partnerschaftsbonus")
+                  ? "Partnerschaftsbonus (§ 4b BEEG)"
+                  : "Partner Months (§ 4 Abs. 3 BEEG)",
+                description: "Statutory benefit category",
+              },
+              {
+                name: "Statutory Minimum Allowance Floor",
+                value: "150 € / month",
+                description: "Guaranteed statutory minimum benefit",
+              },
+            ]
             : [
-                {
-                  name: "Benefit Status",
-                  value: "0 € / month",
-                  description: "Not claiming parental allowance in this month",
-                },
-              ],
+              {
+                name: "Benefit Status",
+                value: "0 € / month",
+                description: "Not claiming parental allowance in this month",
+              },
+            ],
         calculationSteps:
           hElterngeld > 0
             ? [
-                {
-                  stepNumber: 1,
-                  description: "Verify statutory working hours corridor",
-                  formula: "24h <= 32h <= 32h per week (§ 4b BEEG)",
-                  result: "Eligible (Within Corridor)",
-                },
-                {
-                  stepNumber: 2,
-                  description: "Apply statutory ElterngeldPlus minimum rate",
-                  formula: "Max(150 €, 65% × Salary Loss)",
-                  result: formatCurrency(hElterngeld),
-                },
-              ]
+              {
+                stepNumber: 1,
+                description: "Verify statutory working hours corridor",
+                formula: "24h <= 32h <= 32h per week (§ 4b BEEG)",
+                result: "Eligible (Within Corridor)",
+              },
+              {
+                stepNumber: 2,
+                description: "Apply statutory ElterngeldPlus minimum rate",
+                formula: "Max(150 €, 65% × Salary Loss)",
+                result: formatCurrency(hElterngeld),
+              },
+            ]
             : [
-                {
-                  stepNumber: 1,
-                  description: "Check father claim schedule",
-                  formula:
+              {
+                stepNumber: 1,
+                description: "Check father claim schedule",
+                formula:
                     "Month in Partner Months or Partnership Bonus window",
-                  result: "0 € (Inactive)",
-                },
-              ],
+                result: "0 € (Inactive)",
+              },
+            ],
         legalCitation: toStatutoryCitation(
           "BEEG § 4 Abs. 3 (Partnermonate) & § 4b (Partnerschaftsbonus)",
         ),

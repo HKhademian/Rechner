@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   getFieldExplanation,
@@ -8,7 +10,9 @@ import {
   getActionRowExplanation,
   getSpecialEventRowExplanation,
 } from "#engine/explanation/timelineExplainer";
-import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
+import {
+  runScenarioBatches, 
+} from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
   ScenarioId,
@@ -190,13 +194,11 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 4);
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Pre-Birth Assessment Net"),
-        ),
+          f.name.includes("Pre-Birth Assessment Net")),
       );
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Statutory Replacement Rate"),
-        ),
+          f.name.includes("Statutory Replacement Rate")),
       );
       assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 3);
       assert.equal(exp.calculationSteps[0].stepNumber, 1);
@@ -215,13 +217,11 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Father Post-Birth Hours"),
-        ),
+          f.name.includes("Father Post-Birth Hours")),
       );
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Statutory Minimum Allowance Floor"),
-        ),
+          f.name.includes("Statutory Minimum Allowance Floor")),
       );
       assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 2);
       assert.ok(exp.calculationSteps[1].formula.includes("Max(150"));

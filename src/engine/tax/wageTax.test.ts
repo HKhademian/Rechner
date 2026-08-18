@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   computeAnnualIncomeTax,
@@ -7,7 +9,9 @@ import {
   computeMonthlyNetSalary,
   computeTaxFactor,
 } from "#engine/tax/wageTax";
-import { toGrossSalary, toEuroAmount, TaxClass } from "#engine/types";
+import {
+  toGrossSalary, toEuroAmount, TaxClass, 
+} from "#engine/types";
 
 describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
   describe("computeAnnualIncomeTax - § 32a EStG Progressive Tariff", () => {

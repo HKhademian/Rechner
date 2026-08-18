@@ -6,7 +6,9 @@
  * and employer supplement (Arbeitgeberzuschuss).
  */
 
-import { type NetSalary, type EuroAmount, toEuroAmount } from "#engine/types";
+import {
+  type NetSalary, type EuroAmount, toEuroAmount, 
+} from "#engine/types";
 
 /**
  * Maternity Protection Wage Replacement Breakdown (§§ 19, 20 MuSchG).

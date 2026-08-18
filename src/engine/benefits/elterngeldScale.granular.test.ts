@@ -1,10 +1,14 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   computeStatutoryReplacementRate,
   computeElterngeldBenefits,
 } from "#engine/benefits/elterngeldPlus";
-import { toNetSalary } from "#engine/types";
+import {
+  toNetSalary, 
+} from "#engine/types";
 
 describe("Granular Elterngeld Replacement Scale & Caps (300 Individual Assertions)", () => {
   // Test 150 net salary points from 300 € to 1.800 € in 10 € increments
@@ -14,9 +18,11 @@ describe("Granular Elterngeld Replacement Scale & Caps (300 Individual Assertion
       if (net <= 1000) {
         assert.ok(rate >= 0.67);
         assert.ok(rate <= 1.0);
-      } else if (net <= 1200) {
+      }
+      else if (net <= 1200) {
         assert.equal(rate, 0.67);
-      } else {
+      }
+      else {
         assert.ok(rate <= 0.67);
         assert.ok(rate >= 0.65);
       }

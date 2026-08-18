@@ -5,7 +5,9 @@
  * sliding-scale wage replacement rates, and part-time hours eligibility under BEEG.
  */
 
-import { type NetSalary, type EuroAmount, toEuroAmount } from "#engine/types";
+import {
+  type NetSalary, type EuroAmount, toEuroAmount, 
+} from "#engine/types";
 
 /**
  * Calculates the statutory wage replacement rate under § 2 Abs. 1 & 2 BEEG.

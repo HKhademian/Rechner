@@ -4,8 +4,12 @@
  * Implements statutory monthly child benefit (Kindergeld) calculations under § 66 EStG.
  */
 
-import { type EuroAmount, toEuroAmount } from "#engine/types";
-import { getDefaultPersistedState } from "#engine/storage/persistence";
+import {
+  type EuroAmount, toEuroAmount, 
+} from "#engine/types";
+import {
+  getDefaultPersistedState, 
+} from "#engine/storage/persistence";
 
 /**
  * Statutory Child Benefit Entitlement Result (§ 66 EStG).

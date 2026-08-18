@@ -1,4 +1,6 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   ScenarioId,
@@ -21,8 +23,12 @@ import {
   type PreexistingConditions,
   type PregnancyAction,
 } from "#engine/types";
-import { deriveSpousalNetSalaries } from "#engine/tax/wageTax";
-import { runScenarioBatches } from "#engine/simulator/timelineGenerator";
+import {
+  deriveSpousalNetSalaries, 
+} from "#engine/tax/wageTax";
+import {
+  runScenarioBatches, 
+} from "#engine/simulator/timelineGenerator";
 
 describe("Unified Household Gross Income & Compensation Profile", () => {
   describe("Gross-to-Net Derivation with Variable Working Hours", () => {

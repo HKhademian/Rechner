@@ -1,10 +1,14 @@
-import { describe, it } from "node:test";
+import {
+  describe, it, 
+} from "node:test";
 import assert from "node:assert/strict";
 import {
   computeJointTaxLiability,
   computeMonthlySwapWithholdingVariance,
 } from "#engine/tax/jointAssessment";
-import { toNetSalary } from "#engine/types";
+import {
+  toNetSalary, 
+} from "#engine/types";
 
 describe("Granular Joint Assessment & Withholding Swap Tests (200 Individual Assertions)", () => {
   // Test 100 distinct joint assessment spouse income combinations

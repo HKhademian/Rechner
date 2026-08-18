@@ -187,7 +187,8 @@ export function computeMonthlySocialSecurity(
   let careRate: number;
   if (childrenCount === 0) {
     careRate = 0.028; // Childless surcharge (§ 55 Abs. 3 SGB XI)
-  } else {
+  }
+  else {
     // SGB XI § 55 Abs. 3: -0.25% per child from 2nd to 5th child
     const discount = Math.min(0.01, Math.max(0, childrenCount - 1) * 0.0025);
     careRate = Math.round(Math.max(0.012, 0.022 - discount) * 10000) / 10000;
@@ -222,7 +223,8 @@ export function computeAnnualWageTaxForClass(
   annualGross: number,
   annualSocialSecurity: number,
   taxClass: TaxClass,
-): { annualTax: number; approxZvE: number } {
+): { annualTax: number;
+  approxZvE: number } {
   const arbeitnehmerPauschbetrag = 1230; // § 9a Nr. 1a EStG
   const sonderausgabenPauschbetrag = 36; // § 10c EStG
   let approxZvE = Math.max(
@@ -267,7 +269,8 @@ export function computeAnnualWageTaxForClass(
       break;
   }
 
-  return { annualTax: annualWageTax, approxZvE };
+  return { annualTax: annualWageTax,
+    approxZvE };
 }
 
 /**
