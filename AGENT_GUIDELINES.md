@@ -73,3 +73,11 @@ The simulator processes state transitions in 4 modular batches:
   - Multiline import specifiers (one item per line)
   - Zero unused imports and no duplicate imports
 - **Verification Matrix**: Run `npm run check` / `npm run check:audit` before committing.
+
+---
+
+## 9. Zero Redundant Downcasting on Branded Types ([`23_no_redundant_type_casting.md`](file:///Users/ho/Projects/calculator/.agents/rules/23_no_redundant_type_casting.md))
+
+- Nominal branded types (`Brand<number, Tag>`) are intersection types with `number` and natively support all arithmetic (`+`, `-`, `*`, `/`), comparisons (`<`, `>`, `<=`, `>=`), and math utilities.
+- **Strictly Prohibited**: Never cast branded types to primitives (`as number`, `as string`). Use variables directly in calculations without casting noise.
+- Only cast/validate when constructing branded types from raw inputs via runtime constructors (`toEuroAmount`, `toNetSalary`, `toWorkingHours`, etc.).
