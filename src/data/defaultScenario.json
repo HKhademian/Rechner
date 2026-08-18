@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": 1,
-    "exportedAt": "2026-08-17T22:00:07.637Z",
+    "exportedAt": "2026-08-18T10:54:00.009Z",
     "application": "German Elterngeld & Parental Leave 5-Year Financial Simulator",
     "format": "JSON"
   },
@@ -68,10 +68,10 @@
       {
         "pregnancyId": "PREG-CUSTOM-3",
         "childIndex": 3,
-        "positiveTestCalendarMonth": 1,
+        "positiveTestCalendarMonth": 11,
         "positiveTestCalendarYear": 2029,
-        "positiveTestSimulationMonth": 37,
-        "calculatedDeliverySimulationMonth": 45,
+        "positiveTestSimulationMonth": 47,
+        "calculatedDeliverySimulationMonth": 55,
         "motherPostBirthPartTimeHours": 24,
         "motherPostBirthPartTimeClass5Net": 1328,
         "motherPostBirthPartTimeClass3Net": 1648,
@@ -88,6 +88,16 @@
         "targetWifeTaxClass": "III",
         "statutoryReason": "Optimize 12-month synthetic Elterngeld assessment baseline (§ 2b BEEG)",
         "revertSimulationMonth": 17
+      },
+      {
+        "switchId": "SWAP-CHILD-2",
+        "effectiveSimulationMonth": 47,
+        "effectiveCalendarMonth": 11,
+        "effectiveCalendarYear": 2029,
+        "targetHusbandTaxClass": "V",
+        "targetWifeTaxClass": "III",
+        "statutoryReason": "Optimize Child 2 Elterngeld assessment baseline (§ 2b BEEG)",
+        "revertSimulationMonth": 56
       }
     ],
     "customSalaryRaises": [],

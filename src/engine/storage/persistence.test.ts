@@ -44,7 +44,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.equal(defaults.simulationDurationMonths, 72);
 
     assert.equal(defaults.customPregnancies.length, 3);
-    assert.equal(defaults.customTaxClassSwitches.length, 1);
+    assert.equal(defaults.customTaxClassSwitches.length, 2);
     assert.equal(defaults.customFinancialEvents.length, 2);
     assert.equal(defaults.activeScenario, ActiveScenarioView.C);
     assert.equal(defaults.chartMode, TimelineChartMode.StackedBar);
