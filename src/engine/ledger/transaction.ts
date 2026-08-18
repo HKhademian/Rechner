@@ -1,3 +1,10 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Financial Simulator - Transaction Factory
+ *
+ * Provides factory functions and parameter interfaces for creating immutable,
+ * double-entry accounting transactions with complete statutory audit trails.
+ */
+
 import {
   type TransactionId,
   type MonthId,
@@ -17,25 +24,46 @@ import {
   toMonthSimRef,
 } from "#engine/types";
 
+/**
+ * Parameters for Constructing an Immutable Double-Entry Accounting Transaction.
+ */
 export interface CreateTransactionParams {
+  /** Raw or nominal transaction identifier. */
   readonly transactionId: string;
+  /** Absolute calendar month identifier (e.g. 'M09.2027'). */
   readonly monthId: MonthId | string;
+  /** Statutory relative month reference notation (e.g. 'M9 (Birth 1)'). */
   readonly monthRef?: MonthRef | string;
+  /** Simulation start relative index notation (e.g. 'Sim21'). */
   readonly monthSimRef?: MonthSimRef | string;
+  /** Optional display label for relative month reference. */
   readonly relativeMonthLabel?: MonthRef | string;
+  /** 1-based chronological simulation month index (1..120). */
   readonly month: SimulationMonth;
+  /** 1-based simulation horizon year index (1..10). */
   readonly year: CalendarYear;
+  /** Detailed transaction classification type (e.g. SALARY_BASE, BENEFIT_ELTERNGELD_PLUS_MOTHER). */
   readonly type: TransactionType;
+  /** Cash flow movement direction (INFLOW or OUTFLOW). */
   readonly direction: TransactionDirection;
+  /** Exact integer EUR transaction amount. */
   readonly amount: EuroAmount;
+  /** Formal statutory legal citation string (e.g. 'BEEG § 4', 'EStG § 66'). */
   readonly statutoryCitation: string;
+  /** Active tax class configuration label (e.g. 'III / V'). */
   readonly taxClassLabel: string;
+  /** Human-readable transaction summary description. */
   readonly description: string;
+  /** Detailed mathematical derivation audit trail string. */
   readonly auditTrail: string;
 }
 
 /**
- * Creates an immutable, traceable accounting transaction entry
+ * Factory creating a fully validated, immutable `AccountingTransaction` record
+ * with normalized nominal brand types.
+ *
+ * @param params - Configuration parameters specifying cash flow amount, direction, and statutory grounding.
+ * @returns Strongly-typed `AccountingTransaction` record.
  */
 export function createTransaction(
   params: CreateTransactionParams,

@@ -1,3 +1,10 @@
+/**
+ * German Elterngeld & Parental Leave 5-Year Financial Simulator - Monthly Ledger Engine
+ *
+ * Implements monthly chronological ledger entry construction, multi-stream cash flow aggregation,
+ * and immutable running cumulative total calculations with strict invariant enforcement.
+ */
+
 import {
   type SimulationMonth,
   type CalendarYear,
@@ -21,43 +28,87 @@ import {
   type ActionRowItem,
 } from "#engine/types";
 
+/**
+ * Raw Input Specification for Monthly Ledger Calculation.
+ * Supplies discrete income components, benefit disbursements, special events, and phase tags.
+ */
 export interface LedgerMonthInput {
+  /** Absolute calendar month identifier (e.g. 'M09.2027'). */
   readonly monthId: MonthId | string;
+  /** Statutory relative month reference notation (e.g. 'M9 (Birth 1)'). */
   readonly monthRef?: MonthRef | string;
+  /** Simulation start relative reference (e.g. 'Sim21'). */
   readonly monthSimRef?: MonthSimRef | string;
+  /** 1-based chronological simulation month index (1..120). */
   readonly month: SimulationMonth;
+  /** 1-based simulation horizon year index (1..10). */
   readonly year: CalendarYear;
+  /** Month index within the simulation year (1..12). */
   readonly monthInYear: CalendarMonth;
+  /** 4-digit Gregorian calendar year (e.g. 2027). */
   readonly calendarYearNum: FullCalendarYear | number;
+  /** 1-based Gregorian calendar month (1..12). */
   readonly calendarMonthNum: CalendarMonth;
+  /** Formatted calendar label (e.g. 'September 2027'). */
   readonly calendarLabel: string;
+  /** Relative birth timing reference label (e.g. 'Birth 1 + 3M'). */
   readonly relativeBirthLabel: string;
+  /** Display relative month reference. */
   readonly relativeMonthLabel?: MonthRef | string;
+  /** Relative month signed integer offset from first pregnancy positive test. */
   readonly relativeMonthIndex?: number;
+  /** Husband's earned monthly take-home net salary in EUR. */
   readonly husbandSalary: EuroAmount;
+  /** Wife's earned monthly take-home net salary in EUR. */
   readonly wifeSalary: EuroAmount;
+  /** Maternity protection wage replacement benefit under §§ 19, 20 MuSchG. */
   readonly mutterschutz: EuroAmount;
+  /** Mother's parental allowance under §§ 4, 4a BEEG. */
   readonly wifeElterngeld: EuroAmount;
+  /** Father's parental allowance under §§ 4, 4a BEEG. */
   readonly husbandElterngeld: EuroAmount;
+  /** Monthly statutory child benefit under § 66 EStG (Kindergeld). */
   readonly kindergeld: EuroAmount;
+  /** Annual income tax return refund under § 26b, § 46 EStG. */
   readonly taxRefund: EuroAmount;
+  /** Mid-year 40% 13th salary bonus payment in EUR. */
   readonly bonus40Amount: EuroAmount;
+  /** Year-end 60% 13th salary bonus payment in EUR. */
   readonly bonus60Amount: EuroAmount;
+  /** Discrete special life, bonus, or tax refund sub-row items occurring in this month. */
   readonly specialEvents: readonly SpecialEventItem[];
+  /** Action milestones scheduled to take effect immediately prior to this month. */
   readonly startingActions?: readonly ActionRowItem[];
+  /** Active tax class configuration label (e.g. 'III / V'). */
   readonly taxClassLabel: string;
+  /** Current family life cycle phase description (e.g. 'Parental Leave 1'). */
   readonly phaseLabel: string;
+  /** Visual event tag label for timeline markers, or null if standard month. */
   readonly eventTag: string | null;
+  /** Internal event type string, or null if standard month. */
   readonly eventType: string | null;
+  /** True if proactive spousal tax class optimization is active. */
   readonly isSwapActive: boolean;
+  /** True if mother is receiving statutory maternity protection. */
   readonly isMutterschutz: boolean;
+  /** True if parents are receiving Partnerschaftsbonus under § 4b BEEG. */
   readonly isPartnerschaftsbonus: boolean;
+  /** True if sibling bonus under § 2a BEEG is active. */
   readonly hasSiblingBonus: boolean;
+  /** Detailed list of double-entry accounting ledger transactions for this month. */
   readonly transactions: readonly AccountingTransaction[];
 }
 
 /**
- * Builds a validated, mathematically consistent monthly ledger entry
+ * Builds a validated, mathematically consistent `MonthlyLedgerEntry` and computes
+ * updated running cumulative totals across earned salaries, benefits, tax refunds, and grand totals.
+ *
+ * @param input - Raw monthly ledger input specification.
+ * @param runningCumulatedSalaries - Cumulative salaries prior to this month.
+ * @param runningCumulatedBenefits - Cumulative benefits prior to this month.
+ * @param runningCumulatedTaxRefunds - Cumulative tax refunds prior to this month.
+ * @param runningCumulatedTotal - Cumulative net household cash flow prior to this month.
+ * @returns Result object containing the complete `MonthlyLedgerEntry` and updated cumulative totals.
  */
 export function buildMonthlyLedgerEntry(
   input: LedgerMonthInput,
