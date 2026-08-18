@@ -36,6 +36,7 @@ import {
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
+  toFullCalendarYear,
   toTaxFactor,
   type GrossSalary,
   type NetSalary,
@@ -43,6 +44,7 @@ import {
   type EuroAmount,
   type SimulationMonth,
   type CalendarMonth,
+  type FullCalendarYear,
   type TaxFactor,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -91,7 +93,7 @@ export interface ElterngeldPersistedState {
   readonly annualSalaryRaisePercent: number;
 
   // Simulation Duration & Milestones
-  readonly startCalendarYear: number;
+  readonly startCalendarYear: FullCalendarYear;
   readonly startCalendarMonth: CalendarMonth;
   readonly simulationDurationMonths: number;
   readonly prePregnancyPlanningMonths: number;
@@ -197,7 +199,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
   const enableSalaryRaises = Boolean(obj.enableSalaryRaises);
   const annualSalaryRaisePercent = Number(obj.annualSalaryRaisePercent) || 0;
 
-  const startCalendarYear = Number(obj.startCalendarYear) || 2026;
+  const startCalendarYear = toFullCalendarYear(
+    Number(obj.startCalendarYear) || 2026,
+  );
   const startCalendarMonth = toCalendarMonth(
     Number(obj.startCalendarMonth) || 1,
   );
@@ -228,8 +232,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           positiveTestCalendarMonth: toCalendarMonth(
             Number(pObj.positiveTestCalendarMonth) || startCalendarMonth,
           ),
-          positiveTestCalendarYear:
+          positiveTestCalendarYear: toFullCalendarYear(
             Number(pObj.positiveTestCalendarYear) || startCalendarYear,
+          ),
           positiveTestSimulationMonth: toSimulationMonth(
             Number(pObj.positiveTestSimulationMonth) || 1,
           ),
@@ -270,8 +275,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           effectiveCalendarMonth: toCalendarMonth(
             Number(sObj.effectiveCalendarMonth) || startCalendarMonth,
           ),
-          effectiveCalendarYear:
+          effectiveCalendarYear: toFullCalendarYear(
             Number(sObj.effectiveCalendarYear) || startCalendarYear,
+          ),
           targetHusbandTaxClass:
             typeof sObj.targetHusbandTaxClass === "string"
               ? toTaxClass(sObj.targetHusbandTaxClass)
@@ -336,8 +342,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           effectiveCalendarMonth: toCalendarMonth(
             Number(rObj.effectiveCalendarMonth) || 1,
           ),
-          effectiveCalendarYear:
+          effectiveCalendarYear: toFullCalendarYear(
             Number(rObj.effectiveCalendarYear) || startCalendarYear + idx + 1,
+          ),
           targetPerson:
             typeof rObj.targetPerson === "string"
               ? toTargetPerson(rObj.targetPerson)
@@ -367,8 +374,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
             effectiveCalendarMonth: toCalendarMonth(
               Number(hObj.effectiveCalendarMonth) || startCalendarMonth,
             ),
-            effectiveCalendarYear:
+            effectiveCalendarYear: toFullCalendarYear(
               Number(hObj.effectiveCalendarYear) || startCalendarYear,
+            ),
             targetPerson:
               typeof hObj.targetPerson === "string"
                 ? toTargetPerson(hObj.targetPerson)
@@ -399,8 +407,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           effectiveCalendarMonth: toCalendarMonth(
             Number(eObj.effectiveCalendarMonth) || startCalendarMonth,
           ),
-          effectiveCalendarYear:
+          effectiveCalendarYear: toFullCalendarYear(
             Number(eObj.effectiveCalendarYear) || startCalendarYear,
+          ),
           title:
             typeof eObj.title === "string"
               ? eObj.title
@@ -623,11 +632,13 @@ export function validateAndSanitizePersistedState(
               12,
             ),
           ),
-          positiveTestCalendarYear: num(
-            pObj.positiveTestCalendarYear,
-            defP?.positiveTestCalendarYear ?? defaults.startCalendarYear,
-            1900,
-            2100,
+          positiveTestCalendarYear: toFullCalendarYear(
+            num(
+              pObj.positiveTestCalendarYear,
+              defP?.positiveTestCalendarYear ?? defaults.startCalendarYear,
+              1900,
+              2100,
+            ),
           ),
           positiveTestSimulationMonth: toSimulationMonth(
             num(
@@ -746,11 +757,13 @@ export function validateAndSanitizePersistedState(
               12,
             ),
           ),
-          effectiveCalendarYear: num(
-            sObj.effectiveCalendarYear,
-            defS?.effectiveCalendarYear ?? defaults.startCalendarYear,
-            1900,
-            2100,
+          effectiveCalendarYear: toFullCalendarYear(
+            num(
+              sObj.effectiveCalendarYear,
+              defS?.effectiveCalendarYear ?? defaults.startCalendarYear,
+              1900,
+              2100,
+            ),
           ),
           targetHusbandTaxClass: targetH,
           targetWifeTaxClass: targetW,
@@ -844,11 +857,14 @@ export function validateAndSanitizePersistedState(
               12,
             ),
           ),
-          effectiveCalendarYear: num(
-            rObj.effectiveCalendarYear,
-            defR?.effectiveCalendarYear ?? defaults.startCalendarYear + idx + 1,
-            1900,
-            2100,
+          effectiveCalendarYear: toFullCalendarYear(
+            num(
+              rObj.effectiveCalendarYear,
+              defR?.effectiveCalendarYear ??
+                defaults.startCalendarYear + idx + 1,
+              1900,
+              2100,
+            ),
           ),
           targetPerson: tp,
           percentageIncrease: rawPct,
@@ -899,11 +915,13 @@ export function validateAndSanitizePersistedState(
                 12,
               ),
             ),
-            effectiveCalendarYear: num(
-              hObj.effectiveCalendarYear,
-              defH?.effectiveCalendarYear ?? defaults.startCalendarYear,
-              1900,
-              2100,
+            effectiveCalendarYear: toFullCalendarYear(
+              num(
+                hObj.effectiveCalendarYear,
+                defH?.effectiveCalendarYear ?? defaults.startCalendarYear,
+                1900,
+                2100,
+              ),
             ),
             targetPerson: tp,
             weeklyHours: toWorkingHours(
@@ -960,11 +978,13 @@ export function validateAndSanitizePersistedState(
               12,
             ),
           ),
-          effectiveCalendarYear: num(
-            eObj.effectiveCalendarYear,
-            defE?.effectiveCalendarYear ?? defaults.startCalendarYear,
-            1900,
-            2100,
+          effectiveCalendarYear: toFullCalendarYear(
+            num(
+              eObj.effectiveCalendarYear,
+              defE?.effectiveCalendarYear ?? defaults.startCalendarYear,
+              1900,
+              2100,
+            ),
           ),
           title: str(eObj.title, defE?.title || `Custom Event #${idx + 1}`),
           amount: toEuroAmount(num(eObj.amount, defE?.amount ?? 0)),
@@ -1127,11 +1147,8 @@ export function validateAndSanitizePersistedState(
       100,
     ),
 
-    startCalendarYear: num(
-      obj.startCalendarYear,
-      defaults.startCalendarYear,
-      2020,
-      2050,
+    startCalendarYear: toFullCalendarYear(
+      num(obj.startCalendarYear, defaults.startCalendarYear, 1900, 2100),
     ),
     startCalendarMonth: toCalendarMonth(
       num(obj.startCalendarMonth, defaults.startCalendarMonth, 1, 12),

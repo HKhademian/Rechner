@@ -36,9 +36,11 @@ import {
   type MonthSimRef,
   type GrossSalary,
   type WorkingHours,
+  type FullCalendarYear,
   FinancialEventCategory,
   toSimulationMonth,
   toCalendarYear,
+  toFullCalendarYear,
   toCalendarMonth,
   toMonthId,
   toMonthRef,
@@ -79,7 +81,7 @@ import { computeSiblingBonus } from "#engine/benefits/siblingBonus";
 
 export interface TimelineSimulationParams {
   readonly scenarioKey: ScenarioId;
-  readonly startCalendarYear?: number;
+  readonly startCalendarYear?: FullCalendarYear;
   readonly startCalendarMonth?: CalendarMonth;
   readonly simulationDurationMonths?: number;
   readonly husbandGross?: GrossSalary;
@@ -114,8 +116,8 @@ export function calculateSimulationStartDate(
   pregPositiveYear: number,
   pregPositiveMonth: number,
 ): {
-  startCalendarYear: number;
-  startCalendarMonth: number;
+  startCalendarYear: FullCalendarYear;
+  startCalendarMonth: CalendarMonth;
   prePregnancyPlanningMonths: number;
   pregnancySimulationMonth: number;
 } {
@@ -124,13 +126,13 @@ export function calculateSimulationStartDate(
   const resultYear = Math.floor(totalMonths / 12);
 
   // 2. First month of the resulting year (January)
-  const startCalendarYear = resultYear;
-  const startCalendarMonth = 1;
+  const startCalendarYear = toFullCalendarYear(resultYear);
+  const startCalendarMonth = toCalendarMonth(1);
 
   // 3. Pre-pregnancy buffer months in the simulation (simulation months before pregnancy positive)
   const pregnancySimulationMonth =
-    (pregPositiveYear - startCalendarYear) * 12 +
-    (pregPositiveMonth - startCalendarMonth) +
+    (pregPositiveYear - (startCalendarYear as number)) * 12 +
+    (pregPositiveMonth - (startCalendarMonth as number)) +
     1;
   const prePregnancyPlanningMonths = pregnancySimulationMonth - 1;
 
@@ -173,7 +175,7 @@ export function runScenarioBatches(
     readonly month: SimulationMonth;
     readonly year: CalendarYear;
     readonly monthInYear: CalendarMonth;
-    readonly calendarYearNum: number;
+    readonly calendarYearNum: FullCalendarYear;
     readonly calendarMonthNum: CalendarMonth;
     readonly calendarLabel: string;
     readonly relativeBirthLabel: string;
@@ -214,7 +216,9 @@ export function runScenarioBatches(
     const monthSimRef = toMonthSimRef(m);
     const totalElapsedMonths = startMonth - 1 + (m - 1);
     const calendarMonthNum = toCalendarMonth((totalElapsedMonths % 12) + 1);
-    const calendarYearNum = startYear + Math.floor(totalElapsedMonths / 12);
+    const calendarYearNum = toFullCalendarYear(
+      startYear + Math.floor(totalElapsedMonths / 12),
+    );
     const calendarLabel = `${String(calendarMonthNum).padStart(2, "0")}.${calendarYearNum}`;
     const monthId = toMonthId(calendarMonthNum, calendarYearNum);
     const year = toCalendarYear(Math.min(10, Math.ceil(m / 12)));
@@ -1576,7 +1580,9 @@ export function runScenarioBatches(
 export function generateTimelineSimulation(
   params: TimelineSimulationParams,
 ): SimulationResult {
-  const startYear = params.startCalendarYear ?? 2026;
+  const startYear = params.startCalendarYear
+    ? toFullCalendarYear(params.startCalendarYear)
+    : toFullCalendarYear(2026);
   const startMonth = (params.startCalendarMonth as number) ?? 1;
   const duration = params.simulationDurationMonths ?? 60;
 
@@ -1621,9 +1627,10 @@ export function generateTimelineSimulation(
       positiveTestCalendarMonth: toCalendarMonth(
         ((startMonth - 1 + params.prePregnancyPlanningMonths) % 12) + 1,
       ),
-      positiveTestCalendarYear:
+      positiveTestCalendarYear: toFullCalendarYear(
         startYear +
-        Math.floor((startMonth - 1 + params.prePregnancyPlanningMonths) / 12),
+          Math.floor((startMonth - 1 + params.prePregnancyPlanningMonths) / 12),
+      ),
       positiveTestSimulationMonth: toSimulationMonth(
         params.prePregnancyPlanningMonths + 1,
       ),
@@ -1639,8 +1646,9 @@ export function generateTimelineSimulation(
       positiveTestCalendarMonth: toCalendarMonth(
         ((startMonth - 1 + (b2 - 9)) % 12) + 1,
       ),
-      positiveTestCalendarYear:
+      positiveTestCalendarYear: toFullCalendarYear(
         startYear + Math.floor((startMonth - 1 + (b2 - 9)) / 12),
+      ),
       positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
       calculatedDeliverySimulationMonth: toSimulationMonth(b2),
       motherPostBirthPartTimeHours: toWorkingHours(24),
@@ -1663,8 +1671,9 @@ export function generateTimelineSimulation(
       effectiveCalendarMonth: toCalendarMonth(
         ((startMonth - 1 + swap1Start - 1) % 12) + 1,
       ),
-      effectiveCalendarYear:
+      effectiveCalendarYear: toFullCalendarYear(
         startYear + Math.floor((startMonth - 1 + swap1Start - 1) / 12),
+      ),
       targetHusbandTaxClass: TaxClass.V,
       targetWifeTaxClass: TaxClass.III,
       statutoryReason:
@@ -1677,8 +1686,9 @@ export function generateTimelineSimulation(
       effectiveCalendarMonth: toCalendarMonth(
         ((startMonth - 1 + swap2Start - 1) % 12) + 1,
       ),
-      effectiveCalendarYear:
+      effectiveCalendarYear: toFullCalendarYear(
         startYear + Math.floor((startMonth - 1 + swap2Start - 1) / 12),
+      ),
       targetHusbandTaxClass: TaxClass.V,
       targetWifeTaxClass: TaxClass.III,
       statutoryReason:

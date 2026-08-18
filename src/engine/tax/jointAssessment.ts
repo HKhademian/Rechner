@@ -2,6 +2,7 @@ import {
   type EuroAmount,
   type NetSalary,
   type CalendarYear,
+  type FullCalendarYear,
   type SimulationMonth,
   type GuenstigerpruefungResult,
   toEuroAmount,
@@ -51,16 +52,11 @@ export function computeMonthlySwapWithholdingVariance(
   wifeClass3Net: NetSalary,
   wifeClass5Net: NetSalary,
 ): EuroAmount {
-  const husbandExtraWithheld = Math.max(
-    0,
-    (husbandClass3Net as number) - (husbandClass5Net as number),
-  );
-  const wifeRelief = Math.max(
-    0,
-    (wifeClass3Net as number) - (wifeClass5Net as number),
-  );
-  const monthlyDeficit = Math.max(0, husbandExtraWithheld - wifeRelief);
-  return toEuroAmount(monthlyDeficit);
+  const husbandLoss =
+    (husbandClass3Net as number) - (husbandClass5Net as number);
+  const wifeGain = (wifeClass3Net as number) - (wifeClass5Net as number);
+  const monthlyVariance = husbandLoss - wifeGain;
+  return toEuroAmount(Math.max(0, monthlyVariance));
 }
 
 /**
@@ -68,7 +64,7 @@ export function computeMonthlySwapWithholdingVariance(
  */
 export interface ChildYearPresence {
   readonly childIndex: number;
-  readonly birthCalendarYear: number;
+  readonly birthCalendarYear: FullCalendarYear | number;
   readonly birthCalendarMonth: number; // 1..12
 }
 

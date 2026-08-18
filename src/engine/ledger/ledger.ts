@@ -5,6 +5,7 @@ import {
   type MonthId,
   type MonthRef,
   type MonthSimRef,
+  type FullCalendarYear,
   type EuroAmount,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -12,6 +13,7 @@ import {
   toEuroAmount,
   toSimulationMonth,
   toCalendarYear,
+  toFullCalendarYear,
   toCalendarMonth,
   toMonthId,
   toMonthRef,
@@ -26,7 +28,7 @@ export interface LedgerMonthInput {
   readonly month: SimulationMonth;
   readonly year: CalendarYear;
   readonly monthInYear: CalendarMonth;
-  readonly calendarYearNum: number;
+  readonly calendarYearNum: FullCalendarYear | number;
   readonly calendarMonthNum: CalendarMonth;
   readonly calendarLabel: string;
   readonly relativeBirthLabel: string;
@@ -117,7 +119,7 @@ export function buildMonthlyLedgerEntry(
     month: input.month,
     year: input.year,
     monthInYear: input.monthInYear,
-    calendarYearNum: input.calendarYearNum,
+    calendarYearNum: toFullCalendarYear(input.calendarYearNum),
     calendarMonthNum: input.calendarMonthNum,
     calendarLabel: input.calendarLabel,
     relativeBirthLabel: input.relativeBirthLabel,
