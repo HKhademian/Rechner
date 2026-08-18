@@ -399,7 +399,7 @@ function calculateForPerson(
   }
 
   // 3. Tax Calculation
-  let tax = 0;
+  let tax: number;
   const basicAllowance = configBasicAllowance.value;
 
   if (bracket === "3") {
