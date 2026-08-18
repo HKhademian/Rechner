@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { generateTimelineSimulation } from "#engine/simulator/timelineGenerator";
 import {
+  toGrossSalary,
   toNetSalary,
   toEuroAmount,
   toSimulationMonth,
@@ -17,6 +18,9 @@ import {
 
 describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variations)", () => {
   const defaultParams = {
+    husbandGross: toGrossSalary(4500),
+    wifeGross: toGrossSalary(3000),
+    wifePostBirthHours: 24,
     husbandClass3Net: toNetSalary(2895),
     husbandClass5Net: toNetSalary(2191),
     wifeClass5FullTimeNet: toNetSalary(1975),
