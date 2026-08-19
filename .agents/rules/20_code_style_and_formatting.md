@@ -93,3 +93,8 @@ import {
 - **Immutable Bindings**: Use `const` by default; `var` is disallowed.
 - **Object Shorthand**: Use `{ key }` syntax instead of `{ key: key }`.
 - **Template Literals**: Prefer template strings over concatenation with `+`.
+
+## 11. Mandatory Formatter Execution Pre-Commit
+- **Mandatory Formatter Step**: All AI agents and developers MUST execute `npm run fix` (or `npm run apply`) before staging any git commit.
+- Unformatted code, misplaced type imports, or style violations will be rejected by git pre-commit hooks and CI quality checks (`npm run check`).
+- VS Code automatically enforces formatting and ESLint fixes on save via `.vscode/settings.json`.
