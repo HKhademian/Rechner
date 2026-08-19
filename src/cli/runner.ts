@@ -22,6 +22,14 @@ import {
   calculateSimulationStartDate,
 } from "#engine/simulator/timelineGenerator";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction,
+  type SimulationResult,
+  type TimelineMonth,
+  type GrossToNetBreakdown,
+  type SpousalGrossToNetSet,
   TaxClass,
   SimulationStrategy,
   ScenarioId,
@@ -51,14 +59,6 @@ import {
   toRaiseId,
   toMonthId,
   toMonthSimRef,
-  type PreexistingConditions,
-  type PregnancyAction,
-  type TaxClassSwitchAction,
-  type SalaryRaiseAction,
-  type SimulationResult,
-  type TimelineMonth,
-  type GrossToNetBreakdown,
-  type SpousalGrossToNetSet,
 } from "#engine/types";
 import {
   computeGrossToNetBreakdown,
@@ -67,25 +67,22 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import {
-  getFieldExplanation,
-  getRowExplanation,
   type FieldExplanation,
   type RowExplanation,
+  getFieldExplanation,
+  getRowExplanation,
 } from "#engine/explanation/timelineExplainer";
 import {
+  type ElterngeldPersistedState,
   getDefaultPersistedState,
   getTestPersistedState,
   loadScenarioById,
   setUserScenarioOverride,
   validateAndSanitizePersistedState,
-  type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 import {
-  BUILTIN_SCENARIO_CATALOG,
+  BUILTIN_SCENARIO_CATALOG, 
 } from "#data/scenarios/scenarioRegistry";
-
-
-
 
 // ANSI Color Codes
 const RESET = "\x1b[0m";
@@ -385,14 +382,18 @@ function parseArgs(args: string[]): CliOptions {
     else if (arg === "--scenario" || arg === "-s") {
       const val = args[++i] || "compare";
       const upper = val.toUpperCase();
-      if (upper === "A" || upper === "B" || upper === "C" || upper === "COMPARE") {
+      if (
+        upper === "A" ||
+        upper === "B" ||
+        upper === "C" ||
+        upper === "COMPARE"
+      ) {
         opts.scenario = toCliScenarioTarget(val);
       }
       else {
         opts.scenarioFile = val;
       }
     }
-
     else if (arg === "--start-year") {
       opts.startYear = Number(args[++i]) || 2026;
     }
@@ -733,8 +734,7 @@ function printSpousalGrossToNetSet(
     );
     const defaultMonthlyInflow =
       set.husbandClass3Net + set.wifeClass5FullTimeNet;
-    const swapMonthlyInflow =
-      set.husbandClass5Net + set.wifeClass3FullTimeNet;
+    const swapMonthlyInflow = set.husbandClass5Net + set.wifeClass3FullTimeNet;
     const diff = swapMonthlyInflow - defaultMonthlyInflow;
 
     console.log(
@@ -785,8 +785,7 @@ function printSpousalGrossToNetSet(
     );
     const defaultMonthlyInflow =
       set.husbandClass3Net + set.wifeClass5FullTimeNet;
-    const swapMonthlyInflow =
-      set.husbandClass5Net + set.wifeClass3FullTimeNet;
+    const swapMonthlyInflow = set.husbandClass5Net + set.wifeClass3FullTimeNet;
     const diff = swapMonthlyInflow - defaultMonthlyInflow;
 
     console.log(
@@ -976,7 +975,6 @@ export function runListScenarios(): void {
                 path: fullPath,
               });
             }
-
           }
         }
       }
@@ -1109,8 +1107,6 @@ export function resolveCliScenarioState(
   return getDefaultPersistedState();
 }
 
-
-
 function buildSimulation(
   scenarioKey: ScenarioId,
   opts: CliOptions,
@@ -1157,9 +1153,7 @@ function buildSimulation(
     husbandInitialClass5Net: spousal
       ? spousal.husbandClass5Net
       : def.husbandClass5Net,
-    husbandWeeklyHours: toWorkingHours(
-      opts.husbandHours || def.husbandHours,
-    ),
+    husbandWeeklyHours: toWorkingHours(opts.husbandHours || def.husbandHours),
     wifeInitialTaxClass: def.wifeInitialTaxClass ?? TaxClass.V,
     wifeInitialFullTimeNet: spousal
       ? spousal.wifeClass5FullTimeNet
@@ -1326,13 +1320,10 @@ function printSummaryScorecard(
   resB: SimulationResult,
   resC: SimulationResult,
 ) {
-  const gainOverB =
-    resC.summary.grandTotal - resB.summary.grandTotal;
-  const gainOverA =
-    resC.summary.grandTotal - resA.summary.grandTotal;
+  const gainOverB = resC.summary.grandTotal - resB.summary.grandTotal;
+  const gainOverA = resC.summary.grandTotal - resA.summary.grandTotal;
   const benefitGainOverB =
-    resC.summary.totalBenefits -
-    resB.summary.totalBenefits;
+    resC.summary.totalBenefits - resB.summary.totalBenefits;
 
   console.log(
     `\n${BOLD}${CYAN}========================================================================================${RESET}`,
@@ -1457,7 +1448,6 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
   }
 
   const baseState = resolveCliScenarioState(opts.scenarioFile);
-
 
   if (opts.mode === CliMode.GrossToNet) {
     const grossMonthly = opts.gross
@@ -1664,9 +1654,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
 
   res.months.forEach((m, idx) => {
     const bMonth = resB?.months[idx];
-    const diffTotal = bMonth
-      ? m.monthlyTotal - bMonth.monthlyTotal
-      : 0;
+    const diffTotal = bMonth ? m.monthlyTotal - bMonth.monthlyTotal : 0;
     const diffStr =
       bMonth && diffTotal !== 0
         ? ` (${diffTotal > 0 ? "+" : ""}${diffTotal}€)`
@@ -1679,8 +1667,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
         const isPregnancy = act.type === ActionType.PregnancyPositive;
         const isTaxRevert = act.type === ActionType.TaxClassSwitchRevert;
         const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
-        const isReallocation =
-          act.type === ActionType.ElterngeldReallocation;
+        const isReallocation = act.type === ActionType.ElterngeldReallocation;
 
         const color = isDelivery
           ? CYAN
@@ -1701,11 +1688,9 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
             .slice(0, 24)
             .padEnd(24),
           (act.monthId || m.monthId).padEnd(9),
-          (
-            act.monthSimRef ||
-            m.monthSimRef ||
-            toMonthSimRef(m.month)
-          ).padEnd(7),
+          (act.monthSimRef || m.monthSimRef || toMonthSimRef(m.month)).padEnd(
+            7,
+          ),
           m.calendarLabel.padEnd(8),
           `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1729,9 +1714,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
     if (m.specialEvents && m.specialEvents.length > 0) {
       const prevMonthIdx = m.month - 2;
       const prevCum =
-        prevMonthIdx >= 0
-          ? res.months[prevMonthIdx]?.cumulatedTotal || 0
-          : 0;
+        prevMonthIdx >= 0 ? res.months[prevMonthIdx]?.cumulatedTotal || 0 : 0;
       const bPrevCum =
         prevMonthIdx >= 0 && resB
           ? resB.months[prevMonthIdx]?.cumulatedTotal || 0
@@ -1773,11 +1756,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
             .slice(0, 24)
             .padEnd(24),
           (ev.monthId || m.monthId).padEnd(9),
-          (
-            ev.monthSimRef ||
-            m.monthSimRef ||
-            toMonthSimRef(m.month)
-          ).padEnd(7),
+          (ev.monthSimRef || m.monthSimRef || toMonthSimRef(m.month)).padEnd(7),
           ev.calendarLabel.padEnd(8),
           `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(
             30 + color.length + RESET.length,
@@ -1813,9 +1792,7 @@ function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
       String(m.husbandSalary).padStart(11),
       String(m.wifeSalary).padStart(9),
       String(m.mutterschutz).padStart(8),
-      String(
-        m.wifeElterngeld + m.husbandElterngeld,
-      ).padStart(10),
+      String(m.wifeElterngeld + m.husbandElterngeld).padStart(10),
       String(m.kindergeld).padStart(10),
       String(m.specialBonusTotal).padStart(7),
       String(m.taxRefund).padStart(10),

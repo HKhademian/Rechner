@@ -23,7 +23,6 @@ const execFileAsync = (cmd: string, args: readonly string[]) =>
       SIMULATOR_TEST_MODE: "true" },
   });
 
-
 describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
   describe("Argument Parsers (parseMonthArg & parseFieldArg)", () => {
     it("parses various month string formats cleanly", () => {
@@ -555,7 +554,6 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
         }
       }
     });
-
 
     it("executes quality audit runner cleanly and verifies repo integrity", async () => {
       const { stdout, stderr } = await execFileAsync("node", [
