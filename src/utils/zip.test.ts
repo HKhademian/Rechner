@@ -3,6 +3,7 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type ZipEntry,
   computeCrc32,
   getCrcTable,
   dateToDosDateTime,
@@ -11,7 +12,6 @@ import {
   extractZipArchive,
   extractZipTextArchive,
   ZIP_SIGNATURES,
-  type ZipEntry,
 } from "#utils/zip";
 
 describe("PKZIP 2.0 Archiver and Parser Utility (src/utils/zip.ts)", () => {
@@ -42,9 +42,7 @@ describe("PKZIP 2.0 Archiver and Parser Utility (src/utils/zip.ts)", () => {
   describe("MS-DOS Date & Time Encoding", () => {
     it("converts JavaScript Date objects to standard 16-bit DOS time and date integers", () => {
       const date = new Date(2026, 4, 15, 14, 30, 20); // 2026-05-15 14:30:20
-      const {
-        dosTime, dosDate, 
-      } = dateToDosDateTime(date);
+      const { dosTime, dosDate } = dateToDosDateTime(date);
 
       assert.ok(typeof dosTime === "number");
       assert.ok(typeof dosDate === "number");
@@ -54,9 +52,7 @@ describe("PKZIP 2.0 Archiver and Parser Utility (src/utils/zip.ts)", () => {
 
     it("handles pre-1980 dates by clamping DOS year to 0", () => {
       const oldDate = new Date(1970, 0, 1);
-      const {
-        dosDate, 
-      } = dateToDosDateTime(oldDate);
+      const { dosDate } = dateToDosDateTime(oldDate);
       assert.ok(dosDate >= 0);
     });
   });
@@ -88,7 +84,9 @@ describe("PKZIP 2.0 Archiver and Parser Utility (src/utils/zip.ts)", () => {
     });
 
     it("packages an array of ZipEntry descriptors with binary payloads and custom timestamps", () => {
-      const binaryPayload = new Uint8Array([0xde, 0xad, 0xbe, 0xef, 0x01, 0x02, 0x03]);
+      const binaryPayload = new Uint8Array([
+        0xde, 0xad, 0xbe, 0xef, 0x01, 0x02, 0x03,
+      ]);
       const entries: ZipEntry[] = [
         {
           name: "binary.dat",
@@ -136,9 +134,12 @@ describe("PKZIP 2.0 Archiver and Parser Utility (src/utils/zip.ts)", () => {
     it("roundtrips string and binary files with 100% byte fidelity", () => {
       const binaryData = new Uint8Array([10, 20, 30, 40, 50, 60, 70, 80, 90]);
       const originalFiles: Record<string, string | Uint8Array> = {
-        "simulation_report.txt": "Executive summary report of statutory benefits.",
-        "config/settings.json": JSON.stringify({ taxClass: "III",
-          gross: 4500 }),
+        "simulation_report.txt":
+          "Executive summary report of statutory benefits.",
+        "config/settings.json": JSON.stringify({
+          taxClass: "III",
+          gross: 4500,
+        }),
         "assets/blob.bin": binaryData,
       };
 
@@ -148,7 +149,9 @@ describe("PKZIP 2.0 Archiver and Parser Utility (src/utils/zip.ts)", () => {
       const entries = parseZipArchive(zipBytes);
       assert.equal(entries.length, 3);
 
-      const reportEntry = entries.find((e) => e.name === "simulation_report.txt");
+      const reportEntry = entries.find(
+        (e) => e.name === "simulation_report.txt",
+      );
       assert.ok(reportEntry);
       assert.equal(
         new TextDecoder().decode(reportEntry.data),

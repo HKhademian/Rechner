@@ -139,7 +139,9 @@ function normalizeZipEntries(
   if (Array.isArray(input)) {
     return input.map((entry) => {
       if (!entry || typeof entry.name !== "string") {
-        throw new TypeError("Each ZipEntry must contain a valid string 'name'.");
+        throw new TypeError(
+          "Each ZipEntry must contain a valid string 'name'.",
+        );
       }
       return {
         name: entry.name.replace(/\\/g, "/"),
@@ -170,7 +172,10 @@ function normalizeZipEntries(
  * @param encoder - TextEncoder instance.
  * @returns Byte array.
  */
-function toUint8Array(content: ZipFileContent, encoder: TextEncoder): Uint8Array {
+function toUint8Array(
+  content: ZipFileContent,
+  encoder: TextEncoder,
+): Uint8Array {
   if (typeof content === "string") {
     return encoder.encode(content);
   }
@@ -209,9 +214,7 @@ export function createZipArchive(
     const nameBytes = encoder.encode(entry.name);
     const contentBytes = toUint8Array(entry.content, encoder);
     const crc = computeCrc32(contentBytes);
-    const {
-      dosTime, dosDate, 
-    } = dateToDosDateTime(entry.date);
+    const { dosTime, dosDate } = dateToDosDateTime(entry.date);
     const offset = currentOffset;
 
     fileRecords.push({
@@ -224,7 +227,9 @@ export function createZipArchive(
     });
 
     // Local file header (30 bytes fixed + filename + content data)
-    const localHeader = new Uint8Array(30 + nameBytes.length + contentBytes.length);
+    const localHeader = new Uint8Array(
+      30 + nameBytes.length + contentBytes.length,
+    );
     const view = new DataView(localHeader.buffer);
 
     view.setUint32(0, ZIP_SIGNATURES.LocalFileHeader, true); // Local file header signature
@@ -319,16 +324,26 @@ export function createZipArchive(
  */
 export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
   if (zipBuffer.length < 22) {
-    throw new Error("Invalid ZIP buffer: size is smaller than the minimum 22-byte EOCD record.");
+    throw new Error(
+      "Invalid ZIP buffer: size is smaller than the minimum 22-byte EOCD record.",
+    );
   }
 
   const decoder = new TextDecoder("utf-8");
-  const view = new DataView(zipBuffer.buffer, zipBuffer.byteOffset, zipBuffer.byteLength);
+  const view = new DataView(
+    zipBuffer.buffer,
+    zipBuffer.byteOffset,
+    zipBuffer.byteLength,
+  );
 
   // Scan backwards from end to find End of Central Directory signature (0x06054b50)
   let eocdOffset = -1;
   const maxCommentLength = Math.min(65535, zipBuffer.length - 22);
-  for (let i = zipBuffer.length - 22; i >= zipBuffer.length - 22 - maxCommentLength; i--) {
+  for (
+    let i = zipBuffer.length - 22;
+    i >= zipBuffer.length - 22 - maxCommentLength;
+    i--
+  ) {
     if (view.getUint32(i, true) === ZIP_SIGNATURES.EndOfCentralDirectory) {
       eocdOffset = i;
       break;
@@ -336,7 +351,9 @@ export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
   }
 
   if (eocdOffset === -1) {
-    throw new Error("Invalid ZIP archive: End of Central Directory signature not found.");
+    throw new Error(
+      "Invalid ZIP archive: End of Central Directory signature not found.",
+    );
   }
 
   const totalEntries = view.getUint16(eocdOffset + 10, true);
@@ -344,7 +361,9 @@ export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
   const centralDirOffset = view.getUint32(eocdOffset + 16, true);
 
   if (centralDirOffset + centralDirSize > eocdOffset) {
-    throw new Error("Corrupted ZIP archive: Central Directory overlaps or exceeds EOCD offset.");
+    throw new Error(
+      "Corrupted ZIP archive: Central Directory overlaps or exceeds EOCD offset.",
+    );
   }
 
   const entries: ParsedZipEntry[] = [];
@@ -352,7 +371,9 @@ export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
 
   for (let i = 0; i < totalEntries; i++) {
     if (cdPos + 46 > zipBuffer.length) {
-      throw new Error(`Corrupted ZIP archive: Truncated Central Directory header at entry ${i}.`);
+      throw new Error(
+        `Corrupted ZIP archive: Truncated Central Directory header at entry ${i}.`,
+      );
     }
 
     const cdSig = view.getUint32(cdPos, true);
@@ -378,7 +399,9 @@ export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
 
     // Validate and read Local File Header
     if (localHeaderOffset + 30 > zipBuffer.length) {
-      throw new Error(`Corrupted ZIP archive: Truncated Local File Header for '${filename}'.`);
+      throw new Error(
+        `Corrupted ZIP archive: Truncated Local File Header for '${filename}'.`,
+      );
     }
 
     const localSig = view.getUint32(localHeaderOffset, true);
@@ -393,7 +416,9 @@ export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
     const dataOffset = localHeaderOffset + 30 + localNameLen + localExtraLen;
 
     if (dataOffset + compressedSize > zipBuffer.length) {
-      throw new Error(`Corrupted ZIP archive: File payload out of bounds for '${filename}'.`);
+      throw new Error(
+        `Corrupted ZIP archive: File payload out of bounds for '${filename}'.`,
+      );
     }
 
     const data = zipBuffer.slice(dataOffset, dataOffset + compressedSize);
@@ -427,7 +452,9 @@ export function parseZipArchive(zipBuffer: Uint8Array): ParsedZipEntry[] {
  * @param zipBuffer - Binary ZIP file buffer.
  * @returns Map of archive relative filenames to their decompressed byte arrays.
  */
-export function extractZipArchive(zipBuffer: Uint8Array): Record<string, Uint8Array> {
+export function extractZipArchive(
+  zipBuffer: Uint8Array,
+): Record<string, Uint8Array> {
   const parsed = parseZipArchive(zipBuffer);
   const result: Record<string, Uint8Array> = {};
   for (const entry of parsed) {
@@ -442,7 +469,9 @@ export function extractZipArchive(zipBuffer: Uint8Array): Record<string, Uint8Ar
  * @param zipBuffer - Binary ZIP file buffer.
  * @returns Map of archive relative filenames to their decoded UTF-8 string contents.
  */
-export function extractZipTextArchive(zipBuffer: Uint8Array): Record<string, string> {
+export function extractZipTextArchive(
+  zipBuffer: Uint8Array,
+): Record<string, string> {
   const parsed = parseZipArchive(zipBuffer);
   const decoder = new TextDecoder("utf-8");
   const result: Record<string, string> = {};
