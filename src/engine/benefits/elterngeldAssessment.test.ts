@@ -141,8 +141,8 @@ describe("Elterngeld Assessment Baseline & Predominant Tax Class Engine (BEEG §
         });
       }
 
-      const expectedSum = 2 * 2603 + 10 * 1648; // 4590 + 14130 = 18720
-      const expectedAvg = Math.round(expectedSum / 12); // 1560 €
+      const expectedSum = 2 * 2603 + 10 * 1648; // 5206 + 14130 = 18720
+      const expectedAvg = Math.round(expectedSum / 12); // 1807 €
 
       const baseline = computeAssessmentBaselineNet(records);
       assert.equal(baseline.totalEligibleNet, expectedSum);

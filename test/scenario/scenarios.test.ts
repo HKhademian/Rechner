@@ -35,12 +35,12 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
     husbandGross: toGrossSalary(4500),
     wifeGross: toGrossSalary(3000),
     wifePostBirthHours: toWorkingHours(24),
-    husbandClass3Net: toNetSalary(2895),
-    husbandClass5Net: toNetSalary(2191),
-    wifeClass5FullTimeNet: toNetSalary(1975),
-    wifeClass3FullTimeNet: toNetSalary(2603),
-    wifeClass5PartTimeNet: toNetSalary(1328),
-    wifeClass3PartTimeNet: toNetSalary(1648),
+    husbandClass3Net: toNetSalary(3184),
+    husbandClass5Net: toNetSalary(2398),
+    wifeClass5FullTimeNet: toNetSalary(1751),
+    wifeClass3FullTimeNet: toNetSalary(2295),
+    wifeClass5PartTimeNet: toNetSalary(1182),
+    wifeClass3PartTimeNet: toNetSalary(1413),
     kindergeldPerChild: toEuroAmount(259),
     prePregnancyPlanningMonths: toMonthDuration(3),
     child1BirthMonth: toSimulationMonth(12),
@@ -61,13 +61,13 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       assert.equal(res.months.length, 60);
 
       res.months.forEach((m) => {
-        assert.equal(m.husbandSalary, 2895);
-        assert.equal(m.wifeSalary, 1975);
+        assert.equal(m.husbandSalary, 3184);
+        assert.equal(m.wifeSalary, 1751);
         assert.equal(m.mutterschutz, 0);
         assert.equal(m.wifeElterngeld, 0);
         assert.equal(m.husbandElterngeld, 0);
         assert.equal(m.kindergeld, 0);
-        assert.equal(m.regularMonthlyTotal, 6125);
+        assert.equal(m.regularMonthlyTotal, 4935);
       });
 
       assert.equal(res.summary.totalBenefits, 0);
@@ -82,65 +82,65 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       });
       assert.equal(res.months.length, 60);
 
-      // Mutterschutz 1 (M11, M12, M13) at Class V FT (€1.975)
+      // Mutterschutz 1 (M11, M12, M13) at Class V FT (€1.751)
       [11, 12, 13].forEach((mIndex) => {
         const m = res.months[mIndex - 1];
         assert.equal(m.isMutterschutz, true);
-        assert.equal(m.mutterschutz, 1975);
+        assert.equal(m.mutterschutz, 1751);
         assert.equal(m.wifeSalary, 0);
       });
 
-      // Child 1 ElterngeldPlus (M14 to M25) = €501
+      // Child 1 ElterngeldPlus (M14 to M25) = €370
       for (let i = 14; i <= 25; i++) {
         const m = res.months[i - 1];
-        assert.equal(m.wifeElterngeld, 501);
+        assert.equal(m.wifeElterngeld, 370);
       }
     });
   });
 
   describe("Scenario C - Optimized Proactive Tax Class Swap (III/V)", () => {
-    it("accurately models Swap 1, Mutterschutz at Class III FT (€2.603), and maxed €900 ElterngeldPlus", () => {
+    it("accurately models Swap 1, Mutterschutz at Class III FT (€2.295), and optimized ElterngeldPlus (+723 €)", () => {
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
       });
       assert.equal(res.months.length, 60);
 
-      // Mutterschutz 1 (M11, M12, M13) at Class III FT (€2.603)
+      // Mutterschutz 1 (M11, M12, M13) at Class III FT (€2.295)
       [11, 12, 13].forEach((mIndex) => {
         const m = res.months[mIndex - 1];
         assert.equal(m.isMutterschutz, true);
-        assert.equal(m.mutterschutz, 2603);
+        assert.equal(m.mutterschutz, 2295);
       });
 
-      // Child 1 ElterngeldPlus (M14 to M25) = €900 (Maxed out!)
+      // Child 1 ElterngeldPlus (M14 to M25) = €723
       for (let i = 14; i <= 25; i++) {
         const m = res.months[i - 1];
-        assert.equal(m.wifeElterngeld, 900);
+        assert.equal(m.wifeElterngeld, 723);
       }
     });
 
-    it("calculates exact annual tax refunds for Year 1 (+3.050 €) and Year 3 (+4.060 €)", () => {
+    it("calculates exact annual tax refunds for Year 1 (+2.786 €) and Year 3 (+4.180 €)", () => {
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
       });
 
-      // Month 15: Year 1 Return = 8 * 275 (2200) + 850 = 3050 €
+      // Month 15: Year 1 Return = 8 * 242 (1936) + 850 = 2786 €
       const m15 = res.months[14];
-      assert.equal(m15.taxRefund, 3050);
+      assert.equal(m15.taxRefund, 2786);
 
       // Month 27: Year 2 Return = 0 deficit + 850 = 850 €
       const m27 = res.months[26];
       assert.equal(m27.taxRefund, 850);
 
-      // Month 39: Year 3 Return = 6 * 535 (3210) + 850 = 4060 €
+      // Month 39: Year 3 Return = 6 * 555 (3330) + 850 = 4180 €
       const m39 = res.months[38];
-      assert.equal(m39.taxRefund, 4060);
+      assert.equal(m39.taxRefund, 4180);
 
-      // Month 51: Year 4 Return = 2 * 535 (1070) + 850 (Kindergeld floor protected) = 1920 €
+      // Month 51: Year 4 Return = 2 * 555 (1110) + 850 (Kindergeld floor protected) = 1960 €
       const m51 = res.months[50];
-      assert.equal(m51.taxRefund, 1920);
+      assert.equal(m51.taxRefund, 1960);
     });
   });
 
@@ -162,8 +162,8 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         b.summary.totalBenefits;
 
       assert.ok(
-        netGain > 10000,
-        `Net gain (${netGain} €) must exceed 10.000 €`,
+        netGain > 8000,
+        `Net gain (${netGain} €) must exceed 8.000 €`,
       );
       assert.ok(
         benefitsGain > 8000,

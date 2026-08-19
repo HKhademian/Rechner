@@ -190,7 +190,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         undefined,
         ScenarioId.C,
       );
-      assert.equal(exp.valueFormatted, "900\u00a0€");
+      assert.equal(exp.valueFormatted, "829\u00a0€");
       assert.ok(exp.derivationFormula?.includes("65%"));
       assert.ok(exp.explanation.includes("Class III"));
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 4);

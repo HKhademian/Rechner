@@ -37,16 +37,16 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         year: toCalendarYear(1),
         type: TransactionType.SalaryBase,
         direction: TransactionDirection.Inflow,
-        amount: toEuroAmount(2895),
+        amount: toEuroAmount(3184),
         statutoryCitation: "§ 19 EStG",
         taxClassLabel: "H: III",
         description: "Husband Monthly Salary",
-        auditTrail: "Gross €4.500 -> Class III Net €2.895",
+        auditTrail: "Gross €4.500 -> Class III Net €3.184",
       });
 
       assert.equal(tx.transactionId, "TX-M01.2026-TEST");
       assert.equal(tx.monthId, "M01.2026");
-      assert.equal(tx.amount, 2895);
+      assert.equal(tx.amount, 3184);
       assert.equal(tx.statutoryCitation, "§ 19 EStG");
     });
   });
@@ -128,9 +128,9 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const cm = toCalendarMonth(5);
       const mId = toMonthId(5, 2027);
 
-      const hSalary = toEuroAmount(2895);
+      const hSalary = toEuroAmount(3184);
       const wSalary = toEuroAmount(0);
-      const mutterschutz = toEuroAmount(2603);
+      const mutterschutz = toEuroAmount(2295);
       const kindergeld = toEuroAmount(259);
 
       // One-off baby equipment cost (-1500 €)
@@ -192,7 +192,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         60850,
       );
 
-      const regularTotal = 2895 + 2603 + 259; // 5738 €
+      const regularTotal = 3184 + 2295 + 259; // 5738 €
       const expectedSpecial = -1500;
       const expectedMonthly = regularTotal - 1500; // 4238 €
 
@@ -211,8 +211,8 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
       const cm = toCalendarMonth(12);
       const mId = toMonthId(12, 2026);
 
-      const hSalary = toEuroAmount(2895);
-      const wSalary = toEuroAmount(1975);
+      const hSalary = toEuroAmount(3184);
+      const wSalary = toEuroAmount(1751);
       const kindergeld = toEuroAmount(0);
 
       // One-off bonus grant (+2000 €)
@@ -274,7 +274,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         60000,
       );
 
-      const regularTotal = 2895 + 1975; // 6125 €
+      const regularTotal = 3184 + 1751; // 4935 €
       const expectedSpecial = 2000;
       const expectedMonthly = regularTotal + expectedSpecial; // 6935 €
 

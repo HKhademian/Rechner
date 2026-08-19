@@ -50,14 +50,14 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     husbandGross: toGrossSalary(4500),
     wifeGross: toGrossSalary(3000),
     husbandInitialTaxClass: TaxClass.III,
-    husbandInitialNet: toNetSalary(2895),
-    husbandInitialClass5Net: toNetSalary(2191),
+    husbandInitialNet: toNetSalary(3184),
+    husbandInitialClass5Net: toNetSalary(2398),
     husbandWeeklyHours: toWorkingHours(32),
     wifeInitialTaxClass: TaxClass.V,
-    wifeInitialFullTimeNet: toNetSalary(1975),
-    wifeInitialClass3FullTimeNet: toNetSalary(2603),
-    wifeInitialPartTimeClass5Net: toNetSalary(1328),
-    wifeInitialPartTimeClass3Net: toNetSalary(1648),
+    wifeInitialFullTimeNet: toNetSalary(1751),
+    wifeInitialClass3FullTimeNet: toNetSalary(2295),
+    wifeInitialPartTimeClass5Net: toNetSalary(1182),
+    wifeInitialPartTimeClass3Net: toNetSalary(1413),
     wifeWeeklyHours: toWorkingHours(40),
     wifePostBirthWeeklyHours: toWorkingHours(24),
     existingChildrenCount: toChildrenCount(0),
@@ -79,8 +79,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
@@ -103,7 +103,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         );
         assert.equal(
           m.mutterschutz,
-          1975,
+          1751,
           `Month ${mIdx} Mutterschutz in Scenario B must equal Class V FT Net`,
         );
         assert.equal(
@@ -116,8 +116,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       // M14 onwards: ElterngeldPlus active
       const m14 = res.months[13];
       assert.equal(m14.isMutterschutz, false);
-      assert.equal(m14.wifeSalary, 1328);
-      assert.equal(m14.wifeElterngeld, 501);
+      assert.equal(m14.wifeSalary, 1182);
+      assert.equal(m14.wifeElterngeld, 370);
     });
 
     it("validates Sibling Bonus (+10%) eligibility for spacing < 36 months vs expiration at >= 36 months", () => {
@@ -151,8 +151,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
             positiveTestSimulationMonth: toSimulationMonth(4),
             calculatedDeliverySimulationMonth: toSimulationMonth(b1),
             motherPostBirthPartTimeHours: toWorkingHours(24),
-            motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-            motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+            motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+            motherPostBirthPartTimeClass3Net: toNetSalary(1413),
             fatherPartnerMonthsCount: toMonthDuration(4),
           },
           {
@@ -163,8 +163,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
             positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
             calculatedDeliverySimulationMonth: toSimulationMonth(b2),
             motherPostBirthPartTimeHours: toWorkingHours(24),
-            motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-            motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+            motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+            motherPostBirthPartTimeClass3Net: toNetSalary(1413),
             fatherPartnerMonthsCount: toMonthDuration(4),
           },
         ];
@@ -213,8 +213,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(p1Delivery),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
         {
@@ -227,8 +227,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
             initialP2Positive + 8,
           ),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
@@ -295,8 +295,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
@@ -323,37 +323,37 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         salaryRaises: [],
       });
 
-      // Months 1-3: Before Swap -> H: III (2895 €) | W: V (1975 €)
-      for (let m = 1; m <= 3; m++) {
+      // Months 1-3: Before Swap -> H: III (3184 €) | W: V (1751 €)
+      for (const m of [1, 2, 3]) {
         const entry = res.months[m - 1];
         assert.equal(entry.isSwapActive, false);
-        assert.equal(entry.husbandSalary, 2895);
-        assert.equal(entry.wifeSalary, 1975);
+        assert.equal(entry.husbandSalary, 3184);
+        assert.equal(entry.wifeSalary, 1751);
       }
 
-      // Months 4-10: Swap Active -> H: V (2191 €) | W: III (2603 €)
-      for (let m = 4; m <= 10; m++) {
+      // Months 4-10: Swap Active -> H: V (2398 €) | W: III (2295 €)
+      for (const m of [4, 5, 6, 7, 8, 9, 10]) {
         const entry = res.months[m - 1];
         assert.equal(
           entry.isSwapActive,
           true,
           `Month ${m} must be swap active`,
         );
-        assert.equal(entry.husbandSalary, 2191);
-        assert.equal(entry.wifeSalary, 2603);
+        assert.equal(entry.husbandSalary, 2398);
+        assert.equal(entry.wifeSalary, 2295);
       }
 
-      // Month 11: Pre-birth Mutterschutz -> H: V (2191 €), Wife Mutterschutz at Class III (2603 €)
+      // Month 11: Pre-birth Mutterschutz -> H: V (2398 €), Wife Mutterschutz at Class III (2295 €)
       const m11 = res.months[10];
       assert.equal(m11.isSwapActive, true);
-      assert.equal(m11.husbandSalary, 2191);
-      assert.equal(m11.mutterschutz, 2603);
+      assert.equal(m11.husbandSalary, 2398);
+      assert.equal(m11.mutterschutz, 2295);
 
-      // Month 12: Delivery (Reverted) -> H: III (2895 €), Wife Mutterschutz at Class III (2603 €)
+      // Month 12: Delivery (Reverted) -> H: III (3184 €), Wife Mutterschutz at Class III (2295 €)
       const m12 = res.months[11];
       assert.equal(m12.isSwapActive, false);
-      assert.equal(m12.husbandSalary, 2895);
-      assert.equal(m12.mutterschutz, 2603);
+      assert.equal(m12.husbandSalary, 3184);
+      assert.equal(m12.mutterschutz, 2295);
     });
 
     it("correctly calculates annual tax return refund reconciling withholding deficits", () => {
@@ -366,15 +366,15 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
 
-      // 8 months of swap in 2026 (M4 to M11): net monthly deficit = (2895 - 2191) - (2603 - 1975) = 995 - 720 = 275 €/mo
-      // Total 2026 deficit = 8 * 275 = 2.200 €
-      // Tax return in March 2027 (M15) = 2.200 € + 850 € = 3.050 €
+      // 8 months of swap in 2026 (M4 to M11): net monthly deficit = (3184 - 2398) - (2295 - 1751) = 786 - 544 = 242 €/mo
+      // Total 2026 deficit = 8 * 242 = 1.936 €
+      // Tax return in March 2027 (M15) = 1.936 € + 850 € = 2.786 €
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
           switchId: toSwitchId("SWAP-1"),
@@ -398,8 +398,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       const m15 = res.months[14];
       assert.equal(m15.calendarLabel, toCalendarLabel("03.2027"));
-      // 2.200 € swap deficit + 850 € base refund = 3.050 €
-      assert.equal(m15.taxRefund, 3050);
+      // 1.936 € swap deficit + 850 € base refund = 2.786 €
+      assert.equal(m15.taxRefund, 2786);
     });
   });
 
@@ -425,15 +425,15 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         salaryRaises,
       });
 
-      // Months 1-12: Unadjusted salaries (2895 € and 1975 €)
+      // Months 1-12: Unadjusted salaries (3184 € and 1751 €)
       for (let m = 1; m <= 12; m++) {
-        assert.equal(res.months[m - 1].husbandSalary, 2895);
-        assert.equal(res.months[m - 1].wifeSalary, 1975);
+        assert.equal(res.months[m - 1].husbandSalary, 3184);
+        assert.equal(res.months[m - 1].wifeSalary, 1751);
       }
 
       // Months 13-24: +10% applied
-      // Husband: 2895 * 1.10 = 3502 €
-      // Wife: 1975 * 1.10 = 1926 €
+      // Husband: 3184 * 1.10 = 3502 €
+      // Wife: 1751 * 1.10 = 1926 €
       for (let m = 13; m <= 24; m++) {
         assert.equal(res.months[m - 1].husbandSalary, 3502);
         assert.equal(res.months[m - 1].wifeSalary, 1926);
@@ -450,8 +450,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
@@ -515,8 +515,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(4),
           calculatedDeliverySimulationMonth: toSimulationMonth(12),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
         {
@@ -527,8 +527,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(28),
           calculatedDeliverySimulationMonth: toSimulationMonth(36),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
         {
@@ -539,8 +539,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           positiveTestSimulationMonth: toSimulationMonth(52),
           calculatedDeliverySimulationMonth: toSimulationMonth(60),
           motherPostBirthPartTimeHours: toWorkingHours(24),
-          motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-          motherPostBirthPartTimeClass3Net: toNetSalary(1648),
+          motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+          motherPostBirthPartTimeClass3Net: toNetSalary(1413),
           fatherPartnerMonthsCount: toMonthDuration(4),
         },
       ];
@@ -895,10 +895,10 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         financialEvents: [],
       });
 
-      // Months 14..25: Standard EG+ is paid (€900)
+      // Months 14..25: Standard EG+ is paid (€813)
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld, 900);
+        assert.equal(month.wifeElterngeld, 813);
       }
 
       // Months 26..29: Partnerschaftsbonus window -> denied because 20h < 24h
@@ -942,17 +942,17 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         financialEvents: [],
       });
 
-      // Months 14..25: Standard EG+ is paid (€900)
+      // Months 14..25: Standard EG+ is paid (€629)
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld, 900);
+        assert.equal(month.wifeElterngeld, 629);
       }
 
       // Months 26..29: Partnerschaftsbonus granted for both parents
       for (let m = 26; m <= 29; m++) {
         const month = res.months[m - 1];
         assert.equal(month.isPartnerschaftsbonus, true);
-        assert.equal(month.wifeElterngeld, 900);
+        assert.equal(month.wifeElterngeld, 629);
         assert.equal(month.husbandElterngeld, 150);
         assert.ok(
           month.phaseLabel.includes("Partnerschaftsbonus 1 (Both 24-32h)"),
@@ -1172,9 +1172,9 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(resB.summary.totalHusbandElterngeld, 0);
       assert.equal(resB.summary.totalKindergeld, 0);
 
-      // Wife maintains regular full-time salary throughout (1975 €)
+      // Wife maintains regular full-time salary throughout (1751 €)
       for (let m = 0; m < 60; m++) {
-        assert.equal(resB.months[m].wifeSalary, 1975);
+        assert.equal(resB.months[m].wifeSalary, 1751);
         assert.equal(resB.months[m].isMutterschutz, false);
         assert.equal(resB.months[m].wifeElterngeld, 0);
         assert.equal(resB.months[m].husbandElterngeld, 0);

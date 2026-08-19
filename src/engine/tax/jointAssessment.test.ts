@@ -46,20 +46,20 @@ describe("Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)", () => {
       const w5 = toNetSalary(1975);
 
       const variance = computeMonthlySwapWithholdingVariance(h3, h5, w3, w5);
-      // Extra withheld from husband = 995. Relief for wife = 720. Net delta = 275.
-      assert.equal(variance, 275);
+      // Extra withheld from husband = 704. Relief for wife = 628. Net delta = 76.
+      assert.equal(variance, 76);
     });
 
     it("calculates exact monthly withholding variance during part-time swap", () => {
-      // Part-Time Case: Wife Part-Time €1.648 (III) / €1.328 (V)
+      // Part-Time Case: Wife Part-Time €2.167 (III) / €1.660 (V)
       const h3 = toNetSalary(2895);
       const h5 = toNetSalary(2191);
-      const w3 = toNetSalary(1648);
-      const w5 = toNetSalary(1328);
+      const w3 = toNetSalary(2167);
+      const w5 = toNetSalary(1660);
 
       const variance = computeMonthlySwapWithholdingVariance(h3, h5, w3, w5);
-      // Extra withheld from husband = 995. Relief for wife = 460. Net delta = 535.
-      assert.equal(variance, 535);
+      // Extra withheld from husband = 704. Relief for wife = 507. Net delta = 197.
+      assert.equal(variance, 197);
     });
 
     it("returns 0 if husband extra withholding equals or is less than wife relief", () => {
@@ -74,7 +74,7 @@ describe("Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)", () => {
 
   describe("computeAnnualTaxReconciliation - Multi-Month Deficit Aggregation & Refund", () => {
     it("aggregates 8 months of swap deficit and attaches standard deduction return", () => {
-      const monthlyDeficits = Array(8).fill(toEuroAmount(275));
+      const monthlyDeficits = Array(8).fill(toEuroAmount(242));
       const recon = computeAnnualTaxReconciliation(
         toCalendarYear(1),
         toSimulationMonth(15),
@@ -82,9 +82,9 @@ describe("Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)", () => {
         toEuroAmount(850),
       );
 
-      assert.equal(recon.accumulatedSwapDeficit, 2200); // 8 * 275 = 2200
+      assert.equal(recon.accumulatedSwapDeficit, 1936); // 8 * 242 = 1936
       assert.equal(recon.baseDeductionsRefund, 850);
-      assert.equal(recon.totalRefundAmount, 3050); // 2200 + 850 = 3050
+      assert.equal(recon.totalRefundAmount, 2786); // 1936 + 850 = 2786
       assert.equal(recon.refundMonth, 15);
       assert.equal(recon.taxYear, 1);
     });

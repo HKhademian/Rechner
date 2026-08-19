@@ -68,12 +68,12 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
     });
 
     it("computes exact benefit for unoptimized Scenario B", () => {
-      // Wife baseline Class V (€1.975) and part-time (€1.328) -> Loss €770 * 65% = €500,50 -> €501
+      // Wife baseline Class V (€1.975) and part-time (€1.328) -> Loss €647 * 65% = €420,55 -> €421
       const benefit = computeElterngeldBenefits(
         toNetSalary(1975),
         toNetSalary(1328),
       );
-      assert.equal(benefit.elterngeldPlus, 501);
+      assert.equal(benefit.elterngeldPlus, 421);
       assert.equal(benefit.isMaxCapped, false);
       assert.equal(benefit.isMinFloorApplied, false);
     });
@@ -99,7 +99,7 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
           toNetSalary(1328),
           toWorkingHours(hours),
         );
-        assert.equal(benefit.elterngeldPlus, 900);
+        assert.equal(benefit.elterngeldPlus, 829);
       }
     });
   });

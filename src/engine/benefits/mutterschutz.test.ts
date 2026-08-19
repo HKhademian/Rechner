@@ -23,11 +23,11 @@ describe("Maternity Protection Benefits Engine (MuSchG § 19, § 20)", () => {
   });
 
   it("splits benefit between GKV Mutterschaftsgeld (€13/day ~ €390/mo) and Arbeitgeberzuschuss", () => {
-    const net = toNetSalary(2603);
+    const net = toNetSalary(2600);
     const benefit = computeMonthlyMutterschutz(net);
     assert.equal(benefit.healthInsuranceShare, 390);
-    assert.equal(benefit.employerSupplement, 2603 - 390); // 1905
-    assert.equal(benefit.totalMaternityBenefit, 2603);
+    assert.equal(benefit.employerSupplement, 2600 - 390); // 2210
+    assert.equal(benefit.totalMaternityBenefit, 2600);
   });
 
   it("handles low income where net is less than maximum GKV share", () => {

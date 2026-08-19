@@ -195,17 +195,17 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       startCalendarMonth: toCalendarMonth(1),
       simulationDurationMonths: toMonthDuration(48),
       salaryPeriod: SalaryPeriod.Monthly,
-      husbandGross: toGrossSalary(5000),
-      wifeGross: toGrossSalary(4500),
+      husbandGross: toGrossSalary(7000),
+      wifeGross: toGrossSalary(5000),
       husbandInitialTaxClass: TaxClass.III,
-      husbandInitialNet: toNetSalary(3184),
-      husbandInitialClass5Net: toNetSalary(2398),
+      husbandInitialNet: toNetSalary(4719),
+      husbandInitialClass5Net: toNetSalary(3475),
       husbandWeeklyHours: toWorkingHours(32),
       wifeInitialTaxClass: TaxClass.V,
-      wifeInitialFullTimeNet: toNetSalary(2398),
-      wifeInitialClass3FullTimeNet: toNetSalary(3184),
-      wifeInitialPartTimeClass5Net: toNetSalary(1328),
-      wifeInitialPartTimeClass3Net: toNetSalary(2150),
+      wifeInitialFullTimeNet: toNetSalary(2597),
+      wifeInitialClass3FullTimeNet: toNetSalary(3471),
+      wifeInitialPartTimeClass5Net: toNetSalary(1751),
+      wifeInitialPartTimeClass3Net: toNetSalary(2295),
       wifeWeeklyHours: toWorkingHours(40),
       wifePostBirthWeeklyHours: toWorkingHours(24),
       existingChildrenCount: toChildrenCount(0),
@@ -225,8 +225,8 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         positiveTestSimulationMonth: toSimulationMonth(9),
         calculatedDeliverySimulationMonth: toSimulationMonth(17), // May 2027 (Month 5 of 2027)
         motherPostBirthPartTimeHours: toWorkingHours(24),
-        motherPostBirthPartTimeClass5Net: toNetSalary(1328),
-        motherPostBirthPartTimeClass3Net: toNetSalary(2150),
+        motherPostBirthPartTimeClass5Net: toNetSalary(1751),
+        motherPostBirthPartTimeClass3Net: toNetSalary(2295),
         fatherPartnerMonthsCount: toMonthDuration(4),
       },
     ];
@@ -245,10 +245,10 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       assert.equal(m15.month, 15);
       assert.equal(m15.taxRefund, 850);
 
-      // Month 27 (March 2028) -> Reconciles Tax Year 2027 (Child 1 born in May 2027 -> 8 months prorated Günstigerprüfung bonus of +230 €)
+      // Month 27 (March 2028) -> Reconciles Tax Year 2027 (Child 1 born in May 2027 -> 8 months prorated Günstigerprüfung bonus of +354 €)
       const m27 = result.months[26];
       assert.equal(m27.month, 27);
-      assert.equal(m27.taxRefund, 1080); // 850 € base + 230 € prorated Günstigerprüfung bonus
+      assert.equal(m27.taxRefund, 1204); // 850 € base + 354 € prorated Günstigerprüfung bonus
 
       const taxEventM27 = m27.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,
@@ -262,7 +262,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       // Month 39 (March 2029) -> Reconciles Tax Year 2028 (Full 12 months with Child 1 -> Full Günstigerprüfung bonus!)
       const m39 = result.months[38];
       assert.equal(m39.month, 39);
-      assert.equal(m39.taxRefund, 1018); // 850 € base + 168 € Günstigerprüfung bonus on part-time income
+      assert.equal(m39.taxRefund, 1186); // 850 € base + 336 € Günstigerprüfung bonus on part-time income
 
       const taxEventM39 = m39.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,

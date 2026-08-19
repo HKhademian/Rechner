@@ -523,7 +523,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
         },
         simulationState: {
           husbandGross: 5000,
-          wifeGross: 4200,
+          wifeGross: 3000,
           simulationDurationMonths: 48,
           customPregnancies: [],
           customTaxClassSwitches: [],

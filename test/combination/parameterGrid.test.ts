@@ -18,12 +18,12 @@ describe("Combinatorial Parameter Grid Sweep & Invariance Tests", () => {
   const husbandSalaries = [
     { h3: 3000,
       h5: 2600 },
-    { h3: 2895,
-      h5: 2191 },
+    { h3: 3184,
+      h5: 2398 },
     { h3: 4500,
       h5: 3400 },
-    { h3: 5500,
-      h5: 4100 },
+    { h3: 5000,
+      h5: 3700 },
   ];
 
   const wifeSalaries = [
@@ -31,10 +31,10 @@ describe("Combinatorial Parameter Grid Sweep & Invariance Tests", () => {
       w3FT: 2400,
       w5PT: 1100,
       w3PT: 1500 },
-    { w5FT: 1975,
-      w3FT: 2603,
-      w5PT: 1328,
-      w3PT: 1648 },
+    { w5FT: 1751,
+      w3FT: 2295,
+      w5PT: 1182,
+      w3PT: 1413 },
     { w5FT: 2500,
       w3FT: 3300,
       w5PT: 1600,

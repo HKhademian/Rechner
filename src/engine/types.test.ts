@@ -390,10 +390,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
   describe("GrossSalary and NetSalary (Feature Test)", () => {
     it("brands non-negative gross and net salaries", () => {
       const g: GrossSalary = toGrossSalary(4500);
-      const n: NetSalary = toNetSalary(2895);
+      const n: NetSalary = toNetSalary(3184);
 
       assert.equal(g, 4500);
-      assert.equal(n, 2895);
+      assert.equal(n, 3184);
     });
 
     it("rejects negative salaries", () => {
@@ -954,7 +954,7 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         calendarMonth: toCalendarMonth(5),
         workingHours: toWorkingHours(24),
         grossSalary: toGrossSalary(3000),
-        netSalary: toNetSalary(1975),
+        netSalary: toNetSalary(2000),
         taxClass: toTaxClass("III"),
         scenario: toScenarioId("C"),
         activeView: toActiveScenarioView("compare"),
@@ -976,7 +976,7 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(combinedRecord.calendarMonth, 5);
       assert.equal(combinedRecord.workingHours, 24);
       assert.equal(combinedRecord.grossSalary, 3000);
-      assert.equal(combinedRecord.netSalary, 1975);
+      assert.equal(combinedRecord.netSalary, 2000);
       assert.equal(combinedRecord.taxClass, TaxClass.III);
       assert.equal(combinedRecord.scenario, ScenarioId.C);
       assert.equal(combinedRecord.activeView, ActiveScenarioView.Compare);

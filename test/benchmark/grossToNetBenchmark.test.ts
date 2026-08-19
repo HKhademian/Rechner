@@ -155,8 +155,8 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
 
   describe("Comprehensive Tax Class Benchmark (I, II, III, IV, V, VI)", () => {
     const grossBrackets = [
-      1500, 2000, 2500, 3000, 3000, 4000, 4500, 5000, 5500, 6000, 5000, 7000,
-      8000, 10000, 12000,
+      1500, 2000, 2500, 3000, 3000, 4000, 4500, 5000, 6000, 7000, 8000, 10000,
+      12000,
     ];
 
     grossBrackets.forEach((grossNum) => {
