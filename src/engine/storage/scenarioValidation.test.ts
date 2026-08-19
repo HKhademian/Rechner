@@ -4,11 +4,11 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
-  getDefaultPersistedState,
   getTestPersistedState,
   validateAndSanitizePersistedState,
   type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
+
 import {
   runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
@@ -19,9 +19,9 @@ import {
   SalaryPeriod,
   toChildrenCount,
 } from "#engine/types";
-import defaultScenarioRaw from "../../data/defaultScenario.json" with { type: "json" };
+import standard3ChildrenRaw from "../../data/scenarios/standard_3_children.json" with { type: "json" };
 import testScenarioRaw from "../../data/testScenario.json" with { type: "json" };
-import presetsRaw from "../../data/scenarioPresets.json" with { type: "json" };
+import emptyScenarioRaw from "../../data/scenarios/empty.json" with { type: "json" };
 
 /**
  * Helper to build simulation parameters from any arbitrary persisted state.
@@ -97,9 +97,9 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
     });
   });
 
-  describe("User-Provided defaultScenario.json Verification", () => {
-    it("validates that defaultScenario.json parses and sanitizes without throwing", () => {
-      const sanitized = validateAndSanitizePersistedState(defaultScenarioRaw);
+  describe("Canonical Standard 3-Children Scenario (standard_3_children.json) Verification", () => {
+    it("validates that standard_3_children.json parses and sanitizes without throwing", () => {
+      const sanitized = validateAndSanitizePersistedState(standard3ChildrenRaw);
       assert.ok(sanitized, "Sanitized state must be produced");
       assert.ok(sanitized.husbandGross >= 0);
       assert.ok(sanitized.wifeGross >= 0);
@@ -108,8 +108,8 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
       assert.ok(sanitized.startCalendarMonth >= 1 && sanitized.startCalendarMonth <= 12);
     });
 
-    it("verifies chronological order and validity of custom pregnancies in defaultScenario.json", () => {
-      const state = getDefaultPersistedState();
+    it("verifies chronological order and validity of custom pregnancies in standard_3_children.json", () => {
+      const state = validateAndSanitizePersistedState(standard3ChildrenRaw);
       state.customPregnancies.forEach((preg, idx) => {
         assert.ok(
           preg.positiveTestSimulationMonth < preg.calculatedDeliverySimulationMonth,
@@ -122,8 +122,8 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
       });
     });
 
-    it("verifies chronological validity of tax class switches in defaultScenario.json", () => {
-      const state = getDefaultPersistedState();
+    it("verifies chronological validity of tax class switches in standard_3_children.json", () => {
+      const state = validateAndSanitizePersistedState(standard3ChildrenRaw);
       state.customTaxClassSwitches.forEach((sw, idx) => {
         const revertMonth = sw.revertSimulationMonth ?? sw.effectiveSimulationMonth;
         assert.ok(
@@ -133,8 +133,8 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
       });
     });
 
-    it("executes Scenario A, B, and C simulation on defaultScenario.json without throwing or invalid outputs", () => {
-      const state = getDefaultPersistedState();
+    it("executes Scenario A, B, and C simulation on standard_3_children.json without throwing or invalid outputs", () => {
+      const state = validateAndSanitizePersistedState(standard3ChildrenRaw);
       for (const scenarioKey of [ScenarioId.A, ScenarioId.B, ScenarioId.C]) {
         const params = buildParamsFromState(state, scenarioKey);
         const res = runScenarioBatches(params);
@@ -145,6 +145,26 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
           assert.ok(!Number.isNaN(m.monthlyTotal), `Month ${m.month} monthlyTotal must not be NaN`);
         });
       }
+    });
+  });
+
+  describe("Base Empty Scenario (empty.json) Verification", () => {
+    it("validates that empty.json has zero custom actions and generates clean baseline", () => {
+      const state = validateAndSanitizePersistedState(emptyScenarioRaw);
+      assert.equal(state.customPregnancies.length, 0);
+      assert.equal(state.customTaxClassSwitches.length, 0);
+      assert.equal(state.customSalaryRaises.length, 0);
+      assert.equal(state.customFinancialEvents.length, 0);
+
+      const params = buildParamsFromState(state, ScenarioId.C);
+      const res = runScenarioBatches(params);
+      assert.equal(res.months.length, state.simulationDurationMonths);
+      assert.ok(res.summary.grandTotal > 0);
+      res.months.forEach((m) => {
+        assert.equal(m.wifeElterngeld, 0);
+        assert.equal(m.husbandElterngeld, 0);
+        assert.equal(m.mutterschutz, 0);
+      });
     });
   });
 
@@ -188,26 +208,6 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
       }
     });
   });
-
-  describe("Preset Scenarios in scenarioPresets.json Verification", () => {
-    it("validates that all preset scenarios in scenarioPresets.json are valid and executable", () => {
-      const presetsList = Object.values(presetsRaw);
-      assert.ok(presetsList.length > 0, "Presets list must not be empty");
-
-      presetsList.forEach((preset: any, idx: number) => {
-        assert.ok(preset.id, `Preset #${idx + 1} must have an id`);
-        assert.ok(preset.name, `Preset #${idx + 1} must have a name`);
-
-        const sanitized = validateAndSanitizePersistedState(preset);
-        assert.ok(sanitized, `Preset "${preset.name}" must produce sanitized state`);
-
-        // Test simulation on preset state
-        const params = buildParamsFromState(sanitized, ScenarioId.C);
-        const res = runScenarioBatches(params);
-        assert.ok(res.months.length > 0, `Preset "${preset.name}" must produce timeline months`);
-        assert.ok(res.summary.grandTotal > 0, `Preset "${preset.name}" must have positive grand total`);
-      });
-    });
-  });
 });
+
 

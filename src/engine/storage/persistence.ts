@@ -56,12 +56,13 @@ import {
   type FinancialEventAction,
 } from "#engine/types";
 
-import defaultScenarioData from "../../data/defaultScenario.json" with { type: "json" };
+import standard3ChildrenData from "../../data/scenarios/standard_3_children.json" with { type: "json" };
 import testScenarioData from "../../data/testScenario.json" with { type: "json" };
-import emptyScenarioData from "../../data/emptyScenario.json" with { type: "json" };
+import emptyScenarioData from "../../data/scenarios/empty.json" with { type: "json" };
 import {
   findBuiltinScenario,
 } from "#data/scenarios/scenarioRegistry";
+
 
 
 
@@ -604,19 +605,19 @@ export function getUserPersistedState(): ElterngeldPersistedState | null {
 }
 
 /**
- * Returns the repository default persisted simulation state parsed directly from defaultScenario.json.
+ * Returns the repository standard 3-children persisted simulation state parsed directly from standard_3_children.json.
  *
- * @returns Baseline `ElterngeldPersistedState` specification from defaultScenario.json.
+ * @returns Baseline `ElterngeldPersistedState` specification from standard_3_children.json.
  */
 export function getDefaultScenarioPersistedState(): ElterngeldPersistedState {
-  return parseRawScenarioData(defaultScenarioData);
+  return parseRawScenarioData(standard3ChildrenData);
 }
 
 /**
  * Returns the effective default persisted simulation state.
  * Priority:
- *   1. Optional unversioned userScenario.json (if present)
- *   2. Default repository defaultScenario.json (fallback)
+ *   1. Optional unversioned userScenario.local.json or userScenario.json (if present)
+ *   2. Default empty base scenario (empty.json)
  *
  * @returns Effective baseline `ElterngeldPersistedState` specification.
  */
@@ -638,8 +639,9 @@ export function getDefaultPersistedState(): ElterngeldPersistedState {
  * @returns Canonical 3-children `ElterngeldPersistedState` specification.
  */
 export function getStandard3ChildrenPersistedState(): ElterngeldPersistedState {
-  return parseRawScenarioData(defaultScenarioData);
+  return parseRawScenarioData(standard3ChildrenData);
 }
+
 
 /**
  * Returns the canonical test scenario simulation state parsed directly from testScenario.json.
@@ -652,11 +654,12 @@ export function getTestPersistedState(): ElterngeldPersistedState {
 }
 
 /**
- * Returns the canonical empty scenario simulation state parsed directly from emptyScenario.json.
+ * Returns the canonical empty scenario simulation state parsed directly from empty.json.
  * Has zero custom pregnancies, tax class switches, salary raises, hours changes, or financial events.
  *
  * @returns Canonical empty `ElterngeldPersistedState` specification.
  */
+
 export function getEmptyScenarioPersistedState(): ElterngeldPersistedState {
   return parseRawScenarioData(emptyScenarioData);
 }
