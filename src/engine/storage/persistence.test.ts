@@ -3,13 +3,13 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type ElterngeldPersistedState,
   ELTERNGELD_STORAGE_KEY,
   getDefaultPersistedState,
   getDefaultScenarioPersistedState,
   getTestPersistedState,
   getEmptyPersistedState,
   getUserPersistedState,
-
   hasUserScenario,
   setUserScenarioOverride,
   validateAndSanitizePersistedState,
@@ -18,7 +18,6 @@ import {
   saveToStorage,
   loadFromStorage,
   clearStorage,
-  type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 import {
   SalaryInputMode,
@@ -73,7 +72,10 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.equal(getUserPersistedState(), null);
 
     const repoDefault = getDefaultScenarioPersistedState();
-    assert.equal(getDefaultPersistedState().husbandGross, repoDefault.husbandGross);
+    assert.equal(
+      getDefaultPersistedState().husbandGross,
+      repoDefault.husbandGross,
+    );
 
     const customUserPayload = {
       simulationState: {
@@ -90,7 +92,10 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
 
     setUserScenarioOverride(null);
     assert.equal(hasUserScenario(), false);
-    assert.equal(getDefaultPersistedState().husbandGross, repoDefault.husbandGross);
+    assert.equal(
+      getDefaultPersistedState().husbandGross,
+      repoDefault.husbandGross,
+    );
   });
 
   it("performs lossless roundtrip serialization and deserialization of complete state", () => {
@@ -152,7 +157,10 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
 
   it("recovers gracefully from corrupted JSON strings by returning statutory defaults", () => {
     const testFallback = getTestPersistedState();
-    const corrupt1 = deserializeState("{ invalid json string ...", testFallback);
+    const corrupt1 = deserializeState(
+      "{ invalid json string ...",
+      testFallback,
+    );
     assert.equal(corrupt1.husbandGross, testFallback.husbandGross);
 
     const corrupt2 = deserializeState("", testFallback);
@@ -175,7 +183,10 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       unknownExtraField: "ignored",
     };
 
-    const sanitized = validateAndSanitizePersistedState(partialRaw, testFallback);
+    const sanitized = validateAndSanitizePersistedState(
+      partialRaw,
+      testFallback,
+    );
 
     // Fallbacks to default for invalid types
     assert.equal(sanitized.husbandGross, testFallback.husbandGross);
@@ -284,7 +295,6 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     assert.equal(sanitized.customFinancialEvents.length, 0);
   });
 
-
   describe("Storage Mocking & Browser Environment Guards", () => {
     let mockStorage: Record<string, string> = {};
 
@@ -346,7 +356,10 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       assert.equal(mockStorage[ELTERNGELD_STORAGE_KEY], undefined);
 
       const afterClear = loadFromStorage();
-      assert.equal(afterClear.husbandGross, getDefaultPersistedState().husbandGross); // defaults restored
+      assert.equal(
+        afterClear.husbandGross,
+        getDefaultPersistedState().husbandGross,
+      ); // defaults restored
     });
 
     it("correctly persists and restores empty action arrays without reviving defaults", () => {
@@ -371,4 +384,3 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     });
   });
 });
-

@@ -12,20 +12,20 @@ import {
   APPLICATION_NAME,
 } from "#engine/storage/exportImport";
 import {
-  getTestPersistedState,
+  getTestPersistedState, 
 } from "#engine/storage/persistence";
 import {
-  runScenarioBatches,
+  runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
+  type PreexistingConditions,
+  type SimulationResult,
   ScenarioId,
   TaxClass,
   toGrossSalary,
   toWorkingHours,
   toFullCalendarYear,
   toChildrenCount,
-  type PreexistingConditions,
-  type SimulationResult,
 } from "#engine/types";
 
 describe("User Data Export & Import Engine", () => {
@@ -58,22 +58,10 @@ describe("User Data Export & Import Engine", () => {
 
       assert.equal(res.success, true);
       if (res.success) {
-        assert.equal(
-          res.state.husbandGross,
-          defaultState.husbandGross,
-        );
-        assert.equal(
-          res.state.wifeGross,
-          defaultState.wifeGross,
-        );
-        assert.equal(
-          res.state.husbandHours,
-          defaultState.husbandHours,
-        );
-        assert.equal(
-          res.state.wifeInitialHours,
-          defaultState.wifeInitialHours,
-        );
+        assert.equal(res.state.husbandGross, defaultState.husbandGross);
+        assert.equal(res.state.wifeGross, defaultState.wifeGross);
+        assert.equal(res.state.husbandHours, defaultState.husbandHours);
+        assert.equal(res.state.wifeInitialHours, defaultState.wifeInitialHours);
         assert.equal(
           res.state.customPregnancies.length,
           defaultState.customPregnancies.length,
@@ -269,10 +257,7 @@ describe("User Data Export & Import Engine", () => {
       );
 
       const lines = csv.split("\r\n");
-      assert.equal(
-        lines.length,
-        defaultState.simulationDurationMonths + 1,
-      ); // 1 Header + N Months
+      assert.equal(lines.length, defaultState.simulationDurationMonths + 1); // 1 Header + N Months
       assert.ok(lines[1].startsWith('"M01.2026";"M-8";"Sim1";M1;'));
       assert.ok(
         lines[9].startsWith('"M09.2026";"M1 (Pregnancy Positive)";"Sim9";M9;'),

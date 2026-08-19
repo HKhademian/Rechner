@@ -1,16 +1,15 @@
 import {
-  describe,
-  it,
+  describe, it, 
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type ElterngeldPersistedState,
   getTestPersistedState,
   validateAndSanitizePersistedState,
-  type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 
 import {
-  runScenarioBatches,
+  runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
   ScenarioId,
@@ -26,7 +25,10 @@ import emptyScenarioRaw from "../../data/scenarios/empty.json" with { type: "jso
 /**
  * Helper to build simulation parameters from any arbitrary persisted state.
  */
-function buildParamsFromState(state: ElterngeldPersistedState, scenarioKey: ScenarioId) {
+function buildParamsFromState(
+  state: ElterngeldPersistedState,
+  scenarioKey: ScenarioId,
+) {
   return {
     scenarioKey,
     preexisting: {
@@ -86,12 +88,30 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
         assert.equal(res.months.length, state.simulationDurationMonths);
         assert.ok(res.summary.grandTotal > 0);
         res.months.forEach((m) => {
-          assert.ok(!Number.isNaN(m.monthlyTotal), `Month ${m.month} total must not be NaN`);
-          assert.ok(m.husbandSalary >= 0, `Month ${m.month} husband salary must be non-negative`);
-          assert.ok(m.wifeSalary >= 0, `Month ${m.month} wife salary must be non-negative`);
-          assert.ok(m.mutterschutz >= 0, `Month ${m.month} mutterschutz must be non-negative`);
-          assert.ok(m.wifeElterngeld >= 0, `Month ${m.month} wifeElterngeld must be non-negative`);
-          assert.ok(m.husbandElterngeld >= 0, `Month ${m.month} husbandElterngeld must be non-negative`);
+          assert.ok(
+            !Number.isNaN(m.monthlyTotal),
+            `Month ${m.month} total must not be NaN`,
+          );
+          assert.ok(
+            m.husbandSalary >= 0,
+            `Month ${m.month} husband salary must be non-negative`,
+          );
+          assert.ok(
+            m.wifeSalary >= 0,
+            `Month ${m.month} wife salary must be non-negative`,
+          );
+          assert.ok(
+            m.mutterschutz >= 0,
+            `Month ${m.month} mutterschutz must be non-negative`,
+          );
+          assert.ok(
+            m.wifeElterngeld >= 0,
+            `Month ${m.month} wifeElterngeld must be non-negative`,
+          );
+          assert.ok(
+            m.husbandElterngeld >= 0,
+            `Month ${m.month} husbandElterngeld must be non-negative`,
+          );
         });
       }
     });
@@ -105,18 +125,22 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
       assert.ok(sanitized.wifeGross >= 0);
       assert.ok(sanitized.simulationDurationMonths >= 12);
       assert.ok(sanitized.startCalendarYear >= 2000);
-      assert.ok(sanitized.startCalendarMonth >= 1 && sanitized.startCalendarMonth <= 12);
+      assert.ok(
+        sanitized.startCalendarMonth >= 1 && sanitized.startCalendarMonth <= 12,
+      );
     });
 
     it("verifies chronological order and validity of custom pregnancies in standard_3_children.json", () => {
       const state = validateAndSanitizePersistedState(standard3ChildrenRaw);
       state.customPregnancies.forEach((preg, idx) => {
         assert.ok(
-          preg.positiveTestSimulationMonth < preg.calculatedDeliverySimulationMonth,
+          preg.positiveTestSimulationMonth <
+            preg.calculatedDeliverySimulationMonth,
           `Pregnancy #${idx + 1}: positiveTest (${preg.positiveTestSimulationMonth}) must precede delivery (${preg.calculatedDeliverySimulationMonth})`,
         );
         assert.ok(
-          preg.calculatedDeliverySimulationMonth <= state.simulationDurationMonths,
+          preg.calculatedDeliverySimulationMonth <=
+            state.simulationDurationMonths,
           `Pregnancy #${idx + 1}: delivery month (${preg.calculatedDeliverySimulationMonth}) must be within duration (${state.simulationDurationMonths})`,
         );
       });
@@ -125,7 +149,8 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
     it("verifies chronological validity of tax class switches in standard_3_children.json", () => {
       const state = validateAndSanitizePersistedState(standard3ChildrenRaw);
       state.customTaxClassSwitches.forEach((sw, idx) => {
-        const revertMonth = sw.revertSimulationMonth ?? sw.effectiveSimulationMonth;
+        const revertMonth =
+          sw.revertSimulationMonth ?? sw.effectiveSimulationMonth;
         assert.ok(
           sw.effectiveSimulationMonth <= revertMonth,
           `Tax switch #${idx + 1}: effective month (${sw.effectiveSimulationMonth}) must be <= revert month (${revertMonth})`,
@@ -142,7 +167,10 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
         assert.equal(res.months.length, state.simulationDurationMonths);
         assert.ok(res.summary.grandTotal > 0);
         res.months.forEach((m) => {
-          assert.ok(!Number.isNaN(m.monthlyTotal), `Month ${m.month} monthlyTotal must not be NaN`);
+          assert.ok(
+            !Number.isNaN(m.monthlyTotal),
+            `Month ${m.month} monthlyTotal must not be NaN`,
+          );
         });
       }
     });
@@ -170,9 +198,8 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
 
   describe("Built-in Scenarios in src/data/scenarios/ Catalog Verification", () => {
     it("validates that all scenarios in BUILTIN_SCENARIO_CATALOG are valid, complete, and executable", async () => {
-      const { BUILTIN_SCENARIO_CATALOG } = await import(
-        "#data/scenarios/scenarioRegistry",
-      );
+      const { BUILTIN_SCENARIO_CATALOG } =
+        await import("#data/scenarios/scenarioRegistry");
 
       assert.ok(
         BUILTIN_SCENARIO_CATALOG.length >= 7,
@@ -209,5 +236,3 @@ describe("Scenario Integrity & Statutory Verifier Engine", () => {
     });
   });
 });
-
-

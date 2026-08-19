@@ -9,6 +9,20 @@
  */
 
 import {
+  type GrossSalary,
+  type NetSalary,
+  type WorkingHours,
+  type EuroAmount,
+  type SimulationMonth,
+  type CalendarMonth,
+  type FullCalendarYear,
+  type MonthDuration,
+  type SalaryBonusSlot,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
+  type FinancialEventAction,
   SalaryInputMode,
   SalaryPeriod,
   ActiveScenarioView,
@@ -43,31 +57,14 @@ import {
   toMonthDuration,
   toChildIndex,
   toPercentageRate,
-  type GrossSalary,
-  type NetSalary,
-  type WorkingHours,
-  type EuroAmount,
-  type SimulationMonth,
-  type CalendarMonth,
-  type FullCalendarYear,
-  type MonthDuration,
-  type SalaryBonusSlot,
-  type PregnancyAction,
-  type TaxClassSwitchAction,
-  type SalaryRaiseAction,
-  type WorkingHoursChangeAction,
-  type FinancialEventAction,
 } from "#engine/types";
 
 import standard3ChildrenData from "../../data/scenarios/standard_3_children.json" with { type: "json" };
 import testScenarioData from "../../data/testScenario.json" with { type: "json" };
 import emptyScenarioData from "../../data/scenarios/empty.json" with { type: "json" };
 import {
-  findBuiltinScenario,
+  findBuiltinScenario, 
 } from "#data/scenarios/scenarioRegistry";
-
-
-
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
@@ -781,7 +778,6 @@ export function getStandard3ChildrenPersistedState(): ElterngeldPersistedState {
   return parseRawScenarioData(standard3ChildrenData);
 }
 
-
 /**
  * Returns the canonical test scenario simulation state parsed directly from testScenario.json.
  * Used across the test suite for deterministic assertions decoupled from user default modifications.
@@ -827,8 +823,6 @@ export function loadScenarioById(
   }
   return undefined;
 }
-
-
 
 /**
  * Validates, bounds-checks, and sanitizes an arbitrary raw object into a complete, strongly-typed
@@ -1388,12 +1382,14 @@ export function validateAndSanitizePersistedState(
             );
           }
           catch {
-            return defaults.husbandSalariesCount ?? AnnualSalariesCount.Twelve;
+            return (
+              defaults.husbandSalariesCount ?? AnnualSalariesCount.Twelve
+            );
           }
         })()
         : obj.enable13thSalary
           ? AnnualSalariesCount.Thirteen
-          : defaults.husbandSalariesCount ?? AnnualSalariesCount.Twelve,
+          : (defaults.husbandSalariesCount ?? AnnualSalariesCount.Twelve),
     husbandBonusDistribution: Array.isArray(obj.husbandBonusDistribution)
       ? (obj.husbandBonusDistribution as Array<Record<string, unknown>>).map(
         (slot) => ({
@@ -1402,7 +1398,7 @@ export function validateAndSanitizePersistedState(
           label: typeof slot.label === "string" ? slot.label : undefined,
         }),
       )
-      : defaults.husbandBonusDistribution ?? [],
+      : (defaults.husbandBonusDistribution ?? []),
     wifeInitialHours: toWorkingHours(
       num(
         obj.wifeInitialHours,
@@ -1433,7 +1429,7 @@ export function validateAndSanitizePersistedState(
             return defaults.wifeSalariesCount ?? AnnualSalariesCount.Twelve;
           }
         })()
-        : defaults.wifeSalariesCount ?? AnnualSalariesCount.Twelve,
+        : (defaults.wifeSalariesCount ?? AnnualSalariesCount.Twelve),
     wifeBonusDistribution: Array.isArray(obj.wifeBonusDistribution)
       ? (obj.wifeBonusDistribution as Array<Record<string, unknown>>).map(
         (slot) => ({
@@ -1442,7 +1438,7 @@ export function validateAndSanitizePersistedState(
           label: typeof slot.label === "string" ? slot.label : undefined,
         }),
       )
-      : defaults.wifeBonusDistribution ?? [],
+      : (defaults.wifeBonusDistribution ?? []),
     husbandClass3Net: toNetSalary(
       num(
         obj.husbandClass3Net,

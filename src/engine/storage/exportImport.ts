@@ -17,12 +17,12 @@ import {
   type TaxClassSwitchAction,
   type WorkingHoursChangeAction,
   type FinancialEventAction,
-  ScenarioId,
-  ExportFormat,
   type SimulationExportEnvelope,
   type ImportValidationResult,
   type SimulationResult,
   type MonthlyLedgerEntry,
+  ScenarioId,
+  ExportFormat,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
@@ -33,10 +33,10 @@ import {
   validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
 import {
-  createZipArchive,
   type ZipFileContent,
   type ZipEntry,
   type ParsedZipEntry,
+  createZipArchive,
 } from "#utils/zip";
 
 /** Schema serialization version identifier. */
@@ -375,7 +375,6 @@ export function exportStateToTextReport(
   }
   lines.push("");
 
-
   // Section 5: Statutory Legal Citations
   lines.push(
     "--------------------------------------------------------------------------------",
@@ -498,10 +497,10 @@ export function exportStateToZip(
 }
 
 export {
-  createZipArchive,
   type ZipFileContent,
   type ZipEntry,
   type ParsedZipEntry,
+  createZipArchive,
 };
 
 /**
