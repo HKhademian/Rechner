@@ -6,6 +6,7 @@ import {
   type EuroAmount,
   TaxClass,
   ScenarioId,
+  type AnnualSalariesCount,
   TransactionType,
   TransactionDirection,
   SpecialEventType,
@@ -31,6 +32,7 @@ import {
   type FullCalendarYear,
   type CalendarLabel,
   type MonthDuration,
+  type SalaryBonusSlot,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
@@ -39,6 +41,7 @@ import {
   toMonthDuration,
   toChildrenCount,
   toChildIndex,
+  toPercentageRate,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
@@ -129,6 +132,14 @@ export interface TimelineSimulationParams {
   readonly bonus40Month: CalendarMonth;
   /** Calendar month of Christmas bonus disbursement (1..12). */
   readonly bonus60Month: CalendarMonth;
+  /** Husband total annual salaries count (12, 13, 14, 15). */
+  readonly husbandSalariesCount?: AnnualSalariesCount;
+  /** Husband bonus distribution schedule. */
+  readonly husbandBonusDistribution?: readonly SalaryBonusSlot[];
+  /** Wife total annual salaries count (12, 13, 14, 15). */
+  readonly wifeSalariesCount?: AnnualSalariesCount;
+  /** Wife bonus distribution schedule. */
+  readonly wifeBonusDistribution?: readonly SalaryBonusSlot[];
   /** Calendar month of annual tax return reconciliation refund (1..12). */
   readonly taxReturnMonth: CalendarMonth;
 }
@@ -236,6 +247,7 @@ export function runScenarioBatches(
     readonly hasSiblingBonus: boolean;
     readonly monthlyWithholdingDeficit: EuroAmount;
     readonly husbandBaselineNet: EuroAmount;
+    readonly wifeBaselineNet: EuroAmount;
     readonly transactions: AccountingTransaction[];
 
   }
@@ -800,6 +812,7 @@ export function runScenarioBatches(
       hasSiblingBonus,
       monthlyWithholdingDeficit,
       husbandBaselineNet: toEuroAmount(curH3Net),
+      wifeBaselineNet: toEuroAmount(curW5FT),
       transactions,
     });
   }
@@ -924,26 +937,194 @@ export function runScenarioBatches(
   let runTaxRefunds = 0;
   let runTotal = 0;
 
+  // Resolve Husband Bonus Slots
+  let husbandBonusSlots: readonly SalaryBonusSlot[] = [];
+  if (
+    preexisting.husbandBonusDistribution &&
+    preexisting.husbandBonusDistribution.length > 0
+  ) {
+    husbandBonusSlots = preexisting.husbandBonusDistribution;
+  }
+  else if (
+    preexisting.husbandSalariesCount &&
+    preexisting.husbandSalariesCount > 12
+  ) {
+    const count = preexisting.husbandSalariesCount;
+    if (count === 13) {
+      husbandBonusSlots = [
+        {
+          calendarMonth: preexisting.bonus40Month ?? toCalendarMonth(5),
+          payoutFraction: toPercentageRate(0.4),
+          label: "13th Salary: 40% Vacation Bonus",
+        },
+        {
+          calendarMonth: preexisting.bonus60Month ?? toCalendarMonth(11),
+          payoutFraction: toPercentageRate(0.6),
+          label: "13th Salary: 60% Christmas Bonus",
+        },
+      ];
+    }
+    else if (count === 14) {
+      husbandBonusSlots = [
+        {
+          calendarMonth: toCalendarMonth(6),
+          payoutFraction: toPercentageRate(1.0),
+          label: "13th Salary: 100% Vacation Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(11),
+          payoutFraction: toPercentageRate(1.0),
+          label: "14th Salary: 100% Christmas Bonus",
+        },
+      ];
+    }
+    else if (count === 15) {
+      husbandBonusSlots = [
+        {
+          calendarMonth: toCalendarMonth(3),
+          payoutFraction: toPercentageRate(1.0),
+          label: "13th Salary: 100% Spring Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(6),
+          payoutFraction: toPercentageRate(1.0),
+          label: "14th Salary: 100% Summer Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(11),
+          payoutFraction: toPercentageRate(1.0),
+          label: "15th Salary: 100% Christmas Bonus",
+        },
+      ];
+    }
+  }
+  else if (preexisting.enable13thSalary) {
+    husbandBonusSlots = [
+      {
+        calendarMonth: preexisting.bonus40Month ?? toCalendarMonth(5),
+        payoutFraction: toPercentageRate(0.4),
+        label: "13th Salary: 40% Vacation Bonus",
+      },
+      {
+        calendarMonth: preexisting.bonus60Month ?? toCalendarMonth(11),
+        payoutFraction: toPercentageRate(0.6),
+        label: "13th Salary: 60% Christmas Bonus",
+      },
+    ];
+  }
+
+  // Resolve Wife Bonus Slots
+  let wifeBonusSlots: readonly SalaryBonusSlot[] = [];
+  if (
+    preexisting.wifeBonusDistribution &&
+    preexisting.wifeBonusDistribution.length > 0
+  ) {
+    wifeBonusSlots = preexisting.wifeBonusDistribution;
+  }
+  else if (
+    preexisting.wifeSalariesCount &&
+    preexisting.wifeSalariesCount > 12
+  ) {
+    const count = preexisting.wifeSalariesCount;
+    if (count === 13) {
+      wifeBonusSlots = [
+        {
+          calendarMonth: toCalendarMonth(5),
+          payoutFraction: toPercentageRate(0.4),
+          label: "13th Salary: 40% Vacation Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(11),
+          payoutFraction: toPercentageRate(0.6),
+          label: "13th Salary: 60% Christmas Bonus",
+        },
+      ];
+    }
+    else if (count === 14) {
+      wifeBonusSlots = [
+        {
+          calendarMonth: toCalendarMonth(6),
+          payoutFraction: toPercentageRate(1.0),
+          label: "13th Salary: 100% Vacation Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(11),
+          payoutFraction: toPercentageRate(1.0),
+          label: "14th Salary: 100% Christmas Bonus",
+        },
+      ];
+    }
+    else if (count === 15) {
+      wifeBonusSlots = [
+        {
+          calendarMonth: toCalendarMonth(3),
+          payoutFraction: toPercentageRate(1.0),
+          label: "13th Salary: 100% Spring Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(6),
+          payoutFraction: toPercentageRate(1.0),
+          label: "14th Salary: 100% Summer Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(11),
+          payoutFraction: toPercentageRate(1.0),
+          label: "15th Salary: 100% Christmas Bonus",
+        },
+      ];
+    }
+  }
+
   for (let i = 0; i < rawMonths.length; i++) {
     const rm = rawMonths[i];
     const m = rm.month;
     const calMonth = rm.calendarMonthNum;
     const year = rm.year;
 
-    // 13th Month Salary Events triggered on configured calendar months (anchored to baseline compensation)
+    // Extra Salary Bonus Events triggered on configured calendar months
     let bonus40Amount = toEuroAmount(0);
     let bonus60Amount = toEuroAmount(0);
-    const husbandBonusBase = rm.husbandBaselineNet;
+    let husbandBonusAmount = toEuroAmount(0);
+    let wifeBonusAmount = toEuroAmount(0);
 
-    if (preexisting.enable13thSalary) {
-      if (calMonth === preexisting.bonus40Month) {
-        bonus40Amount = toEuroAmount(Math.round(0.4 * husbandBonusBase));
-      }
-      if (calMonth === preexisting.bonus60Month) {
-        bonus60Amount = toEuroAmount(Math.round(0.6 * husbandBonusBase));
+    const husbandBonusBase = rm.husbandBaselineNet;
+    const wifeBonusBase = rm.wifeBaselineNet;
+
+    // Evaluate Husband Bonus for this calendar month
+    const matchingHSlots = husbandBonusSlots.filter(
+      (s) => s.calendarMonth === calMonth,
+    );
+    for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
+      const slot = matchingHSlots[sIdx];
+      const amt = toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase));
+      if (amt > 0) {
+        husbandBonusAmount = toEuroAmount(husbandBonusAmount + amt);
+        if (
+          slot.payoutFraction === 0.4 &&
+          calMonth === (preexisting.bonus40Month ?? 5)
+        ) {
+          bonus40Amount = amt;
+        }
+        else if (
+          slot.payoutFraction === 0.6 &&
+          calMonth === (preexisting.bonus60Month ?? 11)
+        ) {
+          bonus60Amount = amt;
+        }
       }
     }
 
+    // Evaluate Wife Bonus for this calendar month
+    const matchingWSlots = wifeBonusSlots.filter(
+      (s) => s.calendarMonth === calMonth,
+    );
+    for (let sIdx = 0; sIdx < matchingWSlots.length; sIdx++) {
+      const slot = matchingWSlots[sIdx];
+      const amt = toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase));
+      if (amt > 0) {
+        wifeBonusAmount = toEuroAmount(wifeBonusAmount + amt);
+      }
+    }
 
     const taxRefund = taxRefundByMonth[m] || toEuroAmount(0);
 
@@ -987,42 +1168,72 @@ export function runScenarioBatches(
       );
     }
 
-    if (bonus40Amount > 0) {
-      txs.push(
-        createTransaction({
-          transactionId: `TX-${rm.monthId}-BONUS-40`,
-          monthId: rm.monthId,
-          month: rm.month,
-          year,
-          type: TransactionType.SalaryBonus13thVacation,
-          direction: TransactionDirection.Inflow,
-          amount: bonus40Amount,
-          statutoryCitation:
-            "§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)",
-          taxClassLabel: rm.taxClassLabel,
-          description: `13th Month Salary: 40% Vacation Bonus (${rm.calendarLabel})`,
-          auditTrail: `40% of Husband Base Net (${husbandBonusBase} €)`,
-        }),
-      );
+    // Husband Bonus Transactions
+    for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
+      const slot = matchingHSlots[sIdx];
+      const amt = toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase));
+      if (amt > 0) {
+        const title =
+          slot.label ||
+          `13th Month Salary: ${Math.round(slot.payoutFraction * 100)}% Bonus`;
+        const isVacation =
+          slot.payoutFraction === 0.4 ||
+          title.toLowerCase().includes("vacation") ||
+          title.toLowerCase().includes("urlaub");
+        const isChristmas =
+          slot.payoutFraction === 0.6 ||
+          title.toLowerCase().includes("christmas") ||
+          title.toLowerCase().includes("weihnacht");
+        const txType = isVacation
+          ? TransactionType.SalaryBonus13thVacation
+          : isChristmas
+            ? TransactionType.SalaryBonus13thChristmas
+            : TransactionType.SalaryBonusSpecial;
+
+        txs.push(
+          createTransaction({
+            transactionId: `TX-${rm.monthId}-HUSBAND-BONUS-${sIdx + 1}`,
+            monthId: rm.monthId,
+            month: rm.month,
+            year,
+            type: txType,
+            direction: TransactionDirection.Inflow,
+            amount: amt,
+            statutoryCitation:
+              "§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)",
+            taxClassLabel: rm.taxClassLabel,
+            description: `Husband ${title} (${rm.calendarLabel})`,
+            auditTrail: `${Math.round(slot.payoutFraction * 100)}% of Husband Base Net (${husbandBonusBase} €)`,
+          }),
+        );
+      }
     }
 
-    if (bonus60Amount > 0) {
-      txs.push(
-        createTransaction({
-          transactionId: `TX-${rm.monthId}-BONUS-60`,
-          monthId: rm.monthId,
-          month: rm.month,
-          year,
-          type: TransactionType.SalaryBonus13thChristmas,
-          direction: TransactionDirection.Inflow,
-          amount: bonus60Amount,
-          statutoryCitation:
-            "§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)",
-          taxClassLabel: rm.taxClassLabel,
-          description: `13th Month Salary: 60% Christmas Bonus (${rm.calendarLabel})`,
-          auditTrail: `60% of Husband Base Net (${husbandBonusBase} €)`,
-        }),
-      );
+    // Wife Bonus Transactions
+    for (let sIdx = 0; sIdx < matchingWSlots.length; sIdx++) {
+      const slot = matchingWSlots[sIdx];
+      const amt = toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase));
+      if (amt > 0) {
+        const title =
+          slot.label ||
+          `13th Month Salary: ${Math.round(slot.payoutFraction * 100)}% Bonus`;
+        txs.push(
+          createTransaction({
+            transactionId: `TX-${rm.monthId}-WIFE-BONUS-${sIdx + 1}`,
+            monthId: rm.monthId,
+            month: rm.month,
+            year,
+            type: TransactionType.SalaryBonusSpecial,
+            direction: TransactionDirection.Inflow,
+            amount: amt,
+            statutoryCitation:
+              "§ 19 EStG & BEEG § 2c Abs. 1 (Exempt Sonderzahlung)",
+            taxClassLabel: rm.taxClassLabel,
+            description: `Wife ${title} (${rm.calendarLabel})`,
+            auditTrail: `${Math.round(slot.payoutFraction * 100)}% of Wife Base Net (${wifeBonusBase} €)`,
+          }),
+        );
+      }
     }
 
 
@@ -1175,48 +1386,77 @@ export function runScenarioBatches(
 
     // Build Special Events for UI display (table sub-rows)
     const specialEvents: SpecialEventItem[] = [];
-    if (bonus40Amount > 0) {
-      specialEvents.push({
-        eventId: toEventId(`EVENT-${rm.monthId}-BONUS40`),
-        monthId: rm.monthId,
-        month: rm.month,
-        year,
-        calendarYearNum: rm.calendarYearNum,
-        calendarMonthNum: rm.calendarMonthNum,
-        calendarLabel: rm.calendarLabel,
-        relativeBirthLabel: rm.relativeBirthLabel,
-        relativeMonthLabel: rm.relativeMonthLabel,
-        type: SpecialEventType.Bonus40,
-        title: `13th Month Salary: 40% Vacation Bonus (${rm.calendarLabel})`,
-        category: SpecialEventCategory.ThirteenthSalary,
-        statutory: toStatutoryCitation("§ 9a / § 19 EStG (BEEG § 2c exempt)"),
-        taxClassLabel: rm.taxClassLabel,
-        amount: bonus40Amount,
-        description:
-          "40% mid-year bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)",
-      });
+
+    // Husband Extra Salary Bonus Special Events
+    for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
+      const slot = matchingHSlots[sIdx];
+      const amt = toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase));
+      if (amt > 0) {
+        const title =
+          slot.label ||
+          `13th Month Salary: ${Math.round(slot.payoutFraction * 100)}% Bonus`;
+        const isVacation =
+          slot.payoutFraction === 0.4 ||
+          title.toLowerCase().includes("vacation") ||
+          title.toLowerCase().includes("urlaub");
+        const isChristmas =
+          slot.payoutFraction === 0.6 ||
+          title.toLowerCase().includes("christmas") ||
+          title.toLowerCase().includes("weihnacht");
+        const evType = isVacation
+          ? SpecialEventType.Bonus40
+          : isChristmas
+            ? SpecialEventType.Bonus60
+            : SpecialEventType.CustomIncome;
+
+        specialEvents.push({
+          eventId: toEventId(`EVENT-${rm.monthId}-HUSBAND-BONUS-${sIdx + 1}`),
+          monthId: rm.monthId,
+          month: rm.month,
+          year,
+          calendarYearNum: rm.calendarYearNum,
+          calendarMonthNum: rm.calendarMonthNum,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
+          type: evType,
+          title: `Husband ${title} (${rm.calendarLabel})`,
+          category: SpecialEventCategory.ThirteenthSalary,
+          statutory: toStatutoryCitation("§ 9a / § 19 EStG (BEEG § 2c exempt)"),
+          taxClassLabel: rm.taxClassLabel,
+          amount: amt,
+          description: `${Math.round(slot.payoutFraction * 100)}% bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)`,
+        });
+      }
     }
 
-    if (bonus60Amount > 0) {
-      specialEvents.push({
-        eventId: toEventId(`EVENT-${rm.monthId}-BONUS60`),
-        monthId: rm.monthId,
-        month: rm.month,
-        year,
-        calendarYearNum: rm.calendarYearNum,
-        calendarMonthNum: rm.calendarMonthNum,
-        calendarLabel: rm.calendarLabel,
-        relativeBirthLabel: rm.relativeBirthLabel,
-        relativeMonthLabel: rm.relativeMonthLabel,
-        type: SpecialEventType.Bonus60,
-        title: `13th Month Salary: 60% Christmas Bonus (${rm.calendarLabel})`,
-        category: SpecialEventCategory.ThirteenthSalary,
-        statutory: toStatutoryCitation("§ 9a / § 19 EStG (BEEG § 2c exempt)"),
-        taxClassLabel: rm.taxClassLabel,
-        amount: bonus60Amount,
-        description:
-          "60% year-end special payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)",
-      });
+    // Wife Extra Salary Bonus Special Events
+    for (let sIdx = 0; sIdx < matchingWSlots.length; sIdx++) {
+      const slot = matchingWSlots[sIdx];
+      const amt = toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase));
+      if (amt > 0) {
+        const title =
+          slot.label ||
+          `13th Month Salary: ${Math.round(slot.payoutFraction * 100)}% Bonus`;
+        specialEvents.push({
+          eventId: toEventId(`EVENT-${rm.monthId}-WIFE-BONUS-${sIdx + 1}`),
+          monthId: rm.monthId,
+          month: rm.month,
+          year,
+          calendarYearNum: rm.calendarYearNum,
+          calendarMonthNum: rm.calendarMonthNum,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
+          type: SpecialEventType.CustomIncome,
+          title: `Wife ${title} (${rm.calendarLabel})`,
+          category: SpecialEventCategory.ThirteenthSalary,
+          statutory: toStatutoryCitation("§ 9a / § 19 EStG (BEEG § 2c exempt)"),
+          taxClassLabel: rm.taxClassLabel,
+          amount: amt,
+          description: `${Math.round(slot.payoutFraction * 100)}% bonus payment (exempt from Elterngeld assessment under BEEG § 2c Abs. 1)`,
+        });
+      }
     }
 
     if (taxRefund > 0) {
@@ -1635,6 +1875,13 @@ export function runScenarioBatches(
         taxRefund,
         bonus40Amount,
         bonus60Amount,
+        husbandBonusAmount,
+        wifeBonusAmount,
+        specialBonusTotal: toEuroAmount(
+          husbandBonusAmount + wifeBonusAmount > 0
+            ? husbandBonusAmount + wifeBonusAmount
+            : bonus40Amount + bonus60Amount,
+        ),
         specialEvents,
         startingActions,
         taxClassLabel: rm.taxClassLabel,
@@ -1745,6 +1992,8 @@ export function generateTimelineSimulation(
     husbandInitialNet: params.husbandClass3Net,
     husbandInitialClass5Net: params.husbandClass5Net,
     husbandWeeklyHours: toWorkingHours(32),
+    husbandSalariesCount: params.husbandSalariesCount,
+    husbandBonusDistribution: params.husbandBonusDistribution,
     wifeInitialTaxClass: TaxClass.V,
     wifeInitialFullTimeNet: params.wifeClass5FullTimeNet,
     wifeInitialClass3FullTimeNet: params.wifeClass3FullTimeNet,
@@ -1754,6 +2003,8 @@ export function generateTimelineSimulation(
     wifePostBirthWeeklyHours: params.wifePostBirthHours
       ? toWorkingHours(params.wifePostBirthHours)
       : undefined,
+    wifeSalariesCount: params.wifeSalariesCount,
+    wifeBonusDistribution: params.wifeBonusDistribution,
     existingChildrenCount: toChildrenCount(0),
     kindergeldPerChild: params.kindergeldPerChild,
     enable13thSalary: params.enable13thSalary,
