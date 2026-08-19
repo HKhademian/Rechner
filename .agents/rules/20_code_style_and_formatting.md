@@ -37,13 +37,31 @@ else {
 }
 ```
 
-## 6. Inline Type Imports
-- Type imports must use inline `type` specifiers within the named import list:
+## 6. Inline Type Imports & Types on Top
+- Type imports must use inline `type` specifiers within the named import list.
+- **Types First / Types on Top**: Inside every named import (and export) specifier block `{ ... }`, all `type` specifiers MUST precede all value/runtime identifiers. Never interleave type imports with values or place types after values.
 ```ts
+// Correct: Types at the top, values below
 import {
-  type SimulationMonth,
-  type EuroAmount,
-  ScenarioId,
+  type StrategyId,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type ScenarioActionBatches,
+  type PreexistingConditions,
+  SimulationStrategy,
+  TaxClass,
+  toSwitchId,
+  toSimulationMonth,
+  toCalendarMonth,
+  toFullCalendarYear,
+} from "#engine/types";
+
+// Incorrect: Mixing types and values or values above types
+import {
+  SimulationStrategy,
+  type StrategyId,
+  TaxClass,
+  type PregnancyAction,
 } from "#engine/types";
 ```
 
