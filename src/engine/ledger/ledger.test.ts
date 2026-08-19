@@ -9,6 +9,7 @@ import {
   buildMonthlyLedgerEntry, 
 } from "#engine/ledger/ledger";
 import {
+  type SpecialEventItem,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
@@ -24,7 +25,6 @@ import {
   TransactionDirection,
   SpecialEventType,
   SpecialEventCategory,
-  type SpecialEventItem,
 } from "#engine/types";
 
 describe("Atomic Ledger & Transaction Integrity Engine", () => {
@@ -110,8 +110,7 @@ describe("Atomic Ledger & Transaction Integrity Engine", () => {
         );
 
         const expectedRegular = 4000 + 2000 + 259;
-        const expectedSpecial =
-          bonus40 + bonus60 + taxRefund;
+        const expectedSpecial = bonus40 + bonus60 + taxRefund;
         const expectedTotal = expectedRegular + expectedSpecial;
 
         assert.equal(entry.monthId, mId);
