@@ -9,6 +9,11 @@ import {
   type TimelineTimeRangeFilter,
   TaxClass,
   SalaryInputMode,
+  AnnualSalariesCount,
+  BonusDistributionPreset,
+  toAnnualSalariesCount,
+  toPercentageRate,
+  type SalaryBonusSlot,
   type SalaryPeriod,
   type PregnancyId,
   type SwitchId,
@@ -67,6 +72,242 @@ import {
 // Initial state loaded from localStorage (or statutory defaults)
 const initialPersisted = loadFromStorage();
 
+/**
+ * Generates standard calendar bonus installment slots based on annual salaries count and preset ratio.
+ */
+export function createBonusDistributionSlots(
+  salariesCount: AnnualSalariesCount,
+  preset: BonusDistributionPreset,
+  customSlots?: readonly SalaryBonusSlot[],
+): readonly SalaryBonusSlot[] {
+  if (salariesCount === AnnualSalariesCount.Twelve) {
+    return [];
+  }
+  if (
+    preset === BonusDistributionPreset.Custom &&
+    customSlots &&
+    customSlots.length > 0
+  ) {
+    return customSlots;
+  }
+  if (salariesCount === AnnualSalariesCount.Thirteen) {
+    switch (preset) {
+      case BonusDistributionPreset.Ratio40_60:
+        return [
+          {
+            calendarMonth: toCalendarMonth(5),
+            payoutFraction: toPercentageRate(0.4),
+            label: "13th Salary: 40% Vacation Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(0.6),
+            label: "13th Salary: 60% Christmas Bonus",
+          },
+        ];
+      case BonusDistributionPreset.Ratio50_50:
+        return [
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(0.5),
+            label: "13th Salary: 50% Vacation Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(0.5),
+            label: "13th Salary: 50% Christmas Bonus",
+          },
+        ];
+      case BonusDistributionPreset.Single100Nov:
+        return [
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(1.0),
+            label: "13th Salary: 100% Christmas Bonus",
+          },
+        ];
+      case BonusDistributionPreset.Single100Dec:
+        return [
+          {
+            calendarMonth: toCalendarMonth(12),
+            payoutFraction: toPercentageRate(1.0),
+            label: "13th Salary: 100% Year-End Bonus",
+          },
+        ];
+      default:
+        return [
+          {
+            calendarMonth: toCalendarMonth(5),
+            payoutFraction: toPercentageRate(0.4),
+            label: "13th Salary: 40% Vacation Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(0.6),
+            label: "13th Salary: 60% Christmas Bonus",
+          },
+        ];
+    }
+  }
+  if (salariesCount === AnnualSalariesCount.Fourteen) {
+    switch (preset) {
+      case BonusDistributionPreset.Quarterly:
+        return [
+          {
+            calendarMonth: toCalendarMonth(3),
+            payoutFraction: toPercentageRate(0.5),
+            label: "Quarterly Bonus Q1 (50%)",
+          },
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(0.5),
+            label: "Quarterly Bonus Q2 (50%)",
+          },
+          {
+            calendarMonth: toCalendarMonth(9),
+            payoutFraction: toPercentageRate(0.5),
+            label: "Quarterly Bonus Q3 (50%)",
+          },
+          {
+            calendarMonth: toCalendarMonth(12),
+            payoutFraction: toPercentageRate(0.5),
+            label: "Quarterly Bonus Q4 (50%)",
+          },
+        ];
+      case BonusDistributionPreset.Double100_100:
+      default:
+        return [
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(1.0),
+            label: "13th Salary: 100% Vacation Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(1.0),
+            label: "14th Salary: 100% Christmas Bonus",
+          },
+        ];
+    }
+  }
+  if (salariesCount === AnnualSalariesCount.Fifteen) {
+    switch (preset) {
+      case BonusDistributionPreset.Quarterly:
+        return [
+          {
+            calendarMonth: toCalendarMonth(3),
+            payoutFraction: toPercentageRate(0.75),
+            label: "Quarterly Bonus Q1 (75%)",
+          },
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(0.75),
+            label: "Quarterly Bonus Q2 (75%)",
+          },
+          {
+            calendarMonth: toCalendarMonth(9),
+            payoutFraction: toPercentageRate(0.75),
+            label: "Quarterly Bonus Q3 (75%)",
+          },
+          {
+            calendarMonth: toCalendarMonth(12),
+            payoutFraction: toPercentageRate(0.75),
+            label: "Quarterly Bonus Q4 (75%)",
+          },
+        ];
+      case BonusDistributionPreset.Triple100_100_100:
+      default:
+        return [
+          {
+            calendarMonth: toCalendarMonth(3),
+            payoutFraction: toPercentageRate(1.0),
+            label: "13th Salary: 100% Spring Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(1.0),
+            label: "14th Salary: 100% Summer Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(1.0),
+            label: "15th Salary: 100% Christmas Bonus",
+          },
+        ];
+    }
+  }
+  return [];
+}
+
+/**
+ * Infers the active BonusDistributionPreset from existing bonus slots.
+ */
+export function inferBonusPreset(
+  salariesCount: AnnualSalariesCount,
+  slots?: readonly SalaryBonusSlot[],
+): BonusDistributionPreset {
+  if (
+    salariesCount === AnnualSalariesCount.Twelve ||
+    !slots ||
+    slots.length === 0
+  ) {
+    return BonusDistributionPreset.Ratio40_60;
+  }
+  if (salariesCount === AnnualSalariesCount.Thirteen) {
+    if (slots.length === 2) {
+      if (
+        slots[0]?.payoutFraction === 0.4 &&
+        slots[1]?.payoutFraction === 0.6
+      ) {
+        return BonusDistributionPreset.Ratio40_60;
+      }
+      if (
+        slots[0]?.payoutFraction === 0.5 &&
+        slots[1]?.payoutFraction === 0.5
+      ) {
+        return BonusDistributionPreset.Ratio50_50;
+      }
+    }
+    else if (slots.length === 1) {
+      if (slots[0]?.calendarMonth === 11) {
+        return BonusDistributionPreset.Single100Nov;
+      }
+      if (slots[0]?.calendarMonth === 12) {
+        return BonusDistributionPreset.Single100Dec;
+      }
+    }
+    return BonusDistributionPreset.Custom;
+  }
+  if (salariesCount === AnnualSalariesCount.Fourteen) {
+    if (
+      slots.length === 2 &&
+      slots[0]?.payoutFraction === 1.0 &&
+      slots[1]?.payoutFraction === 1.0
+    ) {
+      return BonusDistributionPreset.Double100_100;
+    }
+    if (slots.length === 4) {
+      return BonusDistributionPreset.Quarterly;
+    }
+    return BonusDistributionPreset.Custom;
+  }
+  if (salariesCount === AnnualSalariesCount.Fifteen) {
+    if (
+      slots.length === 3 &&
+      slots[0]?.payoutFraction === 1.0 &&
+      slots[1]?.payoutFraction === 1.0 &&
+      slots[2]?.payoutFraction === 1.0
+    ) {
+      return BonusDistributionPreset.Triple100_100_100;
+    }
+    if (slots.length === 4) {
+      return BonusDistributionPreset.Quarterly;
+    }
+    return BonusDistributionPreset.Custom;
+  }
+  return BonusDistributionPreset.Custom;
+}
+
 // Input Mode (Gross vs Net Mode) & Period (Monthly vs Yearly)
 export const salaryInputMode = signal<SalaryInputMode>(
   initialPersisted.salaryInputMode,
@@ -75,10 +316,54 @@ export const salaryPeriod = signal<SalaryPeriod>(initialPersisted.salaryPeriod);
 export const husbandGross = signal<GrossSalary>(initialPersisted.husbandGross);
 export const wifeGross = signal<GrossSalary>(initialPersisted.wifeGross);
 
-export const husbandGrossYearly = computed(
-  () => (husbandGross.value || 0) * 12,
+// Person-specific salary counts and bonus installment distributions
+export const husbandSalariesCount = signal<AnnualSalariesCount>(
+  initialPersisted.husbandSalariesCount ??
+    (initialPersisted.enable13thSalary
+      ? AnnualSalariesCount.Thirteen
+      : AnnualSalariesCount.Twelve),
 );
-export const wifeGrossYearly = computed(() => (wifeGross.value || 0) * 12);
+export const husbandBonusPreset = signal<BonusDistributionPreset>(
+  inferBonusPreset(
+    husbandSalariesCount.value,
+    initialPersisted.husbandBonusDistribution,
+  ),
+);
+export const husbandBonusDistribution = signal<readonly SalaryBonusSlot[]>(
+  initialPersisted.husbandBonusDistribution &&
+  initialPersisted.husbandBonusDistribution.length > 0
+    ? initialPersisted.husbandBonusDistribution
+    : createBonusDistributionSlots(
+      husbandSalariesCount.value,
+      husbandBonusPreset.value,
+    ),
+);
+
+export const wifeSalariesCount = signal<AnnualSalariesCount>(
+  initialPersisted.wifeSalariesCount ?? AnnualSalariesCount.Twelve,
+);
+export const wifeBonusPreset = signal<BonusDistributionPreset>(
+  inferBonusPreset(
+    wifeSalariesCount.value,
+    initialPersisted.wifeBonusDistribution,
+  ),
+);
+export const wifeBonusDistribution = signal<readonly SalaryBonusSlot[]>(
+  initialPersisted.wifeBonusDistribution &&
+  initialPersisted.wifeBonusDistribution.length > 0
+    ? initialPersisted.wifeBonusDistribution
+    : createBonusDistributionSlots(
+      wifeSalariesCount.value,
+      wifeBonusPreset.value,
+    ),
+);
+
+export const husbandGrossYearly = computed(
+  () => (husbandGross.value || 0) * (husbandSalariesCount.value || 12),
+);
+export const wifeGrossYearly = computed(
+  () => (wifeGross.value || 0) * (wifeSalariesCount.value || 12),
+);
 
 // Default Financial Parameters (The Sandbox)
 export const husbandClass3Net = signal<NetSalary>(
@@ -162,12 +447,85 @@ export function setWifeGross(gross: number | GrossSalary) {
   syncGrossToNet();
 }
 
+export function setHusbandSalariesCount(
+  count: number | AnnualSalariesCount,
+  preset?: BonusDistributionPreset,
+) {
+  const c = toAnnualSalariesCount(count);
+  husbandSalariesCount.value = c;
+  const p =
+    preset ??
+    (c === AnnualSalariesCount.Thirteen
+      ? BonusDistributionPreset.Ratio40_60
+      : c === AnnualSalariesCount.Fourteen
+        ? BonusDistributionPreset.Double100_100
+        : c === AnnualSalariesCount.Fifteen
+          ? BonusDistributionPreset.Triple100_100_100
+          : BonusDistributionPreset.Ratio40_60);
+  husbandBonusPreset.value = p;
+  husbandBonusDistribution.value = createBonusDistributionSlots(c, p);
+  enable13thSalary.value = c > 12;
+}
+
+export function setHusbandBonusPreset(preset: BonusDistributionPreset) {
+  husbandBonusPreset.value = preset;
+  husbandBonusDistribution.value = createBonusDistributionSlots(
+    husbandSalariesCount.value,
+    preset,
+  );
+}
+
+export function setHusbandBonusDistribution(slots: readonly SalaryBonusSlot[]) {
+  husbandBonusDistribution.value = slots;
+  husbandBonusPreset.value = inferBonusPreset(
+    husbandSalariesCount.value,
+    slots,
+  );
+}
+
+export function setWifeSalariesCount(
+  count: number | AnnualSalariesCount,
+  preset?: BonusDistributionPreset,
+) {
+  const c = toAnnualSalariesCount(count);
+  wifeSalariesCount.value = c;
+  const p =
+    preset ??
+    (c === AnnualSalariesCount.Thirteen
+      ? BonusDistributionPreset.Ratio40_60
+      : c === AnnualSalariesCount.Fourteen
+        ? BonusDistributionPreset.Double100_100
+        : c === AnnualSalariesCount.Fifteen
+          ? BonusDistributionPreset.Triple100_100_100
+          : BonusDistributionPreset.Ratio40_60);
+  wifeBonusPreset.value = p;
+  wifeBonusDistribution.value = createBonusDistributionSlots(c, p);
+}
+
+export function setWifeBonusPreset(preset: BonusDistributionPreset) {
+  wifeBonusPreset.value = preset;
+  wifeBonusDistribution.value = createBonusDistributionSlots(
+    wifeSalariesCount.value,
+    preset,
+  );
+}
+
+export function setWifeBonusDistribution(slots: readonly SalaryBonusSlot[]) {
+  wifeBonusDistribution.value = slots;
+  wifeBonusPreset.value = inferBonusPreset(
+    wifeSalariesCount.value,
+    slots,
+  );
+}
+
 export function setHusbandGrossYearly(yearly: number) {
-  setHusbandGross(Math.round((yearly || 0) / 12));
+  const count = husbandSalariesCount.value || 12;
+  setHusbandGross(Math.round((yearly || 0) / count));
 }
 
 export function setWifeGrossYearly(yearly: number) {
-  setWifeGross(Math.round((yearly || 0) / 12));
+  const count = wifeSalariesCount.value || 12;
+  setWifeGross(Math.round((yearly || 0) / count));
 }
 
 export function setHusbandHours(hours: number | WorkingHours) {
@@ -533,8 +891,12 @@ export function getCurrentPersistedState(): ElterngeldPersistedState {
     husbandGross: husbandGross.value,
     wifeGross: wifeGross.value,
     husbandHours: husbandHours.value,
+    husbandSalariesCount: husbandSalariesCount.value,
+    husbandBonusDistribution: husbandBonusDistribution.value,
     wifeInitialHours: wifeInitialHours.value,
     wifePostBirthHours: wifePostBirthHours.value,
+    wifeSalariesCount: wifeSalariesCount.value,
+    wifeBonusDistribution: wifeBonusDistribution.value,
     husbandClass3Net: husbandClass3Net.value,
     husbandClass5Net: husbandClass5Net.value,
     wifeClass5FullTimeNet: wifeClass5FullTimeNet.value,
@@ -596,8 +958,40 @@ export function importSimulationState(
   husbandGross.value = newState.husbandGross;
   wifeGross.value = newState.wifeGross;
   husbandHours.value = newState.husbandHours;
+  husbandSalariesCount.value =
+    newState.husbandSalariesCount ??
+    (newState.enable13thSalary
+      ? AnnualSalariesCount.Thirteen
+      : AnnualSalariesCount.Twelve);
+  husbandBonusPreset.value = inferBonusPreset(
+    husbandSalariesCount.value,
+    newState.husbandBonusDistribution,
+  );
+  husbandBonusDistribution.value =
+    newState.husbandBonusDistribution &&
+    newState.husbandBonusDistribution.length > 0
+      ? newState.husbandBonusDistribution
+      : createBonusDistributionSlots(
+        husbandSalariesCount.value,
+        husbandBonusPreset.value,
+      );
+
   wifeInitialHours.value = newState.wifeInitialHours;
   wifePostBirthHours.value = newState.wifePostBirthHours;
+  wifeSalariesCount.value =
+    newState.wifeSalariesCount ?? AnnualSalariesCount.Twelve;
+  wifeBonusPreset.value = inferBonusPreset(
+    wifeSalariesCount.value,
+    newState.wifeBonusDistribution,
+  );
+  wifeBonusDistribution.value =
+    newState.wifeBonusDistribution &&
+    newState.wifeBonusDistribution.length > 0
+      ? newState.wifeBonusDistribution
+      : createBonusDistributionSlots(
+        wifeSalariesCount.value,
+        wifeBonusPreset.value,
+      );
   husbandClass3Net.value = newState.husbandClass3Net;
   husbandClass5Net.value = newState.husbandClass5Net;
   wifeClass5FullTimeNet.value = newState.wifeClass5FullTimeNet;
@@ -765,8 +1159,40 @@ export function resetToDefaults() {
   husbandGross.value = defaults.husbandGross;
   wifeGross.value = defaults.wifeGross;
   husbandHours.value = defaults.husbandHours;
+  husbandSalariesCount.value =
+    defaults.husbandSalariesCount ??
+    (defaults.enable13thSalary
+      ? AnnualSalariesCount.Thirteen
+      : AnnualSalariesCount.Twelve);
+  husbandBonusPreset.value = inferBonusPreset(
+    husbandSalariesCount.value,
+    defaults.husbandBonusDistribution,
+  );
+  husbandBonusDistribution.value =
+    defaults.husbandBonusDistribution &&
+    defaults.husbandBonusDistribution.length > 0
+      ? defaults.husbandBonusDistribution
+      : createBonusDistributionSlots(
+        husbandSalariesCount.value,
+        husbandBonusPreset.value,
+      );
+
   wifeInitialHours.value = defaults.wifeInitialHours;
   wifePostBirthHours.value = defaults.wifePostBirthHours;
+  wifeSalariesCount.value =
+    defaults.wifeSalariesCount ?? AnnualSalariesCount.Twelve;
+  wifeBonusPreset.value = inferBonusPreset(
+    wifeSalariesCount.value,
+    defaults.wifeBonusDistribution,
+  );
+  wifeBonusDistribution.value =
+    defaults.wifeBonusDistribution &&
+    defaults.wifeBonusDistribution.length > 0
+      ? defaults.wifeBonusDistribution
+      : createBonusDistributionSlots(
+        wifeSalariesCount.value,
+        wifeBonusPreset.value,
+      );
   husbandClass3Net.value = defaults.husbandClass3Net;
   husbandClass5Net.value = defaults.husbandClass5Net;
   wifeClass5FullTimeNet.value = defaults.wifeClass5FullTimeNet;
@@ -848,6 +1274,8 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
       derivedSpousalSet.value.husbandClass4Net,
     ),
     husbandWeeklyHours: toWorkingHours(husbandHours.value),
+    husbandSalariesCount: husbandSalariesCount.value,
+    husbandBonusDistribution: husbandBonusDistribution.value,
     wifeInitialTaxClass: wifeInitialTaxClass.value || TaxClass.V,
     wifeInitialFullTimeNet: toNetSalary(wifeClass5FullTimeNet.value),
     wifeInitialClass3FullTimeNet: toNetSalary(wifeClass3FullTimeNet.value),
@@ -861,6 +1289,8 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     ),
     wifeWeeklyHours: toWorkingHours(wifeInitialHours.value),
     wifePostBirthWeeklyHours: toWorkingHours(wifePostBirthHours.value),
+    wifeSalariesCount: wifeSalariesCount.value,
+    wifeBonusDistribution: wifeBonusDistribution.value,
     initialUseTaxFactor: useInitialTaxFactor.value,
     initialTaxFactor: derivedSpousalSet.value.taxFactor,
     annualBonusGross: toEuroAmount(annualBonusGross.value),
