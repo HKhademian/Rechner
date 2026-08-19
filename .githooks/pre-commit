@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-commit hook to enforce lint and formatting verification
+ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 npm run check:lint
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Pre-commit verification failed: Code style or import layout violations detected."
+  echo "💡 Run 'npm run fix' to auto-format files and resolve violations."
+  echo ""
+  exit 1
+fi
