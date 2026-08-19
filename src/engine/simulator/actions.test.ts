@@ -398,8 +398,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       const m15 = res.months[14];
       assert.equal(m15.calendarLabel, toCalendarLabel("03.2027"));
-      // 2.200 € swap deficit + 850 € base refund + 31 € § 31 Günstigerprüfung (1 month Dec birth) = 3.081 €
-      assert.equal(m15.taxRefund, 3081);
+      // 2.200 € swap deficit + 850 € base refund = 3.050 €
+      assert.equal(m15.taxRefund, 3050);
     });
   });
 

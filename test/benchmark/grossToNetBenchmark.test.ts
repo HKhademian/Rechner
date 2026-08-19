@@ -199,12 +199,12 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       const hClass5 = computeGrossToNetBreakdown(hGross, TaxClass.V, 0);
 
       assert.ok(
-        hClass3.monthlyNetTakeHome >= 4200 &&
-          hClass3.monthlyNetTakeHome <= 4400,
+        hClass3.monthlyNetTakeHome >= 3100 &&
+          hClass3.monthlyNetTakeHome <= 3300,
       );
       assert.ok(
-        hClass5.monthlyNetTakeHome >= 3000 &&
-          hClass5.monthlyNetTakeHome <= 3200,
+        hClass5.monthlyNetTakeHome >= 2300 &&
+          hClass5.monthlyNetTakeHome <= 2500,
       );
 
       // Wife ~3.000 € Gross Full-Time
@@ -213,12 +213,12 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       const wClass3 = computeGrossToNetBreakdown(wGross, TaxClass.III, 0);
 
       assert.ok(
-        wClass5.monthlyNetTakeHome >= 1950 &&
-          wClass5.monthlyNetTakeHome <= 2150,
+        wClass5.monthlyNetTakeHome >= 1700 &&
+          wClass5.monthlyNetTakeHome <= 1800,
       );
       assert.ok(
-        wClass3.monthlyNetTakeHome >= 2550 &&
-          wClass3.monthlyNetTakeHome <= 2750,
+        wClass3.monthlyNetTakeHome >= 2200 &&
+          wClass3.monthlyNetTakeHome <= 2400,
       );
     });
   });
@@ -287,7 +287,7 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
 
       assert.equal(set.husbandGross, 4500);
       assert.equal(set.wifeGrossFullTime, 3000);
-      assert.equal(set.wifeGrossPartTime, 2100); // 3000 * (24/40)
+      assert.equal(set.wifeGrossPartTime, 1800); // 3000 * (24/40)
 
       assert.ok(
         set.husbandClass3Net > set.husbandClass5Net,

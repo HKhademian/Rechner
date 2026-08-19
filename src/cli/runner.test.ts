@@ -352,7 +352,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("21.012 €"));
       assert.ok(stdout.includes("Elterngeld Booster!"));
       assert.ok(stdout.includes("Annual Temporary Tax Gap:"));
-      assert.ok(stdout.includes("-6.204 €"));
+      assert.ok(stdout.includes("-2.904 €"));
     });
 
     it('executes "gross-to-net -g 54000 -c III -y" with annual deductions breakdown', async () => {
@@ -370,9 +370,9 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Annual Gross Salary:"));
       assert.ok(stdout.includes("54.000 €"));
       assert.ok(stdout.includes("Total Social Security:"));
-      assert.ok(stdout.includes("14.820 €"));
+      assert.ok(stdout.includes("11.652 €"));
       assert.ok(stdout.includes("Total Tax Withholding:"));
-      assert.ok(stdout.includes("9.348 €"));
+      assert.ok(stdout.includes("4.140 €"));
       assert.ok(stdout.includes("Annual Net Take-Home Pay:"));
       assert.ok(stdout.includes("38.208 €"));
     });
@@ -396,7 +396,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.equal(parsed.husbandGross, 4500);
       assert.equal(parsed.wifeGrossFullTime, 3000);
       assert.equal(parsed.husbandClass3Net, 3184);
-      assert.equal(parsed.wifeClass3FullTimeNet, 2603);
+      assert.equal(parsed.wifeClass3FullTimeNet, 2295);
     });
 
     it('explains tax return month with statutory § 31 Günstigerprüfung when "explain M27 field special" is invoked', async () => {

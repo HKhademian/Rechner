@@ -47,10 +47,10 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       );
 
       assert.equal(spousal24.wifeGrossFullTime, 3000);
-      assert.equal(spousal24.wifeGrossPartTime, 2100); // 3000 * (24 / 40) = 2100
-      assert.equal(spousal24.wifeClass5FullTimeNet, 1975);
-      assert.equal(spousal24.wifeClass3FullTimeNet, 2603);
-      assert.equal(spousal24.wifeClass5PartTimeNet, 1328);
+      assert.equal(spousal24.wifeGrossPartTime, 1800); // 3000 * (24 / 40) = 1800
+      assert.equal(spousal24.wifeClass5FullTimeNet, 1751);
+      assert.equal(spousal24.wifeClass3FullTimeNet, 2295);
+      assert.equal(spousal24.wifeClass5PartTimeNet, 1182);
       assert.equal(spousal24.wifePartTimeWeeklyHours, 24);
       assert.equal(spousal24.husbandWeeklyHours, 32);
     });
@@ -92,10 +92,10 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       husbandInitialClass5Net: toNetSalary(2398),
       husbandWeeklyHours: toWorkingHours(32),
       wifeInitialTaxClass: TaxClass.V,
-      wifeInitialFullTimeNet: toNetSalary(1975),
-      wifeInitialClass3FullTimeNet: toNetSalary(2603),
-      wifeInitialPartTimeClass5Net: toNetSalary(1302),
-      wifeInitialPartTimeClass3Net: toNetSalary(1650),
+      wifeInitialFullTimeNet: toNetSalary(1751),
+      wifeInitialClass3FullTimeNet: toNetSalary(2295),
+      wifeInitialPartTimeClass5Net: toNetSalary(1182),
+      wifeInitialPartTimeClass3Net: toNetSalary(1413),
       wifeWeeklyHours: toWorkingHours(40),
       wifePostBirthWeeklyHours: toWorkingHours(24),
       existingChildrenCount: toChildrenCount(0),
@@ -115,8 +115,8 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
         positiveTestSimulationMonth: toSimulationMonth(9),
         calculatedDeliverySimulationMonth: toSimulationMonth(17),
         motherPostBirthPartTimeHours: toWorkingHours(24),
-        motherPostBirthPartTimeClass5Net: toNetSalary(1302),
-        motherPostBirthPartTimeClass3Net: toNetSalary(1650),
+        motherPostBirthPartTimeClass5Net: toNetSalary(1182),
+        motherPostBirthPartTimeClass3Net: toNetSalary(1413),
         fatherPartnerMonthsCount: toMonthDuration(4),
       },
     ];

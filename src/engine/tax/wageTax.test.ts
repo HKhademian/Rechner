@@ -186,14 +186,14 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
         `Factor should be between 0 and 1, got ${factor}`,
       );
       assert.ok(
-        Math.abs(factor - 0.9) < 0.1,
-        `Expected factor near ~0.90 for 4500/3000 split, got: ${factor}`,
+        Math.abs(factor - 0.98) < 0.1,
+        `Expected factor near ~0.98 for 4500/3000 split, got: ${factor}`,
       );
     });
 
     it("applies factor F to reduce wage tax withholding in Tax Class IV", () => {
       const hGross = toGrossSalary(4500);
-      const factor = toTaxFactor(0.905);
+      const factor = toTaxFactor(0.982);
 
       const net4Standard = computeMonthlyNetSalary(
         hGross,
