@@ -25,3 +25,11 @@ The repository exposes standardized npm scripts for granular and holistic qualit
 ## 2. Telemetry and Sandbox Safety
 - All automated check scripts MUST include `ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1` per Rule 18.
 - Scripts must output clear warning/error counts with actionable file links and line references.
+
+## 3. Mandatory Formatter Workflow Pre-Commit
+- **Always Auto-Fix**: Agents and developers MUST execute `npm run fix` (or `npm run apply`) before staging any commit.
+- **Enforcement Layers**:
+  1. **VS Code**: Formats and fixes imports on save via `.vscode/settings.json`.
+  2. **Git Pre-Commit Hook**: Validates code style via `.githooks/pre-commit` and blocks unformatted commits.
+  3. **Quality Audit**: Fails build and audit pipelines with actionable instructions to run `npm run fix`.
+
