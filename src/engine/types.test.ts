@@ -29,7 +29,9 @@ import {
   toPercentageRate,
   toTaxFactor,
   toTaxClass,
+  toStrategyId,
   toScenarioId,
+  toActiveStrategyView,
   toActiveScenarioView,
   toTimelineChartMode,
   toTimelineTimeRangeFilter,
@@ -60,7 +62,10 @@ import {
   AnnualSalariesCount,
   BonusDistributionPreset,
   TaxClass,
+  SimulationStrategy,
+  StrategyId,
   ScenarioId,
+  ActiveStrategyView,
   ActiveScenarioView,
   TimelineChartMode,
   TimelineTimeRangeFilter,
@@ -466,44 +471,57 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
     });
   });
 
-  describe("ScenarioId (Feature Test)", () => {
-    it("defines exact scenario members A, B, and C", () => {
-      assert.equal(ScenarioId.A, "A");
-      assert.equal(ScenarioId.B, "B");
-      assert.equal(ScenarioId.C, "C");
+  describe("SimulationStrategy & StrategyId (Feature Test)", () => {
+    it("defines canonical strategy values for StatusQuo, UnoptimizedBaseline, and StatutoryOptimized", () => {
+      assert.equal(SimulationStrategy.StatusQuo, "status_quo");
+      assert.equal(SimulationStrategy.UnoptimizedBaseline, "unoptimized_baseline");
+      assert.equal(SimulationStrategy.StatutoryOptimized, "statutory_optimized");
+      assert.equal(StrategyId.StatusQuo, "status_quo");
+      assert.equal(ScenarioId.A, "status_quo");
+      assert.equal(ScenarioId.B, "unoptimized_baseline");
+      assert.equal(ScenarioId.C, "statutory_optimized");
     });
 
-    it("toScenarioId validates valid scenario keys", () => {
-      assert.equal(toScenarioId("A"), ScenarioId.A);
-      assert.equal(toScenarioId("B"), ScenarioId.B);
-      assert.equal(toScenarioId("C"), ScenarioId.C);
+    it("toStrategyId / toScenarioId validates canonical and legacy strategy keys", () => {
+      assert.equal(toStrategyId("status_quo"), SimulationStrategy.StatusQuo);
+      assert.equal(toStrategyId("unoptimized_baseline"), SimulationStrategy.UnoptimizedBaseline);
+      assert.equal(toStrategyId("statutory_optimized"), SimulationStrategy.StatutoryOptimized);
+      assert.equal(toScenarioId("A"), SimulationStrategy.StatusQuo);
+      assert.equal(toScenarioId("B"), SimulationStrategy.UnoptimizedBaseline);
+      assert.equal(toScenarioId("C"), SimulationStrategy.StatutoryOptimized);
     });
 
-    it("toScenarioId rejects invalid scenario keys", () => {
-      assert.throws(() => toScenarioId("D"), TypeError);
-      assert.throws(() => toScenarioId("compare"), TypeError);
-      assert.throws(() => toScenarioId(""), TypeError);
+    it("toStrategyId rejects invalid strategy keys", () => {
+      assert.throws(() => toStrategyId("D"), TypeError);
+      assert.throws(() => toStrategyId("compare"), TypeError);
+      assert.throws(() => toStrategyId(""), TypeError);
     });
   });
 
-  describe("ActiveScenarioView (Feature Test)", () => {
-    it("defines individual scenarios and compare overlay mode", () => {
-      assert.equal(ActiveScenarioView.A, "A");
-      assert.equal(ActiveScenarioView.B, "B");
-      assert.equal(ActiveScenarioView.C, "C");
-      assert.equal(ActiveScenarioView.Compare, "compare");
+  describe("ActiveStrategyView (Feature Test)", () => {
+    it("defines individual strategies and compare overlay mode", () => {
+      assert.equal(ActiveStrategyView.StatusQuo, "status_quo");
+      assert.equal(ActiveStrategyView.UnoptimizedBaseline, "unoptimized_baseline");
+      assert.equal(ActiveStrategyView.StatutoryOptimized, "statutory_optimized");
+      assert.equal(ActiveStrategyView.Compare, "compare");
+      assert.equal(ActiveScenarioView.A, "status_quo");
+      assert.equal(ActiveScenarioView.B, "unoptimized_baseline");
+      assert.equal(ActiveScenarioView.C, "statutory_optimized");
     });
 
-    it("toActiveScenarioView accepts scenario members and compare", () => {
-      assert.equal(toActiveScenarioView("A"), ActiveScenarioView.A);
-      assert.equal(toActiveScenarioView("B"), ActiveScenarioView.B);
-      assert.equal(toActiveScenarioView("C"), ActiveScenarioView.C);
-      assert.equal(toActiveScenarioView("compare"), ActiveScenarioView.Compare);
+    it("toActiveStrategyView / toActiveScenarioView accepts strategy members and compare", () => {
+      assert.equal(toActiveStrategyView("status_quo"), ActiveStrategyView.StatusQuo);
+      assert.equal(toActiveStrategyView("unoptimized_baseline"), ActiveStrategyView.UnoptimizedBaseline);
+      assert.equal(toActiveStrategyView("statutory_optimized"), ActiveStrategyView.StatutoryOptimized);
+      assert.equal(toActiveStrategyView("compare"), ActiveStrategyView.Compare);
+      assert.equal(toActiveScenarioView("A"), ActiveStrategyView.StatusQuo);
+      assert.equal(toActiveScenarioView("B"), ActiveStrategyView.UnoptimizedBaseline);
+      assert.equal(toActiveScenarioView("C"), ActiveStrategyView.StatutoryOptimized);
     });
 
-    it("toActiveScenarioView rejects invalid views", () => {
-      assert.throws(() => toActiveScenarioView("invalid_view"), TypeError);
-      assert.throws(() => toActiveScenarioView("D"), TypeError);
+    it("toActiveStrategyView rejects invalid views", () => {
+      assert.throws(() => toActiveStrategyView("invalid_view"), TypeError);
+      assert.throws(() => toActiveStrategyView("D"), TypeError);
     });
   });
 

@@ -162,23 +162,52 @@ export const TaxClass = {
 } as const;
 export type TaxClass = (typeof TaxClass)[keyof typeof TaxClass];
 
-/** Discrete multi-year comparison scenario identifiers (A = Baseline, B = Unoptimized, C = Optimized). */
-export const ScenarioId = {
-  A: "A",
-  B: "B",
-  C: "C",
+/**
+ * Discrete statutory simulation strategies evaluated across the timeline.
+ */
+export const SimulationStrategy = {
+  /** Continuous dual-career wage progression without children or parental leave (formerly Scenario A). */
+  StatusQuo: "status_quo",
+  /** Parental leave with standard static tax classes without proactive switching (formerly Scenario B). */
+  UnoptimizedBaseline: "unoptimized_baseline",
+  /** Statutorily optimized with proactive § 2b tax switch, max § 4 ElterngeldPlus, § 2a Sibling Bonus, § 26b Joint Refund (formerly Scenario C). */
+  StatutoryOptimized: "statutory_optimized",
 } as const;
-export type ScenarioId = (typeof ScenarioId)[keyof typeof ScenarioId];
+export type SimulationStrategy =
+  (typeof SimulationStrategy)[keyof typeof SimulationStrategy];
 
-/** Active scenario display tab selection in the user interface. */
-export const ActiveScenarioView = {
-  A: ScenarioId.A,
-  B: ScenarioId.B,
-  C: ScenarioId.C,
-  Compare: "compare",
+/** Primary Strategy Identifier alias for SimulationStrategy. */
+export const StrategyId = SimulationStrategy;
+export type StrategyId = SimulationStrategy;
+
+/** Legacy alias for SimulationStrategy / StrategyId */
+export const ScenarioId = {
+  A: SimulationStrategy.StatusQuo,
+  B: SimulationStrategy.UnoptimizedBaseline,
+  C: SimulationStrategy.StatutoryOptimized,
+  StatusQuo: SimulationStrategy.StatusQuo,
+  UnoptimizedBaseline: SimulationStrategy.UnoptimizedBaseline,
+  StatutoryOptimized: SimulationStrategy.StatutoryOptimized,
 } as const;
-export type ActiveScenarioView =
-  (typeof ActiveScenarioView)[keyof typeof ActiveScenarioView];
+export type ScenarioId = SimulationStrategy;
+
+/** Active strategy view selection for reactive dashboard, charting, and ledger auditing. */
+export const ActiveStrategyView = {
+  StatusQuo: SimulationStrategy.StatusQuo,
+  UnoptimizedBaseline: SimulationStrategy.UnoptimizedBaseline,
+  StatutoryOptimized: SimulationStrategy.StatutoryOptimized,
+  Compare: "compare",
+  // Backward compatibility keys
+  A: SimulationStrategy.StatusQuo,
+  B: SimulationStrategy.UnoptimizedBaseline,
+  C: SimulationStrategy.StatutoryOptimized,
+} as const;
+export type ActiveStrategyView =
+  (typeof ActiveStrategyView)[keyof typeof ActiveStrategyView];
+
+/** Backward compatibility alias for ActiveStrategyView */
+export const ActiveScenarioView = ActiveStrategyView;
+export type ActiveScenarioView = ActiveStrategyView;
 
 /** Visual display modes for timeline cash flow charting. */
 export const TimelineChartMode = {
@@ -1168,31 +1197,63 @@ export function toTaxClass(val: string): TaxClass {
 }
 
 /**
- * Validates and casts an arbitrary string into a strongly-typed `ScenarioId` (A, B, or C).
- * @throws {TypeError} if input does not match ScenarioId members.
+ * Validates and casts an arbitrary string into a strongly-typed `SimulationStrategy` / `StrategyId`.
+ * Supports canonical strategy names ("status_quo", "unoptimized_baseline", "statutory_optimized")
+ * and legacy identifiers ("A", "B", "C").
+ * @throws {TypeError} if input does not match valid strategy identifiers.
  */
-export function toScenarioId(val: string): ScenarioId {
-  const values = Object.values(ScenarioId) as string[];
-  if (!values.includes(val)) {
-    throw new TypeError(
-      `Invalid ScenarioId: ${val}. Expected one of: ${values.join(", ")}.`,
-    );
+export function toStrategyId(val: string): StrategyId {
+  const norm = val.trim().toLowerCase();
+  if (norm === "status_quo" || norm === "statusquo" || norm === "a") {
+    return SimulationStrategy.StatusQuo;
   }
-  return val as ScenarioId;
+  if (
+    norm === "unoptimized_baseline" ||
+    norm === "unoptimized" ||
+    norm === "baseline" ||
+    norm === "b"
+  ) {
+    return SimulationStrategy.UnoptimizedBaseline;
+  }
+  if (
+    norm === "statutory_optimized" ||
+    norm === "optimized" ||
+    norm === "c"
+  ) {
+    return SimulationStrategy.StatutoryOptimized;
+  }
+  const values = Object.values(SimulationStrategy) as string[];
+  throw new TypeError(
+    `Invalid StrategyId: "${val}". Expected one of: ${values.join(", ")} (or legacy A, B, C).`,
+  );
 }
 
 /**
- * Validates and casts an arbitrary string into a strongly-typed `ActiveScenarioView`.
+ * Validates and casts an arbitrary string into a strongly-typed `ScenarioId` (alias for `toStrategyId`).
+ */
+export function toScenarioId(val: string): ScenarioId {
+  return toStrategyId(val);
+}
+
+/**
+ * Validates and casts an arbitrary string into a strongly-typed `ActiveStrategyView`.
+ * Supports canonical view identifiers ("status_quo", "unoptimized_baseline", "statutory_optimized", "compare")
+ * and legacy identifiers ("A", "B", "C").
  * @throws {TypeError} if input does not match active view members.
  */
-export function toActiveScenarioView(val: string): ActiveScenarioView {
-  const values = Object.values(ActiveScenarioView) as string[];
-  if (!values.includes(val)) {
-    throw new TypeError(
-      `Invalid ActiveScenarioView: ${val}. Expected one of: ${values.join(", ")}.`,
-    );
+export function toActiveStrategyView(val: string): ActiveStrategyView {
+  const norm = val.trim().toLowerCase();
+  if (norm === "compare") {
+    return ActiveStrategyView.Compare;
   }
-  return val as ActiveScenarioView;
+  return toStrategyId(val) as ActiveStrategyView;
+}
+
+/**
+ * Validates and casts an arbitrary string into a strongly-typed `ActiveScenarioView` (alias for `toActiveStrategyView`).
+ */
+export function toActiveScenarioView(val: string): ActiveScenarioView {
+  return toActiveStrategyView(val);
 }
 
 /**
