@@ -140,20 +140,36 @@ function scanSourceFiles(dir: string): void {
             seenValueImport = false;
           }
           else if (trimmed.length > 0 && !trimmed.startsWith("//")) {
-            const spec = trimmed.replace(/,$/, "").trim();
-            if (spec.startsWith("type ")) {
-              if (seenValueImport) {
-                addDiagnostic(
-                  "WARN",
-                  "CodeStyle (Rule 20)",
-                  `Type import '${spec}' placed after value import. Types must appear at the top.`,
-                  fullPath,
-                  lineNum,
-                );
-              }
+            const parts = trimmed
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+
+            if (parts.length > 1) {
+              addDiagnostic(
+                "WARN",
+                "CodeStyle (Rule 20)",
+                `Multiple import specifiers detected on line ${lineNum}. Each specifier must be on its own line.`,
+                fullPath,
+                lineNum,
+              );
             }
-            else if (spec.length > 0) {
-              seenValueImport = true;
+
+            for (const spec of parts) {
+              if (spec.startsWith("type ")) {
+                if (seenValueImport) {
+                  addDiagnostic(
+                    "WARN",
+                    "CodeStyle (Rule 20)",
+                    `Type import '${spec}' placed after value import. Types must appear at the top.`,
+                    fullPath,
+                    lineNum,
+                  );
+                }
+              }
+              else if (spec.length > 0) {
+                seenValueImport = true;
+              }
             }
           }
         }
