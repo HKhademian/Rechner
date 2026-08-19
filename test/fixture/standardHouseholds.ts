@@ -1,4 +1,5 @@
 import {
+  type PreexistingConditions,
   TaxClass,
   toNetSalary,
   toEuroAmount,
@@ -8,7 +9,6 @@ import {
   toFullCalendarYear,
   toMonthDuration,
   toChildrenCount,
-  type PreexistingConditions,
 } from "#engine/types";
 
 /**

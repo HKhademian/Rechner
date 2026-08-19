@@ -155,16 +155,10 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         scenarioKey: ScenarioId.C,
       });
 
-      const netGain =
-        c.summary.grandTotal - b.summary.grandTotal;
-      const benefitsGain =
-        c.summary.totalBenefits -
-        b.summary.totalBenefits;
+      const netGain = c.summary.grandTotal - b.summary.grandTotal;
+      const benefitsGain = c.summary.totalBenefits - b.summary.totalBenefits;
 
-      assert.ok(
-        netGain > 8000,
-        `Net gain (${netGain} €) must exceed 8.000 €`,
-      );
+      assert.ok(netGain > 8000, `Net gain (${netGain} €) must exceed 8.000 €`);
       assert.ok(
         benefitsGain > 8000,
         `Benefits gain (${benefitsGain} €) must exceed 8.000 €`,
@@ -195,8 +189,14 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       assert.equal(res.months[3].monthId, toMonthId(12, 2026));
       assert.equal(res.months[3].monthRef, toMonthRef(1, "Pregnancy Positive"));
       assert.equal(res.months[3].monthSimRef, toMonthSimRef(4));
-      assert.equal(res.months[3].relativeBirthLabel, toMonthRef(1, "Pregnancy Positive"));
-      assert.equal(res.months[3].relativeMonthLabel, toMonthRef(1, "Pregnancy Positive"));
+      assert.equal(
+        res.months[3].relativeBirthLabel,
+        toMonthRef(1, "Pregnancy Positive"),
+      );
+      assert.equal(
+        res.months[3].relativeMonthLabel,
+        toMonthRef(1, "Pregnancy Positive"),
+      );
 
       assert.equal(res.months[11].monthId, toMonthId(8, 2027));
       assert.equal(res.months[11].monthSimRef, toMonthSimRef(12));

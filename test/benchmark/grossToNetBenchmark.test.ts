@@ -101,32 +101,17 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       const aboveCap1 = computeMonthlySocialSecurity(toGrossSalary(7500), 0);
       const aboveCap2 = computeMonthlySocialSecurity(toGrossSalary(12000), 0);
 
-      assert.equal(
-        atCap.healthInsurance,
-        aboveCap1.healthInsurance,
-      );
-      assert.equal(
-        atCap.healthInsurance,
-        aboveCap2.healthInsurance,
-      );
-      assert.equal(
-        atCap.careInsurance,
-        aboveCap1.careInsurance,
-      );
+      assert.equal(atCap.healthInsurance, aboveCap1.healthInsurance);
+      assert.equal(atCap.healthInsurance, aboveCap2.healthInsurance);
+      assert.equal(atCap.careInsurance, aboveCap1.careInsurance);
     });
 
     it("caps pension & unemployment insurance contributions at €7.550/mo ceiling", () => {
       const atCap = computeMonthlySocialSecurity(toGrossSalary(7550), 0);
       const aboveCap = computeMonthlySocialSecurity(toGrossSalary(15000), 0);
 
-      assert.equal(
-        atCap.pensionInsurance,
-        aboveCap.pensionInsurance,
-      );
-      assert.equal(
-        atCap.unemploymentInsurance,
-        aboveCap.unemploymentInsurance,
-      );
+      assert.equal(atCap.pensionInsurance, aboveCap.pensionInsurance);
+      assert.equal(atCap.unemploymentInsurance, aboveCap.unemploymentInsurance);
     });
 
     it("applies statutory care insurance child discounts (§ 55 Abs. 3 SGB XI)", () => {
@@ -235,18 +220,11 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       );
 
       assert.equal(withBonus.oneOffBonusAmount, 2000);
-      assert.ok(
-        withBonus.bonusTaxDeduction && withBonus.bonusTaxDeduction > 0,
-      );
-      assert.ok(
-        withBonus.monthlyNetTakeHome >
-          regular.monthlyNetTakeHome,
-      );
+      assert.ok(withBonus.bonusTaxDeduction && withBonus.bonusTaxDeduction > 0);
+      assert.ok(withBonus.monthlyNetTakeHome > regular.monthlyNetTakeHome);
 
       // Effective take-home increases by bonus minus bonus tax
-      const netGain =
-        withBonus.monthlyNetTakeHome -
-        regular.monthlyNetTakeHome;
+      const netGain = withBonus.monthlyNetTakeHome - regular.monthlyNetTakeHome;
       assert.ok(netGain > 1000 && netGain < 2000);
     });
 
@@ -261,10 +239,7 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       );
 
       // While take-home pay is higher due to bonus, elterngeldSyntheticNet MUST remain unchanged
-      assert.ok(
-        withBonus.monthlyNetTakeHome >
-          regular.monthlyNetTakeHome,
-      );
+      assert.ok(withBonus.monthlyNetTakeHome > regular.monthlyNetTakeHome);
       assert.equal(
         withBonus.elterngeldSyntheticNet,
         regular.elterngeldSyntheticNet,
@@ -289,21 +264,10 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       assert.equal(set.wifeGrossFullTime, 3000);
       assert.equal(set.wifeGrossPartTime, 1800); // 3000 * (24/40)
 
-      assert.ok(
-        set.husbandClass3Net > set.husbandClass5Net,
-      );
-      assert.ok(
-        set.wifeClass3FullTimeNet >
-          set.wifeClass5FullTimeNet,
-      );
-      assert.ok(
-        set.wifeClass3PartTimeNet >
-          set.wifeClass5PartTimeNet,
-      );
-      assert.ok(
-        set.wifeClass5FullTimeNet >
-          set.wifeClass5PartTimeNet,
-      );
+      assert.ok(set.husbandClass3Net > set.husbandClass5Net);
+      assert.ok(set.wifeClass3FullTimeNet > set.wifeClass5FullTimeNet);
+      assert.ok(set.wifeClass3PartTimeNet > set.wifeClass5PartTimeNet);
+      assert.ok(set.wifeClass5FullTimeNet > set.wifeClass5PartTimeNet);
     });
   });
 });
