@@ -72,6 +72,7 @@ The simulator processes state transitions in 4 modular batches:
   - Inline type imports with types on top (`import {\n  type X,\n  valueY,\n} from "..."`)
   - Multiline import specifiers (one item per line)
   - Zero unused imports and no duplicate imports
+- **Mandatory Formatter Workflow**: Agents and developers MUST run `npm run fix` before staging any git commit. Git pre-commit hooks and `npm run check` automatically block and reject unformatted code.
 - **Verification Matrix**: Run `npm run check` / `npm run check:audit` before committing.
 
 ---
