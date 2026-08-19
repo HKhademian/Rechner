@@ -1,5 +1,7 @@
 import {
-  signal, computed, effect, 
+  signal,
+  computed,
+  effect,
 } from "@preact/signals";
 import {
   type ScenarioId as ScenarioIdType,

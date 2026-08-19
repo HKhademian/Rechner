@@ -1,8 +1,10 @@
 import {
-  signal, effect, 
+  signal,
+  effect,
 } from "@preact/signals";
 import {
-  ThemeMode, toThemeMode, 
+  ThemeMode,
+  toThemeMode,
 } from "#engine/types";
 
 const THEME_STORAGE_KEY = "german_calc_theme_mode";

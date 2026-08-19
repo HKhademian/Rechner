@@ -1,5 +1,8 @@
 import {
-  type Signal, signal, computed, effect, 
+  type Signal,
+  signal,
+  computed,
+  effect,
 } from "@preact/signals";
 import {
   configHealthCap,

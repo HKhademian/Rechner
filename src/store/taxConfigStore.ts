@@ -1,5 +1,7 @@
 import {
-  type Signal, signal, effect, 
+  type Signal,
+  signal,
+  effect,
 } from "@preact/signals";
 
 function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
