@@ -55,6 +55,10 @@ import {
   toMonthRef,
   toMonthSimRef,
   toCalendarLabel,
+  toAnnualSalariesCount,
+  toBonusDistributionPreset,
+  AnnualSalariesCount,
+  BonusDistributionPreset,
   TaxClass,
   ScenarioId,
   ActiveScenarioView,
@@ -986,6 +990,49 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(combinedRecord.actionType, ActionType.ChildDelivery);
       assert.equal(combinedRecord.targetPerson, TargetPerson.Wife);
       assert.equal(combinedRecord.citation, "BEEG § 2b");
+    });
+
+    it("AnnualSalariesCount and BonusDistributionPreset: validates constructors, values and exceptions", () => {
+      assert.equal(toAnnualSalariesCount(12), AnnualSalariesCount.Twelve);
+      assert.equal(toAnnualSalariesCount(13), AnnualSalariesCount.Thirteen);
+      assert.equal(toAnnualSalariesCount(14), AnnualSalariesCount.Fourteen);
+      assert.equal(toAnnualSalariesCount(15), AnnualSalariesCount.Fifteen);
+      assert.equal(toAnnualSalariesCount("13"), AnnualSalariesCount.Thirteen);
+
+      assert.throws(() => toAnnualSalariesCount(11), TypeError);
+      assert.throws(() => toAnnualSalariesCount(16), TypeError);
+      assert.throws(() => toAnnualSalariesCount("invalid"), TypeError);
+
+      assert.equal(
+        toBonusDistributionPreset("ratio_40_60"),
+        BonusDistributionPreset.Ratio40_60,
+      );
+      assert.equal(
+        toBonusDistributionPreset("ratio_50_50"),
+        BonusDistributionPreset.Ratio50_50,
+      );
+      assert.equal(
+        toBonusDistributionPreset("single_100_nov"),
+        BonusDistributionPreset.Single100Nov,
+      );
+      assert.equal(
+        toBonusDistributionPreset("double_100_100"),
+        BonusDistributionPreset.Double100_100,
+      );
+      assert.equal(
+        toBonusDistributionPreset("triple_100_100_100"),
+        BonusDistributionPreset.Triple100_100_100,
+      );
+      assert.equal(
+        toBonusDistributionPreset("quarterly"),
+        BonusDistributionPreset.Quarterly,
+      );
+      assert.equal(
+        toBonusDistributionPreset("custom"),
+        BonusDistributionPreset.Custom,
+      );
+
+      assert.throws(() => toBonusDistributionPreset("unknown_preset"), TypeError);
     });
   });
 });

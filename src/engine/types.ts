@@ -262,6 +262,9 @@ export type SpecialEventType =
 /** Descriptive categories for special life and accounting events rendered in ledger sub-rows. */
 export const SpecialEventCategory = {
   ThirteenthSalary: "13th Salary (*13. Monatsgehalt*)",
+  FourteenthSalary: "14th Salary (*14. Monatsgehalt*)",
+  FifteenthSalary: "15th Salary (*15. Monatsgehalt*)",
+  SalaryBonus: "Special Salary Bonus (*Sonderzahlung*)",
   TaxOffice: "Tax Office (*Finanzamt*)",
   BabyEquipment: "Baby Equipment (*Erstausstattung*)",
   ChildcareFees: "Childcare (*Kita/Betreuung*)",
@@ -279,6 +282,9 @@ export const TransactionType = {
   SalaryBase: "SALARY_BASE",
   SalaryBonus13thVacation: "SALARY_BONUS_13TH_VACATION",
   SalaryBonus13thChristmas: "SALARY_BONUS_13TH_CHRISTMAS",
+  SalaryBonus14th: "SALARY_BONUS_14TH",
+  SalaryBonus15th: "SALARY_BONUS_15TH",
+  SalaryBonusSpecial: "SALARY_BONUS_SPECIAL",
   BenefitMutterschutz: "BENEFIT_MUTTERSCHUTZ",
   BenefitElterngeldPlusMother: "BENEFIT_ELTERNGELD_PLUS_MOTHER",
   BenefitElterngeldPlusFather: "BENEFIT_ELTERNGELD_PLUS_FATHER",
@@ -410,6 +416,42 @@ export const BonusTaxMethod = {
 } as const;
 export type BonusTaxMethod =
   (typeof BonusTaxMethod)[keyof typeof BonusTaxMethod];
+
+/** Total annual employment salary payments for a person (12, 13, 14, or 15). */
+export const AnnualSalariesCount = {
+  Twelve: 12,
+  Thirteen: 13,
+  Fourteen: 14,
+  Fifteen: 15,
+} as const;
+export type AnnualSalariesCount =
+  (typeof AnnualSalariesCount)[keyof typeof AnnualSalariesCount];
+
+/** Standard bonus distribution preset patterns for 13th, 14th, and 15th salaries. */
+export const BonusDistributionPreset = {
+  Ratio40_60: "ratio_40_60",
+  Ratio50_50: "ratio_50_50",
+  Single100Nov: "single_100_nov",
+  Single100Dec: "single_100_dec",
+  Double100_100: "double_100_100",
+  Triple100_100_100: "triple_100_100_100",
+  Quarterly: "quarterly",
+  Custom: "custom",
+} as const;
+export type BonusDistributionPreset =
+  (typeof BonusDistributionPreset)[keyof typeof BonusDistributionPreset];
+
+/**
+ * Itemized bonus distribution installment slot within a calendar year.
+ */
+export interface SalaryBonusSlot {
+  /** 1-based calendar month of disbursement (1..12). */
+  readonly calendarMonth: CalendarMonth;
+  /** Percentage / fraction of regular monthly net take-home salary (0.01 .. 2.00, e.g. 0.4, 0.5, 0.6, 1.0). */
+  readonly payoutFraction: PercentageRate;
+  /** Optional descriptive title (e.g. "13th Salary (Vacation Pay)", "13th Salary (Christmas Bonus)"). */
+  readonly label?: string;
+}
 
 // ============================================================================
 // 6. Runtime Branded Constructors & Type Guards (Rule 12)
@@ -1312,6 +1354,39 @@ export function toBonusTaxMethod(val: string): BonusTaxMethod {
   return val as BonusTaxMethod;
 }
 
+/**
+ * Validates and casts number/string input into a strongly-typed `AnnualSalariesCount` (12, 13, 14, or 15).
+ * @throws {TypeError} if input is not 12, 13, 14, or 15.
+ */
+export function toAnnualSalariesCount(
+  val: number | string,
+): AnnualSalariesCount {
+  const num = typeof val === "string" ? Number(val) : val;
+  const values = Object.values(AnnualSalariesCount) as number[];
+  if (!values.includes(num)) {
+    throw new TypeError(
+      `Invalid AnnualSalariesCount: ${val}. Expected one of: 12, 13, 14, 15.`,
+    );
+  }
+  return num as AnnualSalariesCount;
+}
+
+/**
+ * Validates and casts string input into a strongly-typed `BonusDistributionPreset`.
+ * @throws {TypeError} if input does not match recognized bonus presets.
+ */
+export function toBonusDistributionPreset(
+  val: string,
+): BonusDistributionPreset {
+  const values = Object.values(BonusDistributionPreset) as string[];
+  if (!values.includes(val)) {
+    throw new TypeError(
+      `Invalid BonusDistributionPreset: "${val}". Expected one of: ${values.join(", ")}.`,
+    );
+  }
+  return val as BonusDistributionPreset;
+}
+
 // ============================================================================
 // 8. Core Domain Interfaces & Financial Ledger Models
 // ============================================================================
@@ -1470,11 +1545,15 @@ export interface MonthlyLedgerEntry {
   readonly kindergeld: EuroAmount;
   /** Annual income tax return refund under § 26b, § 46 EStG (disbursed in tax return month). */
   readonly taxRefund: EuroAmount;
-  /** Mid-year 13th salary bonus under 40% vacation pay rule. */
+  /** Mid-year 13th salary bonus under 40% vacation pay rule (legacy compatibility). */
   readonly bonus40Amount: EuroAmount;
-  /** Year-end 13th salary bonus under 60% Christmas pay rule. */
+  /** Year-end 13th salary bonus under 60% Christmas pay rule (legacy compatibility). */
   readonly bonus60Amount: EuroAmount;
-  /** Total combined 13th salary bonus amount for the month in EUR. */
+  /** Itemized husband extra salary bonus amount disbursed in this month in EUR. */
+  readonly husbandBonusAmount?: EuroAmount;
+  /** Itemized wife extra salary bonus amount disbursed in this month in EUR. */
+  readonly wifeBonusAmount?: EuroAmount;
+  /** Total combined extra salary bonus amount for the household in this month in EUR. */
   readonly specialBonusTotal: EuroAmount;
   /** Total sum of all special financial events in the month in EUR. */
   readonly specialEventsTotal: EuroAmount;
@@ -1735,6 +1814,10 @@ export interface PreexistingConditions {
   readonly husbandInitialClass4Net?: NetSalary;
   /** Husband's regular weekly working hours (e.g. 40h). */
   readonly husbandWeeklyHours: WorkingHours;
+  /** Total annual salaries for husband (12, 13, 14, or 15). */
+  readonly husbandSalariesCount?: AnnualSalariesCount;
+  /** Husband's custom or preset bonus installment distribution schedule across calendar months. */
+  readonly husbandBonusDistribution?: readonly SalaryBonusSlot[];
   /** Wife's starting tax class at simulation commencement (e.g. TaxClass.V or IV). */
   readonly wifeInitialTaxClass: TaxClass;
   /** Wife's full-time starting monthly net take-home salary in Tax Class V in EUR. */
@@ -1753,6 +1836,10 @@ export interface PreexistingConditions {
   readonly wifeWeeklyHours: WorkingHours;
   /** Wife's default post-birth part-time weekly working hours (e.g. 24h..32h). */
   readonly wifePostBirthWeeklyHours?: WorkingHours;
+  /** Total annual salaries for wife (12, 13, 14, or 15). */
+  readonly wifeSalariesCount?: AnnualSalariesCount;
+  /** Wife's custom or preset bonus installment distribution schedule across calendar months. */
+  readonly wifeBonusDistribution?: readonly SalaryBonusSlot[];
   /** Boolean flag enabling the § 39f EStG factor method for Tax Class IV. */
   readonly initialUseTaxFactor?: boolean;
   /** Initial statutory income tax factor ratio (0.001..1.000). */
@@ -1767,12 +1854,12 @@ export interface PreexistingConditions {
   readonly existingChildrenCount: ChildrenCount;
   /** Monthly statutory child benefit amount per child under § 66 EStG (e.g. 259 €). */
   readonly kindergeldPerChild: EuroAmount;
-  /** Boolean toggle enabling 13th salary bonus payments (vacation + Christmas pay). */
-  readonly enable13thSalary: boolean;
-  /** Calendar month in which the 40% mid-year vacation bonus is disbursed (e.g. June = 6). */
-  readonly bonus40Month: CalendarMonth;
-  /** Calendar month in which the 60% year-end Christmas bonus is disbursed (e.g. November = 11). */
-  readonly bonus60Month: CalendarMonth;
+  /** Boolean toggle enabling 13th salary bonus payments (legacy compatibility). */
+  readonly enable13thSalary?: boolean;
+  /** Calendar month in which the 40% mid-year vacation bonus is disbursed (legacy compatibility). */
+  readonly bonus40Month?: CalendarMonth;
+  /** Calendar month in which the 60% year-end Christmas bonus is disbursed (legacy compatibility). */
+  readonly bonus60Month?: CalendarMonth;
   /** Calendar month in which annual income tax reconciliation refund is disbursed (e.g. May = 5). */
   readonly taxReturnMonth: CalendarMonth;
 }
