@@ -17,8 +17,10 @@ import {
   TaxClass,
   TargetPerson,
   FinancialEventCategory,
+  AnnualSalariesCount,
   toSalaryInputMode,
   toSalaryPeriod,
+  toAnnualSalariesCount,
   toActiveScenarioView,
   toTimelineChartMode,
   toTimelineTimeRangeFilter,
@@ -49,6 +51,7 @@ import {
   type CalendarMonth,
   type FullCalendarYear,
   type MonthDuration,
+  type SalaryBonusSlot,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
@@ -85,10 +88,18 @@ export interface ElterngeldPersistedState {
   readonly wifeGross: GrossSalary;
   /** Husband's regular weekly working hours (e.g. 40h). */
   readonly husbandHours: WorkingHours;
+  /** Total annual salaries for husband (12, 13, 14, or 15). */
+  readonly husbandSalariesCount?: AnnualSalariesCount;
+  /** Husband's bonus installment distribution schedule across calendar months. */
+  readonly husbandBonusDistribution?: readonly SalaryBonusSlot[];
   /** Wife's pre-birth weekly working hours (e.g. 40h). */
   readonly wifeInitialHours: WorkingHours;
   /** Wife's post-birth part-time weekly working hours during leave (e.g. 24h..32h). */
   readonly wifePostBirthHours: WorkingHours;
+  /** Total annual salaries for wife (12, 13, 14, or 15). */
+  readonly wifeSalariesCount?: AnnualSalariesCount;
+  /** Wife's bonus installment distribution schedule across calendar months. */
+  readonly wifeBonusDistribution?: readonly SalaryBonusSlot[];
   /** Husband's monthly net salary in Tax Class III in EUR. */
   readonly husbandClass3Net: NetSalary;
   /** Husband's monthly net salary in Tax Class V in EUR. */
@@ -221,6 +232,130 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
   const wifePostBirthHours = toWorkingHours(
     Number(obj.wifePostBirthHours) || 0,
   );
+
+  const husbandSalariesCount =
+    obj.husbandSalariesCount !== undefined
+      ? toAnnualSalariesCount(obj.husbandSalariesCount as number | string)
+      : obj.enable13thSalary
+        ? AnnualSalariesCount.Thirteen
+        : AnnualSalariesCount.Twelve;
+
+  const husbandBonusDistribution: SalaryBonusSlot[] = Array.isArray(
+    obj.husbandBonusDistribution,
+  )
+    ? (obj.husbandBonusDistribution as Array<Record<string, unknown>>).map(
+      (slot) => ({
+        calendarMonth: toCalendarMonth(Number(slot.calendarMonth) || 1),
+        payoutFraction: toPercentageRate(Number(slot.payoutFraction) || 0),
+        label: typeof slot.label === "string" ? slot.label : undefined,
+      }),
+    )
+    : husbandSalariesCount === AnnualSalariesCount.Thirteen
+      ? [
+        {
+          calendarMonth: toCalendarMonth(Number(obj.bonus40Month) || 5),
+          payoutFraction: toPercentageRate(0.4),
+          label: "13th Salary: 40% Vacation Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(Number(obj.bonus60Month) || 11),
+          payoutFraction: toPercentageRate(0.6),
+          label: "13th Salary: 60% Christmas Bonus",
+        },
+      ]
+      : husbandSalariesCount === AnnualSalariesCount.Fourteen
+        ? [
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(1.0),
+            label: "13th Salary: 100% Vacation Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(1.0),
+            label: "14th Salary: 100% Christmas Bonus",
+          },
+        ]
+        : husbandSalariesCount === AnnualSalariesCount.Fifteen
+          ? [
+            {
+              calendarMonth: toCalendarMonth(3),
+              payoutFraction: toPercentageRate(1.0),
+              label: "13th Salary: 100% Spring Bonus",
+            },
+            {
+              calendarMonth: toCalendarMonth(6),
+              payoutFraction: toPercentageRate(1.0),
+              label: "14th Salary: 100% Summer Bonus",
+            },
+            {
+              calendarMonth: toCalendarMonth(11),
+              payoutFraction: toPercentageRate(1.0),
+              label: "15th Salary: 100% Christmas Bonus",
+            },
+          ]
+          : [];
+
+  const wifeSalariesCount =
+    obj.wifeSalariesCount !== undefined
+      ? toAnnualSalariesCount(obj.wifeSalariesCount as number | string)
+      : AnnualSalariesCount.Twelve;
+
+  const wifeBonusDistribution: SalaryBonusSlot[] = Array.isArray(
+    obj.wifeBonusDistribution,
+  )
+    ? (obj.wifeBonusDistribution as Array<Record<string, unknown>>).map(
+      (slot) => ({
+        calendarMonth: toCalendarMonth(Number(slot.calendarMonth) || 1),
+        payoutFraction: toPercentageRate(Number(slot.payoutFraction) || 0),
+        label: typeof slot.label === "string" ? slot.label : undefined,
+      }),
+    )
+    : wifeSalariesCount === AnnualSalariesCount.Thirteen
+      ? [
+        {
+          calendarMonth: toCalendarMonth(5),
+          payoutFraction: toPercentageRate(0.4),
+          label: "13th Salary: 40% Vacation Bonus",
+        },
+        {
+          calendarMonth: toCalendarMonth(11),
+          payoutFraction: toPercentageRate(0.6),
+          label: "13th Salary: 60% Christmas Bonus",
+        },
+      ]
+      : wifeSalariesCount === AnnualSalariesCount.Fourteen
+        ? [
+          {
+            calendarMonth: toCalendarMonth(6),
+            payoutFraction: toPercentageRate(1.0),
+            label: "13th Salary: 100% Vacation Bonus",
+          },
+          {
+            calendarMonth: toCalendarMonth(11),
+            payoutFraction: toPercentageRate(1.0),
+            label: "14th Salary: 100% Christmas Bonus",
+          },
+        ]
+        : wifeSalariesCount === AnnualSalariesCount.Fifteen
+          ? [
+            {
+              calendarMonth: toCalendarMonth(3),
+              payoutFraction: toPercentageRate(1.0),
+              label: "13th Salary: 100% Spring Bonus",
+            },
+            {
+              calendarMonth: toCalendarMonth(6),
+              payoutFraction: toPercentageRate(1.0),
+              label: "14th Salary: 100% Summer Bonus",
+            },
+            {
+              calendarMonth: toCalendarMonth(11),
+              payoutFraction: toPercentageRate(1.0),
+              label: "15th Salary: 100% Christmas Bonus",
+            },
+          ]
+          : [];
 
   const husbandClass3Net = toNetSalary(Number(obj.husbandClass3Net) || 0);
   const husbandClass5Net = toNetSalary(Number(obj.husbandClass5Net) || 0);
@@ -505,8 +640,12 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
     husbandGross,
     wifeGross,
     husbandHours,
+    husbandSalariesCount,
+    husbandBonusDistribution,
     wifeInitialHours,
     wifePostBirthHours,
+    wifeSalariesCount,
+    wifeBonusDistribution,
     husbandClass3Net,
     husbandClass5Net,
     wifeClass5FullTimeNet,
@@ -1240,6 +1379,30 @@ export function validateAndSanitizePersistedState(
     husbandHours: toWorkingHours(
       num(obj.husbandHours, defaults.husbandHours, 0, 60, "husbandHours"),
     ),
+    husbandSalariesCount:
+      obj.husbandSalariesCount !== undefined
+        ? (() => {
+          try {
+            return toAnnualSalariesCount(
+              obj.husbandSalariesCount as number | string,
+            );
+          }
+          catch {
+            return defaults.husbandSalariesCount ?? AnnualSalariesCount.Twelve;
+          }
+        })()
+        : obj.enable13thSalary
+          ? AnnualSalariesCount.Thirteen
+          : defaults.husbandSalariesCount ?? AnnualSalariesCount.Twelve,
+    husbandBonusDistribution: Array.isArray(obj.husbandBonusDistribution)
+      ? (obj.husbandBonusDistribution as Array<Record<string, unknown>>).map(
+        (slot) => ({
+          calendarMonth: toCalendarMonth(Number(slot.calendarMonth) || 1),
+          payoutFraction: toPercentageRate(Number(slot.payoutFraction) || 0),
+          label: typeof slot.label === "string" ? slot.label : undefined,
+        }),
+      )
+      : defaults.husbandBonusDistribution ?? [],
     wifeInitialHours: toWorkingHours(
       num(
         obj.wifeInitialHours,
@@ -1258,6 +1421,28 @@ export function validateAndSanitizePersistedState(
         "wifePostBirthHours",
       ),
     ),
+    wifeSalariesCount:
+      obj.wifeSalariesCount !== undefined
+        ? (() => {
+          try {
+            return toAnnualSalariesCount(
+              obj.wifeSalariesCount as number | string,
+            );
+          }
+          catch {
+            return defaults.wifeSalariesCount ?? AnnualSalariesCount.Twelve;
+          }
+        })()
+        : defaults.wifeSalariesCount ?? AnnualSalariesCount.Twelve,
+    wifeBonusDistribution: Array.isArray(obj.wifeBonusDistribution)
+      ? (obj.wifeBonusDistribution as Array<Record<string, unknown>>).map(
+        (slot) => ({
+          calendarMonth: toCalendarMonth(Number(slot.calendarMonth) || 1),
+          payoutFraction: toPercentageRate(Number(slot.payoutFraction) || 0),
+          label: typeof slot.label === "string" ? slot.label : undefined,
+        }),
+      )
+      : defaults.wifeBonusDistribution ?? [],
     husbandClass3Net: toNetSalary(
       num(
         obj.husbandClass3Net,
