@@ -23,6 +23,7 @@ import {
 } from "#engine/simulator/timelineGenerator";
 import {
   TaxClass,
+  SimulationStrategy,
   ScenarioId,
   TargetPerson,
   CliOutputFormat,
@@ -32,6 +33,7 @@ import {
   ActionCategory,
   ActionType,
   toTaxClass,
+  toStrategyId,
   toGrossSalary,
   toWorkingHours,
   toCliOutputFormat,
@@ -101,13 +103,16 @@ function formatEuro(amount: number): string {
 }
 
 /**
- * CLI Scenario Execution Target Filter (A, B, C, or Compare).
+ * CLI Strategy Execution Target Filter (StatusQuo, UnoptimizedBaseline, StatutoryOptimized, or Compare).
  */
 export const CliScenarioTarget = {
-  A: ScenarioId.A,
-  B: ScenarioId.B,
-  C: ScenarioId.C,
+  StatusQuo: SimulationStrategy.StatusQuo,
+  UnoptimizedBaseline: SimulationStrategy.UnoptimizedBaseline,
+  StatutoryOptimized: SimulationStrategy.StatutoryOptimized,
   Compare: "compare",
+  A: SimulationStrategy.StatusQuo,
+  B: SimulationStrategy.UnoptimizedBaseline,
+  C: SimulationStrategy.StatutoryOptimized,
 } as const;
 export type CliScenarioTarget =
   (typeof CliScenarioTarget)[keyof typeof CliScenarioTarget];
@@ -115,21 +120,16 @@ export type CliScenarioTarget =
 /**
  * Validates and normalizes string input into a strongly-typed `CliScenarioTarget`.
  *
- * @param val - Scenario target flag argument ('A', 'B', 'C', or 'compare').
+ * @param val - Strategy target flag argument ('status_quo', 'unoptimized_baseline', 'statutory_optimized', 'compare', or legacy 'A'/'B'/'C').
  * @returns Strongly-typed `CliScenarioTarget`.
  * @throws {TypeError} if input does not match expected target options.
  */
 export function toCliScenarioTarget(val: string): CliScenarioTarget {
-  const upper = val.toUpperCase();
-  if (upper === "A" || upper === "B" || upper === "C") {
-    return upper as CliScenarioTarget;
-  }
-  if (upper === "COMPARE") {
+  const norm = val.trim().toLowerCase();
+  if (norm === "compare" || norm === "all") {
     return CliScenarioTarget.Compare;
   }
-  throw new TypeError(
-    `Invalid CLI scenario target: ${val}. Expected 'A', 'B', 'C', or 'compare'.`,
-  );
+  return toStrategyId(val) as CliScenarioTarget;
 }
 
 export function parseMonthArg(val: string): string | number {
