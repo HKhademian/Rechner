@@ -20,7 +20,8 @@ import {
   EXPORT_SCHEMA_VERSION,
 } from "#engine/storage/exportImport";
 import {
-  type ImportValidationResult, ScenarioId, 
+  type ImportValidationResult,
+  ScenarioId,
 } from "#engine/types";
 import {
   type ElterngeldPersistedState, 

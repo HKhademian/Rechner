@@ -2,7 +2,8 @@ import type {
   JSX, 
 } from "preact";
 import {
-  activeThemeMode, setThemeMode, 
+  activeThemeMode,
+  setThemeMode,
 } from "#store/themeStore";
 import {
   ThemeMode, 

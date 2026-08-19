@@ -8,7 +8,8 @@ import {
   scrollToLegalRule, 
 } from "#store/elterngeldStore";
 import {
-  DismissIcon, StepTransitionIcon, 
+  DismissIcon,
+  StepTransitionIcon,
 } from "#components/Icons";
 
 /**

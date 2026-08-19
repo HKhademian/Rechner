@@ -2,7 +2,8 @@ import type {
   JSX, 
 } from "preact";
 import {
-  useState, useRef, 
+  useState,
+  useRef,
 } from "preact/hooks";
 import {
   chartMode,

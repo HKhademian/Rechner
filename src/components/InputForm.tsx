@@ -19,7 +19,8 @@ import {
   inputMode,
 } from "#store/calculatorStore";
 import {
-  useState, useEffect, 
+  useState,
+  useEffect,
 } from "preact/hooks";
 import TaxSettings from "#components/TaxSettings";
 import {
