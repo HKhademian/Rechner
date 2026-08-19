@@ -10,51 +10,81 @@ const localPlugin = {
       meta: {
         type: "layout",
         docs: {
-          description: "Enforce type imports and exports before value imports/exports in named specifier lists.",
+          description: "Enforce type imports and exports before value imports/exports and one specifier per line.",
         },
         fixable: "code",
         schema: [],
         messages: {
           typeImportsFirst: "Type import '{{name}}' must be placed before value imports in named import list.",
           typeExportsFirst: "Type export '{{name}}' must be placed before value exports in named export list.",
+          oneImportPerLine: "Import specifier '{{name}}' must be placed on its own line (strictly one element per line).",
+          oneExportPerLine: "Export specifier '{{name}}' must be placed on its own line (strictly one element per line).",
         },
       },
       create(context) {
         function checkSpecifiers(node, isExport = false) {
           const specifiers = node.specifiers;
-          if (!specifiers || specifiers.length <= 1) {
+          if (!specifiers || specifiers.length === 0) {
             return;
           }
 
           const namedSpecs = specifiers.filter(
             (s) => s.type === (isExport ? "ExportSpecifier" : "ImportSpecifier"),
           );
-          if (namedSpecs.length <= 1) {
+          if (namedSpecs.length === 0) {
+            return;
+          }
+
+          const sourceCode = context.sourceCode || context.getSourceCode();
+          const firstSpec = namedSpecs[0];
+          const lastSpec = namedSpecs[namedSpecs.length - 1];
+          const openBrace = sourceCode.getTokenBefore(firstSpec, (t) => t.value === "{");
+          const closeBrace = sourceCode.getTokenAfter(lastSpec, (t) => t.value === "}");
+
+          if (!openBrace || !closeBrace) {
             return;
           }
 
           let seenValue = false;
-          let firstViolation = null;
+          let orderViolation = null;
+          let sameLineViolation = null;
 
+          // Check if opening brace or closing brace shares line with a specifier
+          if (openBrace.loc.end.line === firstSpec.loc.start.line) {
+            sameLineViolation = firstSpec;
+          }
+          if (closeBrace.loc.start.line === lastSpec.loc.end.line) {
+            sameLineViolation = lastSpec;
+          }
+
+          const linesSeen = new Set();
           for (const spec of namedSpecs) {
             const isType = spec.exportKind === "type" || spec.importKind === "type";
             if (isType) {
-              if (seenValue && !firstViolation) {
-                firstViolation = spec;
+              if (seenValue && !orderViolation) {
+                orderViolation = spec;
               }
             }
             else {
               seenValue = true;
             }
+
+            if (linesSeen.has(spec.loc.start.line) && !sameLineViolation) {
+              sameLineViolation = spec;
+            }
+            linesSeen.add(spec.loc.start.line);
           }
 
-          if (firstViolation) {
-            const sourceCode = context.sourceCode || context.getSourceCode();
-            const name = (firstViolation.imported || firstViolation.local)?.name || "type";
+          if (orderViolation || sameLineViolation) {
+            const violationNode = orderViolation || sameLineViolation;
+            const name = (violationNode.imported || violationNode.local)?.name || "specifier";
+            const messageId = orderViolation
+              ? (isExport ? "typeExportsFirst" : "typeImportsFirst")
+              : (isExport ? "oneExportPerLine" : "oneImportPerLine");
 
             context.report({
-              node: firstViolation,
-              messageId: isExport ? "typeExportsFirst" : "typeImportsFirst",
+              node: violationNode,
+              messageId,
               data: { name },
               fix(fixer) {
                 const typeSpecs = namedSpecs.filter(
@@ -67,28 +97,8 @@ const localPlugin = {
                 const sortedSpecs = [...typeSpecs, ...valueSpecs];
                 const specTexts = sortedSpecs.map((s) => sourceCode.getText(s));
 
-                const firstSpec = namedSpecs[0];
-                const lastSpec = namedSpecs[namedSpecs.length - 1];
-
-                const tokenAfter = sourceCode.getTokenAfter(lastSpec);
-                const hasTrailingComma = tokenAfter && tokenAfter.value === ",";
-                const endRange = hasTrailingComma ? tokenAfter.range[1] : lastSpec.range[1];
-                const startRange = firstSpec.range[0];
-
-                const isMultiline = firstSpec.loc.start.line !== lastSpec.loc.end.line;
-
-                if (isMultiline) {
-                  const lineText = sourceCode.lines[firstSpec.loc.start.line - 1];
-                  const indentMatch = lineText.match(/^(\s*)/);
-                  const indent = indentMatch ? indentMatch[1] : "  ";
-
-                  const formatted = specTexts.join(`,\n${indent}`) + ",";
-                  return fixer.replaceTextRange([startRange, endRange], formatted);
-                }
-                else {
-                  const formatted = specTexts.join(", ") + (hasTrailingComma ? "," : "");
-                  return fixer.replaceTextRange([startRange, endRange], formatted);
-                }
+                const replacement = `\n  ${specTexts.join(",\n  ")},\n`;
+                return fixer.replaceTextRange([openBrace.range[1], closeBrace.range[0]], replacement);
               },
             });
           }
