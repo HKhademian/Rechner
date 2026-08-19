@@ -4,6 +4,7 @@ import {
 import {
   type ScenarioId as ScenarioIdType,
   ScenarioId,
+  SimulationStrategy,
   type ActiveScenarioView,
   type TimelineChartMode,
   type TimelineTimeRangeFilter,
@@ -659,10 +660,11 @@ export const postMutterschutzMonths = signal<MonthDuration>(
   initialPersisted.postMutterschutzMonths,
 ); // 8 weeks
 
-// UI & View State
+// UI & Strategy View State
 export const activeScenario = signal<ActiveScenarioView>(
   initialPersisted.activeScenario,
 );
+export const activeStrategy = activeScenario;
 export const chartMode = signal<TimelineChartMode>(initialPersisted.chartMode);
 export const timeRangeFilter = signal<TimelineTimeRangeFilter>(
   initialPersisted.timeRangeFilter,
@@ -952,7 +954,9 @@ export function persistCurrentState(): void {
  */
 export function importSimulationState(
   newState: ElterngeldPersistedState,
+  options: { preserveActiveScenario?: boolean } = { preserveActiveScenario: true },
 ): void {
+  const currentView = activeScenario.value;
   salaryInputMode.value = newState.salaryInputMode;
   salaryPeriod.value = newState.salaryPeriod;
   husbandGross.value = newState.husbandGross;
@@ -1033,7 +1037,16 @@ export function importSimulationState(
   ];
   customFinancialEvents.value = [...(newState.customFinancialEvents || [])];
 
-  activeScenario.value = newState.activeScenario;
+  if (!options.preserveActiveScenario && newState.activeScenario) {
+    activeScenario.value = newState.activeScenario;
+  }
+  else if (!activeScenario.value) {
+    activeScenario.value = newState.activeScenario;
+  }
+  else {
+    activeScenario.value = currentView;
+  }
+
   chartMode.value = newState.chartMode;
   timeRangeFilter.value = newState.timeRangeFilter;
 
@@ -1322,22 +1335,31 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
   });
 }
 
-// Computed results for all 3 scenarios
-export const scenarioAData = computed(() => computeTimelineData(ScenarioId.A));
-export const scenarioBData = computed(() => computeTimelineData(ScenarioId.B));
-export const scenarioCData = computed(() => computeTimelineData(ScenarioId.C));
+// Computed results for all 3 strategies (StatusQuo, UnoptimizedBaseline, StatutoryOptimized)
+export const statusQuoData = computed(() =>
+  computeTimelineData(SimulationStrategy.StatusQuo));
+export const unoptimizedBaselineData = computed(() =>
+  computeTimelineData(SimulationStrategy.UnoptimizedBaseline));
+export const statutoryOptimizedData = computed(() =>
+  computeTimelineData(SimulationStrategy.StatutoryOptimized));
 
-// Current active scenario data
+// Backward compatibility aliases
+export const scenarioAData = statusQuoData;
+export const scenarioBData = unoptimizedBaselineData;
+export const scenarioCData = statutoryOptimizedData;
+
+// Current active strategy data
 export const currentScenarioData = computed(() => {
   const key = activeScenario.value;
-  if (key === ScenarioId.A) {
-    return scenarioAData.value;
+  if (key === SimulationStrategy.StatusQuo) {
+    return statusQuoData.value;
   }
-  if (key === ScenarioId.B) {
-    return scenarioBData.value;
+  if (key === SimulationStrategy.UnoptimizedBaseline) {
+    return unoptimizedBaselineData.value;
   }
-  return scenarioCData.value;
+  return statutoryOptimizedData.value;
 });
+export const currentStrategyData = currentScenarioData;
 
 // Comparison metrics (C vs B and C vs A)
 export const comparisonMetrics = computed(() => {
