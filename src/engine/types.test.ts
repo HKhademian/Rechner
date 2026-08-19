@@ -3,6 +3,31 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type SimulationMonth,
+  type CalendarYear,
+  type FullCalendarYear,
+  type CalendarMonth,
+  type MonthDuration,
+  type ChildrenCount,
+  type ChildIndex,
+  type PercentageRate,
+  type MonthId,
+  type CalendarLabel,
+  type WorkingHours,
+  type EuroAmount,
+  type EuroCents,
+  type GrossSalary,
+  type NetSalary,
+  type StatutoryCitation,
+  type TransactionId,
+  type EventId,
+  type ActionId,
+  type PregnancyId,
+  type SwitchId,
+  type RaiseId,
+  type FinancialEventId,
+  type EntityId,
+  type KinderfreibetragAnnualAmount,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
@@ -77,31 +102,6 @@ import {
   ActionType,
   FinancialEventCategory,
   TargetPerson,
-  type SimulationMonth,
-  type CalendarYear,
-  type FullCalendarYear,
-  type CalendarMonth,
-  type MonthDuration,
-  type ChildrenCount,
-  type ChildIndex,
-  type PercentageRate,
-  type MonthId,
-  type CalendarLabel,
-  type WorkingHours,
-  type EuroAmount,
-  type EuroCents,
-  type GrossSalary,
-  type NetSalary,
-  type StatutoryCitation,
-  type TransactionId,
-  type EventId,
-  type ActionId,
-  type PregnancyId,
-  type SwitchId,
-  type RaiseId,
-  type FinancialEventId,
-  type EntityId,
-  type KinderfreibetragAnnualAmount,
 } from "#engine/types";
 
 describe("Strongly-Typed Domain Types & Constructors", () => {
@@ -474,8 +474,14 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
   describe("SimulationStrategy & StrategyId (Feature Test)", () => {
     it("defines canonical strategy values for StatusQuo, UnoptimizedBaseline, and StatutoryOptimized", () => {
       assert.equal(SimulationStrategy.StatusQuo, "status_quo");
-      assert.equal(SimulationStrategy.UnoptimizedBaseline, "unoptimized_baseline");
-      assert.equal(SimulationStrategy.StatutoryOptimized, "statutory_optimized");
+      assert.equal(
+        SimulationStrategy.UnoptimizedBaseline,
+        "unoptimized_baseline",
+      );
+      assert.equal(
+        SimulationStrategy.StatutoryOptimized,
+        "statutory_optimized",
+      );
       assert.equal(StrategyId.StatusQuo, "status_quo");
       assert.equal(ScenarioId.A, "status_quo");
       assert.equal(ScenarioId.B, "unoptimized_baseline");
@@ -484,8 +490,14 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
 
     it("toStrategyId / toScenarioId validates canonical and legacy strategy keys", () => {
       assert.equal(toStrategyId("status_quo"), SimulationStrategy.StatusQuo);
-      assert.equal(toStrategyId("unoptimized_baseline"), SimulationStrategy.UnoptimizedBaseline);
-      assert.equal(toStrategyId("statutory_optimized"), SimulationStrategy.StatutoryOptimized);
+      assert.equal(
+        toStrategyId("unoptimized_baseline"),
+        SimulationStrategy.UnoptimizedBaseline,
+      );
+      assert.equal(
+        toStrategyId("statutory_optimized"),
+        SimulationStrategy.StatutoryOptimized,
+      );
       assert.equal(toScenarioId("A"), SimulationStrategy.StatusQuo);
       assert.equal(toScenarioId("B"), SimulationStrategy.UnoptimizedBaseline);
       assert.equal(toScenarioId("C"), SimulationStrategy.StatutoryOptimized);
@@ -501,8 +513,14 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
   describe("ActiveStrategyView (Feature Test)", () => {
     it("defines individual strategies and compare overlay mode", () => {
       assert.equal(ActiveStrategyView.StatusQuo, "status_quo");
-      assert.equal(ActiveStrategyView.UnoptimizedBaseline, "unoptimized_baseline");
-      assert.equal(ActiveStrategyView.StatutoryOptimized, "statutory_optimized");
+      assert.equal(
+        ActiveStrategyView.UnoptimizedBaseline,
+        "unoptimized_baseline",
+      );
+      assert.equal(
+        ActiveStrategyView.StatutoryOptimized,
+        "statutory_optimized",
+      );
       assert.equal(ActiveStrategyView.Compare, "compare");
       assert.equal(ActiveScenarioView.A, "status_quo");
       assert.equal(ActiveScenarioView.B, "unoptimized_baseline");
@@ -510,13 +528,28 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
     });
 
     it("toActiveStrategyView / toActiveScenarioView accepts strategy members and compare", () => {
-      assert.equal(toActiveStrategyView("status_quo"), ActiveStrategyView.StatusQuo);
-      assert.equal(toActiveStrategyView("unoptimized_baseline"), ActiveStrategyView.UnoptimizedBaseline);
-      assert.equal(toActiveStrategyView("statutory_optimized"), ActiveStrategyView.StatutoryOptimized);
+      assert.equal(
+        toActiveStrategyView("status_quo"),
+        ActiveStrategyView.StatusQuo,
+      );
+      assert.equal(
+        toActiveStrategyView("unoptimized_baseline"),
+        ActiveStrategyView.UnoptimizedBaseline,
+      );
+      assert.equal(
+        toActiveStrategyView("statutory_optimized"),
+        ActiveStrategyView.StatutoryOptimized,
+      );
       assert.equal(toActiveStrategyView("compare"), ActiveStrategyView.Compare);
       assert.equal(toActiveScenarioView("A"), ActiveStrategyView.StatusQuo);
-      assert.equal(toActiveScenarioView("B"), ActiveStrategyView.UnoptimizedBaseline);
-      assert.equal(toActiveScenarioView("C"), ActiveStrategyView.StatutoryOptimized);
+      assert.equal(
+        toActiveScenarioView("B"),
+        ActiveStrategyView.UnoptimizedBaseline,
+      );
+      assert.equal(
+        toActiveScenarioView("C"),
+        ActiveStrategyView.StatutoryOptimized,
+      );
     });
 
     it("toActiveStrategyView rejects invalid views", () => {
@@ -1050,7 +1083,10 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         BonusDistributionPreset.Custom,
       );
 
-      assert.throws(() => toBonusDistributionPreset("unknown_preset"), TypeError);
+      assert.throws(
+        () => toBonusDistributionPreset("unknown_preset"),
+        TypeError,
+      );
     });
   });
 });

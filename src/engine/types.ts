@@ -1215,11 +1215,7 @@ export function toStrategyId(val: string): StrategyId {
   ) {
     return SimulationStrategy.UnoptimizedBaseline;
   }
-  if (
-    norm === "statutory_optimized" ||
-    norm === "optimized" ||
-    norm === "c"
-  ) {
+  if (norm === "statutory_optimized" || norm === "optimized" || norm === "c") {
     return SimulationStrategy.StatutoryOptimized;
   }
   const values = Object.values(SimulationStrategy) as string[];
