@@ -805,7 +805,7 @@ function printSpousalGrossToNetSet(
 
 function printFieldExplanation(
   exp: FieldExplanation,
-  monthNum: number,
+  _monthNum: number,
   scenarioId: ScenarioId,
   m: TimelineMonth,
 ): void {
