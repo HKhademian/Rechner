@@ -14,6 +14,10 @@ import {
   runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
+  type ActionRowItem,
+  type SpecialEventItem,
   TaxClass,
   ScenarioId,
   ActionType,
@@ -45,10 +49,6 @@ import {
   toActionId,
   toEventId,
   toStatutoryCitation,
-  type PreexistingConditions,
-  type PregnancyAction,
-  type ActionRowItem,
-  type SpecialEventItem,
 } from "#engine/types";
 
 describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {

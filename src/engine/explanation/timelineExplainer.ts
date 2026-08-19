@@ -2,6 +2,8 @@ import {
   type TimelineMonth,
   type SpecialEventItem,
   type ActionRowItem,
+  type StatutoryCitation,
+  type EuroAmount,
   ScenarioId,
   ActionType,
   ActionCategory,
@@ -13,11 +15,9 @@ import {
   toExplanationFieldKey,
   toStatutoryCitation,
   toEuroAmount,
-  type StatutoryCitation,
-  type EuroAmount,
 } from "#engine/types";
 import {
-  LegalRuleKey, type LegalRuleKeyType, 
+  type LegalRuleKeyType, LegalRuleKey, 
 } from "#store/elterngeldStore";
 
 function formatCurrency(amount: number): string {
@@ -543,9 +543,7 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.Mutterschutz: {
-      const bMutterschutz = bMonth
-        ? bMonth.mutterschutz
-        : mutterschutzVal;
+      const bMutterschutz = bMonth ? bMonth.mutterschutz : mutterschutzVal;
       const diffM = mutterschutzVal - bMutterschutz;
       const preNet = scenarioId === ScenarioId.C ? 2603 : 1975;
       return {
@@ -737,9 +735,7 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.HusbandElterngeld: {
-      const bHusbandEg = bMonth
-        ? bMonth.husbandElterngeld
-        : hElterngeld;
+      const bHusbandEg = bMonth ? bMonth.husbandElterngeld : hElterngeld;
       const diffHeg = hElterngeld - bHusbandEg;
       const isReallocated = m.isMutterschutz && hElterngeld > 0;
 
@@ -769,12 +765,14 @@ export function getFieldExplanation(
             {
               name: "Mother Status",
               value: "Mutterschutz (100% Wage Replacement)",
-              description: "Offsetting mother's Elterngeld under § 3 Abs. 1 BEEG",
+              description:
+                  "Offsetting mother's Elterngeld under § 3 Abs. 1 BEEG",
             },
             {
               name: "Father Status",
               value: "Part-Time <= 32h/week",
-              description: "Eligible to receive Elterngeld under § 1 Abs. 1 Nr. 4 BEEG",
+              description:
+                  "Eligible to receive Elterngeld under § 1 Abs. 1 Nr. 4 BEEG",
             },
           ]
           : hElterngeld > 0
@@ -814,7 +812,8 @@ export function getFieldExplanation(
             },
             {
               stepNumber: 2,
-              description: "Reallocate remaining Child 1 entitlement to Father",
+              description:
+                  "Reallocate remaining Child 1 entitlement to Father",
               formula: "Transfer Child 1 EGPlus to Father (§ 7 Abs. 2 BEEG)",
               result: formatCurrency(hElterngeld),
             },
@@ -1054,9 +1053,7 @@ export function getFieldExplanation(
           },
           {
             name: "Scenario B Reference Balance",
-            value: bMonth
-              ? formatCurrency(bMonth.cumulatedTotal)
-              : "—",
+            value: bMonth ? formatCurrency(bMonth.cumulatedTotal) : "—",
             description: "Comparison baseline",
           },
         ],
