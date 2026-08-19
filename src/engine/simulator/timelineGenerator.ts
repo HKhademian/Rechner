@@ -5,7 +5,8 @@ import {
   type NetSalary,
   type EuroAmount,
   TaxClass,
-  ScenarioId,
+  SimulationStrategy,
+  type StrategyId,
   type AnnualSalariesCount,
   TransactionType,
   TransactionDirection,
@@ -85,13 +86,16 @@ import {
 import {
   computeSiblingBonus, 
 } from "#engine/benefits/siblingBonus";
+import {
+  synthesizeStrategyBatches, 
+} from "#engine/simulator/strategySynthesizer";
 
 /**
  * Input Parameter Specification for Legacy Timeline Simulation.
  */
 export interface TimelineSimulationParams {
-  /** Target scenario key (A, B, or C). */
-  readonly scenarioKey: ScenarioId;
+  /** Target strategy key (StatusQuo, UnoptimizedBaseline, StatutoryOptimized). */
+  readonly scenarioKey: StrategyId;
   /** 4-digit Gregorian simulation start year (e.g. 2025). */
   readonly startCalendarYear?: FullCalendarYear;
   /** 1-based Gregorian simulation start month (1..12). */
@@ -202,8 +206,9 @@ export function calculateSimulationStartDate(
  * @returns Complete `SimulationResult` containing monthly ledger entries and aggregated KPI summary.
  */
 export function runScenarioBatches(
-  batches: ScenarioActionBatches,
+  inputBatches: ScenarioActionBatches,
 ): SimulationResult {
+  const batches = synthesizeStrategyBatches(inputBatches);
   const {
     scenarioKey,
     preexisting,
@@ -393,7 +398,7 @@ export function runScenarioBatches(
     let activeTaxFactor = initialTaxFactor;
     let isSwapActive = false;
 
-    if (scenarioKey === ScenarioId.C) {
+    if (scenarioKey === SimulationStrategy.StatutoryOptimized) {
       taxClassSwitches.forEach((sw) => {
         const eff = sw.effectiveSimulationMonth;
         const rev = sw.revertSimulationMonth ?? Infinity;
@@ -500,7 +505,7 @@ export function runScenarioBatches(
     const transactions: AccountingTransaction[] = [];
 
     // --- Batch 1: Evaluate Active Pregnancies & Parental Leaves ---
-    if (scenarioKey === ScenarioId.A) {
+    if (scenarioKey === SimulationStrategy.StatusQuo) {
       husbandSalary = toEuroAmount(husbandSalaryNum);
       wifeSalary = toEuroAmount(wifeFTNetNum);
       phaseLabel = "Standard Career (No Children)";
@@ -540,7 +545,7 @@ export function runScenarioBatches(
           wifeSalary = toEuroAmount(0);
           wifeElterngeld = toEuroAmount(0);
 
-          if (scenarioKey === ScenarioId.C) {
+          if (scenarioKey === SimulationStrategy.StatutoryOptimized) {
             const mRate = pIdx === 0 ? curW3FT : curW3PT;
             mutterschutz = toEuroAmount(mRate);
             phaseLabel =
@@ -575,7 +580,11 @@ export function runScenarioBatches(
                     ? Math.round(prevPtW5 * (prevPtHours / (preexisting.wifeWeeklyHours || 40)))
                     : curW5PT;
                 const egEntitlement = computeElterngeldBenefits(
-                  toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+                  toNetSalary(
+                    scenarioKey === SimulationStrategy.StatutoryOptimized
+                      ? curW3FT
+                      : curW5FT,
+                  ),
                   toNetSalary(dynamicW5PT),
                   prevPtHours,
                 );
@@ -644,7 +653,11 @@ export function runScenarioBatches(
               // Mother's benefit calculation
               if (pIdx === 0) {
                 const egEntitlement = computeElterngeldBenefits(
-                  toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+                  toNetSalary(
+                    scenarioKey === SimulationStrategy.StatutoryOptimized
+                      ? curW3FT
+                      : curW5FT,
+                  ),
                   toNetSalary(dynamicW5PT),
                   motherHours,
                 );
@@ -654,10 +667,13 @@ export function runScenarioBatches(
                 const blendedNet = toNetSalary(
                   Math.round(
                     (10 *
-                      (scenarioKey === ScenarioId.C
+                      (scenarioKey === SimulationStrategy.StatutoryOptimized
                         ? dynamicW3PT
                         : dynamicW5PT) +
-                      2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
+                      2 *
+                        (scenarioKey === SimulationStrategy.StatutoryOptimized
+                          ? curW3FT
+                          : curW5FT)) /
                       12,
                   ),
                 );
@@ -696,7 +712,11 @@ export function runScenarioBatches(
               if (pIdx === 0) {
                 // Child 1
                 const egEntitlement = computeElterngeldBenefits(
-                  toNetSalary(scenarioKey === ScenarioId.C ? curW3FT : curW5FT),
+                  toNetSalary(
+                    scenarioKey === SimulationStrategy.StatutoryOptimized
+                      ? curW3FT
+                      : curW5FT,
+                  ),
                   toNetSalary(dynamicW5PT),
                   motherHours,
                 );
@@ -708,10 +728,13 @@ export function runScenarioBatches(
                 const blendedNet = toNetSalary(
                   Math.round(
                     (10 *
-                      (scenarioKey === ScenarioId.C
+                      (scenarioKey === SimulationStrategy.StatutoryOptimized
                         ? dynamicW3PT
                         : dynamicW5PT) +
-                      2 * (scenarioKey === ScenarioId.C ? curW3FT : curW5FT)) /
+                      2 *
+                        (scenarioKey === SimulationStrategy.StatutoryOptimized
+                          ? curW3FT
+                          : curW5FT)) /
                       12,
                   ),
                 );
@@ -773,7 +796,10 @@ export function runScenarioBatches(
     // Exact Wage Withholding Deficit during active swap
 
     let monthlyWithholdingDeficit = toEuroAmount(0);
-    if (scenarioKey === ScenarioId.C && isSwapActive) {
+    if (
+      scenarioKey === SimulationStrategy.StatutoryOptimized &&
+      isSwapActive
+    ) {
       const isPT =
         (pregnancies.length > 0 && m > child1Delivery) ||
         phaseLabel.includes("Part-Time");
@@ -1378,7 +1404,10 @@ export function runScenarioBatches(
 
     taxClassSwitches.forEach((sw, sIdx) => {
       const eff = sw.effectiveSimulationMonth;
-      if (m === eff && scenarioKey === ScenarioId.C) {
+      if (
+        m === eff &&
+        scenarioKey === SimulationStrategy.StatutoryOptimized
+      ) {
         eventTag = `Tax Swap ${sIdx + 1} (${rm.calendarLabel})`;
         eventType = "swap";
       }
@@ -1770,7 +1799,10 @@ export function runScenarioBatches(
       const revH = revHTax + (revUseFac ? " (F)" : "");
       const revW = revWTax + (revUseFac ? " (F)" : "");
 
-      if (m === eff && scenarioKey === ScenarioId.C) {
+      if (
+        m === eff &&
+        scenarioKey === SimulationStrategy.StatutoryOptimized
+      ) {
         startingActions.push({
           actionId: toActionId(`${sw.switchId}-${rm.monthId}-EFFECTIVE`),
           monthId: rm.monthId,
@@ -1787,7 +1819,10 @@ export function runScenarioBatches(
           taxClassLabel: `H: ${effH} | W: ${effW}`,
         });
       }
-      if (m === rev && scenarioKey === ScenarioId.C) {
+      if (
+        m === rev &&
+        scenarioKey === SimulationStrategy.StatutoryOptimized
+      ) {
         startingActions.push({
           actionId: toActionId(`${sw.switchId}-${rm.monthId}-REVERT`),
           monthId: rm.monthId,
