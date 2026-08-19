@@ -1,5 +1,6 @@
 import {
-  describe, it, 
+  describe,
+  it,
 } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -9,7 +10,8 @@ import {
   promisify, 
 } from "node:util";
 import {
-  parseMonthArg, parseFieldArg, 
+  parseMonthArg,
+  parseFieldArg,
 } from "#cli/runner";
 import {
   FieldColumnKey, 
