@@ -30,12 +30,19 @@ import {
   setSalaryPeriod,
   derivedSpousalSet,
   husbandHours,
+  husbandSalariesCount,
+  husbandBonusPreset,
+  setHusbandSalariesCount,
+  setHusbandBonusPreset,
   wifeClass5PartTimeNet,
   wifeClass3PartTimeNet,
   wifeInitialHours,
   wifePostBirthHours,
+  wifeSalariesCount,
+  wifeBonusPreset,
+  setWifeSalariesCount,
+  setWifeBonusPreset,
   kindergeldPerChild,
-  enable13thSalary,
   startCalendarYear,
   startCalendarMonth,
   simulationDurationMonths,
@@ -77,6 +84,8 @@ import {
   TargetPerson,
   FinancialEventCategory,
   SalaryPeriod,
+  AnnualSalariesCount,
+  BonusDistributionPreset,
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
@@ -2717,6 +2726,256 @@ export default function SandboxControls(): JSX.Element {
                         ))}
                       </div>
                     </div>
+
+                    {/* Husband Annual Salaries Count & Bonus Distribution */}
+                    <div style={{ marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span style={{ color: "var(--text-muted)" }}>
+                          Annual Salaries:
+                        </span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--color-primary)",
+                          }}
+                        >
+                          {husbandSalariesCount.value}x / yr
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "3px",
+                          marginBottom: "3px",
+                        }}
+                      >
+                        {[
+                          { label: "12x",
+                            val: AnnualSalariesCount.Twelve },
+                          { label: "13x",
+                            val: AnnualSalariesCount.Thirteen },
+                          { label: "14x",
+                            val: AnnualSalariesCount.Fourteen },
+                          { label: "15x",
+                            val: AnnualSalariesCount.Fifteen },
+                        ].map((pill) => (
+                          <button
+                            key={`h-salaries-${pill.val}`}
+                            type="button"
+                            onClick={() => setHusbandSalariesCount(pill.val)}
+                            style={{
+                              flex: 1,
+                              padding: "1px 4px",
+                              fontSize: "0.62rem",
+                              borderRadius: "3px",
+                              border:
+                                husbandSalariesCount.value === pill.val
+                                  ? "1px solid var(--color-primary)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                husbandSalariesCount.value === pill.val
+                                  ? "var(--color-primary-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                husbandSalariesCount.value === pill.val
+                                  ? "var(--color-primary)"
+                                  : "var(--text-muted)",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {pill.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Husband Bonus Distribution Options if > 12 */}
+                      {husbandSalariesCount.value === AnnualSalariesCount.Thirteen && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            padding: "4px 6px",
+                            background: "var(--bg-surface)",
+                            borderRadius: "3px",
+                            border: "1px solid var(--border-subtle)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          <div style={{ color: "var(--text-muted)",
+                            fontSize: "0.60rem",
+                            fontWeight: 600 }}>
+                            13th Salary Distribution Ratio:
+                          </div>
+                          <div style={{ display: "flex",
+                            gap: "3px",
+                            flexWrap: "wrap" }}>
+                            {[
+                              { label: "40/60 (May/Nov)",
+                                val: BonusDistributionPreset.Ratio40_60 },
+                              { label: "50/50 (Jun/Nov)",
+                                val: BonusDistributionPreset.Ratio50_50 },
+                              { label: "100% Nov",
+                                val: BonusDistributionPreset.Single100Nov },
+                              { label: "100% Dec",
+                                val: BonusDistributionPreset.Single100Dec },
+                            ].map((preset) => (
+                              <button
+                                key={`h-preset-${preset.val}`}
+                                type="button"
+                                onClick={() => setHusbandBonusPreset(preset.val)}
+                                style={{
+                                  padding: "1px 4px",
+                                  fontSize: "0.58rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "1px solid var(--color-primary)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "var(--color-primary-bg)"
+                                      : "transparent",
+                                  color:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "var(--color-primary)"
+                                      : "var(--text-secondary)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {husbandSalariesCount.value === AnnualSalariesCount.Fourteen && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            padding: "4px 6px",
+                            background: "var(--bg-surface)",
+                            borderRadius: "3px",
+                            border: "1px solid var(--border-subtle)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          <div style={{ color: "var(--text-muted)",
+                            fontSize: "0.60rem",
+                            fontWeight: 600 }}>
+                            14th Salary Distribution:
+                          </div>
+                          <div style={{ display: "flex",
+                            gap: "3px",
+                            flexWrap: "wrap" }}>
+                            {[
+                              { label: "100%/100% (Jun/Nov)",
+                                val: BonusDistributionPreset.Double100_100 },
+                              { label: "Quarterly 50%",
+                                val: BonusDistributionPreset.Quarterly },
+                            ].map((preset) => (
+                              <button
+                                key={`h-preset-${preset.val}`}
+                                type="button"
+                                onClick={() => setHusbandBonusPreset(preset.val)}
+                                style={{
+                                  padding: "1px 4px",
+                                  fontSize: "0.58rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "1px solid var(--color-primary)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "var(--color-primary-bg)"
+                                      : "transparent",
+                                  color:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "var(--color-primary)"
+                                      : "var(--text-secondary)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {husbandSalariesCount.value === AnnualSalariesCount.Fifteen && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            padding: "4px 6px",
+                            background: "var(--bg-surface)",
+                            borderRadius: "3px",
+                            border: "1px solid var(--border-subtle)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          <div style={{ color: "var(--text-muted)",
+                            fontSize: "0.60rem",
+                            fontWeight: 600 }}>
+                            15th Salary Distribution:
+                          </div>
+                          <div style={{ display: "flex",
+                            gap: "3px",
+                            flexWrap: "wrap" }}>
+                            {[
+                              { label: "100% Mar/Jun/Nov",
+                                val: BonusDistributionPreset.Triple100_100_100 },
+                              { label: "Quarterly 75%",
+                                val: BonusDistributionPreset.Quarterly },
+                            ].map((preset) => (
+                              <button
+                                key={`h-preset-${preset.val}`}
+                                type="button"
+                                onClick={() => setHusbandBonusPreset(preset.val)}
+                                style={{
+                                  padding: "1px 4px",
+                                  fontSize: "0.58rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "1px solid var(--color-primary)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "var(--color-primary-bg)"
+                                      : "transparent",
+                                  color:
+                                    husbandBonusPreset.value === preset.val
+                                      ? "var(--color-primary)"
+                                      : "var(--text-secondary)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Husband Tax Class Badges */}
@@ -2929,6 +3188,256 @@ export default function SandboxControls(): JSX.Element {
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Wife Annual Salaries Count & Bonus Distribution */}
+                    <div style={{ marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.72rem",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <span style={{ color: "var(--text-muted)" }}>
+                          Annual Salaries:
+                        </span>
+                        <span
+                          style={{
+                            fontVariantNumeric: "tabular-nums",
+                            fontWeight: 700,
+                            color: "var(--series-indigo)",
+                          }}
+                        >
+                          {wifeSalariesCount.value}x / yr
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "3px",
+                          marginBottom: "3px",
+                        }}
+                      >
+                        {[
+                          { label: "12x",
+                            val: AnnualSalariesCount.Twelve },
+                          { label: "13x",
+                            val: AnnualSalariesCount.Thirteen },
+                          { label: "14x",
+                            val: AnnualSalariesCount.Fourteen },
+                          { label: "15x",
+                            val: AnnualSalariesCount.Fifteen },
+                        ].map((pill) => (
+                          <button
+                            key={`w-salaries-${pill.val}`}
+                            type="button"
+                            onClick={() => setWifeSalariesCount(pill.val)}
+                            style={{
+                              flex: 1,
+                              padding: "1px 4px",
+                              fontSize: "0.62rem",
+                              borderRadius: "3px",
+                              border:
+                                wifeSalariesCount.value === pill.val
+                                  ? "1px solid var(--series-indigo)"
+                                  : "1px solid var(--border-subtle)",
+                              background:
+                                wifeSalariesCount.value === pill.val
+                                  ? "var(--color-primary-bg)"
+                                  : "var(--bg-surface)",
+                              color:
+                                wifeSalariesCount.value === pill.val
+                                  ? "var(--series-indigo)"
+                                  : "var(--text-muted)",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {pill.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Wife Bonus Distribution Options if > 12 */}
+                      {wifeSalariesCount.value === AnnualSalariesCount.Thirteen && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            padding: "4px 6px",
+                            background: "var(--bg-surface)",
+                            borderRadius: "3px",
+                            border: "1px solid var(--border-subtle)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          <div style={{ color: "var(--text-muted)",
+                            fontSize: "0.60rem",
+                            fontWeight: 600 }}>
+                            13th Salary Distribution Ratio:
+                          </div>
+                          <div style={{ display: "flex",
+                            gap: "3px",
+                            flexWrap: "wrap" }}>
+                            {[
+                              { label: "40/60 (May/Nov)",
+                                val: BonusDistributionPreset.Ratio40_60 },
+                              { label: "50/50 (Jun/Nov)",
+                                val: BonusDistributionPreset.Ratio50_50 },
+                              { label: "100% Nov",
+                                val: BonusDistributionPreset.Single100Nov },
+                              { label: "100% Dec",
+                                val: BonusDistributionPreset.Single100Dec },
+                            ].map((preset) => (
+                              <button
+                                key={`w-preset-${preset.val}`}
+                                type="button"
+                                onClick={() => setWifeBonusPreset(preset.val)}
+                                style={{
+                                  padding: "1px 4px",
+                                  fontSize: "0.58rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "1px solid var(--series-indigo)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "var(--color-primary-bg)"
+                                      : "transparent",
+                                  color:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "var(--series-indigo)"
+                                      : "var(--text-secondary)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {wifeSalariesCount.value === AnnualSalariesCount.Fourteen && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            padding: "4px 6px",
+                            background: "var(--bg-surface)",
+                            borderRadius: "3px",
+                            border: "1px solid var(--border-subtle)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          <div style={{ color: "var(--text-muted)",
+                            fontSize: "0.60rem",
+                            fontWeight: 600 }}>
+                            14th Salary Distribution:
+                          </div>
+                          <div style={{ display: "flex",
+                            gap: "3px",
+                            flexWrap: "wrap" }}>
+                            {[
+                              { label: "100%/100% (Jun/Nov)",
+                                val: BonusDistributionPreset.Double100_100 },
+                              { label: "Quarterly 50%",
+                                val: BonusDistributionPreset.Quarterly },
+                            ].map((preset) => (
+                              <button
+                                key={`w-preset-${preset.val}`}
+                                type="button"
+                                onClick={() => setWifeBonusPreset(preset.val)}
+                                style={{
+                                  padding: "1px 4px",
+                                  fontSize: "0.58rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "1px solid var(--series-indigo)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "var(--color-primary-bg)"
+                                      : "transparent",
+                                  color:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "var(--series-indigo)"
+                                      : "var(--text-secondary)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {wifeSalariesCount.value === AnnualSalariesCount.Fifteen && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            padding: "4px 6px",
+                            background: "var(--bg-surface)",
+                            borderRadius: "3px",
+                            border: "1px solid var(--border-subtle)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          <div style={{ color: "var(--text-muted)",
+                            fontSize: "0.60rem",
+                            fontWeight: 600 }}>
+                            15th Salary Distribution:
+                          </div>
+                          <div style={{ display: "flex",
+                            gap: "3px",
+                            flexWrap: "wrap" }}>
+                            {[
+                              { label: "100% Mar/Jun/Nov",
+                                val: BonusDistributionPreset.Triple100_100_100 },
+                              { label: "Quarterly 75%",
+                                val: BonusDistributionPreset.Quarterly },
+                            ].map((preset) => (
+                              <button
+                                key={`w-preset-${preset.val}`}
+                                type="button"
+                                onClick={() => setWifeBonusPreset(preset.val)}
+                                style={{
+                                  padding: "1px 4px",
+                                  fontSize: "0.58rem",
+                                  borderRadius: "3px",
+                                  border:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "1px solid var(--series-indigo)"
+                                      : "1px solid var(--border-subtle)",
+                                  background:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "var(--color-primary-bg)"
+                                      : "transparent",
+                                  color:
+                                    wifeBonusPreset.value === preset.val
+                                      ? "var(--series-indigo)"
+                                      : "var(--text-secondary)",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -3816,60 +4325,37 @@ export default function SandboxControls(): JSX.Element {
                       <span>Standing Recurring Inflow Channels</span>
                     </div>
 
-                    {/* 13th Month Salary Toggle */}
+                    {/* Extra Salaries & Bonus Summary Badge */}
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
                         marginBottom: "6px",
+                        padding: "4px 8px",
+                        background: "var(--bg-surface)",
+                        borderRadius: "var(--border-radius-xs)",
+                        border: "1px solid var(--border-subtle)",
                       }}
                     >
                       <span
                         style={{
-                          fontSize: "0.70rem",
+                          fontSize: "0.68rem",
                           color: "var(--text-secondary)",
+                          fontWeight: 600,
                         }}
                       >
-                        13th Month Salary:
+                        13th-15th Salaries:
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          enable13thSalary.value = !enable13thSalary.value;
-                        }}
+                      <span
                         style={{
-                          padding: "2px 6px",
-                          borderRadius: "3px",
-                          border: enable13thSalary.value
-                            ? "1px solid var(--color-warning-border)"
-                            : "1px solid var(--border-subtle)",
-                          background: enable13thSalary.value
-                            ? "var(--color-warning-bg)"
-                            : "var(--bg-surface)",
-                          color: enable13thSalary.value
-                            ? "var(--color-warning)"
-                            : "var(--text-muted)",
                           fontSize: "0.65rem",
                           fontWeight: 700,
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
+                          color: "var(--color-primary)",
                         }}
                       >
-                        {enable13thSalary.value ? (
-                          <>
-                            <EligibilityConfirmedIcon size={10} />
-                            <span>Active (May &amp; Nov)</span>
-                          </>
-                        ) : (
-                          <>
-                            <RemoveItemIcon size={10} />
-                            <span>Disabled</span>
-                          </>
-                        )}
-                      </button>
+                        Husband: {husbandSalariesCount.value}x | Wife: {wifeSalariesCount.value}x
+                      </span>
                     </div>
 
                     {/* Annual Performance Bonus Slider */}
