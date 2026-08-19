@@ -3,31 +3,15 @@ import {
 } from "@preact/signals";
 import {
   type ScenarioId as ScenarioIdType,
-  ScenarioId,
-  SimulationStrategy,
   type ActiveScenarioView,
   type TimelineChartMode,
   type TimelineTimeRangeFilter,
-  TaxClass,
-  SalaryInputMode,
-  AnnualSalariesCount,
-  BonusDistributionPreset,
-  toAnnualSalariesCount,
-  toPercentageRate,
   type SalaryBonusSlot,
   type SalaryPeriod,
   type PregnancyId,
   type SwitchId,
   type RaiseId,
   type FinancialEventId,
-  toNetSalary,
-  toGrossSalary,
-  toEuroAmount,
-  toWorkingHours,
-  toSimulationMonth,
-  toCalendarMonth,
-  toFullCalendarYear,
-  toChildrenCount,
   type PreexistingConditions,
   type PregnancyAction,
   type TaxClassSwitchAction,
@@ -44,6 +28,22 @@ import {
   type SimulationMonth,
   type MonthDuration,
   type HoursChangeId,
+  ScenarioId,
+  SimulationStrategy,
+  TaxClass,
+  SalaryInputMode,
+  AnnualSalariesCount,
+  BonusDistributionPreset,
+  toAnnualSalariesCount,
+  toPercentageRate,
+  toNetSalary,
+  toGrossSalary,
+  toEuroAmount,
+  toWorkingHours,
+  toSimulationMonth,
+  toCalendarMonth,
+  toFullCalendarYear,
+  toChildrenCount,
 } from "#engine/types";
 import {
   runScenarioBatches,
@@ -53,12 +53,12 @@ import {
   deriveSpousalNetSalaries, 
 } from "#engine/tax/wageTax";
 import {
+  type ElterngeldPersistedState,
   getDefaultPersistedState,
   getEmptyPersistedState,
   loadFromStorage,
   saveToStorage,
   clearStorage,
-  type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 
 import {
@@ -332,7 +332,7 @@ export const husbandBonusPreset = signal<BonusDistributionPreset>(
 );
 export const husbandBonusDistribution = signal<readonly SalaryBonusSlot[]>(
   initialPersisted.husbandBonusDistribution &&
-  initialPersisted.husbandBonusDistribution.length > 0
+    initialPersisted.husbandBonusDistribution.length > 0
     ? initialPersisted.husbandBonusDistribution
     : createBonusDistributionSlots(
       husbandSalariesCount.value,
@@ -351,7 +351,7 @@ export const wifeBonusPreset = signal<BonusDistributionPreset>(
 );
 export const wifeBonusDistribution = signal<readonly SalaryBonusSlot[]>(
   initialPersisted.wifeBonusDistribution &&
-  initialPersisted.wifeBonusDistribution.length > 0
+    initialPersisted.wifeBonusDistribution.length > 0
     ? initialPersisted.wifeBonusDistribution
     : createBonusDistributionSlots(
       wifeSalariesCount.value,
@@ -513,10 +513,7 @@ export function setWifeBonusPreset(preset: BonusDistributionPreset) {
 
 export function setWifeBonusDistribution(slots: readonly SalaryBonusSlot[]) {
   wifeBonusDistribution.value = slots;
-  wifeBonusPreset.value = inferBonusPreset(
-    wifeSalariesCount.value,
-    slots,
-  );
+  wifeBonusPreset.value = inferBonusPreset(wifeSalariesCount.value, slots);
 }
 
 export function setHusbandGrossYearly(yearly: number) {
@@ -879,7 +876,6 @@ export function removeAllCustomActions(): void {
   customFinancialEvents.value = [];
 }
 
-
 /**
  * Persists the entire reactive state of the simulator into localStorage.
  */
@@ -954,7 +950,9 @@ export function persistCurrentState(): void {
  */
 export function importSimulationState(
   newState: ElterngeldPersistedState,
-  options: { preserveActiveScenario?: boolean } = { preserveActiveScenario: true },
+  options: { preserveActiveScenario?: boolean } = {
+    preserveActiveScenario: true,
+  },
 ): void {
   const currentView = activeScenario.value;
   salaryInputMode.value = newState.salaryInputMode;
@@ -989,8 +987,7 @@ export function importSimulationState(
     newState.wifeBonusDistribution,
   );
   wifeBonusDistribution.value =
-    newState.wifeBonusDistribution &&
-    newState.wifeBonusDistribution.length > 0
+    newState.wifeBonusDistribution && newState.wifeBonusDistribution.length > 0
       ? newState.wifeBonusDistribution
       : createBonusDistributionSlots(
         wifeSalariesCount.value,
@@ -1199,8 +1196,7 @@ export function resetToDefaults() {
     defaults.wifeBonusDistribution,
   );
   wifeBonusDistribution.value =
-    defaults.wifeBonusDistribution &&
-    defaults.wifeBonusDistribution.length > 0
+    defaults.wifeBonusDistribution && defaults.wifeBonusDistribution.length > 0
       ? defaults.wifeBonusDistribution
       : createBonusDistributionSlots(
         wifeSalariesCount.value,

@@ -26,13 +26,13 @@ export interface ScenarioCatalogItem {
   readonly data: Record<string, any>;
 }
 
-
 /** Complete catalog of all built-in scenarios. */
 export const BUILTIN_SCENARIO_CATALOG: readonly ScenarioCatalogItem[] = [
   {
     id: "empty",
     name: "Empty Sandbox (Base)",
-    description: "Clean baseline state with zero custom actions, ready for immediate personal salary entry",
+    description:
+      "Clean baseline state with zero custom actions, ready for immediate personal salary entry",
     isDefault: true,
     isBase: true,
     data: emptyScenario,
@@ -40,37 +40,43 @@ export const BUILTIN_SCENARIO_CATALOG: readonly ScenarioCatalogItem[] = [
   {
     id: "standard_3_children",
     name: "Standard 3-Children Lifecycle",
-    description: "Multi-year 3-children progression with § 2b BEEG tax switches and § 2a sibling bonuses",
+    description:
+      "Multi-year 3-children progression with § 2b BEEG tax switches and § 2a sibling bonuses",
     data: standard3ChildrenScenario,
   },
   {
     id: "single_child_tax_opt",
     name: "Single Child (Tax Optimization)",
-    description: "Single child scenario with § 2b BEEG tax switch (III/V to V/III) and 12-month leave",
+    description:
+      "Single child scenario with § 2b BEEG tax switch (III/V to V/III) and 12-month leave",
     data: singleChildScenario,
   },
   {
     id: "two_children_close_spacing",
     name: "Two Children (Close Spacing & Sibling Bonus)",
-    description: "Two children spaced 20 months apart maximizing statutory Geschwisterbonus (§ 2a BEEG)",
+    description:
+      "Two children spaced 20 months apart maximizing statutory Geschwisterbonus (§ 2a BEEG)",
     data: twoChildrenScenario,
   },
   {
     id: "high_earner_household",
     name: "High Earner Household",
-    description: "High earner model (8,200 € / 4,500 € gross split) reaching statutory Elterngeld cap",
+    description:
+      "High earner model (8,200 € / 4,500 € gross split) reaching statutory Elterngeld cap",
     data: highEarnerScenario,
   },
   {
     id: "equal_earners",
     name: "Equal Earner Household",
-    description: "Equal income distribution (4,800 € / 4,800 € gross split) evaluating spousal parity",
+    description:
+      "Equal income distribution (4,800 € / 4,800 € gross split) evaluating spousal parity",
     data: equalEarnerScenario,
   },
   {
     id: "part_time_partnerschaftsbonus",
     name: "Partnerschaftsbonus Model (24-32h)",
-    description: "Both parents working 32 h/wk utilizing statutory 4-month Partnerschaftsbonus (§ 4b BEEG)",
+    description:
+      "Both parents working 32 h/wk utilizing statutory 4-month Partnerschaftsbonus (§ 4b BEEG)",
     data: partnerschaftsbonusScenario,
   },
 ] as const;
