@@ -47,8 +47,8 @@ export default function ScenarioSelector(): JSX.Element {
 
   const scenarios: ScenarioCardItem[] = [
     {
-      scenarioViewId: ActiveScenarioView.C,
-      title: "Scenario C",
+      scenarioViewId: ActiveScenarioView.StatutoryOptimized,
+      title: "Statutory Optimized",
       subtitle: "Fully Optimized (Recommended)",
       badge: "Maximum State Benefit",
       badgeClass: "badge-gain",
@@ -62,9 +62,9 @@ export default function ScenarioSelector(): JSX.Element {
       ],
     },
     {
-      scenarioViewId: ActiveScenarioView.B,
-      title: "Scenario B",
-      subtitle: "Unoptimized (Static III/V)",
+      scenarioViewId: ActiveScenarioView.UnoptimizedBaseline,
+      title: "Unoptimized Baseline",
+      subtitle: "Static Baseline Withholding (III/V)",
       badge: "Standard Baseline",
       badgeClass: "badge-warning",
       description:
@@ -77,9 +77,9 @@ export default function ScenarioSelector(): JSX.Element {
       ],
     },
     {
-      scenarioViewId: ActiveScenarioView.A,
-      title: "Scenario A",
-      subtitle: "No Children (Status Quo)",
+      scenarioViewId: ActiveScenarioView.StatusQuo,
+      title: "Status Quo",
+      subtitle: "Continuous Career (No Children)",
       badge: "Constant Employment",
       badgeClass: "badge-muted",
       description:
@@ -93,7 +93,7 @@ export default function ScenarioSelector(): JSX.Element {
     },
     {
       scenarioViewId: ActiveScenarioView.Compare,
-      title: "Multi-Scenario",
+      title: "Multi-Strategy Matrix",
       subtitle: "Side-by-Side Comparison",
       badge: "Overlay View",
       badgeClass: "badge-brand",
@@ -141,7 +141,7 @@ export default function ScenarioSelector(): JSX.Element {
               letterSpacing: "0.05em",
             }}
           >
-            Select Active Simulation Scenario:
+            Select Active Simulation Strategy:
           </span>
         </div>
         <div

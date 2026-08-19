@@ -10,6 +10,9 @@ import {
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
+  SimulationStrategy, 
+} from "#engine/types";
+import {
   EligibilityConfirmedIcon,
   StatutoryLimitationWarningIcon,
   ExternalLegalSourceIcon,
@@ -29,8 +32,8 @@ export default function KpiScorecard(): JSX.Element {
   const scenario = activeScenario.value;
   const bSummary = scenarioBData.value.summary;
 
-  const isScenarioC = scenario === "C";
-  const isScenarioB = scenario === "B";
+  const isScenarioC = scenario === SimulationStrategy.StatutoryOptimized;
+  const isScenarioB = scenario === SimulationStrategy.UnoptimizedBaseline;
 
   const totalHusbandSalary = current.months.reduce(
     (acc, m) => acc + m.husbandSalary,

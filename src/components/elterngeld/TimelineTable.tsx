@@ -18,8 +18,9 @@ import {
   ActionCategory,
   FieldColumnKey,
   ExplanationFieldKey,
-  ScenarioId,
-  ActiveScenarioView,
+  SimulationStrategy,
+  type StrategyId,
+  ActiveStrategyView,
   type TimelineMonth,
   type SpecialEventItem,
   type ActionRowItem,
@@ -65,10 +66,10 @@ export default function TimelineTable(): JSX.Element {
   const [selectedRowExplanation, setSelectedRowExplanation] =
     useState<RowExplanation | null>(null);
 
-  const scenario: ScenarioId =
-    activeScenario.value === ActiveScenarioView.Compare
-      ? ScenarioId.C
-      : (activeScenario.value as ScenarioId);
+  const scenario: StrategyId =
+    activeScenario.value === ActiveStrategyView.Compare
+      ? SimulationStrategy.StatutoryOptimized
+      : (activeScenario.value as StrategyId);
   const current = currentScenarioData.value;
   const bData = scenarioBData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
@@ -371,7 +372,9 @@ export default function TimelineTable(): JSX.Element {
         >
           {displayVal}
         </span>
-        {showDelta && scenario === "C" && renderDiffBadge(diff)}
+        {showDelta &&
+          scenario === SimulationStrategy.StatutoryOptimized &&
+          renderDiffBadge(diff)}
       </div>
     );
   };
@@ -411,8 +414,8 @@ export default function TimelineTable(): JSX.Element {
               margin: "2px 0 0 0",
             }}
           >
-            {scenario === "C" && showDelta
-              ? "Showing actual Scenario C cash flow with colored per-column reference diffs vs. Scenario B (Green +, Red -, Muted 0)."
+            {scenario === SimulationStrategy.StatutoryOptimized && showDelta
+              ? "Showing actual cash flow with colored per-column reference diffs vs. Unoptimized Baseline (Green +, Red -, Muted 0)."
               : "Base monthly salaries & statutory benefits cleanly separated from annual 13th salary chunks and tax refunds."}
           </p>
         </div>
@@ -426,8 +429,8 @@ export default function TimelineTable(): JSX.Element {
             flexWrap: "wrap",
           }}
         >
-          {/* Per-Column Diff Toggle for Scenario C */}
-          {scenario === "C" && (
+          {/* Per-Column Diff Toggle for StatutoryOptimized */}
+          {scenario === SimulationStrategy.StatutoryOptimized && (
             <button
               type="button"
               onClick={() => setShowDelta(!showDelta)}
@@ -617,7 +620,7 @@ export default function TimelineTable(): JSX.Element {
               </th>
               <th style={{ padding: "10px 12px" }}>
                 <div>Husband Base Salary</div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -631,7 +634,7 @@ export default function TimelineTable(): JSX.Element {
               </th>
               <th style={{ padding: "10px 12px" }}>
                 <div>Wife Base Salary</div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -669,7 +672,7 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -707,7 +710,7 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -745,7 +748,7 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -784,7 +787,7 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -823,7 +826,7 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -840,7 +843,7 @@ export default function TimelineTable(): JSX.Element {
                   color: "var(--text-primary)" }}
               >
                 <div>Net Inflow</div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -857,7 +860,7 @@ export default function TimelineTable(): JSX.Element {
                   color: "var(--text-secondary)" }}
               >
                 <div>Cumulated</div>
-                {showDelta && scenario === "C" && (
+                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -1446,7 +1449,9 @@ export default function TimelineTable(): JSX.Element {
                           }}
                         >
                           <div>{ev.taxClassLabel}</div>
-                          {showDelta && scenario === "C" && (
+                          {showDelta &&
+                            scenario ===
+                              SimulationStrategy.StatutoryOptimized && (
                             <div
                               style={{
                                 fontSize: "0.66rem",
@@ -1749,7 +1754,8 @@ export default function TimelineTable(): JSX.Element {
                     >
                       {m.taxClassLabel}
                     </div>
-                    {showDelta && scenario === "C" && (
+                    {showDelta &&
+                      scenario === SimulationStrategy.StatutoryOptimized && (
                       <div
                         style={{
                           fontSize: "0.68rem",
