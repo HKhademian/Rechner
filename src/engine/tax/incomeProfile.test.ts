@@ -3,6 +3,8 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
   ScenarioId,
   TaxClass,
   SalaryPeriod,
@@ -20,8 +22,6 @@ import {
   toChildrenCount,
   toChildIndex,
   toPregnancyId,
-  type PreexistingConditions,
-  type PregnancyAction,
 } from "#engine/types";
 import {
   deriveSpousalNetSalaries, 
@@ -200,20 +200,14 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
       // Month 5 (May 2026) -> 40% Vacation Bonus
       const m5 = result.months[4];
       assert.equal(m5.calendarMonthNum, 5);
-      assert.equal(
-        m5.bonus40Amount,
-        Math.round(0.4 * m5.husbandSalary),
-      );
+      assert.equal(m5.bonus40Amount, Math.round(0.4 * m5.husbandSalary));
       assert.equal(m5.bonus60Amount, 0);
 
       // Month 11 (Nov 2026) -> 60% Christmas Bonus
       const m11 = result.months[10];
       assert.equal(m11.calendarMonthNum, 11);
       assert.equal(m11.bonus40Amount, 0);
-      assert.equal(
-        m11.bonus60Amount,
-        Math.round(0.6 * m11.husbandSalary),
-      );
+      assert.equal(m11.bonus60Amount, Math.round(0.6 * m11.husbandSalary));
     });
   });
 });

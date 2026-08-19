@@ -88,10 +88,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
 
     it("applies Milderungszone and maximum 5.5% cap above threshold", () => {
       const highTaxSingle = toEuroAmount(40000);
-      const solzSingle = computeSolidaritySurcharge(
-        highTaxSingle,
-        false,
-      );
+      const solzSingle = computeSolidaritySurcharge(highTaxSingle, false);
       assert.ok(solzSingle > 0);
       assert.ok(solzSingle <= 40000 * 0.055);
     });
@@ -129,18 +126,9 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
       const sec2Child = computeMonthlySocialSecurity(gross, 2);
       const sec3Child = computeMonthlySocialSecurity(gross, 3);
 
-      assert.ok(
-        secNoChild.careInsurance >
-          sec1Child.careInsurance,
-      );
-      assert.ok(
-        sec1Child.careInsurance >
-          sec2Child.careInsurance,
-      );
-      assert.ok(
-        sec2Child.careInsurance >
-          sec3Child.careInsurance,
-      );
+      assert.ok(secNoChild.careInsurance > sec1Child.careInsurance);
+      assert.ok(sec1Child.careInsurance > sec2Child.careInsurance);
+      assert.ok(sec2Child.careInsurance > sec3Child.careInsurance);
     });
   });
 
@@ -195,11 +183,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
       const hGross = toGrossSalary(4500);
       const factor = toTaxFactor(0.982);
 
-      const net4Standard = computeMonthlyNetSalary(
-        hGross,
-        TaxClass.IV,
-        0,
-      );
+      const net4Standard = computeMonthlyNetSalary(hGross, TaxClass.IV, 0);
       const net4Factor = computeMonthlyNetSalary(
         hGross,
         TaxClass.IV,

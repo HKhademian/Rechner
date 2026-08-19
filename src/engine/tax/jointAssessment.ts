@@ -150,13 +150,14 @@ export function computeKinderfreibetragGuenstigerpruefung(
   }
 
   // 1. Joint tax liability WITHOUT Kinderfreibetrag
-  const taxWithout = computeJointTaxLiability(jointAnnualZvE, 0)
-    .totalTaxLiability;
+  const taxWithout = computeJointTaxLiability(
+    jointAnnualZvE,
+    0,
+  ).totalTaxLiability;
 
   // 2. Joint tax liability WITH Kinderfreibetrag (§ 32 Abs. 6 EStG)
   const reducedZvE = Math.max(0, jointAnnualZvE - totalKinderfreibetrag);
-  const taxWith = computeJointTaxLiability(reducedZvE, 0)
-    .totalTaxLiability;
+  const taxWith = computeJointTaxLiability(reducedZvE, 0).totalTaxLiability;
 
   // 3. Tax Savings
   const taxSavings = Math.max(0, taxWithout - taxWith);

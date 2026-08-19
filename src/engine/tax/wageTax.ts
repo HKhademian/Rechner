@@ -10,12 +10,12 @@ import {
   type GrossSalary,
   type NetSalary,
   type TaxFactor,
-  TaxClass,
-  WageTaxZone,
   type EuroAmount,
   type WorkingHours,
   type GrossToNetBreakdown,
   type SpousalGrossToNetSet,
+  TaxClass,
+  WageTaxZone,
   toEuroAmount,
   toGrossSalary,
   toNetSalary,
@@ -258,9 +258,7 @@ export function computeAnnualWageTaxForClass(
       break;
     case TaxClass.VI:
       // Tax Class VI: Second job, zero basic allowance (§ 38b Abs. 1 Nr. 6 EStG)
-      annualWageTax = Math.floor(
-        computeAnnualIncomeTax(approxZvE + 11784),
-      );
+      annualWageTax = Math.floor(computeAnnualIncomeTax(approxZvE + 11784));
       break;
   }
 
@@ -353,9 +351,7 @@ export function computeTaxFactor(
   }
 
   const combinedZvE = hTax4.approxZvE + wTax4.approxZvE;
-  const jointTax = Math.floor(
-    computeAnnualIncomeTax(combinedZvE / 2) * 2,
-  );
+  const jointTax = Math.floor(computeAnnualIncomeTax(combinedZvE / 2) * 2);
 
   const factor = Math.min(
     1.0,
@@ -427,10 +423,7 @@ export function computeGrossToNetBreakdown(
   // Clean Synthetic Net for Elterngeld (§ 2c BEEG - Excludes Non-Recurrent Bonuses)
   const regularNetTakeHome = Math.max(
     0,
-    monthlyGross -
-      social.totalSocialSecurity -
-      monthlyWageTax -
-      monthlySolz,
+    monthlyGross - social.totalSocialSecurity - monthlyWageTax - monthlySolz,
   );
   const elterngeldSyntheticNet = toNetSalary(regularNetTakeHome);
 
@@ -537,11 +530,7 @@ export function deriveSpousalNetSalaries(
   const ptRatio = wifePtHours / (wifeFtHours || 40);
   const wGrossPT = toGrossSalary(Math.round(wGrossFT * ptRatio));
 
-  const factor = computeTaxFactor(
-    hGross * 12,
-    wGrossFT * 12,
-    childrenCount,
-  );
+  const factor = computeTaxFactor(hGross * 12, wGrossFT * 12, childrenCount);
 
   const hBreakdownClass3 = computeGrossToNetBreakdown(
     hGross,

@@ -3,6 +3,8 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
   ScenarioId,
   TaxClass,
   SalaryPeriod,
@@ -18,12 +20,10 @@ import {
   toChildrenCount,
   toChildIndex,
   toPregnancyId,
-  type PreexistingConditions,
-  type PregnancyAction,
 } from "#engine/types";
 import {
-  computeKinderfreibetragGuenstigerpruefung,
   type ChildYearPresence,
+  computeKinderfreibetragGuenstigerpruefung,
 } from "#engine/tax/jointAssessment";
 import {
   runScenarioBatches, 
@@ -78,14 +78,10 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         result.taxSavingsFromAllowance > 3108,
         "Tax savings should exceed Kindergeld",
       );
-      assert.ok(
-        result.extraTaxRefund > 0,
-        "Extra refund should be positive",
-      );
+      assert.ok(result.extraTaxRefund > 0, "Extra refund should be positive");
       assert.equal(
         result.extraTaxRefund,
-        result.taxSavingsFromAllowance -
-          result.totalKindergeldReceived,
+        result.taxSavingsFromAllowance - result.totalKindergeldReceived,
       );
     });
 
