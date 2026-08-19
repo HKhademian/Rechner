@@ -7,7 +7,9 @@
  */
 
 import {
-  type NetSalary, type EuroAmount, toEuroAmount, 
+  type NetSalary,
+  type EuroAmount,
+  toEuroAmount,
 } from "#engine/types";
 
 /**

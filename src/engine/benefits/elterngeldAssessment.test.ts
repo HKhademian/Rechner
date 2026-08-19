@@ -1,5 +1,6 @@
 import {
-  describe, it, 
+  describe,
+  it,
 } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -8,7 +9,8 @@ import {
   computeAssessmentBaselineNet,
 } from "#engine/benefits/elterngeldAssessment";
 import {
-  toNetSalary, TaxClass, 
+  toNetSalary,
+  TaxClass,
 } from "#engine/types";
 
 describe("Elterngeld Assessment Baseline & Predominant Tax Class Engine (BEEG § 2b, § 2c)", () => {

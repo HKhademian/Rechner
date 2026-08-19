@@ -1,5 +1,6 @@
 import {
-  describe, it, 
+  describe,
+  it,
 } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -8,7 +9,8 @@ import {
   computeMonthlyNetSalary,
 } from "#engine/tax/wageTax";
 import {
-  toGrossSalary, TaxClass, 
+  toGrossSalary,
+  TaxClass,
 } from "#engine/types";
 
 describe("Granular Wage Tax Unit Tests (300 Individual Assertions)", () => {

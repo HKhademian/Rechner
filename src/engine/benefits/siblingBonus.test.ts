@@ -1,12 +1,14 @@
 import {
-  describe, it, 
+  describe,
+  it,
 } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeSiblingBonus, 
 } from "#engine/benefits/siblingBonus";
 import {
-  toEuroAmount, toSimulationMonth, 
+  toEuroAmount,
+  toSimulationMonth,
 } from "#engine/types";
 
 describe("Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)", () => {

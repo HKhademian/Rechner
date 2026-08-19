@@ -17,7 +17,8 @@ import {
   toEuroAmount,
 } from "#engine/types";
 import {
-  type LegalRuleKeyType, LegalRuleKey, 
+  type LegalRuleKeyType,
+  LegalRuleKey,
 } from "#store/elterngeldStore";
 
 function formatCurrency(amount: number): string {

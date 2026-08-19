@@ -1,5 +1,6 @@
 import {
-  describe, it, 
+  describe,
+  it,
 } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -9,7 +10,8 @@ import {
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import {
-  toNetSalary, toWorkingHours, 
+  toNetSalary,
+  toWorkingHours,
 } from "#engine/types";
 
 describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)", () => {

@@ -5,7 +5,8 @@
  */
 
 import {
-  type EuroAmount, toEuroAmount, 
+  type EuroAmount,
+  toEuroAmount,
 } from "#engine/types";
 import {
   getDefaultPersistedState, 
