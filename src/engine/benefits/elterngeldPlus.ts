@@ -87,9 +87,7 @@ export interface ElterngeldEntitlement {
  * @param weeklyHours - Contractual weekly working hours during parental leave.
  * @returns True if hours are within the statutory 0..32 hours/week window; false if disqualified.
  */
-export function isElterngeldHoursEligible(
-  weeklyHours: WorkingHours,
-): boolean {
+export function isElterngeldHoursEligible(weeklyHours: WorkingHours): boolean {
   return weeklyHours >= 0 && weeklyHours <= 32;
 }
 

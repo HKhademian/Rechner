@@ -1,12 +1,13 @@
 import {
-  describe,
-  it,
+  describe, it, 
 } from "node:test";
 import assert from "node:assert/strict";
 import {
-  runScenarioBatches,
+  runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
   ActionType,
   ActionCategory,
   ScenarioId,
@@ -22,8 +23,6 @@ import {
   toChildrenCount,
   toChildIndex,
   toPregnancyId,
-  type PreexistingConditions,
-  type PregnancyAction,
 } from "#engine/types";
 
 describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)", () => {

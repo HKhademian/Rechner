@@ -3,9 +3,9 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  type AssessmentMonthRecord,
   determinePredominantTaxClass,
   computeAssessmentBaselineNet,
-  type AssessmentMonthRecord,
 } from "#engine/benefits/elterngeldAssessment";
 import {
   toNetSalary, TaxClass, 

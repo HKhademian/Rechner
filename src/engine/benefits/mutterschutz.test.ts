@@ -15,8 +15,7 @@ describe("Maternity Protection Benefits Engine (MuSchG § 19, § 20)", () => {
       const benefit = computeMonthlyMutterschutz(toNetSalary(net));
       assert.equal(benefit.totalMaternityBenefit, net);
       assert.equal(
-        benefit.healthInsuranceShare +
-          benefit.employerSupplement,
+        benefit.healthInsuranceShare + benefit.employerSupplement,
         net,
       );
     }

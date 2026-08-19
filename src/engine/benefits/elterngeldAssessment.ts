@@ -8,8 +8,8 @@
 
 import {
   type NetSalary,
-  TaxClass,
   type EuroAmount,
+  TaxClass,
   toEuroAmount,
   toNetSalary,
 } from "#engine/types";

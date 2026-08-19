@@ -9,8 +9,7 @@ import {
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import {
-  toNetSalary,
-  toWorkingHours,
+  toNetSalary, toWorkingHours, 
 } from "#engine/types";
 
 describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)", () => {
