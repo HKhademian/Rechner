@@ -74,6 +74,12 @@ export interface LedgerMonthInput {
   readonly bonus40Amount: EuroAmount;
   /** Year-end 60% 13th salary bonus payment in EUR. */
   readonly bonus60Amount: EuroAmount;
+  /** Itemized husband extra salary bonus amount in EUR. */
+  readonly husbandBonusAmount?: EuroAmount;
+  /** Itemized wife extra salary bonus amount in EUR. */
+  readonly wifeBonusAmount?: EuroAmount;
+  /** Total special bonus amount across all spouses in EUR. */
+  readonly specialBonusTotal?: EuroAmount;
   /** Discrete special life, bonus, or tax refund sub-row items occurring in this month. */
   readonly specialEvents: readonly SpecialEventItem[];
   /** Action milestones scheduled to take effect immediately prior to this month. */
@@ -124,9 +130,16 @@ export function buildMonthlyLedgerEntry(
 } {
   const hSalary = input.husbandSalary;
   const wSalary = input.wifeSalary;
+  const hBonus = input.husbandBonusAmount ?? toEuroAmount(0);
+  const wBonus = input.wifeBonusAmount ?? toEuroAmount(0);
   const bonus40 = input.bonus40Amount;
   const bonus60 = input.bonus60Amount;
-  const specialBonusTotal = bonus40 + bonus60;
+  const specialBonusTotal =
+    input.specialBonusTotal !== undefined
+      ? input.specialBonusTotal
+      : hBonus + wBonus > 0
+        ? hBonus + wBonus
+        : bonus40 + bonus60;
 
   const mutterschutz = input.mutterschutz;
   const wElterngeld = input.wifeElterngeld;
@@ -184,6 +197,8 @@ export function buildMonthlyLedgerEntry(
     taxRefund: input.taxRefund,
     bonus40Amount: input.bonus40Amount,
     bonus60Amount: input.bonus60Amount,
+    husbandBonusAmount: hBonus > 0 ? hBonus : undefined,
+    wifeBonusAmount: wBonus > 0 ? wBonus : undefined,
     specialBonusTotal: toEuroAmount(specialBonusTotal),
     specialEventsTotal: toEuroAmount(specialEventsTotal),
     specialEvents: input.specialEvents,
