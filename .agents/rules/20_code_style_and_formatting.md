@@ -66,7 +66,20 @@ import {
 ```
 
 ## 7. Multiline Import & Export Formatting (One Item Per Line)
-- Import and export specifier blocks must place each imported/exported identifier on its own line for clean, readable git diffs.
+- Inside named import and export specifier blocks `{ ... }`, **every single identifier must occupy its own separate line** with 2-space indentation and a trailing comma.
+- Never place multiple specifiers on the same line (e.g. `useState, useRef,`).
+```ts
+// Correct: Strictly one item per line
+import {
+  useState,
+  useRef,
+} from "preact/hooks";
+
+// Incorrect: Multiple items on the same line
+import {
+  useState, useRef,
+} from "preact/hooks";
+```
 
 ## 8. No Unused Imports and Duplicate Imports
 - Unused imports are strictly prohibited and auto-removed by `npm run fix` / `npm run lint:fix`.
