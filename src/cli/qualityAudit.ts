@@ -93,9 +93,70 @@ function scanSourceFiles(dir: string): void {
       const content = fs.readFileSync(fullPath, "utf-8");
       const lines = content.split("\n");
 
+      let inNamedImport = false;
+      let seenValueImport = false;
+
       lines.forEach((lineText, idx) => {
         const lineNum = idx + 1;
         const trimmed = lineText.trim();
+
+        // Check for named import block start/end
+        if (trimmed.startsWith("import ") && trimmed.includes("{")) {
+          inNamedImport = true;
+          seenValueImport = false;
+          if (trimmed.includes("}")) {
+            // Single-line named import
+            inNamedImport = false;
+            const match = trimmed.match(/\{([^}]+)\}/);
+            if (match) {
+              const specifiers = match[1]
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+              let seenVal = false;
+              for (const spec of specifiers) {
+                if (spec.startsWith("type ")) {
+                  if (seenVal) {
+                    addDiagnostic(
+                      "WARN",
+                      "CodeStyle (Rule 20)",
+                      `Type import '${spec}' placed after value import. Types must appear at the top.`,
+                      fullPath,
+                      lineNum,
+                    );
+                    break;
+                  }
+                }
+                else {
+                  seenVal = true;
+                }
+              }
+            }
+          }
+        }
+        else if (inNamedImport) {
+          if (trimmed.includes("}")) {
+            inNamedImport = false;
+            seenValueImport = false;
+          }
+          else if (trimmed.length > 0 && !trimmed.startsWith("//")) {
+            const spec = trimmed.replace(/,$/, "").trim();
+            if (spec.startsWith("type ")) {
+              if (seenValueImport) {
+                addDiagnostic(
+                  "WARN",
+                  "CodeStyle (Rule 20)",
+                  `Type import '${spec}' placed after value import. Types must appear at the top.`,
+                  fullPath,
+                  lineNum,
+                );
+              }
+            }
+            else if (spec.length > 0) {
+              seenValueImport = true;
+            }
+          }
+        }
 
         // Check for forbidden playful gradient strings
         if (
