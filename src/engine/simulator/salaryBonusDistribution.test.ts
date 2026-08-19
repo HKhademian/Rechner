@@ -6,6 +6,8 @@ import {
   runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
+  type PreexistingConditions,
+  type SalaryBonusSlot,
   TaxClass,
   ScenarioId,
   AnnualSalariesCount,
@@ -19,8 +21,6 @@ import {
   toMonthDuration,
   toChildrenCount,
   toPercentageRate,
-  type PreexistingConditions,
-  type SalaryBonusSlot,
 } from "#engine/types";
 import {
   createBonusDistributionSlots,
@@ -322,8 +322,7 @@ describe("Person-Specific Salary Declarations & Bonus Distributions", () => {
       assert.equal(m11.monthlyTotal, 3000 + 2000 + 3800);
 
       // Check special events
-      const hEvent = m11.specialEvents.find((e) =>
-        e.title.includes("Husband"));
+      const hEvent = m11.specialEvents.find((e) => e.title.includes("Husband"));
       const wEvent = m11.specialEvents.find((e) => e.title.includes("Wife"));
       assert.ok(hEvent);
       assert.equal(hEvent.amount, 1800);

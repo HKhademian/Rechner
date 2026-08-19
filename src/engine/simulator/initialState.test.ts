@@ -7,6 +7,10 @@ import {
   calculateSimulationStartDate,
 } from "#engine/simulator/timelineGenerator";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction,
   TaxClass,
   ScenarioId,
   toNetSalary,
@@ -20,10 +24,6 @@ import {
   toChildrenCount,
   toChildIndex,
   toPregnancyId,
-  type PreexistingConditions,
-  type PregnancyAction,
-  type TaxClassSwitchAction,
-  type SalaryRaiseAction,
 } from "#engine/types";
 
 describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)", () => {

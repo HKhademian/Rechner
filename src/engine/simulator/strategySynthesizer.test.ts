@@ -7,14 +7,14 @@ import {
   synthesizeStrategyBatches,
 } from "#engine/simulator/strategySynthesizer";
 import {
-  SimulationStrategy,
-  TaxClass,
-  SalaryInputMode,
-  SalaryPeriod,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type ScenarioActionBatches,
   type PreexistingConditions,
+  SimulationStrategy,
+  TaxClass,
+  SalaryInputMode,
+  SalaryPeriod,
   toSimulationMonth,
   toCalendarMonth,
   toFullCalendarYear,
@@ -89,7 +89,10 @@ describe("Strategy Synthesizer & Auto-Optimization Engine", () => {
     });
 
     it("auto-synthesizes optimal § 2b BEEG tax switch for single child (Delivery Month 9)", () => {
-      const switches = synthesizeOptimalTaxSwitches([samplePregnancy1], samplePreexisting);
+      const switches = synthesizeOptimalTaxSwitches(
+        [samplePregnancy1],
+        samplePreexisting,
+      );
       assert.equal(switches.length, 1);
 
       const sw = switches[0];
@@ -136,21 +139,30 @@ describe("Strategy Synthesizer & Auto-Optimization Engine", () => {
     };
 
     it("StatusQuo: strips all pregnancies and tax switches for continuous career baseline", () => {
-      const result = synthesizeStrategyBatches(baseBatches, SimulationStrategy.StatusQuo);
+      const result = synthesizeStrategyBatches(
+        baseBatches,
+        SimulationStrategy.StatusQuo,
+      );
       assert.equal(result.scenarioKey, SimulationStrategy.StatusQuo);
       assert.equal(result.pregnancies.length, 0);
       assert.equal(result.taxClassSwitches.length, 0);
     });
 
     it("UnoptimizedBaseline: keeps pregnancies but removes tax switches to hold static withholding", () => {
-      const result = synthesizeStrategyBatches(baseBatches, SimulationStrategy.UnoptimizedBaseline);
+      const result = synthesizeStrategyBatches(
+        baseBatches,
+        SimulationStrategy.UnoptimizedBaseline,
+      );
       assert.equal(result.scenarioKey, SimulationStrategy.UnoptimizedBaseline);
       assert.equal(result.pregnancies.length, 2);
       assert.equal(result.taxClassSwitches.length, 0);
     });
 
     it("StatutoryOptimized: auto-synthesizes § 2b BEEG switches when input has zero switches", () => {
-      const result = synthesizeStrategyBatches(baseBatches, SimulationStrategy.StatutoryOptimized);
+      const result = synthesizeStrategyBatches(
+        baseBatches,
+        SimulationStrategy.StatutoryOptimized,
+      );
       assert.equal(result.scenarioKey, SimulationStrategy.StatutoryOptimized);
       assert.equal(result.pregnancies.length, 2);
       assert.equal(result.taxClassSwitches.length, 2);

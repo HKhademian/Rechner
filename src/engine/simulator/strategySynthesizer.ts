@@ -69,7 +69,8 @@ export function synthesizeOptimalTaxSwitches(
       targetWifeTaxClass: TaxClass.III,
       targetUseTaxFactor: false,
       revertSimulationMonth: toSimulationMonth(revertSimMonth),
-      revertHusbandTaxClass: preexisting?.husbandInitialTaxClass ?? TaxClass.III,
+      revertHusbandTaxClass:
+        preexisting?.husbandInitialTaxClass ?? TaxClass.III,
       revertWifeTaxClass: preexisting?.wifeInitialTaxClass ?? TaxClass.V,
       revertUseTaxFactor: preexisting?.initialUseTaxFactor ?? false,
       statutoryReason: `Auto-Synthesized § 2b BEEG Tax Class Switch for Child ${preg.childIndex} (7-month lead prior to Mutterschutz)`,

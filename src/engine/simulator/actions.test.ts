@@ -6,9 +6,15 @@ import {
   runScenarioBatches, 
 } from "#engine/simulator/timelineGenerator";
 import {
-  deriveSpousalNetSalaries,
+  deriveSpousalNetSalaries, 
 } from "#engine/tax/wageTax";
 import {
+  type PreexistingConditions,
+  type PregnancyAction,
+  type TaxClassSwitchAction,
+  type SalaryRaiseAction,
+  type WorkingHoursChangeAction,
+  type FinancialEventAction,
   TaxClass,
   ScenarioId,
   TargetPerson,
@@ -33,14 +39,7 @@ import {
   toFinancialEventId,
   toTaxFactor,
   FinancialEventCategory,
-  type PreexistingConditions,
-  type PregnancyAction,
-  type TaxClassSwitchAction,
-  type SalaryRaiseAction,
-  type WorkingHoursChangeAction,
-  type FinancialEventAction,
 } from "#engine/types";
-
 
 describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
   const basePreexisting: PreexistingConditions = {
@@ -714,10 +713,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(ev.amount, -1500);
 
       // Verify monthly total is exactly -1500 less than baseline
-      assert.equal(
-        m17Cost.monthlyTotal,
-        m17Baseline.monthlyTotal - 1500,
-      );
+      assert.equal(m17Cost.monthlyTotal, m17Baseline.monthlyTotal - 1500);
 
       // Verify 60-month grandTotal is reduced by 1500
       assert.equal(
@@ -771,10 +767,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(ev.amount, 2500);
 
       // Verify monthly total is exactly +2500 greater than baseline
-      assert.equal(
-        m12Income.monthlyTotal,
-        m12Baseline.monthlyTotal + 2500,
-      );
+      assert.equal(m12Income.monthlyTotal, m12Baseline.monthlyTotal + 2500);
 
       // Verify 60-month grandTotal is increased by 2500
       assert.equal(
@@ -1180,7 +1173,6 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         assert.equal(resB.months[m].husbandElterngeld, 0);
       }
 
-
       // Grand totals between A, B, and C should be identical with zero switches and zero benefits
       assert.equal(resA.summary.grandTotal, resB.summary.grandTotal);
       assert.equal(resB.summary.grandTotal, resC.summary.grandTotal);
@@ -1210,11 +1202,21 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         husbandWeeklyHours: toWorkingHours(32),
         wifeInitialTaxClass: TaxClass.V,
         wifeInitialFullTimeNet: toNetSalary(spousal.wifeClass5FullTimeNet),
-        wifeInitialClass3FullTimeNet: toNetSalary(spousal.wifeClass3FullTimeNet),
-        wifeInitialClass4FullTimeNet: toNetSalary(spousal.wifeClass4FullTimeNet),
-        wifeInitialPartTimeClass5Net: toNetSalary(spousal.wifeClass5PartTimeNet),
-        wifeInitialPartTimeClass3Net: toNetSalary(spousal.wifeClass3PartTimeNet),
-        wifeInitialPartTimeClass4Net: toNetSalary(spousal.wifeClass4PartTimeNet),
+        wifeInitialClass3FullTimeNet: toNetSalary(
+          spousal.wifeClass3FullTimeNet,
+        ),
+        wifeInitialClass4FullTimeNet: toNetSalary(
+          spousal.wifeClass4FullTimeNet,
+        ),
+        wifeInitialPartTimeClass5Net: toNetSalary(
+          spousal.wifeClass5PartTimeNet,
+        ),
+        wifeInitialPartTimeClass3Net: toNetSalary(
+          spousal.wifeClass3PartTimeNet,
+        ),
+        wifeInitialPartTimeClass4Net: toNetSalary(
+          spousal.wifeClass4PartTimeNet,
+        ),
         wifeWeeklyHours: toWorkingHours(40),
         wifePostBirthWeeklyHours: toWorkingHours(32),
         initialUseTaxFactor: false,
@@ -1238,7 +1240,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           effectiveCalendarYear: toFullCalendarYear(2026),
           targetHusbandTaxClass: TaxClass.V,
           targetWifeTaxClass: TaxClass.III,
-          statutoryReason: "Optimize Child 1 Elterngeld assessment baseline (§ 2b BEEG)",
+          statutoryReason:
+            "Optimize Child 1 Elterngeld assessment baseline (§ 2b BEEG)",
           revertSimulationMonth: toSimulationMonth(12),
         },
       ];
@@ -1252,7 +1255,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           title: "Child #1 Initial Equipment (*Erstausstattung*)",
           amount: toEuroAmount(-1500),
           category: FinancialEventCategory.BabyEquipment,
-          description: "Crib, stroller, car seat, changing table, and initial newborn essentials",
+          description:
+            "Crib, stroller, car seat, changing table, and initial newborn essentials",
         },
         {
           eventId: toFinancialEventId("FIN-CHILD1-KITA-DEPOSIT"),
@@ -1262,10 +1266,10 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           title: "Kita Childcare Enrollment & Equipment (*Kita-Start*)",
           amount: toEuroAmount(-600),
           category: FinancialEventCategory.ChildcareFees,
-          description: "One-off daycare entrance fee, activity deposit, and outdoor gear",
+          description:
+            "One-off daycare entrance fee, activity deposit, and outdoor gear",
         },
       ];
-
 
       const resA = runScenarioBatches({
         scenarioKey: ScenarioId.A,
@@ -1298,5 +1302,3 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
     });
   });
 });
-
-

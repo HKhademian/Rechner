@@ -4,17 +4,8 @@ import {
   type CalendarMonth,
   type NetSalary,
   type EuroAmount,
-  TaxClass,
-  SimulationStrategy,
   type StrategyId,
   type AnnualSalariesCount,
-  TransactionType,
-  TransactionDirection,
-  SpecialEventType,
-  SpecialEventCategory,
-  ActionCategory,
-  ActionType,
-  TargetPerson,
   type SimulationResult,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
@@ -34,6 +25,15 @@ import {
   type CalendarLabel,
   type MonthDuration,
   type SalaryBonusSlot,
+  TaxClass,
+  SimulationStrategy,
+  TransactionType,
+  TransactionDirection,
+  SpecialEventType,
+  SpecialEventCategory,
+  ActionCategory,
+  ActionType,
+  TargetPerson,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
@@ -72,11 +72,11 @@ import {
   getDefaultPersistedState, 
 } from "#engine/storage/persistence";
 import {
+  type ChildYearPresence,
+  type AnnualTaxReconciliationResult,
   computeMonthlySwapWithholdingVariance,
   computeAnnualTaxReconciliation,
   computeKinderfreibetragGuenstigerpruefung,
-  type ChildYearPresence,
-  type AnnualTaxReconciliationResult,
 } from "#engine/tax/jointAssessment";
 import {
   computeElterngeldBenefits,
@@ -178,9 +178,7 @@ export function calculateSimulationStartDate(
 
   // 3. Pre-pregnancy buffer months in the simulation (simulation months before pregnancy positive)
   const pregnancySimulationMonth = toSimulationMonth(
-    (pYear - startCalendarYear) * 12 +
-      (pMonth - startCalendarMonth) +
-      1,
+    (pYear - startCalendarYear) * 12 + (pMonth - startCalendarMonth) + 1,
   );
   const prePregnancyPlanningMonths = toMonthDuration(
     pregnancySimulationMonth - 1,
@@ -254,7 +252,6 @@ export function runScenarioBatches(
     readonly husbandBaselineNet: EuroAmount;
     readonly wifeBaselineNet: EuroAmount;
     readonly transactions: AccountingTransaction[];
-
   }
 
   const rawMonths: RawMonth[] = [];
@@ -319,7 +316,6 @@ export function runScenarioBatches(
         relativeBirthLabel = relativeMonthLabel;
       }
     }
-
 
     // --- Batch 3: Evaluate Dynamic Working Hours & Schedules ---
     let activeHusbandHours = preexisting.husbandWeeklyHours ?? 40;
@@ -463,8 +459,7 @@ export function runScenarioBatches(
             undefined,
             activeTaxFactor,
           )
-          : preexisting.husbandInitialClass4Net ||
-            Math.round(curH3Net * 0.88);
+          : preexisting.husbandInitialClass4Net || Math.round(curH3Net * 0.88);
     }
     else {
       husbandSalaryNum = curH3Net;
@@ -574,10 +569,14 @@ export function runScenarioBatches(
               const fatherHours = activeHusbandHours;
               if (isElterngeldHoursEligible(fatherHours)) {
                 const prevPtHours = prevPreg.motherPostBirthPartTimeHours ?? 24;
-                const prevPtW5 = prevPreg.motherPostBirthPartTimeClass5Net || curW5PT;
+                const prevPtW5 =
+                  prevPreg.motherPostBirthPartTimeClass5Net || curW5PT;
                 const dynamicW5PT =
                   prevPtHours > 0 && prevPtW5 > 0
-                    ? Math.round(prevPtW5 * (prevPtHours / (preexisting.wifeWeeklyHours || 40)))
+                    ? Math.round(
+                      prevPtW5 *
+                          (prevPtHours / (preexisting.wifeWeeklyHours || 40)),
+                    )
                     : curW5PT;
                 const egEntitlement = computeElterngeldBenefits(
                   toNetSalary(
@@ -602,12 +601,9 @@ export function runScenarioBatches(
             : (preg.motherPostBirthPartTimeHours ?? 24);
           const fatherHours = activeHusbandHours;
 
-          const defaultPtHours =
-            preg.motherPostBirthPartTimeHours ?? 24;
-          const basePtW5 =
-            preg.motherPostBirthPartTimeClass5Net || curW5PT;
-          const basePtW3 =
-            preg.motherPostBirthPartTimeClass3Net || curW3PT;
+          const defaultPtHours = preg.motherPostBirthPartTimeHours ?? 24;
+          const basePtW5 = preg.motherPostBirthPartTimeClass5Net || curW5PT;
+          const basePtW3 = preg.motherPostBirthPartTimeClass3Net || curW3PT;
 
           let dynamicW5PT: number;
           let dynamicW3PT: number;
@@ -629,8 +625,7 @@ export function runScenarioBatches(
             dynamicW3PT = Math.round(basePtW3 * (motherHours / defaultPtHours));
           }
           else {
-            const baselineWifeH =
-              preexisting.wifeWeeklyHours || 40;
+            const baselineWifeH = preexisting.wifeWeeklyHours || 40;
             const wifeRatio =
               baselineWifeH > 0 ? motherHours / baselineWifeH : 0;
             dynamicW5PT = Math.round(curW5FT * wifeRatio);
@@ -781,9 +776,9 @@ export function runScenarioBatches(
         else {
           wifeSalary = toEuroAmount(isSwapActive ? curW3FT : curW5FT);
           phaseLabel = isSwapActive
-            ? (pregnancies.length > 0
+            ? pregnancies.length > 0
               ? "Swap Active (Pre-Mutterschutz)"
-              : "Swap Active")
+              : "Swap Active"
             : pregnancies.length === 0
               ? "Regular Baseline"
               : m < (pregnancies[0]?.positiveTestSimulationMonth ?? 4)
@@ -796,10 +791,7 @@ export function runScenarioBatches(
     // Exact Wage Withholding Deficit during active swap
 
     let monthlyWithholdingDeficit = toEuroAmount(0);
-    if (
-      scenarioKey === SimulationStrategy.StatutoryOptimized &&
-      isSwapActive
-    ) {
+    if (scenarioKey === SimulationStrategy.StatutoryOptimized && isSwapActive) {
       const isPT =
         (pregnancies.length > 0 && m > child1Delivery) ||
         phaseLabel.includes("Part-Time");
@@ -843,7 +835,6 @@ export function runScenarioBatches(
     });
   }
 
-
   // PASS 2: Aggregate Annual Tax Return Reconciliations by Calendar Year (§ 26b EStG)
   const deficitsByCalYear: Record<number, EuroAmount[]> = {};
   rawMonths.forEach((rm) => {
@@ -879,11 +870,9 @@ export function runScenarioBatches(
       const husbandAnnualZvE = husbandBreakdown.taxableIncomeZvE * 12;
 
       // Calculate wife annual earned gross based on pre-birth FT / post-birth PT status in that calendar year
-      const wifeFTGross =
-        preexisting.wifeGross ?? defaultState.wifeGross;
+      const wifeFTGross = preexisting.wifeGross ?? defaultState.wifeGross;
       const wifeHoursPT =
-        preexisting.wifePostBirthWeeklyHours ??
-        defaultState.wifePostBirthHours;
+        preexisting.wifePostBirthWeeklyHours ?? defaultState.wifePostBirthHours;
       const wifeHoursFT =
         preexisting.wifeWeeklyHours ?? defaultState.wifeInitialHours;
       const wifePTGross = Math.round(
@@ -923,9 +912,7 @@ export function runScenarioBatches(
       // Pregnancies delivered on or before reconciledCalYear
       pregnancies.forEach((preg) => {
         const delSimMonth = preg.calculatedDeliverySimulationMonth;
-        const delRm = rawMonths.find(
-          (r) => r.month === delSimMonth,
-        );
+        const delRm = rawMonths.find((r) => r.month === delSimMonth);
         if (delRm && delRm.calendarYearNum <= reconciledCalYear) {
           childrenInYear.push({
             childIndex: preg.childIndex,
@@ -1122,7 +1109,9 @@ export function runScenarioBatches(
     );
     for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
       const slot = matchingHSlots[sIdx];
-      const amt = toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase));
+      const amt = toEuroAmount(
+        Math.round(slot.payoutFraction * husbandBonusBase),
+      );
       if (amt > 0) {
         husbandBonusAmount = toEuroAmount(husbandBonusAmount + amt);
         if (
@@ -1197,7 +1186,9 @@ export function runScenarioBatches(
     // Husband Bonus Transactions
     for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
       const slot = matchingHSlots[sIdx];
-      const amt = toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase));
+      const amt = toEuroAmount(
+        Math.round(slot.payoutFraction * husbandBonusBase),
+      );
       if (amt > 0) {
         const title =
           slot.label ||
@@ -1261,7 +1252,6 @@ export function runScenarioBatches(
         );
       }
     }
-
 
     if (rm.mutterschutz > 0) {
       txs.push(
@@ -1404,10 +1394,7 @@ export function runScenarioBatches(
 
     taxClassSwitches.forEach((sw, sIdx) => {
       const eff = sw.effectiveSimulationMonth;
-      if (
-        m === eff &&
-        scenarioKey === SimulationStrategy.StatutoryOptimized
-      ) {
+      if (m === eff && scenarioKey === SimulationStrategy.StatutoryOptimized) {
         eventTag = `Tax Swap ${sIdx + 1} (${rm.calendarLabel})`;
         eventType = "swap";
       }
@@ -1419,7 +1406,9 @@ export function runScenarioBatches(
     // Husband Extra Salary Bonus Special Events
     for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
       const slot = matchingHSlots[sIdx];
-      const amt = toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase));
+      const amt = toEuroAmount(
+        Math.round(slot.payoutFraction * husbandBonusBase),
+      );
       if (amt > 0) {
         const title =
           slot.label ||
@@ -1560,8 +1549,7 @@ export function runScenarioBatches(
             grossBonus -
                 breakdown.bonusTaxDeduction -
                 grossBonus *
-                  (breakdown.totalSocialSecurity /
-                    breakdown.monthlyGross),
+                  (breakdown.totalSocialSecurity / breakdown.monthlyGross),
           ),
         )
         : Math.round(grossBonus * 0.58);
@@ -1767,7 +1755,8 @@ export function runScenarioBatches(
             calendarLabel: rm.calendarLabel,
             relativeBirthLabel: rm.relativeBirthLabel,
             relativeMonthLabel: rm.relativeMonthLabel,
-            title: "ACTION: Elterngeld Reallocation (*Partnerübertragung* § 4, § 7 BEEG)",
+            title:
+              "ACTION: Elterngeld Reallocation (*Partnerübertragung* § 4, § 7 BEEG)",
             description: `Mother enters Mutterschutz for Child #${pregJ.childIndex}. Remaining Child #${pregI.childIndex} ElterngeldPlus is automatically transferred to Father under § 7 Abs. 2 BEEG to avoid benefit forfeiture.`,
             category: ActionCategory.ElterngeldReallocation,
             type: ActionType.ElterngeldReallocation,
@@ -1799,10 +1788,7 @@ export function runScenarioBatches(
       const revH = revHTax + (revUseFac ? " (F)" : "");
       const revW = revWTax + (revUseFac ? " (F)" : "");
 
-      if (
-        m === eff &&
-        scenarioKey === SimulationStrategy.StatutoryOptimized
-      ) {
+      if (m === eff && scenarioKey === SimulationStrategy.StatutoryOptimized) {
         startingActions.push({
           actionId: toActionId(`${sw.switchId}-${rm.monthId}-EFFECTIVE`),
           monthId: rm.monthId,
@@ -1819,10 +1805,7 @@ export function runScenarioBatches(
           taxClassLabel: `H: ${effH} | W: ${effW}`,
         });
       }
-      if (
-        m === rev &&
-        scenarioKey === SimulationStrategy.StatutoryOptimized
-      ) {
+      if (m === rev && scenarioKey === SimulationStrategy.StatutoryOptimized) {
         startingActions.push({
           actionId: toActionId(`${sw.switchId}-${rm.monthId}-REVERT`),
           monthId: rm.monthId,
@@ -1944,27 +1927,12 @@ export function runScenarioBatches(
   }
 
   // Summary Metrics
-  const totalSalaries = months.reduce(
-    (sum, m) => sum + m.earnedSalaries,
-    0,
-  );
-  const totalBenefits = months.reduce(
-    (sum, m) => sum + m.stateBenefits,
-    0,
-  );
-  const totalTaxRefunds = months.reduce(
-    (sum, m) => sum + m.taxRefund,
-    0,
-  );
-  const grandTotal = months.reduce(
-    (sum, m) => sum + m.monthlyTotal,
-    0,
-  );
+  const totalSalaries = months.reduce((sum, m) => sum + m.earnedSalaries, 0);
+  const totalBenefits = months.reduce((sum, m) => sum + m.stateBenefits, 0);
+  const totalTaxRefunds = months.reduce((sum, m) => sum + m.taxRefund, 0);
+  const grandTotal = months.reduce((sum, m) => sum + m.monthlyTotal, 0);
 
-  const totalMutterschutz = months.reduce(
-    (sum, m) => sum + m.mutterschutz,
-    0,
-  );
+  const totalMutterschutz = months.reduce((sum, m) => sum + m.mutterschutz, 0);
   const totalWifeElterngeld = months.reduce(
     (sum, m) => sum + m.wifeElterngeld,
     0,
@@ -1973,10 +1941,7 @@ export function runScenarioBatches(
     (sum, m) => sum + m.husbandElterngeld,
     0,
   );
-  const totalKindergeld = months.reduce(
-    (sum, m) => sum + m.kindergeld,
-    0,
-  );
+  const totalKindergeld = months.reduce((sum, m) => sum + m.kindergeld, 0);
   const total13thSalaries = months.reduce(
     (sum, m) => sum + m.specialBonusTotal,
     0,
