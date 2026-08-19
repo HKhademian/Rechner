@@ -8,6 +8,9 @@ import {
   useSignal, 
 } from "@preact/signals";
 import {
+  type HouseholdScenarioData,
+  type CalculatorInputs,
+  type PersonDeductions,
   grossIncome,
   taxBracket,
   hasChurchTax,
@@ -33,9 +36,6 @@ import {
   updateScenarioMetaData,
   updateScenarioInput,
   cancelEdit,
-  type HouseholdScenarioData,
-  type CalculatorInputs,
-  type PersonDeductions,
 } from "#store/calculatorStore";
 import {
   AddActionIcon,
@@ -489,7 +489,8 @@ export default function ComparisonTable(): JSX.Element | null {
                 onChange={(e) =>
                   updateScenarioInput(
                     fieldKey,
-                    (e.target as HTMLInputElement).checked as CalculatorInputs[K],
+                    (e.target as HTMLInputElement)
+                      .checked as CalculatorInputs[K],
                   )
                 }
                 style={{ transform: "scale(1.2)",

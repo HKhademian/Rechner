@@ -14,16 +14,16 @@ import {
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
+  type StrategyId,
+  type TimelineMonth,
+  type SpecialEventItem,
+  type ActionRowItem,
   ActionType,
   ActionCategory,
   FieldColumnKey,
   ExplanationFieldKey,
   SimulationStrategy,
-  type StrategyId,
   ActiveStrategyView,
-  type TimelineMonth,
-  type SpecialEventItem,
-  type ActionRowItem,
   toMonthSimRef,
 } from "#engine/types";
 import {
@@ -39,14 +39,14 @@ import {
 import FieldExplainerModal from "./FieldExplainerModal";
 import RowExplainerModal from "./RowExplainerModal";
 import {
+  type FieldExplanation,
+  type RowExplanation,
   getFieldExplanation,
   getActionFieldExplanation,
   getSpecialEventFieldExplanation,
   getRowExplanation,
   getActionRowExplanation,
   getSpecialEventRowExplanation,
-  type FieldExplanation,
-  type RowExplanation,
 } from "#engine/explanation/timelineExplainer";
 
 function formatCurrency(amount: number): string {
@@ -241,28 +241,19 @@ export default function TimelineTable(): JSX.Element {
       }
 
       // 3. Regular Monthly Baseline Row
-      const diffHusband =
-        m.husbandSalary -
-        (bMonth ? bMonth.husbandSalary : 0);
-      const diffWife =
-        m.wifeSalary - (bMonth ? bMonth.wifeSalary : 0);
+      const diffHusband = m.husbandSalary - (bMonth ? bMonth.husbandSalary : 0);
+      const diffWife = m.wifeSalary - (bMonth ? bMonth.wifeSalary : 0);
       const diffMutterschutz =
-        m.mutterschutz -
-        (bMonth ? bMonth.mutterschutz : 0);
+        m.mutterschutz - (bMonth ? bMonth.mutterschutz : 0);
       const diffWifeElterngeld =
-        m.wifeElterngeld -
-        (bMonth ? bMonth.wifeElterngeld : 0);
+        m.wifeElterngeld - (bMonth ? bMonth.wifeElterngeld : 0);
       const diffHusbandElterngeld =
-        m.husbandElterngeld -
-        (bMonth ? bMonth.husbandElterngeld : 0);
-      const diffKindergeld =
-        m.kindergeld - (bMonth ? bMonth.kindergeld : 0);
+        m.husbandElterngeld - (bMonth ? bMonth.husbandElterngeld : 0);
+      const diffKindergeld = m.kindergeld - (bMonth ? bMonth.kindergeld : 0);
       const diffNetInflow =
-        m.regularMonthlyTotal -
-        (bMonth ? bMonth.regularMonthlyTotal : 0);
+        m.regularMonthlyTotal - (bMonth ? bMonth.regularMonthlyTotal : 0);
       const diffCumulated =
-        m.cumulatedTotal -
-        (bMonth ? bMonth.cumulatedTotal : 0);
+        m.cumulatedTotal - (bMonth ? bMonth.cumulatedTotal : 0);
 
       rows.push([
         "MONTH_BASE",
@@ -620,7 +611,8 @@ export default function TimelineTable(): JSX.Element {
               </th>
               <th style={{ padding: "10px 12px" }}>
                 <div>Husband Base Salary</div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -634,7 +626,8 @@ export default function TimelineTable(): JSX.Element {
               </th>
               <th style={{ padding: "10px 12px" }}>
                 <div>Wife Base Salary</div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -672,7 +665,8 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -710,7 +704,8 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -748,7 +743,8 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -787,7 +783,8 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -826,7 +823,8 @@ export default function TimelineTable(): JSX.Element {
                     <ExternalLegalSourceIcon size={10} />
                   </button>
                 </div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -843,7 +841,8 @@ export default function TimelineTable(): JSX.Element {
                   color: "var(--text-primary)" }}
               >
                 <div>Net Inflow</div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -860,7 +859,8 @@ export default function TimelineTable(): JSX.Element {
                   color: "var(--text-secondary)" }}
               >
                 <div>Cumulated</div>
-                {showDelta && scenario === SimulationStrategy.StatutoryOptimized && (
+                {showDelta &&
+                  scenario === SimulationStrategy.StatutoryOptimized && (
                   <div
                     style={{
                       fontSize: "0.66rem",
@@ -881,36 +881,25 @@ export default function TimelineTable(): JSX.Element {
 
               // Per-column diff calculations vs Reference Scenario B
               const diffHusband =
-                m.husbandSalary -
-                (bMonth ? bMonth.husbandSalary : 0);
-              const diffWife =
-                m.wifeSalary -
-                (bMonth ? bMonth.wifeSalary : 0);
+                m.husbandSalary - (bMonth ? bMonth.husbandSalary : 0);
+              const diffWife = m.wifeSalary - (bMonth ? bMonth.wifeSalary : 0);
               const diffMutterschutz =
-                m.mutterschutz -
-                (bMonth ? bMonth.mutterschutz : 0);
+                m.mutterschutz - (bMonth ? bMonth.mutterschutz : 0);
               const diffWifeElterngeld =
-                m.wifeElterngeld -
-                (bMonth ? bMonth.wifeElterngeld : 0);
+                m.wifeElterngeld - (bMonth ? bMonth.wifeElterngeld : 0);
               const diffHusbandElterngeld =
-                m.husbandElterngeld -
-                (bMonth ? bMonth.husbandElterngeld : 0);
+                m.husbandElterngeld - (bMonth ? bMonth.husbandElterngeld : 0);
               const diffKindergeld =
-                m.kindergeld -
-                (bMonth ? bMonth.kindergeld : 0);
+                m.kindergeld - (bMonth ? bMonth.kindergeld : 0);
               const diffSpecialEvents =
-                m.specialEventsTotal -
-                (bMonth ? bMonth.specialEventsTotal : 0);
+                m.specialEventsTotal - (bMonth ? bMonth.specialEventsTotal : 0);
               const diffRegularNetInflow =
                 m.regularMonthlyTotal -
                 (bMonth ? bMonth.regularMonthlyTotal : 0);
               const diffNetInflow =
-                m.monthlyTotal -
-                (bMonth ? bMonth.monthlyTotal : 0);
+                m.monthlyTotal - (bMonth ? bMonth.monthlyTotal : 0);
               const diffCumulated =
-                m.cumulatedTotal -
-                (bMonth ? bMonth.cumulatedTotal : 0);
-
+                m.cumulatedTotal - (bMonth ? bMonth.cumulatedTotal : 0);
 
               const hasEvents =
                 isSpecialRowsActive &&
@@ -1252,8 +1241,7 @@ export default function TimelineTable(): JSX.Element {
                     const priorEventsSum = m.specialEvents
                       .slice(0, evIdx)
                       .reduce(
-                        (acc: number, it: SpecialEventItem) =>
-                          acc + it.amount,
+                        (acc: number, it: SpecialEventItem) => acc + it.amount,
                         0,
                       );
                     const evCumulated =
@@ -1281,7 +1269,6 @@ export default function TimelineTable(): JSX.Element {
                     const valColor = isCost
                       ? "var(--color-loss)"
                       : "var(--color-gain)";
-
 
                     return (
                       <tr
@@ -1534,13 +1521,7 @@ export default function TimelineTable(): JSX.Element {
                             )
                           }
                         >
-                          {renderCell(
-                            ev.amount,
-                            evDiff,
-                            false,
-                            valColor,
-                            true,
-                          )}
+                          {renderCell(ev.amount, evDiff, false, valColor, true)}
                         </td>
                         <td
                           style={{ padding: "6px 12px",
@@ -1558,13 +1539,7 @@ export default function TimelineTable(): JSX.Element {
                             )
                           }
                         >
-                          {renderCell(
-                            ev.amount,
-                            evDiff,
-                            false,
-                            valColor,
-                            true,
-                          )}
+                          {renderCell(ev.amount, evDiff, false, valColor, true)}
                         </td>
                         <td
                           style={{ padding: "6px 12px",
@@ -1670,8 +1645,8 @@ export default function TimelineTable(): JSX.Element {
                             fontWeight: 500,
                           }}
                         >
-                          {m.monthId} · {m.monthSimRef || toMonthSimRef(m.month)} · Y
-                          {m.year}
+                          {m.monthId} ·{" "}
+                          {m.monthSimRef || toMonthSimRef(m.month)} · Y{m.year}
                         </div>
                       </div>
                       <button
@@ -1925,9 +1900,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      isSpecialRowsActive
-                        ? 0
-                        : m.specialEventsTotal,
+                      isSpecialRowsActive ? 0 : m.specialEventsTotal,
                       isSpecialRowsActive ? 0 : diffSpecialEvents,
                       true,
                       isSpecialRowsActive
@@ -1937,7 +1910,6 @@ export default function TimelineTable(): JSX.Element {
                           : "var(--color-gain)",
                       true,
                     )}
-
                   </td>
                   <td
                     style={{ padding: "8px 12px",

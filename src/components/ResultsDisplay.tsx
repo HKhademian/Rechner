@@ -8,11 +8,11 @@ import {
   useSignal, 
 } from "@preact/signals";
 import {
+  type PersonDeductions,
   deductions,
   hasPartner,
   salariesPerYear,
   partnerSalariesPerYear,
-  type PersonDeductions,
 } from "#store/calculatorStore";
 
 export default function ResultsDisplay(): JSX.Element {

@@ -80,6 +80,10 @@ import {
 } from "#store/elterngeldStore";
 
 import {
+  type MonthId,
+  type MonthRef,
+  type MonthSimRef,
+  type CalendarLabel,
   TaxClass,
   TargetPerson,
   FinancialEventCategory,
@@ -93,7 +97,6 @@ import {
   toNetSalary,
   toFullCalendarYear,
   toMonthDuration,
-
   toChildIndex,
   toPercentageRate,
   toPregnancyId,
@@ -101,21 +104,17 @@ import {
   toRaiseId,
   toHoursChangeId,
   toFinancialEventId,
-  type MonthId,
-  type MonthRef,
-  type MonthSimRef,
-  type CalendarLabel,
   toMonthId,
   toMonthRef,
   toMonthSimRef,
   toCalendarLabel,
 } from "#engine/types";
 import {
-  getDefaultPersistedState, 
+  getDefaultPersistedState,
   validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
 import {
-  BUILTIN_SCENARIO_CATALOG,
+  BUILTIN_SCENARIO_CATALOG, 
 } from "#data/scenarios/scenarioRegistry";
 
 import {
@@ -129,7 +128,6 @@ import {
   RemoveItemIcon,
   DeleteActionIcon,
   EligibilityConfirmedIcon,
-
   StatutoryLimitationWarningIcon,
   ExternalLegalSourceIcon,
   ExpandSectionIcon,
@@ -206,7 +204,8 @@ export default function SandboxControls(): JSX.Element {
       customPregnancies.value[0]?.positiveTestSimulationMonth ??
       Math.max(
         1,
-        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) - 8,
+        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) -
+          8,
       );
     const d1 =
       customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12;
@@ -238,7 +237,8 @@ export default function SandboxControls(): JSX.Element {
       customPregnancies.value[0]?.positiveTestSimulationMonth ??
       Math.max(
         1,
-        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) - 8,
+        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) -
+          8,
       );
     if (simMonth < p1) {
       return toMonthRef(simMonth - p1);
@@ -259,9 +259,6 @@ export default function SandboxControls(): JSX.Element {
     }
     resetToDefaults();
   };
-
-
-
 
   const endSimMonth = simulationDurationMonths.value;
 
@@ -408,7 +405,6 @@ export default function SandboxControls(): JSX.Element {
               ))}
             </div>
 
-
             <div style={{ display: "flex",
               alignItems: "center",
               gap: "8px" }}>
@@ -500,7 +496,6 @@ export default function SandboxControls(): JSX.Element {
               </button>
             </div>
           </div>
-
 
           {/* Discrete Batches: Full-Width Rows Layout with Auto-Wrapping Column Entries */}
           <div
@@ -654,7 +649,6 @@ export default function SandboxControls(): JSX.Element {
                 </button>
               </div>
 
-
               {/* Dynamic Pregnancies Auto-Wrapping Columns */}
               {customPregnancies.value.length === 0 ? (
                 <div
@@ -669,13 +663,16 @@ export default function SandboxControls(): JSX.Element {
                     lineHeight: 1.5,
                   }}
                 >
-                  Zero pregnancy milestone actions currently active. Click &quot;Add Pregnancy&quot; above to model maternity protection, parental leave, and ElterngeldPlus benefits.
+                  Zero pregnancy milestone actions currently active. Click
+                  &quot;Add Pregnancy&quot; above to model maternity protection,
+                  parental leave, and ElterngeldPlus benefits.
                 </div>
               ) : (
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(310px, 1fr))",
                     gap: "14px",
                   }}
                 >
@@ -739,7 +736,6 @@ export default function SandboxControls(): JSX.Element {
                             </button>
                           </div>
 
-
                           {isFirst ? (
                             <div>
                               <div
@@ -764,11 +760,11 @@ export default function SandboxControls(): JSX.Element {
                                   <select
                                     value={
                                       ((startCalendarMonth.value -
-                                      1 +
-                                      pSimMonth -
-                                      1) %
-                                      12) +
-                                    1
+                                        1 +
+                                        pSimMonth -
+                                        1) %
+                                        12) +
+                                      1
                                     }
                                     onChange={(e) => {
                                       const m = Number(
@@ -776,12 +772,12 @@ export default function SandboxControls(): JSX.Element {
                                       );
                                       const curY =
                                         startCalendarYear.value +
-                                      Math.floor(
-                                        (startCalendarMonth.value -
-                                          1 +
-                                          (pSimMonth - 1)) /
-                                          12,
-                                      );
+                                        Math.floor(
+                                          (startCalendarMonth.value -
+                                            1 +
+                                            (pSimMonth - 1)) /
+                                            12,
+                                        );
                                       setPregnancy1PositiveDate(curY, m);
                                     }}
                                     style={{
@@ -816,12 +812,12 @@ export default function SandboxControls(): JSX.Element {
                                   <select
                                     value={
                                       startCalendarYear.value +
-                                    Math.floor(
-                                      (startCalendarMonth.value -
-                                        1 +
-                                        (pSimMonth - 1)) /
-                                        12,
-                                    )
+                                      Math.floor(
+                                        (startCalendarMonth.value -
+                                          1 +
+                                          (pSimMonth - 1)) /
+                                          12,
+                                      )
                                     }
                                     onChange={(e) => {
                                       const y = Number(
@@ -829,11 +825,11 @@ export default function SandboxControls(): JSX.Element {
                                       );
                                       const curM =
                                         ((startCalendarMonth.value -
-                                        1 +
-                                        pSimMonth -
-                                        1) %
-                                        12) +
-                                      1;
+                                          1 +
+                                          pSimMonth -
+                                          1) %
+                                          12) +
+                                        1;
                                       setPregnancy1PositiveDate(y, curM);
                                     }}
                                     style={{
@@ -869,7 +865,9 @@ export default function SandboxControls(): JSX.Element {
                               >
                                 <span>
                                   Positive:{" "}
-                                  <strong style={{ color: "var(--color-loss)" }}>
+                                  <strong
+                                    style={{ color: "var(--color-loss)" }}
+                                  >
                                     {getCalDate(pSimMonth)}
                                   </strong>{" "}
                                   ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
@@ -911,11 +909,11 @@ export default function SandboxControls(): JSX.Element {
                                   <select
                                     value={
                                       ((startCalendarMonth.value -
-                                      1 +
-                                      pSimMonth -
-                                      1) %
-                                      12) +
-                                    1
+                                        1 +
+                                        pSimMonth -
+                                        1) %
+                                        12) +
+                                      1
                                     }
                                     onChange={(e) => {
                                       const m = Number(
@@ -923,15 +921,15 @@ export default function SandboxControls(): JSX.Element {
                                       );
                                       const curY =
                                         startCalendarYear.value +
-                                      Math.floor(
-                                        (startCalendarMonth.value -
-                                          1 +
-                                          (pSimMonth - 1)) /
-                                          12,
-                                      );
+                                        Math.floor(
+                                          (startCalendarMonth.value -
+                                            1 +
+                                            (pSimMonth - 1)) /
+                                            12,
+                                        );
                                       const totalElapsed =
                                         (curY - startCalendarYear.value) * 12 +
-                                      (m - startCalendarMonth.value);
+                                        (m - startCalendarMonth.value);
                                       const newPSim = Math.max(
                                         1,
                                         totalElapsed + 1,
@@ -939,13 +937,13 @@ export default function SandboxControls(): JSX.Element {
                                       const newDSim = newPSim + 8;
                                       updatePregnancyAction(preg.pregnancyId, {
                                         positiveTestCalendarMonth:
-                                        toCalendarMonth(m),
+                                          toCalendarMonth(m),
                                         positiveTestCalendarYear:
-                                        toFullCalendarYear(curY),
+                                          toFullCalendarYear(curY),
                                         positiveTestSimulationMonth:
-                                        toSimulationMonth(newPSim),
+                                          toSimulationMonth(newPSim),
                                         calculatedDeliverySimulationMonth:
-                                        toSimulationMonth(newDSim),
+                                          toSimulationMonth(newDSim),
                                       });
                                     }}
                                     style={{
@@ -980,12 +978,12 @@ export default function SandboxControls(): JSX.Element {
                                   <select
                                     value={
                                       startCalendarYear.value +
-                                    Math.floor(
-                                      (startCalendarMonth.value -
-                                        1 +
-                                        (pSimMonth - 1)) /
-                                        12,
-                                    )
+                                      Math.floor(
+                                        (startCalendarMonth.value -
+                                          1 +
+                                          (pSimMonth - 1)) /
+                                          12,
+                                      )
                                     }
                                     onChange={(e) => {
                                       const y = Number(
@@ -993,14 +991,14 @@ export default function SandboxControls(): JSX.Element {
                                       );
                                       const curM =
                                         ((startCalendarMonth.value -
-                                        1 +
-                                        pSimMonth -
-                                        1) %
-                                        12) +
-                                      1;
+                                          1 +
+                                          pSimMonth -
+                                          1) %
+                                          12) +
+                                        1;
                                       const totalElapsed =
                                         (y - startCalendarYear.value) * 12 +
-                                      (curM - startCalendarMonth.value);
+                                        (curM - startCalendarMonth.value);
                                       const newPSim = Math.max(
                                         1,
                                         totalElapsed + 1,
@@ -1008,13 +1006,13 @@ export default function SandboxControls(): JSX.Element {
                                       const newDSim = newPSim + 8;
                                       updatePregnancyAction(preg.pregnancyId, {
                                         positiveTestCalendarMonth:
-                                        toCalendarMonth(curM),
+                                          toCalendarMonth(curM),
                                         positiveTestCalendarYear:
-                                        toFullCalendarYear(y),
+                                          toFullCalendarYear(y),
                                         positiveTestSimulationMonth:
-                                        toSimulationMonth(newPSim),
+                                          toSimulationMonth(newPSim),
                                         calculatedDeliverySimulationMonth:
-                                        toSimulationMonth(newDSim),
+                                          toSimulationMonth(newDSim),
                                       });
                                     }}
                                     style={{
@@ -1050,7 +1048,9 @@ export default function SandboxControls(): JSX.Element {
                               >
                                 <span>
                                   Positive:{" "}
-                                  <strong style={{ color: "var(--color-loss)" }}>
+                                  <strong
+                                    style={{ color: "var(--color-loss)" }}
+                                  >
                                     {getCalDate(pSimMonth)}
                                   </strong>{" "}
                                   ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
@@ -1071,13 +1071,13 @@ export default function SandboxControls(): JSX.Element {
                                 style={{
                                   fontSize: "0.66rem",
                                   color:
-                                  dSimMonth -
-                                    (customPregnancies.value[idx - 1]
-                                      ?.calculatedDeliverySimulationMonth ||
-                                      0) <
-                                  36
-                                    ? "var(--color-gain)"
-                                    : "var(--color-warning)",
+                                    dSimMonth -
+                                      (customPregnancies.value[idx - 1]
+                                        ?.calculatedDeliverySimulationMonth ||
+                                        0) <
+                                    36
+                                      ? "var(--color-gain)"
+                                      : "var(--color-warning)",
                                   display: "flex",
                                   alignItems: "center",
                                   gap: "4px",
@@ -1085,18 +1085,17 @@ export default function SandboxControls(): JSX.Element {
                                 }}
                               >
                                 {dSimMonth -
-                                (customPregnancies.value[idx - 1]
-                                  ?.calculatedDeliverySimulationMonth ||
-                                  0) <
-                              36 ? (
+                                  (customPregnancies.value[idx - 1]
+                                    ?.calculatedDeliverySimulationMonth || 0) <
+                                36 ? (
                                     <>
                                       <EligibilityConfirmedIcon size={11} />
                                       <span>
                                         Sibling Bonus (+10%) eligible (
                                         {dSimMonth -
-                                      (customPregnancies.value[idx - 1]
-                                        ?.calculatedDeliverySimulationMonth ||
-                                        0)}
+                                        (customPregnancies.value[idx - 1]
+                                          ?.calculatedDeliverySimulationMonth ||
+                                          0)}
                                         M spacing)
                                       </span>
                                     </>
@@ -1106,9 +1105,9 @@ export default function SandboxControls(): JSX.Element {
                                       <span>
                                         Sibling bonus expired (
                                         {dSimMonth -
-                                      (customPregnancies.value[idx - 1]
-                                        ?.calculatedDeliverySimulationMonth ||
-                                        0)}
+                                        (customPregnancies.value[idx - 1]
+                                          ?.calculatedDeliverySimulationMonth ||
+                                          0)}
                                         M spacing)
                                       </span>
                                     </>
@@ -1132,8 +1131,8 @@ export default function SandboxControls(): JSX.Element {
                             <>
                               ↳ Sim Start:{" "}
                               <strong>01.{startCalendarYear.value}</strong> (
-                              {prePregnancyPlanningMonths.value}M planning before
-                              pregnancy)
+                              {prePregnancyPlanningMonths.value}M planning
+                              before pregnancy)
                             </>
                           ) : (
                             <>
@@ -1148,10 +1147,6 @@ export default function SandboxControls(): JSX.Element {
                 </div>
               )}
             </div>
-
-
-
-
 
             {/* ======================================================== */}
             {/* BATCH 2: TAX CLASSES & STRATEGY (§ 2b BEEG) */}
@@ -1296,7 +1291,6 @@ export default function SandboxControls(): JSX.Element {
                     {customTaxClassSwitches.value.length + 1})
                   </span>
                 </button>
-
               </div>
 
               {/* Dynamic Tax Class Switches Auto-Wrapping Columns */}
@@ -1627,7 +1621,6 @@ export default function SandboxControls(): JSX.Element {
                           </button>
                         </div>
 
-
                         {/* Quick Presets for Target Tax Class Combination */}
                         <div
                           style={{
@@ -1861,15 +1854,17 @@ export default function SandboxControls(): JSX.Element {
                                   value={m}
                                 >
                                   {getMonthSimRef(m)} · {getCalDate(m)} (
-                                  {getRelativeMonthLabel(m)}) ·{" "}
-                                  {getMonthId(m)}
+                                  {getRelativeMonthLabel(m)}) · {getMonthId(m)}
                                 </option>
                               ))}
                             </select>
                             <input
                               type="range"
                               min="1"
-                              max={Math.max(120, simulationDurationMonths.value)}
+                              max={Math.max(
+                                120,
+                                simulationDurationMonths.value,
+                              )}
                               value={sMonth}
                               onChange={(e) => {
                                 const newM = parseInt(
@@ -1957,15 +1952,17 @@ export default function SandboxControls(): JSX.Element {
                                   value={m}
                                 >
                                   {getMonthSimRef(m)} · {getCalDate(m)} (
-                                  {getRelativeMonthLabel(m)}) ·{" "}
-                                  {getMonthId(m)}
+                                  {getRelativeMonthLabel(m)}) · {getMonthId(m)}
                                 </option>
                               ))}
                             </select>
                             <input
                               type="range"
                               min="1"
-                              max={Math.max(120, simulationDurationMonths.value)}
+                              max={Math.max(
+                                120,
+                                simulationDurationMonths.value,
+                              )}
                               value={rMonth}
                               onChange={(e) => {
                                 const newM = parseInt(
@@ -2081,7 +2078,8 @@ export default function SandboxControls(): JSX.Element {
                         >
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
-                              ? derivedSpousalSet.value.wifeClass3FullTimeNet * 12
+                              ? derivedSpousalSet.value.wifeClass3FullTimeNet *
+                                  12
                               : derivedSpousalSet.value.wifeClass3FullTimeNet,
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
@@ -2101,7 +2099,8 @@ export default function SandboxControls(): JSX.Element {
                         <span>
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
-                              ? derivedSpousalSet.value.wifeClass5FullTimeNet * 12
+                              ? derivedSpousalSet.value.wifeClass5FullTimeNet *
+                                  12
                               : derivedSpousalSet.value.wifeClass5FullTimeNet,
                           )}
                           {salaryPeriod.value === SalaryPeriod.Yearly
@@ -2351,8 +2350,7 @@ export default function SandboxControls(): JSX.Element {
                           : TargetPerson.Husband;
                       const defaultMonth = Math.min(
                         simulationDurationMonths.value,
-                        child1BirthMonth.value +
-                          (count === 0 ? 2 : 14),
+                        child1BirthMonth.value + (count === 0 ? 2 : 14),
                       );
                       const totalElapsed =
                         startCalendarMonth.value - 1 + (defaultMonth - 1);
@@ -2798,7 +2796,8 @@ export default function SandboxControls(): JSX.Element {
                       </div>
 
                       {/* Husband Bonus Distribution Options if > 12 */}
-                      {husbandSalariesCount.value === AnnualSalariesCount.Thirteen && (
+                      {husbandSalariesCount.value ===
+                        AnnualSalariesCount.Thirteen && (
                         <div
                           style={{
                             display: "flex",
@@ -2811,28 +2810,46 @@ export default function SandboxControls(): JSX.Element {
                             marginTop: "3px",
                           }}
                         >
-                          <div style={{ color: "var(--text-muted)",
-                            fontSize: "0.60rem",
-                            fontWeight: 600 }}>
+                          <div
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.60rem",
+                              fontWeight: 600,
+                            }}
+                          >
                             13th Salary Distribution Ratio:
                           </div>
-                          <div style={{ display: "flex",
-                            gap: "3px",
-                            flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {[
-                              { label: "40/60 (May/Nov)",
-                                val: BonusDistributionPreset.Ratio40_60 },
-                              { label: "50/50 (Jun/Nov)",
-                                val: BonusDistributionPreset.Ratio50_50 },
-                              { label: "100% Nov",
-                                val: BonusDistributionPreset.Single100Nov },
-                              { label: "100% Dec",
-                                val: BonusDistributionPreset.Single100Dec },
+                              {
+                                label: "40/60 (May/Nov)",
+                                val: BonusDistributionPreset.Ratio40_60,
+                              },
+                              {
+                                label: "50/50 (Jun/Nov)",
+                                val: BonusDistributionPreset.Ratio50_50,
+                              },
+                              {
+                                label: "100% Nov",
+                                val: BonusDistributionPreset.Single100Nov,
+                              },
+                              {
+                                label: "100% Dec",
+                                val: BonusDistributionPreset.Single100Dec,
+                              },
                             ].map((preset) => (
                               <button
                                 key={`h-preset-${preset.val}`}
                                 type="button"
-                                onClick={() => setHusbandBonusPreset(preset.val)}
+                                onClick={() =>
+                                  setHusbandBonusPreset(preset.val)
+                                }
                                 style={{
                                   padding: "1px 4px",
                                   fontSize: "0.58rem",
@@ -2860,7 +2877,8 @@ export default function SandboxControls(): JSX.Element {
                         </div>
                       )}
 
-                      {husbandSalariesCount.value === AnnualSalariesCount.Fourteen && (
+                      {husbandSalariesCount.value ===
+                        AnnualSalariesCount.Fourteen && (
                         <div
                           style={{
                             display: "flex",
@@ -2873,24 +2891,38 @@ export default function SandboxControls(): JSX.Element {
                             marginTop: "3px",
                           }}
                         >
-                          <div style={{ color: "var(--text-muted)",
-                            fontSize: "0.60rem",
-                            fontWeight: 600 }}>
+                          <div
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.60rem",
+                              fontWeight: 600,
+                            }}
+                          >
                             14th Salary Distribution:
                           </div>
-                          <div style={{ display: "flex",
-                            gap: "3px",
-                            flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {[
-                              { label: "100%/100% (Jun/Nov)",
-                                val: BonusDistributionPreset.Double100_100 },
-                              { label: "Quarterly 50%",
-                                val: BonusDistributionPreset.Quarterly },
+                              {
+                                label: "100%/100% (Jun/Nov)",
+                                val: BonusDistributionPreset.Double100_100,
+                              },
+                              {
+                                label: "Quarterly 50%",
+                                val: BonusDistributionPreset.Quarterly,
+                              },
                             ].map((preset) => (
                               <button
                                 key={`h-preset-${preset.val}`}
                                 type="button"
-                                onClick={() => setHusbandBonusPreset(preset.val)}
+                                onClick={() =>
+                                  setHusbandBonusPreset(preset.val)
+                                }
                                 style={{
                                   padding: "1px 4px",
                                   fontSize: "0.58rem",
@@ -2918,7 +2950,8 @@ export default function SandboxControls(): JSX.Element {
                         </div>
                       )}
 
-                      {husbandSalariesCount.value === AnnualSalariesCount.Fifteen && (
+                      {husbandSalariesCount.value ===
+                        AnnualSalariesCount.Fifteen && (
                         <div
                           style={{
                             display: "flex",
@@ -2931,24 +2964,38 @@ export default function SandboxControls(): JSX.Element {
                             marginTop: "3px",
                           }}
                         >
-                          <div style={{ color: "var(--text-muted)",
-                            fontSize: "0.60rem",
-                            fontWeight: 600 }}>
+                          <div
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.60rem",
+                              fontWeight: 600,
+                            }}
+                          >
                             15th Salary Distribution:
                           </div>
-                          <div style={{ display: "flex",
-                            gap: "3px",
-                            flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {[
-                              { label: "100% Mar/Jun/Nov",
-                                val: BonusDistributionPreset.Triple100_100_100 },
-                              { label: "Quarterly 75%",
-                                val: BonusDistributionPreset.Quarterly },
+                              {
+                                label: "100% Mar/Jun/Nov",
+                                val: BonusDistributionPreset.Triple100_100_100,
+                              },
+                              {
+                                label: "Quarterly 75%",
+                                val: BonusDistributionPreset.Quarterly,
+                              },
                             ].map((preset) => (
                               <button
                                 key={`h-preset-${preset.val}`}
                                 type="button"
-                                onClick={() => setHusbandBonusPreset(preset.val)}
+                                onClick={() =>
+                                  setHusbandBonusPreset(preset.val)
+                                }
                                 style={{
                                   padding: "1px 4px",
                                   fontSize: "0.58rem",
@@ -2993,10 +3040,8 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? derivedSpousalSet.value
-                              .husbandClass3Net * 12
-                            : derivedSpousalSet.value
-                              .husbandClass3Net,
+                            ? derivedSpousalSet.value.husbandClass3Net * 12
+                            : derivedSpousalSet.value.husbandClass3Net,
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -3006,10 +3051,8 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? derivedSpousalSet.value
-                              .husbandClass5Net * 12
-                            : derivedSpousalSet.value
-                              .husbandClass5Net,
+                            ? derivedSpousalSet.value.husbandClass5Net * 12
+                            : derivedSpousalSet.value.husbandClass5Net,
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -3018,10 +3061,8 @@ export default function SandboxControls(): JSX.Element {
                       Class IV:{" "}
                       {formatCurrency(
                         salaryPeriod.value === SalaryPeriod.Yearly
-                          ? derivedSpousalSet.value
-                            .husbandClass4Net * 12
-                          : derivedSpousalSet.value
-                            .husbandClass4Net,
+                          ? derivedSpousalSet.value.husbandClass4Net * 12
+                          : derivedSpousalSet.value.husbandClass4Net,
                       )}
                     </span>
                   </div>
@@ -3261,7 +3302,8 @@ export default function SandboxControls(): JSX.Element {
                       </div>
 
                       {/* Wife Bonus Distribution Options if > 12 */}
-                      {wifeSalariesCount.value === AnnualSalariesCount.Thirteen && (
+                      {wifeSalariesCount.value ===
+                        AnnualSalariesCount.Thirteen && (
                         <div
                           style={{
                             display: "flex",
@@ -3274,23 +3316,39 @@ export default function SandboxControls(): JSX.Element {
                             marginTop: "3px",
                           }}
                         >
-                          <div style={{ color: "var(--text-muted)",
-                            fontSize: "0.60rem",
-                            fontWeight: 600 }}>
+                          <div
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.60rem",
+                              fontWeight: 600,
+                            }}
+                          >
                             13th Salary Distribution Ratio:
                           </div>
-                          <div style={{ display: "flex",
-                            gap: "3px",
-                            flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {[
-                              { label: "40/60 (May/Nov)",
-                                val: BonusDistributionPreset.Ratio40_60 },
-                              { label: "50/50 (Jun/Nov)",
-                                val: BonusDistributionPreset.Ratio50_50 },
-                              { label: "100% Nov",
-                                val: BonusDistributionPreset.Single100Nov },
-                              { label: "100% Dec",
-                                val: BonusDistributionPreset.Single100Dec },
+                              {
+                                label: "40/60 (May/Nov)",
+                                val: BonusDistributionPreset.Ratio40_60,
+                              },
+                              {
+                                label: "50/50 (Jun/Nov)",
+                                val: BonusDistributionPreset.Ratio50_50,
+                              },
+                              {
+                                label: "100% Nov",
+                                val: BonusDistributionPreset.Single100Nov,
+                              },
+                              {
+                                label: "100% Dec",
+                                val: BonusDistributionPreset.Single100Dec,
+                              },
                             ].map((preset) => (
                               <button
                                 key={`w-preset-${preset.val}`}
@@ -3323,7 +3381,8 @@ export default function SandboxControls(): JSX.Element {
                         </div>
                       )}
 
-                      {wifeSalariesCount.value === AnnualSalariesCount.Fourteen && (
+                      {wifeSalariesCount.value ===
+                        AnnualSalariesCount.Fourteen && (
                         <div
                           style={{
                             display: "flex",
@@ -3336,19 +3395,31 @@ export default function SandboxControls(): JSX.Element {
                             marginTop: "3px",
                           }}
                         >
-                          <div style={{ color: "var(--text-muted)",
-                            fontSize: "0.60rem",
-                            fontWeight: 600 }}>
+                          <div
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.60rem",
+                              fontWeight: 600,
+                            }}
+                          >
                             14th Salary Distribution:
                           </div>
-                          <div style={{ display: "flex",
-                            gap: "3px",
-                            flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {[
-                              { label: "100%/100% (Jun/Nov)",
-                                val: BonusDistributionPreset.Double100_100 },
-                              { label: "Quarterly 50%",
-                                val: BonusDistributionPreset.Quarterly },
+                              {
+                                label: "100%/100% (Jun/Nov)",
+                                val: BonusDistributionPreset.Double100_100,
+                              },
+                              {
+                                label: "Quarterly 50%",
+                                val: BonusDistributionPreset.Quarterly,
+                              },
                             ].map((preset) => (
                               <button
                                 key={`w-preset-${preset.val}`}
@@ -3381,7 +3452,8 @@ export default function SandboxControls(): JSX.Element {
                         </div>
                       )}
 
-                      {wifeSalariesCount.value === AnnualSalariesCount.Fifteen && (
+                      {wifeSalariesCount.value ===
+                        AnnualSalariesCount.Fifteen && (
                         <div
                           style={{
                             display: "flex",
@@ -3394,19 +3466,31 @@ export default function SandboxControls(): JSX.Element {
                             marginTop: "3px",
                           }}
                         >
-                          <div style={{ color: "var(--text-muted)",
-                            fontSize: "0.60rem",
-                            fontWeight: 600 }}>
+                          <div
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.60rem",
+                              fontWeight: 600,
+                            }}
+                          >
                             15th Salary Distribution:
                           </div>
-                          <div style={{ display: "flex",
-                            gap: "3px",
-                            flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "3px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {[
-                              { label: "100% Mar/Jun/Nov",
-                                val: BonusDistributionPreset.Triple100_100_100 },
-                              { label: "Quarterly 75%",
-                                val: BonusDistributionPreset.Quarterly },
+                              {
+                                label: "100% Mar/Jun/Nov",
+                                val: BonusDistributionPreset.Triple100_100_100,
+                              },
+                              {
+                                label: "Quarterly 75%",
+                                val: BonusDistributionPreset.Quarterly,
+                              },
                             ].map((preset) => (
                               <button
                                 key={`w-preset-${preset.val}`}
@@ -3456,10 +3540,8 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? derivedSpousalSet.value
-                              .wifeClass5FullTimeNet * 12
-                            : derivedSpousalSet.value
-                              .wifeClass5FullTimeNet,
+                            ? derivedSpousalSet.value.wifeClass5FullTimeNet * 12
+                            : derivedSpousalSet.value.wifeClass5FullTimeNet,
                         )}
                       </strong>
                       {salaryPeriod.value === SalaryPeriod.Yearly ? "/yr" : ""}
@@ -3469,10 +3551,8 @@ export default function SandboxControls(): JSX.Element {
                       <strong>
                         {formatCurrency(
                           salaryPeriod.value === SalaryPeriod.Yearly
-                            ? derivedSpousalSet.value
-                              .wifeClass3FullTimeNet * 12
-                            : derivedSpousalSet.value
-                              .wifeClass3FullTimeNet,
+                            ? derivedSpousalSet.value.wifeClass3FullTimeNet * 12
+                            : derivedSpousalSet.value.wifeClass3FullTimeNet,
                         )}
                       </strong>{" "}
                       (Booster!)
@@ -3500,12 +3580,11 @@ export default function SandboxControls(): JSX.Element {
 
                   const ptNet = isWife
                     ? Math.round(
-                      derivedSpousalSet.value
-                        .wifeClass5FullTimeNet * wifeRatio,
+                      derivedSpousalSet.value.wifeClass5FullTimeNet *
+                          wifeRatio,
                     )
                     : Math.round(
-                      derivedSpousalSet.value.husbandClass3Net *
-                          husbandRatio,
+                      derivedSpousalSet.value.husbandClass3Net * husbandRatio,
                     );
 
                   const estimatedEgPlus = isWife
@@ -3518,8 +3597,8 @@ export default function SandboxControls(): JSX.Element {
                           Math.round(
                             Math.max(
                               0,
-                              derivedSpousalSet.value
-                                .wifeClass3FullTimeNet - ptNet,
+                              derivedSpousalSet.value.wifeClass3FullTimeNet -
+                                  ptNet,
                             ) * 0.65,
                           ),
                         ),
@@ -3704,8 +3783,7 @@ export default function SandboxControls(): JSX.Element {
                               ).map((m) => (
                                 <option key={`whc-m-${m}`} value={m}>
                                   {getMonthSimRef(m)} · {getCalDate(m)} (
-                                  {getRelativeMonthLabel(m)}) ·{" "}
-                                  {getMonthId(m)}
+                                  {getRelativeMonthLabel(m)}) · {getMonthId(m)}
                                 </option>
                               ))}
                             </select>
@@ -4187,7 +4265,6 @@ export default function SandboxControls(): JSX.Element {
                   </span>
                 </div>
 
-
                 {/* Add Cost and Inflow Buttons */}
                 <div style={{ display: "flex",
                   gap: "8px",
@@ -4354,7 +4431,8 @@ export default function SandboxControls(): JSX.Element {
                           color: "var(--color-primary)",
                         }}
                       >
-                        Husband: {husbandSalariesCount.value}x | Wife: {wifeSalariesCount.value}x
+                        Husband: {husbandSalariesCount.value}x | Wife:{" "}
+                        {wifeSalariesCount.value}x
                       </span>
                     </div>
 
@@ -4814,36 +4892,39 @@ export default function SandboxControls(): JSX.Element {
                       flexWrap: "wrap",
                     }}
                   >
-                    {[12, 24, 36, 48, 60, 72, 84, 96, 100, 108, 120].map((dur) => (
-                      <button
-                        key={`dur-btn-${dur}`}
-                        type="button"
-                        onClick={() => {
-                          simulationDurationMonths.value = toMonthDuration(dur);
-                        }}
-                        style={{
-                          padding: "3px 8px",
-                          borderRadius: "3px",
-                          border:
-                            simulationDurationMonths.value === dur
-                              ? "1px solid var(--color-primary)"
-                              : "1px solid var(--border-subtle)",
-                          background:
-                            simulationDurationMonths.value === dur
-                              ? "var(--color-primary)"
-                              : "var(--bg-surface)",
-                          color:
-                            simulationDurationMonths.value === dur
-                              ? "#ffffff"
-                              : "var(--text-secondary)",
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >
-                        {dur}M
-                      </button>
-                    ))}
+                    {[12, 24, 36, 48, 60, 72, 84, 96, 100, 108, 120].map(
+                      (dur) => (
+                        <button
+                          key={`dur-btn-${dur}`}
+                          type="button"
+                          onClick={() => {
+                            simulationDurationMonths.value =
+                              toMonthDuration(dur);
+                          }}
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: "3px",
+                            border:
+                              simulationDurationMonths.value === dur
+                                ? "1px solid var(--color-primary)"
+                                : "1px solid var(--border-subtle)",
+                            background:
+                              simulationDurationMonths.value === dur
+                                ? "var(--color-primary)"
+                                : "var(--bg-surface)",
+                            color:
+                              simulationDurationMonths.value === dur
+                                ? "#ffffff"
+                                : "var(--text-secondary)",
+                            fontSize: "0.68rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {dur}M
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
 

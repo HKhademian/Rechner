@@ -2,9 +2,9 @@ import type {
   JSX, 
 } from "preact";
 import {
+  type LegalRuleKeyType,
   activeLegalRuleKey,
   LegalRuleKey,
-  type LegalRuleKeyType,
 } from "#store/elterngeldStore";
 import {
   LegalStatuteDocumentationIcon,
