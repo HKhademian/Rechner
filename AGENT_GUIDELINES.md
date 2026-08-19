@@ -69,7 +69,7 @@ The simulator processes state transitions in 4 modular batches:
   - Double quotes `"` for strings and imports, trailing commas everywhere
   - Mandatory `{ ... }` blocks for all conditionals and loops (zero blockless code)
   - Stroustrup brace style (`}\nelse {`, `}\ncatch {`)
-  - Inline type imports (`import {\n  type X,\n} from "..."`)
+  - Inline type imports with types on top (`import {\n  type X,\n  valueY,\n} from "..."`)
   - Multiline import specifiers (one item per line)
   - Zero unused imports and no duplicate imports
 - **Verification Matrix**: Run `npm run check` / `npm run check:audit` before committing.
