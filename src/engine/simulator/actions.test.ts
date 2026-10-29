@@ -121,7 +121,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(m14.wifeElterngeld, 369.85);
     });
 
-    it("validates Sibling Bonus (+10%) eligibility for spacing < 36 months vs expiration at >= 36 months", () => {
+    it("includes the final sibling-bonus month when the qualifying age is reached", () => {
       const testCases = [
         { spacing: 18,
           expectBonus: true }, // b2 = 30, EG starts M32 -> Child 1 is 20M (<36)
@@ -132,7 +132,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         { spacing: 33,
           expectBonus: true }, // b2 = 45, EG starts M47 -> Child 1 is 35M (<36)
         { spacing: 34,
-          expectBonus: false }, // b2 = 46, EG starts M48 -> Child 1 is 36M (=36, expired)
+          expectBonus: true }, // b2 = 46, EG starts M48 -> final eligible birthday month
         { spacing: 36,
           expectBonus: false }, // b2 = 48, EG starts M50 -> Child 1 is 38M (>36)
         { spacing: 40,

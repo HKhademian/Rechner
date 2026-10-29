@@ -10,9 +10,13 @@ import {
   toEuroAmount,
   toSimulationMonth,
 } from "#engine/types";
+import {
+  createBenefitRules,
+} from "#engine/config/benefitRules";
 
 describe("Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)", () => {
-  it("grants +10% bonus with statutory minimum of +€75/month when older child is under 36 months", () => {
+  // Familienportal: Plus sibling addition is 10%, at least 37.50; total max 990.
+  it("adds the percentage bonus above the Plus minimum", () => {
     const olderBirth = toSimulationMonth(12); // Child 1 born at M12 (turns 3 at M48)
 
     // Test months M39 to M47 (Older child is 27 to 35 months old)
@@ -22,13 +26,12 @@ describe("Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)", () =>
       const res = computeSiblingBonus(basePlus, olderBirth, currentMonth);
 
       assert.equal(res.isEligible, true);
-      // 10% of €411 = €41.10 -> Statutory minimum +€75 applies!
-      assert.equal(res.siblingBonusAmount, 75);
-      assert.equal(res.totalElterngeldPlusWithBonus, 411 + 75); // 486 €
+      assert.equal(res.siblingBonusAmount, 41.1);
+      assert.equal(res.totalElterngeldPlusWithBonus, 452.1);
     }
   });
 
-  it("calculates +10% bonus when 10% exceeds statutory minimum +€75", () => {
+  it("calculates the percentage bonus for a higher entitlement", () => {
     const olderBirth = toSimulationMonth(12);
     const currentMonth = toSimulationMonth(40);
     const basePlus = toEuroAmount(800); // 10% is €80 (exceeds €75)
@@ -39,24 +42,50 @@ describe("Sibling Bonus Calculation Engine (Geschwisterbonus § 2a BEEG)", () =>
     assert.equal(res.totalElterngeldPlusWithBonus, 880);
   });
 
-  it("caps total ElterngeldPlus with bonus at statutory max €900/month", () => {
+  it("allows the sibling addition above the ordinary Plus maximum", () => {
     const olderBirth = toSimulationMonth(12);
     const currentMonth = toSimulationMonth(40);
-    const basePlus = toEuroAmount(890);
+    const basePlus = toEuroAmount(900);
 
     const res = computeSiblingBonus(basePlus, olderBirth, currentMonth);
     assert.equal(res.isEligible, true);
-    assert.equal(res.totalElterngeldPlusWithBonus, 900);
+    assert.equal(res.totalElterngeldPlusWithBonus, 990);
+    assert.equal(res.siblingBonusAmount, 90);
   });
 
-  it("expires exactly when older child completes 36th month (3rd birthday at M48)", () => {
+  it("includes the month when the sibling reaches the age limit, then expires", () => {
     const olderBirth = toSimulationMonth(12);
-    const expiredMonth = toSimulationMonth(48); // Month 48 = Older child is 36 months old
+    const lastEligible = computeSiblingBonus(toEuroAmount(150), olderBirth, toSimulationMonth(48));
+    assert.equal(lastEligible.isEligible, true);
+    assert.equal(lastEligible.siblingBonusAmount, 37.5);
+    assert.equal(lastEligible.totalElterngeldPlusWithBonus, 187.5);
+    const expiredMonth = toSimulationMonth(49);
     const basePlus = toEuroAmount(411);
 
     const res = computeSiblingBonus(basePlus, olderBirth, expiredMonth);
     assert.equal(res.isEligible, false);
     assert.equal(res.siblingBonusAmount, 0);
     assert.equal(res.totalElterngeldPlusWithBonus, 411);
+  });
+
+  it("does not revive a zero entitlement or pay for a sibling before birth", () => {
+    for (const [base, older, current] of [[0, 1, 2], [150, 3, 2]]) {
+      const result = computeSiblingBonus(toEuroAmount(base), toSimulationMonth(older), toSimulationMonth(current));
+      assert.equal(result.isEligible, false);
+      assert.equal(result.siblingBonusAmount, 0);
+      assert.equal(result.totalElterngeldPlusWithBonus, base);
+    }
+  });
+
+  it("uses configured bonus amounts, rates, age limits, and entitlement maxima", () => {
+    const rules = createBenefitRules({ siblingMinimumBasis: 100,
+      siblingRate: 0.2,
+      siblingAgeLimitMonths: 24 });
+    const minimum = computeSiblingBonus(toEuroAmount(150), toSimulationMonth(1), toSimulationMonth(2), rules);
+    assert.equal(minimum.siblingBonusAmount, 50);
+    assert.equal(minimum.totalElterngeldPlusWithBonus, 200);
+    const maximum = computeSiblingBonus(toEuroAmount(900), toSimulationMonth(1), toSimulationMonth(2), rules);
+    assert.equal(maximum.totalElterngeldPlusWithBonus, 1080);
+    assert.equal(computeSiblingBonus(toEuroAmount(150), toSimulationMonth(1), toSimulationMonth(26), rules).isEligible, false);
   });
 });

@@ -77,10 +77,12 @@ $$0{,}65 \cdot €1.490 = €968{,}50 \implies \mathbf{€900{,}00 / \text{month
 - **Partnerschaftsbonus**: When both parents concurrently work between **24 and 32 hours per week**, each parent receives **4 additional consecutive bonus months** of ElterngeldPlus (Months 26–29 for Child 1; Months 53–56 for Child 2).
 
 ### 3.6 Sibling Bonus (*Geschwisterbonus* - § 2a BEEG)
-If an older sibling is living in the household:
-- Applies until the older child completes their **36th month of life (3rd birthday)**.
-- **Bonus Amount**: +10 % of the Elterngeld entitlement (minimum **+€75,00 / month** for ElterngeldPlus).
-- In our timeline: Child 1 is born at Month 12 $\implies$ 3rd birthday at Month $12 + 36 = 48$. Child 2 receives the bonus from Month 39 until Month 48.
+
+The implemented single-older-sibling case uses source-linked, configurable parameters in `src/data/benefitRules.json`. ElterngeldPlus receives a 10% addition, at least EUR 37.50, with an increased combined maximum of EUR 990. The base benefit must be positive; the bonus cannot revive an ineligible entitlement. Monetary amounts retain cents.
+
+Payment includes the month in which the older sibling reaches the qualifying age. The current calendar-month engine approximates statutory life-months because it does not model exact birth days. Other multi-sibling and disability eligibility routes need separate modeling.
+
+Source: [Federal sibling bonus explanation](https://familienportal.de/familienportal/familienleistungen/elterngeld/familiensituation/geschwisterbonus-wie-viel-elterngeld-bekomme-ich-wenn-ich-weitere-kinder-habe--124684), [BEEG section 2a](https://www.gesetze-im-internet.de/beeg/__2a.html), and [section 4a](https://www.gesetze-im-internet.de/beeg/__4a.html).
 
 ### 3.7 The 14-Month Assessment Trap (*14-Monate-Falle*)
 For Child 2, the 12-month pre-birth assessment period captures part-time earnings:

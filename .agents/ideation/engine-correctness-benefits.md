@@ -17,10 +17,10 @@ todos:
     status: completed
   - id: sibling-bonus
     content: "Fix 3 - correct sibling bonus minimum and ceiling"
-    status: in_progress
+    status: completed
   - id: father-allocation
     content: "Fix 4 - honor father eligibility and requested partner months"
-    status: pending
+    status: in_progress
 plans:
   requires: []
   blocks: [engine-correctness-payroll.md]
@@ -34,6 +34,8 @@ plans:
 Repair the isolated benefit errors first, using independently sourced expected amounts. Implement one todo at a time; keep each correction and its regression tests in its own atomic commit.
 
 ## Done
+
+- 2026-10-29: sibling bonus uses configured percentage, Plus fraction, age limit, and increased ceiling; 150 -> 187.50 and 900 -> 990 regressions pass. Final qualifying age month is included in the calendar-month approximation, zero entitlement stays zero, and custom limits are tested; full quality check passes.
 
 - 2026-10-29: assessable pre-birth income is capped from source-linked configuration before deducting earnings; 3200/1570 yields Basic and Plus 780. Config overrides, cap boundaries, and zero-loss floors are covered; full quality check passes.
 
@@ -56,14 +58,6 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 - Money constructors currently discard cents, preventing valid fractional caps and bonus minima. Preserve cents first in a standalone commit with constructor regressions.
 - User requested configurable values with official source links. Add validated immutable benefit configuration in a separate commit, then inject it into every affected calculation. Payroll-year configuration follows the same source/value pattern in wave 2.
-
-## Fix 3 - sibling-bonus
-
-**Depends on:** capped-assessable-net.
-**Files:** modify `src/engine/benefits/siblingBonus.ts`, `siblingBonus.test.ts`, affected scenario/explanation tests, and directly related statutory text.
-**Actions:** use the Plus minimum bonus of 37.50 and allow the total entitlement to reach 990. Preserve cents and ensure the reported addition equals the difference between final and base amounts. Recheck the age-boundary rule against the official final eligible life-month rule; do not preserve an off-by-one expectation merely because it exists in a test. Prevent a bonus from reviving an ineligible zero entitlement. Keep broader multi-child/disability extensions outside this patch unless needed for an already-supported input.
-**Acceptance:** eligible base 150 yields total 187.50; base 900 yields total 990. Cover a non-minimum percentage case, the last eligible month, the next month, and ineligibility. Replace tests explicitly asserting the incorrect 75 minimum and 900 combined maximum.
-**Verify:** sibling, benefit, and relevant scenario tests, then the shared commit gate.
 
 ## Fix 4 - father-allocation
 
