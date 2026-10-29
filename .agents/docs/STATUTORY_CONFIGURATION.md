@@ -27,3 +27,9 @@ The accepted product policy is verified year profiles plus personal inputs, not 
 Regular and bonus tax deductions are separated; one-off social contributions use year-to-date assessment ceilings and supplied prior bonuses. Missing personal/YTD data is identified in the result assumptions. A regular payroll net is not BEEG standardized net: the old serialized `elterngeldSyntheticNet` field is a deprecated compatibility alias until the independent benefit-assessment integration. Annual tax-return liability remains a separate pending repair.
 
 The IV factor follows [EStG section 39f](https://www.gesetze-im-internet.de/estg/__39f.html), including truncation to three decimals and a possible zero factor. Its wage-tax bases come from PAP public outputs with a temporary taxable addition to avoid the public WVFRB zero clamp; that addition does not change gross or contribution inputs and is removed algebraically.
+
+## Salary calculator integration
+
+The calculator selects only published annual profiles. Personal insurer Zusatzbeitrag is the total insurer rate before employee/employer sharing. Age, care-insurance children under 25, ongoing parent status, ELStAM child factor, state/church status, and an approved class IV factor can be edited. Missing personal data is reported as an assumption. Old arbitrary tariff overrides are ignored; the retired defaultTaxConfig.json is removed.
+
+Monthly input is regular monthly earnings; yearly input is the actual year total, including extras. Working months describe whole active months starting in January. Contractual annual salary equivalents are prorated to active months, with bonus paid in the last active month unless an explicit engine schedule is supplied. These bonus conventions are employment-contract assumptions, not statutory law. Annual tax assessment is separate from payroll withholding. Saved input fields remain compatible; precomputed results are recalculated.

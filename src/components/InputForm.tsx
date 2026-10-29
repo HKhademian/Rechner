@@ -1,5 +1,5 @@
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
   grossIncome,
@@ -17,14 +17,17 @@ import {
   workingMonths,
   salariesPerYear,
   inputMode,
+  personalPayroll,
+  partnerPersonalPayroll,
 } from "#store/calculatorStore";
 import {
   useState,
   useEffect,
 } from "preact/hooks";
+import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
 import TaxSettings from "#components/TaxSettings";
 import {
-  ConfigureSandboxIcon, 
+  ConfigureSandboxIcon,
 } from "#components/Icons";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 
@@ -44,6 +47,9 @@ export default function InputForm(): JSX.Element {
   return (
     <div class="glass-panel fade-in">
       <h2>Household &amp; Salary Parameters</h2>
+      <p>Monthly input is ordinary monthly pay; yearly input is the actual total for the year. Partial-year employment starts in January. Additional payments are prorated and paid in the final working month.</p>
+      <PayrollPersonalInputs id="primary" options={personalPayroll} />
+      {hasPartner.value && <PayrollPersonalInputs id="partner" options={partnerPersonalPayroll} />}
 
       <div style={{ display: "flex",
         gap: "10px",
@@ -146,7 +152,7 @@ export default function InputForm(): JSX.Element {
 
       <div class="input-group">
         <label for="salariesPerYear">
-          Salaries Received / Year (e.g. 13th month bonus)
+          Full-year contractual salary payments (extras prorated)
         </label>
         <select
           id="salariesPerYear"

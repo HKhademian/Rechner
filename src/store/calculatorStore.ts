@@ -5,27 +5,44 @@ import {
   effect,
 } from "@preact/signals";
 import {
-  configHealthCap,
-  configPensionCap,
-  configBasicAllowance,
-  configChildTaxReduction,
-  configWorkExpenseAllowance,
-  configHealthRateBase,
-  configHealthRateZusatz,
-  configPensionRate,
-  configUnemploymentRate,
-  configCareRateBase,
-  configCareChildlessPenalty,
+  selectedTaxYear,
+  parseVerifiedTaxYear,
 } from "#store/taxConfigStore";
+import {
+  type PayrollOptions,
+  parsePersonalPayrollOptions,
+} from "#engine/tax/payroll";
+import {
+  DEFAULT_TAX_YEAR,
+  createTaxRules,
+} from "#engine/tax/taxRules";
+import {
+  computeEmploymentPayroll,
+} from "#engine/tax/employmentPayroll";
+import {
+  toSalaryPaymentCount,
+} from "#engine/tax/employmentPeriod";
+import {
+  type FullCalendarYear,
+  type TaxFactor,
+  type TaxClass,
+  SalaryPeriod,
+  TaxClass as Classes,
+  toGrossSalary,
+  toMonthDuration,
+  toChildrenCount,
+  toPercentageRate,
+  toTaxFactor,
+} from "#engine/types";
 
 // Helper to persist signals in localStorage
-function persistedSignal<T>(key: string, initialValue: T): Signal<T> {
+function persistedSignal<T>(key: string, initialValue: T, parse?: (value: unknown) => T): Signal<T> {
   let initial = initialValue;
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem(key);
     if (stored !== null) {
       try {
-        initial = JSON.parse(stored);
+        initial = parse ? parse(JSON.parse(stored)) : JSON.parse(stored);
       }
       catch {
         // Fallback to initialValue if parsing fails
@@ -78,6 +95,12 @@ export interface CalculatorInputs {
   partnerWorkingMonths: number;
   /** Partner's salary disbursements per year. */
   partnerSalariesPerYear: number;
+  /** Missing in older saves: migrate to the latest verified profile and default assumptions. */
+  taxYear?: FullCalendarYear;
+  personalPayroll?: PayrollOptions;
+  partnerPersonalPayroll?: PayrollOptions;
+  taxFactor?: TaxFactor;
+
 }
 
 /**
@@ -98,6 +121,8 @@ export interface PersonDeductions {
   tax: number;
   /** Annual church tax withholding deduction in EUR. */
   churchTax: number;
+  solidarity: number;
+  assumptions: readonly string[];
   /** Total annual social security employee deductions in EUR. */
   totalSocialSecurity: number;
   /** Total annual deductions (taxes + social insurance) in EUR. */
@@ -220,6 +245,10 @@ export const partnerSalariesPerYear = persistedSignal<number>(
   DEFAULT_CALCULATOR_INPUTS.partnerSalariesPerYear,
 );
 
+export const personalPayroll = persistedSignal<PayrollOptions>("payroll_personal", {}, parsePersonalPayrollOptions);
+export const partnerPersonalPayroll = persistedSignal<PayrollOptions>("payroll_partnerPersonal", {}, parsePersonalPayrollOptions);
+export const personalTaxFactor = persistedSignal<TaxFactor | undefined>("payroll_factor", undefined);
+
 // Saved Scenarios
 export const savedScenarios = persistedSignal<SavedScenarioItem[]>(
   "savedScenarios",
@@ -233,6 +262,10 @@ export const scenarioDraft = signal<SavedScenarioItem | null>(null);
 
 export function getCurrentInputs(): CalculatorInputs {
   return {
+    taxYear: selectedTaxYear.value,
+    personalPayroll: personalPayroll.value,
+    partnerPersonalPayroll: partnerPersonalPayroll.value,
+    taxFactor: personalTaxFactor.value,
     inputMode: inputMode.value,
     grossIncome: grossIncome.value,
     taxBracket: taxBracket.value,
@@ -254,7 +287,7 @@ export function getCurrentInputs(): CalculatorInputs {
 export function saveScenario(
   title?: string,
   description?: string,
-  currentDeductions?: HouseholdScenarioData,
+  _currentDeductions?: HouseholdScenarioData,
 ): void {
   const newScenario: SavedScenarioItem = {
     id: Date.now().toString(),
@@ -262,7 +295,7 @@ export function saveScenario(
     description: description || "",
     timestamp: new Date().toISOString(),
     inputs: getCurrentInputs(),
-    data: currentDeductions || calculateScenarioData(getCurrentInputs()),
+    data: calculateScenarioData(getCurrentInputs()),
   };
   savedScenarios.value = [...savedScenarios.value, newScenario];
   editScenario(newScenario.id);
@@ -278,6 +311,10 @@ export function deleteScenario(id: string): void {
 export function loadScenario(id: string): void {
   const scenario = savedScenarios.value.find((s) => s.id === id);
   if (scenario && scenario.inputs) {
+    selectedTaxYear.value = parseVerifiedTaxYear(scenario.inputs.taxYear ?? DEFAULT_TAX_YEAR);
+    personalPayroll.value = parsePersonalPayrollOptions(scenario.inputs.personalPayroll ?? {});
+    partnerPersonalPayroll.value = parsePersonalPayrollOptions(scenario.inputs.partnerPersonalPayroll ?? {});
+    personalTaxFactor.value = scenario.inputs.taxFactor === undefined ? undefined : toTaxFactor(scenario.inputs.taxFactor);
     inputMode.value =
       scenario.inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
     grossIncome.value =
@@ -316,188 +353,80 @@ export function loadScenario(id: string): void {
   }
 }
 
-// Exact Tax Formula (Grundtarif) - Shifts according to configBasicAllowance
-function getBaseTax(zve: number, basicAllowance: number): number {
-  if (zve <= basicAllowance) {
-    return 0;
-  }
+const inputTaxClasses: Readonly<Record<string, TaxClass>> = {
+  "1": Classes.I,
+  "2": Classes.II,
+  "3": Classes.III,
+  "4": Classes.IV,
+  "5": Classes.V,
+  "6": Classes.VI,
+};
 
-  const band2Cap = basicAllowance + 5401;
-  if (zve <= band2Cap) {
-    const y = (zve - basicAllowance) / 10000;
-    return Math.floor((922.98 * y + 1400) * y);
-  }
-
-  const band3Cap = band2Cap + 49755;
-  if (zve <= band3Cap) {
-    const z = (zve - band2Cap) / 10000;
-    return Math.floor((216.16 * z + 2397) * z + 865.13);
-  }
-
-  const band4Cap = 277825;
-  if (zve <= band4Cap) {
-    return Math.floor(0.42 * zve - 10453.22);
-  }
-
-  // Band 5
-  return Math.floor(0.45 * zve - 18787.97);
-}
-
-function calculateForPerson(
-  grossYearly: number,
-  bracket: string,
-  paysChurchTax: boolean,
-  numChildren: number,
-  bundesland: string,
-  monthsWorked: number,
-  salariesReceived = 12,
-): PersonDeductions {
-  if (grossYearly <= 0) {
-    return {
-      grossYearly,
-      healthCare: 0,
-      pension: 0,
-      unemployment: 0,
-      care: 0,
-      tax: 0,
-      churchTax: 0,
-      totalSocialSecurity: 0,
-      totalDeductions: 0,
-      netIncome: 0,
-      monthsWorked,
-      salariesReceived,
-    };
-  }
-
-  // 1. Social Security (with dynamic Config Caps)
-  const healthCap = configHealthCap.value;
-  const pensionCap = configPensionCap.value;
-
-  const assessableHealth = Math.min(grossYearly, healthCap);
-  const assessablePension = Math.min(grossYearly, pensionCap);
-
-  const healthInsuranceRate =
-    configHealthRateBase.value + configHealthRateZusatz.value;
-  const pensionInsuranceRate = configPensionRate.value;
-  const unemploymentInsuranceRate = configUnemploymentRate.value;
-
-  let careInsuranceRate = configCareRateBase.value;
-  if (numChildren === 0) {
-    careInsuranceRate += configCareChildlessPenalty.value;
-  }
-  else if (numChildren > 1) {
-    const extraChildren = Math.min(numChildren - 1, 4);
-    careInsuranceRate -= extraChildren * 0.0025;
-  }
-
-  const healthCare = assessableHealth * healthInsuranceRate;
-  const pension = assessablePension * pensionInsuranceRate;
-  const unemployment = assessablePension * unemploymentInsuranceRate;
-  const care = assessableHealth * careInsuranceRate;
-
-  const totalSocialSecurity = healthCare + pension + unemployment + care;
-
-  // 2. Taxable Income (Zu versteuerndes Einkommen - ZvE)
-  const deductibleSocialSecurity = totalSocialSecurity * 0.8;
-  const workExpense = configWorkExpenseAllowance.value;
-  let taxableIncome = grossYearly - deductibleSocialSecurity - workExpense;
-  if (taxableIncome < 0) {
-    taxableIncome = 0;
-  }
-
-  // 3. Tax Calculation
-  let tax: number;
-  const basicAllowance = configBasicAllowance.value;
-
-  if (bracket === "3") {
-    tax = getBaseTax(taxableIncome / 2, basicAllowance) * 2;
-  }
-  else if (bracket === "5") {
-    tax = getBaseTax(taxableIncome, basicAllowance) * 1.6;
-  }
-  else if (bracket === "6") {
-    tax = getBaseTax(taxableIncome + basicAllowance, basicAllowance);
-  }
-  else {
-    tax = getBaseTax(taxableIncome, basicAllowance);
-    if (bracket === "2") {
-      let class2ZvE = taxableIncome - 4260;
-      if (class2ZvE < 0) {
-        class2ZvE = 0;
-      }
-      tax = getBaseTax(class2ZvE, basicAllowance);
+/** UI primitives are parsed here; all financial calculations use the shared nominal engine. */
+export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenarioData {
+  const rules = createTaxRules(parseVerifiedTaxYear(inputs.taxYear ?? DEFAULT_TAX_YEAR));
+  const calculatePerson = (
+    gross: number,
+    bracket: string,
+    paysChurchTax: boolean,
+    bundesland: string,
+    months: number,
+    salaries: number,
+    personal: PayrollOptions,
+  ): PersonDeductions => {
+    const taxClass = inputTaxClasses[bracket];
+    if (!taxClass) {
+      throw new TypeError("Select a valid tax class.");
     }
-  }
-
-  const childTaxReductionAmount = configChildTaxReduction.value;
-  const childTaxReduction = numChildren * childTaxReductionAmount;
-  tax -= childTaxReduction;
-  if (tax < 0) {
-    tax = 0;
-  }
-
-  let soli = 0;
-  const soliThreshold = bracket === "3" ? 36260 : 18130;
-  if (tax > soliThreshold) {
-    soli = tax * 0.055;
-  }
-
-  const churchRate =
-    bundesland === "Bayern" || bundesland === "Baden-Württemberg" ? 0.08 : 0.09;
-  const churchTax = paysChurchTax ? tax * churchRate : 0;
-
-  const totalDeductions = totalSocialSecurity + tax + soli + churchTax;
-
-  return {
-    grossYearly,
-    healthCare,
-    pension,
-    unemployment,
-    care,
-    tax,
-    churchTax,
-    totalSocialSecurity,
-    totalDeductions,
-    netIncome: grossYearly - totalDeductions,
-    monthsWorked,
-    salariesReceived,
+    const options = parsePersonalPayrollOptions(personal);
+    const result = computeEmploymentPayroll(
+      { gross: toGrossSalary(gross),
+        period: inputs.inputMode === "monthly" ? SalaryPeriod.Monthly : SalaryPeriod.Yearly,
+        monthsWorked: toMonthDuration(months),
+        annualSalaryPayments: toSalaryPaymentCount(salaries) },
+      taxClass,
+      toChildrenCount(inputs.children),
+      rules,
+      { ...options,
+        saxony: bundesland === "Sachsen",
+        churchTaxRate: toPercentageRate(paysChurchTax
+          ? (bundesland === "Bayern" || bundesland === "Baden-Württemberg"
+            ? rules.parameters.churchRateBavariaBadenWuerttemberg.value : rules.parameters.churchRateOther.value) : 0) },
+      taxClass === Classes.IV && inputs.taxFactor !== undefined ? toTaxFactor(inputs.taxFactor) : undefined,
+    );
+    return { grossYearly: result.annualGross,
+      healthCare: result.healthCare,
+      pension: result.pension,
+      unemployment: result.unemployment,
+      care: result.care,
+      tax: result.tax,
+      churchTax: result.churchTax,
+      solidarity: result.solidarity,
+      totalSocialSecurity: result.totalSocialSecurity,
+      totalDeductions: result.totalDeductions,
+      netIncome: result.netIncome,
+      monthsWorked: months,
+      salariesReceived: result.paymentEquivalents,
+      assumptions: result.assumptions };
   };
-}
-
-export function calculateScenarioData(
-  inputs: CalculatorInputs,
-): HouseholdScenarioData {
-  const p1YearlyGross =
-    inputs.inputMode === "monthly"
-      ? inputs.grossIncome * inputs.salariesPerYear
-      : inputs.grossIncome;
-  const p2YearlyGross =
-    inputs.inputMode === "monthly"
-      ? inputs.partnerGrossIncome * inputs.partnerSalariesPerYear
-      : inputs.partnerGrossIncome;
-
-  const person1 = calculateForPerson(
-    p1YearlyGross,
+  const person1 = calculatePerson(
+    inputs.grossIncome,
     inputs.taxBracket,
     inputs.hasChurchTax,
-    inputs.children,
     inputs.state,
     inputs.workingMonths,
     inputs.salariesPerYear,
+    inputs.personalPayroll ?? {},
   );
-
-  let partner: PersonDeductions | null = null;
-  if (inputs.hasPartner) {
-    partner = calculateForPerson(
-      p2YearlyGross,
-      inputs.partnerTaxBracket,
-      inputs.partnerHasChurchTax,
-      inputs.children,
-      inputs.partnerState,
-      inputs.partnerWorkingMonths,
-      inputs.partnerSalariesPerYear,
-    );
-  }
+  const partner = inputs.hasPartner ? calculatePerson(
+    inputs.partnerGrossIncome,
+    inputs.partnerTaxBracket,
+    inputs.partnerHasChurchTax,
+    inputs.partnerState,
+    inputs.partnerWorkingMonths,
+    inputs.partnerSalariesPerYear,
+    inputs.partnerPersonalPayroll ?? {},
+  ) : null;
 
   const householdGross =
     person1.grossYearly + (partner ? partner.grossYearly : 0);
@@ -526,6 +455,7 @@ export function editScenario(id: string): void {
     scenarioDraft.value = {
       ...scenario,
       inputs: { ...scenario.inputs },
+      data: calculateScenarioData(scenario.inputs),
     };
     activeScenarioId.value = id;
   }

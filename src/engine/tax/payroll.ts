@@ -14,11 +14,14 @@ import {
   type MonthDuration,
   TaxClass as TaxClasses,
   toEuroAmount,
+  toChildrenCount,
+  toPercentageRate,
 } from "#engine/types";
 import {
   type TaxRules,
   type AgeYears,
   DEFAULT_TAX_RULES,
+  toAgeYears,
 } from "#engine/tax/taxRules";
 
 export type ChildAllowanceFactor = Brand<number, "ChildAllowanceFactor">;
@@ -43,6 +46,45 @@ export interface PayrollOptions {
   readonly priorBonusGrossYearToDate?: EuroAmount;
   readonly regularGrossYearToDate?: GrossSalary;
   readonly expectedRegularAnnualGross?: GrossSalary;
+}
+
+/** Validate persisted or form-supplied personal settings, never accepting internal YTD state. */
+export function parsePersonalPayrollOptions(value: unknown): PayrollOptions {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new TypeError("Personal payroll details must be an object.");
+  }
+  const result: Record<string, unknown> = {};
+  const numeric = {
+    ageAtYearStart: toAgeYears,
+    childrenUnder25: toChildrenCount,
+    childAllowanceFactor: toChildAllowanceFactor,
+    healthSupplementTotalRate: (rate: number) => {
+      if (rate < 0 || rate > 1) {
+        throw new TypeError("The insurer rate must be between zero and one.");
+      }
+      return toPercentageRate(rate);
+    },
+  };
+  for (const [key, raw] of Object.entries(value)) {
+    if (raw === undefined) {
+      continue;
+    }
+    if (key === "isParent") {
+      if (typeof raw !== "boolean") {
+        throw new TypeError("Parental status must be a boolean.");
+      }
+      result[key] = raw;
+    }
+    else {
+      const entry = Object.entries(numeric).find(([name]) => name === key);
+      if (!entry || typeof raw !== "number" || !Number.isFinite(raw)) {
+        throw new TypeError(`Invalid personal payroll setting: ${key}.`);
+      }
+      result[key] = entry[1](raw);
+    }
+  }
+  // Every field has been validated above; this boundary owns the reconstruction of nominal values.
+  return result;
 }
 
 const classCodes: Record<TaxClass, number> = {

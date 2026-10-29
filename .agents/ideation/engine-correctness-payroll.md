@@ -11,10 +11,10 @@ todos:
     status: completed
   - id: working-periods
     content: "Fix 7 - apply active working months and bonus schedules"
-    status: in_progress
+    status: completed
   - id: shared-payroll
     content: "Fix 8 - use one payroll engine across calculator, simulator, and CLI"
-    status: pending
+    status: in_progress
 plans:
   requires: [engine-correctness-benefits.md]
   blocks: [engine-correctness-assessment.md]
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: payroll foundation
 
 ## Done
+
+- 2026-10-29: calculator now uses shared period payroll, removes duplicate tax formulas and obsolete raw configuration, selects published profiles, and accepts personal insurer/age/child/ELStAM/factor inputs. Official-value links are visible. Saved inputs retain compatibility; cached comparison/edit results are recalculated. Four store boundary/reference/migration tests, full quality check, and production build pass. Fix 7 is complete; shared simulator parity remains in progress.
 
 - 2026-10-29: period payroll now runs PAP only in active months, passes actual year-to-date earnings/caps and expected annual pay to bonus calculations, and preserves itemized bonus deductions. Personal insurer rates reach both PAP and contributions. Three payroll conservation/parity tests and the full quality check pass; calculator integration follows.
 
@@ -39,21 +41,13 @@ plans:
 
 ## Mission and done
 
-Establish reliable payroll inputs for the later assessment and annual reconciliation fixes. The review confirmed stale simulator constants, separate formulas in `calculatorStore.ts`, and working-month inputs that do not change annual earnings. No payroll repairs are complete.
+Establish reliable payroll inputs for the later assessment and annual reconciliation fixes. The review confirmed stale simulator constants, separate formulas in `calculatorStore.ts`, and working-month inputs that do not change annual earnings. Annual profiles, PAP withholding, and working-period integration are complete; simulator parity remains in progress.
 
 ## Plan links and read first
 
 - Orchestrator: [master plan](./engine-correctness-master.md), wave 2; shared constraints apply.
 - Prerequisite: [benefits](./engine-correctness-benefits.md). Next: [assessment and reconciliation](./engine-correctness-assessment.md).
 - Read `src/engine/tax/wageTax.ts`, `src/engine/types.ts`, `src/store/calculatorStore.ts`, `src/store/taxConfigStore.ts`, `src/store/elterngeldStore.ts`, `src/cli/runner.ts`, and `src/data/defaultTaxConfig.json`.
-
-## Fix 7 - working-periods
-
-**Depends on:** payroll-calculation.
-**Files:** create a pure employment-period normalization helper under `src/engine/tax/` with tests; modify `src/store/calculatorStore.ts` and its caller contract as needed.
-**Actions:** define monthly versus yearly income, active months, salary-payment counts, bonus timing, and period-specific contribution ceilings before changing annualization. Compute regular pay only in active periods; allocate bonus payments explicitly. Preserve the meaning of existing yearly gross inputs or migrate it explicitly. Do not apply a blanket half-year factor to yearly inputs or assume contribution ceilings apply to a full inactive year.
-**Acceptance:** monthly gross 4000 with six active months and no bonus produces regular annual gross 24000; twelve produces 48000. Cover monthly/yearly equivalents, partial years near contribution caps, zero-work cases where supported, and fractional/extra salary payments. Changing working months must change the underlying cash flows rather than just display divisors.
-**Verify:** focused period-normalization tests and calculator boundary tests, then the shared commit gate.
 
 ## Fix 8 - shared-payroll
 

@@ -1,12 +1,12 @@
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
   useState,
   useEffect,
 } from "preact/hooks";
 import {
-  useSignal, 
+  useSignal,
 } from "@preact/signals";
 import {
   type HouseholdScenarioData,
@@ -27,6 +27,7 @@ import {
   partnerSalariesPerYear,
   deductions,
   savedScenarios,
+  calculateScenarioData,
   activeScenarioId,
   scenarioDraft,
   saveScenario,
@@ -80,14 +81,14 @@ export default function ComparisonTable(): JSX.Element | null {
   const getMetric = (
     snapshot: HouseholdScenarioData,
     personKey: "person1" | "partner",
-    metricKey: keyof PersonDeductions,
+    metricKey: Exclude<keyof PersonDeductions, "assumptions">,
     useDivider = true,
   ): number => {
     const person = snapshot[personKey];
     if (!person) {
       return 0;
     }
-    const divider = isMonthly && useDivider ? person.monthsWorked : 1;
+    const divider = isMonthly && useDivider ? Math.max(1, person.monthsWorked) : 1;
     return person[metricKey] / divider;
   };
 
@@ -173,7 +174,7 @@ export default function ComparisonTable(): JSX.Element | null {
       const dataToUse =
         isActive && scenarioDraft.value
           ? scenarioDraft.value.data
-          : scenario.data;
+          : calculateScenarioData(scenario.inputs);
       const saved = getPaycheckVal(dataToUse);
       cells.push(
         <td
@@ -268,7 +269,7 @@ export default function ComparisonTable(): JSX.Element | null {
       const dataToUse =
         isActive && scenarioDraft.value
           ? scenarioDraft.value.data
-          : scenario.data;
+          : calculateScenarioData(scenario.inputs);
       const savedVal = getAvgVal(dataToUse);
 
       cells.push(
@@ -326,7 +327,7 @@ export default function ComparisonTable(): JSX.Element | null {
   const renderRow = (
     label: string,
     personKey: "person1" | "partner" | null,
-    metricKey: keyof PersonDeductions | "totalDeductions",
+    metricKey: Exclude<keyof PersonDeductions, "assumptions">,
     isHousehold = false,
     isHeader = false,
   ): JSX.Element => {
@@ -342,7 +343,7 @@ export default function ComparisonTable(): JSX.Element | null {
         ? getMetric(
           deductions.value,
           personKey,
-          metricKey as keyof PersonDeductions,
+          metricKey,
         )
         : 0;
 
@@ -367,7 +368,7 @@ export default function ComparisonTable(): JSX.Element | null {
       const dataToUse =
         isActive && scenarioDraft.value
           ? scenarioDraft.value.data
-          : scenario.data;
+          : calculateScenarioData(scenario.inputs);
 
       const savedVal = isHousehold
         ? getHouseholdMetric(
@@ -375,7 +376,7 @@ export default function ComparisonTable(): JSX.Element | null {
           metricKey as "grossYearly" | "netIncome" | "totalDeductions",
         )
         : personKey
-          ? getMetric(dataToUse, personKey, metricKey as keyof PersonDeductions)
+          ? getMetric(dataToUse, personKey, metricKey)
           : 0;
 
       cells.push(

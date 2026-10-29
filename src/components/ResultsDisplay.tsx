@@ -1,19 +1,17 @@
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
   useState,
   useEffect,
 } from "preact/hooks";
 import {
-  useSignal, 
+  useSignal,
 } from "@preact/signals";
 import {
   type PersonDeductions,
   deductions,
   hasPartner,
-  salariesPerYear,
-  partnerSalariesPerYear,
 } from "#store/calculatorStore";
 
 export default function ResultsDisplay(): JSX.Element {
@@ -43,14 +41,13 @@ export default function ResultsDisplay(): JSX.Element {
   const renderPerson = (
     title: string,
     personData: PersonDeductions | null,
-    personSalaries: number,
   ): JSX.Element | null => {
     if (!personData || personData.grossYearly <= 0) {
       return null;
     }
 
     // Divide by the number of salaries received (e.g. 12, 13) in monthly view
-    const divider = isMonthly ? personSalaries : 1;
+    const divider = isMonthly ? Math.max(1, personData.salariesReceived) : 1;
     const gross = personData.grossYearly / divider;
 
     return (
@@ -188,6 +185,12 @@ export default function ResultsDisplay(): JSX.Element {
             - {format(personData.tax / divider)}
           </span>
         </div>
+        {personData.solidarity > 0 && (
+          <div class="deduction-item">
+            <span>Solidarity surcharge</span>
+            <span class="amount tabular-nums">- {format(personData.solidarity / divider)}</span>
+          </div>
+        )}
         {personData.churchTax > 0 && (
           <div class="deduction-item">
             <span>
@@ -290,15 +293,16 @@ export default function ResultsDisplay(): JSX.Element {
         </div>
       </div>
 
+      <p>Payroll withholding is an advance payment; this salary view does not determine the final tax assessment.</p>
+      <ul>{[...new Set([...d.person1.assumptions, ...(d.partner?.assumptions ?? [])])].map((assumption) => <li key={assumption}>{assumption}</li>)}</ul>
       <div style={{ display: "flex",
         flexDirection: "column",
         gap: "10px" }}>
-        {renderPerson("Person 1", d.person1, salariesPerYear.value)}
+        {renderPerson("Person 1", d.person1)}
         {hasPartner.value &&
           renderPerson(
             "Spouse / Partner (*Ehegatte*)",
             d.partner,
-            partnerSalariesPerYear.value,
           )}
       </div>
 
@@ -327,9 +331,9 @@ export default function ResultsDisplay(): JSX.Element {
         <span style={{ alignSelf: "center" }} class="tabular-nums">
           {isMonthly
             ? format(
-              d.person1.netIncome / salariesPerYear.value +
+              d.person1.netIncome / Math.max(1, d.person1.salariesReceived) +
                   (hasPartner.value && d.partner
-                    ? d.partner.netIncome / partnerSalariesPerYear.value
+                    ? d.partner.netIncome / Math.max(1, d.partner.salariesReceived)
                     : 0),
             )
             : format(d.household.netIncome)}
