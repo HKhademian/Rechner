@@ -68,7 +68,7 @@ describe("Elterngeld Assessment Baseline & Predominant Tax Class Engine (BEEG §
       }
     });
 
-    it("fails to lock Tax Class III if active for only 6 or fewer months (defaults to V or IV)", () => {
+    it("uses the latest class when each class covers six earned-income months", () => {
       const records: AssessmentMonthRecord[] = [];
       // 6 months in Class V, 6 months in Class III
       for (let i = 1; i <= 6; i++) {
@@ -89,8 +89,12 @@ describe("Elterngeld Assessment Baseline & Predominant Tax Class Engine (BEEG §
       }
 
       const res = determinePredominantTaxClass(records);
-      // With equal count (6 and 6), does not meet the strict 7-month threshold for synthetic lock
-      assert.equal(res.isSyntheticClassApplied, false);
+      assert.equal(res.dominantClass, TaxClass.III);
+      assert.equal(res.dominantClassCount, 6);
+      assert.equal(res.isSyntheticClassApplied, true);
+      const reversed = records.map((record) => ({ ...record,
+        taxClass: record.taxClass === TaxClass.V ? TaxClass.III : TaxClass.V }));
+      assert.equal(determinePredominantTaxClass(reversed).dominantClass, TaxClass.V);
     });
   });
 

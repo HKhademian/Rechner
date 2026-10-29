@@ -2,7 +2,7 @@
  * German Elterngeld & Parental Leave 5-Year Financial Simulator - Assessment Period Engine
  *
  * Implements the statutory 12-month pre-birth assessment window (Bemessungszeitraum § 2b BEEG),
- * the predominant tax class rule (§ 2b Abs. 1 Satz 3 BEEG, BFH VI R 2/13), and the exclusion
+ * the predominant tax class rule (§ 2c Abs. 3 BEEG), and the exclusion
  * of non-recurrent special bonuses (Sonstige Bezüge § 2c Abs. 1 Satz 2 BEEG).
  */
 
@@ -30,8 +30,8 @@ export interface AssessmentMonthRecord {
 }
 
 /**
- * Evaluates the predominant tax class across the 12-month assessment period under § 2b Abs. 1 Satz 3 BEEG.
- * The tax class active for at least 7 of the 12 months is legally locked as the dominant tax class for synthetic net determination.
+ * Evaluates the predominant tax class across the 12-month assessment period under § 2c Abs. 3 BEEG.
+ * The most frequent earned-income class applies; a tie uses the most recent class.
  *
  * @param records - Array of 12 monthly assessment records.
  * @returns Result object containing the dominant tax class, month count, synthetic flag, and legal citation.
@@ -49,44 +49,34 @@ export function determinePredominantTaxClass(
       dominantClass: TaxClass.IV,
       dominantClassCount: 0,
       isSyntheticClassApplied: false,
-      legalCitation: "BEEG § 2b Abs. 1",
+      legalCitation: "BEEG § 2c Abs. 3",
     };
   }
 
-  // Count months per tax class
-  const counts: Record<TaxClass, number> = {
-    [TaxClass.I]: 0,
-    [TaxClass.II]: 0,
-    [TaxClass.III]: 0,
-    [TaxClass.IV]: 0,
-    [TaxClass.V]: 0,
-    [TaxClass.VI]: 0,
-  };
-
-  records.forEach((r) => {
-    counts[r.taxClass] = (counts[r.taxClass] || 0) + 1;
-  });
-
+  // Only ordinary earned-income months establish a deduction characteristic (§ 2c(3)).
+  // Walk newest first so equal counts keep the latest applicable class.
+  const earned = records.filter((record) => !record.isOneOffBonus && record.earnedNetSalary > 0)
+    .sort((a, b) => b.monthIndex - a.monthIndex);
+  const counts = new Map<TaxClass, number>();
+  for (const record of earned) {
+    counts.set(record.taxClass, (counts.get(record.taxClass) ?? 0) + 1);
+  }
   let dominantClass: TaxClass = TaxClass.IV;
   let maxCount = 0;
-
-  for (const tc of Object.keys(counts) as TaxClass[]) {
-    if (counts[tc] > maxCount) {
-      maxCount = counts[tc];
-      dominantClass = tc;
+  for (const [taxClass, count] of counts) {
+    if (count > maxCount) {
+      dominantClass = taxClass;
+      maxCount = count;
     }
   }
-
-  // Statutory 7-Month Rule (§ 2b Abs. 1 Satz 3 BEEG)
-  const isSyntheticClassApplied =
-    dominantClass === TaxClass.III && maxCount >= 7;
+  const isSyntheticClassApplied = dominantClass === TaxClass.III && maxCount > 0;
 
   return {
     dominantClass,
     dominantClassCount: maxCount,
     isSyntheticClassApplied,
     legalCitation:
-      "BEEG § 2b Abs. 1 Satz 3 (*Überwiegende Steuerklasse*) & BFH VI R 2/13",
+      "BEEG § 2c Abs. 3 (predominant deduction characteristic; latest wins a tie)",
   };
 }
 

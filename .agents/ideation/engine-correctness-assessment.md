@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: tax-class selection counts ordinary earned-income months and resolves equal durations using the most recent class, under BEEG section 2c(3). The six/six regression verifies both chronological directions; full quality check passes. User selected repeating initial salary/class for missing prehistory, visibly labeled as an assumption. Simulator wiring remains pending.
+
 - 2026-10-29: assessment deduction rates and older-child excluded-month window now have configurable, source-linked defaults. Full quality check passes. Application and history construction remain pending.
 
 ## Mission and done
