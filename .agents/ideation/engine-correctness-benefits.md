@@ -1,8 +1,14 @@
 ---
 name: Engine correctness - benefit formulas
-status: pending
+status: in_progress
 created: 2026-10-29
 todos:
+  - id: money-precision
+    content: "Prerequisite - preserve monetary cents"
+    status: completed
+  - id: sourced-benefit-configuration
+    content: "Prerequisite - configurable source-linked benefit rules"
+    status: in_progress
   - id: plus-personal-ceiling
     content: "Fix 1 - apply the personal ElterngeldPlus ceiling"
     status: pending
@@ -29,6 +35,8 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 ## Done
 
+- 2026-10-29: monetary constructors preserve cents and round half cents away from zero; 76 constructor tests and the full quality check pass.
+
 - The review reproduced all four defects; no repairs have been implemented.
 - The existing full quality audit and production build passed during the review. Some passing tests encode incorrect statutory expectations.
 
@@ -37,6 +45,11 @@ Repair the isolated benefit errors first, using independently sourced expected a
 - Orchestrator: [master plan](./engine-correctness-master.md), wave 1; shared constraints and source register apply.
 - Next: [payroll plan](./engine-correctness-payroll.md), only after this file is complete.
 - Read [benefit calculations](../../src/engine/benefits/elterngeldPlus.ts), [sibling bonus](../../src/engine/benefits/siblingBonus.ts), [timeline generator](../../src/engine/simulator/timelineGenerator.ts), and [project rules](../rules/).
+
+## Prerequisites added during execution
+
+- Money constructors currently discard cents, preventing valid fractional caps and bonus minima. Preserve cents first in a standalone commit with constructor regressions.
+- User requested configurable values with official source links. Add validated immutable benefit configuration in a separate commit, then inject it into every affected calculation. Payroll-year configuration follows the same source/value pattern in wave 2.
 
 ## Fix 1 - plus-personal-ceiling
 

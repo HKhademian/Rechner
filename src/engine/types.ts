@@ -95,7 +95,7 @@ export type ChildIndex = Brand<number, "ChildIndex">;
 // 3. Monetary Hierarchy Nominal Types
 // ============================================================================
 
-/** Exact euro financial amount rounded to whole euros (EUR). */
+/** Euro financial amount rounded to cents (EUR). */
 export type EuroAmount = Brand<number, "EuroAmount">;
 
 /** Pre-tax gross earned employment salary in EUR (nominal subtype of EuroAmount). */
@@ -652,14 +652,22 @@ export function toWorkingHours(val: number): WorkingHours {
 }
 
 /**
- * Constructs a validated `EuroAmount` rounded to the nearest whole integer.
+ * Constructs a validated `EuroAmount` rounded to cents, with half cents away from zero.
+ * Decimal exponent shifting avoids binary rounding errors such as 1.005 -> 1.00.
+ * BEEG guidelines 2.0.3.3.1 require cent rounding of monetary intermediates:
+ * https://www.bmbfsfj.bund.de/resource/blob/243236/6d06137220a52d1a18905493c3ab6199/richtlinien-zum-beeg-data.pdf
  * @throws {TypeError} if value is not a finite number.
  */
 export function toEuroAmount(val: number): EuroAmount {
   if (typeof val !== "number" || Number.isNaN(val) || !Number.isFinite(val)) {
     throw new TypeError(`Invalid EuroAmount: ${val}. Must be a valid number.`);
   }
-  return Math.round(val) as EuroAmount;
+  const [coefficient, exponent = "0"] = Math.abs(val).toString().split("e");
+  const cents = Math.round(Number(`${coefficient}e${Number(exponent) + 2}`));
+  if (!Number.isSafeInteger(cents)) {
+    throw new TypeError(`Invalid EuroAmount: ${val}. Must fit in safe integer cents.`);
+  }
+  return (Math.sign(val) * cents / 100 || 0) as EuroAmount;
 }
 
 /**
@@ -674,7 +682,7 @@ export function toEuroCents(val: number): EuroCents {
 }
 
 /**
- * Constructs a validated `GrossSalary` rounded to the nearest non-negative whole euro.
+ * Constructs a validated `GrossSalary` rounded to non-negative euro cents.
  * @throws {TypeError} if value is negative or not a finite number.
  */
 export function toGrossSalary(val: number): GrossSalary {
@@ -686,11 +694,11 @@ export function toGrossSalary(val: number): GrossSalary {
   ) {
     throw new TypeError(`Invalid GrossSalary: ${val}. Must be non-negative.`);
   }
-  return Math.round(val) as GrossSalary;
+  return toEuroAmount(val) as GrossSalary;
 }
 
 /**
- * Constructs a validated `NetSalary` rounded to the nearest non-negative whole euro.
+ * Constructs a validated `NetSalary` rounded to non-negative euro cents.
  * @throws {TypeError} if value is negative or not a finite number.
  */
 export function toNetSalary(val: number): NetSalary {
@@ -702,7 +710,7 @@ export function toNetSalary(val: number): NetSalary {
   ) {
     throw new TypeError(`Invalid NetSalary: ${val}. Must be non-negative.`);
   }
-  return Math.round(val) as NetSalary;
+  return toEuroAmount(val) as NetSalary;
 }
 
 /**

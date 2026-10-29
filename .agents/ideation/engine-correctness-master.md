@@ -1,11 +1,11 @@
 ---
 name: Engine correctness - sequential repair plan
-status: pending
+status: in_progress
 created: 2026-10-29
 todos:
   - id: wave-1-benefits
     content: "Complete benefit formula and father-allocation fixes"
-    status: pending
+    status: in_progress
   - id: wave-2-payroll
     content: "Complete year-aware payroll, periods, and shared adapters"
     status: pending
@@ -32,7 +32,7 @@ plans:
 
 ## Mission
 
-Repair the financial engine one independently verified change at a time before feature development. Cover all eight findings from the 2026-10-29 review, including shared payroll and output contracts that affect the engine's visible results. This file defines order only; concrete edits and acceptance criteria live in the child plans. Planning is authorized now; implementation has not been started.
+Repair the financial engine one independently verified change at a time before feature development. Cover all eight findings from the 2026-10-29 review, including shared payroll and output contracts that affect the engine's visible results. This file defines order only; concrete edits and acceptance criteria live in the child plans. Implementation is authorized and proceeds sequentially in atomic commits.
 
 ## Done
 
@@ -63,6 +63,10 @@ Repair the financial engine one independently verified change at a time before f
 - Fixes: `assessment-history` -> `annual-reconciliation` -> `export-parity` -> `end-to-end-gate`.
 - Command: `/xplan @.agents/ideation/engine-correctness-assessment.md`.
 - Gate: history-driven frozen benefits, signed actual tax reconciliation, consistent outputs, and independently worked end-to-end cases pass.
+
+## Additional user constraint (2026-10-29)
+
+Statutory numeric values must be configurable, validated, and accompanied by a direct official source URL. Keep default values and source metadata out of calculation bodies; propagate configuration through callers and explanations. Independently specified regression expectations remain literal reference values, not a second copy of production configuration.
 
 ## Per-fix workflow
 

@@ -382,11 +382,21 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       const a2: EuroAmount = toEuroAmount(100.6);
       const a3: EuroAmount = toEuroAmount(-50);
 
-      assert.equal(a1, 100);
-      assert.equal(a2, 101);
+      assert.equal(a1, 100.4);
+      assert.equal(a2, 100.6);
       assert.equal(a3, -50);
       assert.throws(() => toEuroAmount(NaN), TypeError);
       assert.throws(() => toEuroAmount(Infinity), TypeError);
+    });
+
+    it("preserves cents and commercially rounds half cents without binary drift", () => {
+      assert.equal(toEuroAmount(37.5), 37.5);
+      assert.equal(toEuroAmount(1.005), 1.01);
+      assert.equal(toEuroAmount(-1.005), -1.01);
+      assert.equal(toEuroAmount(845.975), 845.98);
+      assert.equal(toGrossSalary(3000.25), 3000.25);
+      assert.equal(toNetSalary(2000.75), 2000.75);
+      assert.throws(() => toEuroAmount(Number.MAX_VALUE), TypeError);
     });
 
     it("brands integer EuroCents properly", () => {
