@@ -38,8 +38,6 @@ function fraction(value: number) {
 }
 
 const constructors = {
-  marginalIncomeLimitMonthly: money,
-  transitionZoneCeilingMonthly: money,
   basicAllowance: money,
   progression1Ceiling: money,
   progression2Ceiling: money,
@@ -144,7 +142,6 @@ export function createTaxRules(
   });
   const parameters = Object.fromEntries(entries) as TaxParameters;
   if (
-    parameters.marginalIncomeLimitMonthly.value >= parameters.transitionZoneCeilingMonthly.value ||
     parameters.basicAllowance.value >= parameters.progression1Ceiling.value ||
     parameters.progression1Ceiling.value >= parameters.progression2Ceiling.value ||
     parameters.progression2Ceiling.value >= parameters.topRateCeiling.value ||

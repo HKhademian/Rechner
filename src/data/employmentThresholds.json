@@ -1,0 +1,50 @@
+{
+  "2024": {
+    "marginal": {
+      "value": 538,
+      "label": "Marginal employment monthly limit",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    },
+    "transition": {
+      "value": 2000,
+      "label": "Transition-zone monthly ceiling",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    }
+  },
+  "2025": {
+    "marginal": {
+      "value": 556,
+      "label": "Marginal employment monthly limit",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    },
+    "transition": {
+      "value": 2000,
+      "label": "Transition-zone monthly ceiling",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    }
+  },
+  "2026": {
+    "marginal": {
+      "value": 603,
+      "label": "Marginal employment monthly limit",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    },
+    "transition": {
+      "value": 2000,
+      "label": "Transition-zone monthly ceiling",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    }
+  },
+  "2027": {
+    "marginal": {
+      "value": 633,
+      "label": "Marginal employment monthly limit",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    },
+    "transition": {
+      "value": 2000,
+      "label": "Transition-zone monthly ceiling",
+      "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+    }
+  }
+}

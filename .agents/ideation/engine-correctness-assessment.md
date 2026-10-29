@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: marginal/transition thresholds now have independent effective-year profiles (2024-2027) sourced to the current official BEEG guidelines. This uses the already published 2027 marginal limit 633 without inventing a complete 2027 PAP profile. Projection behavior and source-year selection pass their focused test; full quality check passes.
+
 - 2026-10-29: annual profiles record PAP publication dates/source URLs separately from payroll effective dates. BEEG must use the snapshot available on January 1 of the year before birth; the installed 2025 PAP is the January 22 revision and cannot silently stand in for the earlier snapshot. Source-linked marginal/transition thresholds and BEEG transition flat-rate input are configured. Full quality check passes. Snapshot availability checks and standardized net application follow.
 
 - 2026-10-29: pure calendar-based assessment history selects twelve eligible months, replaces statutory exclusions with earlier months, reports incomplete history, and labels repeated initial-baseline records as assumed. Frozen records preserve gross/payroll characteristics against later edits. Three boundary/history/provenance tests and full quality check pass. Simulator application remains pending.
