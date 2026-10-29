@@ -103,5 +103,30 @@
     "value": 2,
     "label": "Minimum parent allowance claim (life-months)",
     "source": "https://www.gesetze-im-internet.de/beeg/__4.html"
+  },
+  "standardHealthCareDeduction": {
+    "value": 0.09,
+    "label": "BEEG standardized health and care deduction",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2f.html"
+  },
+  "standardPensionDeduction": {
+    "value": 0.1,
+    "label": "BEEG standardized pension deduction",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2f.html"
+  },
+  "standardUnemploymentDeduction": {
+    "value": 0.02,
+    "label": "BEEG standardized unemployment deduction",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2f.html"
+  },
+  "standardChurchTaxRate": {
+    "value": 0.08,
+    "label": "BEEG standardized church tax rate",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2e.html"
+  },
+  "olderBenefitExclusionLifeMonths": {
+    "value": 14,
+    "label": "Older-child benefit exclusion life-month window",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2b.html"
   }
 }

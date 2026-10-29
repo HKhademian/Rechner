@@ -8,10 +8,10 @@ todos:
     status: completed
   - id: wave-2-payroll
     content: "Complete year-aware payroll, periods, and shared adapters"
-    status: in_progress
+    status: completed
   - id: wave-3-assessment
     content: "Complete assessment, reconciliation, export parity, and final verification"
-    status: pending
+    status: in_progress
 plans:
   requires: []
   blocks: []
@@ -39,7 +39,7 @@ Repair the financial engine one independently verified change at a time before f
 - Read all project rules and reviewed the engine, stores, CLI, tests and export paths.
 - `npm run check` and `npm run check:build` passed during the review; that establishes the existing baseline, not statutory accuracy.
 - Direct probes reproduced: Plus 900 instead of 650 for 2000/0 net; no 2770 assessment cap; incorrect sibling minimum/maximum; father 40h and zero requested months still receives four payments; a zero-income household receives 2550 assumed refunds over 36 months; early and late class switches yield the same entitlement; six versus twelve working months leaves earnings unchanged; shared CSV folds five events into 36 monthly rows.
-- Simulator tax parameters are stale, and the general calculator duplicates payroll formulas. No production or test code has been changed by this planning task.
+- Simulator tax parameters are stale, and the general calculator duplicates payroll formulas. At plan creation no production or test code had changed; implementation evidence is recorded in the child plans.
 
 ## Execution order
 

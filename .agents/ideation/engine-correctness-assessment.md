@@ -1,11 +1,11 @@
 ---
 name: Engine correctness - assessment and reconciliation
-status: pending
+status: in_progress
 created: 2026-10-29
 todos:
   - id: assessment-history
     content: "Fix 9 - derive and freeze each parent's assessment from actual history"
-    status: pending
+    status: in_progress
   - id: annual-reconciliation
     content: "Fix 10 - reconcile actual tax and enforce income eligibility"
     status: pending
@@ -22,6 +22,10 @@ plans:
 ---
 
 # Engine correctness: assessment and reconciliation
+
+## Done
+
+- 2026-10-29: assessment deduction rates and older-child excluded-month window now have configurable, source-linked defaults. Full quality check passes. Application and history construction remain pending.
 
 ## Mission and done
 

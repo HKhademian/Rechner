@@ -58,6 +58,11 @@ function integerMonths(value: number) {
 }
 
 const constructors = {
+  standardHealthCareDeduction: fraction,
+  standardPensionDeduction: fraction,
+  standardUnemploymentDeduction: fraction,
+  standardChurchTaxRate: fraction,
+  olderBenefitExclusionLifeMonths: integerMonths,
   standardReplacementRate: fraction,
   minimumReplacementRate: fraction,
   maximumReplacementRate: fraction,

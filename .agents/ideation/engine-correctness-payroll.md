@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - payroll foundation
-status: in_progress
+status: completed
 created: 2026-10-29
 todos:
   - id: annual-rules
@@ -14,7 +14,7 @@ todos:
     status: completed
   - id: shared-payroll
     content: "Fix 8 - use one payroll engine across calculator, simulator, and CLI"
-    status: in_progress
+    status: completed
 plans:
   requires: [engine-correctness-benefits.md]
   blocks: [engine-correctness-assessment.md]
@@ -51,21 +51,13 @@ plans:
 
 ## Mission and done
 
-Establish reliable payroll inputs for the later assessment and annual reconciliation fixes. The review confirmed stale simulator constants, separate formulas in `calculatorStore.ts`, and working-month inputs that do not change annual earnings. Annual profiles, PAP withholding, and working-period integration are complete; simulator parity remains in progress.
+Establish reliable payroll inputs for the later assessment and annual reconciliation fixes. The review confirmed stale simulator constants, separate formulas in `calculatorStore.ts`, and working-month inputs that do not change annual earnings. Annual profiles, PAP withholding, working periods and shared adapters are complete. Standard employee payroll is the supported calculation model; special employment/contribution regimes remain verification limits.
 
 ## Plan links and read first
 
 - Orchestrator: [master plan](./engine-correctness-master.md), wave 2; shared constraints apply.
 - Prerequisite: [benefits](./engine-correctness-benefits.md). Next: [assessment and reconciliation](./engine-correctness-assessment.md).
 - Read `src/engine/tax/wageTax.ts`, `src/engine/types.ts`, `src/store/calculatorStore.ts`, `src/store/taxConfigStore.ts`, `src/store/elterngeldStore.ts`, `src/cli/runner.ts`, and `src/data/defaultTaxConfig.json`.
-
-## Fix 8 - shared-payroll
-
-**Depends on:** working-periods.
-**Files:** modify `src/store/calculatorStore.ts`, `src/store/taxConfigStore.ts`, `src/store/elterngeldStore.ts`, `src/cli/runner.ts`, `src/engine/simulator/timelineGenerator.ts`, and the affected tests and persistence adapters.
-**Actions:** make stores/adapters call the verified payroll engine; remove duplicate tax formulas from `calculatorStore.ts`. Pass matching year, state, insurance, children, hours, factor, and bonus settings. Recompute gross-mode raises/hours changes through payroll instead of scaling net salaries by percentages. Preserve explicit manual-net mode as a distinct input contract; never infer actual tax withheld from a manual net value without sufficient data.
-**Acceptance:** equivalent inputs in the calculator, simulator, and CLI yield matching itemized payroll results. Config overrides flow consistently and remain marked as assumptions. A raise crossing a tax band is recalculated; manual-net mode is still usable without silently pretending that all tax inputs are known. Existing saved state has a tested migration where needed.
-**Verify:** new store/adapter parity tests, existing CLI tests and scenario tests, then the shared commit gate.
 
 ## References and constraints
 
