@@ -11,10 +11,10 @@ todos:
     status: completed
   - id: plus-personal-ceiling
     content: "Fix 1 - apply the personal ElterngeldPlus ceiling"
-    status: in_progress
+    status: completed
   - id: capped-assessable-net
     content: "Fix 2 - cap assessable pre-birth net income"
-    status: pending
+    status: in_progress
   - id: sibling-bonus
     content: "Fix 3 - correct sibling bonus minimum and ceiling"
     status: pending
@@ -35,6 +35,8 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 ## Done
 
+- 2026-10-29: personal Plus ceiling uses half of the cent-rounded no-income Basis entitlement, sourced configurable rules, and preserves below-cap income-loss benefits. Official 2000/0 -> 650, 2000/500 -> 650, 2000/1200 -> 520 regressions pass; full quality check and build pass.
+
 - 2026-10-29: added immutable, validated benefit configuration with official source URLs and explicitly marked overrides; the full quality check passes.
 
 - 2026-10-29: monetary constructors preserve cents and round half cents away from zero; 76 constructor tests and the full quality check pass.
@@ -52,14 +54,6 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 - Money constructors currently discard cents, preventing valid fractional caps and bonus minima. Preserve cents first in a standalone commit with constructor regressions.
 - User requested configurable values with official source links. Add validated immutable benefit configuration in a separate commit, then inject it into every affected calculation. Payroll-year configuration follows the same source/value pattern in wave 2.
-
-## Fix 1 - plus-personal-ceiling
-
-**Depends on:** none.
-**Files:** modify `src/engine/benefits/elterngeldPlus.ts`, its unit and granular tests, and affected explanation assertions only.
-**Actions:** determine the applicable BEEG rounding rules first; document them beside source-backed fixtures. Calculate the no-post-birth-income Basis entitlement separately, then bound Plus by half that personal entitlement. Preserve the separate Basic/Plus minima and hours exclusion; make cap flags describe the applicable personal cap. Do not simply halve every actual income-loss benefit.
-**Acceptance:** pre-birth/post-birth net inputs of 2000/0 and 2000/500 yield Plus 650; 2000/1200 yields Plus 520. Zero-income minimums remain Basic 300 and Plus 150 for eligible recipients. The existing 2603/0 expectation of Plus 900 is corrected from the statutory calculation, including documented rounding. Expected values are not calculated by calling production helpers.
-**Verify:** focused Node tests for `elterngeldPlus.test.ts` and `elterngeldScale.granular.test.ts`, then the shared commit gate.
 
 ## Fix 2 - capped-assessable-net
 

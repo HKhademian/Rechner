@@ -14,6 +14,10 @@ import {
   toPercentageRate,
   toNetSalary,
 } from "#engine/types";
+import {
+  type BenefitRules,
+  DEFAULT_BENEFIT_RULES,
+} from "#engine/config/benefitRules";
 
 /**
  * Calculates the statutory wage replacement rate under § 2 Abs. 1 & 2 BEEG.
@@ -29,30 +33,31 @@ import {
  */
 export function computeStatutoryReplacementRate(
   preBirthNet: NetSalary,
+  rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): PercentageRate {
   if (preBirthNet <= 0) {
-    return toPercentageRate(0.67);
+    return rules.standardReplacementRate.value;
   }
 
   // Low income scale (§ 2 Abs. 2: < 1.000 € -> increases up to 100%)
-  if (preBirthNet < 1000) {
-    const increase = (1000 - preBirthNet) * 0.0005; // +0.1% per 2 €
-    return toPercentageRate(Math.min(1.0, 0.67 + increase));
+  if (preBirthNet < rules.lowIncomeThreshold.value) {
+    const increase = (rules.lowIncomeThreshold.value - preBirthNet) * rules.rateChangePerEuro.value;
+    return toPercentageRate(Math.min(rules.maximumReplacementRate.value, rules.standardReplacementRate.value + increase));
   }
 
   // Standard zone: 1.000 € to 1.200 €
-  if (preBirthNet <= 1200) {
-    return toPercentageRate(0.67);
+  if (preBirthNet <= rules.rateDecreaseThreshold.value) {
+    return rules.standardReplacementRate.value;
   }
 
   // High income scale (§ 2 Abs. 1: 1.200 € to 1.240 € -> decreases to 65%)
-  if (preBirthNet < 1240) {
-    const decrease = (preBirthNet - 1200) * 0.0005; // -0.1% per 2 €
-    return toPercentageRate(Math.max(0.65, 0.67 - decrease));
+  if (preBirthNet < rules.minimumRateThreshold.value) {
+    const decrease = (preBirthNet - rules.rateDecreaseThreshold.value) * rules.rateChangePerEuro.value;
+    return toPercentageRate(Math.max(rules.minimumReplacementRate.value, rules.standardReplacementRate.value - decrease));
   }
 
   // > 1.240 € -> 65%
-  return toPercentageRate(0.65);
+  return rules.minimumReplacementRate.value;
 }
 
 /**
@@ -72,7 +77,11 @@ export interface ElterngeldEntitlement {
   readonly basiselterngeld: EuroAmount;
   /** Monthly ElterngeldPlus entitlement in EUR (min €150, max €900 under § 4a BEEG). */
   readonly elterngeldPlus: EuroAmount;
-  /** Boolean flag indicating whether the statutory maximum benefit cap was reached (€1.800/€900). */
+  /** No-income Basis entitlement used to establish the personal Plus ceiling. */
+  readonly noIncomeBasiselterngeld: EuroAmount;
+  /** Personal Plus ceiling under § 4a(2), with statutory cent rounding. */
+  readonly elterngeldPlusCeiling: EuroAmount;
+  /** True when the personal Plus ceiling is reached. */
   readonly isMaxCapped: boolean;
   /** Boolean flag indicating whether the statutory minimum benefit floor was applied (€300/€150). */
   readonly isMinFloorApplied: boolean;
@@ -87,8 +96,11 @@ export interface ElterngeldEntitlement {
  * @param weeklyHours - Contractual weekly working hours during parental leave.
  * @returns True if hours are within the statutory 0..32 hours/week window; false if disqualified.
  */
-export function isElterngeldHoursEligible(weeklyHours: WorkingHours): boolean {
-  return weeklyHours >= 0 && weeklyHours <= 32;
+export function isElterngeldHoursEligible(
+  weeklyHours: WorkingHours,
+  rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+): boolean {
+  return weeklyHours >= 0 && weeklyHours <= rules.maximumWeeklyHours.value;
 }
 
 /**
@@ -102,12 +114,13 @@ export function isElterngeldHoursEligible(weeklyHours: WorkingHours): boolean {
 export function isPartnerschaftsbonusEligible(
   motherHours: WorkingHours,
   fatherHours: WorkingHours,
+  rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): boolean {
   return (
-    motherHours >= 24 &&
-    motherHours <= 32 &&
-    fatherHours >= 24 &&
-    fatherHours <= 32
+    motherHours >= rules.partnershipMinimumHours.value &&
+    motherHours <= rules.maximumWeeklyHours.value &&
+    fatherHours >= rules.partnershipMinimumHours.value &&
+    fatherHours <= rules.maximumWeeklyHours.value
   );
 }
 
@@ -124,10 +137,11 @@ export function computeElterngeldBenefits(
   preBirthNet: NetSalary,
   partTimeNetDuringLeave: NetSalary = toNetSalary(0),
   weeklyHours?: WorkingHours,
+  rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): ElterngeldEntitlement {
   // Statutory Exclusion (§ 1 Abs. 1 Nr. 4 BEEG):
   // Working more than 32 hours/week disqualifies from parental allowance entirely.
-  if (weeklyHours !== undefined && weeklyHours > 32) {
+  if (weeklyHours !== undefined && !isElterngeldHoursEligible(weeklyHours, rules)) {
     return {
       preBirthNet,
       partTimeNet: partTimeNetDuringLeave,
@@ -135,26 +149,31 @@ export function computeElterngeldBenefits(
       replacementRate: toPercentageRate(0),
       basiselterngeld: toEuroAmount(0),
       elterngeldPlus: toEuroAmount(0),
+      noIncomeBasiselterngeld: toEuroAmount(0),
+      elterngeldPlusCeiling: toEuroAmount(0),
       isMaxCapped: false,
       isMinFloorApplied: false,
       statutoryCitation:
-        "BEEG § 1 Abs. 1 Nr. 4 (Ausschluss bei Erwerbstätigkeit > 32 Wochenstunden)",
+        `BEEG § 1 Abs. 6 (Ausschluss bei Erwerbstätigkeit > ${rules.maximumWeeklyHours.value} Wochenstunden)`,
     };
   }
 
   const loss = Math.max(0, preBirthNet - partTimeNetDuringLeave);
-  const rate = computeStatutoryReplacementRate(preBirthNet);
+  const rate = computeStatutoryReplacementRate(preBirthNet, rules);
 
-  const rawBenefit = loss * rate;
+  const rawBenefit = toEuroAmount(loss * rate);
 
   // Basiselterngeld: min €300, max €1.800 (§ 2 Abs. 1 BEEG)
-  const basis = Math.min(1800, Math.max(300, Math.round(rawBenefit)));
+  const basis = toEuroAmount(Math.min(rules.basisMaximum.value, Math.max(rules.basisMinimum.value, rawBenefit)));
 
-  // ElterngeldPlus: min €150, max €900 (§ 4a BEEG - exactly 50% of monthly full entitlement cap)
-  const plus = Math.min(900, Math.max(150, Math.round(rawBenefit)));
+  // § 4a(2): the cap is personal, derived from the no-income entitlement.
+  const noIncomeBasiselterngeld = toEuroAmount(Math.min(rules.basisMaximum.value, Math.max(rules.basisMinimum.value, toEuroAmount(preBirthNet * rate))));
+  const elterngeldPlusCeiling = toEuroAmount(noIncomeBasiselterngeld * rules.plusFraction.value);
+  const plusMinimum = toEuroAmount(rules.basisMinimum.value * rules.plusFraction.value);
+  const plus = Math.min(elterngeldPlusCeiling, Math.max(plusMinimum, rawBenefit));
 
-  const isMaxCapped = plus === 900;
-  const isMinFloorApplied = plus === 150;
+  const isMaxCapped = plus === elterngeldPlusCeiling;
+  const isMinFloorApplied = plus === plusMinimum;
 
   return {
     preBirthNet,
@@ -163,6 +182,8 @@ export function computeElterngeldBenefits(
     replacementRate: rate,
     basiselterngeld: toEuroAmount(basis),
     elterngeldPlus: toEuroAmount(plus),
+    noIncomeBasiselterngeld,
+    elterngeldPlusCeiling,
     isMaxCapped,
     isMinFloorApplied,
     statutoryCitation:

@@ -91,16 +91,16 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         assert.equal(m.wifeSalary, 0);
       });
 
-      // Child 1 ElterngeldPlus (M14 to M25) = €370
+      // Child 1 ElterngeldPlus (M14 to M25) = €369.85: (1751 - 1182) * 0.65
       for (let i = 14; i <= 25; i++) {
         const m = res.months[i - 1];
-        assert.equal(m.wifeElterngeld, 370);
+        assert.equal(m.wifeElterngeld, 369.85);
       }
     });
   });
 
   describe("Scenario C - Optimized Proactive Tax Class Swap (III/V)", () => {
-    it("accurately models Swap 1, Mutterschutz at Class III FT (€2.295), and optimized ElterngeldPlus (+723 €)", () => {
+    it("accurately models Swap 1, Mutterschutz at Class III FT (€2.295), and optimized ElterngeldPlus (+723.45 €)", () => {
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
@@ -114,10 +114,10 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         assert.equal(m.mutterschutz, 2295);
       });
 
-      // Child 1 ElterngeldPlus (M14 to M25) = €723
+      // Child 1 ElterngeldPlus (M14 to M25) = €723.45: (2295 - 1182) * 0.65
       for (let i = 14; i <= 25; i++) {
         const m = res.months[i - 1];
-        assert.equal(m.wifeElterngeld, 723);
+        assert.equal(m.wifeElterngeld, 723.45);
       }
     });
 

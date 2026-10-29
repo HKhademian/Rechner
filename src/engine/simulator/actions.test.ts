@@ -117,7 +117,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const m14 = res.months[13];
       assert.equal(m14.isMutterschutz, false);
       assert.equal(m14.wifeSalary, 1182);
-      assert.equal(m14.wifeElterngeld, 370);
+      // (1751 - 1182) * 0.65 = 369.85, below the personal ceiling.
+      assert.equal(m14.wifeElterngeld, 369.85);
     });
 
     it("validates Sibling Bonus (+10%) eligibility for spacing < 36 months vs expiration at >= 36 months", () => {
@@ -889,10 +890,10 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         financialEvents: [],
       });
 
-      // Months 14..25: Standard EG+ is paid (€813)
+      // Half of rounded no-income Basis 2295 * 0.65 = 1491.75 -> 745.88.
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld, 813);
+        assert.equal(month.wifeElterngeld, 745.88);
       }
 
       // Months 26..29: Partnerschaftsbonus window -> denied because 20h < 24h
@@ -936,17 +937,17 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         financialEvents: [],
       });
 
-      // Months 14..25: Standard EG+ is paid (€629)
+      // Income loss (2295 - 1328) * 0.65 = 628.55, below the ceiling.
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld, 629);
+        assert.equal(month.wifeElterngeld, 628.55);
       }
 
       // Months 26..29: Partnerschaftsbonus granted for both parents
       for (let m = 26; m <= 29; m++) {
         const month = res.months[m - 1];
         assert.equal(month.isPartnerschaftsbonus, true);
-        assert.equal(month.wifeElterngeld, 629);
+        assert.equal(month.wifeElterngeld, 628.55);
         assert.equal(month.husbandElterngeld, 150);
         assert.ok(
           month.phaseLabel.includes("Partnerschaftsbonus 1 (Both 24-32h)"),

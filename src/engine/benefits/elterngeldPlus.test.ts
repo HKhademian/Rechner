@@ -13,6 +13,9 @@ import {
   toNetSalary,
   toWorkingHours,
 } from "#engine/types";
+import {
+  createBenefitRules,
+} from "#engine/config/benefitRules";
 
 describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a)", () => {
   describe("computeStatutoryReplacementRate - Sliding Replacement Scale (§ 2 BEEG)", () => {
@@ -49,13 +52,52 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
       assert.equal(highEarnerBenefit.isMaxCapped, true);
     });
 
-    it("caps ElterngeldPlus at statutory maximum €900/month", () => {
+    // BEEG § 4a(2); Familienportal's independently worked 2000 € examples.
+    // BEEG guidelines 2.0.3.3.1 require cent rounding, including intermediates.
+    it("limits Plus to half the personal no-income Basis entitlement", () => {
+      for (const afterBirth of [0, 500]) {
+        const benefit = computeElterngeldBenefits(
+          toNetSalary(2000),
+          toNetSalary(afterBirth),
+        );
+        assert.equal(benefit.elterngeldPlus, 650);
+        assert.equal(benefit.isMaxCapped, true);
+      }
+    });
+
+    it("preserves an income-loss benefit below the personal Plus ceiling", () => {
+      const benefit = computeElterngeldBenefits(toNetSalary(2000), toNetSalary(1200));
+      assert.equal(benefit.elterngeldPlus, 520);
+      assert.equal(benefit.isMaxCapped, false);
+    });
+
+    it("rounds the personal ceiling to cents after halving Basis", () => {
       const benefit = computeElterngeldBenefits(
         toNetSalary(2603),
         toNetSalary(0),
       );
-      assert.equal(benefit.elterngeldPlus, 900);
+      assert.equal(benefit.basiselterngeld, 1691.95);
+      assert.equal(benefit.elterngeldPlus, 845.98);
       assert.equal(benefit.isMaxCapped, true);
+    });
+
+    it("retains the eligible zero-income minima", () => {
+      const benefit = computeElterngeldBenefits(toNetSalary(0));
+      assert.equal(benefit.basiselterngeld, 300);
+      assert.equal(benefit.elterngeldPlus, 150);
+      assert.equal(benefit.isMinFloorApplied, true);
+    });
+
+    it("uses configured rates, entitlement limits, and hours instead of raw constants", () => {
+      const rules = createBenefitRules({ minimumReplacementRate: 0.6,
+        plusFraction: 0.4,
+        maximumWeeklyHours: 30 });
+      const benefit = computeElterngeldBenefits(toNetSalary(2000), toNetSalary(0), toWorkingHours(30), rules);
+      assert.equal(benefit.basiselterngeld, 1200);
+      assert.equal(benefit.elterngeldPlusCeiling, 480);
+      assert.equal(benefit.elterngeldPlus, 480);
+      assert.equal(isElterngeldHoursEligible(toWorkingHours(31), rules), false);
+      assert.equal(computeElterngeldBenefits(toNetSalary(2000), toNetSalary(0), toWorkingHours(31), rules).elterngeldPlus, 0);
     });
 
     it("applies statutory minimum floor of €150/month for ElterngeldPlus (§ 4a BEEG)", () => {
@@ -69,12 +111,12 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
     });
 
     it("computes exact benefit for unoptimized Scenario B", () => {
-      // Wife baseline Class V (€1.975) and part-time (€1.328) -> Loss €647 * 65% = €420,55 -> €421
+      // Loss €647 * 65% = €420.55, below the personal ceiling.
       const benefit = computeElterngeldBenefits(
         toNetSalary(1975),
         toNetSalary(1328),
       );
-      assert.equal(benefit.elterngeldPlus, 421);
+      assert.equal(benefit.elterngeldPlus, 420.55);
       assert.equal(benefit.isMaxCapped, false);
       assert.equal(benefit.isMinFloorApplied, false);
     });
@@ -100,7 +142,7 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
           toNetSalary(1328),
           toWorkingHours(hours),
         );
-        assert.equal(benefit.elterngeldPlus, 829);
+        assert.equal(benefit.elterngeldPlus, 828.75);
       }
     });
   });
