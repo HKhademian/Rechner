@@ -78,6 +78,7 @@ const constructors = {
   assessmentMonths: integerMonths,
   familyBasisMonths: integerMonths,
   additionalPartnerBasisMonths: integerMonths,
+  minimumParentClaimMonths: integerMonths,
 } as const;
 
 export type BenefitRules = {

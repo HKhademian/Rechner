@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - benefit formulas
-status: in_progress
+status: completed
 created: 2026-10-29
 todos:
   - id: money-precision
@@ -20,7 +20,7 @@ todos:
     status: completed
   - id: father-allocation
     content: "Fix 4 - honor father eligibility and requested partner months"
-    status: in_progress
+    status: completed
 plans:
   requires: []
   blocks: [engine-correctness-payroll.md]
@@ -35,6 +35,8 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 ## Done
 
+- 2026-10-29: ordinary father payments honor configured hours and validated requested Plus counts, separate from bonus allocation. Zero requests and >32h ordinary claims pay zero; active changes and injected limits are covered. Full quality check and build pass. Own-parent history/amounts and complete reallocation budgets remain explicitly assigned to wave 3.
+
 - 2026-10-29: sibling bonus uses configured percentage, Plus fraction, age limit, and increased ceiling; 150 -> 187.50 and 900 -> 990 regressions pass. Final qualifying age month is included in the calendar-month approximation, zero entitlement stays zero, and custom limits are tested; full quality check passes.
 
 - 2026-10-29: assessable pre-birth income is capped from source-linked configuration before deducting earnings; 3200/1570 yields Basic and Plus 780. Config overrides, cap boundaries, and zero-loss floors are covered; full quality check passes.
@@ -45,7 +47,7 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 - 2026-10-29: monetary constructors preserve cents and round half cents away from zero; 76 constructor tests and the full quality check pass.
 
-- The review reproduced all four defects; no repairs have been implemented.
+- The review reproduced all four defects; this wave has repaired the isolated formulas and ordinary father-allocation eligibility.
 - The existing full quality audit and production build passed during the review. Some passing tests encode incorrect statutory expectations.
 
 ## Plan links and read first
@@ -58,14 +60,6 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 - Money constructors currently discard cents, preventing valid fractional caps and bonus minima. Preserve cents first in a standalone commit with constructor regressions.
 - User requested configurable values with official source links. Add validated immutable benefit configuration in a separate commit, then inject it into every affected calculation. Payroll-year configuration follows the same source/value pattern in wave 2.
-
-## Fix 4 - father-allocation
-
-**Depends on:** sibling-bonus.
-**Files:** modify `src/engine/simulator/timelineGenerator.ts`, relevant pregnancy/entitlement types in `src/engine/types.ts` if necessary, `src/engine/simulator/actions.test.ts`, `src/engine/benefits/reallocation.test.ts`, and new focused allocation tests if warranted.
-**Actions:** use `fatherPartnerMonthsCount` and the father's actual active hours; remove the unconditional four-month payment branch. Establish whether the stored count denotes Basic months or Plus payment months, and preserve or explicitly migrate that meaning. Keep ordinary partner months, partnership-bonus months, and reallocated months distinct; apply each recipient's entitlement and avoid double use of the family allowance budget. Amounts must ultimately use that parent's own assessment/income loss, not an unconditional 150 or the mother's benefit; wire this through the assessment work in wave 3.
-**Acceptance:** 40 hours/week or zero requested partner months produces no ordinary father allowance. Cover 32 versus 33 hours, supported requested durations, dynamic hours changes, no duplicate allocations, and bonus eligibility. If a prerequisite history is unavailable, report that limitation explicitly rather than asserting a statutory amount.
-**Verify:** focused allocation/action tests and scenario tests, then the shared commit gate.
 
 ## References and constraints
 

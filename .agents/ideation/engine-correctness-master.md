@@ -5,10 +5,10 @@ created: 2026-10-29
 todos:
   - id: wave-1-benefits
     content: "Complete benefit formula and father-allocation fixes"
-    status: in_progress
+    status: completed
   - id: wave-2-payroll
     content: "Complete year-aware payroll, periods, and shared adapters"
-    status: pending
+    status: in_progress
   - id: wave-3-assessment
     content: "Complete assessment, reconciliation, export parity, and final verification"
     status: pending

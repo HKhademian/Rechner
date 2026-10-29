@@ -5,6 +5,9 @@
  * validation type guards, ledger structures, and statutory tax modeling interfaces.
  * Adheres strictly to nominal branding patterns (Rule 10, Rule 12) and const enums (Rule 11).
  */
+import {
+  type BenefitRules,
+} from "#engine/config/benefitRules";
 
 /**
  * Unique symbol discriminators enforcing nominal subtyping hierarchies at compile time.
@@ -1855,6 +1858,8 @@ export interface SpousalGrossToNetSet {
  * Defines the initial state of the household prior to any pregnancy or timeline milestone events.
  */
 export interface PreexistingConditions {
+  /** Validated benefit rules; omitted uses the source-linked statutory defaults. */
+  readonly benefitRules?: BenefitRules;
   /** 4-digit Gregorian calendar year for simulation start (e.g. 2025). */
   readonly startCalendarYear: FullCalendarYear;
   /** 1-based Gregorian calendar month for simulation start (1..12). */
@@ -1952,7 +1957,7 @@ export interface PregnancyAction {
   readonly motherPostBirthPartTimeClass5Net: NetSalary;
   /** Mother's part-time monthly net take-home salary in Tax Class III in EUR. */
   readonly motherPostBirthPartTimeClass3Net: NetSalary;
-  /** Count of partner months taken by father under § 4 BEEG (e.g. 2 partner months). */
+  /** Ordinary father's Plus payment months (legacy default four); excludes partnership-bonus months. */
   readonly fatherPartnerMonthsCount: MonthDuration;
 }
 

@@ -1,11 +1,11 @@
 ---
 name: Engine correctness - payroll foundation
-status: pending
+status: in_progress
 created: 2026-10-29
 todos:
   - id: annual-rules
     content: "Fix 5 - version tax and contribution rules by year"
-    status: pending
+    status: in_progress
   - id: payroll-calculation
     content: "Fix 6 - replace payroll approximations with verified calculations"
     status: pending

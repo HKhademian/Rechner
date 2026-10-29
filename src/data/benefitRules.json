@@ -98,5 +98,10 @@
     "value": 2,
     "label": "Additional partner Basis budget (months)",
     "source": "https://www.gesetze-im-internet.de/beeg/__4.html"
+  },
+  "minimumParentClaimMonths": {
+    "value": 2,
+    "label": "Minimum parent allowance claim (life-months)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4.html"
   }
 }

@@ -72,9 +72,13 @@ Even when the couple reverts back to Tax Class III (Husband) / V (Wife) immediat
 $$\text{Net}_{\text{Pre-Birth, Scenario C}} = €2.603{,}00 \implies \Delta_{\text{Net}} = €2.603 - €1.328 = €1.490$$
 $$0{,}65 \cdot €1.490 = €968{,}50 \implies \mathbf{€900{,}00 / \text{month (Capped Maximum)}}$$
 
-### 3.5 Partnerschaftsbonus & Partnermonate (§ 4b BEEG)
-- **Husband Partnermonate**: 4 concurrent months of minimum ElterngeldPlus (€150 / month) while continuing standard employment (32 hours/week).
-- **Partnerschaftsbonus**: When both parents concurrently work between **24 and 32 hours per week**, each parent receives **4 additional consecutive bonus months** of ElterngeldPlus (Months 26–29 for Child 1; Months 53–56 for Child 2).
+### 3.5 Partnerschaftsbonus & Partnermonate (§ 4, § 4b BEEG)
+
+`fatherPartnerMonthsCount` represents ordinary Plus payment months, preserving the existing saved-state convention. A zero count disables ordinary father payments. Counts are validated against the configured minimum claim duration and additional partner Basis budget converted to Plus units; active hours must satisfy the configured allowance limit. Partnership-bonus allocation is separate and requires both parents' hours to meet its configured corridor.
+
+The engine currently pays the configured Plus minimum in these father branches. Own-parent history-based amounts and complete reallocation budget accounting remain work in the assessment repair plan; the minimum must not be described as a universally correct father entitlement.
+
+Sources: [BEEG section 4](https://www.gesetze-im-internet.de/beeg/__4.html), [section 1](https://www.gesetze-im-internet.de/beeg/__1.html), and [section 4b](https://www.gesetze-im-internet.de/beeg/__4b.html). All numerical rules live in the source-linked benefit configuration.
 
 ### 3.6 Sibling Bonus (*Geschwisterbonus* - § 2a BEEG)
 

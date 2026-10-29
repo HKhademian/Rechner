@@ -90,6 +90,14 @@ import {
   synthesizeStrategyBatches, 
 } from "#engine/simulator/strategySynthesizer";
 
+import {
+  DEFAULT_BENEFIT_RULES,
+} from "#engine/config/benefitRules";
+import {
+  isOrdinaryPartnerPaymentMonth,
+  validatePartnerMonths,
+} from "#engine/benefits/partnerAllocation";
+
 /**
  * Input Parameter Specification for Legacy Timeline Simulation.
  */
@@ -221,6 +229,11 @@ export function runScenarioBatches(
   const startMonth = preexisting.startCalendarMonth;
   const duration = preexisting.simulationDurationMonths;
   const kgRate = preexisting.kindergeldPerChild;
+  const benefitRules = preexisting.benefitRules ?? DEFAULT_BENEFIT_RULES;
+  for (const pregnancy of pregnancies) {
+    validatePartnerMonths(pregnancy.fatherPartnerMonthsCount, benefitRules);
+  }
+  const minimumPlus = toEuroAmount(benefitRules.basisMinimum.value * benefitRules.plusFraction.value);
 
   // PASS 1: Month-by-month state reduction across action batches
   interface RawMonth {
@@ -531,7 +544,7 @@ export function runScenarioBatches(
         const egStart = b + 2;
         const egEnd = egStart + 11;
         const egBonusStart = egEnd + 1;
-        const egBonusEnd = egBonusStart + 3;
+        const egBonusEnd = egBonusStart + benefitRules.partnershipMaximumMonths.value - 1;
 
         // Mutterschutz Phase
         if (mutterschutzMonths.includes(m)) {
@@ -563,11 +576,11 @@ export function runScenarioBatches(
             const prevB = prevPreg.calculatedDeliverySimulationMonth;
             const prevEgStart = prevB + 2;
             const prevEgEnd = prevEgStart + 11;
-            const prevEgBonusEnd = prevEgEnd + 4;
+            const prevEgBonusEnd = prevEgEnd + benefitRules.partnershipMaximumMonths.value;
 
             if (m >= prevEgStart && m <= prevEgBonusEnd) {
               const fatherHours = activeHusbandHours;
-              if (isElterngeldHoursEligible(fatherHours)) {
+              if (isElterngeldHoursEligible(fatherHours, benefitRules)) {
                 const prevPtHours = prevPreg.motherPostBirthPartTimeHours ?? 24;
                 const prevPtW5 =
                   prevPreg.motherPostBirthPartTimeClass5Net || curW5PT;
@@ -586,6 +599,7 @@ export function runScenarioBatches(
                   ),
                   toNetSalary(dynamicW5PT),
                   prevPtHours,
+                  benefitRules,
                 );
                 husbandElterngeld = egEntitlement.elterngeldPlus;
               }
@@ -633,16 +647,16 @@ export function runScenarioBatches(
           }
           wifeSalary = toEuroAmount(dynamicW5PT);
 
-          const isMotherEgEligible = isElterngeldHoursEligible(motherHours);
+          const isMotherEgEligible = isElterngeldHoursEligible(motherHours, benefitRules);
           const isBonusWindow = m >= egBonusStart && m <= egBonusEnd;
           const qualifiesPartnerschaftsbonus =
             isBonusWindow &&
-            isPartnerschaftsbonusEligible(motherHours, fatherHours);
+            isPartnerschaftsbonusEligible(motherHours, fatherHours, benefitRules);
 
           if (isBonusWindow) {
             if (qualifiesPartnerschaftsbonus) {
               isPartnerschaftsbonus = true;
-              husbandElterngeld = toEuroAmount(150);
+              husbandElterngeld = minimumPlus;
               phaseLabel = `Partnerschaftsbonus ${preg.childIndex} (Both 24-32h)`;
 
               // Mother's benefit calculation
@@ -655,6 +669,7 @@ export function runScenarioBatches(
                   ),
                   toNetSalary(dynamicW5PT),
                   motherHours,
+                  benefitRules,
                 );
                 wifeElterngeld = egEntitlement.elterngeldPlus;
               }
@@ -676,6 +691,7 @@ export function runScenarioBatches(
                   blendedNet,
                   toNetSalary(dynamicW5PT),
                   motherHours,
+                  benefitRules,
                 );
                 const prevBirth =
                   pregnancies[0].calculatedDeliverySimulationMonth;
@@ -683,6 +699,7 @@ export function runScenarioBatches(
                   egEntitlement.elterngeldPlus,
                   prevBirth,
                   sMonth,
+                  benefitRules,
                 );
                 hasSiblingBonus = sibling.isEligible;
                 wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
@@ -714,6 +731,7 @@ export function runScenarioBatches(
                   ),
                   toNetSalary(dynamicW5PT),
                   motherHours,
+                  benefitRules,
                 );
                 wifeElterngeld = egEntitlement.elterngeldPlus;
                 phaseLabel = `Child ${preg.childIndex} EGPlus (Mother)`;
@@ -737,6 +755,7 @@ export function runScenarioBatches(
                   blendedNet,
                   toNetSalary(dynamicW5PT),
                   motherHours,
+                  benefitRules,
                 );
 
                 // Sibling bonus eligibility vs Child 1
@@ -746,6 +765,7 @@ export function runScenarioBatches(
                   egEntitlement.elterngeldPlus,
                   prevBirth,
                   sMonth,
+                  benefitRules,
                 );
                 hasSiblingBonus = sibling.isEligible;
                 wifeElterngeld = sibling.totalElterngeldPlusWithBonus;
@@ -758,8 +778,8 @@ export function runScenarioBatches(
             }
 
             // Partner Months (Father)
-            if (m >= egStart && m <= egStart + 3) {
-              husbandElterngeld = toEuroAmount(150);
+            if (isOrdinaryPartnerPaymentMonth(sMonth, toSimulationMonth(egStart), preg.fatherPartnerMonthsCount, fatherHours, benefitRules)) {
+              husbandElterngeld = minimumPlus;
             }
           }
         }
@@ -1744,7 +1764,7 @@ export function runScenarioBatches(
         const bI = pregI.calculatedDeliverySimulationMonth;
         const egStartI = bI + 2;
         const egEndI = egStartI + 11;
-        const egBonusEndI = egEndI + 4;
+        const egBonusEndI = egEndI + benefitRules.partnershipMaximumMonths.value;
         if (m === preM && preM >= egStartI && preM <= egBonusEndI) {
           startingActions.push({
             actionId: toActionId(
