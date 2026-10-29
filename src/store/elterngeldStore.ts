@@ -1,4 +1,7 @@
 import {
+  createTaxRules,
+} from "#engine/tax/taxRules";
+import {
   signal,
   computed,
   effect,
@@ -432,6 +435,7 @@ export function syncGrossToNet() {
       toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
       toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
       0,
+      createTaxRules(startCalendarYear.value),
     );
     husbandClass3Net.value = spousal.husbandClass3Net;
     husbandClass5Net.value = spousal.husbandClass5Net;
@@ -580,6 +584,7 @@ export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
     toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
     toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
     0,
+    createTaxRules(startCalendarYear.value),
   );
 });
 

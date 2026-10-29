@@ -85,7 +85,7 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
 
     it("applies progressive formula monotonically as income increases", () => {
       let prevTax = 0;
-      for (let zve = 12000; zve <= 300000; zve += 10000) {
+      for (let zve = 13000; zve <= 300000; zve += 10000) {
         const tax = computeAnnualIncomeTax(zve);
         assert.ok(
           tax > prevTax,
@@ -97,8 +97,8 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
   });
 
   describe("Social Insurance Deductions & Beitragsbemessungsgrenzen (BBG)", () => {
-    it("caps health & care insurance contributions at €5.175/mo ceiling", () => {
-      const atCap = computeMonthlySocialSecurity(toGrossSalary(5175), 0);
+    it("caps health & care insurance contributions at €5.812,50/mo ceiling", () => {
+      const atCap = computeMonthlySocialSecurity(toGrossSalary(5812.5), 0);
       const aboveCap1 = computeMonthlySocialSecurity(toGrossSalary(7500), 0);
       const aboveCap2 = computeMonthlySocialSecurity(toGrossSalary(12000), 0);
 
@@ -107,8 +107,8 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
       assert.equal(atCap.careInsurance, aboveCap1.careInsurance);
     });
 
-    it("caps pension & unemployment insurance contributions at €7.550/mo ceiling", () => {
-      const atCap = computeMonthlySocialSecurity(toGrossSalary(7550), 0);
+    it("caps pension & unemployment insurance contributions at €8.450/mo ceiling", () => {
+      const atCap = computeMonthlySocialSecurity(toGrossSalary(8450), 0);
       const aboveCap = computeMonthlySocialSecurity(toGrossSalary(15000), 0);
 
       assert.equal(atCap.pensionInsurance, aboveCap.pensionInsurance);
@@ -117,19 +117,19 @@ describe("German Gross-to-Net Engine & Statutory Tax Benchmark Suite", () => {
 
     it("applies statutory care insurance child discounts (§ 55 Abs. 3 SGB XI)", () => {
       const gross = toGrossSalary(4000);
-      const c0 = computeMonthlySocialSecurity(gross, 0); // 2.80%
-      const c1 = computeMonthlySocialSecurity(gross, 1); // 2.20%
-      const c2 = computeMonthlySocialSecurity(gross, 2); // 1.95%
-      const c3 = computeMonthlySocialSecurity(gross, 3); // 1.70%
-      const c4 = computeMonthlySocialSecurity(gross, 4); // 1.45%
-      const c5 = computeMonthlySocialSecurity(gross, 5); // 1.20% (max discount)
+      const c0 = computeMonthlySocialSecurity(gross, 0); // 2.40%
+      const c1 = computeMonthlySocialSecurity(gross, 1); // 1.80%
+      const c2 = computeMonthlySocialSecurity(gross, 2); // 1.55%
+      const c3 = computeMonthlySocialSecurity(gross, 3); // 1.30%
+      const c4 = computeMonthlySocialSecurity(gross, 4); // 1.05%
+      const c5 = computeMonthlySocialSecurity(gross, 5); // 0.80% (max discount)
 
-      assert.equal(c0.careInsuranceRate, 0.028);
-      assert.equal(c1.careInsuranceRate, 0.022);
-      assert.equal(c2.careInsuranceRate, 0.0195);
-      assert.equal(c3.careInsuranceRate, 0.017);
-      assert.equal(c4.careInsuranceRate, 0.0145);
-      assert.equal(c5.careInsuranceRate, 0.012);
+      assert.equal(c0.careInsuranceRate, 0.024);
+      assert.equal(c1.careInsuranceRate, 0.018);
+      assert.equal(c2.careInsuranceRate, 0.0155);
+      assert.equal(c3.careInsuranceRate, 0.013);
+      assert.equal(c4.careInsuranceRate, 0.0105);
+      assert.equal(c5.careInsuranceRate, 0.008);
 
       assert.ok(c0.careInsurance > c1.careInsurance);
       assert.ok(c1.careInsurance > c2.careInsurance);

@@ -19,7 +19,7 @@ describe("Granular Wage Tax Unit Tests (300 Individual Assertions)", () => {
     it(`computes monotonic annual income tax for ZvE ${zve.toLocaleString("de-DE")} €`, () => {
       const tax = computeAnnualIncomeTax(zve);
       assert.ok(tax >= 0);
-      if (zve <= 11784) {
+      if (zve <= 12348) {
         assert.equal(tax, 0);
       }
       else {
@@ -49,10 +49,10 @@ describe("Granular Wage Tax Unit Tests (300 Individual Assertions)", () => {
       const total = sec.totalSocialSecurity;
       assert.ok(total > 0);
       assert.ok(total < gross);
-      // Health contribution never exceeds cap (€5.175 * 8.15% = €421.76 -> €422)
-      assert.ok(sec.healthInsurance <= 425);
-      // Pension contribution never exceeds cap (€7.550 * 9.30% = €702.15 -> €703)
-      assert.ok(sec.pensionInsurance <= 705);
+      // 2026 official cap 5812.50 and average-supplement employee rate 8.75%.
+      assert.ok(sec.healthInsurance <= 508.59);
+      // 2026 official pension cap 8450 and employee share 9.30%.
+      assert.ok(sec.pensionInsurance <= 785.85);
     });
   }
 });

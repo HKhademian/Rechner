@@ -25,7 +25,8 @@ import {
   toPregnancyId,
 } from "#engine/types";
 import {
-  deriveSpousalNetSalaries, 
+  deriveSpousalNetSalaries,
+  computeMonthlyNetSalary,
 } from "#engine/tax/wageTax";
 import {
   runScenarioBatches, 
@@ -49,9 +50,10 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
 
       assert.equal(spousal24.wifeGrossFullTime, 3000);
       assert.equal(spousal24.wifeGrossPartTime, 1800); // 3000 * (24 / 40) = 1800
-      assert.equal(spousal24.wifeClass5FullTimeNet, 1751);
-      assert.equal(spousal24.wifeClass3FullTimeNet, 2295);
-      assert.equal(spousal24.wifeClass5PartTimeNet, 1182);
+      // This verifies the full-time/part-time adapter, not a second payroll oracle.
+      assert.equal(spousal24.wifeClass5FullTimeNet, computeMonthlyNetSalary(ftGross, TaxClass.V));
+      assert.equal(spousal24.wifeClass3FullTimeNet, computeMonthlyNetSalary(ftGross, TaxClass.III));
+      assert.equal(spousal24.wifeClass5PartTimeNet, computeMonthlyNetSalary(toGrossSalary(1800), TaxClass.V));
       assert.equal(spousal24.wifePartTimeWeeklyHours, 24);
       assert.equal(spousal24.husbandWeeklyHours, 32);
     });

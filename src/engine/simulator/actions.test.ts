@@ -1298,8 +1298,14 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(resC.months.length, 72);
 
       // Verify exact neutral parity under joint assessment (§ 26b EStG)
-      assert.equal(resA.summary.grandTotal, 354882);
-      assert.equal(resC.summary.grandTotal, 354882);
+      // Independent cash-flow sum from the supplied net inputs and bonus schedule.
+      // The existing assumed tax refund is removed by the later reconciliation fix.
+      const monthly = spousal.husbandClass3Net + spousal.wifeClass5FullTimeNet;
+      // The legacy enable13thSalary flag pays the husband only; wife bonuses require an explicit schedule.
+      const bonus = Math.round(spousal.husbandClass3Net * 0.4) + Math.round(spousal.husbandClass3Net * 0.6);
+      const expectedTotal = toEuroAmount(monthly * 72 + bonus * 6 + 850 * 6 - 1500 - 600);
+      assert.equal(resA.summary.grandTotal, expectedTotal);
+      assert.equal(resC.summary.grandTotal, expectedTotal);
       assert.equal(resC.summary.grandTotal - resA.summary.grandTotal, 0);
     });
   });

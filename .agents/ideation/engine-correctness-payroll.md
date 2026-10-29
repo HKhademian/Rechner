@@ -5,10 +5,10 @@ created: 2026-10-29
 todos:
   - id: annual-rules
     content: "Fix 5 - version tax and contribution rules by year"
-    status: in_progress
+    status: completed
   - id: payroll-calculation
     content: "Fix 6 - replace payroll approximations with verified calculations"
-    status: pending
+    status: in_progress
   - id: working-periods
     content: "Fix 7 - apply active working months and bonus schedules"
     status: pending
@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: tariff, solidarity and contribution calculations consume source-linked annual profiles; payroll results identify source/projection year. CLI/store payroll adapters forward their requested year. Annual allowance/rounding, cent-precise contributions, custom rates and projection regressions pass; full quality check/build pass. Withholding approximations and actual annual assessment remain assigned to subsequent fixes.
+
 - 2026-10-29: added source-linked, validated annual parameter profiles for 2025/2026 and explicit future-projection metadata; focused profile tests and the full quality check pass. Calculator wiring and payroll formulas are still pending.
 
 ## Mission and done
@@ -36,14 +38,6 @@ Establish reliable payroll inputs for the later assessment and annual reconcilia
 - Orchestrator: [master plan](./engine-correctness-master.md), wave 2; shared constraints apply.
 - Prerequisite: [benefits](./engine-correctness-benefits.md). Next: [assessment and reconciliation](./engine-correctness-assessment.md).
 - Read `src/engine/tax/wageTax.ts`, `src/engine/types.ts`, `src/store/calculatorStore.ts`, `src/store/taxConfigStore.ts`, `src/store/elterngeldStore.ts`, `src/cli/runner.ts`, and `src/data/defaultTaxConfig.json`.
-
-## Fix 5 - annual-rules
-
-**Depends on:** wave 1 complete.
-**Files:** create a focused year/rules module under `src/engine/tax/` with tests; modify `src/engine/types.ts`, `src/engine/tax/wageTax.ts`, `src/data/defaultTaxConfig.json`, and callers that must supply the calendar year.
-**Actions:** pass validated `FullCalendarYear`/rules explicitly instead of applying one tariff to every year. Record official sources, effective dates, tariff coefficients, solidarity thresholds, contribution caps/rates, and child allowances for supported historical/current years. Keep user sandbox overrides separate from verified statutory profiles. Decide and document how unknown future years are projected: never silently call a frozen prior-year profile verified future law. Preserve that distinction in result metadata and eventual outputs.
-**Acceptance:** verified 2026 constants include basic allowance 12348, monthly health cap 5812.50, and pension cap 8450. Income tax at taxable income 12000 is zero under 2026 rules. A year-boundary test selects the correct profile; explicit future assumptions remain usable in multi-year forecasts and identifiable in the result. Prior-year assessment lookbacks are covered or explicitly unavailable.
-**Verify:** new rules tests plus wage-tax and duration tests, then the shared commit gate.
 
 ## Fix 6 - payroll-calculation
 

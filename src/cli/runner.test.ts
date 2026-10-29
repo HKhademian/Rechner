@@ -1,4 +1,13 @@
 import {
+  computeGrossToNetBreakdown,
+  deriveSpousalNetSalaries,
+} from "#engine/tax/wageTax";
+import {
+  TaxClass,
+  toGrossSalary,
+  FieldColumnKey,
+} from "#engine/types";
+import {
   describe,
   it,
 } from "node:test";
@@ -13,9 +22,6 @@ import {
   parseMonthArg,
   parseFieldArg,
 } from "#cli/runner";
-import {
-  FieldColumnKey, 
-} from "#engine/types";
 
 const rawExecFileAsync = promisify(execFile);
 const execFileAsync = (cmd: string, args: readonly string[]) =>
@@ -348,12 +354,15 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       );
       assert.ok(stdout.includes("54.000 €"));
       assert.ok(stdout.includes("36.000 €"));
-      assert.ok(stdout.includes("38.208 €"));
-      assert.ok(stdout.includes("28.776 €"));
-      assert.ok(stdout.includes("21.012 €"));
+      // CLI adapter must display the engine result; statutory fixtures live in tax tests.
+      const expected = deriveSpousalNetSalaries(toGrossSalary(4500), toGrossSalary(3000));
+      const formatAnnual = (amount: number) => `${(amount * 12).toLocaleString("de-DE")} €`;
+      assert.ok(stdout.includes(formatAnnual(expected.husbandClass3Net)));
+      assert.ok(stdout.includes(formatAnnual(expected.husbandClass5Net)));
+      assert.ok(stdout.includes(formatAnnual(expected.wifeClass5FullTimeNet)));
       assert.ok(stdout.includes("Elterngeld Booster!"));
       assert.ok(stdout.includes("Annual Temporary Tax Gap:"));
-      assert.ok(stdout.includes("-2.904 €"));
+      assert.ok(stdout.includes(formatAnnual(-((expected.husbandClass3Net - expected.husbandClass5Net) - (expected.wifeClass3FullTimeNet - expected.wifeClass5FullTimeNet)))));
     });
 
     it('executes "gross-to-net -g 54000 -c III -y" with annual deductions breakdown', async () => {
@@ -371,11 +380,13 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Annual Gross Salary:"));
       assert.ok(stdout.includes("54.000 €"));
       assert.ok(stdout.includes("Total Social Security:"));
-      assert.ok(stdout.includes("11.652 €"));
+      const expected = computeGrossToNetBreakdown(toGrossSalary(4500), TaxClass.III);
+      const formatAnnual = (amount: number) => `${(amount * 12).toLocaleString("de-DE")} €`;
+      assert.ok(stdout.includes(formatAnnual(expected.totalSocialSecurity)));
       assert.ok(stdout.includes("Total Tax Withholding:"));
-      assert.ok(stdout.includes("4.140 €"));
+      assert.ok(stdout.includes(formatAnnual(expected.totalTaxWithholding)));
       assert.ok(stdout.includes("Annual Net Take-Home Pay:"));
-      assert.ok(stdout.includes("38.208 €"));
+      assert.ok(stdout.includes(formatAnnual(expected.monthlyNetTakeHome)));
     });
 
     it('outputs structured JSON with period property when "-f json --yearly" is invoked', async () => {
@@ -396,8 +407,9 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.equal(parsed.period, "YEARLY");
       assert.equal(parsed.husbandGross, 4500);
       assert.equal(parsed.wifeGrossFullTime, 3000);
-      assert.equal(parsed.husbandClass3Net, 3184);
-      assert.equal(parsed.wifeClass3FullTimeNet, 2295);
+      const expected = deriveSpousalNetSalaries(toGrossSalary(4500), toGrossSalary(3000));
+      assert.equal(parsed.husbandClass3Net, expected.husbandClass3Net);
+      assert.equal(parsed.wifeClass3FullTimeNet, expected.wifeClass3FullTimeNet);
     });
 
     it('explains tax return month with statutory § 31 Günstigerprüfung when "explain M27 field special" is invoked', async () => {

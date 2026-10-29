@@ -19,15 +19,15 @@ import {
 
 describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
   describe("computeAnnualIncomeTax - § 32a EStG Progressive Tariff", () => {
-    it("Zone 1 (Nullzone): Tax is exactly 0 for taxable income <= Grundfreibetrag (11.784 €)", () => {
-      for (let zve = 0; zve <= 11784; zve += 200) {
+    it("Zone 1 (Nullzone): Tax is exactly 0 for taxable income <= Grundfreibetrag (12.348 €)", () => {
+      for (let zve = 0; zve <= 12348; zve += 200) {
         const tax = computeAnnualIncomeTax(zve);
         assert.equal(tax, 0, `Failed for ZvE: ${zve}`);
       }
     });
 
-    it("Zone 2 (Progressionszone 1): Applies quadratic formula between 11.785 € and 17.005 €", () => {
-      for (let zve = 11800; zve <= 17000; zve += 200) {
+    it("Zone 2 (Progressionszone 1): Applies quadratic formula between 12.349 € and 17.799 €", () => {
+      for (let zve = 12400; zve <= 17700; zve += 200) {
         const tax = computeAnnualIncomeTax(zve);
         assert.ok(tax > 0, `Tax must be positive at ZvE: ${zve}`);
         assert.ok(
@@ -37,7 +37,7 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
       }
     });
 
-    it("Zone 3 (Progressionszone 2): Progresses smoothly between 17.006 € and 66.760 €", () => {
+    it("Zone 3 (Progressionszone 2): Progresses smoothly between 17.800 € and 69.878 €", () => {
       let previousTax = 0;
       for (let zve = 18000; zve <= 66000; zve += 2000) {
         const tax = computeAnnualIncomeTax(zve);
@@ -106,15 +106,15 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
       }
     });
 
-    it("caps health and care insurance at health BBG (€5.175/mo)", () => {
-      const sec1 = computeMonthlySocialSecurity(toGrossSalary(5175), 0);
+    it("caps health and care insurance at health BBG (€5.812,50/mo)", () => {
+      const sec1 = computeMonthlySocialSecurity(toGrossSalary(5812.5), 0);
       const sec2 = computeMonthlySocialSecurity(toGrossSalary(8000), 0);
       assert.equal(sec1.healthInsurance, sec2.healthInsurance);
       assert.equal(sec1.careInsurance, sec2.careInsurance);
     });
 
-    it("caps pension and unemployment insurance at general BBG (€7.550/mo)", () => {
-      const sec1 = computeMonthlySocialSecurity(toGrossSalary(7550), 0);
+    it("caps pension and unemployment insurance at general BBG (€8.450/mo)", () => {
+      const sec1 = computeMonthlySocialSecurity(toGrossSalary(8450), 0);
       const sec2 = computeMonthlySocialSecurity(toGrossSalary(12000), 0);
       assert.equal(sec1.pensionInsurance, sec2.pensionInsurance);
       assert.equal(sec1.unemploymentInsurance, sec2.unemploymentInsurance);

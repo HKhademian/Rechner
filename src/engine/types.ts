@@ -9,6 +9,10 @@ import {
   type BenefitRules,
 } from "#engine/config/benefitRules";
 
+import {
+  type TaxRules,
+} from "#engine/tax/taxRules";
+
 /**
  * Unique symbol discriminators enforcing nominal subtyping hierarchies at compile time.
  * Prevents structural unit confusion (e.g. GrossSalary vs NetSalary vs EuroAmount).
@@ -1709,6 +1713,8 @@ export type ScenarioTimelineResult = SimulationResult;
  * and calculates the clean synthetic net income baseline for Elterngeld under § 2c BEEG.
  */
 export interface GrossToNetBreakdown {
+  /** Rule year, sources, projection status, and explicitly marked overrides. */
+  readonly taxRules: TaxRules;
   /** Monthly gross employment earnings in EUR. */
   readonly monthlyGross: GrossSalary;
   /** Projected annual gross employment earnings in EUR (monthlyGross * 12). */

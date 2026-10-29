@@ -15,6 +15,9 @@ process.env.CHECKPOINT_DISABLE = "1";
  */
 
 import {
+  createTaxRules,
+} from "#engine/tax/taxRules";
+import {
   fileURLToPath, 
 } from "node:url";
 import {
@@ -1135,6 +1138,7 @@ function buildSimulation(
     toWorkingHours(opts.wifeHours || def.wifePostBirthHours),
     toWorkingHours(def.wifeInitialHours),
     opts.childrenCount,
+    createTaxRules(toFullCalendarYear(startYear)),
   );
 
   // Batch 0: Preexisting conditions
@@ -1461,6 +1465,8 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       taxClassVal,
       opts.childrenCount,
       opts.bonus ? toEuroAmount(opts.bonus) : undefined,
+      undefined,
+      createTaxRules(toFullCalendarYear(opts.startYear ?? baseState.startCalendarYear)),
     );
 
     if (opts.format === CliOutputFormat.Json) {
@@ -1494,6 +1500,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       toWorkingHours(wHours),
       toWorkingHours(def.wifeInitialHours),
       opts.childrenCount,
+      createTaxRules(toFullCalendarYear(opts.startYear ?? def.startCalendarYear)),
     );
 
     if (opts.format === CliOutputFormat.Json) {

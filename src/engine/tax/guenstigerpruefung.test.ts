@@ -245,7 +245,10 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       // Month 27 (March 2028) -> Reconciles Tax Year 2027 (Child 1 born in May 2027 -> 8 months prorated Günstigerprüfung bonus of +354 €)
       const m27 = result.months[26];
       assert.equal(m27.month, 27);
-      assert.equal(m27.taxRefund, 1204); // 850 € base + 354 € prorated Günstigerprüfung bonus
+      // Independently checked §32a 2026 arithmetic on the current model's
+      // annual ZvE 68052 + 35928: tax saving for 6360 allowance is 2244;
+      // minus 2072 Kindergeld = 172. Legacy 850 base remains until Fix 10.
+      assert.equal(m27.taxRefund, 1022);
 
       const taxEventM27 = m27.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,
@@ -259,7 +262,9 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       // Month 39 (March 2029) -> Reconciles Tax Year 2028 (Full 12 months with Child 1 -> Full Günstigerprüfung bonus!)
       const m39 = result.months[38];
       assert.equal(m39.month, 39);
-      assert.equal(m39.taxRefund, 1186); // 850 € base + 336 € Günstigerprüfung bonus on part-time income
+      // ZvE 68052 + 27840: 9540 legacy allowance saves 3204;
+      // minus 3108 Kindergeld = 96. Child allowance and actual refund are fixed later.
+      assert.equal(m39.taxRefund, 946);
 
       const taxEventM39 = m39.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,

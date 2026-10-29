@@ -1,4 +1,7 @@
 import {
+  createTaxRules,
+} from "#engine/tax/taxRules";
+import {
   type SimulationMonth,
   type CalendarYear,
   type CalendarMonth,
@@ -471,6 +474,7 @@ export function runScenarioBatches(
             0,
             undefined,
             activeTaxFactor,
+            createTaxRules(calendarYearNum),
           )
           : preexisting.husbandInitialClass4Net || Math.round(curH3Net * 0.88);
     }
@@ -493,6 +497,7 @@ export function runScenarioBatches(
             0,
             undefined,
             activeTaxFactor,
+            createTaxRules(calendarYearNum),
           )
           : preexisting.wifeInitialClass4FullTimeNet ||
             Math.round(curW5FT * 1.15);
@@ -1561,6 +1566,8 @@ export function runScenarioBatches(
         hTaxClass,
         preexisting.existingChildrenCount,
         toEuroAmount(grossBonus),
+        undefined,
+        createTaxRules(rm.calendarYearNum),
       );
       const netBonus = breakdown.bonusTaxDeduction
         ? Math.max(
