@@ -240,7 +240,8 @@ export function computeBonusSocialInsurance(
   children: number,
   rules: TaxRules,
   options: PayrollOptions,
-): SocialInsuranceDeductions {
+): SocialInsuranceDeductions & { readonly assessedHealth: GrossSalary;
+  readonly assessedPension: GrossSalary } {
   const months = options.contributionMonthsYearToDate ?? 12;
   if (!Number.isInteger(months) || months < 1 || months > 12) {
     throw new TypeError("Bonus contribution months must be a whole count from 1 to 12.");
@@ -252,13 +253,19 @@ export function computeBonusSocialInsurance(
   const p = rules.parameters;
   const rates = computeMonthlySocialSecurity(monthlyGross, children, rules, options);
   const base = (options.regularGrossYearToDate ?? monthlyGross * months) + priorBonus;
-  const assessedHealth = Math.min(p.healthCapMonthly.value * months, base + bonus) - Math.min(p.healthCapMonthly.value * months, base);
-  const assessedPension = Math.min(p.pensionCapMonthly.value * months, base + bonus) - Math.min(p.pensionCapMonthly.value * months, base);
+  const healthBase = options.regularHealthAssessmentYearToDate === undefined ? base
+    : options.regularHealthAssessmentYearToDate + (options.bonusHealthAssessmentYearToDate ?? 0);
+  const pensionBase = options.regularPensionAssessmentYearToDate === undefined ? base
+    : options.regularPensionAssessmentYearToDate + (options.bonusPensionAssessmentYearToDate ?? 0);
+  const assessedHealth = Math.min(p.healthCapMonthly.value * months, healthBase + bonus) - Math.min(p.healthCapMonthly.value * months, healthBase);
+  const assessedPension = Math.min(p.pensionCapMonthly.value * months, pensionBase + bonus) - Math.min(p.pensionCapMonthly.value * months, pensionBase);
   const healthInsurance = toEuroAmount(assessedHealth * rates.healthInsuranceRate);
   const careInsurance = toEuroAmount(assessedHealth * rates.careInsuranceRate);
   const pensionInsurance = toEuroAmount(assessedPension * rates.pensionInsuranceRate);
   const unemploymentInsurance = toEuroAmount(assessedPension * rates.unemploymentInsuranceRate);
   return { ...rates,
+    assessedHealth: toGrossSalary(assessedHealth),
+    assessedPension: toGrossSalary(assessedPension),
     healthInsurance,
     careInsurance,
     pensionInsurance,

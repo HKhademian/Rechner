@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: bonus contribution ceilings now accept actual assessed regular earnings and prior assessed bonuses, preserving monthly caps after pay changes. A changing-pay regression checks both health and pension room across successive bonuses; full quality check passes. This foundation is committed separately from simulator bonus wiring.
+
 - 2026-10-29: gross-mode monthly simulator payroll now follows actual class/year, targeted raises and hours relative to each original contract. All six classes use PAP; post-birth salary uses the active class. Manual mode exposes missing withholding data and no longer fabricates class IV via percentage multipliers. Compact monthly audit records avoid repeating the statutory parameter catalog. Two integration tests, full quality check and production build pass. Bonus integration and adapter input-unit cleanup remain in Fix 8.
 
 - 2026-10-29: calculator now uses shared period payroll, removes duplicate tax formulas and obsolete raw configuration, selects published profiles, and accepts personal insurer/age/child/ELStAM/factor inputs. Official-value links are visible. Saved inputs retain compatibility; cached comparison/edit results are recalculated. Four store boundary/reference/migration tests, full quality check, and production build pass. Fix 7 is complete; shared simulator parity remains in progress.

@@ -46,6 +46,10 @@ export interface PayrollOptions {
   readonly priorBonusGrossYearToDate?: EuroAmount;
   readonly regularGrossYearToDate?: GrossSalary;
   readonly expectedRegularAnnualGross?: GrossSalary;
+  readonly regularHealthAssessmentYearToDate?: GrossSalary;
+  readonly regularPensionAssessmentYearToDate?: GrossSalary;
+  readonly bonusHealthAssessmentYearToDate?: GrossSalary;
+  readonly bonusPensionAssessmentYearToDate?: GrossSalary;
 }
 
 /** Validate persisted or form-supplied personal settings, never accepting internal YTD state. */

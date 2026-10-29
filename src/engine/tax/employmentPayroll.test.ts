@@ -9,6 +9,7 @@ import {
   toGrossSalary,
   toMonthDuration,
   toPercentageRate,
+  toEuroAmount,
 } from "#engine/types";
 import {
   DEFAULT_TAX_RULES, 
@@ -19,6 +20,39 @@ import {
 import {
   computeEmploymentPayroll, 
 } from "#engine/tax/employmentPayroll";
+import {
+  computeBonusSocialInsurance, 
+} from "#engine/tax/wageTax";
+
+it("uses assessed earnings rather than uncapped gross after changing monthly pay", () => {
+  const first = computeBonusSocialInsurance(
+    toGrossSalary(1000), 
+    toEuroAmount(5000), 
+    0,
+    DEFAULT_TAX_RULES, 
+    { contributionMonthsYearToDate: toMonthDuration(2),
+      regularGrossYearToDate: toGrossSalary(10000),
+      regularHealthAssessmentYearToDate: toGrossSalary(6812.5),
+      regularPensionAssessmentYearToDate: toGrossSalary(9450) },
+  );
+  assert.equal(first.assessedHealth, 4812.5);
+  assert.equal(first.assessedPension, 5000);
+  const second = computeBonusSocialInsurance(
+    toGrossSalary(1000), 
+    toEuroAmount(10000), 
+    0,
+    DEFAULT_TAX_RULES, 
+    { contributionMonthsYearToDate: toMonthDuration(3),
+      regularGrossYearToDate: toGrossSalary(11000),
+      priorBonusGrossYearToDate: toEuroAmount(5000),
+      regularHealthAssessmentYearToDate: toGrossSalary(7812.5),
+      regularPensionAssessmentYearToDate: toGrossSalary(10450),
+      bonusHealthAssessmentYearToDate: first.assessedHealth,
+      bonusPensionAssessmentYearToDate: first.assessedPension },
+  );
+  assert.equal(second.assessedHealth, 4812.5);
+  assert.equal(second.assessedPension, 9900);
+});
 
 it("withholds only in active months and preserves monthly/yearly equivalent inputs", () => {
   const period = { gross: toGrossSalary(4000),

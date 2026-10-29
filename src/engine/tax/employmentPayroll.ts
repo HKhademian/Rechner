@@ -33,12 +33,22 @@ export function computeEmploymentPayroll(
   const schedule = normalizeEmploymentPeriod(period);
   let regularYtd = toGrossSalary(0);
   let bonusYtd = toEuroAmount(0);
+  let regularHealthYtd = toGrossSalary(0);
+  let regularPensionYtd = toGrossSalary(0);
+  let bonusHealthYtd = toGrossSalary(0);
+  let bonusPensionYtd = toGrossSalary(0);
   const payments = schedule.payments.map((payment) => {
     regularYtd = toGrossSalary(regularYtd + payment.regularGross);
+    regularHealthYtd = toGrossSalary(regularHealthYtd + Math.min(payment.regularGross, rules.parameters.healthCapMonthly.value));
+    regularPensionYtd = toGrossSalary(regularPensionYtd + Math.min(payment.regularGross, rules.parameters.pensionCapMonthly.value));
     const options: PayrollOptions = { ...personal,
       expectedRegularAnnualGross: schedule.regularAnnualGross,
       contributionMonthsYearToDate: payment.contributionMonthsYearToDate,
       regularGrossYearToDate: regularYtd,
+      regularHealthAssessmentYearToDate: regularHealthYtd,
+      regularPensionAssessmentYearToDate: regularPensionYtd,
+      bonusHealthAssessmentYearToDate: bonusHealthYtd,
+      bonusPensionAssessmentYearToDate: bonusPensionYtd,
       priorBonusGrossYearToDate: bonusYtd };
     const payroll = computeGrossToNetBreakdown(
       payment.regularGross, 
@@ -57,6 +67,8 @@ export function computeEmploymentPayroll(
       options,
     );
     bonusYtd = toEuroAmount(bonusYtd + payment.bonusGross);
+    bonusHealthYtd = toGrossSalary(bonusHealthYtd + bonusContributions.assessedHealth);
+    bonusPensionYtd = toGrossSalary(bonusPensionYtd + bonusContributions.assessedPension);
     return { ...payment,
       payroll,
       bonusContributions };
