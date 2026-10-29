@@ -128,5 +128,10 @@
     "value": 14,
     "label": "Older-child benefit exclusion life-month window",
     "source": "https://www.gesetze-im-internet.de/beeg/__2b.html"
+  },
+  "transitionFlatRate": {
+    "value": 0.28,
+    "label": "Transition-zone flat rate used to derive BEEG factor",
+    "source": "https://www.gesetze-im-internet.de/sgb_4/__20.html"
   }
 }

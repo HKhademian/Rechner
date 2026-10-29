@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: annual profiles record PAP publication dates/source URLs separately from payroll effective dates. BEEG must use the snapshot available on January 1 of the year before birth; the installed 2025 PAP is the January 22 revision and cannot silently stand in for the earlier snapshot. Source-linked marginal/transition thresholds and BEEG transition flat-rate input are configured. Full quality check passes. Snapshot availability checks and standardized net application follow.
+
 - 2026-10-29: pure calendar-based assessment history selects twelve eligible months, replaces statutory exclusions with earlier months, reports incomplete history, and labels repeated initial-baseline records as assumed. Frozen records preserve gross/payroll characteristics against later edits. Three boundary/history/provenance tests and full quality check pass. Simulator application remains pending.
 
 - 2026-10-29: tax-class selection counts ordinary earned-income months and resolves equal durations using the most recent class, under BEEG section 2c(3). The six/six regression verifies both chronological directions; full quality check passes. User selected repeating initial salary/class for missing prehistory, visibly labeled as an assumption. Simulator wiring remains pending.

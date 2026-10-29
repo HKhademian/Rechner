@@ -7,6 +7,7 @@ import {
   toFullCalendarYear,
 } from "#engine/types";
 import {
+  type SourceUrl,
   type SourcedParameter,
   toSourceUrl,
 } from "#engine/config/benefitRules";
@@ -37,6 +38,8 @@ function fraction(value: number) {
 }
 
 const constructors = {
+  marginalIncomeLimitMonthly: money,
+  transitionZoneCeilingMonthly: money,
   basicAllowance: money,
   progression1Ceiling: money,
   progression2Ceiling: money,
@@ -83,7 +86,19 @@ export type TaxParameters = {
   readonly [Key in keyof typeof constructors]: SourcedParameter<ReturnType<(typeof constructors)[Key]>>;
 };
 
+export type TaxPublicationDate = Brand<string, "TaxPublicationDate">;
+
+export function toTaxPublicationDate(value: string): TaxPublicationDate {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) ||
+    new Date(value).toISOString().slice(0, 10) !== value) {
+    throw new TypeError("Invalid PAP publication date.");
+  }
+  return value as TaxPublicationDate;
+}
+
 export interface TaxRules {
+  readonly papPublication: { readonly date: TaxPublicationDate;
+    readonly source: SourceUrl };
   readonly calendarYear: FullCalendarYear;
   readonly sourceYear: FullCalendarYear;
   readonly effectiveFrom: string;
@@ -129,6 +144,7 @@ export function createTaxRules(
   });
   const parameters = Object.fromEntries(entries) as TaxParameters;
   if (
+    parameters.marginalIncomeLimitMonthly.value >= parameters.transitionZoneCeilingMonthly.value ||
     parameters.basicAllowance.value >= parameters.progression1Ceiling.value ||
     parameters.progression1Ceiling.value >= parameters.progression2Ceiling.value ||
     parameters.progression2Ceiling.value >= parameters.topRateCeiling.value ||
@@ -143,6 +159,8 @@ export function createTaxRules(
     calendarYear: requested,
     sourceYear: toFullCalendarYear(year),
     effectiveFrom: profile.effectiveFrom,
+    papPublication: Object.freeze({ date: toTaxPublicationDate(profile.papPublication.date),
+      source: toSourceUrl(profile.papPublication.source) }),
     projected: requested !== year,
     parameters: Object.freeze(parameters),
   });

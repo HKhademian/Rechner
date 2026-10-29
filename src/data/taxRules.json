@@ -201,7 +201,21 @@
         "value": 64,
         "label": "Age-relief minimum completed age at year start",
         "source": "https://www.gesetze-im-internet.de/estg/__24a.html"
+      },
+      "marginalIncomeLimitMonthly": {
+        "value": 556,
+        "label": "Marginal employment monthly limit",
+        "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+      },
+      "transitionZoneCeilingMonthly": {
+        "value": 2000,
+        "label": "Midijob transition-zone monthly ceiling",
+        "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
       }
+    },
+    "papPublication": {
+      "date": "2025-01-22",
+      "source": "https://www.bundesfinanzministerium.de/Content/DE/Downloads/Steuern/Steuerarten/Lohnsteuer/Programmablaufplan/2025-01-22-geaenderte-PAP-2025-bmf-schreiben.pdf?__blob=publicationFile&v=2"
     }
   },
   "2026": {
@@ -406,7 +420,21 @@
         "value": 64,
         "label": "Age-relief minimum completed age at year start",
         "source": "https://www.gesetze-im-internet.de/estg/__24a.html"
+      },
+      "marginalIncomeLimitMonthly": {
+        "value": 603,
+        "label": "Marginal employment monthly limit",
+        "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
+      },
+      "transitionZoneCeilingMonthly": {
+        "value": 2000,
+        "label": "Midijob transition-zone monthly ceiling",
+        "source": "https://www.bmbfsfj.bund.de/resource/blob/243236/a81e922c7e43128d76c4299778d83e89/richtlinien-zum-beeg-data.pdf"
       }
+    },
+    "papPublication": {
+      "date": "2025-11-12",
+      "source": "https://www.bundesfinanzministerium.de/Datenportal/Daten/frei-nutzbare-produkte/Anwendungen/Programmablaufplan-2026/Programmablaufplan-2026.html"
     }
   }
 }
