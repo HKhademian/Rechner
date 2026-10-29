@@ -1,12 +1,15 @@
+import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
-  useState, 
+  useState,
 } from "preact/hooks";
 import {
   salaryPeriod,
   husbandGross,
+  husbandPayrollOptions,
+  wifePayrollOptions,
   wifeGross,
   husbandGrossYearly,
   wifeGrossYearly,
@@ -114,7 +117,7 @@ import {
   validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
 import {
-  BUILTIN_SCENARIO_CATALOG, 
+  BUILTIN_SCENARIO_CATALOG,
 } from "#data/scenarios/scenarioRegistry";
 
 import {
@@ -4773,6 +4776,10 @@ export default function SandboxControls(): JSX.Element {
                 </span>
               </div>
 
+              <h4>Husband payroll details</h4>
+              <PayrollPersonalInputs id="simulator-husband" options={husbandPayrollOptions} showLocation />
+              <h4>Wife payroll details</h4>
+              <PayrollPersonalInputs id="simulator-wife" options={wifePayrollOptions} showLocation />
               {/* Entries Grid: Columns with Auto-Wrap */}
               <div
                 style={{

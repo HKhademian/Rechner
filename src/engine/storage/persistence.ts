@@ -1,3 +1,7 @@
+import {
+  type PayrollOptions,
+  parsePersonalPayrollOptions,
+} from "#engine/tax/payroll";
 /**
  * German Elterngeld & Parental Leave 5-Year Simulator - State Persistence Engine
  *
@@ -63,7 +67,7 @@ import standard3ChildrenData from "../../data/scenarios/standard_3_children.json
 import testScenarioData from "../../data/testScenario.json" with { type: "json" };
 import emptyScenarioData from "../../data/scenarios/empty.json" with { type: "json" };
 import {
-  findBuiltinScenario, 
+  findBuiltinScenario,
 } from "#data/scenarios/scenarioRegistry";
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
@@ -74,6 +78,8 @@ export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
  * Contains all baseline financial parameters, action batch collections, and view preferences.
  */
 export interface ElterngeldPersistedState {
+  readonly husbandPayrollOptions?: PayrollOptions;
+  readonly wifePayrollOptions?: PayrollOptions;
   // Input Modes & Salaries
   /** Salary input format specification (Gross pre-tax vs Net take-home). */
   readonly salaryInputMode: SalaryInputMode;
@@ -632,6 +638,8 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
     : [];
 
   return {
+    husbandPayrollOptions: parsePersonalPayrollOptions(obj.husbandPayrollOptions ?? {}),
+    wifePayrollOptions: parsePersonalPayrollOptions(obj.wifePayrollOptions ?? {}),
     salaryInputMode: salaryInputModeVal,
     salaryPeriod: salaryPeriodVal,
     husbandGross,
@@ -1364,6 +1372,22 @@ export function validateAndSanitizePersistedState(
   return {
     salaryInputMode: salaryInputModeVal,
     salaryPeriod: salaryPeriodVal,
+    husbandPayrollOptions: (() => {
+      try {
+        return parsePersonalPayrollOptions(obj.husbandPayrollOptions ?? {});
+      }
+      catch {
+        return {};
+      }
+    })(),
+    wifePayrollOptions: (() => {
+      try {
+        return parsePersonalPayrollOptions(obj.wifePayrollOptions ?? {});
+      }
+      catch {
+        return {};
+      }
+    })(),
     husbandGross: toGrossSalary(
       num(obj.husbandGross, defaults.husbandGross, 0, 1000000, "husbandGross"),
     ),

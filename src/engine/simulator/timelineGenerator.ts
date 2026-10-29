@@ -522,10 +522,15 @@ export function runScenarioBatches(
     const wGross = raisedGross(preexisting.wifeGross ?? toGrossSalary(0), TargetPerson.Wife);
     const hAtHours = forHours(hGross, activeHusbandHours, preexisting.husbandWeeklyHours);
     const wAtHours = (hours: WorkingHours) => forHours(wGross, hours, preexisting.wifeWeeklyHours);
+    const newborns = livingChildren - preexisting.existingChildrenCount;
     const hOptions = { ...preexisting.husbandPayrollOptions,
+      childrenUnder25: preexisting.husbandPayrollOptions?.childrenUnder25 === undefined ? undefined
+        : toChildrenCount(preexisting.husbandPayrollOptions.childrenUnder25 + newborns),
       ageAtYearStart: preexisting.husbandPayrollOptions?.ageAtYearStart === undefined ? undefined
         : toAgeYears(preexisting.husbandPayrollOptions.ageAtYearStart + calendarYearNum - startYear) };
     const wOptions = { ...preexisting.wifePayrollOptions,
+      childrenUnder25: preexisting.wifePayrollOptions?.childrenUnder25 === undefined ? undefined
+        : toChildrenCount(preexisting.wifePayrollOptions.childrenUnder25 + newborns),
       ageAtYearStart: preexisting.wifePayrollOptions?.ageAtYearStart === undefined ? undefined
         : toAgeYears(preexisting.wifePayrollOptions.ageAtYearStart + calendarYearNum - startYear) };
     const wifePayrollFor = (hours: WorkingHours, taxClass = activeWTaxClass) =>
@@ -1285,7 +1290,12 @@ export function runScenarioBatches(
       const assessments = husband ? priorHAssessments : priorWAssessments;
       const previousAssessment = assessments[rm.calendarYearNum];
       const parameters = base.taxRules.parameters;
-      const options = { ...(husband ? preexisting.husbandPayrollOptions : preexisting.wifePayrollOptions),
+      const personal = husband ? preexisting.husbandPayrollOptions : preexisting.wifePayrollOptions;
+      const options = { ...personal,
+        ageAtYearStart: personal?.ageAtYearStart === undefined ? undefined
+          : toAgeYears(personal.ageAtYearStart + rm.calendarYearNum - startYear),
+        childrenUnder25: personal?.childrenUnder25 === undefined ? undefined
+          : toChildrenCount(personal.childrenUnder25 + base.childrenCount - preexisting.existingChildrenCount),
         contributionMonthsYearToDate: toMonthDuration(Math.max(1, earlier.filter((month) => regularGross(month) > 0).length)),
         regularGrossYearToDate: toGrossSalary(earlier.reduce((sum, month) => sum + regularGross(month), 0)),
         regularHealthAssessmentYearToDate: toGrossSalary(earlier.reduce((sum, month) => sum + Math.min(regularGross(month), parameters.healthCapMonthly.value), 0)),

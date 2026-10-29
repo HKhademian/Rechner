@@ -68,12 +68,18 @@ export function parsePersonalPayrollOptions(value: unknown): PayrollOptions {
       }
       return toPercentageRate(rate);
     },
+    churchTaxRate: (rate: number) => {
+      if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
+        throw new TypeError("Church tax rate must be a fraction between zero and one.");
+      }
+      return toPercentageRate(rate);
+    },
   };
   for (const [key, raw] of Object.entries(value)) {
     if (raw === undefined) {
       continue;
     }
-    if (key === "isParent") {
+    if (key === "isParent" || key === "saxony") {
       if (typeof raw !== "boolean") {
         throw new TypeError("Parental status must be a boolean.");
       }

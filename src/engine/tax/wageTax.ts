@@ -214,10 +214,12 @@ export function computeTaxFactor(
   wifeAnnualGross: number,
   childrenCount: number = 0,
   rules: TaxRules = DEFAULT_TAX_RULES,
+  husbandOptions: PayrollOptions = {},
+  wifeOptions: PayrollOptions = {},
 ): TaxFactor {
   const children = toChildrenCount(childrenCount);
-  const inputsH = payrollInputs(toGrossSalary(husbandAnnualGross / 12), TaxClass.IV, children, rules);
-  const inputsW = payrollInputs(toGrossSalary(wifeAnnualGross / 12), TaxClass.IV, children, rules);
+  const inputsH = payrollInputs(toGrossSalary(husbandAnnualGross / 12), TaxClass.IV, children, rules, husbandOptions);
+  const inputsW = payrollInputs(toGrossSalary(wifeAnnualGross / 12), TaxClass.IV, children, rules, wifeOptions);
   const taxH = calculatePayrollWithholding({ ...inputsH,
     LZZ: 1,
     RE4: Math.round(husbandAnnualGross * 100) }, rules).LSTLZZ;
@@ -385,6 +387,8 @@ export function deriveSpousalNetSalaries(
   wifeFtHours: WorkingHours = toWorkingHours(40),
   childrenCount: number = 0,
   rules: TaxRules = DEFAULT_TAX_RULES,
+  husbandOptions: PayrollOptions = {},
+  wifeOptions: PayrollOptions = {},
 ): SpousalGrossToNetSet {
   const hGross = husbandGross;
   const wGrossFT = wifeGrossFullTime;
@@ -392,7 +396,7 @@ export function deriveSpousalNetSalaries(
   const ptRatio = wifePtHours / (wifeFtHours || 40);
   const wGrossPT = toGrossSalary(Math.round(wGrossFT * ptRatio));
 
-  const factor = computeTaxFactor(hGross * 12, wGrossFT * 12, childrenCount, rules);
+  const factor = computeTaxFactor(hGross * 12, wGrossFT * 12, childrenCount, rules, husbandOptions, wifeOptions);
 
   const hBreakdownClass3 = computeGrossToNetBreakdown(
     hGross,
@@ -401,6 +405,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    husbandOptions,
   );
   const hBreakdownClass5 = computeGrossToNetBreakdown(
     hGross,
@@ -409,6 +414,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    husbandOptions,
   );
   const hBreakdownClass4 = computeGrossToNetBreakdown(
     hGross,
@@ -417,6 +423,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    husbandOptions,
   );
   const hBreakdownClass4WithFactor = computeGrossToNetBreakdown(
     hGross,
@@ -425,6 +432,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     factor,
     rules,
+    husbandOptions,
   );
 
   const wBreakdownClass5FT = computeGrossToNetBreakdown(
@@ -434,6 +442,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    wifeOptions,
   );
   const wBreakdownClass3FT = computeGrossToNetBreakdown(
     wGrossFT,
@@ -442,6 +451,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    wifeOptions,
   );
   const wBreakdownClass4FT = computeGrossToNetBreakdown(
     wGrossFT,
@@ -450,6 +460,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    wifeOptions,
   );
   const wBreakdownClass4WithFactorFT = computeGrossToNetBreakdown(
     wGrossFT,
@@ -458,6 +469,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     factor,
     rules,
+    wifeOptions,
   );
 
   const wBreakdownClass5PT = computeGrossToNetBreakdown(
@@ -467,6 +479,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    wifeOptions,
   );
   const wBreakdownClass3PT = computeGrossToNetBreakdown(
     wGrossPT,
@@ -475,6 +488,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    wifeOptions,
   );
   const wBreakdownClass4PT = computeGrossToNetBreakdown(
     wGrossPT,
@@ -483,6 +497,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     undefined,
     rules,
+    wifeOptions,
   );
   const wBreakdownClass4WithFactorPT = computeGrossToNetBreakdown(
     wGrossPT,
@@ -491,6 +506,7 @@ export function deriveSpousalNetSalaries(
     undefined,
     factor,
     rules,
+    wifeOptions,
   );
 
   return {

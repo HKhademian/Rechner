@@ -1,4 +1,8 @@
 import {
+  type PayrollOptions,
+  parsePersonalPayrollOptions,
+} from "#engine/tax/payroll";
+import {
   createTaxRules,
 } from "#engine/tax/taxRules";
 import {
@@ -55,7 +59,7 @@ import {
   calculateSimulationStartDate,
 } from "#engine/simulator/timelineGenerator";
 import {
-  deriveSpousalNetSalaries, 
+  deriveSpousalNetSalaries,
 } from "#engine/tax/wageTax";
 import {
   type ElterngeldPersistedState,
@@ -319,6 +323,8 @@ export const salaryInputMode = signal<SalaryInputMode>(
   initialPersisted.salaryInputMode,
 );
 export const salaryPeriod = signal<SalaryPeriod>(initialPersisted.salaryPeriod);
+export const husbandPayrollOptions = signal<PayrollOptions>(initialPersisted.husbandPayrollOptions ?? {});
+export const wifePayrollOptions = signal<PayrollOptions>(initialPersisted.wifePayrollOptions ?? {});
 export const husbandGross = signal<GrossSalary>(initialPersisted.husbandGross);
 export const wifeGross = signal<GrossSalary>(initialPersisted.wifeGross);
 
@@ -436,6 +442,8 @@ export function syncGrossToNet() {
       toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
       0,
       createTaxRules(startCalendarYear.value),
+      husbandPayrollOptions.value,
+      wifePayrollOptions.value,
     );
     husbandClass3Net.value = spousal.husbandClass3Net;
     husbandClass5Net.value = spousal.husbandClass5Net;
@@ -585,6 +593,8 @@ export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
     toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
     0,
     createTaxRules(startCalendarYear.value),
+    husbandPayrollOptions.value,
+    wifePayrollOptions.value,
   );
 });
 
@@ -891,6 +901,8 @@ export function removeAllCustomActions(): void {
  */
 export function getCurrentPersistedState(): ElterngeldPersistedState {
   return {
+    husbandPayrollOptions: husbandPayrollOptions.value,
+    wifePayrollOptions: wifePayrollOptions.value,
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: husbandGross.value,
@@ -962,6 +974,8 @@ export function importSimulationState(
   },
 ): void {
   const currentView = activeScenario.value;
+  husbandPayrollOptions.value = parsePersonalPayrollOptions(newState.husbandPayrollOptions ?? {});
+  wifePayrollOptions.value = parsePersonalPayrollOptions(newState.wifePayrollOptions ?? {});
   salaryInputMode.value = newState.salaryInputMode;
   salaryPeriod.value = newState.salaryPeriod;
   husbandGross.value = newState.husbandGross;
@@ -1171,6 +1185,8 @@ export function resetToDefaults() {
   clearStorage();
   const defaults = getDefaultPersistedState();
 
+  husbandPayrollOptions.value = defaults.husbandPayrollOptions ?? {};
+  wifePayrollOptions.value = defaults.wifePayrollOptions ?? {};
   salaryInputMode.value = defaults.salaryInputMode;
   salaryPeriod.value = defaults.salaryPeriod;
   husbandGross.value = defaults.husbandGross;
@@ -1279,6 +1295,8 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     startCalendarYear: startYear,
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: duration,
+    husbandPayrollOptions: husbandPayrollOptions.value,
+    wifePayrollOptions: wifePayrollOptions.value,
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: toGrossSalary(husbandGross.value),

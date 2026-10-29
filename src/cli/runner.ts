@@ -18,7 +18,7 @@ import {
   createTaxRules,
 } from "#engine/tax/taxRules";
 import {
-  fileURLToPath, 
+  fileURLToPath,
 } from "node:url";
 import {
   runScenarioBatches,
@@ -84,7 +84,7 @@ import {
   validateAndSanitizePersistedState,
 } from "#engine/storage/persistence";
 import {
-  BUILTIN_SCENARIO_CATALOG, 
+  BUILTIN_SCENARIO_CATALOG,
 } from "#data/scenarios/scenarioRegistry";
 
 // ANSI Color Codes
@@ -1139,10 +1139,14 @@ function buildSimulation(
     toWorkingHours(def.wifeInitialHours),
     opts.childrenCount,
     createTaxRules(toFullCalendarYear(startYear)),
+    def.husbandPayrollOptions,
+    def.wifePayrollOptions,
   );
 
   // Batch 0: Preexisting conditions
   const preexisting: PreexistingConditions = {
+    husbandPayrollOptions: def.husbandPayrollOptions,
+    wifePayrollOptions: def.wifePayrollOptions,
     startCalendarYear: toFullCalendarYear(startYear),
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: toMonthDuration(duration),
@@ -1467,6 +1471,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       opts.bonus ? toEuroAmount(opts.bonus) : undefined,
       undefined,
       createTaxRules(toFullCalendarYear(opts.startYear ?? baseState.startCalendarYear)),
+      baseState.husbandPayrollOptions,
     );
 
     if (opts.format === CliOutputFormat.Json) {
@@ -1501,6 +1506,8 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
       toWorkingHours(def.wifeInitialHours),
       opts.childrenCount,
       createTaxRules(toFullCalendarYear(opts.startYear ?? def.startCalendarYear)),
+      def.husbandPayrollOptions,
+      def.wifePayrollOptions,
     );
 
     if (opts.format === CliOutputFormat.Json) {

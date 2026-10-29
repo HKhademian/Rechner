@@ -11,10 +11,14 @@ import {
   type PayrollOptions,
   parsePersonalPayrollOptions,
 } from "#engine/tax/payroll";
+import {
+  DEFAULT_TAX_RULES,
+} from "#engine/tax/taxRules";
 
-export default function PayrollPersonalInputs({ id, options }: {
+export default function PayrollPersonalInputs({ id, options, showLocation = false }: {
   id: string;
   options: Signal<PayrollOptions>;
+  showLocation?: boolean;
 }): JSX.Element {
   const [error, setError] = useState("");
   const update = (field: string, value: string, divisor = 1): void => {
@@ -53,6 +57,22 @@ export default function PayrollPersonalInputs({ id, options }: {
         Parent status continues even if no child is currently counted above
       </label>
       <p><a href="https://www.gesetze-im-internet.de/sgb_11/__55.html" target="_blank" rel="noreferrer">Care contribution rules</a></p>
+      {showLocation && <>
+        <label><input type="checkbox" checked={options.value.saxony ?? false}
+          onChange={(event) => {
+            options.value = parsePersonalPayrollOptions({ ...options.value,
+              saxony: event.currentTarget.checked });
+          }} />
+          Employment in Saxony</label>
+        <label for={`${id}-church`}>Church tax</label>
+        <select id={`${id}-church`} value={options.value.churchTaxRate ?? 0}
+          onChange={(event) => update("churchTaxRate", event.currentTarget.value)}>
+          <option value="0">None</option>
+          <option value={DEFAULT_TAX_RULES.parameters.churchRateBavariaBadenWuerttemberg.value}>Bavaria / Baden-Württemberg</option>
+          <option value={DEFAULT_TAX_RULES.parameters.churchRateOther.value}>Other federal states</option>
+        </select>
+        <a href={DEFAULT_TAX_RULES.parameters.churchRateOther.source} target="_blank" rel="noreferrer">Official church tax rates</a>
+      </>}
       {error && <p role="alert">{error}</p>}
     </details>
   );
