@@ -1,0 +1,392 @@
+{
+  "2025": {
+    "effectiveFrom": "2025-01-01",
+    "parameters": {
+      "basicAllowance": {
+        "value": 12096,
+        "label": "Basic allowance",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression1Ceiling": {
+        "value": 17443,
+        "label": "Progression1 ceiling",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression2Ceiling": {
+        "value": 68480,
+        "label": "Progression2 ceiling",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "topRateCeiling": {
+        "value": 277825,
+        "label": "Top rate ceiling",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression1Quadratic": {
+        "value": 932.3,
+        "label": "Progression1 quadratic",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression1Linear": {
+        "value": 1400,
+        "label": "Progression1 linear",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression2Quadratic": {
+        "value": 176.64,
+        "label": "Progression2 quadratic",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression2Linear": {
+        "value": 2397,
+        "label": "Progression2 linear",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "progression2Constant": {
+        "value": 1015.13,
+        "label": "Progression2 constant",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "topRate": {
+        "value": 0.42,
+        "label": "Top rate",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "topOffset": {
+        "value": 10911.92,
+        "label": "Top offset",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "highestRate": {
+        "value": 0.45,
+        "label": "Highest rate",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "highestOffset": {
+        "value": 19246.67,
+        "label": "Highest offset",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "tariffDivisor": {
+        "value": 10000,
+        "label": "Tariff divisor",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "healthEmployeeRate": {
+        "value": 0.073,
+        "label": "Health employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_5/__241.html"
+      },
+      "pensionEmployeeRate": {
+        "value": 0.093,
+        "label": "Pension employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_6/__158.html"
+      },
+      "unemploymentEmployeeRate": {
+        "value": 0.013,
+        "label": "Unemployment employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_3/__341.html"
+      },
+      "careEmployeeBaseRate": {
+        "value": 0.018,
+        "label": "Care employee base rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__58.html"
+      },
+      "careChildlessSurcharge": {
+        "value": 0.006,
+        "label": "Care childless surcharge",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careChildDiscount": {
+        "value": 0.0025,
+        "label": "Care child discount",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careMaximumDiscountChildren": {
+        "value": 4,
+        "label": "Care maximum discount children",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careChildAgeLimit": {
+        "value": 25,
+        "label": "Care child age limit",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careChildlessMinimumAge": {
+        "value": 23,
+        "label": "Care childless minimum age",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careSaxonyExtraEmployeeRate": {
+        "value": 0.005,
+        "label": "Care saxony extra employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__58.html"
+      },
+      "workExpenseAllowance": {
+        "value": 1230,
+        "label": "Work expense allowance",
+        "source": "https://www.gesetze-im-internet.de/estg/__9a.html"
+      },
+      "specialExpenseAllowance": {
+        "value": 36,
+        "label": "Special expense allowance",
+        "source": "https://www.gesetze-im-internet.de/estg/__10c.html"
+      },
+      "singleParentRelief": {
+        "value": 4260,
+        "label": "Single parent relief",
+        "source": "https://www.gesetze-im-internet.de/estg/__24b.html"
+      },
+      "singleParentExtraChildRelief": {
+        "value": 240,
+        "label": "Single parent extra child relief",
+        "source": "https://www.gesetze-im-internet.de/estg/__24b.html"
+      },
+      "churchRateBavariaBadenWuerttemberg": {
+        "value": 0.08,
+        "label": "Church rate bavaria baden wuerttemberg",
+        "source": "https://verwaltung.bund.de/leistungsverzeichnis/DE/leistung/99102035002000/herausgeber/HH-S1000020010000006138/region/020000000000"
+      },
+      "churchRateOther": {
+        "value": 0.09,
+        "label": "Church rate other",
+        "source": "https://verwaltung.bund.de/leistungsverzeichnis/DE/leistung/99102035002000/herausgeber/HH-S1000020010000006138/region/020000000000"
+      },
+      "solidarityRate": {
+        "value": 0.055,
+        "label": "Solidarity rate",
+        "source": "https://www.gesetze-im-internet.de/solzg_1995/__4.html"
+      },
+      "solidarityMitigationRate": {
+        "value": 0.119,
+        "label": "Solidarity mitigation rate",
+        "source": "https://www.gesetze-im-internet.de/solzg_1995/__4.html"
+      },
+      "healthCapMonthly": {
+        "value": 5512.5,
+        "label": "Health cap monthly",
+        "source": "https://www.bmas.bund.de/DE/Service/Gesetze-und-Gesetzesvorhaben/sozialversicherungs-rechengroessenverordnung-2025.html"
+      },
+      "pensionCapMonthly": {
+        "value": 8050,
+        "label": "Pension cap monthly",
+        "source": "https://www.bmas.bund.de/DE/Service/Gesetze-und-Gesetzesvorhaben/sozialversicherungs-rechengroessenverordnung-2025.html"
+      },
+      "healthSupplementTotalRate": {
+        "value": 0.025,
+        "label": "Health supplement total rate",
+        "source": "https://www.bundesanzeiger.de/pub/publication/lErtX3qtBqz33CLzogK"
+      },
+      "solidarityExemptionSingle": {
+        "value": 19950,
+        "label": "Solidarity exemption single",
+        "source": "https://www.bundesfinanzministerium.de/Monatsberichte/Ausgabe/2025/01/Inhalte/Kapitel-2-Fokus/die-wichtigsten-steuerlichen-aenderungen-2025.html"
+      },
+      "childAllowanceAnnual": {
+        "value": 9600,
+        "label": "Child allowance annual",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "childBenefitMonthly": {
+        "value": 255,
+        "label": "Child benefit monthly",
+        "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      }
+    }
+  },
+  "2026": {
+    "effectiveFrom": "2026-01-01",
+    "parameters": {
+      "basicAllowance": {
+        "value": 12348,
+        "label": "Basic allowance",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression1Ceiling": {
+        "value": 17799,
+        "label": "Progression1 ceiling",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression2Ceiling": {
+        "value": 69878,
+        "label": "Progression2 ceiling",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "topRateCeiling": {
+        "value": 277825,
+        "label": "Top rate ceiling",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression1Quadratic": {
+        "value": 914.51,
+        "label": "Progression1 quadratic",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression1Linear": {
+        "value": 1400,
+        "label": "Progression1 linear",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression2Quadratic": {
+        "value": 173.1,
+        "label": "Progression2 quadratic",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression2Linear": {
+        "value": 2397,
+        "label": "Progression2 linear",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "progression2Constant": {
+        "value": 1034.87,
+        "label": "Progression2 constant",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "topRate": {
+        "value": 0.42,
+        "label": "Top rate",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "topOffset": {
+        "value": 11135.63,
+        "label": "Top offset",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "highestRate": {
+        "value": 0.45,
+        "label": "Highest rate",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "highestOffset": {
+        "value": 19470.38,
+        "label": "Highest offset",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "tariffDivisor": {
+        "value": 10000,
+        "label": "Tariff divisor",
+        "source": "https://www.gesetze-im-internet.de/estg/__32a.html"
+      },
+      "healthEmployeeRate": {
+        "value": 0.073,
+        "label": "Health employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_5/__241.html"
+      },
+      "pensionEmployeeRate": {
+        "value": 0.093,
+        "label": "Pension employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_6/__158.html"
+      },
+      "unemploymentEmployeeRate": {
+        "value": 0.013,
+        "label": "Unemployment employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_3/__341.html"
+      },
+      "careEmployeeBaseRate": {
+        "value": 0.018,
+        "label": "Care employee base rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__58.html"
+      },
+      "careChildlessSurcharge": {
+        "value": 0.006,
+        "label": "Care childless surcharge",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careChildDiscount": {
+        "value": 0.0025,
+        "label": "Care child discount",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careMaximumDiscountChildren": {
+        "value": 4,
+        "label": "Care maximum discount children",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careChildAgeLimit": {
+        "value": 25,
+        "label": "Care child age limit",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careChildlessMinimumAge": {
+        "value": 23,
+        "label": "Care childless minimum age",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__55.html"
+      },
+      "careSaxonyExtraEmployeeRate": {
+        "value": 0.005,
+        "label": "Care saxony extra employee rate",
+        "source": "https://www.gesetze-im-internet.de/sgb_11/__58.html"
+      },
+      "workExpenseAllowance": {
+        "value": 1230,
+        "label": "Work expense allowance",
+        "source": "https://www.gesetze-im-internet.de/estg/__9a.html"
+      },
+      "specialExpenseAllowance": {
+        "value": 36,
+        "label": "Special expense allowance",
+        "source": "https://www.gesetze-im-internet.de/estg/__10c.html"
+      },
+      "singleParentRelief": {
+        "value": 4260,
+        "label": "Single parent relief",
+        "source": "https://www.gesetze-im-internet.de/estg/__24b.html"
+      },
+      "singleParentExtraChildRelief": {
+        "value": 240,
+        "label": "Single parent extra child relief",
+        "source": "https://www.gesetze-im-internet.de/estg/__24b.html"
+      },
+      "churchRateBavariaBadenWuerttemberg": {
+        "value": 0.08,
+        "label": "Church rate bavaria baden wuerttemberg",
+        "source": "https://verwaltung.bund.de/leistungsverzeichnis/DE/leistung/99102035002000/herausgeber/HH-S1000020010000006138/region/020000000000"
+      },
+      "churchRateOther": {
+        "value": 0.09,
+        "label": "Church rate other",
+        "source": "https://verwaltung.bund.de/leistungsverzeichnis/DE/leistung/99102035002000/herausgeber/HH-S1000020010000006138/region/020000000000"
+      },
+      "solidarityRate": {
+        "value": 0.055,
+        "label": "Solidarity rate",
+        "source": "https://www.gesetze-im-internet.de/solzg_1995/__4.html"
+      },
+      "solidarityMitigationRate": {
+        "value": 0.119,
+        "label": "Solidarity mitigation rate",
+        "source": "https://www.gesetze-im-internet.de/solzg_1995/__4.html"
+      },
+      "healthCapMonthly": {
+        "value": 5812.5,
+        "label": "Health cap monthly",
+        "source": "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514"
+      },
+      "pensionCapMonthly": {
+        "value": 8450,
+        "label": "Pension cap monthly",
+        "source": "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514"
+      },
+      "healthSupplementTotalRate": {
+        "value": 0.029,
+        "label": "Health supplement total rate",
+        "source": "https://www.bundesgesundheitsministerium.de/beitraege/seite"
+      },
+      "solidarityExemptionSingle": {
+        "value": 20350,
+        "label": "Solidarity exemption single",
+        "source": "https://www.bundesfinanzministerium.de/Monatsberichte/Ausgabe/2025/01/Inhalte/Kapitel-2-Fokus/die-wichtigsten-steuerlichen-aenderungen-2025.html"
+      },
+      "childAllowanceAnnual": {
+        "value": 9756,
+        "label": "Child allowance annual",
+        "source": "https://www.bundesfinanzministerium.de/Content/DE/Standardartikel/Themen/Steuern/das-aendert-sich-2026.html"
+      },
+      "childBenefitMonthly": {
+        "value": 259,
+        "label": "Child benefit monthly",
+        "source": "https://www.gesetze-im-internet.de/estg/__66.html"
+      }
+    }
+  }
+}

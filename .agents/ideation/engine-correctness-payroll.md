@@ -23,6 +23,10 @@ plans:
 
 # Engine correctness: payroll foundation
 
+## Done
+
+- 2026-10-29: added source-linked, validated annual parameter profiles for 2025/2026 and explicit future-projection metadata; focused profile tests and the full quality check pass. Calculator wiring and payroll formulas are still pending.
+
 ## Mission and done
 
 Establish reliable payroll inputs for the later assessment and annual reconciliation fixes. The review confirmed stale simulator constants, separate formulas in `calculatorStore.ts`, and working-month inputs that do not change annual earnings. No payroll repairs are complete.
