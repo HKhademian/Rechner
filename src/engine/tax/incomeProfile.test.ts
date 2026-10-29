@@ -8,6 +8,7 @@ import {
   type PregnancyAction,
   ScenarioId,
   TaxClass,
+  SalaryInputMode,
   SalaryPeriod,
   SpecialEventType,
   SpecialEventCategory,
@@ -127,6 +128,7 @@ describe("Unified Household Gross Income & Compensation Profile", () => {
     it("injects annual recurring bonus in month 12 with § 39b differential net taxation", () => {
       const preexistingWithBonus: PreexistingConditions = {
         ...basePreexisting,
+        salaryInputMode: SalaryInputMode.Gross,
         annualBonusGross: toEuroAmount(10000),
         annualBonusMonth: toCalendarMonth(12),
       };

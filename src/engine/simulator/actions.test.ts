@@ -1180,7 +1180,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(resB.summary.grandTotal, resC.summary.grandTotal);
     });
 
-    it("demonstrates perfect annual tax neutrality for 72-month zero-pregnancy scenario with 13th salary bonus and temporary tax switch", () => {
+    it("tracks class-sensitive bonus withholding separately from the pending annual settlement", () => {
       const spousal = deriveSpousalNetSalaries(
         toGrossSalary(4000),
         toGrossSalary(3000),
@@ -1297,16 +1297,16 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(resA.months.length, 72);
       assert.equal(resC.months.length, 72);
 
-      // Verify exact neutral parity under joint assessment (§ 26b EStG)
-      // Independent cash-flow sum from the supplied net inputs and bonus schedule.
-      // The existing assumed tax refund is removed by the later reconciliation fix.
+      // Official BMF bonus responses: 1600 EUR in III -> 310 EUR wage tax;
+      // then 2400 EUR -> 472 EUR in III, or 805 EUR in V. See payroll2026.json.
+      // Employee contributions on the 4000 EUR bonus total are 870 EUR.
+      // This legacy annual reconciliation still restores only the regular-pay variance.
       const monthly = spousal.husbandClass3Net + spousal.wifeClass5FullTimeNet;
-      // The legacy enable13thSalary flag pays the husband only; wife bonuses require an explicit schedule.
-      const bonus = Math.round(spousal.husbandClass3Net * 0.4) + Math.round(spousal.husbandClass3Net * 0.6);
+      const bonus = 4000 - 870 - 310 - 472;
       const expectedTotal = toEuroAmount(monthly * 72 + bonus * 6 + 850 * 6 - 1500 - 600);
       assert.equal(resA.summary.grandTotal, expectedTotal);
-      assert.equal(resC.summary.grandTotal, expectedTotal);
-      assert.equal(resC.summary.grandTotal - resA.summary.grandTotal, 0);
+      assert.equal(resC.summary.grandTotal, toEuroAmount(expectedTotal - (805 - 472)));
+
     });
   });
 });

@@ -16,6 +16,7 @@ import {
   toPercentageRate,
   toHoursChangeId,
   toWorkingHours,
+  toAnnualSalariesCount,
 } from "#engine/types";
 import {
   runScenarioBatches,
@@ -89,4 +90,30 @@ it("uses the actual calendar-year profile and keeps manual payroll unavailable",
     salaryRaises: [] });
   assert.equal(manual.months[0].payroll, undefined);
   assert.ok(manual.months[0].assumptions?.some((text) => text.includes("Manual net")));
+});
+
+it("pays sourced differential-tax bonuses once and retains their itemized payroll", () => {
+  const result = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    preexisting: { ...preexisting,
+      husbandGross: toGrossSalary(4000),
+      husbandInitialTaxClass: TaxClass.III,
+      husbandSalariesCount: toAnnualSalariesCount(13) },
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [] });
+  const vacation = result.months[4];
+  const christmas = result.months[10];
+  const first = vacation.payroll?.husband.bonuses?.[0];
+  const second = christmas.payroll?.husband.bonuses?.[0];
+  assert.ok(first && second);
+  // Independently captured BMF responses in test/fixture/payroll2026.json.
+  assert.equal(first.gross, 1600);
+  assert.equal(first.wageTax, 310);
+  assert.equal(first.net, 942);
+  assert.equal(second.gross, 2400);
+  assert.equal(second.wageTax, 472);
+  assert.equal(second.net, 1406);
+  assert.equal(vacation.husbandBonusAmount, first.net);
+  assert.equal(vacation.specialEvents.filter((event) => event.title.includes("Husband")).length, 1);
+  assert.equal(christmas.husbandBonusAmount, second.net);
 });

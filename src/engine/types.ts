@@ -1726,7 +1726,20 @@ export type MonthlyPayrollRecord = Pick<GrossToNetBreakdown,
   "monthlyChurchTax" | "healthInsurance" | "pensionInsurance" | "unemploymentInsurance" |
   "careInsurance" | "totalSocialSecurity" | "taxClass"> & {
     readonly taxRules: Pick<TaxRules, "calendarYear" | "sourceYear" | "projected">;
+    readonly bonuses?: readonly BonusPayrollRecord[];
   };
+
+export interface BonusPayrollRecord {
+  readonly gross: EuroAmount;
+  readonly net: EuroAmount;
+  readonly wageTax: EuroAmount;
+  readonly solidarity: EuroAmount;
+  readonly churchTax: EuroAmount;
+  readonly health: EuroAmount;
+  readonly pension: EuroAmount;
+  readonly unemployment: EuroAmount;
+  readonly care: EuroAmount;
+}
 
 export interface GrossToNetBreakdown {
   /** Rule year, sources, projection status, and explicitly marked overrides. */

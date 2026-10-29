@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: simulator gross-mode contractual/performance bonuses now use PAP differential withholding and YTD assessed contribution bases, with itemized bonus records and one net cash event each. Removed 6000-gross/58-percent fallback. Three additional independent BMF responses verify successive bonuses (III: 310/472 wage tax; V: 805 on the second bonus). Full quality check passes. The previous gross-case tax-neutrality test is explicitly limited to bonus withholding until actual annual settlement replaces the legacy model. Manual-net extras remain explicitly labeled estimates.
+
 - 2026-10-29: bonus contribution ceilings now accept actual assessed regular earnings and prior assessed bonuses, preserving monthly caps after pay changes. A changing-pay regression checks both health and pension room across successive bonuses; full quality check passes. This foundation is committed separately from simulator bonus wiring.
 
 - 2026-10-29: gross-mode monthly simulator payroll now follows actual class/year, targeted raises and hours relative to each original contract. All six classes use PAP; post-birth salary uses the active class. Manual mode exposes missing withholding data and no longer fabricates class IV via percentage multipliers. Compact monthly audit records avoid repeating the statutory parameter catalog. Two integration tests, full quality check and production build pass. Bonus integration and adapter input-unit cleanup remain in Fix 8.

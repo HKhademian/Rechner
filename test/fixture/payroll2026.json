@@ -493,5 +493,92 @@
       "WVFRBO": 0,
       "WVFRBM": 0
     }
+  },
+  {
+    "name": "first-contract-bonus-III",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 400000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 1,
+      "JRE4": 4800000,
+      "SONSTB": 160000
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=400000&STKL=3&KVZ=2.9&PVZ=1&JRE4=4800000&SONSTB=160000",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 20183,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 31000,
+      "VFRB": 123000,
+      "VFRBS1": 123000,
+      "VFRBS2": 0,
+      "WVFRB": 2471400,
+      "WVFRBO": 2471400,
+      "WVFRBM": 2599100
+    }
+  },
+  {
+    "name": "second-contract-bonus-III",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 400000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 1,
+      "JRE4": 4960000,
+      "SONSTB": 240000
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=400000&STKL=3&KVZ=2.9&PVZ=1&JRE4=4960000&SONSTB=240000",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 20183,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 47200,
+      "VFRB": 123000,
+      "VFRBS1": 123000,
+      "VFRBS2": 0,
+      "WVFRB": 2471400,
+      "WVFRBO": 2599100,
+      "WVFRBM": 2790800
+    }
+  },
+  {
+    "name": "second-contract-bonus-V",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 400000,
+      "STKL": 5,
+      "KVZ": 2.9,
+      "PVZ": 1,
+      "JRE4": 4960000,
+      "SONSTB": 240000
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=400000&STKL=5&KVZ=2.9&PVZ=1&JRE4=4960000&SONSTB=240000",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 94491,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 80500,
+      "VFRB": 123000,
+      "VFRBS1": 123000,
+      "VFRBS2": 0,
+      "WVFRB": 2471400,
+      "WVFRBO": 2599100,
+      "WVFRBM": 2790800
+    }
   }
 ]

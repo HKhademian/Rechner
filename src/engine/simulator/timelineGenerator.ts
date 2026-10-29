@@ -3,6 +3,7 @@ import {
   toAgeYears,
 } from "#engine/tax/taxRules";
 import {
+  type BonusPayrollRecord,
   type GrossToNetBreakdown,
   type SimulationMonth,
   type CalendarYear,
@@ -71,6 +72,7 @@ import {
   buildMonthlyLedgerEntry,
 } from "#engine/ledger/ledger";
 import {
+  computeBonusSocialInsurance,
   computeGrossToNetBreakdown,
   computeMonthlyNetSalary,
 } from "#engine/tax/wageTax";
@@ -279,7 +281,8 @@ export function runScenarioBatches(
   if (grossMode && (preexisting.husbandGross === undefined || preexisting.wifeGross === undefined)) {
     throw new TypeError("Gross-input simulations require both regular monthly gross salaries.");
   }
-  const compactPayroll = (payroll: GrossToNetBreakdown) => ({
+  const compactPayroll = (payroll: GrossToNetBreakdown, bonuses: readonly BonusPayrollRecord[]) => ({
+    bonuses,
     monthlyGross: payroll.monthlyGross,
     regularNetTakeHome: payroll.regularNetTakeHome,
     monthlyWageTax: payroll.monthlyWageTax,
@@ -1256,11 +1259,69 @@ export function runScenarioBatches(
     }
   }
 
+  const priorHBonuses: Record<number, EuroAmount> = {};
+  const priorWBonuses: Record<number, EuroAmount> = {};
+  const priorHAssessments: Record<number, { health: GrossSalary;
+    pension: GrossSalary }> = {};
+  const priorWAssessments: Record<number, { health: GrossSalary;
+    pension: GrossSalary }> = {};
   for (let i = 0; i < rawMonths.length; i++) {
     const rm = rawMonths[i];
     const m = rm.month;
     const calMonth = rm.calendarMonthNum;
     const year = rm.year;
+
+    const hBonusRecords: BonusPayrollRecord[] = [];
+    const wBonusRecords: BonusPayrollRecord[] = [];
+    const bonusNet = (gross: EuroAmount, husband: boolean): EuroAmount => {
+      const base = husband ? rm.husbandPayroll : rm.wifePayroll;
+      if (!base) {
+        throw new TypeError("Gross bonus calculations require gross-input payroll data.");
+      }
+      const earlier = rawMonths.filter((month) => month.calendarYearNum === rm.calendarYearNum && month.month <= m);
+      const yearRecords = rawMonths.filter((month) => month.calendarYearNum === rm.calendarYearNum);
+      const regularGross = (month: RawMonth) => (husband ? month.husbandPayroll : month.wifePayroll)?.monthlyGross ?? 0;
+      const prior = husband ? priorHBonuses : priorWBonuses;
+      const assessments = husband ? priorHAssessments : priorWAssessments;
+      const previousAssessment = assessments[rm.calendarYearNum];
+      const parameters = base.taxRules.parameters;
+      const options = { ...(husband ? preexisting.husbandPayrollOptions : preexisting.wifePayrollOptions),
+        contributionMonthsYearToDate: toMonthDuration(Math.max(1, earlier.filter((month) => regularGross(month) > 0).length)),
+        regularGrossYearToDate: toGrossSalary(earlier.reduce((sum, month) => sum + regularGross(month), 0)),
+        regularHealthAssessmentYearToDate: toGrossSalary(earlier.reduce((sum, month) => sum + Math.min(regularGross(month), parameters.healthCapMonthly.value), 0)),
+        regularPensionAssessmentYearToDate: toGrossSalary(earlier.reduce((sum, month) => sum + Math.min(regularGross(month), parameters.pensionCapMonthly.value), 0)),
+        bonusHealthAssessmentYearToDate: previousAssessment?.health,
+        bonusPensionAssessmentYearToDate: previousAssessment?.pension,
+        expectedRegularAnnualGross: toGrossSalary(yearRecords.reduce((sum, month) => sum + regularGross(month), 0) +
+          base.monthlyGross * (12 - yearRecords[yearRecords.length - 1].calendarMonthNum)),
+        priorBonusGrossYearToDate: prior[rm.calendarYearNum] ?? toEuroAmount(0) };
+      const payroll = computeGrossToNetBreakdown(
+        base.monthlyGross,
+        base.taxClass,
+        base.childrenCount,
+        gross,
+        base.taxFactor,
+        base.taxRules,
+        options,
+      );
+      const social = computeBonusSocialInsurance(base.monthlyGross, gross, base.childrenCount, base.taxRules, options);
+      const record: BonusPayrollRecord = { gross,
+        net: payroll.bonusNetTakeHome,
+        wageTax: payroll.bonusWageTax,
+        solidarity: payroll.bonusSolidaritySurcharge,
+        churchTax: payroll.bonusChurchTax,
+        health: social.healthInsurance,
+        pension: social.pensionInsurance,
+        unemployment: social.unemploymentInsurance,
+        care: social.careInsurance };
+      (husband ? hBonusRecords : wBonusRecords).push(record);
+      prior[rm.calendarYearNum] = toEuroAmount((prior[rm.calendarYearNum] ?? 0) + gross);
+      assessments[rm.calendarYearNum] = {
+        health: toGrossSalary((previousAssessment?.health ?? 0) + social.assessedHealth),
+        pension: toGrossSalary((previousAssessment?.pension ?? 0) + social.assessedPension),
+      };
+      return record.net;
+    };
 
     // Extra Salary Bonus Events triggered on configured calendar months
     let bonus40Amount = toEuroAmount(0);
@@ -1275,11 +1336,12 @@ export function runScenarioBatches(
     const matchingHSlots = husbandBonusSlots.filter(
       (s) => s.calendarMonth === calMonth,
     );
+    const hBonusNets = matchingHSlots.map((slot) => grossMode
+      ? bonusNet(toEuroAmount(slot.payoutFraction * (rm.husbandPayroll?.monthlyGross ?? 0)), true)
+      : toEuroAmount(Math.round(slot.payoutFraction * husbandBonusBase)));
     for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
       const slot = matchingHSlots[sIdx];
-      const amt = toEuroAmount(
-        Math.round(slot.payoutFraction * husbandBonusBase),
-      );
+      const amt = hBonusNets[sIdx];
       if (amt > 0) {
         husbandBonusAmount = toEuroAmount(husbandBonusAmount + amt);
         if (
@@ -1301,9 +1363,11 @@ export function runScenarioBatches(
     const matchingWSlots = wifeBonusSlots.filter(
       (s) => s.calendarMonth === calMonth,
     );
+    const wBonusNets = matchingWSlots.map((slot) => grossMode
+      ? bonusNet(toEuroAmount(slot.payoutFraction * (rm.wifePayroll?.monthlyGross ?? 0)), false)
+      : toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase)));
     for (let sIdx = 0; sIdx < matchingWSlots.length; sIdx++) {
-      const slot = matchingWSlots[sIdx];
-      const amt = toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase));
+      const amt = wBonusNets[sIdx];
       if (amt > 0) {
         wifeBonusAmount = toEuroAmount(wifeBonusAmount + amt);
       }
@@ -1354,9 +1418,7 @@ export function runScenarioBatches(
     // Husband Bonus Transactions
     for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
       const slot = matchingHSlots[sIdx];
-      const amt = toEuroAmount(
-        Math.round(slot.payoutFraction * husbandBonusBase),
-      );
+      const amt = hBonusNets[sIdx];
       if (amt > 0) {
         const title =
           slot.label ||
@@ -1397,7 +1459,7 @@ export function runScenarioBatches(
     // Wife Bonus Transactions
     for (let sIdx = 0; sIdx < matchingWSlots.length; sIdx++) {
       const slot = matchingWSlots[sIdx];
-      const amt = toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase));
+      const amt = wBonusNets[sIdx];
       if (amt > 0) {
         const title =
           slot.label ||
@@ -1574,9 +1636,7 @@ export function runScenarioBatches(
     // Husband Extra Salary Bonus Special Events
     for (let sIdx = 0; sIdx < matchingHSlots.length; sIdx++) {
       const slot = matchingHSlots[sIdx];
-      const amt = toEuroAmount(
-        Math.round(slot.payoutFraction * husbandBonusBase),
-      );
+      const amt = hBonusNets[sIdx];
       if (amt > 0) {
         const title =
           slot.label ||
@@ -1619,7 +1679,7 @@ export function runScenarioBatches(
     // Wife Extra Salary Bonus Special Events
     for (let sIdx = 0; sIdx < matchingWSlots.length; sIdx++) {
       const slot = matchingWSlots[sIdx];
-      const amt = toEuroAmount(Math.round(slot.payoutFraction * wifeBonusBase));
+      const amt = wBonusNets[sIdx];
       if (amt > 0) {
         const title =
           slot.label ||
@@ -1702,28 +1762,7 @@ export function runScenarioBatches(
       calMonth === annualBonusMonth
     ) {
       const grossBonus = preexisting.annualBonusGross;
-      const hGrossMonthly = preexisting.husbandGross ?? 6000;
-      const hTaxClass = rm.isSwapActive ? TaxClass.V : TaxClass.III;
-      const breakdown = computeGrossToNetBreakdown(
-        toGrossSalary(hGrossMonthly),
-        hTaxClass,
-        preexisting.existingChildrenCount,
-        toEuroAmount(grossBonus),
-        undefined,
-        createTaxRules(rm.calendarYearNum),
-      );
-      const netBonus = breakdown.bonusTaxDeduction
-        ? Math.max(
-          0,
-          Math.round(
-            grossBonus -
-                breakdown.bonusTaxDeduction -
-                grossBonus *
-                  (breakdown.totalSocialSecurity / breakdown.monthlyGross),
-          ),
-        )
-        : Math.round(grossBonus * 0.58);
-      const netBonusEuro = toEuroAmount(netBonus);
+      const netBonusEuro = bonusNet(toEuroAmount(grossBonus), true);
 
       specialEvents.push({
         eventId: toEventId(`EVENT-${rm.monthId}-ANNUAL-BONUS`),
@@ -2094,11 +2133,11 @@ export function runScenarioBatches(
     runTotal = nextCumulatedTotal;
 
     months.push({ ...entry,
-      payroll: rm.husbandPayroll && rm.wifePayroll ? { husband: compactPayroll(rm.husbandPayroll),
-        wife: compactPayroll(rm.wifePayroll) } : undefined,
+      payroll: rm.husbandPayroll && rm.wifePayroll ? { husband: compactPayroll(rm.husbandPayroll, hBonusRecords),
+        wife: compactPayroll(rm.wifePayroll, wBonusRecords) } : undefined,
       assumptions: rm.husbandPayroll && rm.wifePayroll
         ? [...new Set([...rm.husbandPayroll.assumptions, ...rm.wifePayroll.assumptions])]
-        : ["Manual net salaries do not establish gross earnings, contributions or taxes withheld."] });
+        : ["Manual net salaries do not establish gross earnings, contributions or taxes withheld. Extra payments are estimates based on the supplied net salary."] });
   }
 
   // Summary Metrics
