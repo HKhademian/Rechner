@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: CLI salary units now follow the selected period, preserve cents on yearly conversion, and accept zero salary/hours instead of replacing them with defaults. Removed the 20000 salary-size heuristic and standalone 4000 fallback in favor of scenario defaults. Boundary tests and full quality check pass. Yearly CLI ordinary salary excludes separately configured extras; this differs deliberately from the general calculator actual-total yearly input.
+
 - 2026-10-29: personal insurer/age/care-child/ELStAM/Saxony/church settings now persist in simulator scenarios, have editable controls, and reach both spousal preview and monthly payroll through store/CLI adapters. Newborns update qualifying care counts; configured ages advance across years. Import/save/sanitizer regression, full quality check and production build pass. CLI salary-unit cleanup remains.
 
 - 2026-10-29: simulator gross-mode contractual/performance bonuses now use PAP differential withholding and YTD assessed contribution bases, with itemized bonus records and one net cash event each. Removed 6000-gross/58-percent fallback. Three additional independent BMF responses verify successive bonuses (III: 310/472 wage tax; V: 805 on the second bonus). Full quality check passes. The previous gross-case tax-neutrality test is explicitly limited to bonus withholding until actual annual settlement replaces the legacy model. Manual-net extras remain explicitly labeled estimates.

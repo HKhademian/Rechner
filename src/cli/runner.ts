@@ -26,6 +26,7 @@ import {
 } from "#engine/simulator/timelineGenerator";
 import {
   type PreexistingConditions,
+  type GrossSalary,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
@@ -1121,21 +1122,13 @@ function buildSimulation(
   const duration = opts.duration ?? def.simulationDurationMonths;
 
   // Calculate dynamic or default spousal nets (normalizing yearly inputs if provided)
-  const husbandGrossMonthly = opts.husbandGross
-    ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
-      ? Math.round(opts.husbandGross / 12)
-      : opts.husbandGross
-    : def.husbandGross;
-  const wifeGrossMonthly = opts.wifeGross
-    ? opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000
-      ? Math.round(opts.wifeGross / 12)
-      : opts.wifeGross
-    : def.wifeGross;
+  const husbandGrossMonthly = normalizeCliGross(opts.husbandGross, opts.period, def.husbandGross);
+  const wifeGrossMonthly = normalizeCliGross(opts.wifeGross, opts.period, def.wifeGross);
 
   const spousal = deriveSpousalNetSalaries(
     toGrossSalary(husbandGrossMonthly),
     toGrossSalary(wifeGrossMonthly),
-    toWorkingHours(opts.wifeHours || def.wifePostBirthHours),
+    toWorkingHours(opts.wifeHours ?? def.wifePostBirthHours),
     toWorkingHours(def.wifeInitialHours),
     opts.childrenCount,
     createTaxRules(toFullCalendarYear(startYear)),
@@ -1177,7 +1170,7 @@ function buildSimulation(
       : def.wifeClass3FullTimeNet,
     wifeWeeklyHours: toWorkingHours(def.wifeInitialHours),
     wifePostBirthWeeklyHours: toWorkingHours(
-      opts.wifeHours || def.wifePostBirthHours,
+      opts.wifeHours ?? def.wifePostBirthHours,
     ),
     annualBonusGross: opts.annualBonusGross
       ? toEuroAmount(opts.annualBonusGross)
@@ -1227,7 +1220,7 @@ function buildSimulation(
         positiveTestSimulationMonth: toSimulationMonth(pregStart),
         calculatedDeliverySimulationMonth: toSimulationMonth(b1),
         motherPostBirthPartTimeHours: toWorkingHours(
-          opts.wifeHours || def.wifePostBirthHours,
+          opts.wifeHours ?? def.wifePostBirthHours,
         ),
         motherPostBirthPartTimeClass5Net: ptNet5,
         motherPostBirthPartTimeClass3Net: ptNet3,
@@ -1245,7 +1238,7 @@ function buildSimulation(
         positiveTestSimulationMonth: toSimulationMonth(b2 - 8),
         calculatedDeliverySimulationMonth: toSimulationMonth(b2),
         motherPostBirthPartTimeHours: toWorkingHours(
-          opts.wifeHours || def.wifePostBirthHours,
+          opts.wifeHours ?? def.wifePostBirthHours,
         ),
         motherPostBirthPartTimeClass5Net: ptNet5,
         motherPostBirthPartTimeClass3Net: ptNet3,
@@ -1447,6 +1440,11 @@ function printMilestones(res: SimulationResult) {
 }
 
 // Main Execution
+/** CLI salary amounts describe ordinary pay; extras are supplied separately. Never infer units from size. */
+export function normalizeCliGross(amount: number | undefined, period: SalaryPeriod, fallback: GrossSalary): GrossSalary {
+  return amount === undefined ? fallback : toGrossSalary(period === SalaryPeriod.Yearly ? amount / 12 : amount);
+}
+
 export function runCli(argv: string[] = process.argv.slice(2)): void {
   const opts = parseArgs(argv);
 
@@ -1458,11 +1456,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
   const baseState = resolveCliScenarioState(opts.scenarioFile);
 
   if (opts.mode === CliMode.GrossToNet) {
-    const grossMonthly = opts.gross
-      ? opts.period === SalaryPeriod.Yearly || opts.gross > 20000
-        ? Math.round(opts.gross / 12)
-        : opts.gross
-      : 4000;
+    const grossMonthly = normalizeCliGross(opts.gross, opts.period, baseState.husbandGross);
     const taxClassVal = opts.taxClass || TaxClass.IV;
     const breakdown = computeGrossToNetBreakdown(
       toGrossSalary(grossMonthly),
@@ -1488,17 +1482,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
 
   if (opts.mode === CliMode.SpousalNet) {
     const def = baseState;
-    const hGrossMonthly = opts.husbandGross
-      ? opts.period === SalaryPeriod.Yearly || opts.husbandGross > 20000
-        ? Math.round(opts.husbandGross / 12)
-        : opts.husbandGross
-      : def.husbandGross;
-    const wGrossMonthly = opts.wifeGross
-      ? opts.period === SalaryPeriod.Yearly || opts.wifeGross > 20000
-        ? Math.round(opts.wifeGross / 12)
-        : opts.wifeGross
-      : def.wifeGross;
-    const wHours = opts.wifeHours || def.wifePostBirthHours;
+    const hGrossMonthly = normalizeCliGross(opts.husbandGross, opts.period, def.husbandGross);
+    const wGrossMonthly = normalizeCliGross(opts.wifeGross, opts.period, def.wifeGross);
+    const wHours = opts.wifeHours ?? def.wifePostBirthHours;
     const spousal = deriveSpousalNetSalaries(
       toGrossSalary(hGrossMonthly),
       toGrossSalary(wGrossMonthly),

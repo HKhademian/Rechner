@@ -4,6 +4,7 @@ import {
 } from "#engine/tax/wageTax";
 import {
   TaxClass,
+  SalaryPeriod,
   toGrossSalary,
   FieldColumnKey,
 } from "#engine/types";
@@ -19,6 +20,7 @@ import {
   promisify, 
 } from "node:util";
 import {
+  normalizeCliGross,
   parseMonthArg,
   parseFieldArg,
 } from "#cli/runner";
@@ -583,4 +585,14 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Quality Audit PASSED"));
     });
   });
+});
+
+it("uses explicit CLI salary units, preserves cents and accepts zero", () => {
+  const fallback = toGrossSalary(4000);
+  assert.equal(normalizeCliGross(24000, SalaryPeriod.Monthly, fallback), 24000);
+  assert.equal(normalizeCliGross(24000, SalaryPeriod.Yearly, fallback), 2000);
+  assert.equal(normalizeCliGross(50000, SalaryPeriod.Yearly, fallback), 4166.67);
+  assert.equal(normalizeCliGross(0, SalaryPeriod.Monthly, fallback), 0);
+  assert.equal(normalizeCliGross(undefined, SalaryPeriod.Yearly, fallback), fallback);
+  assert.throws(() => normalizeCliGross(Number.NaN, SalaryPeriod.Monthly, fallback), TypeError);
 });
