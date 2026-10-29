@@ -82,7 +82,7 @@ export type CalendarLabel = SubBrand<EntityId, "CalendarLabel">;
 /** Weekly contractual or actual employment working hours (0..60 hours/week). */
 export type WorkingHours = Brand<number, "WorkingHours">;
 
-/** Statutory married couple income tax factor under § 39f EStG Faktorverfahren (ratio 0.001..1.000). */
+/** Statutory married couple income tax factor under § 39f EStG, truncated to three decimals. */
 export type TaxFactor = Brand<number, "TaxFactor">;
 
 /** Numeric percentage rate or ratio represented as a decimal fraction (0.0..1.0). */
@@ -721,22 +721,23 @@ export function toNetSalary(val: number): NetSalary {
 }
 
 /**
- * Constructs a validated `TaxFactor` under § 39f EStG rounded to 3 decimal places (0 < factor <= 1.0).
- * @throws {TypeError} if ratio is outside (0..1.0].
+ * Constructs a validated `TaxFactor` under § 39f EStG truncated to 3 decimal places (0 <= factor <= 1.0).
+ * https://www.gesetze-im-internet.de/estg/__39f.html
+ * @throws {TypeError} if ratio is outside [0..1.0].
  */
 export function toTaxFactor(val: number): TaxFactor {
   if (
     typeof val !== "number" ||
     Number.isNaN(val) ||
     !Number.isFinite(val) ||
-    val <= 0 ||
+    val < 0 ||
     val > 1
   ) {
     throw new TypeError(
       `Invalid TaxFactor: ${val}. Must be a valid ratio between 0 and 1.0.`,
     );
   }
-  return (Math.round(val * 1000) / 1000) as TaxFactor;
+  return (Math.floor(val * 1000) / 1000) as TaxFactor;
 }
 
 /**
@@ -1066,7 +1067,7 @@ export function isTaxFactor(val: unknown): val is TaxFactor {
     typeof val === "number" &&
     !Number.isNaN(val) &&
     Number.isFinite(val) &&
-    val > 0 &&
+    val >= 0 &&
     val <= 1
   );
 }

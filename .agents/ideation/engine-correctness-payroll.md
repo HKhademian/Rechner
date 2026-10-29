@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: factor constructors/guards accept zero and truncate to three decimals under EStG section 39f; focused constructor tests and the full working-tree quality check pass. PAP application is the following atomic change.
+
 - 2026-10-29: tariff, solidarity and contribution calculations consume source-linked annual profiles; payroll results identify source/projection year. CLI/store payroll adapters forward their requested year. Annual allowance/rounding, cent-precise contributions, custom rates and projection regressions pass; full quality check/build pass. Withholding approximations and actual annual assessment remain assigned to subsequent fixes.
 
 - 2026-10-29: added source-linked, validated annual parameter profiles for 2025/2026 and explicit future-projection metadata; focused profile tests and the full quality check pass. Calculator wiring and payroll formulas are still pending.

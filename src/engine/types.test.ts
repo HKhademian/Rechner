@@ -442,8 +442,8 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
   });
 
   describe("TaxFactor (Feature Test)", () => {
-    it("accepts valid tax factors between 0.001 and 1.0", () => {
-      const validFactors = [0.001, 0.5, 0.885, 0.905, 1.0];
+    it("accepts valid tax factors between 0 and 1.0", () => {
+      const validFactors = [0, 0.001, 0.5, 0.885, 0.905, 1.0];
       for (const f of validFactors) {
         const factor = toTaxFactor(f);
         assert.equal(factor, Math.round(f * 1000) / 1000);
@@ -451,8 +451,8 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       }
     });
 
-    it("rejects invalid, negative, 0, or out-of-range tax factors", () => {
-      assert.throws(() => toTaxFactor(0), TypeError);
+    it("rejects invalid, negative, or out-of-range tax factors", () => {
+      assert.equal(toTaxFactor(0.9829), 0.982);
       assert.throws(() => toTaxFactor(-0.5), TypeError);
       assert.throws(() => toTaxFactor(1.001), TypeError);
       assert.throws(() => toTaxFactor(NaN), TypeError);
