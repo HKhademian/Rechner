@@ -8,10 +8,10 @@ todos:
     status: completed
   - id: sourced-benefit-configuration
     content: "Prerequisite - configurable source-linked benefit rules"
-    status: in_progress
+    status: completed
   - id: plus-personal-ceiling
     content: "Fix 1 - apply the personal ElterngeldPlus ceiling"
-    status: pending
+    status: in_progress
   - id: capped-assessable-net
     content: "Fix 2 - cap assessable pre-birth net income"
     status: pending
@@ -34,6 +34,8 @@ plans:
 Repair the isolated benefit errors first, using independently sourced expected amounts. Implement one todo at a time; keep each correction and its regression tests in its own atomic commit.
 
 ## Done
+
+- 2026-10-29: added immutable, validated benefit configuration with official source URLs and explicitly marked overrides; the full quality check passes.
 
 - 2026-10-29: monetary constructors preserve cents and round half cents away from zero; 76 constructor tests and the full quality check pass.
 

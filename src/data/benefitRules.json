@@ -1,0 +1,102 @@
+{
+  "standardReplacementRate": {
+    "value": 0.67,
+    "label": "Standard replacement rate",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "minimumReplacementRate": {
+    "value": 0.65,
+    "label": "Minimum replacement rate",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "maximumReplacementRate": {
+    "value": 1,
+    "label": "Maximum replacement rate",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "lowIncomeThreshold": {
+    "value": 1000,
+    "label": "Low-income replacement threshold (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "rateDecreaseThreshold": {
+    "value": 1200,
+    "label": "Replacement-rate decrease starts (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "minimumRateThreshold": {
+    "value": 1240,
+    "label": "Minimum replacement-rate threshold (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "rateChangePerEuro": {
+    "value": 0.0005,
+    "label": "Replacement-rate change per euro",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "maximumAssessableNet": {
+    "value": 2770,
+    "label": "Maximum pre-birth assessable net (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "basisMinimum": {
+    "value": 300,
+    "label": "Minimum Basiselterngeld (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "basisMaximum": {
+    "value": 1800,
+    "label": "Maximum Basiselterngeld (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2.html"
+  },
+  "plusFraction": {
+    "value": 0.5,
+    "label": "Plus share of no-income Basis entitlement",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4a.html"
+  },
+  "siblingMinimumBasis": {
+    "value": 75,
+    "label": "Minimum sibling bonus for Basis (EUR)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2a.html"
+  },
+  "siblingRate": {
+    "value": 0.1,
+    "label": "Sibling bonus rate",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2a.html"
+  },
+  "siblingAgeLimitMonths": {
+    "value": 36,
+    "label": "Older sibling age limit (months)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2a.html"
+  },
+  "maximumWeeklyHours": {
+    "value": 32,
+    "label": "Maximum weekly allowance working hours",
+    "source": "https://www.gesetze-im-internet.de/beeg/__1.html"
+  },
+  "partnershipMinimumHours": {
+    "value": 24,
+    "label": "Minimum partnership-bonus weekly hours",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4b.html"
+  },
+  "partnershipMaximumMonths": {
+    "value": 4,
+    "label": "Maximum partnership-bonus months",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4b.html"
+  },
+  "assessmentMonths": {
+    "value": 12,
+    "label": "Income assessment window (months)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2b.html"
+  },
+  "familyBasisMonths": {
+    "value": 12,
+    "label": "Ordinary family Basis allowance budget (months)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4.html"
+  },
+  "additionalPartnerBasisMonths": {
+    "value": 2,
+    "label": "Additional partner Basis budget (months)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4.html"
+  }
+}
