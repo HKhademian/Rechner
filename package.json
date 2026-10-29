@@ -16,8 +16,6 @@
     "#styles/*": "./src/styles/*",
     "#/*": "./src/*"
   },
-
-
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro dev",
     "build": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro build",
@@ -50,7 +48,7 @@
     "@astrojs/preact": "^6.0.1",
     "@preact/signals": "^2.9.4",
     "astro": "^7.1.2",
-    "lohnsteuer": "^1.0.0",
+    "lohnsteuerrechner": "1.0.7",
     "preact": "^10.29.7"
   },
   "devDependencies": {
