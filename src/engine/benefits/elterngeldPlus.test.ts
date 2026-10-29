@@ -100,6 +100,35 @@ describe("Elterngeld & ElterngeldPlus Calculation Engine (BEEG § 2, § 4, § 4a
       assert.equal(computeElterngeldBenefits(toNetSalary(2000), toNetSalary(0), toWorkingHours(31), rules).elterngeldPlus, 0);
     });
 
+    it("caps assessable pre-birth net before subtracting post-birth earnings", () => {
+      // Familienportal example: min(3200, 2770) - 1570 = 1200; 65% = 780.
+      const benefit = computeElterngeldBenefits(toNetSalary(3200), toNetSalary(1570));
+      assert.equal(benefit.assessablePreBirthNet, 2770);
+      assert.equal(benefit.netIncomeLoss, 1200);
+      assert.equal(benefit.basiselterngeld, 780);
+      assert.equal(benefit.elterngeldPlus, 780);
+    });
+
+    it("uses the configured income cap and floors income losses at zero", () => {
+      const rules = createBenefitRules({ maximumAssessableNet: 2500 });
+      const benefit = computeElterngeldBenefits(toNetSalary(3200), toNetSalary(1570), undefined, rules);
+      assert.equal(benefit.netIncomeLoss, 930);
+      assert.equal(benefit.elterngeldPlus, 604.5);
+      for (const after of [2500, 3000]) {
+        const noLoss = computeElterngeldBenefits(toNetSalary(3200), toNetSalary(after), undefined, rules);
+        assert.equal(noLoss.netIncomeLoss, 0);
+        assert.equal(noLoss.elterngeldPlus, 150);
+      }
+    });
+
+    it("keeps the no-income benefit within its maximum around the assessment cap", () => {
+      for (const before of [2769.99, 2770, 2770.01]) {
+        const benefit = computeElterngeldBenefits(toNetSalary(before));
+        assert.equal(benefit.basiselterngeld, 1800);
+        assert.equal(benefit.elterngeldPlus, 900);
+      }
+    });
+
     it("applies statutory minimum floor of €150/month for ElterngeldPlus (§ 4a BEEG)", () => {
       // Case where loss calculation produces tiny benefit
       const lowLossBenefit = computeElterngeldBenefits(

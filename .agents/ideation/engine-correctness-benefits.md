@@ -14,10 +14,10 @@ todos:
     status: completed
   - id: capped-assessable-net
     content: "Fix 2 - cap assessable pre-birth net income"
-    status: in_progress
+    status: completed
   - id: sibling-bonus
     content: "Fix 3 - correct sibling bonus minimum and ceiling"
-    status: pending
+    status: in_progress
   - id: father-allocation
     content: "Fix 4 - honor father eligibility and requested partner months"
     status: pending
@@ -34,6 +34,8 @@ plans:
 Repair the isolated benefit errors first, using independently sourced expected amounts. Implement one todo at a time; keep each correction and its regression tests in its own atomic commit.
 
 ## Done
+
+- 2026-10-29: assessable pre-birth income is capped from source-linked configuration before deducting earnings; 3200/1570 yields Basic and Plus 780. Config overrides, cap boundaries, and zero-loss floors are covered; full quality check passes.
 
 - 2026-10-29: personal Plus ceiling uses half of the cent-rounded no-income Basis entitlement, sourced configurable rules, and preserves below-cap income-loss benefits. Official 2000/0 -> 650, 2000/500 -> 650, 2000/1200 -> 520 regressions pass; full quality check and build pass.
 
@@ -54,14 +56,6 @@ Repair the isolated benefit errors first, using independently sourced expected a
 
 - Money constructors currently discard cents, preventing valid fractional caps and bonus minima. Preserve cents first in a standalone commit with constructor regressions.
 - User requested configurable values with official source links. Add validated immutable benefit configuration in a separate commit, then inject it into every affected calculation. Payroll-year configuration follows the same source/value pattern in wave 2.
-
-## Fix 2 - capped-assessable-net
-
-**Depends on:** plus-personal-ceiling.
-**Files:** modify `src/engine/benefits/elterngeldPlus.ts`, its tests, and explanation expectations affected by the income-loss definition.
-**Actions:** limit the pre-birth income used for the income difference to the statutory maximum before subtracting post-birth income. Distinguish supplied and assessed income in the result/explanation where useful. Keep this correction separate from Fix 1.
-**Acceptance:** 3200/1570 yields Basic 780 and Plus 780, matching the federal example. Cover inputs immediately below, at, and above 2770, plus post-birth income equal to or above the assessed baseline. Respect the statutory maximum and rounding instead of leaking 2770 * 0.65 beyond the ceiling.
-**Verify:** focused benefit tests, then the shared commit gate.
 
 ## Fix 3 - sibling-bonus
 

@@ -67,6 +67,8 @@ export function computeStatutoryReplacementRate(
 export interface ElterngeldEntitlement {
   /** Monthly pre-birth synthetic net income baseline (§ 2b, § 2c BEEG) in EUR. */
   readonly preBirthNet: NetSalary;
+  /** Pre-birth net after applying the configured statutory assessment maximum. */
+  readonly assessablePreBirthNet: NetSalary;
   /** Monthly part-time net take-home income earned during parental leave in EUR. */
   readonly partTimeNet: NetSalary;
   /** Net monthly income loss suffered due to parental leave in EUR (preBirthNet - partTimeNet). */
@@ -144,6 +146,7 @@ export function computeElterngeldBenefits(
   if (weeklyHours !== undefined && !isElterngeldHoursEligible(weeklyHours, rules)) {
     return {
       preBirthNet,
+      assessablePreBirthNet: toNetSalary(Math.min(preBirthNet, rules.maximumAssessableNet.value)),
       partTimeNet: partTimeNetDuringLeave,
       netIncomeLoss: toEuroAmount(0),
       replacementRate: toPercentageRate(0),
@@ -158,7 +161,8 @@ export function computeElterngeldBenefits(
     };
   }
 
-  const loss = Math.max(0, preBirthNet - partTimeNetDuringLeave);
+  const assessablePreBirthNet = toNetSalary(Math.min(preBirthNet, rules.maximumAssessableNet.value));
+  const loss = Math.max(0, assessablePreBirthNet - partTimeNetDuringLeave);
   const rate = computeStatutoryReplacementRate(preBirthNet, rules);
 
   const rawBenefit = toEuroAmount(loss * rate);
@@ -167,7 +171,7 @@ export function computeElterngeldBenefits(
   const basis = toEuroAmount(Math.min(rules.basisMaximum.value, Math.max(rules.basisMinimum.value, rawBenefit)));
 
   // § 4a(2): the cap is personal, derived from the no-income entitlement.
-  const noIncomeBasiselterngeld = toEuroAmount(Math.min(rules.basisMaximum.value, Math.max(rules.basisMinimum.value, toEuroAmount(preBirthNet * rate))));
+  const noIncomeBasiselterngeld = toEuroAmount(Math.min(rules.basisMaximum.value, Math.max(rules.basisMinimum.value, toEuroAmount(assessablePreBirthNet * rate))));
   const elterngeldPlusCeiling = toEuroAmount(noIncomeBasiselterngeld * rules.plusFraction.value);
   const plusMinimum = toEuroAmount(rules.basisMinimum.value * rules.plusFraction.value);
   const plus = Math.min(elterngeldPlusCeiling, Math.max(plusMinimum, rawBenefit));
@@ -177,6 +181,7 @@ export function computeElterngeldBenefits(
 
   return {
     preBirthNet,
+    assessablePreBirthNet,
     partTimeNet: partTimeNetDuringLeave,
     netIncomeLoss: toEuroAmount(loss),
     replacementRate: rate,
