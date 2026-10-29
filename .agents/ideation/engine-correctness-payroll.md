@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-29: period payroll now runs PAP only in active months, passes actual year-to-date earnings/caps and expected annual pay to bonus calculations, and preserves itemized bonus deductions. Personal insurer rates reach both PAP and contributions. Three payroll conservation/parity tests and the full quality check pass; calculator integration follows.
+
 - 2026-10-29: employment-period normalization now preserves actual yearly totals, prorates monthly salary and contractual extras by active months, allocates residual cents, and accepts explicit bonus schedules. Five boundary tests and the full quality check pass. Caller integration remains in progress; changing the UI input does not yet invoke this helper.
 
 - 2026-10-29: replaced withholding approximations with pinned offline PAP 1.0.7. Eighteen independent 2026 BMF API fixtures, six published annual examples across 2025/2026, and domain adapter/conservation cases pass (30 focused payroll tests). Bonus contributions respect YTD caps; care age/state inputs and church tax are modeled; factor uses PAP wage-tax bases. Full quality check and production build pass. Regular payroll net is no longer presented as BEEG synthetic net. User selected verified profiles plus editable personal inputs, not hypothetical tariffs; unsupported PAP overrides fail explicitly.

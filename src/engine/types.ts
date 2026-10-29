@@ -1767,6 +1767,9 @@ export interface GrossToNetBreakdown {
   /** Additional differential wage tax deduction assessed on the one-off bonus payment in EUR. */
   readonly bonusTaxDeduction?: EuroAmount;
   readonly bonusSocialSecurity: EuroAmount;
+  readonly bonusWageTax: EuroAmount;
+  readonly bonusSolidaritySurcharge: EuroAmount;
+  readonly bonusChurchTax: EuroAmount;
   readonly bonusNetTakeHome: EuroAmount;
 
   // Final Net Take-Home & Elterngeld Synthetic Net

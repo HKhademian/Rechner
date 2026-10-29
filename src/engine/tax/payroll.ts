@@ -31,6 +31,8 @@ export function toChildAllowanceFactor(value: number): ChildAllowanceFactor {
 }
 
 export interface PayrollOptions {
+  /** Insurer-specific total Zusatzbeitrag, before the employee/employer split. */
+  readonly healthSupplementTotalRate?: PercentageRate;
   readonly ageAtYearStart?: AgeYears;
   readonly childrenUnder25?: ChildrenCount;
   readonly isParent?: boolean;
@@ -39,6 +41,8 @@ export interface PayrollOptions {
   readonly childAllowanceFactor?: ChildAllowanceFactor;
   readonly contributionMonthsYearToDate?: MonthDuration;
   readonly priorBonusGrossYearToDate?: EuroAmount;
+  readonly regularGrossYearToDate?: GrossSalary;
+  readonly expectedRegularAnnualGross?: GrossSalary;
 }
 
 const classCodes: Record<TaxClass, number> = {
@@ -76,7 +80,7 @@ export function payrollInputs(
     KRV: 0,
     ALV: 0,
     PKV: 0,
-    KVZ: p.healthSupplementTotalRate.value * 100,
+    KVZ: (options.healthSupplementTotalRate ?? p.healthSupplementTotalRate.value) * 100,
     PVZ: childlessSurcharge ? 1 : 0,
     PVA: Math.min(p.careMaximumDiscountChildren.value, Math.max(0, qualifyingChildren - 1)),
     PVS: options.saxony ? 1 : 0,

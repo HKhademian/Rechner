@@ -146,7 +146,7 @@ export function computeMonthlySocialSecurity(
   const p = rules.parameters;
   const assessedHealthGross = Math.min(monthlyGross, p.healthCapMonthly.value);
   const assessedPensionGross = Math.min(monthlyGross, p.pensionCapMonthly.value);
-  const healthRate = p.healthEmployeeRate.value + p.healthSupplementTotalRate.value / 2;
+  const healthRate = p.healthEmployeeRate.value + (options.healthSupplementTotalRate ?? p.healthSupplementTotalRate.value) / 2;
   const health = toEuroAmount(assessedHealthGross * healthRate);
   const pensionRate = p.pensionEmployeeRate.value;
   const pension = toEuroAmount(assessedPensionGross * pensionRate);
@@ -234,13 +234,13 @@ export function computeTaxFactor(
   return toTaxFactor(Math.min(1, Math.floor(joint / sumTax * 1000) / 1000));
 }
 
-function computeBonusSocialSecurity(
+export function computeBonusSocialInsurance(
   monthlyGross: GrossSalary,
   bonus: EuroAmount,
   children: number,
   rules: TaxRules,
   options: PayrollOptions,
-): EuroAmount {
+): SocialInsuranceDeductions {
   const months = options.contributionMonthsYearToDate ?? 12;
   if (!Number.isInteger(months) || months < 1 || months > 12) {
     throw new TypeError("Bonus contribution months must be a whole count from 1 to 12.");
@@ -251,13 +251,19 @@ function computeBonusSocialSecurity(
   }
   const p = rules.parameters;
   const rates = computeMonthlySocialSecurity(monthlyGross, children, rules, options);
-  const base = monthlyGross * months + priorBonus;
+  const base = (options.regularGrossYearToDate ?? monthlyGross * months) + priorBonus;
   const assessedHealth = Math.min(p.healthCapMonthly.value * months, base + bonus) - Math.min(p.healthCapMonthly.value * months, base);
   const assessedPension = Math.min(p.pensionCapMonthly.value * months, base + bonus) - Math.min(p.pensionCapMonthly.value * months, base);
-  return toEuroAmount(toEuroAmount(assessedHealth * rates.healthInsuranceRate) +
-    toEuroAmount(assessedHealth * rates.careInsuranceRate) +
-    toEuroAmount(assessedPension * rates.pensionInsuranceRate) +
-    toEuroAmount(assessedPension * rates.unemploymentInsuranceRate));
+  const healthInsurance = toEuroAmount(assessedHealth * rates.healthInsuranceRate);
+  const careInsurance = toEuroAmount(assessedHealth * rates.careInsuranceRate);
+  const pensionInsurance = toEuroAmount(assessedPension * rates.pensionInsuranceRate);
+  const unemploymentInsurance = toEuroAmount(assessedPension * rates.unemploymentInsuranceRate);
+  return { ...rates,
+    healthInsurance,
+    careInsurance,
+    pensionInsurance,
+    unemploymentInsurance,
+    totalSocialSecurity: toEuroAmount(healthInsurance + careInsurance + pensionInsurance + unemploymentInsurance) };
 }
 
 /** Standard public-insurance employee payroll with source-year PAP withholding. */
@@ -276,12 +282,12 @@ export function computeGrossToNetBreakdown(
     throw new TypeError("A payroll bonus cannot be negative.");
   }
   const inputs = payrollInputs(monthlyGross, taxClass, children, rules, options, taxFactor);
-  const annualGross = toGrossSalary(monthlyGross * 12);
+  const annualGross = options.expectedRegularAnnualGross ?? toGrossSalary(monthlyGross * 12);
   const output = calculatePayrollWithholding({ ...inputs,
-    JRE4: Math.round(annualGross * 100),
+    JRE4: Math.round((annualGross + (options.priorBonusGrossYearToDate ?? 0)) * 100),
     SONSTB: Math.round(bonus * 100) }, rules);
   const social = computeMonthlySocialSecurity(monthlyGross, children, rules, options);
-  const bonusSocialSecurity = computeBonusSocialSecurity(monthlyGross, bonus, children, rules, options);
+  const bonusSocialSecurity = computeBonusSocialInsurance(monthlyGross, bonus, children, rules, options).totalSocialSecurity;
   const monthlyWageTax = toEuroAmount(output.LSTLZZ / 100);
   const monthlySolidaritySurcharge = toEuroAmount(output.SOLZLZZ / 100);
   const churchRate = options.churchTaxRate ?? 0;
@@ -327,6 +333,9 @@ export function computeGrossToNetBreakdown(
     oneOffBonusAmount: bonus > 0 ? bonus : undefined,
     bonusTaxDeduction: bonus > 0 ? bonusTax : undefined,
     bonusSocialSecurity,
+    bonusWageTax: toEuroAmount(output.STS / 100),
+    bonusSolidaritySurcharge: toEuroAmount(output.SOLZS / 100),
+    bonusChurchTax: toEuroAmount(output.BKS / 100 * churchRate),
     bonusNetTakeHome: toEuroAmount(monthlyNetTakeHome - regularNetTakeHome),
     monthlyNetTakeHome,
     regularNetTakeHome,
