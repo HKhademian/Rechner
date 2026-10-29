@@ -1,0 +1,92 @@
+import assert from "node:assert/strict";
+import {
+  it,
+} from "node:test";
+import {
+  SalaryInputMode,
+  ScenarioId,
+  TaxClass,
+  TargetPerson,
+  toGrossSalary,
+  toMonthDuration,
+  toSimulationMonth,
+  toCalendarMonth,
+  toFullCalendarYear,
+  toRaiseId,
+  toPercentageRate,
+  toHoursChangeId,
+  toWorkingHours,
+} from "#engine/types";
+import {
+  runScenarioBatches,
+} from "#engine/simulator/timelineGenerator";
+import {
+  computeGrossToNetBreakdown,
+} from "#engine/tax/wageTax";
+import {
+  createTaxRules,
+} from "#engine/tax/taxRules";
+import {
+  standardPreexistingConditions,
+} from "../../../test/fixture/standardHouseholds.ts";
+
+const preexisting = { ...standardPreexistingConditions,
+  simulationDurationMonths: toMonthDuration(13),
+  salaryInputMode: SalaryInputMode.Gross,
+  husbandGross: toGrossSalary(5000),
+  wifeGross: toGrossSalary(3000),
+  husbandInitialTaxClass: TaxClass.I,
+  wifeInitialTaxClass: TaxClass.IV,
+  enable13thSalary: false };
+
+it("recalculates only the targeted gross salary and changed hours through PAP", () => {
+  const result = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    preexisting,
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [{ raiseId: toRaiseId("RAISE-PARITY"),
+      effectiveSimulationMonth: toSimulationMonth(2),
+      effectiveCalendarMonth: toCalendarMonth(2),
+      effectiveCalendarYear: toFullCalendarYear(2026),
+      targetPerson: TargetPerson.Husband,
+      percentageIncrease: toPercentageRate(0.1),
+      reason: "Raise" }],
+    workingHoursChanges: [{ changeId: toHoursChangeId("HOURS-PARITY"),
+      effectiveSimulationMonth: toSimulationMonth(3),
+      effectiveCalendarMonth: toCalendarMonth(3),
+      effectiveCalendarYear: toFullCalendarYear(2026),
+      targetPerson: TargetPerson.Husband,
+      weeklyHours: toWorkingHours(16),
+      reason: "Half the initial 32h" }] });
+  const [first, raised, reduced] = result.months;
+  assert.equal(first.husbandSalary, 3130.09);
+  assert.equal(first.payroll?.husband.monthlyWageTax, 782.41);
+  assert.equal(raised.wifeSalary, first.wifeSalary);
+  assert.equal(raised.payroll?.husband.monthlyGross, 5500);
+  assert.equal(reduced.payroll?.husband.monthlyGross, 2750);
+  assert.equal(raised.husbandSalary, computeGrossToNetBreakdown(toGrossSalary(5500), TaxClass.I).regularNetTakeHome);
+  assert.notEqual(raised.husbandSalary, Math.round(first.husbandSalary * 1.1));
+  assert.equal(result.months[12].payroll?.husband.taxRules.calendarYear, 2027);
+  assert.equal(result.months[12].payroll?.husband.taxRules.projected, true);
+});
+
+it("uses the actual calendar-year profile and keeps manual payroll unavailable", () => {
+  const result = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    preexisting: { ...preexisting,
+      startCalendarYear: toFullCalendarYear(2025) },
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [] });
+  assert.equal(
+    result.months[0].husbandSalary,
+    computeGrossToNetBreakdown(toGrossSalary(5000), TaxClass.I, 0, undefined, undefined, createTaxRules(toFullCalendarYear(2025))).regularNetTakeHome,
+  );
+  assert.equal(result.months[12].husbandSalary, 3130.09);
+  const manual = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    preexisting: standardPreexistingConditions,
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [] });
+  assert.equal(manual.months[0].payroll, undefined);
+  assert.ok(manual.months[0].assumptions?.some((text) => text.includes("Manual net")));
+});

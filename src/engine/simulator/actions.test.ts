@@ -433,11 +433,11 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       }
 
       // Months 13-24: +10% applied
-      // Husband: 3184 * 1.10 = 3502 €
-      // Wife: 1751 * 1.10 = 1926 €
+      // Husband: 3184 * 1.10 = 3502.40 €
+      // Wife: 1751 * 1.10 = 1926.10 €
       for (let m = 13; m <= 24; m++) {
-        assert.equal(res.months[m - 1].husbandSalary, 3502);
-        assert.equal(res.months[m - 1].wifeSalary, 1926);
+        assert.equal(res.months[m - 1].husbandSalary, 3502.4);
+        assert.equal(res.months[m - 1].wifeSalary, 1926.1);
       }
     });
 
@@ -498,7 +498,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       const sumTax = res.summary.totalTaxRefunds;
       const grandTotal = res.summary.grandTotal;
 
-      assert.equal(grandTotal, sumSalaries + sumBenefits + sumTax);
+      assert.equal(grandTotal, toEuroAmount(sumSalaries + sumBenefits + sumTax));
       assert.ok(
         grandTotal > 300000,
         `5-year grand total (${grandTotal} €) must exceed 300.000 €`,
@@ -620,7 +620,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       // Verify Month 25 husband salary has +10% raise
       const m24Husband = res.months[23].husbandSalary;
       const m25Husband = res.months[24].husbandSalary;
-      assert.equal(m25Husband, Math.round(m24Husband * 1.1));
+      assert.equal(m25Husband, toEuroAmount(m24Husband * 1.1));
 
       // Verify Month 52 is Swap 3 active
       assert.equal(res.months[51].isSwapActive, true);

@@ -1,7 +1,9 @@
 import {
   createTaxRules,
+  toAgeYears,
 } from "#engine/tax/taxRules";
 import {
+  type GrossToNetBreakdown,
   type SimulationMonth,
   type CalendarYear,
   type CalendarMonth,
@@ -28,6 +30,7 @@ import {
   type CalendarLabel,
   type MonthDuration,
   type SalaryBonusSlot,
+  SalaryInputMode,
   TaxClass,
   SimulationStrategy,
   TransactionType,
@@ -62,17 +65,17 @@ import {
   toSpecialEventCategory,
 } from "#engine/types";
 import {
-  createTransaction, 
+  createTransaction,
 } from "#engine/ledger/transaction";
 import {
-  buildMonthlyLedgerEntry, 
+  buildMonthlyLedgerEntry,
 } from "#engine/ledger/ledger";
 import {
   computeGrossToNetBreakdown,
   computeMonthlyNetSalary,
 } from "#engine/tax/wageTax";
 import {
-  getDefaultPersistedState, 
+  getDefaultPersistedState,
 } from "#engine/storage/persistence";
 import {
   type ChildYearPresence,
@@ -87,10 +90,10 @@ import {
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import {
-  computeSiblingBonus, 
+  computeSiblingBonus,
 } from "#engine/benefits/siblingBonus";
 import {
-  synthesizeStrategyBatches, 
+  synthesizeStrategyBatches,
 } from "#engine/simulator/strategySynthesizer";
 
 import {
@@ -267,9 +270,31 @@ export function runScenarioBatches(
     readonly monthlyWithholdingDeficit: EuroAmount;
     readonly husbandBaselineNet: EuroAmount;
     readonly wifeBaselineNet: EuroAmount;
+    readonly husbandPayroll?: GrossToNetBreakdown;
+    readonly wifePayroll?: GrossToNetBreakdown;
     readonly transactions: AccountingTransaction[];
   }
 
+  const grossMode = preexisting.salaryInputMode === SalaryInputMode.Gross;
+  if (grossMode && (preexisting.husbandGross === undefined || preexisting.wifeGross === undefined)) {
+    throw new TypeError("Gross-input simulations require both regular monthly gross salaries.");
+  }
+  const compactPayroll = (payroll: GrossToNetBreakdown) => ({
+    monthlyGross: payroll.monthlyGross,
+    regularNetTakeHome: payroll.regularNetTakeHome,
+    monthlyWageTax: payroll.monthlyWageTax,
+    monthlySolidaritySurcharge: payroll.monthlySolidaritySurcharge,
+    monthlyChurchTax: payroll.monthlyChurchTax,
+    healthInsurance: payroll.healthInsurance,
+    pensionInsurance: payroll.pensionInsurance,
+    unemploymentInsurance: payroll.unemploymentInsurance,
+    careInsurance: payroll.careInsurance,
+    totalSocialSecurity: payroll.totalSocialSecurity,
+    taxClass: payroll.taxClass,
+    taxRules: { calendarYear: payroll.taxRules.calendarYear,
+      sourceYear: payroll.taxRules.sourceYear,
+      projected: payroll.taxRules.projected },
+  });
   const rawMonths: RawMonth[] = [];
 
   // Identify Child 1 and Child 2 deliveries for relative notation
@@ -368,12 +393,16 @@ export function runScenarioBatches(
       if (sr.effectiveSimulationMonth <= m) {
         if (sr.percentageIncrease) {
           const factor = 1 + sr.percentageIncrease;
-          curH3Net = toNetSalary(Math.round(curH3Net * factor));
-          curH5Net = toNetSalary(Math.round(curH5Net * factor));
-          curW5FT = toNetSalary(Math.round(curW5FT * factor));
-          curW3FT = toNetSalary(Math.round(curW3FT * factor));
-          curW5PT = toNetSalary(Math.round(curW5PT * factor));
-          curW3PT = toNetSalary(Math.round(curW3PT * factor));
+          if (sr.targetPerson === TargetPerson.Husband || sr.targetPerson === TargetPerson.Both) {
+            curH3Net = toNetSalary(curH3Net * factor);
+            curH5Net = toNetSalary(curH5Net * factor);
+          }
+          if (sr.targetPerson === TargetPerson.Wife || sr.targetPerson === TargetPerson.Both) {
+            curW5FT = toNetSalary(curW5FT * factor);
+            curW3FT = toNetSalary(curW3FT * factor);
+            curW5PT = toNetSalary(curW5PT * factor);
+            curW3PT = toNetSalary(curW3PT * factor);
+          }
         }
         else {
           if (sr.newHusbandClass3Net) {
@@ -419,7 +448,7 @@ export function runScenarioBatches(
           activeHTaxClass = sw.targetHusbandTaxClass;
           activeWTaxClass = sw.targetWifeTaxClass;
           activeUseFactor = sw.targetUseTaxFactor ?? false;
-          if (sw.targetTaxFactor) {
+          if (sw.targetTaxFactor !== undefined) {
             activeTaxFactor = sw.targetTaxFactor;
           }
         }
@@ -460,6 +489,80 @@ export function runScenarioBatches(
       activeUseFactor,
     );
 
+    const rules = grossMode ? createTaxRules(calendarYearNum) : undefined;
+    const livingChildren = toChildrenCount(preexisting.existingChildrenCount + pregnancies.filter(
+      (pregnancy) => m >= pregnancy.calculatedDeliverySimulationMonth,
+    ).length);
+    const raisedGross = (baseline: GrossSalary, person: TargetPerson): GrossSalary => {
+      let gross = baseline;
+      for (const raise of salaryRaises) {
+        if (raise.effectiveSimulationMonth <= m && (raise.targetPerson === person || raise.targetPerson === TargetPerson.Both)) {
+          if (raise.percentageIncrease === undefined) {
+            if (grossMode) {
+              throw new TypeError("Gross-mode raises require a percentage; manual net replacements cannot establish gross payroll.");
+            }
+          }
+          else {
+            gross = toGrossSalary(gross * (1 + raise.percentageIncrease));
+          }
+        }
+      }
+      return gross;
+    };
+    const forHours = (gross: GrossSalary, hours: WorkingHours, baseline: WorkingHours): GrossSalary => {
+      if (baseline === 0 && gross > 0) {
+        throw new TypeError("A positive baseline salary requires positive contractual hours.");
+      }
+      return toGrossSalary(baseline === 0 ? 0 : gross * hours / baseline);
+    };
+    const hGross = raisedGross(preexisting.husbandGross ?? toGrossSalary(0), TargetPerson.Husband);
+    const wGross = raisedGross(preexisting.wifeGross ?? toGrossSalary(0), TargetPerson.Wife);
+    const hAtHours = forHours(hGross, activeHusbandHours, preexisting.husbandWeeklyHours);
+    const wAtHours = (hours: WorkingHours) => forHours(wGross, hours, preexisting.wifeWeeklyHours);
+    const hOptions = { ...preexisting.husbandPayrollOptions,
+      ageAtYearStart: preexisting.husbandPayrollOptions?.ageAtYearStart === undefined ? undefined
+        : toAgeYears(preexisting.husbandPayrollOptions.ageAtYearStart + calendarYearNum - startYear) };
+    const wOptions = { ...preexisting.wifePayrollOptions,
+      ageAtYearStart: preexisting.wifePayrollOptions?.ageAtYearStart === undefined ? undefined
+        : toAgeYears(preexisting.wifePayrollOptions.ageAtYearStart + calendarYearNum - startYear) };
+    const wifePayrollFor = (hours: WorkingHours, taxClass = activeWTaxClass) =>
+      computeGrossToNetBreakdown(
+        wAtHours(hours),
+        taxClass,
+        livingChildren,
+        undefined,
+        activeUseFactor && taxClass === TaxClass.IV ? activeTaxFactor : undefined,
+        rules,
+        wOptions,
+      );
+    let husbandPayroll: GrossToNetBreakdown | undefined;
+    let wifePayroll: GrossToNetBreakdown | undefined;
+    let wifePaidHours = activeWifeHours;
+    if (grossMode) {
+      curH3Net = computeMonthlyNetSalary(hAtHours, TaxClass.III, livingChildren, undefined, undefined, rules, hOptions);
+      curH5Net = computeMonthlyNetSalary(hAtHours, TaxClass.V, livingChildren, undefined, undefined, rules, hOptions);
+      curW3FT = wifePayrollFor(activeWifeHours, TaxClass.III).regularNetTakeHome;
+      curW5FT = wifePayrollFor(activeWifeHours, TaxClass.V).regularNetTakeHome;
+      const partTimeHours = preexisting.wifePostBirthWeeklyHours ?? toWorkingHours(24);
+      curW3PT = wifePayrollFor(partTimeHours, TaxClass.III).regularNetTakeHome;
+      curW5PT = wifePayrollFor(partTimeHours, TaxClass.V).regularNetTakeHome;
+      husbandPayroll = computeGrossToNetBreakdown(
+        hAtHours,
+        activeHTaxClass,
+        livingChildren,
+        undefined,
+        activeUseFactor && activeHTaxClass === TaxClass.IV ? activeTaxFactor : undefined,
+        rules,
+        hOptions,
+      );
+    }
+
+    const requiredManualNet = (net: NetSalary | undefined): NetSalary => {
+      if (net === undefined) {
+        throw new TypeError("Manual-net mode requires an explicit net salary for the selected tax class.");
+      }
+      return net;
+    };
     // Compute husband salary based on active tax class
     let husbandSalaryNum: number;
     if (activeHTaxClass === TaxClass.V) {
@@ -476,10 +579,23 @@ export function runScenarioBatches(
             activeTaxFactor,
             createTaxRules(calendarYearNum),
           )
-          : preexisting.husbandInitialClass4Net || Math.round(curH3Net * 0.88);
+          : preexisting.husbandInitialClass4Net ?? (preexisting.husbandGross === undefined
+            ? requiredManualNet(undefined)
+            : computeMonthlyNetSalary(
+              preexisting.husbandGross,
+              TaxClass.IV,
+              livingChildren,
+              undefined,
+              undefined,
+              rules,
+              hOptions,
+            ));
     }
     else {
-      husbandSalaryNum = curH3Net;
+      husbandSalaryNum = grossMode || activeHTaxClass === TaxClass.III ? curH3Net : requiredManualNet(undefined);
+    }
+    if (husbandPayroll) {
+      husbandSalaryNum = husbandPayroll.regularNetTakeHome;
     }
     let husbandSalary = toEuroAmount(husbandSalaryNum);
 
@@ -499,13 +615,25 @@ export function runScenarioBatches(
             activeTaxFactor,
             createTaxRules(calendarYearNum),
           )
-          : preexisting.wifeInitialClass4FullTimeNet ||
-            Math.round(curW5FT * 1.15);
+          : preexisting.wifeInitialClass4FullTimeNet ?? (preexisting.wifeGross === undefined
+            ? requiredManualNet(undefined)
+            : computeMonthlyNetSalary(
+              preexisting.wifeGross,
+              TaxClass.IV,
+              livingChildren,
+              undefined,
+              undefined,
+              rules,
+              wOptions,
+            ));
     }
     else {
-      wifeFTNetNum = curW5FT;
+      wifeFTNetNum = grossMode || activeWTaxClass === TaxClass.V ? curW5FT : requiredManualNet(undefined);
     }
 
+    if (grossMode) {
+      wifeFTNetNum = wifePayrollFor(activeWifeHours).regularNetTakeHome;
+    }
     let wifeSalary = toEuroAmount(0);
     let mutterschutz = toEuroAmount(0);
     let wifeElterngeld = toEuroAmount(0);
@@ -555,6 +683,7 @@ export function runScenarioBatches(
         if (mutterschutzMonths.includes(m)) {
           inSpecialPhase = true;
           isMutterschutz = true;
+          wifePaidHours = toWorkingHours(0);
           wifeSalary = toEuroAmount(0);
           wifeElterngeld = toEuroAmount(0);
 
@@ -619,6 +748,7 @@ export function runScenarioBatches(
             ? activeWifeHours
             : (preg.motherPostBirthPartTimeHours ?? 24);
           const fatherHours = activeHusbandHours;
+          wifePaidHours = toWorkingHours(motherHours);
 
           const defaultPtHours = preg.motherPostBirthPartTimeHours ?? 24;
           const basePtW5 = preg.motherPostBirthPartTimeClass5Net || curW5PT;
@@ -650,7 +780,11 @@ export function runScenarioBatches(
             dynamicW5PT = Math.round(curW5FT * wifeRatio);
             dynamicW3PT = Math.round(curW3FT * wifeRatio);
           }
-          wifeSalary = toEuroAmount(dynamicW5PT);
+          if (grossMode) {
+            dynamicW5PT = wifePayrollFor(wifePaidHours, TaxClass.V).regularNetTakeHome;
+            dynamicW3PT = wifePayrollFor(wifePaidHours, TaxClass.III).regularNetTakeHome;
+          }
+          wifeSalary = toEuroAmount(grossMode ? wifePayrollFor(wifePaidHours).regularNetTakeHome : dynamicW5PT);
 
           const isMotherEgEligible = isElterngeldHoursEligible(motherHours, benefitRules);
           const isBonusWindow = m >= egBonusStart && m <= egBonusEnd;
@@ -793,6 +927,8 @@ export function runScenarioBatches(
       // If not in active maternity or parental allowance
       if (!inSpecialPhase) {
         if (pregnancies.length > 0 && m > child1Delivery) {
+          wifePaidHours = hasExplicitWifeHoursChange ? activeWifeHours
+            : preexisting.wifePostBirthWeeklyHours ?? pregnancies[pregnancies.length - 1].motherPostBirthPartTimeHours;
           wifeSalary = toEuroAmount(isSwapActive ? curW3PT : curW5PT);
           phaseLabel = isSwapActive
             ? "Swap Active (Part-Time)"
@@ -811,6 +947,11 @@ export function runScenarioBatches(
                 : "Pre-Birth Full-Time";
         }
       }
+    }
+
+    if (grossMode) {
+      wifePayroll = wifePayrollFor(wifePaidHours);
+      wifeSalary = toEuroAmount(wifePayroll.regularNetTakeHome);
     }
 
     // Exact Wage Withholding Deficit during active swap
@@ -854,6 +995,8 @@ export function runScenarioBatches(
       isPartnerschaftsbonus,
       hasSiblingBonus,
       monthlyWithholdingDeficit,
+      husbandPayroll,
+      wifePayroll,
       husbandBaselineNet: toEuroAmount(curH3Net),
       wifeBaselineNet: toEuroAmount(curW5FT),
       transactions,
@@ -1950,7 +2093,12 @@ export function runScenarioBatches(
     runTaxRefunds = nextCumulatedTaxRefunds;
     runTotal = nextCumulatedTotal;
 
-    months.push(entry);
+    months.push({ ...entry,
+      payroll: rm.husbandPayroll && rm.wifePayroll ? { husband: compactPayroll(rm.husbandPayroll),
+        wife: compactPayroll(rm.wifePayroll) } : undefined,
+      assumptions: rm.husbandPayroll && rm.wifePayroll
+        ? [...new Set([...rm.husbandPayroll.assumptions, ...rm.wifePayroll.assumptions])]
+        : ["Manual net salaries do not establish gross earnings, contributions or taxes withheld."] });
   }
 
   // Summary Metrics

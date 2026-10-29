@@ -12,6 +12,9 @@ import {
 import {
   type TaxRules,
 } from "#engine/tax/taxRules";
+import type {
+  PayrollOptions,
+} from "#engine/tax/payroll";
 
 /**
  * Unique symbol discriminators enforcing nominal subtyping hierarchies at compile time.
@@ -1580,6 +1583,10 @@ export interface ActionRowItem {
  * Encapsulates the complete financial snapshot, benefit disbursements, tax withholdings, and running totals for one month.
  */
 export interface MonthlyLedgerEntry {
+  /** Actual modeled withholding; absent when only manual net salaries were supplied. */
+  readonly payroll?: { readonly husband: MonthlyPayrollRecord;
+    readonly wife: MonthlyPayrollRecord };
+  readonly assumptions?: readonly string[];
   /** Absolute calendar month identifier (e.g. 'M09.2027'). */
   readonly monthId: MonthId;
   /** Statutory pregnancy-relative month notation (e.g. 'M9 (Birth 1)'). */
@@ -1713,6 +1720,14 @@ export type ScenarioTimelineResult = SimulationResult;
  * Models statutory income tax (§ 32a EStG), solidarity surcharge (SolzG), social insurance (SGB IV/V/VI/XI),
  * and calculates the clean synthetic net income baseline for Elterngeld under § 2c BEEG.
  */
+/** Compact monthly audit record; annual profiles retain the linked statutory parameters. */
+export type MonthlyPayrollRecord = Pick<GrossToNetBreakdown,
+  "monthlyGross" | "regularNetTakeHome" | "monthlyWageTax" | "monthlySolidaritySurcharge" |
+  "monthlyChurchTax" | "healthInsurance" | "pensionInsurance" | "unemploymentInsurance" |
+  "careInsurance" | "totalSocialSecurity" | "taxClass"> & {
+    readonly taxRules: Pick<TaxRules, "calendarYear" | "sourceYear" | "projected">;
+  };
+
 export interface GrossToNetBreakdown {
   /** Rule year, sources, projection status, and explicitly marked overrides. */
   readonly taxRules: TaxRules;
@@ -1874,6 +1889,8 @@ export interface SpousalGrossToNetSet {
  * Defines the initial state of the household prior to any pregnancy or timeline milestone events.
  */
 export interface PreexistingConditions {
+  readonly husbandPayrollOptions?: PayrollOptions;
+  readonly wifePayrollOptions?: PayrollOptions;
   /** Validated benefit rules; omitted uses the source-linked statutory defaults. */
   readonly benefitRules?: BenefitRules;
   /** 4-digit Gregorian calendar year for simulation start (e.g. 2025). */

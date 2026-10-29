@@ -26,6 +26,8 @@ import {
 const rawExecFileAsync = promisify(execFile);
 const execFileAsync = (cmd: string, args: readonly string[]) =>
   rawExecFileAsync(cmd, args, {
+    // Multi-scenario JSON includes itemized monthly payroll audit records.
+    maxBuffer: 8 * 1024 * 1024,
     env: { ...process.env,
       NODE_ENV: "test",
       SIMULATOR_TEST_MODE: "true" },
