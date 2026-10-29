@@ -602,10 +602,10 @@ function printGrossToNetBreakdown(
     `\n${BOLD}Social Insurance Deductions (Employee Share${isYearly ? ", Annual" : ""}):${RESET}`,
   );
   console.log(
-    `  • ${BOLD}Health Insurance (GKV ${(b.healthInsuranceRate * 100).toFixed(2)}%):${RESET}      ${RED}${formatEuro(b.healthInsurance * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: 5.175 €/mo]${RESET}`,
+    `  • ${BOLD}Health Insurance (GKV ${(b.healthInsuranceRate * 100).toFixed(2)}%):${RESET}      ${RED}${formatEuro(b.healthInsurance * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: ${formatEuro(b.taxRules.parameters.healthCapMonthly.value)}/mo]${RESET}`,
   );
   console.log(
-    `  • ${BOLD}Pension Insurance (GRV ${(b.pensionInsuranceRate * 100).toFixed(2)}%):${RESET}     ${RED}${formatEuro(b.pensionInsurance * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: 7.550 €/mo]${RESET}`,
+    `  • ${BOLD}Pension Insurance (GRV ${(b.pensionInsuranceRate * 100).toFixed(2)}%):${RESET}     ${RED}${formatEuro(b.pensionInsurance * mult).padStart(10)}${RESET}${unit} ${DIM}[BBG ceiling: ${formatEuro(b.taxRules.parameters.pensionCapMonthly.value)}/mo]${RESET}`,
   );
   console.log(
     `  • ${BOLD}Unemployment Insurance (${(b.unemploymentInsuranceRate * 100).toFixed(2)}%):${RESET}  ${RED}${formatEuro(b.unemploymentInsurance * mult).padStart(10)}${RESET}${unit}`,
@@ -643,7 +643,7 @@ function printGrossToNetBreakdown(
       `  ${BOLD}✔ Annual Net Take-Home Pay:${RESET}         ${GREEN}${BOLD}${formatEuro(b.monthlyNetTakeHome * 12)}${RESET} / year (${formatEuro(b.monthlyNetTakeHome)} / month)`,
     );
     console.log(
-      `  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet)}${RESET} / month baseline (${formatEuro(b.elterngeldSyntheticNet * 12)} / year)`,
+      `  ${BOLD}✔ Regular Net Excluding Bonuses:${RESET}  ${CYAN}${BOLD}${formatEuro(b.regularNetTakeHome)}${RESET} / month baseline (${formatEuro(b.regularNetTakeHome * 12)} / year)`,
     );
   }
   else {
@@ -651,11 +651,11 @@ function printGrossToNetBreakdown(
       `  ${BOLD}✔ Monthly Net Take-Home Pay:${RESET}        ${GREEN}${BOLD}${formatEuro(b.monthlyNetTakeHome)}${RESET}`,
     );
     console.log(
-      `  ${BOLD}✔ Elterngeld Synthetic Net (§ 2c):${RESET}  ${CYAN}${BOLD}${formatEuro(b.elterngeldSyntheticNet)}${RESET} ${DIM}(Excludes non-recurrent bonuses)${RESET}`,
+      `  ${BOLD}✔ Regular Net Excluding Bonuses:${RESET}  ${CYAN}${BOLD}${formatEuro(b.regularNetTakeHome)}${RESET} ${DIM}(Excludes non-recurrent bonuses)${RESET}`,
     );
   }
   console.log(
-    `  ${DIM}Effective Tax Rate: ${b.effectiveTaxRatePercent}% · Total Deductions: ${b.effectiveTotalDeductionRatePercent}%${RESET}`,
+    `  ${DIM}Effective Tax Rate: ${(b.effectiveTaxRatePercent * 100).toFixed(1)}% · Total Deductions: ${(b.effectiveTotalDeductionRatePercent * 100).toFixed(1)}%${RESET}`,
   );
   console.log(`  ${DIM}Legal Citation: ${b.statutoryCitation}${RESET}`);
 

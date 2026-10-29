@@ -274,7 +274,8 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Health Insurance (GKV"));
       assert.ok(stdout.includes("Pension Insurance (GRV"));
       assert.ok(stdout.includes("Monthly Net Take-Home Pay:"));
-      assert.ok(stdout.includes("Elterngeld Synthetic Net (§ 2c):"));
+      assert.ok(stdout.includes("Regular Net Excluding Bonuses:"));
+      assert.ok(!stdout.includes("Elterngeld Synthetic Net (§ 2c):"));
     });
 
     it('executes "gross-to-net -g 3000 -c V -b 2000" with Sonstige Bezüge bonus taxation', async () => {

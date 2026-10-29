@@ -68,6 +68,10 @@ Repair the financial engine one independently verified change at a time before f
 
 Statutory numeric values must be configurable, validated, and accompanied by a direct official source URL. Keep default values and source metadata out of calculation bodies; propagate configuration through callers and explanations. Independently specified regression expectations remain literal reference values, not a second copy of production configuration.
 
+## Tax configuration decision (user, 2026-10-29)
+
+Use verified official tax-year profiles with editable personal inputs. Arbitrary hypothetical tariff overrides are outside the product scope. The PAP boundary must reject unsupported tariff overrides instead of silently ignoring them. Expose insurer rate, state, age, qualifying children, church tax and factor through validated personal settings.
+
 ## Per-fix workflow
 
 1. Read the relevant official rule and record the effective year and supported assumptions. Resolve any material input-contract or rounding ambiguity before coding that fix.

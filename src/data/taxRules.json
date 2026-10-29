@@ -191,6 +191,16 @@
         "value": 255,
         "label": "Child benefit monthly",
         "source": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"
+      },
+      "healthDeductibleFraction": {
+        "value": 0.96,
+        "label": "Deductible health share with sickness-benefit entitlement",
+        "source": "https://www.gesetze-im-internet.de/estg/__10.html"
+      },
+      "ageReliefMinimumAge": {
+        "value": 64,
+        "label": "Age-relief minimum completed age at year start",
+        "source": "https://www.gesetze-im-internet.de/estg/__24a.html"
       }
     }
   },
@@ -386,6 +396,16 @@
         "value": 259,
         "label": "Child benefit monthly",
         "source": "https://www.gesetze-im-internet.de/estg/__66.html"
+      },
+      "healthDeductibleFraction": {
+        "value": 0.96,
+        "label": "Deductible health share with sickness-benefit entitlement",
+        "source": "https://www.gesetze-im-internet.de/estg/__10.html"
+      },
+      "ageReliefMinimumAge": {
+        "value": 64,
+        "label": "Age-relief minimum completed age at year start",
+        "source": "https://www.gesetze-im-internet.de/estg/__24a.html"
       }
     }
   }

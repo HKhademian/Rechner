@@ -31,6 +31,13 @@ import {
   DEFAULT_TAX_RULES,
 } from "#engine/tax/taxRules";
 
+import {
+  type PayrollOptions,
+  payrollInputs,
+  calculatePayrollWithholding,
+  annualWithholdingTaxBase,
+} from "#engine/tax/payroll";
+
 /** Select the progression zone from the source-linked annual profile. */
 export function computeWageTaxZone(
   zve: number,
@@ -134,6 +141,7 @@ export function computeMonthlySocialSecurity(
   monthlyGross: GrossSalary,
   childrenCount: number = 0,
   rules: TaxRules = DEFAULT_TAX_RULES,
+  options: PayrollOptions = {},
 ): SocialInsuranceDeductions {
   const p = rules.parameters;
   const assessedHealthGross = Math.min(monthlyGross, p.healthCapMonthly.value);
@@ -144,10 +152,10 @@ export function computeMonthlySocialSecurity(
   const pension = toEuroAmount(assessedPensionGross * pensionRate);
   const unemploymentRate = p.unemploymentEmployeeRate.value;
   const unemployment = toEuroAmount(assessedPensionGross * unemploymentRate);
-  const discount = Math.min(p.careMaximumDiscountChildren.value, Math.max(0, childrenCount - 1)) * p.careChildDiscount.value;
-  const careRate = toPercentageRate(childrenCount === 0
-    ? p.careEmployeeBaseRate.value + p.careChildlessSurcharge.value
-    : p.careEmployeeBaseRate.value - discount);
+  const inputs = payrollInputs(monthlyGross, TaxClass.I, toChildrenCount(childrenCount), rules, options);
+  const careRate = toPercentageRate(p.careEmployeeBaseRate.value +
+    (inputs.PVS ? p.careSaxonyExtraEmployeeRate.value : 0) +
+    (inputs.PVZ ? p.careChildlessSurcharge.value : -(inputs.PVA ?? 0) * p.careChildDiscount.value));
   const care = toEuroAmount(assessedHealthGross * careRate);
 
   const total = health + pension + unemployment + care;
@@ -165,79 +173,27 @@ export function computeMonthlySocialSecurity(
   };
 }
 
-/**
- * Computes estimated annual wage tax for a specific tax class under § 38b EStG.
- * Incorporates standard deductions (Arbeitnehmer-Pauschbetrag €1.230, Sonderausgaben-Pauschbetrag €36, Vorsorgeaufwand).
- *
- * @param annualGross - Projected regular annual gross salary in EUR.
- * @param annualSocialSecurity - Annual social insurance employee deductions in EUR.
- * @param taxClass - German wage tax class.
- * @returns Annual tax amount and approximated taxable income (zvE).
- */
+/** Compatibility API: annual wage withholding comes from PAP, not a share of social deductions. */
 export function computeAnnualWageTaxForClass(
   annualGross: number,
-  annualSocialSecurity: number,
+  _annualSocialSecurity: number,
   taxClass: TaxClass,
   rules: TaxRules = DEFAULT_TAX_RULES,
 ): { annualTax: number;
   approxZvE: number } {
-  const arbeitnehmerPauschbetrag = rules.parameters.workExpenseAllowance.value; // § 9a Nr. 1a EStG
-  const sonderausgabenPauschbetrag = rules.parameters.specialExpenseAllowance.value; // § 10c EStG
-  let approxZvE = Math.max(
-    0,
-    annualGross -
-      arbeitnehmerPauschbetrag -
-      sonderausgabenPauschbetrag -
-      annualSocialSecurity * 0.88,
-  );
-
-  let annualWageTax = 0;
-
-  switch (taxClass) {
-    case TaxClass.I:
-    case TaxClass.IV:
-      annualWageTax = computeAnnualIncomeTax(approxZvE, rules);
-      break;
-    case TaxClass.II:
-      // Relief for single parents (§ 24b EStG: Entlastungsbetrag für Alleinerziehende 4.260 €)
-      approxZvE = Math.max(0, approxZvE - rules.parameters.singleParentRelief.value);
-      annualWageTax = computeAnnualIncomeTax(approxZvE, rules);
-      break;
-    case TaxClass.III:
-      // Tax Class III: Doubled basic allowance / applies splitting formula as sole earner (§ 38b Abs. 1 Nr. 3 EStG)
-      annualWageTax = Math.floor(computeAnnualIncomeTax(approxZvE / 2, rules) * 2);
-      break;
-    case TaxClass.V:
-      // Tax Class V: No basic allowance, higher progressive rate to offset Class III (§ 38b Abs. 1 Nr. 5 EStG)
-      {
-        const baseTax = computeAnnualIncomeTax(approxZvE, rules);
-        const progressiveSurcharge = Math.floor(approxZvE * 0.12);
-        annualWageTax = baseTax + progressiveSurcharge;
-      }
-      break;
-    case TaxClass.VI:
-      // Tax Class VI: Second job, zero basic allowance (§ 38b Abs. 1 Nr. 6 EStG)
-      annualWageTax = Math.floor(computeAnnualIncomeTax(approxZvE + rules.parameters.basicAllowance.value, rules));
-      break;
-  }
-
-  return { annualTax: annualWageTax,
-    approxZvE };
+  const gross = toGrossSalary(annualGross);
+  const inputs = payrollInputs(toGrossSalary(gross / 12), taxClass, toChildrenCount(0), rules);
+  const output = calculatePayrollWithholding({ ...inputs,
+    LZZ: 1,
+    RE4: Math.round(gross * 100) }, rules);
+  return { annualTax: output.LSTLZZ / 100,
+    approxZvE: annualWithholdingTaxBase(inputs, rules, gross) };
 }
 
-/**
- * Calculates differential wage tax assessed on one-off bonus payments (Sonstige Bezüge) under § 39b Abs. 3 EStG.
- * Determines the difference between projected annual wage tax with bonus versus without bonus.
- *
- * @param regularAnnualGross - Regular annual gross salary excluding bonus in EUR.
- * @param regularAnnualSocialSecurity - Regular annual social security deductions in EUR.
- * @param bonusAmount - Gross one-off bonus payment in EUR.
- * @param taxClass - Active wage tax class.
- * @returns Additional differential wage tax deduction in EUR.
- */
+/** Compatibility API for one-off wage tax and solidarity; it never scales regular monthly tax. */
 export function computeSonstigeBezuegeTax(
   regularAnnualGross: number,
-  regularAnnualSocialSecurity: number,
+  _regularAnnualSocialSecurity: number,
   bonusAmount: number,
   taxClass: TaxClass,
   rules: TaxRules = DEFAULT_TAX_RULES,
@@ -245,98 +201,66 @@ export function computeSonstigeBezuegeTax(
   if (bonusAmount <= 0) {
     return 0;
   }
-
-  const baseResult = computeAnnualWageTaxForClass(
-    regularAnnualGross,
-    regularAnnualSocialSecurity,
-    taxClass,
-    rules,
-  );
-  const totalAnnualGross = regularAnnualGross + bonusAmount;
-  const totalResult = computeAnnualWageTaxForClass(
-    totalAnnualGross,
-    regularAnnualSocialSecurity,
-    taxClass,
-    rules,
-  );
-
-  return Math.max(0, totalResult.annualTax - baseResult.annualTax);
+  const inputs = payrollInputs(toGrossSalary(regularAnnualGross / 12), taxClass, toChildrenCount(0), rules);
+  const output = calculatePayrollWithholding({ ...inputs,
+    JRE4: Math.round(regularAnnualGross * 100),
+    SONSTB: Math.round(bonusAmount * 100) }, rules);
+  return toEuroAmount((output.STS + output.SOLZS) / 100);
 }
 
-/**
- * Calculates the statutory income tax factor for married couples under § 39f EStG (Faktorverfahren).
- * Factor F = Projected Joint Tax (Splitting § 32a Abs. 5) / (Husband Tax IV + Wife Tax IV)
- * Rounded to 3 decimal places (0 < F <= 1.000).
- *
- * @param husbandAnnualGross - Husband's projected annual gross earnings in EUR.
- * @param wifeAnnualGross - Wife's projected annual gross earnings in EUR.
- * @param childrenCount - Count of dependent children.
- * @returns Statutory `TaxFactor` ratio.
- */
+/** § 39f uses Y/X, truncated (not rounded) to three decimal places. */
 export function computeTaxFactor(
   husbandAnnualGross: number,
   wifeAnnualGross: number,
   childrenCount: number = 0,
   rules: TaxRules = DEFAULT_TAX_RULES,
 ): TaxFactor {
-  if (husbandAnnualGross <= 0 && wifeAnnualGross <= 0) {
-    return toTaxFactor(1.0);
+  const children = toChildrenCount(childrenCount);
+  const inputsH = payrollInputs(toGrossSalary(husbandAnnualGross / 12), TaxClass.IV, children, rules);
+  const inputsW = payrollInputs(toGrossSalary(wifeAnnualGross / 12), TaxClass.IV, children, rules);
+  const taxH = calculatePayrollWithholding({ ...inputsH,
+    LZZ: 1,
+    RE4: Math.round(husbandAnnualGross * 100) }, rules).LSTLZZ;
+  const taxW = calculatePayrollWithholding({ ...inputsW,
+    LZZ: 1,
+    RE4: Math.round(wifeAnnualGross * 100) }, rules).LSTLZZ;
+  const sumTax = (taxH + taxW) / 100;
+  if (sumTax <= 0) {
+    return toTaxFactor(1);
   }
-
-  const hMonthlyGross = toGrossSalary(
-    Math.max(0, Math.round(husbandAnnualGross / 12)),
-  );
-  const wMonthlyGross = toGrossSalary(
-    Math.max(0, Math.round(wifeAnnualGross / 12)),
-  );
-
-  const hSocial =
-    computeMonthlySocialSecurity(hMonthlyGross, childrenCount, rules)
-      .totalSocialSecurity * 12;
-  const wSocial =
-    computeMonthlySocialSecurity(wMonthlyGross, childrenCount, rules)
-      .totalSocialSecurity * 12;
-
-  const hTax4 = computeAnnualWageTaxForClass(
-    husbandAnnualGross,
-    hSocial,
-    TaxClass.IV,
-    rules,
-  );
-  const wTax4 = computeAnnualWageTaxForClass(
-    wifeAnnualGross,
-    wSocial,
-    TaxClass.IV,
-    rules,
-  );
-
-  const sumTax4 = hTax4.annualTax + wTax4.annualTax;
-  if (sumTax4 <= 0) {
-    return toTaxFactor(1.0);
-  }
-
-  const combinedZvE = hTax4.approxZvE + wTax4.approxZvE;
-  const jointTax = Math.floor(computeAnnualIncomeTax(combinedZvE / 2, rules) * 2);
-
-  const factor = Math.min(
-    1.0,
-    Math.max(0.001, Math.round((jointTax / sumTax4) * 1000) / 1000),
-  );
-  return toTaxFactor(factor);
+  const taxableH = annualWithholdingTaxBase(inputsH, rules, toGrossSalary(husbandAnnualGross));
+  const taxableW = annualWithholdingTaxBase(inputsW, rules, toGrossSalary(wifeAnnualGross));
+  const joint = computeAnnualIncomeTax((taxableH + taxableW) / 2, rules) * 2;
+  return toTaxFactor(Math.min(1, Math.floor(joint / sumTax * 1000) / 1000));
 }
 
-/**
- * Comprehensive Itemized German Gross-to-Net Payroll & Statutory Tax Breakdown.
- * Computes social security deductions, wage taxes under § 38b/§ 39f EStG, one-off bonus taxes (§ 39b Abs. 3),
- * actual net take-home pay, and the clean synthetic net baseline for Elterngeld under § 2c BEEG.
- *
- * @param monthlyGross - Monthly gross employment compensation in EUR.
- * @param taxClass - Active German wage tax class.
- * @param childrenCount - Count of dependent children (for nursing care insurance rate).
- * @param oneOffBonus - Optional one-off special bonus payment in EUR.
- * @param taxFactor - Optional § 39f EStG factor ratio for Tax Class IV.
- * @returns Complete `GrossToNetBreakdown` specification.
- */
+function computeBonusSocialSecurity(
+  monthlyGross: GrossSalary,
+  bonus: EuroAmount,
+  children: number,
+  rules: TaxRules,
+  options: PayrollOptions,
+): EuroAmount {
+  const months = options.contributionMonthsYearToDate ?? 12;
+  if (!Number.isInteger(months) || months < 1 || months > 12) {
+    throw new TypeError("Bonus contribution months must be a whole count from 1 to 12.");
+  }
+  const priorBonus = options.priorBonusGrossYearToDate ?? 0;
+  if (priorBonus < 0 || bonus < 0) {
+    throw new TypeError("Bonus gross and prior bonus gross cannot be negative.");
+  }
+  const p = rules.parameters;
+  const rates = computeMonthlySocialSecurity(monthlyGross, children, rules, options);
+  const base = monthlyGross * months + priorBonus;
+  const assessedHealth = Math.min(p.healthCapMonthly.value * months, base + bonus) - Math.min(p.healthCapMonthly.value * months, base);
+  const assessedPension = Math.min(p.pensionCapMonthly.value * months, base + bonus) - Math.min(p.pensionCapMonthly.value * months, base);
+  return toEuroAmount(toEuroAmount(assessedHealth * rates.healthInsuranceRate) +
+    toEuroAmount(assessedHealth * rates.careInsuranceRate) +
+    toEuroAmount(assessedPension * rates.pensionInsuranceRate) +
+    toEuroAmount(assessedPension * rates.unemploymentInsuranceRate));
+}
+
+/** Standard public-insurance employee payroll with source-year PAP withholding. */
 export function computeGrossToNetBreakdown(
   monthlyGross: GrossSalary,
   taxClass: TaxClass,
@@ -344,120 +268,77 @@ export function computeGrossToNetBreakdown(
   oneOffBonus?: EuroAmount,
   taxFactor?: TaxFactor,
   rules: TaxRules = DEFAULT_TAX_RULES,
+  options: PayrollOptions = {},
 ): GrossToNetBreakdown {
-  const bonus = oneOffBonus ?? 0;
-  const annualGross = monthlyGross * 12;
-
-  const social = computeMonthlySocialSecurity(monthlyGross, childrenCount, rules);
-  const annualSocial = social.totalSocialSecurity * 12;
-
-  const { annualTax: baseAnnualTax, approxZvE } = computeAnnualWageTaxForClass(
-    annualGross,
-    annualSocial,
-    taxClass,
-    rules,
-  );
-
-  // Apply § 39f EStG Factor when Tax Class IV and factor is supplied
-  const effectiveAnnualTax =
-    taxClass === TaxClass.IV &&
-    taxFactor !== undefined &&
-    taxFactor > 0 &&
-    taxFactor <= 1.0
-      ? Math.floor(baseAnnualTax * taxFactor)
-      : baseAnnualTax;
-
-  const monthlyWageTax = Math.round(effectiveAnnualTax / 12);
-  const annualSolz = computeSolidaritySurcharge(
-    toEuroAmount(effectiveAnnualTax),
-    taxClass === TaxClass.III ||
-      taxClass === TaxClass.IV ||
-      taxClass === TaxClass.V,
-    rules,
-  );
-  const monthlySolz = Math.round(annualSolz / 12);
-
-  // Bonus Differential Tax (§ 39b Abs. 3 EStG)
-  const bonusTax =
-    bonus > 0
-      ? computeSonstigeBezuegeTax(annualGross, annualSocial, bonus, taxClass, rules)
-      : 0;
-
-  const totalMonthlyTax = monthlyWageTax + monthlySolz + bonusTax;
-  const totalDeductions = social.totalSocialSecurity + totalMonthlyTax;
-  const totalGrossWithBonus = monthlyGross + bonus;
-  const takeHomeNet = Math.max(0, totalGrossWithBonus - totalDeductions);
-
-  // Clean Synthetic Net for Elterngeld (§ 2c BEEG - Excludes Non-Recurrent Bonuses)
-  const regularNetTakeHome = Math.max(
-    0,
-    monthlyGross - social.totalSocialSecurity - monthlyWageTax - monthlySolz,
-  );
-  const elterngeldSyntheticNet = toNetSalary(regularNetTakeHome);
-
-  const effectiveTaxRate =
-    totalGrossWithBonus > 0 ? (totalMonthlyTax / totalGrossWithBonus) * 100 : 0;
-  const effectiveTotalDeductionRate =
-    totalGrossWithBonus > 0 ? (totalDeductions / totalGrossWithBonus) * 100 : 0;
-
+  const children = toChildrenCount(childrenCount);
+  const bonus = oneOffBonus ?? toEuroAmount(0);
+  if (bonus < 0) {
+    throw new TypeError("A payroll bonus cannot be negative.");
+  }
+  const inputs = payrollInputs(monthlyGross, taxClass, children, rules, options, taxFactor);
+  const annualGross = toGrossSalary(monthlyGross * 12);
+  const output = calculatePayrollWithholding({ ...inputs,
+    JRE4: Math.round(annualGross * 100),
+    SONSTB: Math.round(bonus * 100) }, rules);
+  const social = computeMonthlySocialSecurity(monthlyGross, children, rules, options);
+  const bonusSocialSecurity = computeBonusSocialSecurity(monthlyGross, bonus, children, rules, options);
+  const monthlyWageTax = toEuroAmount(output.LSTLZZ / 100);
+  const monthlySolidaritySurcharge = toEuroAmount(output.SOLZLZZ / 100);
+  const churchRate = options.churchTaxRate ?? 0;
+  const monthlyChurchTax = toEuroAmount(output.BK / 100 * churchRate);
+  const bonusTax = toEuroAmount((output.STS + output.SOLZS) / 100 + toEuroAmount(output.BKS / 100 * churchRate));
+  const totalTaxWithholding = toEuroAmount(monthlyWageTax + monthlySolidaritySurcharge + monthlyChurchTax + bonusTax);
+  const totalGross = toEuroAmount(monthlyGross + bonus);
+  const monthlyNetTakeHome = toNetSalary(Math.max(0, totalGross - social.totalSocialSecurity - bonusSocialSecurity - totalTaxWithholding));
+  const regularNetTakeHome = toNetSalary(Math.max(0, monthlyGross - social.totalSocialSecurity - monthlyWageTax - monthlySolidaritySurcharge - monthlyChurchTax));
+  const wageTaxBase = annualWithholdingTaxBase(inputs, rules);
+  const assumptions: string[] = [];
+  if (options.ageAtYearStart === undefined) {
+    assumptions.push("Age unspecified: adult childless surcharge applies where relevant; no age relief is applied.");
+  }
+  if (children > 0 && options.childrenUnder25 === undefined) {
+    assumptions.push("All supplied children are assumed to qualify for the care-insurance age discount.");
+  }
+  if (bonus > 0 && options.contributionMonthsYearToDate === undefined) {
+    assumptions.push("Bonus contributions assume twelve contribution months and no prior bonuses unless supplied.");
+  }
+  if (rules.projected) {
+    assumptions.push(`Published ${rules.sourceYear} payroll rules are projected to ${rules.calendarYear}.`);
+  }
   return {
     monthlyGross,
+    annualGross,
     taxRules: rules,
-    annualGross: toGrossSalary(annualGross),
     taxClass,
-    childrenCount: toChildrenCount(childrenCount),
-    healthInsurance: social.healthInsurance,
+    childrenCount: children,
+    ...social,
     healthInsuranceRate: toPercentageRate(social.healthInsuranceRate),
-    pensionInsurance: social.pensionInsurance,
     pensionInsuranceRate: toPercentageRate(social.pensionInsuranceRate),
-    unemploymentInsurance: social.unemploymentInsurance,
-    unemploymentInsuranceRate: toPercentageRate(
-      social.unemploymentInsuranceRate,
-    ),
-    careInsurance: social.careInsurance,
+    unemploymentInsuranceRate: toPercentageRate(social.unemploymentInsuranceRate),
     careInsuranceRate: toPercentageRate(social.careInsuranceRate),
-    totalSocialSecurity: social.totalSocialSecurity,
-    taxableIncomeZvE: toEuroAmount(Math.round(approxZvE / 12)),
-    wageTaxZone: computeWageTaxZone(approxZvE, rules),
-    monthlyWageTax: toEuroAmount(monthlyWageTax),
-    monthlySolidaritySurcharge: toEuroAmount(monthlySolz),
-    totalTaxWithholding: toEuroAmount(totalMonthlyTax),
-    taxFactor:
-      taxFactor !== undefined
-        ? typeof taxFactor === "number"
-          ? toTaxFactor(taxFactor)
-          : taxFactor
-        : undefined,
-    oneOffBonusAmount: bonus > 0 ? toEuroAmount(bonus) : undefined,
-    bonusTaxDeduction: bonus > 0 ? toEuroAmount(bonusTax) : undefined,
-    monthlyNetTakeHome: toNetSalary(takeHomeNet),
-    elterngeldSyntheticNet,
-    effectiveTaxRatePercent: toPercentageRate(
-      Math.round(effectiveTaxRate * 10) / 10,
-    ),
-    effectiveTotalDeductionRatePercent: toPercentageRate(
-      Math.round(effectiveTotalDeductionRate * 10) / 10,
-    ),
-    statutoryCitation: toStatutoryCitation(
-      bonus > 0
-        ? "EStG § 38b (Lohnsteuer), § 39b Abs. 3 (Sonstige Bezüge) & BEEG § 2c"
-        : taxClass === TaxClass.IV && taxFactor !== undefined
-          ? "EStG § 39f (Faktorverfahren) & § 38b (Lohnsteuerabzug)"
-          : "EStG § 38b (Lohnsteuerabzug) & § 32a (Tarif)",
-    ),
+    taxableIncomeZvE: toEuroAmount(wageTaxBase / 12),
+    annualWithholdingTaxBase: wageTaxBase,
+    wageTaxZone: computeWageTaxZone(taxClass === TaxClass.III ? wageTaxBase / 2 : wageTaxBase, rules),
+    monthlyWageTax,
+    monthlySolidaritySurcharge,
+    monthlyChurchTax,
+    totalTaxWithholding,
+    taxFactor,
+    oneOffBonusAmount: bonus > 0 ? bonus : undefined,
+    bonusTaxDeduction: bonus > 0 ? bonusTax : undefined,
+    bonusSocialSecurity,
+    bonusNetTakeHome: toEuroAmount(monthlyNetTakeHome - regularNetTakeHome),
+    monthlyNetTakeHome,
+    regularNetTakeHome,
+    // Kept for serialized compatibility; this is payroll net, not BEEG standardized net.
+    elterngeldSyntheticNet: regularNetTakeHome,
+    effectiveTaxRatePercent: toPercentageRate(totalGross > 0 ? totalTaxWithholding / totalGross : 0),
+    effectiveTotalDeductionRatePercent: toPercentageRate(totalGross > 0 ? (totalTaxWithholding + social.totalSocialSecurity + bonusSocialSecurity) / totalGross : 0),
+    assumptions,
+    statutoryCitation: toStatutoryCitation("EStG § 39b (BMF PAP), § 39f & SGB V/VI/III/XI"),
   };
 }
 
-/**
- * Computes monthly net take-home salary for a given gross salary and tax class under § 38b EStG.
- *
- * @param monthlyGross - Monthly gross salary in EUR.
- * @param taxClass - German wage tax class.
- * @param childrenCount - Count of dependent children.
- * @param oneOffBonus - Optional one-off bonus payment.
- * @param taxFactor - Optional § 39f EStG factor ratio.
- * @returns Monthly post-withholding `NetSalary`.
- */
 export function computeMonthlyNetSalary(
   monthlyGross: GrossSalary,
   taxClass: TaxClass,
@@ -465,16 +346,9 @@ export function computeMonthlyNetSalary(
   oneOffBonus?: EuroAmount,
   taxFactor?: TaxFactor,
   rules: TaxRules = DEFAULT_TAX_RULES,
+  options: PayrollOptions = {},
 ): NetSalary {
-  const breakdown = computeGrossToNetBreakdown(
-    monthlyGross,
-    taxClass,
-    childrenCount,
-    oneOffBonus,
-    taxFactor,
-    rules,
-  );
-  return breakdown.monthlyNetTakeHome;
+  return computeGrossToNetBreakdown(monthlyGross, taxClass, childrenCount, oneOffBonus, taxFactor, rules, options).monthlyNetTakeHome;
 }
 
 /**

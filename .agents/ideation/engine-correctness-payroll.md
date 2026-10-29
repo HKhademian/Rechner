@@ -8,10 +8,10 @@ todos:
     status: completed
   - id: payroll-calculation
     content: "Fix 6 - replace payroll approximations with verified calculations"
-    status: in_progress
+    status: completed
   - id: working-periods
     content: "Fix 7 - apply active working months and bonus schedules"
-    status: pending
+    status: in_progress
   - id: shared-payroll
     content: "Fix 8 - use one payroll engine across calculator, simulator, and CLI"
     status: pending
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: payroll foundation
 
 ## Done
+
+- 2026-10-29: replaced withholding approximations with pinned offline PAP 1.0.7. Eighteen independent 2026 BMF API fixtures, six published annual examples across 2025/2026, and domain adapter/conservation cases pass (30 focused payroll tests). Bonus contributions respect YTD caps; care age/state inputs and church tax are modeled; factor uses PAP wage-tax bases. Full quality check and production build pass. Regular payroll net is no longer presented as BEEG synthetic net. User selected verified profiles plus editable personal inputs, not hypothetical tariffs; unsupported PAP overrides fail explicitly.
 
 - 2026-10-29: factor constructors/guards accept zero and truncate to three decimals under EStG section 39f; focused constructor tests and the full working-tree quality check pass. PAP application is the following atomic change.
 
@@ -40,14 +42,6 @@ Establish reliable payroll inputs for the later assessment and annual reconcilia
 - Orchestrator: [master plan](./engine-correctness-master.md), wave 2; shared constraints apply.
 - Prerequisite: [benefits](./engine-correctness-benefits.md). Next: [assessment and reconciliation](./engine-correctness-assessment.md).
 - Read `src/engine/tax/wageTax.ts`, `src/engine/types.ts`, `src/store/calculatorStore.ts`, `src/store/taxConfigStore.ts`, `src/store/elterngeldStore.ts`, `src/cli/runner.ts`, and `src/data/defaultTaxConfig.json`.
-
-## Fix 6 - payroll-calculation
-
-**Depends on:** annual-rules.
-**Files:** modify `src/engine/tax/wageTax.ts` or extract a focused payroll implementation and tests; update `src/engine/types.ts` where new validated inputs are required. Change dependencies only when the selected implementation needs them.
-**Actions:** validate or replace the class-V surcharge, class-VI allowance shortcut, deduction ratios, solidarity logic, contribution rates, and whole-euro rounding against the BMF PAP and separate official social-insurance rules. Choose a source-traceable PAP implementation or a verified maintained adapter before coding it. The locally installed `lohnsteuer` 1.0.0 exposes only 2014-2019 in `lib/years/yearInfo.js`; it is not a 2026 implementation. Keep wage withholding, annual income tax, and BEEG synthetic net as separate contracts. Add only inputs necessary for the supported payroll cases (state/Saxony, insurance surcharge, age/qualifying children, church tax/factor as applicable); explicitly identify cases still unsupported.
-**Acceptance:** independent fixtures cover tax classes I-VI, IV factor, cap boundaries, solidarity mitigation, child contributions, church tax, and regular versus one-off pay. Record each source, year, input, output, and exact rounding/tolerance; no broad arbitrary tolerance. Net plus itemized deductions conserves gross at the defined currency precision. BMF fixtures validate withholding; social contributions have their own reference fixtures.
-**Verify:** tax unit/granular/profile tests and targeted scenario checks, then the shared commit gate. Split source data, dependency changes, and algorithm work into prerequisite atomic commits if necessary.
 
 ## Fix 7 - working-periods
 

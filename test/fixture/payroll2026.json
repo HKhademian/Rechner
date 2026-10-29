@@ -1,0 +1,497 @@
+[
+  {
+    "name": "monthly-class-1",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 78241,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "monthly-class-2",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 2,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=2&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 66450,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3003600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "monthly-class-3",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=3&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 40183,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "monthly-class-4",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 4,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=4&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 78241,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "monthly-class-5",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 5,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=5&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 128033,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "monthly-class-6",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 6,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=6&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 132458,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 0,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3556200,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "IV-factor",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 4,
+      "KVZ": 2.9,
+      "PVZ": 1,
+      "af": 1,
+      "f": 0.83
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=4&KVZ=2.9&PVZ=1&af=1&f=0.83",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 64933,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "Saxony-two-children",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 650000,
+      "STKL": 4,
+      "KVZ": 2.9,
+      "PVZ": 0,
+      "PVS": 1,
+      "PVA": 1,
+      "ZKF": 1,
+      "R": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=650000&STKL=4&KVZ=2.9&PVZ=0&PVS=1&PVA=1&ZKF=1&R=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 109958,
+      "BKS": 0,
+      "LSTLZZ": 125608,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 4980800,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "bonus-payment",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 500000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1,
+      "JRE4": 6000000,
+      "SONSTB": 100000,
+      "R": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=500000&STKL=1&KVZ=2.9&PVZ=1&JRE4=6000000&SONSTB=100000&R=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 78241,
+      "BKS": 27200,
+      "LSTLZZ": 78241,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 27200,
+      "VFRB": 123000,
+      "VFRBS1": 123000,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 3429600,
+      "WVFRBM": 3509400
+    }
+  },
+  {
+    "name": "solidarity-high-pay",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 1200000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=1200000&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 347275,
+      "SOLZLZZ": 19100,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 11338700,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "health-cap",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 581250,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=581250&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 101141,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 4208100,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "pension-cap",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 845000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=845000&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 198175,
+      "SOLZLZZ": 3402,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 7078700,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "annual-BMF-table-30000",
+    "inputs": {
+      "LZZ": 1,
+      "RE4": 3000000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=1&RE4=3000000&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 224800,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 1034100,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "annual-BMF-table-60000",
+    "inputs": {
+      "LZZ": 1,
+      "RE4": 6000000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=1&RE4=6000000&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 938900,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 3429600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "annual-BMF-table-90000",
+    "inputs": {
+      "LZZ": 1,
+      "RE4": 9000000,
+      "STKL": 1,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=1&RE4=9000000&STKL=1&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 1943800,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 6044800,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "annual-husband",
+    "inputs": {
+      "LZZ": 1,
+      "RE4": 8400000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=1&RE4=8400000&STKL=3&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 1055400,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 5500600,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "annual-wife-birth-year",
+    "inputs": {
+      "LZZ": 1,
+      "RE4": 4599600,
+      "STKL": 5,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=1&RE4=4599600&STKL=5&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 1066700,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 2311300,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "annual-wife-part-time",
+    "inputs": {
+      "LZZ": 1,
+      "RE4": 3600000,
+      "STKL": 5,
+      "KVZ": 2.9,
+      "PVZ": 1
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=1&RE4=3600000&STKL=5&KVZ=2.9&PVZ=1",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 750800,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 1513200,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  }
+]

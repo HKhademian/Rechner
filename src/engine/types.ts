@@ -1746,7 +1746,7 @@ export interface GrossToNetBreakdown {
   readonly totalSocialSecurity: EuroAmount;
 
   // Statutory Wage Taxes (§§ 32a, 38b EStG, SolzG)
-  /** Estimated annual taxable income (zu versteuerndes Einkommen - ZvE) in EUR. */
+  /** Monthly equivalent of the PAP withholding tax base; not an annual tax-return assessment. */
   readonly taxableIncomeZvE: EuroAmount;
   /** Statutory income tax tariff progression zone under § 32a Abs. 1 EStG. */
   readonly wageTaxZone: WageTaxZone;
@@ -1754,6 +1754,8 @@ export interface GrossToNetBreakdown {
   readonly monthlyWageTax: EuroAmount;
   /** Monthly solidarity surcharge withholding deduction under SolzG 1995 in EUR. */
   readonly monthlySolidaritySurcharge: EuroAmount;
+  readonly monthlyChurchTax: EuroAmount;
+  readonly annualWithholdingTaxBase: EuroAmount;
   /** Total monthly statutory tax withholding deduction in EUR (wage tax + solidarity surcharge). */
   readonly totalTaxWithholding: EuroAmount;
   /** Statutory income tax factor under § 39f EStG (Faktorverfahren) if applied. */
@@ -1764,12 +1766,16 @@ export interface GrossToNetBreakdown {
   readonly oneOffBonusAmount?: EuroAmount;
   /** Additional differential wage tax deduction assessed on the one-off bonus payment in EUR. */
   readonly bonusTaxDeduction?: EuroAmount;
+  readonly bonusSocialSecurity: EuroAmount;
+  readonly bonusNetTakeHome: EuroAmount;
 
   // Final Net Take-Home & Elterngeld Synthetic Net
   /** Actual post-withholding monthly take-home net salary in EUR. */
   readonly monthlyNetTakeHome: NetSalary;
-  /** Statutory clean synthetic net salary under § 2c BEEG (excludes non-recurrent bonuses and severance). */
+  /** @deprecated Compatibility alias for regular payroll net, not a BEEG assessment. */
   readonly elterngeldSyntheticNet: NetSalary;
+  readonly regularNetTakeHome: NetSalary;
+  readonly assumptions: readonly string[];
   /** Effective monthly income tax withholding rate as a percentage of gross. */
   readonly effectiveTaxRatePercent: PercentageRate;
   /** Effective total statutory deduction rate (taxes + social insurance) as a percentage of gross. */

@@ -54,6 +54,8 @@ const constructors = {
   healthCapMonthly: money,
   pensionCapMonthly: money,
   healthEmployeeRate: fraction,
+  healthDeductibleFraction: fraction,
+  ageReliefMinimumAge: toAgeYears,
   healthSupplementTotalRate: fraction,
   pensionEmployeeRate: fraction,
   unemploymentEmployeeRate: fraction,
