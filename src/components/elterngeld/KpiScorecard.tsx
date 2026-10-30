@@ -60,6 +60,7 @@ export default function KpiScorecard(): JSX.Element {
       <div className="glass-panel" style={{ gridColumn: "1 / -1",
         padding: "16px" }}>
         <strong>{current.benefitsComplete ? "Benefits modeled under the stated assumptions" : "Incomplete benefit calculation"}</strong>
+        {current.payrollComplete === false && <p>Payroll amounts include supplied values or provisional estimates. Review the calculation assumptions.</p>}
         {!current.benefitsComplete && <p>Displayed totals omit unavailable benefit payments and are a partial modeled cash flow.</p>}
         {(current.unavailableReasons ?? []).map((reason) => <p key={reason}>{reason}</p>)}
         <details>

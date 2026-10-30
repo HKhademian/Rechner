@@ -299,6 +299,7 @@ export function runScenarioBatches(
   }
   const compactPayroll = (payroll: GrossToNetBreakdown, bonuses: readonly BonusPayrollRecord[]) => ({
     bonuses,
+    payrollLimitations: payroll.payrollLimitations,
     monthlyGross: payroll.monthlyGross,
     regularNetTakeHome: payroll.regularNetTakeHome,
     monthlyWageTax: payroll.monthlyWageTax,
@@ -717,6 +718,7 @@ export function runScenarioBatches(
       const parameters = base.taxRules.parameters;
       const personal = husband ? preexisting.husbandPayrollOptions : preexisting.wifePayrollOptions;
       const options = { ...personal,
+        expectedMonthlyEmploymentGross: base.expectedMonthlyEmploymentGross,
         ageAtYearStart: personal?.ageAtYearStart === undefined ? undefined
           : toAgeYears(personal.ageAtYearStart + rm.calendarYearNum - startYear),
         childrenUnder25: personal?.childrenUnder25 === undefined ? undefined
@@ -741,6 +743,7 @@ export function runScenarioBatches(
       );
       const social = computeBonusSocialInsurance(base.monthlyGross, gross, base.childrenCount, base.taxRules, options);
       const record: BonusPayrollRecord = { gross,
+        payrollLimitations: payroll.payrollLimitations,
         net: payroll.bonusNetTakeHome,
         wageTax: payroll.bonusWageTax,
         solidarity: payroll.bonusSolidaritySurcharge,
@@ -1603,11 +1606,17 @@ export function runScenarioBatches(
   return {
     scenarioKey,
     months,
+    payrollComplete: grossMode && months.every((month) => month.payroll !== undefined &&
+      [month.payroll.husband, month.payroll.wife].every((payroll) => payroll.payrollLimitations.length === 0 &&
+        (payroll.bonuses ?? []).every((bonus) => (bonus.payrollLimitations ?? []).length === 0))),
     benefitAssessments: allowanceSchedule.assessments,
     benefitsComplete: allowanceSchedule.complete,
     unavailableReasons: allowanceSchedule.unavailableReasons,
     assumptions: [...new Set([
       ...allowanceSchedule.assumptions,
+      ...months.flatMap((month) => month.assumptions ?? []),
+      ...months.flatMap((month) => [month.payroll?.husband, month.payroll?.wife].flatMap((payroll) =>
+        (payroll?.bonuses ?? []).flatMap((bonus) => (bonus.payrollLimitations ?? []).map((reason) => `Payroll estimate: ${reason}`)))),
       ...incomeSchedule.slice(0, duration).flatMap((month) => month.assumptions),
       ...Object.values(conventions).map((convention) => `${convention.label}: ${convention.value} calendar months (planning assumption). ${convention.statutoryContext}`),
     ])],

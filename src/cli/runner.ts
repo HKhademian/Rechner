@@ -1324,6 +1324,7 @@ function printSummaryScorecard(
 ) {
   for (const result of [resA, resB, resC]) {
     console.log(`Scenario ${result.scenarioKey}: ${result.benefitsComplete ? "benefit calculation available under stated assumptions" : "incomplete benefit calculation; totals omit unavailable payments"}`);
+    console.log(`  Payroll: ${result.payrollComplete ? "available under stated assumptions" : "supplied values or provisional estimates; review assumptions"}`);
     for (const reason of result.unavailableReasons ?? []) {
       console.log(`  Unavailable: ${reason}`);
     }

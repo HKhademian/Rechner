@@ -1719,6 +1719,7 @@ export interface BenefitPaymentAudit {
 }
 
 export interface SimulationResult {
+  readonly payrollComplete?: boolean;
   /** Availability under the disclosed calendar/household assumptions, not legal certification. */
   readonly benefitsComplete?: boolean;
   readonly benefitAssessments?: readonly BenefitAssessmentAudit[];
@@ -1766,12 +1767,13 @@ export type ScenarioTimelineResult = SimulationResult;
 export type MonthlyPayrollRecord = Pick<GrossToNetBreakdown,
   "monthlyGross" | "regularNetTakeHome" | "monthlyWageTax" | "monthlySolidaritySurcharge" |
   "monthlyChurchTax" | "healthInsurance" | "pensionInsurance" | "unemploymentInsurance" |
-  "careInsurance" | "totalSocialSecurity" | "taxClass"> & {
+  "careInsurance" | "totalSocialSecurity" | "taxClass" | "payrollLimitations"> & {
     readonly taxRules: Pick<TaxRules, "calendarYear" | "sourceYear" | "projected">;
     readonly bonuses?: readonly BonusPayrollRecord[];
   };
 
 export interface BonusPayrollRecord {
+  readonly payrollLimitations?: readonly string[];
   readonly gross: EuroAmount;
   readonly net: EuroAmount;
   readonly wageTax: EuroAmount;

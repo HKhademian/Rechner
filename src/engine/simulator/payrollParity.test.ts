@@ -117,3 +117,15 @@ it("pays sourced differential-tax bonuses once and retains their itemized payrol
   assert.equal(vacation.specialEvents.filter((event) => event.title.includes("Husband")).length, 1);
   assert.equal(christmas.husbandBonusAmount, second.net);
 });
+
+it("preserves payroll limitations in simulator metadata and disclosed assumptions", () => {
+  const result = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    preexisting: { ...preexisting,
+      husbandGross: toGrossSalary(500) },
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [] });
+  assert.equal(result.payrollComplete, false);
+  assert.match(result.months[0].payroll?.husband.payrollLimitations[0] ?? "", /Marginal employment/);
+  assert.ok(result.assumptions?.some((note) => note.includes("Payroll estimate: Marginal employment")));
+});
