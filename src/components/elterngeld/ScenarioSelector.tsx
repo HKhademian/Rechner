@@ -3,10 +3,13 @@ import type {
 } from "preact";
 import {
   activeScenario,
-  comparisonMetrics,
+  scenarioAData,
+  scenarioBData,
+  scenarioCData,
   openExportImportModal,
 } from "#store/elterngeldStore";
 import {
+  type SimulationResult,
   ActiveScenarioView, 
 } from "#engine/types";
 import {
@@ -31,80 +34,67 @@ interface ScenarioCardItem {
   title: string;
   /** Secondary subtitle describing scenario strategy. */
   subtitle: string;
-  /** Promotional badge text (e.g. 'Recommended'). */
+  /** Scenario identifier or comparison mode. */
   badge: string;
   /** CSS styling variant for badge. */
   badgeClass: string;
   /** Short scenario summary description. */
   description: string;
-  /** Key strategic highlight bullet points. */
+  /** Current modeled cash and calculation availability. */
   highlights: string[];
+}
+
+function resultHighlights(result: SimulationResult): string[] {
+  const partial = result.benefitsComplete !== true || result.taxComplete === false;
+  return [
+    `Modeled cash flow: ${formatCurrency(result.summary.grandTotal)}`,
+    partial
+      ? "Partial total · unavailable payments omitted"
+      : result.payrollComplete === false
+        ? "Provisional payroll · review assumptions"
+        : "Modeled under stated assumptions",
+  ];
 }
 
 export default function ScenarioSelector(): JSX.Element {
   const current = activeScenario.value;
-  const metrics = comparisonMetrics.value;
 
   const scenarios: ScenarioCardItem[] = [
     {
       scenarioViewId: ActiveScenarioView.StatutoryOptimized,
-      title: "Statutory Optimized",
-      subtitle: "Fully Optimized (Recommended)",
-      badge: "Maximum State Benefit",
-      badgeClass: "badge-gain",
-      description:
-        "Proactive tax class swap (*Steuerklassenwechsel* III/V § 39e EStG) + Synthetic Net (*Fiktives Netto* § 2e BEEG) + Sibling Bonus (*Geschwisterbonus*) + Joint Tax Refund (*Ehegatten-Splitting*).",
-      highlights: [
-        "Mother: ElterngeldPlus capped at maximum €900 / month (§ 4 BEEG)",
-        "Maternity Protection (*Mutterschutz* MuSchG) net pay at €2,603 / month",
-        "Sibling Bonus (*Geschwisterbonus* § 2a BEEG) +10% until Child 1 turns 3",
-        `Tax Office Refund (*Finanzamt-Erstattung* § 26b EStG): +${formatCurrency(metrics.taxRefundC)}`,
-      ],
+      title: "Apply tax switches",
+      subtitle: "Planned births and leave",
+      badge: "Scenario C",
+      badgeClass: "badge-brand",
+      description: "Use your planned tax-class switches alongside births, leave and working-hour changes.",
+      highlights: resultHighlights(scenarioCData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.UnoptimizedBaseline,
-      title: "Unoptimized Baseline",
-      subtitle: "Static Baseline Withholding (III/V)",
-      badge: "Standard Baseline",
-      badgeClass: "badge-warning",
-      description:
-        "No tax class changes. Mother receives maternity and ElterngeldPlus calculated under Tax Class V (*Steuerklasse V*).",
-      highlights: [
-        "Mother ElterngeldPlus: €500.50 / month (Child 1)",
-        "Child 2: Diluted to base €150 / month (*14-Monate-Falle* § 2b BEEG)",
-        "Maternity Protection (*Mutterschutz*) net pay at €1,975 / month",
-        `Forfeits ${formatCurrency(metrics.gainCvsB)} in statutory benefits`,
-      ],
+      title: "Keep tax classes",
+      subtitle: "Planned births and leave",
+      badge: "Scenario B",
+      badgeClass: "badge-muted",
+      description: "Keep the initial tax classes with the same planned births, leave and working-hour changes.",
+      highlights: resultHighlights(scenarioBData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.StatusQuo,
-      title: "Status Quo",
-      subtitle: "Continuous Career (No Children)",
-      badge: "Constant Employment",
+      title: "Without planned births",
+      subtitle: "Career comparison",
+      badge: "Scenario A",
       badgeClass: "badge-muted",
-      description:
-        "No children. Continuous standard wage flow (Husband €2,895 + Wife €1,975 = €6,125 / month net).",
-      highlights: [
-        "Constant €6,125 / month household net income stream",
-        "No parental leave / zero wage replacement benefits",
-        "No part-time working hours reduction",
-        "5-Year Total Net Inflow: €367,500",
-      ],
+      description: "Exclude planned births and tax switches; retain existing children, hours, raises and financial events.",
+      highlights: resultHighlights(scenarioAData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.Compare,
-      title: "Multi-Strategy Matrix",
-      subtitle: "Side-by-Side Comparison",
-      badge: "Overlay View",
-      badgeClass: "badge-brand",
-      description:
-        "Direct comparison of monthly liquidity curves and 5-year cumulative household asset accumulation.",
-      highlights: [
-        "Monthly cash flow curves compared side-by-side",
-        "Cumulative financial differential tracking",
-        "Direct subsidy & tax reconciliation comparison",
-        "Transparent decision framework",
-      ],
+      title: "Compare scenarios",
+      subtitle: "Side-by-side view",
+      badge: "A / B / C",
+      badgeClass: "badge-muted",
+      description: "Compare monthly cash flow and cumulative totals across all three scenarios.",
+      highlights: ["Chart and timeline comparison", "Summary figures use Scenario C"],
     },
   ];
 
