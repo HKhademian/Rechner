@@ -15,10 +15,11 @@ import {
   DEFAULT_TAX_RULES,
 } from "#engine/tax/taxRules";
 
-export default function PayrollPersonalInputs({ id, options, showLocation = false }: {
+export default function PayrollPersonalInputs({ id, options, showLocation = false, summaryLabel = "Personal payroll details" }: {
   id: string;
   options: Signal<PayrollOptions>;
   showLocation?: boolean;
+  summaryLabel?: string;
 }): JSX.Element {
   const [error, setError] = useState("");
   const update = (field: string, value: string, divisor = 1): void => {
@@ -33,7 +34,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
   };
   return (
     <details>
-      <summary>Personal payroll details</summary>
+      <summary>{summaryLabel}</summary>
       <p>Blank fields use the published average insurer rate and the assumptions shown with the result.</p>
       <label for={`${id}-insurer`}>Insurer total Zusatzbeitrag (%)</label>
       <input id={`${id}-insurer`} type="number" min="0" max="100" step="0.01"
