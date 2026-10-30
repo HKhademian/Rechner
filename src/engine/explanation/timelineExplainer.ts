@@ -457,67 +457,8 @@ export function getFieldExplanation(
     case FieldColumnKey.HusbandSalary:
       return recordedSalaryExplanation(m, TargetPerson.Husband, bMonth);
 
-    case FieldColumnKey.WifeSalary: {
-      const bWife = bMonth ? bMonth.wifeSalary : wSalary;
-      const diffW = wSalary - bWife;
-      const isFullLeave = wSalary === 0;
-      const ftBase = 1975;
-      return {
-        fieldKey: ExplanationFieldKey.WifeSalary,
-        fieldTitle: "Wife's Earned Net Salary",
-        valueFormatted: formatCurrency(wSalary),
-        derivationFormula: isFullLeave
-          ? "0 € (Full Maternity Leave / Mutterschutz § 3 MuSchG)"
-          : `Full-Time Net (${formatCurrency(ftBase)}) × (24h / 40h) $\\rightarrow$ ${formatCurrency(wSalary)}`,
-        explanation: isFullLeave
-          ? `The mother earns 0 € direct employment salary in Month ${m.month} because she is on statutory Maternity Protection (Mutterschutz) or full parental leave.`
-          : `The mother earns ${formatCurrency(wSalary)} in Month ${m.month} from part-time gainful employment. Her earned net salary is calculated proportionally based on her weekly working hours.`,
-        contributingFactors: [
-          {
-            name: "Full-Time Baseline Net",
-            value: `${formatCurrency(ftBase)} / month (Class V)`,
-            description: "Full 40h/week baseline salary",
-          },
-          {
-            name: "Initial Contract Hours",
-            value: "40 hours / week",
-            description: "Standard contractual working week",
-          },
-          {
-            name: "Post-Birth Part-Time Hours",
-            value: isFullLeave ? "0 hours / week" : "24 hours / week",
-            description: "Actual working hours in this month",
-          },
-          {
-            name: "Hours Scaling Ratio",
-            value: isFullLeave ? "0%" : "60.0% (24 / 40)",
-            description: "Proportional working time",
-          },
-        ],
-        calculationSteps: [
-          {
-            stepNumber: 1,
-            description: "Determine working time ratio",
-            formula: isFullLeave ? "0h / 40h" : "24h / 40h",
-            result: isFullLeave ? "0.0" : "0.60",
-          },
-          {
-            stepNumber: 2,
-            description: "Scale full-time net salary",
-            formula: `${formatCurrency(ftBase)} × ${isFullLeave ? "0.0" : "0.60"}`,
-            result: formatCurrency(wSalary),
-          },
-        ],
-        legalCitation: toStatutoryCitation(
-          "BEEG § 1 Abs. 1 Nr. 4 (Zulässige Teilzeit bis 32h/Woche)",
-        ),
-        legalRuleKey: LegalRuleKey.BEEG_SyntheticNet,
-        diffVsBFormatted:
-          diffW !== 0
-            ? `${diffW > 0 ? "+" : ""}${formatCurrency(diffW)} vs B`
-            : undefined,
-      };
-    }
+    case FieldColumnKey.WifeSalary:
+      return recordedSalaryExplanation(m, TargetPerson.Wife, bMonth);
 
     case FieldColumnKey.Mutterschutz: {
       const diff = mutterschutzVal - (bMonth?.mutterschutz ?? mutterschutzVal);
