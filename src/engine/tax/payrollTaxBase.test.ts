@@ -1,0 +1,76 @@
+import assert from "node:assert/strict";
+import {
+  it,
+} from "node:test";
+import {
+  computeEmploymentPayroll,
+} from "#engine/tax/employmentPayroll";
+import {
+  computePayrollTaxBase,
+} from "#engine/tax/payrollTaxBase";
+import {
+  DEFAULT_TAX_RULES,
+} from "#engine/tax/taxRules";
+import {
+  toSalaryPaymentCount,
+} from "#engine/tax/employmentPeriod";
+import {
+  SalaryPeriod,
+  TaxClass,
+  toGrossSalary,
+  toChildrenCount,
+  toMonthDuration,
+  toPercentageRate,
+} from "#engine/types";
+
+const payroll = (gross: number, months = 12, salaries = 12) => computeEmploymentPayroll({
+  gross: toGrossSalary(gross),
+  period: SalaryPeriod.Monthly,
+  monthsWorked: toMonthDuration(months),
+  annualSalaryPayments: toSalaryPaymentCount(salaries),
+}, TaxClass.I, toChildrenCount(0), DEFAULT_TAX_RULES);
+
+it("uses individual annual receipts rather than a joint allowance for one person", () => {
+  const result = computePayrollTaxBase([payroll(5000)], DEFAULT_TAX_RULES);
+  assert.deepEqual(result.reasons, []);
+  assert.equal(result.incomeByPerson.length, 1);
+  assert.equal(result.incomeByPerson[0].gross, 60000);
+  assert.equal(result.taxBase?.taxableIncome, 46674);
+});
+
+it("keeps both partner contributions and their sum before joint deductions", () => {
+  const result = computePayrollTaxBase([payroll(5000), payroll(3000)], DEFAULT_TAX_RULES);
+  assert.equal(result.incomeByPerson.length, 2);
+  const combined = result.incomeByPerson.reduce((sum, person) => sum + person.employmentIncome, 0);
+  const base = result.taxBase!;
+  assert.equal(base.taxableIncome, combined - base.pensionDeduction - base.insuranceDeduction - base.specialExpenses);
+  assert.equal(base.specialExpenses, DEFAULT_TAX_RULES.parameters.specialExpenseAllowance.value * result.incomeByPerson.length);
+});
+
+it("uses the configured active months and bonus receipts without reannualizing them", () => {
+  const schedule = payroll(5000, 6, 13);
+  const result = computePayrollTaxBase([schedule], DEFAULT_TAX_RULES);
+  assert.equal(result.incomeByPerson[0].gross, schedule.annualGross);
+  assert.equal(result.incomeByPerson[0].gross, 32500);
+  const empty = computePayrollTaxBase([payroll(5000, 0)], DEFAULT_TAX_RULES);
+  assert.equal(empty.taxBase?.taxableIncome, 0);
+});
+
+it("keeps provisional payroll and unsupported annual deductions unavailable", () => {
+  const provisional = computePayrollTaxBase([payroll(500)], DEFAULT_TAX_RULES);
+  assert.equal(provisional.taxBase, undefined);
+  assert.ok(provisional.reasons.some((reason) => reason.includes("Marginal employment")));
+  const church = computeEmploymentPayroll(
+    { gross: toGrossSalary(5000),
+      period: SalaryPeriod.Monthly,
+      monthsWorked: toMonthDuration(12),
+      annualSalaryPayments: toSalaryPaymentCount(12) },
+    TaxClass.I,
+    toChildrenCount(0),
+    DEFAULT_TAX_RULES,
+    { churchTaxRate: toPercentageRate(0.09) },
+  );
+  const result = computePayrollTaxBase([church], DEFAULT_TAX_RULES);
+  assert.equal(result.taxBase, undefined);
+  assert.ok(result.reasons.some((reason) => reason.includes("church-tax deduction")));
+});
