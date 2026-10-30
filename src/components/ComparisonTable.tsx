@@ -89,6 +89,23 @@ export default function ComparisonTable(): JSX.Element | null {
 
 /** The live calculation remains available even after the last saved scenario is removed. */
 export function ComparisonTableContent(): JSX.Element {
+  const invalidInputs = useSignal<Record<string, boolean>>({});
+  const trackValidity = (id: string) => (valid: boolean): void => {
+    const previous = invalidInputs.peek();
+    if (Boolean(previous[id]) === !valid) {
+      return;
+    }
+    const next = { ...previous };
+    if (valid) {
+      delete next[id];
+    }
+    else {
+      next[id] = true;
+    }
+    invalidInputs.value = next;
+  };
+  const hasInvalidLive = Object.keys(invalidInputs.value).some((id) => id.startsWith("live-"));
+  const hasInvalidSaved = (id: string): boolean => Object.keys(invalidInputs.value).some((key) => key.startsWith(`scenario-${id}-`));
   const displayMode = useSignal<"yearly" | "monthly">("yearly");
 
   const format = (num: number): string => {
@@ -111,23 +128,23 @@ export function ComparisonTableContent(): JSX.Element {
     label: `Class ${value}` }));
   const salaryUnit = (mode: CalculatorInputs["inputMode"]): string => mode === "monthly" ? "€ / month" : "€ / year";
   const liveControls = {
-    inputMode: <LiveChoiceInput<CalculatorInputs["inputMode"]> label="Gross input period" value={inputMode} options={[{ value: "monthly",
+    inputMode: <LiveChoiceInput<CalculatorInputs["inputMode"]> onValidityChange={trackValidity("live-inputMode")} label="Gross input period" value={inputMode} options={[{ value: "monthly",
       label: "Monthly gross input" }, { value: "yearly",
       label: "Yearly gross input" }]} beforeChange={validateLive("inputMode")} />,
-    hasPartner: <LiveToggleInput label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
-    grossIncome: <LiveNumberInput id="live-gross" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
-    state: <LiveChoiceInput label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
-    taxBracket: <LiveChoiceInput label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={validateLive("taxBracket")} />,
-    hasChurchTax: <LiveToggleInput label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
-    children: <LiveNumberInput id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
-    workingMonths: <LiveNumberInput id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
-    salariesPerYear: <LiveNumberInput id="live-salaries" label="Salaries per year" value={salariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("salariesPerYear")} step={0.5} />,
-    partnerGrossIncome: <LiveNumberInput id="live-partner-gross" label={`Partner gross income (${salaryUnit(inputMode.value)})`} value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
-    partnerState: <LiveChoiceInput label="Partner federal state" value={partnerState} options={liveStateOptions} beforeChange={validateLive("partnerState")} />,
-    partnerTaxBracket: <LiveChoiceInput label="Partner tax class" value={partnerTaxBracket} options={liveClassOptions} beforeChange={validateLive("partnerTaxBracket")} />,
-    partnerHasChurchTax: <LiveToggleInput label="Partner church tax" value={partnerHasChurchTax} beforeChange={validateLive("partnerHasChurchTax")} />,
-    partnerWorkingMonths: <LiveNumberInput id="live-partner-months" label="Partner working months" value={partnerWorkingMonths} construct={toMonthDuration} beforeChange={validateLive("partnerWorkingMonths")} />,
-    partnerSalariesPerYear: <LiveNumberInput id="live-partner-salaries" label="Partner salaries per year" value={partnerSalariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("partnerSalariesPerYear")} step={0.5} />,
+    hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
+    grossIncome: <LiveNumberInput onValidityChange={trackValidity("live-grossIncome")} id="live-gross" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
+    state: <LiveChoiceInput onValidityChange={trackValidity("live-state")} label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
+    taxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-taxBracket")} label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={validateLive("taxBracket")} />,
+    hasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-hasChurchTax")} label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
+    children: <LiveNumberInput onValidityChange={trackValidity("live-children")} id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
+    workingMonths: <LiveNumberInput onValidityChange={trackValidity("live-workingMonths")} id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
+    salariesPerYear: <LiveNumberInput onValidityChange={trackValidity("live-salariesPerYear")} id="live-salaries" label="Salaries per year" value={salariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("salariesPerYear")} step={0.5} />,
+    partnerGrossIncome: <LiveNumberInput onValidityChange={trackValidity("live-partnerGrossIncome")} id="live-partner-gross" label={`Partner gross income (${salaryUnit(inputMode.value)})`} value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
+    partnerState: <LiveChoiceInput onValidityChange={trackValidity("live-partnerState")} label="Partner federal state" value={partnerState} options={liveStateOptions} beforeChange={validateLive("partnerState")} />,
+    partnerTaxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-partnerTaxBracket")} label="Partner tax class" value={partnerTaxBracket} options={liveClassOptions} beforeChange={validateLive("partnerTaxBracket")} />,
+    partnerHasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-partnerHasChurchTax")} label="Partner church tax" value={partnerHasChurchTax} beforeChange={validateLive("partnerHasChurchTax")} />,
+    partnerWorkingMonths: <LiveNumberInput onValidityChange={trackValidity("live-partnerWorkingMonths")} id="live-partner-months" label="Partner working months" value={partnerWorkingMonths} construct={toMonthDuration} beforeChange={validateLive("partnerWorkingMonths")} />,
+    partnerSalariesPerYear: <LiveNumberInput onValidityChange={trackValidity("live-partnerSalariesPerYear")} id="live-partner-salaries" label="Partner salaries per year" value={partnerSalariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("partnerSalariesPerYear")} step={0.5} />,
   };
 
   const getMetric = (
@@ -506,7 +523,7 @@ export function ComparisonTableContent(): JSX.Element {
 
       let content: JSX.Element | string | number = savedVal;
       if (isActive) {
-        content = <ScenarioParameterInput id={`scenario-${scenario.id}-${fieldKey}`} label={label} scope={`Saved scenario ${scenario.title}`} field={fieldKey} value={rawVal} options={options} />;
+        content = <ScenarioParameterInput id={`scenario-${scenario.id}-${fieldKey}`} label={label} scope={`Saved scenario ${scenario.title}`} field={fieldKey} onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)} value={rawVal} options={options} />;
       }
 
       cells.push(
@@ -722,6 +739,8 @@ export function ComparisonTableContent(): JSX.Element {
 
                     <button
                       onClick={handleAddScenario}
+                      disabled={hasInvalidLive}
+                      aria-label="Save as New Scenario"
                       style={{
                         background: "transparent",
                         color: "var(--color-gain)",
@@ -736,7 +755,7 @@ export function ComparisonTableContent(): JSX.Element {
                         opacity: 0.8,
                         transition: "opacity 0.2s",
                       }}
-                      title="Save as New Scenario"
+                      title={hasInvalidLive ? "Complete or correct live inputs before saving" : "Save as New Scenario"}
                     >
                       <AddActionIcon />
                     </button>
@@ -925,6 +944,7 @@ export function ComparisonTableContent(): JSX.Element {
                           gap: "5px" }}>
                           <button
                             onClick={saveDraft}
+                            disabled={hasInvalidSaved(scenario.id)}
                             style={{
                               background: "var(--color-primary)",
                               color: "white",
@@ -939,7 +959,7 @@ export function ComparisonTableContent(): JSX.Element {
                               justifyContent: "center",
                               gap: "4px",
                             }}
-                            title="Save changes to scenario"
+                            title={hasInvalidSaved(scenario.id) ? "Complete or correct scenario inputs before saving" : "Save changes to scenario"}
                           >
                             <SaveConfigurationIcon /> Save
                           </button>

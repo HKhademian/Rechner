@@ -13,7 +13,7 @@ import {
   parseCalculatorNumber,
 } from "#utils/calculatorNumberInput";
 
-export function LiveNumberInput({ id, label, value, construct, beforeChange, step = 1, scope = "Live Calculation" }: {
+export function LiveNumberInput({ id, label, value, construct, beforeChange, step = 1, scope = "Live Calculation", onValidityChange }: {
   id: string;
   label: string;
   value: Signal<number>;
@@ -21,13 +21,19 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
   beforeChange?: (value: number) => void;
   step?: number;
   scope?: string;
+  onValidityChange?: (valid: boolean) => void;
 }): JSX.Element {
   const current = value.value;
   const [draft, setDraft] = useState(String(current));
   const [error, setError] = useState("");
+  const reportError = (message: string): void => {
+    setError(message);
+    onValidityChange?.(message === "");
+  };
+  useEffect(() => () => onValidityChange?.(true), []);
   useEffect(() => {
     setDraft(String(current));
-    setError("");
+    reportError("");
   }, [current]);
   return (
     <div className="live-control">
@@ -39,16 +45,16 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
           try {
             const parsed = parseCalculatorNumber(raw, construct);
             if (parsed === undefined) {
-              setError("Enter a value. Results retain the last valid value.");
+              reportError("Enter a value. Results retain the last valid value.");
             }
             else {
               beforeChange?.(parsed);
               value.value = parsed;
-              setError("");
+              reportError("");
             }
           }
           catch (problem) {
-            setError(problem instanceof Error ? problem.message : "Invalid input.");
+            reportError(problem instanceof Error ? problem.message : "Invalid input.");
           }
         }} />
       {error && <p id={`${id}-error`} className="live-input__error" role="status">{error}</p>}
@@ -56,15 +62,21 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
   );
 }
 
-export function LiveChoiceInput<T extends string | number>({ label, value, options, beforeChange, scope = "Live Calculation" }: {
+export function LiveChoiceInput<T extends string | number>({ label, value, options, beforeChange, scope = "Live Calculation", onValidityChange }: {
   label: string;
   value: Signal<T>;
   beforeChange?: (value: T) => void;
   scope?: string;
+  onValidityChange?: (valid: boolean) => void;
   options: readonly { value: T;
     label: string }[];
 }): JSX.Element {
   const [error, setError] = useState("");
+  const reportError = (message: string): void => {
+    setError(message);
+    onValidityChange?.(message === "");
+  };
+  useEffect(() => () => onValidityChange?.(true), []);
   return (
     <div className="live-control">
       <select className="live-input" aria-label={`${scope}: ${label}`} value={value.value}
@@ -74,10 +86,10 @@ export function LiveChoiceInput<T extends string | number>({ label, value, optio
             try {
               beforeChange?.(option.value);
               value.value = option.value;
-              setError("");
+              reportError("");
             }
             catch (problem) {
-              setError(problem instanceof Error ? problem.message : "Invalid input.");
+              reportError(problem instanceof Error ? problem.message : "Invalid input.");
             }
           }
         }}>
@@ -88,11 +100,17 @@ export function LiveChoiceInput<T extends string | number>({ label, value, optio
   );
 }
 
-export function LiveToggleInput({ label, value, beforeChange, scope = "Live Calculation" }: { label: string;
+export function LiveToggleInput({ label, value, beforeChange, scope = "Live Calculation", onValidityChange }: { label: string;
   scope?: string;
+  onValidityChange?: (valid: boolean) => void;
   value: Signal<boolean>;
   beforeChange?: (value: boolean) => void }): JSX.Element {
   const [error, setError] = useState("");
+  const reportError = (message: string): void => {
+    setError(message);
+    onValidityChange?.(message === "");
+  };
+  useEffect(() => () => onValidityChange?.(true), []);
   return (
     <div className="live-control">
       <input className="live-toggle" type="checkbox" aria-label={`${scope}: ${label}`} checked={value.value}
@@ -100,10 +118,10 @@ export function LiveToggleInput({ label, value, beforeChange, scope = "Live Calc
           try {
             beforeChange?.(event.currentTarget.checked);
             value.value = event.currentTarget.checked;
-            setError("");
+            reportError("");
           }
           catch (problem) {
-            setError(problem instanceof Error ? problem.message : "Invalid input.");
+            reportError(problem instanceof Error ? problem.message : "Invalid input.");
           }
         }} />
       {error && <p className="live-input__error" role="status">{error}</p>}

@@ -26,10 +26,11 @@ import {
 } from "#components/LiveCalculatorInputs";
 
 /** Local edit signals keep unfinished text separate from the last valid saved draft. */
-export default function ScenarioParameterInput({ id, label, scope, field, value, options }: {
+export default function ScenarioParameterInput({ id, label, scope, field, value, options, onValidityChange }: {
   id: string;
   label: string;
   scope: string;
+  onValidityChange?: (valid: boolean) => void;
   field: keyof CalculatorInputs;
   value: CalculatorInputs[keyof CalculatorInputs] | undefined;
   options: readonly { value: string;
@@ -68,10 +69,10 @@ export default function ScenarioParameterInput({ id, label, scope, field, value,
       step: 0.5 },
   ].find((entry) => entry.field === field);
   if (numeric) {
-    return <LiveNumberInput id={id} label={label} scope={scope} value={numberValue} construct={numeric.construct} step={numeric.step} beforeChange={update} />;
+    return <LiveNumberInput id={id} label={label} scope={scope} onValidityChange={onValidityChange} value={numberValue} construct={numeric.construct} step={numeric.step} beforeChange={update} />;
   }
   if (options) {
-    return <LiveChoiceInput label={label} scope={scope} value={choiceValue} options={options} beforeChange={update} />;
+    return <LiveChoiceInput label={label} scope={scope} onValidityChange={onValidityChange} value={choiceValue} options={options} beforeChange={update} />;
   }
-  return <LiveToggleInput label={label} scope={scope} value={toggleValue} beforeChange={update} />;
+  return <LiveToggleInput label={label} scope={scope} onValidityChange={onValidityChange} value={toggleValue} beforeChange={update} />;
 }
