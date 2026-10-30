@@ -1,0 +1,66 @@
+.comparison-mobile-toggle {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .comparison-shell {
+    padding: 12px !important;
+  }
+
+  .comparison-heading {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 16px;
+  }
+
+  .comparison-mobile-toggle {
+    display: block;
+    min-height: 44px;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-surface);
+    color: var(--color-primary);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .comparison-mobile-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Retain the same mounted controls and drafts in both narrow-screen views. */
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix,
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix thead,
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix tbody {
+    display: block;
+    width: 100% !important;
+  }
+
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix tr {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix th,
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix td {
+    position: static !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 10px 8px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix tr > :nth-child(n + 3),
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix thead th:first-child {
+    display: none;
+  }
+
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix thead th:nth-child(2),
+  .comparison-shell:not(.comparison-show-saved) .comparison-matrix td[colspan] {
+    grid-column: 1 / -1;
+  }
+}

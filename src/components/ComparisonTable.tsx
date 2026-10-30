@@ -1,3 +1,4 @@
+import "./ComparisonTable.css";
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
 import LiveCalculationSummary from "#components/LiveCalculationSummary";
 import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
@@ -90,6 +91,7 @@ export default function ComparisonTable(): JSX.Element | null {
 
 /** The live calculation remains available even after the last saved scenario is removed. */
 export function ComparisonTableContent(): JSX.Element {
+  const showSavedComparison = useSignal(false);
   const invalidInputs = useSignal<Record<string, boolean>>({});
   const trackValidity = (id: string) => (valid: boolean): void => {
     const previous = invalidInputs.peek();
@@ -575,7 +577,7 @@ export function ComparisonTableContent(): JSX.Element {
 
   return (
     <div
-      class="glass-panel fade-in"
+      class={`glass-panel fade-in comparison-shell${showSavedComparison.value ? " comparison-show-saved" : ""}`}
       style={{
         maxWidth: "95vw",
         margin: "0 auto 40px auto",
@@ -584,7 +586,7 @@ export function ComparisonTableContent(): JSX.Element {
         borderTop: "4px solid var(--color-primary)",
       }}
     >
-      <div
+      <div className="comparison-heading"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -662,11 +664,17 @@ export function ComparisonTableContent(): JSX.Element {
         </div>
       </div>
 
+      {savedScenarios.value.length > 0 && <button className="comparison-mobile-toggle" aria-expanded={showSavedComparison.value} aria-controls="household-comparison-table"
+        onClick={() => {
+          showSavedComparison.value = !showSavedComparison.value;
+        }}>
+        {showSavedComparison.value ? "Show live inputs only" : "Compare saved scenarios"}
+      </button>}
       <LiveCalculationSummary data={deductions.value} hasInvalidInputs={hasInvalidLive} />
 
-      <div style={{ overflowX: "auto",
+      <div className="comparison-scroll" style={{ overflowX: "auto",
         paddingBottom: "10px" }}>
-        <table
+        <table id="household-comparison-table" className="comparison-matrix" aria-label="Live and saved household calculations"
           style={{
             tableLayout: "fixed",
             width: "max-content",
