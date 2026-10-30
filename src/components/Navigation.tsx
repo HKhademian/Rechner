@@ -24,7 +24,7 @@ export default function Navigation({
     currentPath === "/elterngeld" || currentPath.startsWith("/elterngeld");
 
   return (
-    <header
+    <header id="main-navigation"
       style={{
         background: "var(--bg-surface)",
         borderBottom: "1px solid var(--border-subtle)",

@@ -1,4 +1,5 @@
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
+import LiveCalculationSummary from "#components/LiveCalculationSummary";
 import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 import {
@@ -660,6 +661,8 @@ export function ComparisonTableContent(): JSX.Element {
           </div>
         </div>
       </div>
+
+      <LiveCalculationSummary data={deductions.value} hasInvalidInputs={hasInvalidLive} />
 
       <div style={{ overflowX: "auto",
         paddingBottom: "10px" }}>
