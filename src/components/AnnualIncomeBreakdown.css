@@ -145,3 +145,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.annual-income__partners--single {
+  grid-template-columns: minmax(0, 1fr);
+}
