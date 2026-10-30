@@ -27,3 +27,7 @@ For each selected implementation scope, run the formatter before staging, releva
 ## Execution order
 
 First fix the pregnancy-positive date setter so selecting October 2026 updates the first pregnancy action as well as the simulation baseline, with a regression check and an isolated commit. Then implement the numbered scopes above in their stated order, separating validation, save gating, row ordering, summary, responsive layout and scenario lifecycle changes into focused commits. Verify each code scope with formatter, full audit, consumer build and relevant UI/behavior checks.
+
+## Selected responsive behavior
+
+At 390px, the live salary field currently extends from about x298 to x566, outside the viewport, while its 250px sticky label column remains visible. Use a single-column live editor below 700px: keep the existing controls mounted, lay out each row as label plus live value, hide saved columns by default and expose them through an explicit Compare saved scenarios toggle. Expanded comparison retains horizontal scrolling. CSS grid handles section-heading spans in the compact view, without duplicating inputs or remounting drafts. Reflow the sticky summary into two columns with the modeled-income amount on its own full-width row. Verify at 390px and 700px plus desktop, including keyboard access, toggle behavior and invalid-edit state.
