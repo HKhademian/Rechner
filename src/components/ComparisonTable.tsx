@@ -115,7 +115,7 @@ export function ComparisonTableContent(): JSX.Element {
   };
 
   const isMonthly = displayMode.value === "monthly";
-  const hasAnyPartner = Boolean(deductions.value.partner || savedScenarios.value.some((scenario) => scenario.data.partner));
+  const hasAnyPartner = Boolean(deductions.value.partner || scenarioDraft.value?.data.partner || savedScenarios.value.some((scenario) => scenario.data.partner));
 
   const validateLive = <K extends keyof CalculatorInputs>(field: K) => (value: CalculatorInputs[K]): void => {
     calculateScenarioData({ ...getCurrentInputs(),
