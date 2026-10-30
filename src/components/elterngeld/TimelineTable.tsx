@@ -1,4 +1,8 @@
 import {
+  LedgerRowKind,
+  projectLedgerMonth,
+} from "#engine/ledger/rows";
+import {
   exportScenarioToCsv,
 } from "#engine/storage/ledgerCsv";
 import type {
@@ -20,7 +24,6 @@ import {
   type StrategyId,
   type TimelineMonth,
   type SpecialEventItem,
-  type ActionRowItem,
   ActionType,
   ActionCategory,
   FieldColumnKey,
@@ -712,7 +715,11 @@ export default function TimelineTable(): JSX.Element {
           <tbody>
             {filteredMonths.map((m: TimelineMonth) => {
               const isHovered = hoveredMonth.value === m.month;
-              const bMonth = bData.months[m.month - 1];
+              const bMonth = bData.months.find((baseline) => baseline.monthId === m.monthId);
+              const projected = projectLedgerMonth(m, bMonth);
+              const actionRows = projected.filter((row) => row.kind === LedgerRowKind.Action);
+              const financialRows = projected.filter((row) => row.kind === LedgerRowKind.FinancialEvent);
+              const baseRow = projected.find((row) => row.kind === LedgerRowKind.Month)!;
 
               // Per-column diff calculations vs Reference Scenario B
               const diffHusband =
@@ -728,23 +735,19 @@ export default function TimelineTable(): JSX.Element {
                 m.kindergeld - (bMonth ? bMonth.kindergeld : 0);
               const diffSpecialEvents =
                 m.specialEventsTotal - (bMonth ? bMonth.specialEventsTotal : 0);
-              const diffRegularNetInflow =
-                m.regularMonthlyTotal -
-                (bMonth ? bMonth.regularMonthlyTotal : 0);
+              const diffRegularNetInflow = baseRow.deltaAmount ?? 0;
               const diffNetInflow =
                 m.monthlyTotal - (bMonth ? bMonth.monthlyTotal : 0);
-              const diffCumulated =
-                m.cumulatedTotal - (bMonth ? bMonth.cumulatedTotal : 0);
+              const diffCumulated = baseRow.deltaCumulative ?? 0;
 
               const hasEvents =
                 isSpecialRowsActive &&
-                m.specialEvents &&
-                m.specialEvents.length > 0;
+                financialRows.length > 0;
 
               return [
                 /* 1. Action Event Rows (Pre-Month Life & Decision Events: Pregnancy, Delivery, Tax Switch, Salary Raise) */
-                m.startingActions &&
-                  m.startingActions.map((act: ActionRowItem) => {
+                actionRows.length > 0 &&
+                  actionRows.map(({ action: act }) => {
                     const isDelivery = act.type === ActionType.ChildDelivery;
                     const isPregnancy =
                       act.type === ActionType.PregnancyPositive;
@@ -1049,51 +1052,12 @@ export default function TimelineTable(): JSX.Element {
 
                 /* 2. Special Fiscal Event Rows (Pre-Month Bonuses, Tax Returns, and One-Off Costs/Income) */
                 hasEvents &&
-                  m.specialEvents.map((ev: SpecialEventItem, evIdx: number) => {
-                    const bEvents = bMonth?.specialEvents || [];
-                    const bMatchIdx = bEvents.findIndex(
-                      (it: SpecialEventItem) =>
-                        it.eventId === ev.eventId ||
-                        it.title === ev.title ||
-                        it.type === ev.type,
-                    );
-                    const bEv = bMatchIdx >= 0 ? bEvents[bMatchIdx] : undefined;
-                    const bEvAmount = bEv ? bEv.amount : 0;
-                    const evDiff = ev.amount - bEvAmount;
+                  financialRows.map((row) => {
+                    const ev = row.event;
+                    const evDiff = row.deltaAmount ?? 0;
                     const isCost = ev.amount < 0;
-
-                    // Progressive Cumulative Total calculation at this event row
-                    const prevMonthIdx = m.month - 2;
-                    const prevCumulated =
-                      prevMonthIdx >= 0
-                        ? current.months[prevMonthIdx]?.cumulatedTotal || 0
-                        : 0;
-                    const bPrevCumulated =
-                      prevMonthIdx >= 0
-                        ? bData.months[prevMonthIdx]?.cumulatedTotal || 0
-                        : 0;
-
-                    const priorEventsSum = m.specialEvents
-                      .slice(0, evIdx)
-                      .reduce(
-                        (acc: number, it: SpecialEventItem) => acc + it.amount,
-                        0,
-                      );
-                    const evCumulated =
-                      prevCumulated + priorEventsSum + ev.amount;
-
-                    const bPriorSum =
-                      bMatchIdx >= 0
-                        ? bEvents
-                          .slice(0, bMatchIdx + 1)
-                          .reduce(
-                            (acc: number, it: SpecialEventItem) =>
-                              acc + it.amount,
-                            0,
-                          )
-                        : 0;
-                    const bEvCumulated = bPrevCumulated + bPriorSum;
-                    const diffEvCumulated = evCumulated - bEvCumulated;
+                    const evCumulated = row.cumulative;
+                    const diffEvCumulated = row.deltaCumulative ?? 0;
 
                     const badgeClass = isCost
                       ? "badge-loss"
@@ -1179,7 +1143,7 @@ export default function TimelineTable(): JSX.Element {
                                     ev,
                                     m,
                                     bMonth,
-                                    prevCumulated,
+                                    evCumulated - ev.amount,
                                     scenario,
                                   ),
                                 );
@@ -1763,7 +1727,7 @@ export default function TimelineTable(): JSX.Element {
                   >
                     {renderCell(
                       isSpecialRowsActive
-                        ? m.regularMonthlyTotal
+                        ? baseRow.amount
                         : m.monthlyTotal,
                       isSpecialRowsActive
                         ? diffRegularNetInflow
@@ -1790,7 +1754,7 @@ export default function TimelineTable(): JSX.Element {
                     }
                   >
                     {renderCell(
-                      m.cumulatedTotal,
+                      baseRow.cumulative,
                       diffCumulated,
                       false,
                       "var(--text-primary)",
