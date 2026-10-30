@@ -22,9 +22,19 @@ Each concern gets its own commit after `npm run fix`, `npm run check` and affect
 
 ## Added user request: taxable-income section
 
-The user requested a visible section for each partner's taxable income and their sum. Clarification offered annual income-tax breakdown (recommended), Elterngeld eligibility income, or both. While that optional preference is pending, expose the existing annual calculation's per-partner employment-income contributions without changing its joint deductions or tax result. Default presentation is annual income-tax evidence.
+The user requested a visible section for each partner's taxable income and their sum. The user selected the annual income-tax breakdown. Expose the existing annual calculation's per-partner employment-income contributions without changing its joint deductions or tax result.
 
 - Add recorded annual gross, work-expense deduction and resulting employment-income contribution for each partner to the annual tax-base audit output, preserving the existing household calculation.
 - Add a distinct annual section showing husband, wife and combined contributions, then the shared deductions and resulting joint taxable income. Do not invent an allocation of pooled deductions or label a gross salary as final taxable income. Use the actual annual record and matched rule-profile sources.
 - Keep unavailable full-year evidence unavailable, and distinguish projected rule years and incomplete annual settlements from known income. Support year selection from available annual records. Mount the section near the scenario summary and inputs in its own small integration commit.
 - Resume remaining wife-payroll and monthly-audit explanation scopes after the requested section is complete.
+
+## Added user request: German Net Pay Calculator
+
+The same taxable-income calculation must also be visible on the German Net Pay Calculator. Keep the two pages' input stores independent.
+
+- Add an individual employment-tax-base entry point using the existing sourced deductions with one person's limits. Preserve the existing joint function and all joint results.
+- Derive calculator annual taxable-income evidence from its own normalized regular/bonus payroll and active months. Carry unsupported-payroll limitations and the annual model's unsupported church-tax deduction as unavailable evidence.
+- Extract the simulator's income/deduction presentation into a shared display without changing its annual-record behavior. Let the calculator use primary/partner labels and individual versus joint wording.
+- Mount a full-width calculator section with the verified year, partner contributions/sum where enabled, deductions, resulting taxable income, scope and official sources. The selected yearly amount is based on the user's payment schedule, not a blind multiplication of a monthly value.
+- Check individual limits, partner on/off, partial-year schedules, bonuses, unsupported evidence and matching simulator results for equivalent full-year inputs. Commit each prerequisite and integration separately.
