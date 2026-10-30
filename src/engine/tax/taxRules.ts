@@ -22,6 +22,15 @@ export function toAgeYears(value: number): AgeYears {
   return value as AgeYears;
 }
 
+export type TaxRateDecimalPlaces = Brand<number, "TaxRateDecimalPlaces">;
+
+export function toTaxRateDecimalPlaces(value: number): TaxRateDecimalPlaces {
+  if (!Number.isSafeInteger(value) || value < 0 || value > 6) {
+    throw new TypeError("Tax-rate decimal places must be a whole count from zero to six.");
+  }
+  return value as TaxRateDecimalPlaces;
+}
+
 function money(value: number) {
   const amount = toEuroAmount(value);
   if (amount < 0) {
@@ -38,6 +47,7 @@ function fraction(value: number) {
 }
 
 const constructors = {
+  progressionRatePercentDecimalPlaces: toTaxRateDecimalPlaces,
   basicAllowance: money,
   progression1Ceiling: money,
   progression2Ceiling: money,

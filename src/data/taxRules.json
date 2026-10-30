@@ -216,6 +216,11 @@
         "value": 1900,
         "label": "Other insurance deduction ceiling per employer-insured spouse, with basic-health and care protection",
         "source": "https://www.gesetze-im-internet.de/estg/__10.html"
+      },
+      "progressionRatePercentDecimalPlaces": {
+        "value": 4,
+        "label": "Truncated decimal places of the special percentage rate under progression",
+        "source": "https://ao.bundesfinanzministerium.de/esth/2020/A-Einkommensteuergesetz/IV-Tarif/Paragraf-32b/paragraf-32b.html"
       }
     },
     "papPublication": {
@@ -440,6 +445,11 @@
         "value": 1900,
         "label": "Other insurance deduction ceiling per employer-insured spouse, with basic-health and care protection",
         "source": "https://www.gesetze-im-internet.de/estg/__10.html"
+      },
+      "progressionRatePercentDecimalPlaces": {
+        "value": 4,
+        "label": "Truncated decimal places of the special percentage rate under progression",
+        "source": "https://ao.bundesfinanzministerium.de/esth/2020/A-Einkommensteuergesetz/IV-Tarif/Paragraf-32b/paragraf-32b.html"
       }
     },
     "papPublication": {
