@@ -1,4 +1,8 @@
 import {
+  LedgerRowKind,
+  projectLedgerMonth,
+} from "#engine/ledger/rows";
+import {
   type TimelineMonth,
   type SpecialEventItem,
   type ActionRowItem,
@@ -1385,15 +1389,11 @@ export function getSpecialEventRowExplanation(
   const evAmount = ev.amount;
   const isCost = evAmount < 0;
 
-  const bEvents = bMonth?.specialEvents || [];
-  const bMatch = bEvents.find(
-    (it: SpecialEventItem) =>
-      it.eventId === ev.eventId || it.title === ev.title || it.type === ev.type,
-  );
-  const bEvAmount = bMatch ? bMatch.amount : 0;
-  const diffEv = evAmount - bEvAmount;
-
-  const evCumulated = prevMonthCumulated + evAmount;
+  const projected = projectLedgerMonth(m, bMonth).find((row) => row.kind === LedgerRowKind.FinancialEvent && row.rowId === ev.eventId);
+  const baselineEvent = bMonth?.specialEvents.find((candidate) => candidate.eventId === ev.eventId);
+  const diffEv = projected?.deltaAmount ?? toEuroAmount(evAmount - (baselineEvent?.amount ?? 0));
+  // Standalone legacy event records retain only the explicitly supplied opening balance.
+  const evCumulated = projected?.cumulative ?? toEuroAmount(prevMonthCumulated + evAmount);
 
   if (ev.type === SpecialEventType.TaxReturn) {
     const taxDetails = taxSettlementDetails(ev, m);

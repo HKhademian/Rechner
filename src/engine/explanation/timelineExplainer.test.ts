@@ -1,4 +1,7 @@
 import {
+  ledgerRowsFixture,
+} from "../../../test/fixture/ledgerRows.ts";
+import {
   lifecycleHouseholdTaxableIncome,
 } from "../../../test/fixture/standardHouseholds.ts";
 import {
@@ -476,4 +479,14 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
       assert.ok(rowExp.summaryDescription.includes("Month 14"));
     });
   });
+});
+
+
+it("drills into a later same-title event using its stable ID and actual progressive balance", () => {
+  const month = ledgerRowsFixture().months[1];
+  const baseline = ledgerRowsFixture(90).months[1];
+  const explanation = getSpecialEventRowExplanation(month.specialEvents[1], month, baseline, 999999);
+  assert.equal(explanation.totalNetInflow, -50);
+  assert.equal(explanation.cumulatedTotal, 1050);
+  assert.equal(explanation.diffVsB, 0);
 });
