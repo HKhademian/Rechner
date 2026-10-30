@@ -1,0 +1,26 @@
+{
+  "maternityPreBirthMonths": {
+    "value": 1,
+    "label": "Calendar months modeled before birth for maternity protection",
+    "basis": "Legacy calendar-month approximation of the six-week protection period; editable planning assumption.",
+    "statutoryContext": "https://www.gesetze-im-internet.de/muschg_2018/__3.html"
+  },
+  "maternityPostBirthMonths": {
+    "value": 2,
+    "label": "Calendar maternity months starting with the birth month",
+    "basis": "Legacy calendar-month approximation of the eight-week protection period; editable planning assumption.",
+    "statutoryContext": "https://www.gesetze-im-internet.de/muschg_2018/__3.html"
+  },
+  "motherOrdinaryPlusMonths": {
+    "value": 12,
+    "label": "Planned ordinary mother ElterngeldPlus months",
+    "basis": "Preserved default claim schedule; a planning choice rather than a statutory entitlement duration.",
+    "statutoryContext": "https://www.gesetze-im-internet.de/beeg/__4a.html"
+  },
+  "partnershipBonusMonths": {
+    "value": 4,
+    "label": "Planned partnership-bonus months",
+    "basis": "Preserved default claim schedule using the statutory maximum; eligibility remains conditional.",
+    "statutoryContext": "https://www.gesetze-im-internet.de/beeg/__4b.html"
+  }
+}

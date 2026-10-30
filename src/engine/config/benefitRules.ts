@@ -59,6 +59,7 @@ function integerMonths(value: number) {
 
 const constructors = {
   transitionFlatRate: fraction,
+  maternityAverageMonths: integerMonths,
   standardHealthCareDeduction: fraction,
   standardPensionDeduction: fraction,
   standardUnemploymentDeduction: fraction,

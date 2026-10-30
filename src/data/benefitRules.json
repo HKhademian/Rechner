@@ -133,5 +133,10 @@
     "value": 0.28,
     "label": "Transition-zone flat rate used to derive BEEG factor",
     "source": "https://www.gesetze-im-internet.de/sgb_4/__20.html"
+  },
+  "maternityAverageMonths": {
+    "value": 3,
+    "label": "Maternity pay reference calendar months",
+    "source": "https://www.gesetze-im-internet.de/muschg_2018/__20.html"
   }
 }
