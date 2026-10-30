@@ -9,6 +9,10 @@ import {
   editScenario,
   scenarioDraft,
   cancelEdit,
+  updateScenarioMetaData,
+  updateScenarioInput,
+  hasUnsavedScenarioChanges,
+  saveDraft,
 } from "#store/calculatorStore";
 import {
   DEFAULT_TAX_YEAR,
@@ -22,6 +26,30 @@ import {
 import {
   toFullCalendarYear,
 } from "#engine/types";
+
+it("tracks only unsaved scenario input or metadata changes", () => {
+  const inputs = getCurrentInputs();
+  savedScenarios.value = [{ id: "dirty-check",
+    title: "Original",
+    description: "",
+    inputs,
+    data: calculateScenarioData(inputs),
+    timestamp: "2026-10-30" }];
+  editScenario("dirty-check");
+  assert.equal(hasUnsavedScenarioChanges.value, false);
+  updateScenarioMetaData("Renamed", "");
+  assert.equal(hasUnsavedScenarioChanges.value, true);
+  updateScenarioMetaData("Original", "");
+  assert.equal(hasUnsavedScenarioChanges.value, false);
+  updateScenarioInput("grossIncome", inputs.grossIncome + 100);
+  assert.equal(hasUnsavedScenarioChanges.value, true);
+  saveDraft();
+  assert.equal(hasUnsavedScenarioChanges.value, false);
+  editScenario("dirty-check");
+  assert.equal(hasUnsavedScenarioChanges.value, false);
+  cancelEdit();
+  savedScenarios.value = [];
+});
 
 it("calculator uses the independently verified class I payroll fixture", () => {
   const data = calculateScenarioData({ ...getCurrentInputs(),

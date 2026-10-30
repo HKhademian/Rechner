@@ -52,6 +52,7 @@ import {
   calculateScenarioData,
   activeScenarioId,
   scenarioDraft,
+  hasUnsavedScenarioChanges,
   saveScenario,
   deleteScenario,
   loadScenario,
@@ -816,7 +817,7 @@ export function ComparisonTableContent(): JSX.Element {
                                 ? scenarioDraft.value.title
                                 : scenario.title
                             }
-                            onChange={(e) => {
+                            onInput={(e) => {
                               if (isActive && scenarioDraft.value) {
                                 updateScenarioMetaData(
                                   (e.target as HTMLInputElement).value,
@@ -849,7 +850,7 @@ export function ComparisonTableContent(): JSX.Element {
                                 : scenario.description
                             }
                             placeholder={isActive ? "Add description..." : ""}
-                            onChange={(e) => {
+                            onInput={(e) => {
                               if (isActive && scenarioDraft.value) {
                                 updateScenarioMetaData(
                                   scenarioDraft.value.title,
@@ -947,12 +948,13 @@ export function ComparisonTableContent(): JSX.Element {
                         </div>
                       </div>
 
+                      {isActive && hasUnsavedScenarioChanges.value && <small role="status">Unsaved changes</small>}
                       {isActive && (
                         <div style={{ display: "flex",
                           gap: "5px" }}>
                           <button
                             onClick={saveDraft}
-                            disabled={hasInvalidSaved(scenario.id)}
+                            disabled={hasInvalidSaved(scenario.id) || !hasUnsavedScenarioChanges.value}
                             style={{
                               background: "var(--color-primary)",
                               color: "white",

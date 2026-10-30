@@ -262,6 +262,16 @@ export const savedScenarios = persistedSignal<SavedScenarioItem[]>(
 // Editing belongs to the current session, just like its unsaved draft.
 export const activeScenarioId = signal<string | null>(null);
 export const scenarioDraft = signal<SavedScenarioItem | null>(null);
+export const hasUnsavedScenarioChanges = computed(() => {
+  const draft = scenarioDraft.value;
+  const saved = savedScenarios.value.find((scenario) => scenario.id === activeScenarioId.value);
+  if (!draft || !saved) {
+    return false;
+  }
+  // Cached calculation data can change independently; compare the user's inputs and metadata.
+  const editable = (scenario: SavedScenarioItem): string => JSON.stringify([scenario.title, scenario.description, scenario.inputs]);
+  return editable(draft) !== editable(saved);
+});
 
 export function getCurrentInputs(): CalculatorInputs {
   return {
