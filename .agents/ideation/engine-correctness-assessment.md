@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: household sibling eligibility accepts any other qualifying child (including a younger newborn) and the statutory two-other-children-under-six case. Added source-linked age/count rules; focused multi-sibling/birth cases and full quality check pass. Cohort projection will use all known household births instead of only child one.
+
 - 2026-10-30: timeline maternity/ordinary-Plus/partnership schedules now have validated configuration, explicitly classified as planning assumptions with statutory-context links. The actual three-calendar-month maternity-pay reference is a separately sourced rule. Full quality check passes; existing timeline is wired in the following integration change.
 
 - 2026-10-30: standardized pre-birth net prorates income-side work expenses to earning months; PAP still applies its own tax-side allowance. A six-work/six-zero-month reference (3000 average gross, 51.25 average expenses) gives 2280.42 net with independent 38.33 PAP tax. Full quality check passes.

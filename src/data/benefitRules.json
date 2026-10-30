@@ -138,5 +138,15 @@
     "value": 3,
     "label": "Maternity pay reference calendar months",
     "source": "https://www.gesetze-im-internet.de/muschg_2018/__20.html"
+  },
+  "siblingMultipleAgeLimitMonths": {
+    "value": 72,
+    "label": "Age limit when two other siblings qualify (months)",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2a.html"
+  },
+  "siblingMultipleMinimumCount": {
+    "value": 2,
+    "label": "Other qualifying siblings required at the higher age limit",
+    "source": "https://www.gesetze-im-internet.de/beeg/__2a.html"
   }
 }

@@ -4,6 +4,7 @@ import {
   toPercentageRate,
   toWorkingHours,
   toMonthDuration,
+  toChildrenCount,
 } from "#engine/types";
 import defaults from "../../data/benefitRules.json" with { type: "json" };
 
@@ -79,6 +80,13 @@ const constructors = {
   siblingMinimumBasis: nonnegativeMoney,
   siblingRate: fraction,
   siblingAgeLimitMonths: integerMonths,
+  siblingMultipleAgeLimitMonths: integerMonths,
+  siblingMultipleMinimumCount: (value: number) => {
+    if (value <= 0) {
+      throw new TypeError("A sibling count threshold must be positive."); 
+    }
+    return toChildrenCount(value);
+  },
   maximumWeeklyHours: toWorkingHours,
   partnershipMinimumHours: toWorkingHours,
   partnershipMaximumMonths: integerMonths,

@@ -54,6 +54,33 @@ export function computeSiblingBonus(
   // Calendar-month simulation approximates life-months; exact birth days are not modeled.
   const isEligible = baseElterngeldPlus > 0 && olderChildAgeInMonths >= 0 && olderChildAgeInMonths <= rules.siblingAgeLimitMonths.value;
 
+  return applySiblingBonus(baseElterngeldPlus, isEligible, olderChildAgeInMonths, rules);
+}
+
+/** All other household children count, including a younger sibling born during the claim. */
+export function computeHouseholdSiblingBonus(
+  baseElterngeldPlus: EuroAmount,
+  siblingBirthMonths: readonly SimulationMonth[],
+  currentMonth: SimulationMonth,
+  rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+): SiblingBonusCalculation {
+  const ages = siblingBirthMonths.filter((birth) => birth <= currentMonth).map((birth) => currentMonth - birth);
+  const qualifying = ages.some((age) => age <= rules.siblingAgeLimitMonths.value) ||
+    ages.filter((age) => age <= rules.siblingMultipleAgeLimitMonths.value).length >= rules.siblingMultipleMinimumCount.value;
+  return applySiblingBonus(
+    baseElterngeldPlus,
+    baseElterngeldPlus > 0 && qualifying,
+    ages.length > 0 ? Math.min(...ages) : -1,
+    rules,
+  );
+}
+
+function applySiblingBonus(
+  baseElterngeldPlus: EuroAmount,
+  isEligible: boolean,
+  olderChildAgeInMonths: number,
+  rules: BenefitRules,
+): SiblingBonusCalculation {
   if (!isEligible) {
     return {
       isEligible: false,
