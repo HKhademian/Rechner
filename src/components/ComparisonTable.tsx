@@ -109,19 +109,20 @@ export function ComparisonTableContent(): JSX.Element {
     label: value }));
   const liveClassOptions = Object.values(TaxClass).map((value, index) => ({ value: String(index + 1),
     label: `Class ${value}` }));
+  const salaryUnit = (mode: CalculatorInputs["inputMode"]): string => mode === "monthly" ? "€ / month" : "€ / year";
   const liveControls = {
     inputMode: <LiveChoiceInput<CalculatorInputs["inputMode"]> label="Gross input period" value={inputMode} options={[{ value: "monthly",
       label: "Monthly gross input" }, { value: "yearly",
       label: "Yearly gross input" }]} beforeChange={validateLive("inputMode")} />,
     hasPartner: <LiveToggleInput label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
-    grossIncome: <LiveNumberInput id="live-gross" label="Gross income" value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
+    grossIncome: <LiveNumberInput id="live-gross" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
     state: <LiveChoiceInput label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
     taxBracket: <LiveChoiceInput label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={validateLive("taxBracket")} />,
     hasChurchTax: <LiveToggleInput label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
     children: <LiveNumberInput id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
     workingMonths: <LiveNumberInput id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
     salariesPerYear: <LiveNumberInput id="live-salaries" label="Salaries per year" value={salariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("salariesPerYear")} step={0.5} />,
-    partnerGrossIncome: <LiveNumberInput id="live-partner-gross" label="Partner gross income" value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
+    partnerGrossIncome: <LiveNumberInput id="live-partner-gross" label={`Partner gross income (${salaryUnit(inputMode.value)})`} value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
     partnerState: <LiveChoiceInput label="Partner federal state" value={partnerState} options={liveStateOptions} beforeChange={validateLive("partnerState")} />,
     partnerTaxBracket: <LiveChoiceInput label="Partner tax class" value={partnerTaxBracket} options={liveClassOptions} beforeChange={validateLive("partnerTaxBracket")} />,
     partnerHasChurchTax: <LiveToggleInput label="Partner church tax" value={partnerHasChurchTax} beforeChange={validateLive("partnerHasChurchTax")} />,
@@ -490,6 +491,7 @@ export function ComparisonTableContent(): JSX.Element {
         }}
       >
         {liveControls[fieldKey]}
+        {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <small>{salaryUnit(inputMode.value)}</small>}
       </td>,
     );
 
@@ -581,6 +583,7 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {content}
+          {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <div><small>{salaryUnit(inputsToUse.inputMode ?? "yearly")}</small></div>}
         </td>,
       );
     });
@@ -646,9 +649,10 @@ export function ComparisonTableContent(): JSX.Element {
           </p>
         </div>
 
-        <div style={{ display: "flex",
+        <div role="group" aria-label="Result display period" style={{ display: "flex",
           gap: "15px",
           alignItems: "center" }}>
+          <span>Results</span>
           <div
             style={{
               display: "flex",
@@ -660,6 +664,7 @@ export function ComparisonTableContent(): JSX.Element {
             }}
           >
             <button
+              aria-pressed={isMonthly}
               style={{
                 padding: "6px 12px",
                 borderRadius: "4px",
@@ -678,6 +683,7 @@ export function ComparisonTableContent(): JSX.Element {
               Monthly
             </button>
             <button
+              aria-pressed={!isMonthly}
               style={{
                 padding: "6px 12px",
                 borderRadius: "4px",
