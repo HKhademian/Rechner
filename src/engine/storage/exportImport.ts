@@ -164,22 +164,24 @@ export function exportStateToTextReport(
   );
   lines.push("");
 
-  // Section 1: Household Baseline Profile ($M1$)
+  lines.push(` Salary input mode: ${state.salaryInputMode}. Baseline figures are supplied inputs; manual net values do not establish annual tax data.`);
+
+  // Section 1: supplied household inputs at simulation start (Sim1).
   lines.push(
     "--------------------------------------------------------------------------------",
   );
-  lines.push(" 1. HOUSEHOLD STARTING PROFILE & PREEXISTING CONDITIONS (M1)");
+  lines.push(" 1. HOUSEHOLD STARTING PROFILE & PREEXISTING CONDITIONS (Sim1)");
   lines.push(
     "--------------------------------------------------------------------------------",
   );
   lines.push(
-    ` • Husband Gross Compensation:  ${fmtEur(state.husbandGross)} / month (${fmtEur(state.husbandGross * 12)} / year)`,
+    ` • Husband Regular Gross Input:  ${fmtEur(state.husbandGross)} / month (${fmtEur(state.husbandGross * 12)} / year)`,
   );
   lines.push(
     ` • Husband Initial Contract:    ${state.husbandHours} hours / week`,
   );
   lines.push(
-    ` • Wife Full-Time Gross:        ${fmtEur(state.wifeGross)} / month (${fmtEur(state.wifeGross * 12)} / year)`,
+    ` • Wife Regular Gross Input:        ${fmtEur(state.wifeGross)} / month (${fmtEur(state.wifeGross * 12)} / year)`,
   );
   lines.push(
     ` • Wife Initial Contract:       ${state.wifeInitialHours} hours / week`,
@@ -191,7 +193,7 @@ export function exportStateToTextReport(
     ` • Kindergeld (Monthly/Child):  ${fmtEur(state.kindergeldPerChild)}`,
   );
   lines.push(
-    ` • 13th Salary (Weihnachtsgeld): ${state.enable13thSalary ? "Enabled (Split 40% in M5 / 60% in M11)" : "Disabled"}`,
+    ` • Extra-salary net (Scenario C, period): ${fmtEur(timelines[ScenarioId.C].summary.total13thSalaries)} (configured contract schedules)`,
   );
   lines.push("");
 
@@ -219,6 +221,27 @@ export function exportStateToTextReport(
   const resA = timelines[ScenarioId.A];
   const resB = timelines[ScenarioId.B];
   const resC = timelines[ScenarioId.C];
+
+  const availability = (value: boolean | undefined) => value === true ? "available under assumptions" : value === false ? "incomplete" : "not recorded";
+  for (const [label, result] of [["Scenario A", resA], ["Scenario B", resB], ["Scenario C", resC]] as const) {
+    lines.push(` ${label} calculation status: benefits ${availability(result.benefitsComplete)}; payroll ${availability(result.payrollComplete)}; annual tax ${availability(result.taxComplete)}.`);
+    if (result.benefitsComplete === false || result.taxComplete === false) {
+      lines.push(" Displayed cash omits unavailable benefit or tax payments; totals are partial.");
+    }
+    for (const record of result.annualTaxRecords ?? []) {
+      lines.push(` Tax year ${record.calendarYear}: ${record.assessment ? fmtEur(record.assessment.settlement) : "unavailable"}; planned ${record.settlementMonthId}, ${record.scheduledMonthInHorizon ? "within" : "outside"} the cash horizon. ${record.reasons.join(" ")}`);
+    }
+    for (const profile of result.configuration?.taxProfiles ?? []) {
+      lines.push(` Payroll profile ${profile.calendarYear}: source ${profile.sourceYear}${profile.projected ? " (projected)" : ""}. ${profile.papPublication?.source ?? "Publication source not recorded."}`);
+    }
+    for (const reason of result.unavailableReasons ?? []) {
+      lines.push(` Unavailable: ${reason}`);
+    }
+    for (const assumption of result.assumptions ?? []) {
+      lines.push(` Assumption: ${assumption}`);
+    }
+  }
+  lines.push("");
 
   const totalA = resA?.summary?.grandTotal ?? 0;
   const totalB = resB?.summary?.grandTotal ?? 0;

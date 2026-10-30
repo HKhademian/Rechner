@@ -28,6 +28,7 @@ import {
   type PreexistingConditions,
   type SimulationResult,
   ScenarioId,
+  SalaryInputMode,
   TaxClass,
   toGrossSalary,
   toWorkingHours,
@@ -201,7 +202,7 @@ describe("User Data Export & Import Engine", () => {
       );
       assert.ok(
         report.includes(
-          "1. HOUSEHOLD STARTING PROFILE & PREEXISTING CONDITIONS (M1)",
+          "1. HOUSEHOLD STARTING PROFILE & PREEXISTING CONDITIONS (Sim1)",
         ),
       );
       assert.ok(
@@ -353,4 +354,30 @@ it("keeps negative text-report comparisons signed without promising an optimal o
   assert.match(comparison, /-10,00/);
   assert.match(comparison, /-20,00/);
   assert.doesNotMatch(report, /\+-|Maximum Legal Strategy|Strategic Tax Swap \(Class III/);
+});
+
+
+it("discloses unavailable report calculations and outside-horizon tax timing", () => {
+  const manual = reportWithResults(ledgerRowsFixture());
+  assert.ok(manual.includes("payroll incomplete; annual tax incomplete"));
+  assert.ok(manual.includes("totals are partial"));
+  assert.ok(manual.includes("M03.2029, outside the cash horizon"));
+  const gross = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [],
+    preexisting: { ...standardPreexistingConditions,
+      householdTaxableIncome: undefined,
+      salaryInputMode: SalaryInputMode.Gross,
+      husbandInitialTaxClass: TaxClass.I,
+      husbandGross: toGrossSalary(5000),
+      wifeGross: toGrossSalary(0),
+      enable13thSalary: false,
+      simulationDurationMonths: toMonthDuration(24) } });
+  const report = reportWithResults(gross);
+  assert.ok(report.includes("Tax year 2026: 4.569,00"));
+  assert.ok(report.includes("Payroll profile 2027: source 2026 (projected)"));
+  assert.ok(report.includes("M03.2028, outside the cash horizon"));
+  assert.ok(report.includes("HOUSEHOLD STARTING PROFILE & PREEXISTING CONDITIONS (Sim1)"));
+  assert.doesNotMatch(report, /Split 40% in M5/);
 });
