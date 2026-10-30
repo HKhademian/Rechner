@@ -326,6 +326,23 @@ export function computeGrossToNetBreakdown(
   const regularNetTakeHome = toNetSalary(Math.max(0, monthlyGross - social.totalSocialSecurity - monthlyWageTax - monthlySolidaritySurcharge - monthlyChurchTax));
   const wageTaxBase = annualWithholdingTaxBase(inputs, rules);
   const assumptions: string[] = [];
+  const expectedMonthlyEmploymentGross = options.expectedMonthlyEmploymentGross ?? monthlyGross;
+  const contributionBases = computeTransitionContributionBases(monthlyGross, expectedMonthlyEmploymentGross, rules);
+  const payrollLimitations: string[] = [];
+  if (contributionBases.marginal) {
+    payrollLimitations.push("Marginal employment needs its pension exemption and tax regime; standard-insurance amounts are provisional.");
+  }
+  if (bonus > 0 && expectedMonthlyEmploymentGross > contributionBases.thresholds.marginal.value &&
+    expectedMonthlyEmploymentGross <= contributionBases.thresholds.transition.value) {
+    payrollLimitations.push("One-off contributions in the transition zone are not supported; bonus net is provisional.");
+  }
+  if (bonus > 0 && expectedMonthlyEmploymentGross === 0) {
+    payrollLimitations.push("A bonus without a regular employment-pay basis needs additional contribution-period information.");
+  }
+  if (options.expectedMonthlyEmploymentGross === undefined && contributionBases.reduced) {
+    assumptions.push("Transition eligibility assumes the supplied monthly pay is the regular average, with no predictable extras or other employment.");
+  }
+  payrollLimitations.forEach((reason) => assumptions.push(`Payroll estimate: ${reason}`));
   if (options.ageAtYearStart === undefined) {
     assumptions.push("Age unspecified: adult childless surcharge applies where relevant; no age relief is applied.");
   }
@@ -339,6 +356,8 @@ export function computeGrossToNetBreakdown(
     assumptions.push(`Published ${rules.sourceYear} payroll rules are projected to ${rules.calendarYear}.`);
   }
   return {
+    payrollLimitations: Object.freeze(payrollLimitations),
+    expectedMonthlyEmploymentGross,
     monthlyGross,
     annualGross,
     taxRules: rules,

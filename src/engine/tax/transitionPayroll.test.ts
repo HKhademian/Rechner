@@ -1,16 +1,19 @@
 import assert from "node:assert/strict";
 import {
-  it, 
+  it,
 } from "node:test";
 import {
-  computeMonthlySocialSecurity, 
+  computeMonthlySocialSecurity,
+  computeGrossToNetBreakdown,
 } from "#engine/tax/wageTax";
 import {
+  TaxClass,
+  toEuroAmount,
   toGrossSalary,
   toFullCalendarYear,
 } from "#engine/types";
 import {
-  createTaxRules, 
+  createTaxRules,
 } from "#engine/tax/taxRules";
 
 it("deducts employee contributions from the official 2026 reduced bases", () => {
@@ -36,8 +39,8 @@ it("matches the independent GKV 2025 two-child care example", () => {
 it("uses the expected employment average rather than mistaking lower monthly pay for a Midijob", () => {
   // 1800 ×14/12=2100: predictable extra salaries put regular expected pay above the transition ceiling.
   const normal = computeMonthlySocialSecurity(
-    toGrossSalary(1800), 
-    1, 
+    toGrossSalary(1800),
+    1,
     undefined,
     { expectedMonthlyEmploymentGross: toGrossSalary(2100) },
   );
@@ -45,4 +48,14 @@ it("uses the expected employment average rather than mistaking lower monthly pay
   const reduced = computeMonthlySocialSecurity(toGrossSalary(1800), 1);
   assert.equal(reduced.pensionInsurance, 159.37);
   assert.equal(reduced.totalSocialSecurity, 362.45);
+});
+
+it("identifies unsupported contribution regimes instead of presenting exact net values", () => {
+  const marginal = computeGrossToNetBreakdown(toGrossSalary(500), TaxClass.I);
+  assert.match(marginal.payrollLimitations[0], /Marginal employment/);
+  assert.ok(marginal.assumptions.some((note) => note.startsWith("Payroll estimate:")));
+  const bonus = computeGrossToNetBreakdown(toGrossSalary(1800), TaxClass.I, 1, toEuroAmount(1000));
+  assert.match(bonus.payrollLimitations[0], /One-off contributions in the transition zone/);
+  assert.equal(computeGrossToNetBreakdown(toGrossSalary(0), TaxClass.I).payrollLimitations.length, 0);
+  assert.equal(computeGrossToNetBreakdown(toGrossSalary(800), TaxClass.I).payrollLimitations.length, 0);
 });

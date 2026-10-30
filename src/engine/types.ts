@@ -1784,6 +1784,9 @@ export interface BonusPayrollRecord {
 }
 
 export interface GrossToNetBreakdown {
+  /** Unsupported regimes retain provisional amounts, explicitly marked as estimates. */
+  readonly payrollLimitations: readonly string[];
+  readonly expectedMonthlyEmploymentGross: GrossSalary;
   /** Rule year, sources, projection status, and explicitly marked overrides. */
   readonly taxRules: TaxRules;
   /** Monthly gross employment earnings in EUR. */
