@@ -1,3 +1,4 @@
+import ScenarioParameterInput from "#components/ScenarioParameterInput";
 import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 import {
@@ -55,7 +56,6 @@ import {
   editScenario,
   saveDraft,
   updateScenarioMetaData,
-  updateScenarioInput,
   cancelEdit,
 } from "#store/calculatorStore";
 import {
@@ -473,7 +473,7 @@ export function ComparisonTableContent(): JSX.Element {
   const renderInputRow = <K extends keyof typeof liveControls>(
     label: string,
     fieldKey: K,
-    type: "select" | "checkbox" | "number",
+    _type: "select" | "checkbox" | "number",
     options: { value: string;
       label: string }[] | null,
     formatFn: (inputs: Partial<CalculatorInputs>) => string | number,
@@ -506,69 +506,7 @@ export function ComparisonTableContent(): JSX.Element {
 
       let content: JSX.Element | string | number = savedVal;
       if (isActive) {
-        const inputStyle =
-          "background: var(--bg-surface-secondary); border: 1px solid var(--color-primary); color: var(--text-primary); padding: 4px; border-radius: 4px; width: 100%; outline: none;";
-        if (type === "select" && options) {
-          content = (
-            <select
-              value={String(rawVal ?? "")}
-              onChange={(e) =>
-                updateScenarioInput(
-                  fieldKey,
-                  (e.target as HTMLSelectElement).value as CalculatorInputs[K],
-                )
-              }
-              style={inputStyle}
-            >
-              {options.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          );
-        }
-        else if (type === "checkbox") {
-          content = (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={Boolean(rawVal)}
-                onChange={(e) =>
-                  updateScenarioInput(
-                    fieldKey,
-                    (e.target as HTMLInputElement)
-                      .checked as CalculatorInputs[K],
-                  )
-                }
-                style={{ transform: "scale(1.2)",
-                  cursor: "pointer" }}
-              />
-            </div>
-          );
-        }
-        else if (type === "number") {
-          content = (
-            <input
-              type="number"
-              value={Number(rawVal) || 0}
-              onChange={(e) =>
-                updateScenarioInput(
-                  fieldKey,
-                  (parseFloat((e.target as HTMLInputElement).value) ||
-                    0) as CalculatorInputs[K],
-                )
-              }
-              style={inputStyle}
-            />
-          );
-        }
+        content = <ScenarioParameterInput id={`scenario-${scenario.id}-${fieldKey}`} label={label} scope={`Saved scenario ${scenario.title}`} field={fieldKey} value={rawVal} options={options} />;
       }
 
       cells.push(

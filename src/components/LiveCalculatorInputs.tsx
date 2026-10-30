@@ -13,13 +13,14 @@ import {
   parseCalculatorNumber,
 } from "#utils/calculatorNumberInput";
 
-export function LiveNumberInput({ id, label, value, construct, beforeChange, step = 1 }: {
+export function LiveNumberInput({ id, label, value, construct, beforeChange, step = 1, scope = "Live Calculation" }: {
   id: string;
   label: string;
   value: Signal<number>;
   construct: (value: number) => number;
   beforeChange?: (value: number) => void;
   step?: number;
+  scope?: string;
 }): JSX.Element {
   const current = value.value;
   const [draft, setDraft] = useState(String(current));
@@ -31,7 +32,7 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
   return (
     <div className="live-control">
       <input id={id} className="live-input" type="number" min="0" step={step} value={draft}
-        aria-label={`Live Calculation: ${label}`} aria-invalid={error !== ""} aria-describedby={error ? `${id}-error` : undefined}
+        aria-label={`${scope}: ${label}`} aria-invalid={error !== ""} aria-describedby={error ? `${id}-error` : undefined}
         onInput={(event) => {
           const raw = event.currentTarget.value;
           setDraft(raw);
@@ -55,17 +56,18 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
   );
 }
 
-export function LiveChoiceInput<T extends string | number>({ label, value, options, beforeChange }: {
+export function LiveChoiceInput<T extends string | number>({ label, value, options, beforeChange, scope = "Live Calculation" }: {
   label: string;
   value: Signal<T>;
   beforeChange?: (value: T) => void;
+  scope?: string;
   options: readonly { value: T;
     label: string }[];
 }): JSX.Element {
   const [error, setError] = useState("");
   return (
     <div className="live-control">
-      <select className="live-input" aria-label={`Live Calculation: ${label}`} value={value.value}
+      <select className="live-input" aria-label={`${scope}: ${label}`} value={value.value}
         onChange={(event) => {
           const option = options.find((item) => String(item.value) === event.currentTarget.value);
           if (option) {
@@ -86,13 +88,14 @@ export function LiveChoiceInput<T extends string | number>({ label, value, optio
   );
 }
 
-export function LiveToggleInput({ label, value, beforeChange }: { label: string;
+export function LiveToggleInput({ label, value, beforeChange, scope = "Live Calculation" }: { label: string;
+  scope?: string;
   value: Signal<boolean>;
   beforeChange?: (value: boolean) => void }): JSX.Element {
   const [error, setError] = useState("");
   return (
     <div className="live-control">
-      <input className="live-toggle" type="checkbox" aria-label={`Live Calculation: ${label}`} checked={value.value}
+      <input className="live-toggle" type="checkbox" aria-label={`${scope}: ${label}`} checked={value.value}
         onChange={(event) => {
           try {
             beforeChange?.(event.currentTarget.checked);
