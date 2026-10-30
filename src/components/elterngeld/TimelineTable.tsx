@@ -9,7 +9,8 @@ import type {
   JSX, 
 } from "preact";
 import {
-  useState, 
+  useState,
+  useEffect,
 } from "preact/hooks";
 import {
   currentScenarioData,
@@ -21,6 +22,7 @@ import {
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
+  type CalendarYear,
   type StrategyId,
   type TimelineMonth,
   type SpecialEventItem,
@@ -30,6 +32,7 @@ import {
   ExplanationFieldKey,
   SimulationStrategy,
   ActiveStrategyView,
+  toCalendarYear,
   toMonthSimRef,
 } from "#engine/types";
 import {
@@ -64,7 +67,7 @@ function formatCurrency(amount: number): string {
 }
 
 export default function TimelineTable(): JSX.Element {
-  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<CalendarYear | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showDelta, setShowDelta] = useState<boolean>(true);
   const [selectedFieldExplanation, setSelectedFieldExplanation] =
@@ -80,18 +83,20 @@ export default function TimelineTable(): JSX.Element {
   const bData = scenarioBData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
 
-  // Filter rows
+  const years = [...new Set(current.months.map((month) => month.year))];
+  const availableYear = selectedYear !== null && years.includes(selectedYear) ? selectedYear : null;
+
+  // A shortened horizon must not retain a hidden year selection when later extended.
+  useEffect(() => {
+    if (selectedYear !== null && !current.months.some((month) => month.year === selectedYear)) {
+      setSelectedYear(null);
+    }
+  }, [current.months, selectedYear]);
+
+  // Filter whole months so action/event/base-row ordering remains unchanged.
   const filteredMonths = current.months.filter((m) => {
-    if (selectedYear !== "all") {
-      if (selectedYear.startsWith("cal_")) {
-        const calYearNum = Number(selectedYear.replace("cal_", ""));
-        if (m.calendarYearNum !== calYearNum) {
-          return false;
-        }
-      }
-      else if (m.year !== Number(selectedYear)) {
-        return false;
-      }
+    if (availableYear !== null && m.year !== availableYear) {
+      return false;
     }
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -360,10 +365,12 @@ export default function TimelineTable(): JSX.Element {
 
           {/* Year selector */}
           <select
-            value={selectedYear}
-            onChange={(e) =>
-              setSelectedYear((e.target as HTMLSelectElement).value)
-            }
+            aria-label="Ledger simulation year"
+            value={availableYear ?? "all"}
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setSelectedYear(value === "all" ? null : toCalendarYear(Number(value)));
+            }}
             style={{
               padding: "6px 10px",
               borderRadius: "var(--border-radius-sm)",
@@ -371,15 +378,15 @@ export default function TimelineTable(): JSX.Element {
               background: "var(--bg-surface)",
               color: "var(--text-primary)",
               fontSize: "0.78rem",
-              width: "130px",
+              width: "230px",
+              maxWidth: "100%",
             }}
           >
-            <option value="all">All Years (1–5)</option>
-            <option value="1">Year 1 (Sim Months 1–12)</option>
-            <option value="2">Year 2 (Sim Months 13–24)</option>
-            <option value="3">Year 3 (Sim Months 25–36)</option>
-            <option value="4">Year 4 (Sim Months 37–48)</option>
-            <option value="5">Year 5 (Sim Months 49–60)</option>
+            <option value="all">All years</option>
+            {years.map((year) => {
+              const months = current.months.filter((month) => month.year === year);
+              return <option key={year} value={year}>Year {year} (Sim Months {months[0]?.month}–{months.at(-1)?.month})</option>;
+            })}
           </select>
 
           {/* Export CSV button */}
