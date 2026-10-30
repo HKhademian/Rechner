@@ -22,6 +22,7 @@ import {
 } from "#engine/types";
 import {
   getFieldExplanation,
+  getRowExplanation,
 } from "#engine/explanation/timelineExplainer";
 
 const money = (amount: number) => new Intl.NumberFormat("de-DE", { style: "currency",
@@ -111,4 +112,15 @@ it("does not infer maternity leave or gross deductions from a zero supplied wife
   assert.ok(result.explanation.includes("Payroll deductions are unavailable"));
   assert.ok(!result.explanation.includes("on statutory Maternity"));
   assert.deepEqual(result.calculationSteps, []);
+});
+
+it("monthly salary stream notes follow recorded tax classes without inventing a part-time schedule", () => {
+  const month = payrollMonth(3800, TaxClass.I, 5700, TaxClass.IV);
+  const row = getRowExplanation(month);
+  assert.equal(row.streams.find((stream) => stream.label === "Husband's Net Salary")?.notes, "Tax Class I");
+  assert.equal(row.streams.find((stream) => stream.label === "Wife's Net Salary")?.notes, "Tax Class IV");
+  assert.ok(row.streams.every((stream) => !stream.notes?.includes("Part-Time")));
+  const manual = getRowExplanation({ ...month,
+    payroll: undefined });
+  assert.ok(manual.streams.find((stream) => stream.label === "Husband's Net Salary")?.notes?.includes(month.taxClassLabel));
 });

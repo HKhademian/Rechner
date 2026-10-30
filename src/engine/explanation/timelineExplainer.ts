@@ -1222,7 +1222,7 @@ export function getRowExplanation(
       label: "Husband's Net Salary",
       value: toEuroAmount(hSalary),
       valueFormatted: formatCurrency(hSalary),
-      notes: `Tax Class ${m.isSwapActive ? "V" : "III"}`,
+      notes: m.payroll ? `Tax Class ${m.payroll.husband.taxClass}` : `Recorded household classes: ${m.taxClassLabel}`,
     });
   }
 
@@ -1231,7 +1231,7 @@ export function getRowExplanation(
       label: "Wife's Net Salary",
       value: toEuroAmount(wSalary),
       valueFormatted: formatCurrency(wSalary),
-      notes: `Tax Class ${m.isSwapActive ? "III" : "V"} · Part-Time`,
+      notes: m.payroll ? `Tax Class ${m.payroll.wife.taxClass}` : `Recorded household classes: ${m.taxClassLabel}`,
     });
   }
 
