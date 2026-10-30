@@ -19,3 +19,12 @@ Continue the authorized UI work in focused, progressive atomic commits. Preserve
 7. Make salary stream notes in the monthly audit use recorded tax classes and stop claiming a fixed part-time schedule.
 
 Each concern gets its own commit after `npm run fix`, `npm run check` and affected-consumer build. Add targeted regression checks for financial explanation mismatches and missing payroll evidence. Local browser access was disabled in Work settings during the preceding pass; use headless rendering where available and disclose unverified visual/interaction behavior instead of claiming it passed.
+
+## Added user request: taxable-income section
+
+The user requested a visible section for each partner's taxable income and their sum. Clarification offered annual income-tax breakdown (recommended), Elterngeld eligibility income, or both. While that optional preference is pending, expose the existing annual calculation's per-partner employment-income contributions without changing its joint deductions or tax result. Default presentation is annual income-tax evidence.
+
+- Add recorded annual gross, work-expense deduction and resulting employment-income contribution for each partner to the annual tax-base audit output, preserving the existing household calculation.
+- Add a distinct annual section showing husband, wife and combined contributions, then the shared deductions and resulting joint taxable income. Do not invent an allocation of pooled deductions or label a gross salary as final taxable income. Use the actual annual record and matched rule-profile sources.
+- Keep unavailable full-year evidence unavailable, and distinguish projected rule years and incomplete annual settlements from known income. Support year selection from available annual records. Mount the section near the scenario summary and inputs in its own small integration commit.
+- Resume remaining wife-payroll and monthly-audit explanation scopes after the requested section is complete.
