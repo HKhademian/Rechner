@@ -369,6 +369,7 @@ export default function SandboxControls(): JSX.Element {
 
             <div style={{ display: "flex",
               alignItems: "center",
+              flexWrap: "wrap",
               gap: "8px" }}>
               <button
                 type="button"
