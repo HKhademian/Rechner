@@ -1,6 +1,6 @@
 ---
 name: Calculator UI follow-up candidates
-status: in_progress
+status: complete
 created: 2026-10-30
 ---
 
@@ -19,7 +19,7 @@ The user asked what else could be improved after consolidating inputs into Live 
 
 ## Evidence and limits
 
-Reviewed `ComparisonTable.tsx`, `LiveCalculatorInputs.tsx`, `LiveCalculatorSettings.tsx`, `Calculator.tsx`, `CalculatorTaxableIncome.tsx`, `PayrollPersonalInputs.tsx` and scenario mutation functions in `calculatorStore.ts`. This follow-up review used current source inspection; it did not add browser measurements or new test results. Mobile concerns are inferred from fixed column sizes and require device-width verification before choosing a layout.
+Reviewed `ComparisonTable.tsx`, `LiveCalculatorInputs.tsx`, `LiveCalculatorSettings.tsx`, `Calculator.tsx`, `CalculatorTaxableIncome.tsx`, `PayrollPersonalInputs.tsx` and scenario mutation functions in `calculatorStore.ts`. The initial follow-up review used source inspection. The completed implementation and live verification below supersede its initial mobile-layout uncertainty.
 
 For each selected implementation scope, run the formatter before staging, relevant behavior checks, the full quality audit and the consumer build. Keep financial engine changes separate from UI work and preserve unrelated `test-random/` files.
 
@@ -31,3 +31,26 @@ First fix the pregnancy-positive date setter so selecting October 2026 updates t
 ## Selected responsive behavior
 
 At 390px, the live salary field currently extends from about x298 to x566, outside the viewport, while its 250px sticky label column remains visible. Use a single-column live editor below 700px: keep the existing controls mounted, lay out each row as label plus live value, hide saved columns by default and expose them through an explicit Compare saved scenarios toggle. Expanded comparison retains horizontal scrolling. CSS grid handles section-heading spans in the compact view, without duplicating inputs or remounting drafts. Reflow the sticky summary into two columns with the modeled-income amount on its own full-width row. Verify at 390px and 700px plus desktop, including keyboard access, toggle behavior and invalid-edit state.
+
+
+## Completed progressive commits
+
+- First priority: `44abc52` synchronizes the first pregnancy action and simulation baseline in a batch. October 2026 remains selected and delivery updates to June 2027.
+- Scope 1: `e32acdf` labels each salary input with its own unit and period, independently of the result-display buttons.
+- Scope 2: `d24085b` validates saved edits; `54c2de8` gates scenario saves on valid visible edits; `f1725f1` extends validation and save gating to optional payroll details, distinguishing valid blank defaults from unfinished or invalid numeric text.
+- Scope 3: `7ec6b34` places both partners' inputs before individual deduction rows; `5e80f62` adds a compact sticky summary with annual net, net divided by twelve calendar months and annual modeled income after deductions. Its offset follows the actual navigation height.
+- Scope 4: `b4c387c` implements the selected compact mobile editor and explicit comparison toggle without remounting controls.
+- Scope 5: `a2a7d62` removes automatic scenario creation and keeps editor activation local to the draft session; `cead3e5` tracks unsaved changes and immediate title/description edits; `a47a8fe` adds deletion undo; `1737eeb` corrects the undo regression test's stale TypeScript narrowing.
+- Scope 6: `22aff34` gives personal settings distinct names and exposes current assumptions with the selected profile's official source.
+- Additional issue found during verification: `2f9ca73` reveals partner rows immediately when a partner is enabled in a saved draft.
+
+## Final verification
+
+- Formatter ran before staging each commit. The completed source passed `npm run check` with zero errors/warnings and `npm run check:build` for both pages. An intermediate undo-test type error was corrected and the full audit rerun successfully before further implementation.
+- Added store regressions for October 2026 and a cross-calendar-year pregnancy selection, unsaved-change detection/reversion, and deletion undo restoring position and the last valid draft.
+- Headless rendering and real handler checks passed for zero saved scenarios, live/saved isolation, required and optional invalid/incomplete inputs, valid zero, typed choices, both partners' input ordering, draft partner visibility, unique payroll IDs and calculator/simulator annual-income parity.
+- Browser verified October 2026 persists after reload, the displayed delivery is June 2027, result-display changes leave salary input units intact, invalid live/saved edits independently gate the correct Save button, and the first scenario is created only by an explicit action.
+- Browser verified dirty indicators, saving and reload without phantom editing; deletion followed by undo; newly enabled saved-draft partner fields; distinct payroll disclosures; optional insurer/factor validation, error isolation across other fields, valid blank defaults and clearing a removed partner's errors.
+- Measured the 390px live salary control entirely within the viewport after the compact layout. Verified 700px and desktop layouts, keyboard focus and comparison toggling without losing an invalid edit. Restored the normal browser viewport and test inputs.
+- Saved visual evidence under `/tmp/calculator-pregnancy-october.png` and `/tmp/calculator-ui-mobile.png`. No exhaustive assistive-technology or browser-matrix audit was performed.
+- Preserved published financial profiles/source links, taxable-income qualification, simulator/calculator input separation, ledger event ordering, existing saved scenarios and unrelated `test-random/` files.
