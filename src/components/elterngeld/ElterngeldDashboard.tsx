@@ -5,6 +5,7 @@ import {
 import type {
   JSX, 
 } from "preact";
+import AnnualTaxableIncome from "#components/elterngeld/AnnualTaxableIncome";
 import KpiScorecard from "#components/elterngeld/KpiScorecard";
 import ScenarioSelector from "#components/elterngeld/ScenarioSelector";
 import TimelineChart from "#components/elterngeld/TimelineChart";
@@ -65,6 +66,8 @@ export default function ElterngeldDashboard(): JSX.Element {
 
         {/* Dynamic KPI Scorecard */}
         <KpiScorecard />
+
+        <AnnualTaxableIncome result={currentScenarioData.value} />
 
         {/* The Sandbox: Interactive Input Parameters & Sliders */}
         <SandboxControls />
