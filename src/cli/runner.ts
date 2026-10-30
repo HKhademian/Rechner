@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import {
+  LedgerRowKind,
+  projectScenarioRows,
+} from "#engine/ledger/rows";
 
 // Universal Telemetry & Analytics Opt-Out
 process.env.ASTRO_TELEMETRY_DISABLED = "1";
@@ -44,6 +48,7 @@ import {
   SalaryPeriod,
   ActionCategory,
   ActionType,
+  SpecialEventType,
   toTaxClass,
   toStrategyId,
   toGrossSalary,
@@ -1652,174 +1657,41 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
   }
 }
 
-function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
-  console.log(
-    `\n${BOLD}Simulation Ledger: ${res.scenarioKey === ScenarioId.C ? "Scenario C (Optimized Tax Classes)" : `Scenario ${res.scenarioKey}`}${RESET}`,
-  );
-  console.log(
-    `${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`,
-  );
-
-  const header =
-    "| Rel. Month (monthRef)    | Month ID  | Sim Ref | Calendar | Phase & Milestone              | Classes     | Husband Net | Wife Net  | M-Schutz | Elterngeld | Kindergeld | Bonuses | Tax Return | Monthly Total | Cum. Total |";
-  const sep =
-    "|--------------------------|-----------|---------|----------|--------------------------------|-------------|-------------|-----------|----------|------------|------------|---------|------------|---------------|------------|";
-
-  console.log(header);
-  console.log(sep);
-
-  res.months.forEach((m, idx) => {
-    const bMonth = resB?.months[idx];
-    const diffTotal = bMonth ? m.monthlyTotal - bMonth.monthlyTotal : 0;
-    const diffStr =
-      bMonth && diffTotal !== 0
-        ? ` (${diffTotal > 0 ? "+" : ""}${diffTotal}€)`
-        : "";
-
-    // Print Action Milestone Rows immediately BEFORE Month m
-    if (m.startingActions && m.startingActions.length > 0) {
-      m.startingActions.forEach((act) => {
-        const isDelivery = act.type === ActionType.ChildDelivery;
-        const isPregnancy = act.type === ActionType.PregnancyPositive;
-        const isTaxRevert = act.type === ActionType.TaxClassSwitchRevert;
-        const isTaxSwitch = act.category === ActionCategory.TaxSwitch;
-        const isReallocation = act.type === ActionType.ElterngeldReallocation;
-
-        const color = isDelivery
-          ? CYAN
-          : isPregnancy
-            ? MAGENTA
-            : isTaxRevert
-              ? BLUE
-              : isTaxSwitch
-                ? BLUE
-                : isReallocation
-                  ? GREEN
-                  : YELLOW;
-        const cleanTitle = act.title.replace(/^ACTION:\s*/, "");
-        const actTitle = `↳ ${cleanTitle}`;
-
-        const actRow = [
-          (act.relativeMonthLabel || act.monthRef || m.relativeMonthLabel || "")
-            .slice(0, 24)
-            .padEnd(24),
-          (act.monthId || m.monthId).padEnd(9),
-          (act.monthSimRef || m.monthSimRef || toMonthSimRef(m.month)).padEnd(
-            7,
-          ),
-          m.calendarLabel.padEnd(8),
-          `${color}${actTitle.slice(0, 30)}${RESET}`.padEnd(
-            30 + color.length + RESET.length,
-          ),
-          (act.taxClassLabel || "—").slice(0, 11).padEnd(11),
-          "—".padStart(11),
-          "—".padStart(9),
-          "—".padStart(8),
-          "—".padStart(10),
-          "—".padStart(10),
-          "—".padStart(7),
-          "—".padStart(10),
-          "—".padStart(15),
-          "—".padStart(10),
-        ].join(" | ");
-        console.log(`| ${actRow} |`);
-      });
+export function printLedgerTable(res: SimulationResult, resB?: SimulationResult) {
+  console.log(`\n${BOLD}Simulation Ledger: ${res.scenarioKey === ScenarioId.C ? "Scenario C (Optimized Tax Classes)" : `Scenario ${res.scenarioKey}`}${RESET}`);
+  console.log(`${DIM}All amounts in EUR (€). Colored diffs indicate variance against Scenario B baseline.${RESET}\n`);
+  const headers = ["Rel. Month (monthRef)", "Month ID", "Row ID", "Sim Ref", "Calendar", "Phase & Milestone", "Classes", "Husband Net", "Wife Net", "M-Schutz", "Elterngeld", "Kindergeld", "Bonuses", "Tax Settlement", "Other Events", "Monthly Total", "Cum. Total"];
+  console.log(`| ${headers.join(" | ")} |`);
+  const separator = `|${headers.map(() => "----------------").join("|")}|`;
+  console.log(separator);
+  const money = (amount: number | null, width = 10) => (amount === null ? "—" : amount.toFixed(2)).padStart(width);
+  const delta = (amount: number | null) => amount === null || amount === 0 ? "" : ` (${amount > 0 ? "+" : ""}${amount.toFixed(2)}€)`;
+  const text = (value: string) => value.replaceAll("|", " / ").replace(/[\r\n]+/g, " ");
+  for (const row of projectScenarioRows(res, resB)) {
+    const m = row.month;
+    const base = row.kind === LedgerRowKind.Month;
+    const event = row.kind === LedgerRowKind.FinancialEvent ? row.event : undefined;
+    const action = row.kind === LedgerRowKind.Action ? row.action : undefined;
+    const bonus = event?.type === SpecialEventType.Bonus40 || event?.type === SpecialEventType.Bonus60;
+    const tax = event?.type === SpecialEventType.TaxReturn;
+    let color = "";
+    if (event) {
+      color = event.amount < 0 ? RED : bonus ? YELLOW : CYAN;
     }
-
-    // Print Special Fiscal Event Rows immediately BEFORE Month m
-    if (m.specialEvents && m.specialEvents.length > 0) {
-      const prevMonthIdx = m.month - 2;
-      const prevCum =
-        prevMonthIdx >= 0 ? res.months[prevMonthIdx]?.cumulatedTotal || 0 : 0;
-      const bPrevCum =
-        prevMonthIdx >= 0 && resB
-          ? resB.months[prevMonthIdx]?.cumulatedTotal || 0
-          : 0;
-
-      m.specialEvents.forEach((ev, evIdx) => {
-        const isBonus = (ev.type as string).startsWith("bonus");
-        const isCost = ev.amount < 0;
-        const color = isCost ? RED : isBonus ? YELLOW : CYAN;
-        const evTitle = `↳ ${ev.category}: ${ev.title}`;
-
-        const priorEventsSum = m.specialEvents
-          .slice(0, evIdx)
-          .reduce((acc, it) => acc + it.amount, 0);
-        const evCumulated = prevCum + priorEventsSum + ev.amount;
-
-        const bEvents = bMonth?.specialEvents || [];
-        const bMatchIdx = bEvents.findIndex(
-          (it) =>
-            it.eventId === ev.eventId ||
-            it.title === ev.title ||
-            it.type === ev.type,
-        );
-        const bPriorSum =
-          bMatchIdx >= 0
-            ? bEvents
-              .slice(0, bMatchIdx + 1)
-              .reduce((acc, it) => acc + it.amount, 0)
-            : 0;
-        const bEvCumulated = bPrevCum + bPriorSum;
-        const diffEvCumulated = resB ? evCumulated - bEvCumulated : 0;
-        const diffCumStr =
-          resB && diffEvCumulated !== 0
-            ? ` (${diffEvCumulated > 0 ? "+" : ""}${diffEvCumulated}€)`
-            : "";
-
-        const evRow = [
-          (ev.relativeMonthLabel || ev.monthRef || m.relativeMonthLabel || "")
-            .slice(0, 24)
-            .padEnd(24),
-          (ev.monthId || m.monthId).padEnd(9),
-          (ev.monthSimRef || m.monthSimRef || toMonthSimRef(m.month)).padEnd(7),
-          ev.calendarLabel.padEnd(8),
-          `${color}${evTitle.slice(0, 30)}${RESET}`.padEnd(
-            30 + color.length + RESET.length,
-          ),
-          (ev.taxClassLabel || "—").slice(0, 11).padEnd(11),
-          "—".padStart(11),
-          "—".padStart(9),
-          "—".padStart(8),
-          "—".padStart(10),
-          "—".padStart(10),
-          isBonus ? String(ev.amount).padStart(7) : "—".padStart(7),
-          !isBonus && !isCost
-            ? String(ev.amount).padStart(10)
-            : isCost
-              ? String(ev.amount).padStart(10)
-              : "—".padStart(10),
-          `${String(ev.amount).padStart(7)}${"".padStart(8)}`,
-          `${String(evCumulated).padStart(7)}${diffCumStr.padStart(3)}`,
-        ].join(" | ");
-        console.log(`| ${evRow} |`);
-      });
+    else if (action) {
+      color = action.type === ActionType.ChildDelivery ? CYAN : action.type === ActionType.PregnancyPositive ? MAGENTA
+        : action.category === ActionCategory.TaxSwitch ? BLUE : action.type === ActionType.ElterngeldReallocation ? GREEN : YELLOW;
     }
-
-    const row = [
-      (m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel || "")
-        .slice(0, 24)
-        .padEnd(24),
-      m.monthId.padEnd(9),
-      m.monthSimRef.padEnd(7),
-      m.calendarLabel.padEnd(8),
-      m.phaseLabel.slice(0, 30).padEnd(30),
-      m.taxClassLabel.slice(0, 11).padEnd(11),
-      String(m.husbandSalary).padStart(11),
-      String(m.wifeSalary).padStart(9),
-      String(m.mutterschutz).padStart(8),
-      String(m.wifeElterngeld + m.husbandElterngeld).padStart(10),
-      String(m.kindergeld).padStart(10),
-      String(m.specialBonusTotal).padStart(7),
-      String(m.taxRefund).padStart(10),
-      `${String(m.monthlyTotal).padStart(7)}${diffStr.padStart(8)}`,
-      String(m.cumulatedTotal).padStart(10),
-    ].join(" | ");
-
-    console.log(`| ${row} |`);
-  });
-
-  console.log(`${sep}\n`);
+    const title = event ? `↳ ${event.category}: ${event.title}` : action ? `↳ ${action.title.replace(/^ACTION:\s*/, "")}` : m.phaseLabel;
+    const regular = (amount: number, width = 10) => money(base ? amount : null, width);
+    const values = [text(m.monthRef || m.relativeMonthLabel).padEnd(24), m.monthId.padEnd(9), row.rowId, m.monthSimRef.padEnd(7), m.calendarLabel,
+      `${color}${text(title).slice(0, 30)}${color ? RESET : ""}`, text(event?.taxClassLabel ?? action?.taxClassLabel ?? m.taxClassLabel),
+      regular(m.husbandSalary, 11), regular(m.wifeSalary, 9), regular(m.mutterschutz, 8), regular(m.wifeElterngeld + m.husbandElterngeld), regular(m.kindergeld),
+      money(bonus ? event!.amount : null, 7), money(tax ? event!.amount : null), money(event && !bonus && !tax ? event.amount : null),
+      `${money(row.amount)}${delta(row.deltaAmount)}`, `${money(row.cumulative)}${delta(row.deltaCumulative)}`];
+    console.log(`| ${values.join(" | ")} |`);
+  }
+  console.log(`${separator}\n`);
 }
 
 const isDirectRun = Boolean(

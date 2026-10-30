@@ -1,4 +1,7 @@
 import {
+  ledgerRowsFixture,
+} from "../../test/fixture/ledgerRows.ts";
+import {
   computeGrossToNetBreakdown,
   deriveSpousalNetSalaries,
 } from "#engine/tax/wageTax";
@@ -9,6 +12,7 @@ import {
   FieldColumnKey,
 } from "#engine/types";
 import {
+  mock,
   describe,
   it,
 } from "node:test";
@@ -20,6 +24,7 @@ import {
   promisify,
 } from "node:util";
 import {
+  printLedgerTable,
   normalizeCliGross,
   parseMonthArg,
   parseFieldArg,
@@ -656,4 +661,30 @@ it("forwards supplied household taxable income from a CLI scenario file", async 
     fs.rmSync(directory, { recursive: true,
       force: true });
   }
+});
+
+
+it("prints the shared five-event stream without paying events again in base rows", () => {
+  const result = ledgerRowsFixture();
+  const lines: string[] = [];
+  const capture = mock.method(console, "log", (...values: unknown[]) => lines.push(values.join(" ")));
+  try {
+    printLedgerTable(result);
+  }
+  finally {
+    capture.mock.restore();
+  }
+  const table = lines.filter((line) => line.startsWith("| ")).map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()));
+  const [headers, ...rows] = table;
+  const at = (row: string[], name: string) => row[headers.indexOf(name)];
+  assert.equal(rows.length, 42); // 36 base months, one action, five financial events.
+  assert.equal(rows.filter((row) => at(row, "Row ID").includes("ROW-EVENT")).length, 5);
+  const action = rows.find((row) => at(row, "Row ID").includes("ROW-ACTION"))!;
+  assert.equal(at(action, "Monthly Total"), "—");
+  assert.equal(at(action, "Cum. Total"), "—");
+  const february = rows.find((row) => at(row, "Row ID") === "M02.2026")!;
+  assert.equal(at(february, "Monthly Total"), "1000.00");
+  assert.equal(at(february, "Cum. Total"), "2060.00");
+  assert.equal(at(february, "Bonuses"), "—");
+  assert.equal(rows.reduce((sum, row) => sum + (at(row, "Monthly Total") === "—" ? 0 : Number(at(row, "Monthly Total"))), 0), 36060);
 });
