@@ -117,6 +117,7 @@ export function ComparisonTableContent(): JSX.Element {
   };
 
   const isMonthly = displayMode.value === "monthly";
+  const hasAnyPartner = Boolean(deductions.value.partner || savedScenarios.value.some((scenario) => scenario.data.partner));
 
   const validateLive = <K extends keyof CalculatorInputs>(field: K) => (value: CalculatorInputs[K]): void => {
     calculateScenarioData({ ...getCurrentInputs(),
@@ -1049,54 +1050,6 @@ export function ComparisonTableContent(): JSX.Element {
                 colSpan={savedScenarios.value.length + 2}
                 style={{
                   padding: "25px 16px 8px 16px",
-                  fontSize: "0.85rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                  color: "var(--text-muted)",
-                  fontWeight: 700,
-                  background: "var(--bg-surface-secondary)",
-                }}
-              >
-                Person 1 Summary
-              </td>
-            </tr>
-            {renderRow(
-              isMonthly ? "Avg Gross" : "Gross Income",
-              "person1",
-              "grossYearly",
-              false,
-              true,
-            )}
-            {renderRow(
-              isMonthly ? "Avg Net" : "Net Take-Home Pay",
-              "person1",
-              "netIncome",
-              false,
-              true,
-            )}
-            {renderAverageMonthlyNetRow("person1", false)}
-            {renderPerPaycheckRow("person1", false)}
-            {renderRow(
-              isMonthly ? "Avg Wage Tax" : "Wage Tax (Lohnsteuer)",
-              "person1",
-              "tax",
-            )}
-            {renderRow(
-              isMonthly ? "Avg Health Care" : "Health Insurance",
-              "person1",
-              "healthCare",
-            )}
-            {renderRow(
-              isMonthly ? "Avg Pension" : "Pension Insurance",
-              "person1",
-              "pension",
-            )}
-
-            <tr>
-              <td
-                colSpan={savedScenarios.value.length + 2}
-                style={{
-                  padding: "25px 16px 8px 16px",
                   fontSize: "0.8rem",
                   textTransform: "uppercase",
                   letterSpacing: "1px",
@@ -1200,47 +1153,8 @@ export function ComparisonTableContent(): JSX.Element {
               );
             })()}
 
-            {(deductions.value.partner ||
-              savedScenarios.value.some((s) => s.data.partner)) && (
+            {hasAnyPartner && (
               <>
-                <tr>
-                  <td
-                    colSpan={savedScenarios.value.length + 2}
-                    style={{
-                      padding: "25px 16px 8px 16px",
-                      fontSize: "0.85rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                      color: "var(--text-muted)",
-                      fontWeight: 700,
-                      background: "var(--bg-surface-secondary)",
-                    }}
-                  >
-                    Partner Summary
-                  </td>
-                </tr>
-                {renderRow(
-                  isMonthly ? "Avg Gross" : "Gross Income",
-                  "partner",
-                  "grossYearly",
-                  false,
-                  true,
-                )}
-                {renderRow(
-                  isMonthly ? "Avg Net" : "Net Take-Home Pay",
-                  "partner",
-                  "netIncome",
-                  false,
-                  true,
-                )}
-                {renderAverageMonthlyNetRow("partner", false)}
-                {renderPerPaycheckRow("partner", false)}
-                {renderRow(
-                  isMonthly ? "Avg Wage Tax" : "Wage Tax (Lohnsteuer)",
-                  "partner",
-                  "tax",
-                )}
-
                 <tr>
                   <td
                     colSpan={savedScenarios.value.length + 2}
@@ -1348,6 +1262,100 @@ export function ComparisonTableContent(): JSX.Element {
                     </>
                   );
                 })()}
+              </>
+            )}
+
+            <tr>
+              <td
+                colSpan={savedScenarios.value.length + 2}
+                style={{
+                  padding: "25px 16px 8px 16px",
+                  fontSize: "0.85rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  color: "var(--text-muted)",
+                  fontWeight: 700,
+                  background: "var(--bg-surface-secondary)",
+                }}
+              >
+                Person 1 Summary
+              </td>
+            </tr>
+            {renderRow(
+              isMonthly ? "Avg Gross" : "Gross Income",
+              "person1",
+              "grossYearly",
+              false,
+              true,
+            )}
+            {renderRow(
+              isMonthly ? "Avg Net" : "Net Take-Home Pay",
+              "person1",
+              "netIncome",
+              false,
+              true,
+            )}
+            {renderAverageMonthlyNetRow("person1", false)}
+            {renderPerPaycheckRow("person1", false)}
+            {renderRow(
+              isMonthly ? "Avg Wage Tax" : "Wage Tax (Lohnsteuer)",
+              "person1",
+              "tax",
+            )}
+            {renderRow(
+              isMonthly ? "Avg Health Care" : "Health Insurance",
+              "person1",
+              "healthCare",
+            )}
+            {renderRow(
+              isMonthly ? "Avg Pension" : "Pension Insurance",
+              "person1",
+              "pension",
+            )}
+
+
+
+            {hasAnyPartner && (
+              <>
+                <tr>
+                  <td
+                    colSpan={savedScenarios.value.length + 2}
+                    style={{
+                      padding: "25px 16px 8px 16px",
+                      fontSize: "0.85rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                      color: "var(--text-muted)",
+                      fontWeight: 700,
+                      background: "var(--bg-surface-secondary)",
+                    }}
+                  >
+                    Partner Summary
+                  </td>
+                </tr>
+                {renderRow(
+                  isMonthly ? "Avg Gross" : "Gross Income",
+                  "partner",
+                  "grossYearly",
+                  false,
+                  true,
+                )}
+                {renderRow(
+                  isMonthly ? "Avg Net" : "Net Take-Home Pay",
+                  "partner",
+                  "netIncome",
+                  false,
+                  true,
+                )}
+                {renderAverageMonthlyNetRow("partner", false)}
+                {renderPerPaycheckRow("partner", false)}
+                {renderRow(
+                  isMonthly ? "Avg Wage Tax" : "Wage Tax (Lohnsteuer)",
+                  "partner",
+                  "tax",
+                )}
+
+
               </>
             )}
           </tbody>
