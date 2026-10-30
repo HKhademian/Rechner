@@ -1528,6 +1528,8 @@ function generateScenario(
       ]),
       "Annual tax settlements are planned for the configured following-year month; actual filing and assessment dates may differ.",
       ...(preexisting.existingChildrenCount > 0 ? ["Preexisting children are assumed to qualify for child tax allowances throughout the modeled years."] : []),
+      ...([preexisting.husbandPayrollOptions, preexisting.wifePayrollOptions].some((personal) => (personal?.childrenUnder25 ?? 0) > 0)
+        ? ["Supplied qualifying counts for older children are held constant through the forecast; their birthdays are not modeled. New births are added separately."] : []),
       ...months.flatMap((month) => month.assumptions ?? []),
       ...months.flatMap((month) => [month.payroll?.husband, month.payroll?.wife].flatMap((payroll) =>
         (payroll?.bonuses ?? []).flatMap((bonus) => (bonus.payrollLimitations ?? []).map((reason) => `Payroll estimate: ${reason}`)))),

@@ -106,3 +106,12 @@ describe("Payroll domain adapter and actual deductions", () => {
     assert.equal(zero.monthlyWageTax, 0);
   });
 });
+
+
+it("flags the unknown birthday when the childless care surcharge can start during the year", () => {
+  const estimate = computeGrossToNetBreakdown(toGrossSalary(4000), TaxClass.I, toChildrenCount(0), undefined, undefined, undefined, { ageAtYearStart: toAgeYears(22) });
+  assert.ok(estimate.payrollLimitations.some((reason) => reason.includes("birth month")));
+  const parent = computeGrossToNetBreakdown(toGrossSalary(4000), TaxClass.I, toChildrenCount(0), undefined, undefined, undefined, { ageAtYearStart: toAgeYears(22),
+    isParent: true });
+  assert.equal(parent.payrollLimitations.length, 0);
+});

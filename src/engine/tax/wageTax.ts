@@ -329,6 +329,9 @@ export function computeGrossToNetBreakdown(
   const expectedMonthlyEmploymentGross = options.expectedMonthlyEmploymentGross ?? monthlyGross;
   const contributionBases = computeTransitionContributionBases(monthlyGross, expectedMonthlyEmploymentGross, rules);
   const payrollLimitations: string[] = [];
+  if (monthlyGross > 0 && !(options.isParent ?? children > 0) && options.ageAtYearStart === rules.parameters.careChildlessMinimumAge.value - 1) {
+    payrollLimitations.push(`The childless care surcharge can begin after a birthday during this year; a birth month is required. The estimate holds the initial age. ${rules.parameters.careChildlessMinimumAge.source}`);
+  }
   if (contributionBases.marginal) {
     payrollLimitations.push("Marginal employment needs its pension exemption and tax regime; standard-insurance amounts are provisional.");
   }
