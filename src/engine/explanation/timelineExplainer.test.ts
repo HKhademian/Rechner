@@ -333,7 +333,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
   });
 
   describe("getSpecialEventFieldExplanation & getSpecialEventRowExplanation (Tax Return Comprehensive Audit)", () => {
-    it("generates complete 4-step calculation and itemized contributing factors for Tax Return field explanation", () => {
+    it("explains stored annual tax credits and liability without parsing descriptive numbers", () => {
       const ev: SpecialEventItem = {
         eventId: toEventId("EV-TAX-REFUND-1"),
         monthId: toMonthId(3, 2027),
@@ -345,7 +345,12 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         taxClassLabel: "Joint Assessment (*Splitting*)",
         description:
           "Full refund of Tax Class V wage withholding deficit (+2.200 €) plus statutory deductions return (+850 €) plus § 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+104 € over Kindergeld) for Tax Year 2026",
-        amount: toEuroAmount(3154),
+        amount: toEuroAmount(4569),
+        taxSettlement: { calendarYear: toFullCalendarYear(2026),
+          settlement: toEuroAmount(4569),
+          creditedIncomeTax: toEuroAmount(9389),
+          creditedSolidarity: toEuroAmount(0),
+          totalLiability: toEuroAmount(4820) },
         month: toSimulationMonth(15),
         year: toCalendarYear(2),
         calendarYearNum: toFullCalendarYear(2027),
@@ -364,31 +369,35 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         3154,
       );
 
-      assert.equal(fieldExp.valueFormatted, "3.154\u00a0€");
-      assert.ok(fieldExp.fieldTitle.includes("Tax Return Refund"));
+      assert.equal(fieldExp.valueFormatted, "4.569,00\u00a0€");
+      assert.ok(fieldExp.fieldTitle.includes("Tax Settlement"));
       assert.ok(fieldExp.explanation.includes("Einkommensteuererklärung"));
       assert.ok(
         fieldExp.contributingFactors &&
           fieldExp.contributingFactors.length >= 3,
       );
       assert.ok(
-        fieldExp.calculationSteps && fieldExp.calculationSteps.length === 4,
+        fieldExp.calculationSteps && fieldExp.calculationSteps.length === 2,
       );
 
-      assert.equal(fieldExp.calculationSteps[0].stepNumber, 1);
-      assert.equal(fieldExp.calculationSteps[0].result, "+2.200 €");
-      assert.equal(fieldExp.calculationSteps[1].stepNumber, 2);
-      assert.equal(fieldExp.calculationSteps[1].result, "+850 €");
-      assert.equal(fieldExp.calculationSteps[2].stepNumber, 3);
-      assert.equal(fieldExp.calculationSteps[2].result, "+104 €");
-      assert.equal(fieldExp.calculationSteps[3].stepNumber, 4);
-      assert.equal(fieldExp.calculationSteps[3].result, "3.154\u00a0€");
+      assert.equal(fieldExp.calculationSteps[0].result, "9.389,00\u00a0€");
+      assert.equal(fieldExp.calculationSteps[1].result, "4.569,00\u00a0€");
+      assert.ok(fieldExp.calculationSteps[1].formula.includes("4.820,00"));
 
       assert.ok(fieldExp.legalCitation?.includes("EStG § 26b"));
       assert.ok(fieldExp.legalCitation?.includes("§ 31"));
+      const combined = getFieldExplanation(FieldColumnKey.SpecialEvents, { ...m15,
+        specialEvents: [ev, { ...ev,
+          eventId: toEventId("EXTRA-PAYMENT"),
+          type: SpecialEventType.Bonus40,
+          taxSettlement: undefined,
+          amount: toEuroAmount(100.25) }],
+        specialEventsTotal: toEuroAmount(4669.25) }, undefined, ScenarioId.C);
+      assert.equal(combined.valueFormatted, "4.669,25\u00a0€");
+      assert.equal(combined.calculationSteps?.at(-1)?.result, "4.669,25\u00a0€");
     });
 
-    it("generates itemized streams and statutory breakdown for Tax Return row explanation", () => {
+    it("itemizes a repayment and keeps legacy unaudited tax cash explicit", () => {
       const ev: SpecialEventItem = {
         eventId: toEventId("EV-TAX-REFUND-1"),
         monthId: toMonthId(3, 2027),
@@ -397,7 +406,12 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         title: "Annual Tax Return (Tax Year 2026)",
         description:
           "Full refund of Tax Class V wage withholding deficit (+1.100 €) plus statutory deductions return (+850 €) for Tax Year 2026",
-        amount: toEuroAmount(1950),
+        amount: toEuroAmount(-560),
+        taxSettlement: { calendarYear: toFullCalendarYear(2026),
+          settlement: toEuroAmount(-560),
+          creditedIncomeTax: toEuroAmount(4000),
+          creditedSolidarity: toEuroAmount(0),
+          totalLiability: toEuroAmount(4560) },
         taxClassLabel: "Joint Assessment (*Splitting*)",
         month: toSimulationMonth(15),
         year: toCalendarYear(2),
@@ -417,18 +431,15 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         ScenarioId.C,
       );
       assert.equal(rowExp.rowType, ExplainerRowType.SpecialEvent);
-      assert.equal(rowExp.totalNetInflow, 1950);
-      assert.ok(rowExp.streams.length >= 2);
-      assert.equal(
-        rowExp.streams[0].label,
-        "Wage Tax Swap Recovery (Class V Reconciliation)",
-      );
-      assert.equal(rowExp.streams[0].value, 1100);
-      assert.equal(
-        rowExp.streams[1].label,
-        "Statutory Base Deductions & Werbungskosten Return",
-      );
-      assert.equal(rowExp.streams[1].value, 850);
+      assert.equal(rowExp.totalNetInflow, -560);
+      assert.equal(rowExp.cumulatedTotal, 49440);
+      assert.deepEqual(rowExp.streams.map((stream) => stream.value), [4000, 0, -4560]);
+      assert.equal(rowExp.streams.reduce((sum, stream) => sum + stream.value, 0), -560);
+      const legacy = getSpecialEventRowExplanation({ ...ev,
+        taxSettlement: undefined }, m15, undefined, 50000, ScenarioId.C);
+      assert.equal(legacy.streams.length, 1);
+      assert.equal(legacy.streams[0].value, -560);
+      assert.match(legacy.summaryDescription, /No assessment credits/);
       assert.ok(rowExp.legalCitation?.includes("EStG § 26b"));
     });
 

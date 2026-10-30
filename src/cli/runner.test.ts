@@ -426,7 +426,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
         "special",
       ]);
       assert.equal(stderr, "");
-      assert.ok(stdout.includes("Annual Tax Return & Special Fiscal Events"));
+      assert.ok(stdout.includes("Annual Tax Settlement & Special Fiscal Events"));
       assert.ok(stdout.includes("Günstigerprüfung"));
       assert.ok(stdout.includes("Kinderfreibetrag"));
       assert.ok(stdout.includes("EStG § 26b") && stdout.includes("§ 31"));

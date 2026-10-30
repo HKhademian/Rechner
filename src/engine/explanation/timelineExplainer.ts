@@ -145,124 +145,67 @@ export interface RowExplanation {
   };
 }
 
-function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
-  const desc = ev.description || "";
-  const swapDeficitMatch = desc.match(
-    /Tax Class V wage withholding deficit \(\+([\d.]+)\s*€\)/,
-  );
-  const baseDeductionMatch = desc.match(
-    /statutory deductions return \(\+([\d.]+)\s*€\)/,
-  );
-  const guenstigerMatch = desc.match(
-    /Kinderfreibetrag Günstigerprüfung bonus \(\+([\d.]+)\s*€ over Kindergeld\)/,
-  );
-  const taxYearMatch = desc.match(/Tax Year (\d+)/);
+function formatTaxAmount(amount: number): string {
+  return new Intl.NumberFormat("de-DE", { style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2 }).format(amount);
+}
 
-  const taxYear = taxYearMatch
-    ? taxYearMatch[1]
-    : String(m.calendarYearNum - 1);
-  const swapDeficitStr = swapDeficitMatch ? `+${swapDeficitMatch[1]} €` : "0 €";
-  const swapDeficitNum = swapDeficitMatch
-    ? Number(swapDeficitMatch[1].replace(/\./g, ""))
-    : 0;
-  const baseReturnStr = baseDeductionMatch
-    ? `+${baseDeductionMatch[1]} €`
-    : "0 €";
-  const baseReturnNum = baseDeductionMatch
-    ? Number(baseDeductionMatch[1].replace(/\./g, ""))
-    : 0;
-  const guenstigerBonusStr = guenstigerMatch
-    ? `+${guenstigerMatch[1]} € (Child Tax Allowance Bonus over Kindergeld)`
-    : "Kindergeld minimum floor retained (0 € extra)";
-  const guenstigerBonusNum = guenstigerMatch
-    ? Number(guenstigerMatch[1].replace(/\./g, ""))
-    : 0;
-
-  const totalRefundNum = ev.amount || 0;
-
+/** Explain stored assessment evidence; descriptive prose is never a financial data source. */
+function taxSettlementDetails(ev: SpecialEventItem, m: TimelineMonth) {
+  const audit = ev.taxSettlement;
+  const taxYear = audit ? String(audit.calendarYear) : "not recorded";
+  const credits = audit ? toEuroAmount(audit.creditedIncomeTax + audit.creditedSolidarity) : undefined;
   const contributingFactors: CalculationFactor[] = [
-    {
-      name: "Assessed Tax Year",
-      value: `Tax Year ${taxYear}`,
-      description: `Reconciled in Month ${m.month} (${m.calendarLabel})`,
-    },
-    {
-      name: "Assessment Method & Tariff",
-      value: "Joint Assessment (§ 26b EStG)",
-      description: "Ehegatten-Splitting (§ 32a Abs. 5 EStG)",
-    },
-    {
-      name: "Wage Tax Swap Recovery (§ 38b EStG)",
-      value: swapDeficitStr,
-      description: "Reconciliation of interim Class V withholding deficit",
-    },
-    {
-      name: "Explicitly Supplied Tax Adjustment",
-      value: baseReturnStr,
-      description: "No fixed refund follows merely from a deductible allowance",
-    },
-    {
-      name: "Child Allowance Günstigerprüfung (§ 31 EStG)",
-      value: guenstigerBonusStr,
-      description: "Kinderfreibetrag (€9.540/child) vs. received Kindergeld",
-    },
-    {
-      name: "Total Liquid Tax Return Refund",
-      value: formatCurrency(totalRefundNum),
-      description: "Lump-sum cash refund disbursed by the Tax Office",
-    },
+    { name: "Assessed Tax Year",
+      value: taxYear },
+    { name: "Credited Income Tax",
+      value: audit ? formatTaxAmount(audit.creditedIncomeTax) : "Not recorded" },
+    { name: "Credited Solidarity",
+      value: audit ? formatTaxAmount(audit.creditedSolidarity) : "Not recorded" },
+    { name: "Annual Tax Liability",
+      value: audit ? formatTaxAmount(audit.totalLiability) : "Not recorded" },
+    { name: "Signed Settlement",
+      value: formatTaxAmount(ev.amount) },
   ];
-
-  const calculationSteps: CalculationStep[] = [
-    {
-      stepNumber: 1,
-      description: `Reconcile interim wage tax withholding deficit (Class V vs Splitting tariff) for Tax Year ${taxYear}`,
-      formula:
-        "Sum of monthly Class V withholding differences across active swap months",
-      result: swapDeficitStr,
-    },
-    {
-      stepNumber: 2,
-      description:
-        "Include an explicitly supplied adjustment",
-      formula: "No assumed cash refund from deductions",
-      result: baseReturnStr,
-    },
-    {
-      stepNumber: 3,
-      description:
-        "Execute § 31 EStG Günstigerprüfung (compare joint tax with Kinderfreibetrag vs received Kindergeld)",
-      formula:
-        "Max(0, Tax Savings with Kinderfreibetrag - Received Kindergeld)",
-      result:
-        guenstigerBonusNum > 0
-          ? `+${guenstigerBonusNum.toLocaleString("de-DE")} €`
-          : "0 € (Kindergeld floor protected)",
-    },
-    {
-      stepNumber: 4,
-      description:
-        "Sum all reconciliation components into total liquid tax return refund",
-      formula: `${swapDeficitNum > 0 ? `${formatCurrency(swapDeficitNum)} (Swap Deficit) + ` : ""}${formatCurrency(baseReturnNum)} (Base Return)${guenstigerBonusNum > 0 ? ` + ${formatCurrency(guenstigerBonusNum)} (Günstigerprüfung)` : ""}`,
-      result: formatCurrency(totalRefundNum),
-    },
-  ];
-
-  const detailedExplanation = `Annual income tax reconciliation (*Einkommensteuererklärung / Steuerbescheid*) for Tax Year ${taxYear}. Under § 26b and § 46 Abs. 2 Nr. 3a EStG, married couples utilizing Tax Classes III/V are subject to mandatory joint assessment with splitting tariff (*Ehegatten-Splitting* § 32a Abs. 5 EStG). The legacy estimate combines the recorded withholding variance (${swapDeficitStr}), explicitly supplied adjustments (${baseReturnStr}), and the § 31 EStG *Günstigerprüfung* to add any child tax allowance savings above received Kindergeld. The resulting ${formatCurrency(totalRefundNum)} is credited directly to household liquidity in Month ${m.month}.`;
-
-  return {
-    taxYear,
-    swapDeficitStr,
-    swapDeficitNum,
-    baseReturnStr,
-    baseReturnNum,
-    guenstigerBonusStr,
-    guenstigerBonusNum,
-    totalRefundNum,
+  const calculationSteps: CalculationStep[] = audit && credits !== undefined ? [
+    { stepNumber: 1,
+      description: "Sum the statutory credits for actual taxes withheld",
+      formula: `${formatTaxAmount(audit.creditedIncomeTax)} + ${formatTaxAmount(audit.creditedSolidarity)}`,
+      result: formatTaxAmount(credits) },
+    { stepNumber: 2,
+      description: "Subtract modeled annual liability",
+      formula: `${formatTaxAmount(credits)} - ${formatTaxAmount(audit.totalLiability)}`,
+      result: formatTaxAmount(ev.amount) },
+  ] : [{ stepNumber: 1,
+    description: "Show the recorded cash flow; assessment details are unavailable",
+    formula: "Recorded signed amount",
+    result: formatTaxAmount(ev.amount) }];
+  const detailedExplanation = audit
+    ? `Joint annual assessment (Einkommensteuererklärung / Steuerbescheid), Tax Year ${taxYear}: credited actual wage and bonus taxes ${formatTaxAmount(credits!)} less modeled annual liability ${formatTaxAmount(audit.totalLiability)} gives ${formatTaxAmount(ev.amount)}. Liability accounts for actual employment deductions, progression (§ 32b EStG), year-specific child allowance comparison (Kinderfreibetrag / Günstigerprüfung, § 31 EStG) and solidarity. Positive balances are refunds; negative balances are repayments. This signed amount reaches the ledger once in ${m.calendarLabel}. Annual records disclose projections and unsupported data.`
+    : "Only the recorded signed tax cash flow is available. No assessment credits, deductions, tax year or liability can be inferred from an event description.";
+  const streams: RowItemStream[] = audit ? [
+    { label: "Credited Income Tax",
+      value: audit.creditedIncomeTax,
+      valueFormatted: formatTaxAmount(audit.creditedIncomeTax),
+      notes: "EStG § 36" },
+    { label: "Credited Solidarity",
+      value: audit.creditedSolidarity,
+      valueFormatted: formatTaxAmount(audit.creditedSolidarity),
+      notes: "SolzG § 1" },
+    { label: "Annual Tax Liability",
+      value: toEuroAmount(-audit.totalLiability),
+      valueFormatted: formatTaxAmount(-audit.totalLiability),
+      notes: "EStG §§ 31, 32a, 32b; SolzG §§ 3, 4" },
+  ] : [{ label: "Recorded Tax Cash Flow",
+    value: ev.amount,
+    valueFormatted: formatTaxAmount(ev.amount) }];
+  return { taxYear,
     contributingFactors,
     calculationSteps,
     detailedExplanation,
-  };
+    streams };
 }
 
 /**
@@ -659,18 +602,24 @@ export function getFieldExplanation(
       );
 
       if (taxReturnEvent) {
-        const taxDetails = parseTaxReturnDetails(taxReturnEvent, m);
+        const taxDetails = taxSettlementDetails(taxReturnEvent, m);
         return {
           fieldKey: ExplanationFieldKey.SpecialEvents,
-          fieldTitle: "Annual Tax Return & Special Fiscal Events",
-          valueFormatted: formatCurrency(spTotal),
-          derivationFormula:
-            "Swap Withholding Deficit Refund + Supplied Adjustments + § 31 EStG Günstigerprüfung Bonus",
+          fieldTitle: "Annual Tax Settlement & Special Fiscal Events",
+          valueFormatted: formatTaxAmount(spTotal),
+          derivationFormula: m.specialEvents.map((event) => formatTaxAmount(event.amount)).join(" + "),
           explanation: taxDetails.detailedExplanation,
-          contributingFactors: taxDetails.contributingFactors,
-          calculationSteps: taxDetails.calculationSteps,
+          contributingFactors: [...taxDetails.contributingFactors,
+            { name: "Other Financial Events",
+              value: formatTaxAmount(spTotal - taxReturnEvent.amount) }],
+          calculationSteps: [...taxDetails.calculationSteps, ...(m.specialEvents.length > 1 ? [{
+            stepNumber: taxDetails.calculationSteps.length + 1,
+            description: "Add other signed financial events in this month",
+            formula: `${formatTaxAmount(taxReturnEvent.amount)} + (${formatTaxAmount(spTotal - taxReturnEvent.amount)})`,
+            result: formatTaxAmount(spTotal),
+          }] : [])],
           legalCitation: toStatutoryCitation(
-            "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
+            "EStG § 26b, § 31, § 32a, § 32b, § 36; SolzG §§ 1, 3, 4",
           ),
           legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
           diffVsBFormatted:
@@ -995,7 +944,7 @@ export function getSpecialEventFieldExplanation(
   const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
 
   if (isTaxReturn) {
-    const taxDetails = parseTaxReturnDetails(ev, m);
+    const taxDetails = taxSettlementDetails(ev, m);
     switch (key) {
       case ExplanationFieldKey.Month:
         return {
@@ -1014,7 +963,7 @@ export function getSpecialEventFieldExplanation(
           ],
           calculationSteps: taxDetails.calculationSteps,
           legalCitation: toStatutoryCitation(
-            "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
+            "EStG § 26b, § 31, § 32a, § 32b, § 36; SolzG §§ 1, 3, 4",
           ),
           legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         };
@@ -1030,7 +979,7 @@ export function getSpecialEventFieldExplanation(
           contributingFactors: taxDetails.contributingFactors,
           calculationSteps: taxDetails.calculationSteps,
           legalCitation: toStatutoryCitation(
-            "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
+            "EStG § 26b, § 31, § 32a, § 32b, § 36; SolzG §§ 1, 3, 4",
           ),
           legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         };
@@ -1040,15 +989,15 @@ export function getSpecialEventFieldExplanation(
       case ExplanationFieldKey.NetInflow:
         return {
           fieldKey: ExplanationFieldKey.Amount,
-          fieldTitle: "Annual Income Tax Return Refund",
-          valueFormatted: formatCurrency(ev.amount),
+          fieldTitle: "Annual Income Tax Settlement",
+          valueFormatted: formatTaxAmount(ev.amount),
           derivationFormula:
-            "Swap Withholding Deficit Refund + Supplied Adjustments + § 31 EStG Günstigerprüfung Bonus",
+            "Credited Income Tax + Credited Solidarity - Annual Tax Liability",
           explanation: taxDetails.detailedExplanation,
           contributingFactors: taxDetails.contributingFactors,
           calculationSteps: taxDetails.calculationSteps,
           legalCitation: toStatutoryCitation(
-            "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
+            "EStG § 26b, § 31, § 32a, § 32b, § 36; SolzG §§ 1, 3, 4",
           ),
           legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         };
@@ -1059,8 +1008,8 @@ export function getSpecialEventFieldExplanation(
           fieldTitle: "Progressive Cumulative Balance at Tax Return",
           valueFormatted: formatCurrency(evCumulated),
           derivationFormula:
-            "Previous Month Cumulative Balance + Prior Events + Tax Return Refund",
-          explanation: `Progressive cumulative balance immediately after receiving the ${formatCurrency(ev.amount)} tax return refund is ${formatCurrency(evCumulated)}.`,
+            "Previous Month Cumulative Balance + Prior Events + Signed Tax Settlement",
+          explanation: `Progressive cumulative balance after posting the signed ${formatTaxAmount(ev.amount)} settlement is ${formatTaxAmount(evCumulated)}.`,
           contributingFactors: [
             {
               name: "Balance Prior to Tax Return",
@@ -1068,17 +1017,17 @@ export function getSpecialEventFieldExplanation(
               description: "Prior progressive total",
             },
             {
-              name: "Tax Return Refund",
-              value: `+${formatCurrency(ev.amount)}`,
-              description: `Tax Year ${taxDetails.taxYear} refund`,
+              name: "Signed Tax Settlement",
+              value: formatTaxAmount(ev.amount),
+              description: `Tax Year ${taxDetails.taxYear} settlement`,
             },
           ],
           calculationSteps: [
             {
               stepNumber: 1,
               description:
-                "Credit annual tax return to household cumulative balance",
-              formula: `${formatCurrency(evCumulated - ev.amount)} + ${formatCurrency(ev.amount)}`,
+                "Post the signed annual settlement to household cumulative balance",
+              formula: `${formatCurrency(evCumulated - ev.amount)} + ${formatTaxAmount(ev.amount)}`,
               result: formatCurrency(evCumulated),
             },
           ],
@@ -1092,12 +1041,12 @@ export function getSpecialEventFieldExplanation(
         return {
           fieldKey: key,
           fieldTitle: "Annual Tax Return Parameter",
-          valueFormatted: formatCurrency(ev.amount),
+          valueFormatted: formatTaxAmount(ev.amount),
           explanation: taxDetails.detailedExplanation,
           contributingFactors: taxDetails.contributingFactors,
           calculationSteps: taxDetails.calculationSteps,
           legalCitation: toStatutoryCitation(
-            "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
+            "EStG § 26b, § 31, § 32a, § 32b, § 36; SolzG §§ 1, 3, 4",
           ),
           legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
         };
@@ -1447,36 +1396,8 @@ export function getSpecialEventRowExplanation(
   const evCumulated = prevMonthCumulated + evAmount;
 
   if (ev.type === SpecialEventType.TaxReturn) {
-    const taxDetails = parseTaxReturnDetails(ev, m);
-    const streams: RowItemStream[] = [];
-
-    if (taxDetails.swapDeficitNum > 0) {
-      streams.push({
-        label: "Wage Tax Swap Recovery (Class V Reconciliation)",
-        value: toEuroAmount(taxDetails.swapDeficitNum),
-        valueFormatted: formatCurrency(taxDetails.swapDeficitNum),
-        formula: "Full recovery of temporary Class V withholding deficit",
-        notes: "EStG § 26b, § 38b",
-      });
-    }
-
-    streams.push({
-      label: "Statutory Base Deductions & Werbungskosten Return",
-      value: toEuroAmount(taxDetails.baseReturnNum),
-      valueFormatted: formatCurrency(taxDetails.baseReturnNum),
-      formula: "Standard deductions & Sonderausgaben allowance",
-      notes: "EStG § 9a, § 10",
-    });
-
-    if (taxDetails.guenstigerBonusNum > 0) {
-      streams.push({
-        label: "§ 31 EStG Child Tax Allowance Bonus (Günstigerprüfung)",
-        value: toEuroAmount(taxDetails.guenstigerBonusNum),
-        valueFormatted: formatCurrency(taxDetails.guenstigerBonusNum),
-        formula: "Tax savings from Kinderfreibetrag minus received Kindergeld",
-        notes: "EStG § 31, § 32 Abs. 6",
-      });
-    }
+    const taxDetails = taxSettlementDetails(ev, m);
+    const streams = taxDetails.streams;
 
     return {
       rowType: ExplainerRowType.SpecialEvent,
@@ -1487,7 +1408,7 @@ export function getSpecialEventRowExplanation(
       summaryDescription: taxDetails.detailedExplanation,
       streams,
       totalNetInflow: toEuroAmount(evAmount),
-      totalNetInflowFormatted: formatCurrency(evAmount),
+      totalNetInflowFormatted: formatTaxAmount(evAmount),
       cumulatedTotal: toEuroAmount(evCumulated),
       cumulatedTotalFormatted: formatCurrency(evCumulated),
       diffVsB: toEuroAmount(diffEv),
@@ -1496,7 +1417,7 @@ export function getSpecialEventRowExplanation(
           ? `${diffEv > 0 ? "+" : ""}${formatCurrency(diffEv)}`
           : "0 €",
       legalCitation: toStatutoryCitation(
-        "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
+        "EStG § 26b, § 31, § 32a, § 32b, § 36; SolzG §§ 1, 3, 4",
       ),
       legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
     };
