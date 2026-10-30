@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - assessment and reconciliation
-status: in_progress
+status: completed
 created: 2026-10-29
 todos:
   - id: assessment-history
@@ -14,7 +14,7 @@ todos:
     status: completed
   - id: end-to-end-gate
     content: "Gate - verify independent household cases and document remaining limits"
-    status: in_progress
+    status: completed
 plans:
   requires: [engine-correctness-payroll.md]
   blocks: []
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: assessment and reconciliation
 
 ## Done
+
+- 2026-10-30: final gate completed. Independent payroll/benefit/tax, no-income, part-time/sibling, father-hours, partial-employment, signed-repayment and later-child regressions pass. Follow-up commits corrected configured Kindergeld explanations, birthday/YTD/March-allocation support flags, signed scenario summaries and each reference-card topic separately. Configured values retain primary links; the care-rate source points directly to the published employee share. Obsolete formula/timeline walkthroughs are explicitly archived, current docs/README describe the integrated model, and retained limits are documented in STATUTORY_CONFIGURATION.md. Full quality/build checks pass. A 72-month CLI JSON run conserves decimal cash and event totals across all three scenarios, exposes source2026 projections and leaves the last tax balance outside cash. This integration evidence does not establish comprehensive statutory correctness. All eleven planned fixes are complete within the documented supported model.
 
 - 2026-10-30: Fix 11 completed in separate commits for pure row projection, sourced result configuration, CSVv2 and migration docs, table CSV connection, CLI rendering, table rendering, and event drilldown. The 36-month/five-event reproducer retains all events; exact balances1100/1050/1075/1065/1060 precede2060 regular month-end. Summed row cash36060 matches the scenario total. Action values are dashes, duplicate titles compare by absolute IDs, and repayments keep their sign. CSV reader regressions preserve quotes/delimiters/newlines and calculation metadata. Full quality checks and consumer builds pass. Final supported-model/claim audit remains.
 
@@ -63,7 +65,7 @@ plans:
 
 ## Mission and done
 
-Use the repaired benefit and payroll primitives to make simulation outcomes follow the household's actual history. The review reproduced equal benefits for early/late switches, fictitious 850 annual refunds, and flattened shared CSV exports. History-driven assessment and supported annual reconciliation/income eligibility are integrated; final supported-model verification remains.
+Use the repaired benefit and payroll primitives to make simulation outcomes follow the household's actual history. The review reproduced equal benefits for early/late switches, fictitious 850 annual refunds, and flattened shared CSV exports. History-driven assessment and supported annual reconciliation/income eligibility are integrated; the final supported-model verification gate is complete.
 
 ## Plan links and read first
 
