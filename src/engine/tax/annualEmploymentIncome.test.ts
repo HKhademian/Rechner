@@ -11,6 +11,7 @@ import {
 } from "#engine/tax/taxRules";
 import {
   computeAnnualEmploymentTaxBase,
+  computeIndividualEmploymentTaxBase,
 } from "#engine/tax/annualEmploymentIncome";
 
 const income = (gross = 0, health = 0, care = 0, pension = 0, unemployment = 0) => ({
@@ -65,4 +66,17 @@ it("retains separate partner contributions that reconcile with the unchanged joi
     assert.ok(Object.isFrozen(partners.husband));
     assert.ok(Object.isFrozen(partners.wife));
   }
+});
+
+it("uses individual deduction limits without an invented second household member", () => {
+  const person = income(60000, 5250, 1440, 5580, 780);
+  const single = computeIndividualEmploymentTaxBase(person, DEFAULT_TAX_RULES);
+  const joint = computeAnnualEmploymentTaxBase(person, income(), DEFAULT_TAX_RULES);
+  assert.equal(single.income.employmentIncome, 58770);
+  assert.equal(single.specialExpenses, DEFAULT_TAX_RULES.parameters.specialExpenseAllowance.value);
+  assert.equal(single.taxableIncome, 46674);
+  assert.equal(joint.taxableIncome, 46638);
+  const limited = computeIndividualEmploymentTaxBase(income(12000, 1000, 200, 1000, 1200), DEFAULT_TAX_RULES);
+  assert.equal(limited.insuranceDeduction, DEFAULT_TAX_RULES.parameters.otherInsuranceDeductionLimit.value);
+  assert.equal(computeIndividualEmploymentTaxBase(income(), DEFAULT_TAX_RULES).taxableIncome, 0);
 });
