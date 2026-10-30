@@ -776,7 +776,7 @@ export function ComparisonTableContent(): JSX.Element {
                     </button>
                   </div>
                 </div>
-                <LiveCalculatorSettings />
+                <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
               </th>
 
               {savedScenarios.value.map((scenario) => {
