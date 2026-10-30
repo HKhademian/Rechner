@@ -8,10 +8,10 @@ todos:
     status: completed
   - id: annual-reconciliation
     content: "Fix 10 - reconcile actual tax and enforce income eligibility"
-    status: in_progress
+    status: completed
   - id: export-parity
     content: "Fix 11 - share ledger event rows across UI, CLI, and CSV"
-    status: pending
+    status: in_progress
   - id: end-to-end-gate
     content: "Gate - verify independent household cases and document remaining limits"
     status: pending
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: assessment and reconciliation
 
 ## Done
+
+- 2026-10-30: Fix 10 completed progressively: legacy helper removal, structured tax explanations, signed UI/CLI balances and outside-horizon timing; zero-factor imports; bonus cutoff invariance; sourced dated couple-income limits; validated personal annual evidence; child-adjusted eligibility income despite unavailable progression; cohort gating before exclusion history; public simulator, CLI, persistence and UI integration; inconsistent supplied/model income blocks false-precision tax settlements. Boundary175000/175000.01, missing evidence, known exclusion, modeled high income and later-child denied-history regressions pass. Full quality checks pass at each commit and final build passes. Export parity remains the next fix.
 
 - 2026-10-30: actual annual accounting now replaces the simulator's variance/refund estimate. Separate prerequisite commits added source-linked deduction/precision rules, actual employment tax bases, progression tax, year-aware ESt-only child favorability, annual credit/liability settlement, complete-year record collection and signed ledger posting. Independently worked integration references give4569 refund and4820 repayment, posted once in the configured following-year month. Full quality/build pass; missing/manual/unsupported tax data remains unavailable, and final-year unreceived balances are separate metadata. Current presentation/legacy helper cleanup, income eligibility and export parity still follow; Fix10 is not complete.
 
@@ -59,7 +61,7 @@ plans:
 
 ## Mission and done
 
-Use the repaired benefit and payroll primitives to make simulation outcomes follow the household's actual history. The review reproduced equal benefits for early/late switches, fictitious 850 annual refunds, and flattened shared CSV exports. History-driven assessment is integrated; annual reconciliation and exports remain pending.
+Use the repaired benefit and payroll primitives to make simulation outcomes follow the household's actual history. The review reproduced equal benefits for early/late switches, fictitious 850 annual refunds, and flattened shared CSV exports. History-driven assessment and supported annual reconciliation/income eligibility are integrated; export parity and final verification remain.
 
 ## Plan links and read first
 
