@@ -1,4 +1,7 @@
 import {
+  computePayrollTaxBase,
+} from "#engine/tax/payrollTaxBase";
+import {
   type Signal,
   signal,
   computed,
@@ -139,6 +142,8 @@ export interface PersonDeductions {
  * Combined Spousal Household Financial Assessment Data.
  */
 export interface HouseholdScenarioData {
+  /** Annual taxable-income audit from this calculator's normalized payment schedules. */
+  readonly annualTaxableIncome: ReturnType<typeof computePayrollTaxBase>;
   /** Primary earner itemized deductions and net income. */
   person1: PersonDeductions;
   /** Partner itemized deductions and net income, or null if single household. */
@@ -365,6 +370,7 @@ const inputTaxClasses: Readonly<Record<string, TaxClass>> = {
 /** UI primitives are parsed here; all financial calculations use the shared nominal engine. */
 export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenarioData {
   const rules = createTaxRules(parseVerifiedTaxYear(inputs.taxYear ?? DEFAULT_TAX_YEAR));
+  const annualPayrolls: ReturnType<typeof computeEmploymentPayroll>[] = [];
   const calculatePerson = (
     gross: number,
     bracket: string,
@@ -394,6 +400,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
             ? rules.parameters.churchRateBavariaBadenWuerttemberg.value : rules.parameters.churchRateOther.value) : 0) },
       taxClass === Classes.IV && inputs.taxFactor !== undefined ? toTaxFactor(inputs.taxFactor) : undefined,
     );
+    annualPayrolls.push(result);
     return { grossYearly: result.annualGross,
       healthCare: result.healthCare,
       pension: result.pension,
@@ -435,6 +442,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     person1.totalDeductions + (partner ? partner.totalDeductions : 0);
 
   return {
+    annualTaxableIncome: computePayrollTaxBase(partner ? [annualPayrolls[0], annualPayrolls[1]] : [annualPayrolls[0]], rules),
     person1,
     partner,
     household: {

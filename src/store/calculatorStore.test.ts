@@ -107,3 +107,35 @@ it("old saved inputs migrate to the verified default and cached results are reca
   cancelEdit();
   savedScenarios.value = [];
 });
+
+it("calculator annual taxable income uses its own active months, bonuses and partner inputs", () => {
+  const inputs = { ...getCurrentInputs(),
+    inputMode: "monthly" as const,
+    grossIncome: 4000,
+    workingMonths: 6,
+    salariesPerYear: 13,
+    taxBracket: "1",
+    hasChurchTax: false,
+    state: "Berlin",
+    children: 0,
+    hasPartner: false,
+    taxYear: toFullCalendarYear(2026) };
+  const single = calculateScenarioData(inputs).annualTaxableIncome;
+  assert.equal(single.incomeByPerson.length, 1);
+  assert.equal(single.incomeByPerson[0].gross, 26000);
+  const yearly = calculateScenarioData({ ...inputs,
+    inputMode: "yearly",
+    grossIncome: 26000 }).annualTaxableIncome;
+  assert.deepEqual(single, yearly);
+  const joint = calculateScenarioData({ ...inputs,
+    hasPartner: true,
+    partnerGrossIncome: 3000,
+    partnerWorkingMonths: 12,
+    partnerSalariesPerYear: 12,
+    partnerTaxBracket: "4",
+    partnerHasChurchTax: false }).annualTaxableIncome;
+  assert.equal(joint.incomeByPerson.length, 2);
+  assert.equal(joint.incomeByPerson[1].gross, 36000);
+  assert.ok(joint.taxBase);
+  assert.equal(joint.taxBase.specialExpenses, single.taxBase!.specialExpenses * joint.incomeByPerson.length);
+});
