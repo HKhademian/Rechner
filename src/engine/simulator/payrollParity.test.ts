@@ -129,3 +129,29 @@ it("preserves payroll limitations in simulator metadata and disclosed assumption
   assert.match(result.months[0].payroll?.husband.payrollLimitations[0] ?? "", /Marginal employment/);
   assert.ok(result.assumptions?.some((note) => note.includes("Payroll estimate: Marginal employment")));
 });
+
+it("keeps earlier bonus withholding independent of the visible timeline cutoff", () => {
+  const batches = { scenarioKey: ScenarioId.A,
+    preexisting: { ...preexisting,
+      husbandGross: toGrossSalary(4000),
+      husbandInitialTaxClass: TaxClass.III,
+      husbandSalariesCount: toAnnualSalariesCount(13),
+      simulationDurationMonths: toMonthDuration(5) },
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [{ raiseId: toRaiseId("LATER-KNOWN-RAISE"),
+      effectiveSimulationMonth: toSimulationMonth(9),
+      effectiveCalendarMonth: toCalendarMonth(9),
+      effectiveCalendarYear: toFullCalendarYear(2026),
+      targetPerson: TargetPerson.Husband,
+      percentageIncrease: toPercentageRate(0.1),
+      reason: "Known September raise affects annual bonus withholding" }] };
+  const short = runScenarioBatches(batches);
+  const full = runScenarioBatches({ ...batches,
+    preexisting: { ...batches.preexisting,
+      simulationDurationMonths: toMonthDuration(12) } });
+  assert.deepEqual(short.months[4].payroll?.husband.bonuses, full.months[4].payroll?.husband.bonuses);
+  const unchanged = runScenarioBatches({ ...batches,
+    salaryRaises: [] });
+  assert.notEqual(short.months[4].payroll?.husband.bonuses?.[0].wageTax, unchanged.months[4].payroll?.husband.bonuses?.[0].wageTax);
+});

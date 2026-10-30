@@ -250,8 +250,9 @@ export function runScenarioBatches(
   const conventions = preexisting.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS;
   const startOrdinal = assessmentCalendarMonth(startYear, startMonth);
   const visibleEnd = toAssessmentMonthOrdinal(startOrdinal + duration - 1);
-  // Finish each visible birth's averaging period even when the ledger ends earlier.
-  const forecastEnd = toAssessmentMonthOrdinal(Math.max(visibleEnd, ...pregnancies
+  // Finish the calendar tax year and each visible birth's averaging period beyond the displayed ledger.
+  const calendarYearEnd = Math.floor(visibleEnd / 12) * 12 + 11;
+  const forecastEnd = toAssessmentMonthOrdinal(Math.max(calendarYearEnd, ...pregnancies
     .filter((pregnancy) => pregnancy.calculatedDeliverySimulationMonth <= duration)
     .map((pregnancy) => startOrdinal + pregnancy.calculatedDeliverySimulationMonth - 1 +
       conventions.maternityPostBirthMonths.value +
@@ -591,7 +592,7 @@ export function runScenarioBatches(
         throw new TypeError("Gross bonus calculations require gross-input payroll data.");
       }
       const earlier = rawMonths.filter((month) => month.calendarYearNum === rm.calendarYearNum && month.month <= m);
-      const yearRecords = rawMonths.filter((month) => month.calendarYearNum === rm.calendarYearNum);
+      const yearRecords = incomeSchedule.filter((month) => month.calendarYearNum === rm.calendarYearNum);
       const regularGross = (month: RawMonth) => (husband ? month.husbandPayroll : month.wifePayroll)?.monthlyGross ?? 0;
       const prior = husband ? priorHBonuses : priorWBonuses;
       const assessments = husband ? priorHAssessments : priorWAssessments;
@@ -610,8 +611,8 @@ export function runScenarioBatches(
         regularPensionAssessmentYearToDate: toGrossSalary(earlier.reduce((sum, month) => sum + Math.min(regularGross(month), parameters.pensionCapMonthly.value), 0)),
         bonusHealthAssessmentYearToDate: previousAssessment?.health,
         bonusPensionAssessmentYearToDate: previousAssessment?.pension,
-        expectedRegularAnnualGross: toGrossSalary(yearRecords.reduce((sum, month) => sum + regularGross(month), 0) +
-          base.monthlyGross * (12 - yearRecords[yearRecords.length - 1].calendarMonthNum)),
+        expectedRegularAnnualGross: toGrossSalary(yearRecords.reduce((sum, month) => sum +
+          ((husband ? month.husbandPayroll : month.wifePayroll)?.monthlyGross ?? 0), 0)),
         priorBonusGrossYearToDate: prior[rm.calendarYearNum] ?? toEuroAmount(0) };
       const payroll = computeGrossToNetBreakdown(
         base.monthlyGross,
