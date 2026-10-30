@@ -632,3 +632,28 @@ it("prints repayments as tax milestones and keeps later balances outside cash to
       force: true });
   }
 });
+
+
+it("forwards supplied household taxable income from a CLI scenario file", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const os = await import("node:os");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "calculator-income-cli-"));
+  try {
+    const fixture = JSON.parse(fs.readFileSync("src/data/scenarios/standard_3_children.json", "utf8"));
+    fixture.simulationState.simulationDurationMonths = 36;
+    fixture.simulationState.customPregnancies = fixture.simulationState.customPregnancies.slice(0, 1);
+    fixture.simulationState.householdTaxableIncome = [{ calendarYear: 2026,
+      taxableIncome: 175000.01 }];
+    const file = path.join(directory, "scenario.json");
+    fs.writeFileSync(file, JSON.stringify(fixture));
+    const { stdout } = await execFileAsync("node", ["src/cli/runner.ts", "--scenario-file", file, "--format", "json"]);
+    const result = JSON.parse(stdout).scenarioC;
+    assert.equal(result.summary.totalWifeElterngeld, 0);
+    assert.equal(result.benefitAssessments[0].incomeEligibility.taxableIncome, 175000.01);
+  }
+  finally {
+    fs.rmSync(directory, { recursive: true,
+      force: true });
+  }
+});

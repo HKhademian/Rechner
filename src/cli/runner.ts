@@ -1144,6 +1144,7 @@ function buildSimulation(
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: toMonthDuration(duration),
     assumeManualNetIsAssessmentNet: def.assumeManualNetIsAssessmentNet,
+    householdTaxableIncome: def.householdTaxableIncome,
     salaryInputMode: def.salaryInputMode,
     salaryPeriod: opts.period,
     husbandGross: toGrossSalary(husbandGrossMonthly),
