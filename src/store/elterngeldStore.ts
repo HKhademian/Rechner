@@ -9,6 +9,7 @@ import {
   signal,
   computed,
   effect,
+  batch,
 } from "@preact/signals";
 import {
   type ScenarioId as ScenarioIdType,
@@ -703,12 +704,21 @@ export function setPregnancy1PositiveDate(
     toFullCalendarYear(year),
     toCalendarMonth(month),
   );
-  startCalendarYear.value = result.startCalendarYear;
-  startCalendarMonth.value = result.startCalendarMonth;
-  prePregnancyPlanningMonths.value = result.prePregnancyPlanningMonths;
-  child1BirthMonth.value = toSimulationMonth(
-    result.pregnancySimulationMonth + 8,
-  ); // 9 months of pregnancy (delivery at Month + 8)
+  const deliveryMonth = toSimulationMonth(result.pregnancySimulationMonth + 8);
+  // The picker and runner read the action; update it together with the baseline.
+  batch(() => {
+    startCalendarYear.value = result.startCalendarYear;
+    startCalendarMonth.value = result.startCalendarMonth;
+    prePregnancyPlanningMonths.value = result.prePregnancyPlanningMonths;
+    child1BirthMonth.value = deliveryMonth;
+    customPregnancies.value = customPregnancies.value.map((pregnancy, index) => index === 0 ? {
+      ...pregnancy,
+      positiveTestCalendarMonth: toCalendarMonth(month),
+      positiveTestCalendarYear: toFullCalendarYear(year),
+      positiveTestSimulationMonth: result.pregnancySimulationMonth,
+      calculatedDeliverySimulationMonth: deliveryMonth,
+    } : pregnancy);
+  });
 }
 
 export function createDefaultPregnancies(): PregnancyAction[] {
