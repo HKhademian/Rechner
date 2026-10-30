@@ -110,123 +110,22 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.BEEG_SyntheticNet,
-      title: "3. Synthetic Net Principle (Fiktives Netto)",
-      lawRef: "BEEG § 2e (Standardized Deductions) & § 4",
-      tag: "§ 2e BEEG",
-      summary:
-        "Swapping back to Tax Class V post-birth does not reduce approved Elterngeld amounts.",
-      statutoryText: (
-        <div>
-          <p>
-            Under <strong>§ 2e BEEG</strong>, parental allowance is calculated
-            using a{" "}
-            <strong>
-              standardized synthetic net income (*pauschaliertes Netto*)
-            </strong>{" "}
-            established strictly during the pre-birth assessment window.
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>Fixed Rate Protection:</strong> Once the assessment
-              baseline is established (e.g. 2.603 €), the statutory Elterngeld
-              award is locked in for the entire benefit period.
-            </li>
-            <li>
-              <strong>Post-Birth Tax Swap Immunity:</strong> Immediately
-              swapping the mother back to Tax Class V (and the husband to Tax
-              Class III) after birth does not reduce her locked-in Elterngeld
-              amount.
-            </li>
-            <li>
-              <strong>ElterngeldPlus Maximum Cap (§ 4 BEEG):</strong> Replaces
-              65% of the post-birth earnings loss, subject to the absolute
-              statutory monthly ceiling of <strong>900.00 € / month</strong>.
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            <div>
-              • Locked-in Pre-Birth Net (Tax Class III):{" "}
-              <strong>2.603 €</strong>
-            </div>
-            <div>
-              • Post-Birth Part-Time (24h in Tax Class V):{" "}
-              <strong>1.254 €</strong>
-            </div>
-            <div>
-              • Statutory Income Loss ($\Delta Net$): 2.603 € - 1.254 € ={" "}
-              <strong>1.556 €</strong>
-            </div>
-            <div>
-              • 65% Statutory Replacement: 1.556 € × 0.65 ={" "}
-              <strong>1.011,40 €</strong> $\rightarrow$ Capped at{" "}
-              <strong style={{ color: "var(--color-primary)" }}>
-                900.00 € / mo
-              </strong>
-              .
-            </div>
-            <div>
-              • <strong>Total Mother Cash Inflow:</strong> 1.254 € (PT Net) +
-              900 € (EG+) ={" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                2.154 € / month
-              </strong>
-              .
-            </div>
-          </div>
-        </div>
-      ),
+      title: "3. Standardized Benefit Net and Personal Plus Ceiling",
+      lawRef: "BEEG §§ 2, 2c–2f, 4a",
+      tag: "BEEG net",
+      summary: "Benefit assessment net differs from payroll take-home and uses each parent's own frozen history.",
+      statutoryText: <p>Assessable pre-birth net is limited to {money(benefits.maximumAssessableNet.value)}. The configured sliding replacement rate applies to the income loss. Plus is capped at {benefits.plusFraction.value * 100}% of that parent's Basis amount without post-birth income; {money(benefits.basisMaximum.value * benefits.plusFraction.value)} is the general ceiling, not a promised payment. Earning Plus and partnership months share the relevant positive-income average. Tax characteristics stay frozen after birth.</p>,
+      example: <p>The audit above records each parent's pre-birth net, post-birth average and actual payments. Missing required PAP snapshots or prior-year household income evidence leave affected benefits unavailable. Manual take-home values become unverified assessment estimates only after explicit opt-in.</p>,
       links: [
-        {
-          label: "§ 2e BEEG - Abzüge für Steuern und Sozialabgaben",
+        { label: "Income loss, replacement and cap (§ 2 BEEG)",
+          url: benefits.maximumAssessableNet.source,
+          description: "Source-linked monetary and replacement parameters." },
+        { label: "Standardized tax deductions (§ 2e BEEG)",
           url: "https://www.gesetze-im-internet.de/beeg/__2e.html",
-          description:
-            "Standardized lump-sum tax deductions and synthetic net formula under federal law.",
-        },
-        {
-          label: "§ 4 BEEG - Art und Dauer des Bezugs (ElterngeldPlus)",
-          url: "https://www.gesetze-im-internet.de/beeg/__4.html",
-          description:
-            "Statutory rules governing ElterngeldPlus entitlement and monthly benefit limits.",
-        },
+          description: "BEEG tax deductions are separate from cash payroll." },
+        { label: "Personal Plus ceiling (§ 4a BEEG)",
+          url: benefits.plusFraction.source,
+          description: "Plus ceiling and claim rules." },
       ],
     },
     {
