@@ -335,7 +335,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
 
       const rowExp = getActionRowExplanation(act, m4, ScenarioId.C);
       assert.equal(rowExp.taxClasses, "III (Wife) / V (Husband)");
-      assert.ok(rowExp.legalCitation?.includes("BFH VI R 2/13"));
+      assert.ok(rowExp.legalCitation?.includes("BEEG § 2c(3)"));
     });
   });
 

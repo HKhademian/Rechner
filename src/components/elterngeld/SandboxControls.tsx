@@ -1200,7 +1200,7 @@ export default function SandboxControls(): JSX.Element {
                       alignItems: "center",
                       gap: "4px",
                     }}
-                    title="Click to view § 2b BEEG & BFH VI R 2/13 tax optimization rules"
+                    title="Click to view § 2b BEEG & BEEG § 2c(3) tax optimization rules"
                   >
                     <span>2. Tax Classes &amp; Strategy</span>
                     <span

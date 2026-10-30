@@ -1,9 +1,16 @@
+import {
+  TargetPerson,
+} from "#engine/types";
+import {
+  DEFAULT_BENEFIT_RULES,
+} from "#engine/config/benefitRules";
 import type {
   JSX, 
 } from "preact";
 import {
   type LegalRuleKeyType,
   activeLegalRuleKey,
+  currentScenarioData,
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
@@ -12,7 +19,6 @@ import {
   CitationReferenceIcon,
   ExternalLegalSourceIcon,
   StatutorySectionIcon,
-  EligibilityConfirmedIcon,
   SimulatorNavigationIcon,
 } from "#components/Icons";
 
@@ -51,179 +57,31 @@ interface RuleItem {
 }
 
 export default function RulesExplainer(): JSX.Element {
+  const current = currentScenarioData.value;
+  const benefits = current.configuration?.benefitRules ?? DEFAULT_BENEFIT_RULES;
+  const money = (value: number | undefined) => value === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", { style: "currency",
+    currency: "EUR" }).format(value);
   const rules: readonly RuleItem[] = [
     {
       key: LegalRuleKey.BEEG_TaxSwap,
-      title: "1. Proactive Tax Class Swap (III / V Strategy)",
-      lawRef: "BEEG § 2b & Federal Fiscal Court (BFH VI R 2/13)",
-      tag: "§ 2b BEEG",
-      summary:
-        "Swapping to Tax Class III at least 7 months before maternity protection secures the statutory maximum allowance rate.",
-      statutoryText: (
-        <div>
-          <p>
-            Under{" "}
-            <strong>
-              § 2b BEEG (Federal Parental Allowance and Parental Leave Act)
-            </strong>
-            , the parental allowance assessment basis is derived from the{" "}
-            <strong>
-              12 calendar months prior to the month maternity protection begins
-            </strong>
-            .
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>
-                Predominant Tax Class (*Überwiegende Steuerklasse*):
-              </strong>{" "}
-              Whichever tax class was held for the majority of the 12 assessment
-              months (at least 7 months) is legally applied across the entire
-              baseline calculation for all 12 months.
-            </li>
-            <li>
-              <strong>Legality Confirmed by BFH (VI R 2/13):</strong> The German
-              Federal Fiscal Court (*Bundesfinanzhof*) confirmed that married
-              couples have the constitutional right to optimize tax classes
-              prior to birth, and doing so does not constitute tax avoidance or
-              abuse of law under § 42 AO.
-            </li>
-            <li>
-              <strong>Critical Execution Window:</strong> Because maternity
-              protection starts ~1.5 months (6 weeks) prior to delivery, the
-              swap to Tax Class III must become active at the very start of
-              pregnancy to achieve at least 7 qualifying months.
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "10px",
-              fontSize: "0.78rem",
-            }}
-          >
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
-              <div style={{ color: "var(--color-loss)",
-                fontWeight: 700 }}>
-                Unoptimized (Tax Class V)
-              </div>
-              <div>
-                Pre-Birth Net: <strong>1.975 € / mo</strong>
-              </div>
-              <div>
-                Elterngeld Baseline: <strong>1.975 €</strong>
-              </div>
-              <div>
-                ElterngeldPlus (65%): <strong>~543 € / mo</strong>
-              </div>
-            </div>
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid var(--color-primary-border)",
-              }}
-            >
-              <div style={{ color: "var(--color-gain)",
-                fontWeight: 700 }}>
-                Optimized (Tax Class III)
-              </div>
-              <div>
-                Pre-Birth Net: <strong>2.603 € / mo</strong>
-              </div>
-              <div>
-                Elterngeld Baseline: <strong>2.603 €</strong>
-              </div>
-              <div>
-                ElterngeldPlus (65% capped):{" "}
-                <strong style={{ color: "var(--color-primary)" }}>
-                  900 € / mo (MAX)
-                </strong>
-              </div>
-            </div>
-          </div>
-          <div
-            style={{
-              fontSize: "0.74rem",
-              color: "var(--text-muted)",
-              marginTop: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-            }}
-          >
-            <EligibilityConfirmedIcon size={12} />
-            <span>
-              <strong>Net Advantage:</strong> +357 € / month over 20 months ={" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                +7.140 € extra state allowance
-              </strong>{" "}
-              for Child 1.
-            </span>
-          </div>
-        </div>
-      ),
+      title: "1. Tax Class and Assessment History",
+      lawRef: "BEEG §§ 2b, 2c",
+      tag: "§ 2c BEEG",
+      summary: "The assessment follows actual eligible earnings months; a switch does not guarantee a maximum payment.",
+      statutoryText: <p>The lookback selects {benefits.assessmentMonths.value} eligible calendar months, replacing statutory exclusion months with earlier history. Deduction characteristics are selected from earned-income months; a tax-class tie uses the most recent class. Missing history repeats the initial salary/class only as a labeled assumption. A later switch does not rewrite the frozen assessment.</p>,
+      example: <ul>{(current.benefitAssessments ?? []).map((audit) => (
+        <li key={`${audit.pregnancyId}-${audit.parent}`}>{audit.parent === TargetPerson.Husband ? "Father" : "Mother"}, birth {audit.birthMonthId}: class {audit.taxClass}, pre-birth standardized net {money(audit.preBirthNet)}; {audit.assumedMonths.length} assumed months. {audit.reason}</li>
+      ))}</ul>,
       links: [
-        {
-          label: "§ 2b BEEG - Bemessungszeitraum (Gesetze im Internet)",
-          url: "https://www.gesetze-im-internet.de/beeg/__2b.html",
-          description:
-            "Official German Federal Law text detailing the 12-month assessment window and predominant tax class rule.",
-        },
-        {
-          label: "BFH Decision VI R 2/13 (Bundesfinanzhof)",
-          url: "https://www.bundesfinanzhof.de",
-          description:
-            "Federal Fiscal Court landmark ruling affirming the legality of prenatal tax class swaps.",
-        },
-        {
-          label: "Familienportal des Bundesministeriums (BMFSFJ)",
-          url: "https://familienportal.de/familienportal/familienleistungen/elterngeld",
-          description:
-            "Official German Federal Family Ministry portal guidance on parental allowance calculation.",
-        },
+        { label: "Assessment period (§ 2b BEEG)",
+          url: benefits.assessmentMonths.source,
+          description: "Eligible months and statutory exclusions." },
+        { label: "Tax-class selection (§ 2c BEEG)",
+          url: "https://www.gesetze-im-internet.de/beeg/__2c.html",
+          description: "Selection of deduction characteristics from the assessment history." },
+        { label: "Federal explanation of a tax-class change",
+          url: "https://familienportal.de/familienportal/familienleistungen/elterngeld/arbeitssituation/auf-welche-steuerklasse-kommt-es-fuer-die-berechnung-meines-elterngelds-an-wenn-ich-die-steuerklasse-gewechselt-habe--124670",
+          description: "Current official guidance, including equal-duration classes." },
       ],
     },
     {

@@ -1421,7 +1421,7 @@ export const comparisonMetrics = computed(() => {
 export const LegalRuleKey = {
   /** Maternity protection wage replacement (§§ 19, 20 MuSchG). */
   MuSchG_Maternity: "muschg-maternity",
-  /** Proactive spousal tax class optimization (§ 2b Abs. 1 Satz 3 BEEG, BFH VI R 2/13). */
+  /** Proactive spousal tax class optimization (§ 2b Abs. 1 Satz 3 BEEG, BEEG § 2c(3)). */
   BEEG_TaxSwap: "beeg-tax-swap",
   /** Clean synthetic net income baseline (§ 2c BEEG). */
   BEEG_SyntheticNet: "beeg-synthetic-net",

@@ -26,7 +26,7 @@ import {
  * Automatically synthesizes the statutorily optimal § 2b BEEG tax class switch actions
  * for all pregnancies present in the household scenario.
  *
- * Statutory Rule (§ 2b Abs. 1 Satz 3 BEEG, BFH VI R 2/13):
+ * Statutory Rule (§ 2b Abs. 1 Satz 3 BEEG, BEEG § 2c(3)):
  * To establish the optimized tax class (Class III for higher-receiving spouse) as predominant
  * during the 12-month assessment period prior to the start of Mutterschutz (6 weeks prior to birth),
  * the switch must be effective at least 7 months before Mutterschutz begins (Month = Delivery - 8).

@@ -900,7 +900,7 @@ export function getActionFieldExplanation(
         ],
         legalCitation: toStatutoryCitation(
           isTaxSwitch
-            ? "EStG § 38b & BFH Decision VI R 2/13 (Steuerklassenwechsel)"
+            ? "EStG § 38b & BEEG § 2c(3) (Steuerklassenwechsel)"
             : isDelivery
               ? "MuSchG § 3 Abs. 2 & BEEG § 4 (Geburt & Schutzfrist)"
               : isPregnancy
@@ -1365,7 +1365,7 @@ export function getActionRowExplanation(
       isReallocation
         ? "BEEG § 3 Abs. 1 & § 7 Abs. 2 (Partnerübertragung)"
         : isTaxSwitch
-          ? "EStG § 38b & BFH VI R 2/13 (Steuerklassenwahl)"
+          ? "EStG § 38b & BEEG § 2c(3) (Steuerklassenwahl)"
           : isDelivery
             ? "MuSchG § 3 Abs. 2 (Schutzfrist nach der Entbindung)"
             : "MuSchG § 3 Abs. 1 (Mitteilung der Schwangerschaft)",

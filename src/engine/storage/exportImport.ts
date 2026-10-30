@@ -400,7 +400,7 @@ export function exportStateToTextReport(
     " 6. EStG § 32a, § 38b, § 39f (Progressive Tariff, Tax Classes & Faktorverfahren)",
   );
   lines.push(
-    " 7. BFH Ruling VI R 2/13 (Legality of Strategic Pregnancy Tax Class Switching)",
+    " 7. BEEG § 2c(3) (Assessment Tax Characteristics): https://www.gesetze-im-internet.de/beeg/__2c.html",
   );
   lines.push(
     "================================================================================",
