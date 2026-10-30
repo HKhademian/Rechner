@@ -47,7 +47,17 @@ export function computeAnnualEmploymentTaxBase(
   const gross = toEuroAmount(husband.gross + wife.gross);
   const taxableIncome = toEuroAmount(Math.max(0, gross - husbandWorkExpenses - wifeWorkExpenses -
     pensionDeduction - insuranceDeduction - specialExpenses));
+  // Preserve each partner's contribution before the deductions pooled by joint assessment.
+  const incomeByPartner = Object.freeze({
+    husband: Object.freeze({ gross: husband.gross,
+      workExpenses: husbandWorkExpenses,
+      employmentIncome: toEuroAmount(husband.gross - husbandWorkExpenses) }),
+    wife: Object.freeze({ gross: wife.gross,
+      workExpenses: wifeWorkExpenses,
+      employmentIncome: toEuroAmount(wife.gross - wifeWorkExpenses) }),
+  });
   return Object.freeze({ gross,
+    incomeByPartner,
     husbandWorkExpenses,
     wifeWorkExpenses,
     husbandUnusedWorkAllowance: toEuroAmount(p.workExpenseAllowance.value - husbandWorkExpenses),

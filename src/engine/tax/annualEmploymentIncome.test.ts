@@ -50,3 +50,19 @@ it("retains each parent's unused work allowance for progression benefits without
   assert.throws(() => computeAnnualEmploymentTaxBase({ ...income(),
     health: toEuroAmount(-1) }, income(), DEFAULT_TAX_RULES), TypeError);
 });
+
+it("retains separate partner contributions that reconcile with the unchanged joint tax base", () => {
+  for (const [husband, wife] of [[income(60000, 5250, 1440, 5580, 780), income()], [income(12000, 1000, 200, 1000, 200), income(10000, 800, 160, 800, 160)], [income(600), income()]]) {
+    const result = computeAnnualEmploymentTaxBase(husband, wife, DEFAULT_TAX_RULES);
+    const partners = result.incomeByPartner;
+    assert.equal(partners.husband.gross, husband.gross);
+    assert.equal(partners.wife.gross, wife.gross);
+    assert.equal(partners.husband.employmentIncome, husband.gross - result.husbandWorkExpenses);
+    assert.equal(partners.wife.employmentIncome, wife.gross - result.wifeWorkExpenses);
+    const combined = partners.husband.employmentIncome + partners.wife.employmentIncome;
+    assert.equal(combined, result.gross - result.husbandWorkExpenses - result.wifeWorkExpenses);
+    assert.equal(result.taxableIncome, Math.max(0, combined - result.pensionDeduction - result.insuranceDeduction - result.specialExpenses));
+    assert.ok(Object.isFrozen(partners.husband));
+    assert.ok(Object.isFrozen(partners.wife));
+  }
+});
