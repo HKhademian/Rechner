@@ -1,3 +1,4 @@
+import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 import {
   LiveNumberInput,
@@ -28,6 +29,8 @@ import {
   type CalculatorInputs,
   type PersonDeductions,
   getCurrentInputs,
+  inputMode,
+  hasPartner,
   grossIncome,
   taxBracket,
   hasChurchTax,
@@ -107,6 +110,10 @@ export function ComparisonTableContent(): JSX.Element {
   const liveClassOptions = Object.values(TaxClass).map((value, index) => ({ value: String(index + 1),
     label: `Class ${value}` }));
   const liveControls = {
+    inputMode: <LiveChoiceInput<CalculatorInputs["inputMode"]> label="Gross input period" value={inputMode} options={[{ value: "monthly",
+      label: "Monthly gross input" }, { value: "yearly",
+      label: "Yearly gross input" }]} beforeChange={validateLive("inputMode")} />,
+    hasPartner: <LiveToggleInput label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
     grossIncome: <LiveNumberInput id="live-gross" label="Gross income" value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
     state: <LiveChoiceInput label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
     taxBracket: <LiveChoiceInput label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={validateLive("taxBracket")} />,
@@ -791,6 +798,7 @@ export function ComparisonTableContent(): JSX.Element {
                     </button>
                   </div>
                 </div>
+                <LiveCalculatorSettings />
               </th>
 
               {savedScenarios.value.map((scenario) => {
@@ -1053,6 +1061,23 @@ export function ComparisonTableContent(): JSX.Element {
               null,
               "totalDeductions",
               true,
+            )}
+
+            {renderInputRow(
+              "Gross input period",
+              "inputMode",
+              "select",
+              [{ value: "monthly",
+                label: "Monthly gross input" }, { value: "yearly",
+                label: "Yearly gross input" }],
+              (inputs) => inputs.inputMode === "monthly" ? "Monthly gross input" : "Yearly gross input",
+            )}
+            {renderInputRow(
+              "Include partner",
+              "hasPartner",
+              "checkbox",
+              null,
+              (inputs) => inputs.hasPartner ? "Yes" : "No",
             )}
 
             <tr>

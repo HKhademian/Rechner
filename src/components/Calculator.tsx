@@ -5,7 +5,6 @@ import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
 import {
   deductions,
 } from "#store/calculatorStore";
-import InputForm from "#components/InputForm";
 import ResultsDisplay from "#components/ResultsDisplay";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
@@ -48,17 +47,7 @@ export default function Calculator(): JSX.Element {
 
       <div class="container">
         <CalculatorTaxableIncome data={deductions.value} />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "30px",
-            alignItems: "start",
-          }}
-        >
-          <InputForm />
-          <ResultsDisplay />
-        </div>
+        <ResultsDisplay />
       </div>
     </>
   );
