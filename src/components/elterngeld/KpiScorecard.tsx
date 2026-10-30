@@ -233,7 +233,7 @@ export default function KpiScorecard(): JSX.Element {
         </div>
       </div>
 
-      {/* KPI Card 3: 5-Year Progressive Cumulative Total */}
+      {/* KPI Card 3: Cash Flow Over the Configured Period */}
       <div
         className="glass-panel"
         style={{
@@ -260,7 +260,7 @@ export default function KpiScorecard(): JSX.Element {
                 letterSpacing: "0.05em",
               }}
             >
-              60-Month Net Cash Inflow
+              {current.months.length}-Month Net Cash Flow
             </div>
             <div
               style={{
@@ -284,7 +284,7 @@ export default function KpiScorecard(): JSX.Element {
               <span>
                 Average / Month:{" "}
                 <strong className="tabular-nums">
-                  {formatCurrency(current.summary.grandTotal / 60)}
+                  {current.months.length > 0 ? formatCurrency(current.summary.grandTotal / current.months.length) : "Unavailable"}
                 </strong>
               </span>
             </div>
@@ -297,8 +297,7 @@ export default function KpiScorecard(): JSX.Element {
             color: "var(--text-muted)",
           }}
         >
-          Combined household net cash flow over the entire 5-year simulation
-          horizon
+          Combined household cash flow from {current.months[0]?.calendarLabel} to {current.months.at(-1)?.calendarLabel}.
         </div>
       </div>
 
