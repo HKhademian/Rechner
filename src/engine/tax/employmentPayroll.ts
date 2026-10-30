@@ -43,6 +43,7 @@ export function computeEmploymentPayroll(
     regularPensionYtd = toGrossSalary(regularPensionYtd + Math.min(payment.regularGross, rules.parameters.pensionCapMonthly.value));
     const options: PayrollOptions = { ...personal,
       expectedRegularAnnualGross: schedule.regularAnnualGross,
+      expectedMonthlyEmploymentGross: toGrossSalary(schedule.annualGross / schedule.payments.length),
       contributionMonthsYearToDate: payment.contributionMonthsYearToDate,
       regularGrossYearToDate: regularYtd,
       regularHealthAssessmentYearToDate: regularHealthYtd,

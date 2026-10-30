@@ -24,6 +24,20 @@ import {
   computeBonusSocialInsurance, 
 } from "#engine/tax/wageTax";
 
+it("includes predictable extra salaries in regular-pay eligibility", () => {
+  const result = computeEmploymentPayroll(
+    { gross: toGrossSalary(1800),
+      period: SalaryPeriod.Monthly,
+      monthsWorked: toMonthDuration(6),
+      annualSalaryPayments: toSalaryPaymentCount(14) },
+    TaxClass.I,
+    toChildrenCount(1),
+    DEFAULT_TAX_RULES,
+  );
+  // 1800 ×14/12=2100 per employed month: ordinary, unreduced RV contribution.
+  assert.equal(result.payments[0].payroll.pensionInsurance, 167.40);
+});
+
 it("uses assessed earnings rather than uncapped gross after changing monthly pay", () => {
   const first = computeBonusSocialInsurance(
     toGrossSalary(1000), 
