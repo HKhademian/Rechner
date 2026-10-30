@@ -1,3 +1,6 @@
+import type {
+  AnnualTaxRecord,
+} from "#engine/tax/annualTaxRecords";
 /**
  * German Elterngeld & Parental Leave 5-Year Financial Simulator - Domain Type System
  *
@@ -1727,7 +1730,14 @@ export interface BenefitPaymentAudit {
   readonly payment: EuroAmount;
 }
 
+export interface ScheduledAnnualTaxRecord extends AnnualTaxRecord {
+  readonly settlementMonthId: MonthId;
+  readonly scheduledMonthInHorizon: boolean;
+}
+
 export interface SimulationResult {
+  readonly annualTaxRecords?: readonly ScheduledAnnualTaxRecord[];
+  readonly taxComplete?: boolean;
   readonly payrollComplete?: boolean;
   /** Availability under the disclosed calendar/household assumptions, not legal certification. */
   readonly benefitsComplete?: boolean;

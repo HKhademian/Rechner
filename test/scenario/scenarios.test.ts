@@ -123,27 +123,16 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       }
     });
 
-    it("removes the flat refund from legacy withholding estimates pending annual accounting", () => {
+    it("leaves manual-net tax settlements unavailable rather than guessing refunds", () => {
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
       });
 
-      // Legacy variance only: 8 * 242 = 1936; no flat deduction refund.
-      const m15 = res.months[14];
-      assert.equal(m15.taxRefund, 1936);
-
-      // No variance or assumed deduction refund.
-      const m27 = res.months[26];
-      assert.equal(m27.taxRefund, 0);
-
-      // Legacy variance only: 6 * 555 = 3330.
-      const m39 = res.months[38];
-      assert.equal(m39.taxRefund, 3330);
-
-      // Legacy variance only: 2 * 555 = 1110.
-      const m51 = res.months[50];
-      assert.equal(m51.taxRefund, 1110);
+      assert.equal(res.taxComplete, false);
+      assert.equal(res.summary.totalTaxRefunds, 0);
+      assert.ok(res.months.every((month) => month.taxRefund === 0));
+      assert.ok(res.annualTaxRecords?.every((record) => !record.available));
     });
   });
 
@@ -240,7 +229,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       );
     });
 
-    it("accurately reconciles tax returns on configured calendar month (March of following year)", () => {
+    it("does not create a settlement for missing calendar months or manual tax data", () => {
       // Start in September 2026. March 2027 is simulation Month 7.
       const res = generateTimelineSimulation({
         ...defaultParams,
@@ -251,21 +240,17 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         taxReturnMonth: toCalendarMonth(3), // March
       });
 
-      // Month 7 = 03.2027 -> Receives tax refund for calendar year 2026
+      // Calendar2026 lacks January-August; its settlement is unavailable.
       const m7 = res.months[6];
       assert.equal(m7.calendarLabel, "03.2027");
-      assert.ok(
-        m7.taxRefund > 0,
-        "Month 7 (March 2027) must receive the 2026 tax return",
-      );
+      assert.equal(m7.taxRefund, 0);
+      assert.deepEqual(res.annualTaxRecords?.[0].missingMonths, [1, 2, 3, 4, 5, 6, 7, 8]);
 
-      // Month 19 = 03.2028 -> Receives tax refund for calendar year 2027
+      // Calendar2027 is present, but manual nets still lack actual tax data.
       const m19 = res.months[18];
       assert.equal(m19.calendarLabel, "03.2028");
-      assert.ok(
-        m19.taxRefund > 0,
-        "Month 19 (March 2028) must receive the 2027 tax return",
-      );
+      assert.equal(m19.taxRefund, 0);
+      assert.ok(res.annualTaxRecords?.[1].reasons.some((reason) => reason.includes("Manual net")));
     });
   });
 

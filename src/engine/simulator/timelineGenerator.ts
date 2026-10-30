@@ -1,4 +1,10 @@
 import {
+  collectAnnualTaxRecords,
+} from "#engine/tax/annualTaxRecords";
+import {
+  applyAnnualTaxSettlements,
+} from "#engine/ledger/taxSettlements";
+import {
   DEFAULT_TIMELINE_CONVENTIONS,
 } from "#engine/config/timelineConventions";
 import {
@@ -67,7 +73,6 @@ import {
   toMonthSimRef,
   toEuroAmount,
   toGrossSalary,
-  toNetSalary,
   toWorkingHours,
   toEventId,
   toActionId,
@@ -86,15 +91,10 @@ import {
   computeBonusSocialInsurance,
   computeGrossToNetBreakdown,
 } from "#engine/tax/wageTax";
-import {
-  getDefaultPersistedState,
-} from "#engine/storage/persistence";
+
+
 import {
   type ChildYearPresence,
-  type AnnualTaxReconciliationResult,
-  computeMonthlySwapWithholdingVariance,
-  computeAnnualTaxReconciliation,
-  computeKinderfreibetragGuenstigerpruefung,
 } from "#engine/tax/jointAssessment";
 
 
@@ -286,7 +286,6 @@ export function runScenarioBatches(
     readonly isMutterschutz: boolean;
     readonly isPartnerschaftsbonus: boolean;
     readonly hasSiblingBonus: boolean;
-    readonly monthlyWithholdingDeficit: EuroAmount;
     readonly husbandBaselineNet: EuroAmount;
     readonly wifeBaselineNet: EuroAmount;
     readonly husbandPayroll?: GrossToNetBreakdown;
@@ -391,16 +390,7 @@ export function runScenarioBatches(
       ? `IV(F=${income.factor})` : taxClass;
     const taxClassLabel = `H: ${classLabel(income.husbandClass)} | W: ${classLabel(income.wifeClass)}`;
     const curH3Net = income.husbandNets[TaxClass.III] ?? income.husbandSalary;
-    const curH5Net = income.husbandNets[TaxClass.V] ?? income.husbandSalary;
-    const varianceWifeNets = income.isMutterschutz
-      ? m > child1Delivery ? income.wifePartNets : income.wifeFullNets : income.wifeNets;
-    const curW3 = varianceWifeNets[TaxClass.III] ?? income.wifeSalary;
-    const curW5 = varianceWifeNets[TaxClass.V] ?? income.wifeSalary;
     const curW5FT = income.wifeFullNets[TaxClass.V] ?? income.wifeSalary;
-    // Legacy annual reconciliation is replaced by actual annual accounting in Fix 10.
-    const monthlyWithholdingDeficit = scenarioKey === SimulationStrategy.StatutoryOptimized && isSwapActive
-      ? computeMonthlySwapWithholdingVariance(toNetSalary(curH3Net), toNetSalary(curH5Net), toNetSalary(curW3), toNetSalary(curW5))
-      : toEuroAmount(0);
     const transactions: AccountingTransaction[] = [];
 
     rawMonths.push({
@@ -428,7 +418,6 @@ export function runScenarioBatches(
       isMutterschutz,
       isPartnerschaftsbonus,
       hasSiblingBonus,
-      monthlyWithholdingDeficit,
       husbandPayroll,
       wifePayroll,
       husbandBaselineNet: toEuroAmount(curH3Net),
@@ -437,124 +426,7 @@ export function runScenarioBatches(
     });
   }
 
-  // PASS 2: Aggregate Annual Tax Return Reconciliations by Calendar Year (§ 26b EStG)
-  const deficitsByCalYear: Record<number, EuroAmount[]> = {};
-  rawMonths.forEach((rm) => {
-    const cy = rm.calendarYearNum;
-    if (!deficitsByCalYear[cy]) {
-      deficitsByCalYear[cy] = [];
-    }
-    deficitsByCalYear[cy].push(rm.monthlyWithholdingDeficit);
-  });
-
-  const taxRefundReconByMonth: Record<number, AnnualTaxReconciliationResult> =
-    {};
-  const taxRefundByMonth: Record<number, EuroAmount> = {};
-  const reconciliationAssumptions: string[] = [];
-  const tMonth = preexisting.taxReturnMonth ?? 3;
-  // Deductions reduce taxable income; they do not establish a fixed cash refund.
-  const baseStandardRefund = toEuroAmount(0);
-  const defaultState = getDefaultPersistedState();
-  const monthlyKg =
-    preexisting.kindergeldPerChild ?? defaultState.kindergeldPerChild;
-
-  rawMonths.forEach((rm) => {
-    if (rm.calendarMonthNum === tMonth && rawMonths.some((month) => month.calendarYearNum === rm.calendarYearNum - 1)) {
-      const reconciledCalYear = rm.calendarYearNum - 1;
-      try {
-        createTaxRules(toFullCalendarYear(reconciledCalYear));
-      }
-      catch (error) {
-        reconciliationAssumptions.push(`Tax assessment for ${reconciledCalYear} unavailable: ${error instanceof Error ? error.message : "Missing verified profile"}`);
-        return;
-      }
-      const deficits = deficitsByCalYear[reconciledCalYear] || [];
-
-      // Calculate annual taxable income in reconciledCalYear
-      const husbandGrossMonthly =
-        preexisting.husbandGross ?? defaultState.husbandGross;
-      const husbandBreakdown = computeGrossToNetBreakdown(
-        toGrossSalary(husbandGrossMonthly),
-        TaxClass.III,
-        preexisting.existingChildrenCount,
-      );
-      const husbandAnnualZvE = husbandBreakdown.taxableIncomeZvE * 12;
-
-      // Calculate wife annual earned gross based on pre-birth FT / post-birth PT status in that calendar year
-      const wifeFTGross = preexisting.wifeGross ?? defaultState.wifeGross;
-      const wifeHoursPT =
-        preexisting.wifePostBirthWeeklyHours ?? defaultState.wifePostBirthHours;
-      const wifeHoursFT =
-        preexisting.wifeWeeklyHours ?? defaultState.wifeInitialHours;
-      const wifePTGross = Math.round(
-        wifeFTGross * (wifeHoursPT / Math.max(1, wifeHoursFT)),
-      );
-
-      let wifeEarnedGrossInYear = 0;
-      rawMonths
-        .filter((r) => r.calendarYearNum === reconciledCalYear)
-        .forEach((r) => {
-          if (r.month > child1Delivery) {
-            wifeEarnedGrossInYear += wifePTGross;
-          }
-          else {
-            wifeEarnedGrossInYear += wifeFTGross;
-          }
-        });
-      const wifeMonthlyAvgGross = Math.round(wifeEarnedGrossInYear / 12);
-      const wifeBreakdown = computeGrossToNetBreakdown(
-        toGrossSalary(wifeMonthlyAvgGross),
-        TaxClass.V,
-        preexisting.existingChildrenCount,
-      );
-      const wifeAnnualZvE = wifeBreakdown.taxableIncomeZvE * 12;
-      const jointAnnualZvE = husbandAnnualZvE + wifeAnnualZvE;
-
-      // Identify children present in the reconciled calendar year
-      const childrenInYear: ChildYearPresence[] = [];
-      // Any preexisting children
-      for (let c = 0; c < preexisting.existingChildrenCount; c++) {
-        childrenInYear.push({
-          childIndex: toChildIndex(c + 1),
-          birthCalendarYear: toFullCalendarYear(reconciledCalYear - 1),
-          birthCalendarMonth: toCalendarMonth(1),
-        });
-      }
-      // Pregnancies delivered on or before reconciledCalYear
-      pregnancies.forEach((preg) => {
-        const delSimMonth = preg.calculatedDeliverySimulationMonth;
-        const delRm = rawMonths.find((r) => r.month === delSimMonth);
-        if (delRm && delRm.calendarYearNum <= reconciledCalYear) {
-          childrenInYear.push({
-            childIndex: preg.childIndex,
-            birthCalendarYear: delRm.calendarYearNum,
-            birthCalendarMonth: delRm.calendarMonthNum,
-          });
-        }
-      });
-
-      // Compute Günstigerprüfung (§ 31, § 32 Abs. 6 EStG)
-      const guenstiger = computeKinderfreibetragGuenstigerpruefung(
-        jointAnnualZvE,
-        childrenInYear,
-        reconciledCalYear,
-        monthlyKg,
-      );
-
-      const recon = computeAnnualTaxReconciliation(
-        toCalendarYear(Math.min(10, Math.max(1, rm.year))),
-        rm.month,
-        deficits,
-        baseStandardRefund,
-        guenstiger,
-      );
-
-      taxRefundReconByMonth[rm.month] = recon;
-      taxRefundByMonth[rm.month] = recon.totalRefundAmount;
-    }
-  });
-
-  // PASS 3: Assemble Final Ledger and Transactions
+  // Assemble regular income, benefits and itemized bonuses before annual accounting.
   const months: MonthlyLedgerEntry[] = [];
   let runSalaries = 0;
   let runBenefits = 0;
@@ -820,7 +692,7 @@ export function runScenarioBatches(
       }
     }
 
-    const taxRefund = taxRefundByMonth[m] || toEuroAmount(0);
+    const taxRefund = toEuroAmount(0);
 
     // Build Accounting Transactions for Audit Trail
     const txs: AccountingTransaction[] = [];
@@ -1006,46 +878,7 @@ export function runScenarioBatches(
       );
     }
 
-    if (taxRefund > 0) {
-      const recon = taxRefundReconByMonth[m];
-      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund ?? 0;
-      const swapDeficit = recon?.accumulatedSwapDeficit ?? 0;
-      const isDeficitRefund = swapDeficit > 0;
 
-      const descParts: string[] = [];
-      if (isDeficitRefund) {
-        descParts.push(
-          `Full refund of Tax Class V wage withholding deficit (+${swapDeficit.toLocaleString("de-DE")} €)`,
-        );
-      }
-      if ((recon?.baseDeductionsRefund ?? 0) !== 0) {
-        descParts.push(`supplied tax adjustment (${recon?.baseDeductionsRefund.toLocaleString("de-DE")} €)`);
-      }
-      if (extraGuenstiger > 0) {
-        descParts.push(
-          `§ 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+${extraGuenstiger.toLocaleString("de-DE")} € over Kindergeld)`,
-        );
-      }
-
-      txs.push(
-        createTransaction({
-          transactionId: `TX-${rm.monthId}-TAX-REFUND`,
-          monthId: rm.monthId,
-          month: rm.month,
-          year,
-          type: TransactionType.TaxReconciliationRefund,
-          direction: TransactionDirection.Inflow,
-          amount: taxRefund,
-          statutoryCitation:
-            extraGuenstiger > 0
-              ? "EStG § 26b, § 31 (*Günstigerprüfung*), § 46"
-              : "EStG § 26b (*Ehegatten-Splitting*) & § 46 Abs. 2 Nr. 3a",
-          taxClassLabel: "Joint Assessment (*Splitting*)",
-          description: `Annual Tax Assessment Refund (${rm.calendarLabel})`,
-          auditTrail: descParts.join(" + "),
-        }),
-      );
-    }
 
     // Special Life Event Tagging
     let eventTag: string | null = null;
@@ -1152,54 +985,7 @@ export function runScenarioBatches(
       }
     }
 
-    if (taxRefund > 0) {
-      const recon = taxRefundReconByMonth[m];
-      const extraGuenstiger = recon?.guenstigerpruefung?.extraTaxRefund ?? 0;
-      const swapDeficit = recon?.accumulatedSwapDeficit ?? 0;
-      const isDeficitRefund = swapDeficit > 0;
-      const reconciledCalYear = rm.calendarYearNum - 1;
 
-      const descParts: string[] = [];
-      if (isDeficitRefund) {
-        descParts.push(
-          `Full refund of Tax Class V wage withholding deficit (+${swapDeficit.toLocaleString("de-DE")} €)`,
-        );
-      }
-      if ((recon?.baseDeductionsRefund ?? 0) !== 0) {
-        descParts.push(`supplied tax adjustment (${recon?.baseDeductionsRefund.toLocaleString("de-DE")} €)`);
-      }
-      if (extraGuenstiger > 0) {
-        descParts.push(
-          `§ 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+${extraGuenstiger.toLocaleString("de-DE")} € over Kindergeld)`,
-        );
-      }
-
-      specialEvents.push({
-        eventId: toEventId(`EVENT-${rm.monthId}-TAX-REFUND`),
-        monthId: rm.monthId,
-        month: rm.month,
-        year,
-        calendarYearNum: rm.calendarYearNum,
-        calendarMonthNum: rm.calendarMonthNum,
-        calendarLabel: rm.calendarLabel,
-        relativeBirthLabel: rm.relativeBirthLabel,
-        relativeMonthLabel: rm.relativeMonthLabel,
-        type: SpecialEventType.TaxReturn,
-        title:
-          extraGuenstiger > 0
-            ? `Annual Tax Return (Tax Year ${reconciledCalYear}: Incl. +${extraGuenstiger.toLocaleString("de-DE")} € Child Allowance Bonus)`
-            : `Annual Tax Return (Tax Year ${reconciledCalYear} Return in ${rm.calendarLabel})`,
-        category: SpecialEventCategory.TaxOffice,
-        statutory: toStatutoryCitation(
-          extraGuenstiger > 0
-            ? "§ 26b & § 31 EStG (*Günstigerprüfung*)"
-            : "§ 26b EStG (*Ehegatten-Splitting*)",
-        ),
-        taxClassLabel: "Joint Assessment (*Splitting*)",
-        amount: taxRefund,
-        description: `${descParts.join(" plus ")} for Tax Year ${reconciledCalYear}`,
-      });
-    }
 
     // Preexisting: Annual Recurring Performance Bonus (Gross taxed under § 39b EStG)
     const annualBonusMonth = preexisting.annualBonusMonth || 12;
@@ -1591,30 +1377,80 @@ export function runScenarioBatches(
         : ["Manual net salaries do not establish gross earnings, contributions or taxes withheld. Extra payments are estimates based on the supplied net salary."])] });
   }
 
-  // Summary Metrics
-  const totalSalaries = months.reduce((sum, m) => sum + m.earnedSalaries, 0);
-  const totalBenefits = months.reduce((sum, m) => sum + m.stateBenefits, 0);
-  const totalTaxRefunds = months.reduce((sum, m) => sum + m.taxRefund, 0);
-  const grandTotal = months.reduce((sum, m) => sum + m.monthlyTotal, 0);
+  // Only complete calendar-year data can establish an annual settlement.
+  const children: ChildYearPresence[] = [
+    ...Array.from({ length: preexisting.existingChildrenCount }, (_, index) => ({
+      childIndex: toChildIndex(index + 1),
+      birthCalendarYear: toFullCalendarYear(startYear - 1),
+      birthCalendarMonth: toCalendarMonth(1),
+    })),
+    ...pregnancies.map((pregnancy) => {
+      const ordinal = startOrdinal + pregnancy.calculatedDeliverySimulationMonth - 1;
+      return { childIndex: pregnancy.childIndex,
+        birthCalendarYear: toFullCalendarYear(Math.floor(ordinal / 12)),
+        birthCalendarMonth: toCalendarMonth(ordinal % 12 + 1) };
+    }),
+  ];
+  const unsupportedByYear = new Map<FullCalendarYear, readonly string[]>();
+  for (const year of new Set(months.map((month) => month.calendarYearNum))) {
+    const reasons: string[] = [];
+    if ((preexisting.investmentReturnMonthly ?? 0) > 0) {
+      reasons.push("Capital-income tax details are missing; supplied net investment cash cannot establish annual taxable income.");
+    }
+    if ((preexisting.husbandPayrollOptions?.churchTaxRate ?? 0) > 0 || (preexisting.wifePayrollOptions?.churchTaxRate ?? 0) > 0) {
+      reasons.push("Annual church tax and its deductions require a separate supported assessment model.");
+    }
+    try {
+      const rules = createTaxRules(year);
+      if ([preexisting.husbandPayrollOptions, preexisting.wifePayrollOptions].some((personal) =>
+        personal?.ageAtYearStart !== undefined && personal.ageAtYearStart + year - startYear >= rules.parameters.ageReliefMinimumAge.value)) {
+        reasons.push("Annual age-relief deductions are not supported by this employment-income model.");
+      }
+    }
+    catch {
+      // The collector reports an unavailable year profile without inventing a replacement.
+    }
+    unsupportedByYear.set(year, reasons);
+  }
+  const annualTaxRecords = collectAnnualTaxRecords(months, children, unsupportedByYear);
+  const settledMonths = applyAnnualTaxSettlements(
+    months,
+    annualTaxRecords.flatMap((record) => record.assessment ? [record.assessment] : []),
+    preexisting.taxReturnMonth,
+  );
+  const scheduledTaxRecords = annualTaxRecords.map((record) => {
+    const settlementMonthId = toMonthId(preexisting.taxReturnMonth, toFullCalendarYear(record.calendarYear + 1));
+    return { ...record,
+      settlementMonthId,
+      scheduledMonthInHorizon: settledMonths.some((month) => month.monthId === settlementMonthId) };
+  });
 
-  const totalMutterschutz = months.reduce((sum, m) => sum + m.mutterschutz, 0);
-  const totalWifeElterngeld = months.reduce(
+  // Summary Metrics
+  const totalSalaries = settledMonths.reduce((sum, m) => sum + m.earnedSalaries, 0);
+  const totalBenefits = settledMonths.reduce((sum, m) => sum + m.stateBenefits, 0);
+  const totalTaxRefunds = settledMonths.reduce((sum, m) => sum + m.taxRefund, 0);
+  const grandTotal = settledMonths.reduce((sum, m) => sum + m.monthlyTotal, 0);
+
+  const totalMutterschutz = settledMonths.reduce((sum, m) => sum + m.mutterschutz, 0);
+  const totalWifeElterngeld = settledMonths.reduce(
     (sum, m) => sum + m.wifeElterngeld,
     0,
   );
-  const totalHusbandElterngeld = months.reduce(
+  const totalHusbandElterngeld = settledMonths.reduce(
     (sum, m) => sum + m.husbandElterngeld,
     0,
   );
-  const totalKindergeld = months.reduce((sum, m) => sum + m.kindergeld, 0);
-  const total13thSalaries = months.reduce(
+  const totalKindergeld = settledMonths.reduce((sum, m) => sum + m.kindergeld, 0);
+  const total13thSalaries = settledMonths.reduce(
     (sum, m) => sum + m.specialBonusTotal,
     0,
   );
 
   return {
     scenarioKey,
-    months,
+    months: settledMonths,
+    annualTaxRecords: scheduledTaxRecords,
+    taxComplete: annualTaxRecords.every((record) => record.available),
     payrollComplete: grossMode && months.every((month) => month.payroll !== undefined &&
       [month.payroll.husband, month.payroll.wife].every((payroll) => payroll.payrollLimitations.length === 0 &&
         (payroll.bonuses ?? []).every((bonus) => (bonus.payrollLimitations ?? []).length === 0))),
@@ -1623,7 +1459,11 @@ export function runScenarioBatches(
     unavailableReasons: allowanceSchedule.unavailableReasons,
     assumptions: [...new Set([
       ...allowanceSchedule.assumptions,
-      ...reconciliationAssumptions,
+      ...annualTaxRecords.flatMap((record) => [
+        ...record.assumptions, ...record.reasons.map((reason) => `Tax year ${record.calendarYear} unavailable: ${reason}`),
+      ]),
+      "Annual tax settlements are planned for the configured following-year month; actual filing and assessment dates may differ.",
+      ...(preexisting.existingChildrenCount > 0 ? ["Preexisting children are assumed to qualify for child tax allowances throughout the modeled years."] : []),
       ...months.flatMap((month) => month.assumptions ?? []),
       ...months.flatMap((month) => [month.payroll?.husband, month.payroll?.wife].flatMap((payroll) =>
         (payroll?.bonuses ?? []).flatMap((bonus) => (bonus.payrollLimitations ?? []).map((reason) => `Payroll estimate: ${reason}`)))),

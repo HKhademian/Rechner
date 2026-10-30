@@ -359,7 +359,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(m12.mutterschutz, 2295);
     });
 
-    it("correctly calculates annual tax return refund reconciling withholding deficits", () => {
+    it("does not infer an annual refund from manual cash-net differences", () => {
       const pregnancies: PregnancyAction[] = [
         {
           pregnancyId: toPregnancyId("PREG-1"),
@@ -375,9 +375,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         },
       ];
 
-      // 8 months of swap in 2026 (M4 to M11): net monthly deficit = (3184 - 2398) - (2295 - 1751) = 786 - 544 = 242 €/mo
-      // Total 2026 deficit = 8 * 242 = 1.936 €
-      // Legacy variance estimate = 1.936 €; actual annual accounting follows.
+      // Manual cash differences do not establish either taxes withheld or final liability.
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
           switchId: toSwitchId("SWAP-1"),
@@ -401,8 +399,9 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       const m15 = res.months[14];
       assert.equal(m15.calendarLabel, toCalendarLabel("03.2027"));
-      // No fictitious flat refund is added to the legacy variance.
-      assert.equal(m15.taxRefund, 1936);
+      assert.equal(m15.taxRefund, 0);
+      assert.equal(res.taxComplete, false);
+      assert.ok(res.annualTaxRecords?.[0].reasons.some((reason) => reason.includes("Manual net")));
     });
   });
 
@@ -1182,7 +1181,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       assert.equal(resB.summary.grandTotal, resC.summary.grandTotal);
     });
 
-    it("tracks class-sensitive bonus withholding separately from the pending annual settlement", () => {
+    it("reconciles class-sensitive bonus withholding against the same annual liability", () => {
       const spousal = deriveSpousalNetSalaries(
         toGrossSalary(4000),
         toGrossSalary(3000),
@@ -1302,12 +1301,26 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       // Official BMF bonus responses: 1600 EUR in III -> 310 EUR wage tax;
       // then 2400 EUR -> 472 EUR in III, or 805 EUR in V. See payroll2026.json.
       // Employee contributions on the 4000 EUR bonus total are 870 EUR.
-      // This legacy annual reconciliation still restores only the regular-pay variance.
+      // Independent annual arithmetic: gross88000 -work2460 -RV8184
+      // -(health7700×.96 +care2112) -special72 =67780; §32a splitting tax10680.
+      // BMF regular withholding201.83+625.66 per month, plus bonus tax310+472,
+      // gives10711.88 paid,10712 credited:32 refund per complete tax year.
       const monthly = spousal.husbandClass3Net + spousal.wifeClass5FullTimeNet;
       const bonus = 4000 - 870 - 310 - 472;
-      const expectedTotal = toEuroAmount(monthly * 72 + bonus * 6 - 1500 - 600);
+      const expectedTotal = toEuroAmount(monthly * 72 + bonus * 6 + 32 * 5 - 1500 - 600);
       assert.equal(resA.summary.grandTotal, expectedTotal);
-      assert.equal(resC.summary.grandTotal, toEuroAmount(expectedTotal - (805 - 472)));
+      assert.equal(resA.annualTaxRecords?.[0].taxBase?.taxableIncome, 67780);
+      assert.equal(resA.annualTaxRecords?.[0].assessment?.incomeTaxLiability, 10680);
+      assert.deepEqual(
+        resC.annualTaxRecords?.map((record) => record.assessment?.incomeTaxLiability),
+        resA.annualTaxRecords?.map((record) => record.assessment?.incomeTaxLiability),
+      );
+      // The class change is settled inside the horizon; only statutory credit-rounding
+      // differences can remain. The last year's unreceived settlement is disclosed separately.
+      const roundingDifference = (resC.annualTaxRecords?.[0].assessment?.creditRoundingAdjustment ?? 0) -
+        (resA.annualTaxRecords?.[0].assessment?.creditRoundingAdjustment ?? 0);
+      assert.equal(resC.summary.grandTotal, toEuroAmount(expectedTotal + roundingDifference));
+      assert.equal(resC.annualTaxRecords?.at(-1)?.scheduledMonthInHorizon, false);
 
     });
   });

@@ -432,19 +432,12 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
       assert.ok(rowExp.legalCitation?.includes("EStG § 26b"));
     });
 
-    it("generates complete Tax Return explanation when getFieldExplanation is called on SpecialEvents column in refund month", () => {
+    it("does not invent a tax event when a manual-net scenario lacks an annual assessment", () => {
       const m15 = simC.months[14];
-      const exp = getFieldExplanation(
-        FieldColumnKey.SpecialEvents,
-        m15,
-        undefined,
-        ScenarioId.C,
-      );
-      assert.ok(exp.fieldTitle.includes("Annual Tax Return"));
-      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 5);
-      assert.ok(exp.calculationSteps && exp.calculationSteps.length === 4);
-      assert.ok(exp.explanation.includes("Einkommensteuererklärung"));
-      assert.ok(exp.legalCitation?.includes("EStG § 26b"));
+      const exp = getFieldExplanation(FieldColumnKey.SpecialEvents, m15, undefined, ScenarioId.C);
+      assert.equal(m15.taxRefund, 0);
+      assert.equal(m15.specialEvents.some((event) => event.type === SpecialEventType.TaxReturn), false);
+      assert.equal(exp.fieldTitle, "Special Payments, Bonuses & Fiscal Events");
     });
   });
 

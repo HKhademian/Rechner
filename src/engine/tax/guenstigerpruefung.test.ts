@@ -9,7 +9,6 @@ import {
   ScenarioId,
   TaxClass,
   SalaryPeriod,
-  SpecialEventType,
   toGrossSalary,
   toNetSalary,
   toWorkingHours,
@@ -229,55 +228,15 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       },
     ];
 
-    it("Scenario B: Enhances tax return refund after child birth via Günstigerprüfung", () => {
-      const result = runScenarioBatches({
-        scenarioKey: ScenarioId.B,
+    it("does not infer child-tax refunds from manual nets and optional gross hints", () => {
+      const result = runScenarioBatches({ scenarioKey: ScenarioId.B,
         preexisting: basePreexisting,
         pregnancies: dummyPregnancies,
         taxClassSwitches: [],
-        salaryRaises: [],
-      });
-
-      // No-child year has no variance or fixed deduction refund.
-      const m15 = result.months[14];
-      assert.equal(m15.month, 15);
-      assert.equal(m15.taxRefund, 0);
-
-      // Month 27 (March 2028) -> Reconciles Tax Year 2027 (Child 1 born in May 2027 -> 8 months prorated Günstigerprüfung bonus of +354 €)
-      const m27 = result.months[26];
-      assert.equal(m27.month, 27);
-      // Independently checked §32a 2026 arithmetic on the current model's
-      // BMF annual payroll bases 67354 + 35461 (see payroll2026.json):
-      // the legacy monthly conversion gives 102814.92; a 6504 allowance saves 2278;
-      // minus 2072 Kindergeld = 206. No fixed deduction refund is added.
-      assert.equal(m27.taxRefund, 206);
-
-      const taxEventM27 = m27.specialEvents.find(
-        (e) => e.type === SpecialEventType.TaxReturn,
-      );
-      assert.ok(taxEventM27, "Tax return event must be present in month 27");
-      assert.ok(
-        taxEventM27.description.includes("Günstigerprüfung"),
-        "Description must cite Günstigerprüfung",
-      );
-
-      // Month 39 (March 2029) -> Reconciles Tax Year 2028 (Full 12 months with Child 1 -> Full Günstigerprüfung bonus!)
-      const m39 = result.months[38];
-      assert.equal(m39.month, 39);
-      // BMF annual bases 67354 + 27480; monthly legacy conversion gives 94833.96.
-      // A 9756 legacy allowance saves 3256;
-      // minus 3108 Kindergeld = 148. Child allowance and actual refund are fixed later.
-      assert.equal(m39.taxRefund, 148);
-
-      const taxEventM39 = m39.specialEvents.find(
-        (e) => e.type === SpecialEventType.TaxReturn,
-      );
-      assert.ok(taxEventM39, "Tax return event must be present in month 39");
-      assert.ok(taxEventM39.title.includes("Child Allowance Bonus"));
-      assert.ok(
-        taxEventM39.description.includes("Günstigerprüfung"),
-        "Description must cite Günstigerprüfung",
-      );
+        salaryRaises: [] });
+      assert.equal(result.taxComplete, false);
+      assert.equal(result.summary.totalTaxRefunds, 0);
+      assert.ok(result.annualTaxRecords?.every((record) => !record.incomeAvailable));
     });
   });
 });
