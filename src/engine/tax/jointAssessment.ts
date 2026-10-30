@@ -1,3 +1,8 @@
+import {
+  type TaxRules,
+  DEFAULT_TAX_RULES,
+  createTaxRules,
+} from "#engine/tax/taxRules";
 /**
  * German Elterngeld & Parental Leave 5-Year Financial Simulator - Spousal Joint Assessment Engine
  *
@@ -17,6 +22,7 @@ import {
   type GuenstigerpruefungResult,
   toEuroAmount,
   toStatutoryCitation,
+  toFullCalendarYear,
 } from "#engine/types";
 import {
   computeAnnualIncomeTax,
@@ -34,6 +40,7 @@ import {
 export function computeJointTaxLiability(
   husbandAnnualZvE: number,
   wifeAnnualZvE: number,
+  rules: TaxRules = DEFAULT_TAX_RULES,
 ): {
   readonly jointTax: EuroAmount;
   readonly jointSolidaritySurcharge: EuroAmount;
@@ -43,10 +50,10 @@ export function computeJointTaxLiability(
   const halfZvE = totalZvE / 2;
 
   // Splitting Tariff: 2 * Tarif(totalZvE / 2)
-  const singleTaxOnHalf = computeAnnualIncomeTax(halfZvE);
+  const singleTaxOnHalf = computeAnnualIncomeTax(halfZvE, rules);
   const jointTax = toEuroAmount(singleTaxOnHalf * 2);
 
-  const jointSolz = computeSolidaritySurcharge(jointTax, true);
+  const jointSolz = computeSolidaritySurcharge(jointTax, true, rules);
   const total = toEuroAmount(jointTax + jointSolz);
 
   return {
@@ -95,23 +102,25 @@ export interface ChildYearPresence {
 
 /**
  * Statutory Child Allowance Favorability Assessment (§ 31, § 32 Abs. 6 EStG Günstigerprüfung).
- * Compares tax relief from Kinderfreibetrag + BEA (9.540 €/child/yr, prorated in birth year)
+ * Compares income-tax relief from the year-specific Kinderfreibetrag + BEA
  * against total Kindergeld received (§ 66 EStG).
  * Any excess tax savings is added to the annual tax refund.
  *
  * @param jointAnnualZvE - Combined spousal annual taxable income (ZvE) in EUR.
  * @param children - Array of child presence records in the household.
  * @param reconciledYear - Calendar year being reconciled.
- * @param monthlyKindergeldPerChild - Monthly Kindergeld amount per child (defaults to 259 €).
+ * @param monthlyKindergeldPerChild - Monthly Kindergeld amount per child (defaults to the selected year profile).
  * @returns Complete `GuenstigerpruefungResult` structure.
  */
 export function computeKinderfreibetragGuenstigerpruefung(
   jointAnnualZvE: number,
   children: readonly ChildYearPresence[],
   reconciledYear: number,
-  monthlyKindergeldPerChild: number = 259,
+  monthlyKindergeldPerChild?: number,
 ): GuenstigerpruefungResult {
-  const FULL_KINDERFREIBETRAG_PER_CHILD = 9540; // § 32 Abs. 6 EStG (6.612 € + 2.928 € BEA)
+  const rules = createTaxRules(toFullCalendarYear(reconciledYear));
+  const fullAllowance = rules.parameters.childAllowanceAnnual.value;
+  const monthlyKindergeld = monthlyKindergeldPerChild ?? rules.parameters.childBenefitMonthly.value;
 
   let totalKinderfreibetrag = 0;
   let totalKindergeldReceived = 0;
@@ -119,46 +128,32 @@ export function computeKinderfreibetragGuenstigerpruefung(
   children.forEach((child) => {
     if (child.birthCalendarYear < reconciledYear) {
       // Child alive for the entire reconciled calendar year
-      totalKinderfreibetrag += FULL_KINDERFREIBETRAG_PER_CHILD;
-      totalKindergeldReceived += monthlyKindergeldPerChild * 12;
+      totalKinderfreibetrag += fullAllowance;
+      totalKindergeldReceived += monthlyKindergeld * 12;
     }
     else if (child.birthCalendarYear === reconciledYear) {
       // Child born during the reconciled calendar year -> Prorated by months (§ 32 Abs. 6 Satz 5 EStG)
       const monthsAlive = Math.max(1, 12 - child.birthCalendarMonth + 1);
-      const proratedAllowance = Math.round(
-        (monthsAlive / 12) * FULL_KINDERFREIBETRAG_PER_CHILD,
+      const proratedAllowance = toEuroAmount(
+        (monthsAlive / 12) * fullAllowance,
       );
       totalKinderfreibetrag += proratedAllowance;
-      totalKindergeldReceived += monthlyKindergeldPerChild * monthsAlive;
+      totalKindergeldReceived += monthlyKindergeld * monthsAlive;
     }
   });
-
-  if (totalKinderfreibetrag === 0 || jointAnnualZvE <= 0) {
-    return {
-      jointAnnualZvE: toEuroAmount(jointAnnualZvE),
-      totalKinderfreibetrag: toEuroAmount(0),
-      jointTaxWithoutAllowance: toEuroAmount(0),
-      jointTaxWithAllowance: toEuroAmount(0),
-      taxSavingsFromAllowance: toEuroAmount(0),
-      totalKindergeldReceived: toEuroAmount(totalKindergeldReceived),
-      extraTaxRefund: toEuroAmount(0),
-      isKinderfreibetragFavorable: false,
-      statutoryCitation: toStatutoryCitation(
-        "§ 31 EStG (Familienleistungsausgleich)",
-      ),
-    };
-  }
 
   // 1. Joint tax liability WITHOUT Kinderfreibetrag
   const taxWithout = computeJointTaxLiability(
     jointAnnualZvE,
     0,
-  ).totalTaxLiability;
+    rules,
+  ).jointTax;
 
   // 2. Joint tax liability WITH Kinderfreibetrag (§ 32 Abs. 6 EStG)
   const reducedZvE = Math.max(0, jointAnnualZvE - totalKinderfreibetrag);
-  const taxWith = computeJointTaxLiability(reducedZvE, 0).totalTaxLiability;
+  const taxWith = computeJointTaxLiability(reducedZvE, 0, rules).jointTax;
 
+  // §31 compares income tax only. Solidarity relief is assessed independently.
   // 3. Tax Savings
   const taxSavings = Math.max(0, taxWithout - taxWith);
 

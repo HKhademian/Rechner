@@ -49,7 +49,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       );
 
       assert.equal(result.jointAnnualZvE, 40000);
-      assert.equal(result.totalKinderfreibetrag, 9540);
+      assert.equal(result.totalKinderfreibetrag, 9756);
       assert.equal(result.totalKindergeldReceived, 3108); // 259 * 12
       // Tax savings is lower than 3.108 € at low marginal rates
       assert.equal(result.isKinderfreibetragFavorable, false);
@@ -72,7 +72,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         259,
       );
 
-      assert.equal(result.totalKinderfreibetrag, 9540);
+      assert.equal(result.totalKinderfreibetrag, 9756);
       assert.equal(result.totalKindergeldReceived, 3108);
       assert.equal(result.isKinderfreibetragFavorable, true);
       assert.ok(
@@ -103,9 +103,10 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       );
 
       assert.equal(result.isKinderfreibetragFavorable, true);
-      // 42% of 9.540 € + Solz ~ 4.227 € -> extra refund ~ 1.119 €
+      // EStG §31 excludes solidarity: 44928 -40830 -3108 =990.
       assert.ok(result.taxSavingsFromAllowance >= 4000);
-      assert.ok(result.extraTaxRefund >= 890);
+      assert.equal(result.taxSavingsFromAllowance, 4098);
+      assert.equal(result.extraTaxRefund, 990);
     });
 
     it("Scenario 4: Prorated birth year calculation (§ 32 Abs. 6 Satz 5 EStG)", () => {
@@ -124,7 +125,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         259,
       );
 
-      const expectedAllowance = Math.round((8 / 12) * 9540); // 6.360 €
+      const expectedAllowance = Math.round((8 / 12) * 9756); // 6.504 €
       const expectedKg = 259 * 8; // 2.072 €
       assert.equal(result.totalKinderfreibetrag, expectedAllowance);
       assert.equal(result.totalKindergeldReceived, expectedKg);
@@ -152,7 +153,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         259,
       );
 
-      assert.equal(result.totalKinderfreibetrag, 9540 * 2); // 19.080 €
+      assert.equal(result.totalKinderfreibetrag, 9756 * 2); // 19.512 €
       assert.equal(result.totalKindergeldReceived, 3108 * 2); // 6.216 €
       assert.equal(result.isKinderfreibetragFavorable, true);
       assert.ok(result.extraTaxRefund > 500);
@@ -247,9 +248,9 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       assert.equal(m27.month, 27);
       // Independently checked §32a 2026 arithmetic on the current model's
       // BMF annual payroll bases 67354 + 35461 (see payroll2026.json):
-      // the legacy monthly conversion gives 102814.92; a 6360 allowance saves 2228;
-      // minus 2072 Kindergeld = 156. No fixed deduction refund is added.
-      assert.equal(m27.taxRefund, 156);
+      // the legacy monthly conversion gives 102814.92; a 6504 allowance saves 2278;
+      // minus 2072 Kindergeld = 206. No fixed deduction refund is added.
+      assert.equal(m27.taxRefund, 206);
 
       const taxEventM27 = m27.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,
@@ -264,9 +265,9 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       const m39 = result.months[38];
       assert.equal(m39.month, 39);
       // BMF annual bases 67354 + 27480; monthly legacy conversion gives 94833.96.
-      // A 9540 legacy allowance saves 3186;
-      // minus 3108 Kindergeld = 78. Child allowance and actual refund are fixed later.
-      assert.equal(m39.taxRefund, 78);
+      // A 9756 legacy allowance saves 3256;
+      // minus 3108 Kindergeld = 148. Child allowance and actual refund are fixed later.
+      assert.equal(m39.taxRefund, 148);
 
       const taxEventM39 = m39.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,
@@ -279,4 +280,18 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       );
     });
   });
+});
+
+it("selects published child values for the assessment year without assuming the latest year", () => {
+  // 2025 §32a: 2×(floor(.42×80000 -10911.92) -floor(.42×75200 -10911.92))=4032.
+  // Published allowance9600, Kindergeld255×12=3060; excess972.
+  const child = { childIndex: toChildIndex(1),
+    birthCalendarYear: toFullCalendarYear(2024),
+    birthCalendarMonth: toCalendarMonth(1) };
+  const result = computeKinderfreibetragGuenstigerpruefung(160000, [child], 2025);
+  assert.equal(result.totalKinderfreibetrag, 9600);
+  assert.equal(result.totalKindergeldReceived, 3060);
+  assert.equal(result.taxSavingsFromAllowance, 4032);
+  assert.equal(result.extraTaxRefund, 972);
+  assert.throws(() => computeKinderfreibetragGuenstigerpruefung(160000, [child], 2024), /No verified tax rules/);
 });

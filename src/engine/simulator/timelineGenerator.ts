@@ -12,6 +12,7 @@ import {
   projectAllowanceSchedule,
 } from "#engine/benefits/allowanceSchedule";
 import {
+  createTaxRules,
   toAgeYears,
 } from "#engine/tax/taxRules";
 import {
@@ -449,6 +450,7 @@ export function runScenarioBatches(
   const taxRefundReconByMonth: Record<number, AnnualTaxReconciliationResult> =
     {};
   const taxRefundByMonth: Record<number, EuroAmount> = {};
+  const reconciliationAssumptions: string[] = [];
   const tMonth = preexisting.taxReturnMonth ?? 3;
   // Deductions reduce taxable income; they do not establish a fixed cash refund.
   const baseStandardRefund = toEuroAmount(0);
@@ -459,6 +461,13 @@ export function runScenarioBatches(
   rawMonths.forEach((rm) => {
     if (rm.calendarMonthNum === tMonth && rawMonths.some((month) => month.calendarYearNum === rm.calendarYearNum - 1)) {
       const reconciledCalYear = rm.calendarYearNum - 1;
+      try {
+        createTaxRules(toFullCalendarYear(reconciledCalYear));
+      }
+      catch (error) {
+        reconciliationAssumptions.push(`Tax assessment for ${reconciledCalYear} unavailable: ${error instanceof Error ? error.message : "Missing verified profile"}`);
+        return;
+      }
       const deficits = deficitsByCalYear[reconciledCalYear] || [];
 
       // Calculate annual taxable income in reconciledCalYear
@@ -1614,6 +1623,7 @@ export function runScenarioBatches(
     unavailableReasons: allowanceSchedule.unavailableReasons,
     assumptions: [...new Set([
       ...allowanceSchedule.assumptions,
+      ...reconciliationAssumptions,
       ...months.flatMap((month) => month.assumptions ?? []),
       ...months.flatMap((month) => [month.payroll?.husband, month.payroll?.wife].flatMap((payroll) =>
         (payroll?.bonuses ?? []).flatMap((bonus) => (bonus.payrollLimitations ?? []).map((reason) => `Payroll estimate: ${reason}`)))),
