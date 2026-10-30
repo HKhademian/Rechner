@@ -172,103 +172,19 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.BEEG_SiblingBonus,
-      title: "6. Sibling Bonus (Geschwisterbonus)",
-      lawRef: "BEEG § 2a (Sibling Surcharge)",
-      tag: "§ 2a BEEG",
-      summary:
-        "+10% surcharge on Child 2 Elterngeld until Child 1 turns 3 years old (36 months).",
-      statutoryText: (
-        <div>
-          <p>
-            Under <strong>§ 2a BEEG</strong>, parents with more than one young
-            child living in the same household receive an automatic statutory
-            surcharge on parental allowance:
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>Eligibility Criterion:</strong> At least one older child
-              under <strong>3 years of age (under 36 life months)</strong> lives
-              in the household.
-            </li>
-            <li>
-              <strong>Surcharge Calculation:</strong> +10% on top of the
-              calculated parental allowance (with a guaranteed statutory minimum
-              of <strong>+75 € / month for ElterngeldPlus</strong> or{" "}
-              <strong>+150 € / month for Basic Elterngeld</strong>).
-            </li>
-            <li>
-              <strong>Expiry Threshold:</strong> The bonus applies until the
-              exact month the older child reaches their 36th life month.
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            <div>
-              • Child 2 ElterngeldPlus base entitlement:{" "}
-              <strong>485,58 € / mo</strong>.
-            </div>
-            <div>
-              • +10% Sibling Bonus surcharge (§ 2a BEEG):{" "}
-              <strong style={{ color: "var(--color-primary)" }}>
-                +75.00 € / mo (statutory minimum)
-              </strong>
-              .
-            </div>
-            <div>
-              • Total monthly Child 2 benefit: 485,58 € + 75,00 € ={" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                560,58 € / month
-              </strong>{" "}
-              until Child 1 turns 36 months.
-            </div>
-          </div>
-        </div>
-      ),
+      title: "6. Household Sibling Bonus",
+      lawRef: "BEEG §§ 2a, 4a",
+      tag: "Sibling bonus",
+      summary: "Qualifying sibling ages affect an addition to a positive parental allowance.",
+      statutoryText: <p>The configured addition is {benefits.siblingRate.value * 100}% with a Plus minimum addition of {money(benefits.siblingMinimumBasis.value * benefits.plusFraction.value)}. Ordinary age routes include another child younger than {benefits.siblingAgeLimitMonths.value} months, or at least {benefits.siblingMultipleMinimumCount.value} other children younger than {benefits.siblingMultipleAgeLimitMonths.value} months. The threshold birthday month is included in this calendar approximation. Disability routes need separate evidence. An ineligible base payment stays zero.</p>,
+      example: <p>The scenario has {current.months.filter((month) => month.hasSiblingBonus).length} modeled months with a sibling addition. Missing preexisting-child ages can make the addition unavailable; no age is inferred from a child count.</p>,
       links: [
-        {
-          label: "§ 2a BEEG - Geschwisterbonus und Mehrlingszuschlag",
-          url: "https://www.gesetze-im-internet.de/beeg/__2a.html",
-          description:
-            "Official legislation for sibling and multiple-birth bonus surcharges.",
-        },
+        { label: "Sibling addition and household conditions (§ 2a BEEG)",
+          url: benefits.siblingMinimumBasis.source,
+          description: "Official source for the configured bonus and age routes." },
+        { label: "Plus treatment (§ 4a BEEG)",
+          url: benefits.plusFraction.source,
+          description: "Plus minimums and ceilings use the applicable fraction." },
       ],
     },
     {
