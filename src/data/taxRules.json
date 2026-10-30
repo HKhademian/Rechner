@@ -89,8 +89,8 @@
       },
       "careEmployeeBaseRate": {
         "value": 0.018,
-        "label": "Care employee base rate",
-        "source": "https://www.gesetze-im-internet.de/sgb_11/__58.html"
+        "label": "Care employee base rate (half of published total under SGB XI section 58)",
+        "source": "https://www.bundesgesundheitsministerium.de/themen/pflege/online-ratgeber-pflege/die-pflegeversicherung/finanzierung"
       },
       "careChildlessSurcharge": {
         "value": 0.006,
@@ -323,8 +323,8 @@
       },
       "careEmployeeBaseRate": {
         "value": 0.018,
-        "label": "Care employee base rate",
-        "source": "https://www.gesetze-im-internet.de/sgb_11/__58.html"
+        "label": "Care employee base rate (half of published total under SGB XI section 58)",
+        "source": "https://www.bundesgesundheitsministerium.de/themen/pflege/online-ratgeber-pflege/die-pflegeversicherung/finanzierung"
       },
       "careChildlessSurcharge": {
         "value": 0.006,
