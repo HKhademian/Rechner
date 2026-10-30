@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: payroll prerequisites for annual accounting were split progressively into sourced transition configuration, pure bases, actual employee deductions, calculator expected-pay forwarding, simulator expected-pay forwarding, unsupported-regime metadata, and output propagation. DRV references (800: total base624.88/employee282.03; 1800:1770.81/1713.67) and GKV 2025 care8.46 pass. Predictable extras determine eligibility; marginal-job and transition-zone one-off calculations are explicitly provisional. Full quality checks pass after each step; final output propagation build passes. Annual tax accounting remains in progress.
+
 - 2026-10-30: annual-accounting prerequisite: general health and insurer supplementary contributions round separately before summation. Independent 4166.67 gross example yields 304.17 + 60.42 = 364.59. Full quality check passes. GKV guidance permits either combined or separately rounded standard care adjustments; the existing combined standard-care method is valid and retained. Midijob care uses its distinct mandatory bases in the next correction.
 
 - 2026-10-30: removed invented 850 deduction refunds and opening-year refunds without prior-year records. A zero-income/zero-withholding household receives zero tax cash/events over 36 months. The compatibility helper defaults to zero adjustment; descriptions no longer invent 850. Full quality check passes. Remaining variance-based/child-relief estimates are replaced by actual annual accounting next.
