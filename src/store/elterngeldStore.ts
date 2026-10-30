@@ -22,6 +22,7 @@ import {
   type RaiseId,
   type FinancialEventId,
   type PreexistingConditions,
+  type HouseholdTaxableIncomeInput,
   type PregnancyAction,
   type TaxClassSwitchAction,
   type SalaryRaiseAction,
@@ -317,6 +318,8 @@ export function inferBonusPreset(
   }
   return BonusDistributionPreset.Custom;
 }
+
+export const householdTaxableIncome = signal<readonly HouseholdTaxableIncomeInput[]>(initialPersisted.householdTaxableIncome ?? []);
 
 export const assumeManualNetIsAssessmentNet = signal(initialPersisted.assumeManualNetIsAssessmentNet === true);
 
@@ -906,6 +909,7 @@ export function getCurrentPersistedState(): ElterngeldPersistedState {
     husbandPayrollOptions: husbandPayrollOptions.value,
     wifePayrollOptions: wifePayrollOptions.value,
     assumeManualNetIsAssessmentNet: assumeManualNetIsAssessmentNet.value,
+    householdTaxableIncome: householdTaxableIncome.value,
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: husbandGross.value,
@@ -980,6 +984,7 @@ export function importSimulationState(
   husbandPayrollOptions.value = parsePersonalPayrollOptions(newState.husbandPayrollOptions ?? {});
   wifePayrollOptions.value = parsePersonalPayrollOptions(newState.wifePayrollOptions ?? {});
   assumeManualNetIsAssessmentNet.value = newState.assumeManualNetIsAssessmentNet === true;
+  householdTaxableIncome.value = newState.householdTaxableIncome ?? [];
   salaryInputMode.value = newState.salaryInputMode;
   salaryPeriod.value = newState.salaryPeriod;
   husbandGross.value = newState.husbandGross;
@@ -1192,6 +1197,7 @@ export function resetToDefaults() {
   husbandPayrollOptions.value = defaults.husbandPayrollOptions ?? {};
   wifePayrollOptions.value = defaults.wifePayrollOptions ?? {};
   assumeManualNetIsAssessmentNet.value = defaults.assumeManualNetIsAssessmentNet === true;
+  householdTaxableIncome.value = defaults.householdTaxableIncome ?? [];
   salaryInputMode.value = defaults.salaryInputMode;
   salaryPeriod.value = defaults.salaryPeriod;
   husbandGross.value = defaults.husbandGross;
@@ -1303,6 +1309,7 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     husbandPayrollOptions: husbandPayrollOptions.value,
     wifePayrollOptions: wifePayrollOptions.value,
     assumeManualNetIsAssessmentNet: assumeManualNetIsAssessmentNet.value,
+    householdTaxableIncome: householdTaxableIncome.value,
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: toGrossSalary(husbandGross.value),
