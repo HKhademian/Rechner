@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: pure calendar income schedule resolves chronological switch/revert events (including same-month reversion/new-switch order), targeted raises, hours, personal/year-aware payroll, and frozen three-month maternity references. It supports internal forecasting beyond the public 120-month ledger limit without weakening branded SimulationMonth validation. Five reference/boundary/history tests and full quality check pass. Existing timeline consumption and cohort averaging follow.
+
 - 2026-10-30: household sibling eligibility accepts any other qualifying child (including a younger newborn) and the statutory two-other-children-under-six case. Added source-linked age/count rules; focused multi-sibling/birth cases and full quality check pass. Cohort projection will use all known household births instead of only child one.
 
 - 2026-10-30: timeline maternity/ordinary-Plus/partnership schedules now have validated configuration, explicitly classified as planning assumptions with statutory-context links. The actual three-calendar-month maternity-pay reference is a separately sourced rule. Full quality check passes; existing timeline is wired in the following integration change.
