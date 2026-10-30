@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - sequential repair plan
-status: completed
+status: in_progress
 created: 2026-10-29
 todos:
   - id: wave-1-benefits
@@ -11,7 +11,7 @@ todos:
     status: completed
   - id: wave-3-assessment
     content: "Complete assessment, reconciliation, export parity, and final verification"
-    status: completed
+    status: in_progress
 plans:
   requires: []
   blocks: []

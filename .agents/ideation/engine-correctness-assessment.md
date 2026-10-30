@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - assessment and reconciliation
-status: completed
+status: in_progress
 created: 2026-10-29
 todos:
   - id: assessment-history
@@ -14,7 +14,7 @@ todos:
     status: completed
   - id: end-to-end-gate
     content: "Gate - verify independent household cases and document remaining limits"
-    status: completed
+    status: in_progress
 plans:
   requires: [engine-correctness-payroll.md]
   blocks: []
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: assessment and reconciliation
 
 ## Done
+
+- 2026-10-30: final export audit reopens the verification gate for the older text/print report: it still assumes a fixed horizon, positive gains and complete results. The eleven calculation/row fixes remain complete; report-boundary corrections and final rechecks follow as separate small commits.
 
 - 2026-10-30: final gate completed. Independent payroll/benefit/tax, no-income, part-time/sibling, father-hours, partial-employment, signed-repayment and later-child regressions pass. Follow-up commits corrected configured Kindergeld explanations, birthday/YTD/March-allocation support flags, signed scenario summaries and each reference-card topic separately. Configured values retain primary links; the care-rate source points directly to the published employee share. Obsolete formula/timeline walkthroughs are explicitly archived, current docs/README describe the integrated model, and retained limits are documented in STATUTORY_CONFIGURATION.md. Full quality/build checks pass. A 72-month CLI JSON run conserves decimal cash and event totals across all three scenarios, exposes source2026 projections and leaves the last tax balance outside cash. This integration evidence does not establish comprehensive statutory correctness. All eleven planned fixes are complete within the documented supported model.
 
