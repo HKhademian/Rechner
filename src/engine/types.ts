@@ -2027,7 +2027,7 @@ export interface PreexistingConditions {
   readonly wifeBonusDistribution?: readonly SalaryBonusSlot[];
   /** Boolean flag enabling the § 39f EStG factor method for Tax Class IV. */
   readonly initialUseTaxFactor?: boolean;
-  /** Initial statutory income tax factor ratio (0.001..1.000). */
+  /** Initial statutory income tax factor ratio (0.000..1.000). */
   readonly initialTaxFactor?: TaxFactor;
   /** Annual bonus gross salary payment in EUR if applicable. */
   readonly annualBonusGross?: EuroAmount;

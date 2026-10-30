@@ -37,9 +37,21 @@ import {
   toCalendarMonth,
   toFullCalendarYear,
   toFinancialEventId,
+  toTaxFactor,
 } from "#engine/types";
 
 describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
+  it("preserves a valid zero factor through strict import and saved-state sanitization", () => {
+    const state = getTestPersistedState();
+    const payload = { ...state,
+      customTaxClassSwitches: [{ ...state.customTaxClassSwitches[0],
+        targetUseTaxFactor: true,
+        targetTaxFactor: toTaxFactor(0) }] };
+    assert.equal(parseRawScenarioData(payload).customTaxClassSwitches[0].targetTaxFactor, 0);
+    assert.equal(validateAndSanitizePersistedState(payload).customTaxClassSwitches[0].targetTaxFactor, 0);
+    assert.equal(deserializeState(serializeState(payload)).customTaxClassSwitches[0].targetTaxFactor, 0);
+  });
+
   it("keeps manual assessment estimates opt-in across import and storage", () => {
     const state = getTestPersistedState();
     assert.equal(parseRawScenarioData({ ...state,

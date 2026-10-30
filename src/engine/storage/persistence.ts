@@ -506,7 +506,7 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
               : undefined,
         targetTaxFactor:
             typeof sObj.targetTaxFactor === "number" &&
-            sObj.targetTaxFactor > 0 &&
+            sObj.targetTaxFactor >= 0 &&
             sObj.targetTaxFactor <= 1
               ? toTaxFactor(sObj.targetTaxFactor)
               : undefined,
@@ -1152,7 +1152,7 @@ export function validateAndSanitizePersistedState(
               : defS?.targetUseTaxFactor,
         targetTaxFactor:
             typeof sObj.targetTaxFactor === "number" &&
-            sObj.targetTaxFactor > 0 &&
+            sObj.targetTaxFactor >= 0 &&
             sObj.targetTaxFactor <= 1
               ? toTaxFactor(sObj.targetTaxFactor)
               : defS?.targetTaxFactor,
