@@ -1,3 +1,6 @@
+import {
+  exportScenarioToCsv,
+} from "#engine/storage/ledgerCsv";
 import type {
   JSX, 
 } from "preact";
@@ -121,184 +124,16 @@ export default function TimelineTable(): JSX.Element {
     return true;
   });
 
-  // Export to CSV
+  // Downloads the same complete row stream as ZIP/core exports, regardless of view filters.
   const exportCSV = (): void => {
-    const headers = [
-      "Entry Type",
-      "Month ID",
-      "Relative Month",
-      "Simulation Month",
-      "Calendar Date",
-      "Simulation Year",
-      "Phase / Event Name",
-      "Tax Classes",
-      "Husband Base Salary",
-      "Δ Husband vs B",
-      "Wife Base Salary",
-      "Δ Wife vs B",
-      "Maternity (MuSchG)",
-      "Δ Maternity vs B",
-      "ElterngeldPlus (Mother)",
-      "Δ ElterngeldPlus vs B",
-      "Partner Months (Father)",
-      "Δ Partner Months vs B",
-      "Child Benefit (Kindergeld)",
-      "Δ Kindergeld vs B",
-      "Special Fiscal Events (Bonuses / Tax Return)",
-      "Δ Special Events vs B",
-      "Net Inflow (Monthly Total)",
-      "Δ Net Inflow vs B",
-      "Cumulated Total",
-      "Δ Cumulated Total vs B",
-    ];
-
-    const rows: (string | number)[][] = [];
-
-    current.months.forEach((m: TimelineMonth) => {
-      const bMonth = bData.months[m.month - 1];
-      const relLabel = m.relativeMonthLabel || m.relativeBirthLabel;
-
-      // 1. Action Milestones
-      if (m.startingActions) {
-        m.startingActions.forEach((act: ActionRowItem) => {
-          rows.push([
-            "ACTION",
-            act.monthId,
-            act.relativeMonthLabel || relLabel,
-            act.monthSimRef || m.monthSimRef || toMonthSimRef(m.month),
-            m.calendarLabel,
-            m.year,
-            act.title,
-            act.taxClassLabel || "—",
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-          ]);
-        });
-      }
-
-      // 2. Special Fiscal Events
-      if (
-        isSpecialRowsActive &&
-        m.specialEvents &&
-        m.specialEvents.length > 0
-      ) {
-        m.specialEvents.forEach((ev: SpecialEventItem) => {
-          const bEvents = bMonth?.specialEvents || [];
-          const bMatch = bEvents.find(
-            (it: SpecialEventItem) =>
-              it.eventId === ev.eventId ||
-              it.title === ev.title ||
-              it.type === ev.type,
-          );
-          const bAmount = bMatch ? bMatch.amount : 0;
-          const evDiff = ev.amount - bAmount;
-
-          rows.push([
-            "FISCAL_EVENT",
-            ev.monthId,
-            ev.relativeMonthLabel || relLabel,
-            ev.monthSimRef || m.monthSimRef || toMonthSimRef(m.month),
-            ev.calendarLabel,
-            m.year,
-            `${ev.category}: ${ev.title}`,
-            ev.taxClassLabel || "—",
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            "—",
-            0,
-            ev.amount,
-            evDiff,
-            ev.amount,
-            evDiff,
-            "—",
-            "—",
-          ]);
-        });
-      }
-
-      // 3. Regular Monthly Baseline Row
-      const diffHusband = m.husbandSalary - (bMonth ? bMonth.husbandSalary : 0);
-      const diffWife = m.wifeSalary - (bMonth ? bMonth.wifeSalary : 0);
-      const diffMutterschutz =
-        m.mutterschutz - (bMonth ? bMonth.mutterschutz : 0);
-      const diffWifeElterngeld =
-        m.wifeElterngeld - (bMonth ? bMonth.wifeElterngeld : 0);
-      const diffHusbandElterngeld =
-        m.husbandElterngeld - (bMonth ? bMonth.husbandElterngeld : 0);
-      const diffKindergeld = m.kindergeld - (bMonth ? bMonth.kindergeld : 0);
-      const diffNetInflow =
-        m.regularMonthlyTotal - (bMonth ? bMonth.regularMonthlyTotal : 0);
-      const diffCumulated =
-        m.cumulatedTotal - (bMonth ? bMonth.cumulatedTotal : 0);
-
-      rows.push([
-        "MONTH_BASE",
-        m.monthId,
-        relLabel,
-        m.monthSimRef || toMonthSimRef(m.month),
-        m.calendarLabel,
-        m.year,
-        m.phaseLabel,
-        m.taxClassLabel,
-        m.husbandSalary,
-        diffHusband,
-        m.wifeSalary,
-        diffWife,
-        m.mutterschutz,
-        diffMutterschutz,
-        m.wifeElterngeld,
-        diffWifeElterngeld,
-        m.husbandElterngeld,
-        diffHusbandElterngeld,
-        m.kindergeld,
-        diffKindergeld,
-        0,
-        0,
-        m.regularMonthlyTotal,
-        diffNetInflow,
-        m.cumulatedTotal,
-        diffCumulated,
-      ]);
-    });
-
-    const csvContent = `data:text/csv;charset=utf-8,${[
-      headers.join(","),
-      ...rows.map((e) => e.join(",")),
-    ].join("\n")}`;
-    const encodedUri = encodeURI(csvContent);
+    const url = URL.createObjectURL(new Blob([exportScenarioToCsv(current, bData)], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `Elterngeld_Simulation_Scenario_${scenario}_${current.months.length}M_Ledger_with_Diffs.csv`,
-    );
+    link.href = url;
+    link.download = `Elterngeld_Simulation_Scenario_${scenario}_${current.months.length}M_Ledger_v2.csv`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   // Helper to render diff badge: red for negative, green for positive, muted 0 for zero
