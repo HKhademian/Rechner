@@ -2,6 +2,7 @@ import {
   type MonthlyLedgerEntry,
   type FullCalendarYear,
   type CalendarMonth,
+  type EuroAmount,
   toEuroAmount,
   toGrossSalary,
   toCalendarMonth,
@@ -11,6 +12,7 @@ import {
 } from "#engine/tax/taxRules";
 import {
   type ChildYearPresence,
+  computeKinderfreibetragGuenstigerpruefung,
 } from "#engine/tax/jointAssessment";
 import {
   computeAnnualEmploymentTaxBase,
@@ -24,6 +26,8 @@ export interface AnnualTaxRecord {
   readonly missingMonths: readonly CalendarMonth[];
   /** Income may be known while replacement benefits needed for tax progression are unavailable. */
   readonly incomeAvailable: boolean;
+  /** EStG section 2(5): child allowances apply even when Kindergeld is more favorable. */
+  readonly taxableIncomeForNonTaxLaw?: EuroAmount;
   readonly available: boolean;
   readonly taxBase?: ReturnType<typeof computeAnnualEmploymentTaxBase>;
   readonly assessment?: ReturnType<typeof computeAnnualTaxSettlement>;
@@ -66,6 +70,7 @@ export function collectAnnualTaxRecords(
       }
     }
     let taxBase: AnnualTaxRecord["taxBase"];
+    let taxableIncomeForNonTaxLaw: EuroAmount | undefined;
     let assessment: AnnualTaxRecord["assessment"];
     try {
       const rules = createTaxRules(calendarYear);
@@ -94,6 +99,8 @@ export function collectAnnualTaxRecords(
         const husband = parent(true);
         const wife = parent(false);
         taxBase = computeAnnualEmploymentTaxBase(husband, wife, rules);
+        const childAllowance = computeKinderfreibetragGuenstigerpruefung(taxBase.taxableIncome, children, calendarYear).totalKinderfreibetrag;
+        taxableIncomeForNonTaxLaw = toEuroAmount(Math.max(0, taxBase.taxableIncome - childAllowance));
         if (records.some((month) => month.benefitAssessmentAvailable === false)) {
           reasons.push("An unavailable benefit payment prevents annual progression-income assessment.");
         }
@@ -117,6 +124,7 @@ export function collectAnnualTaxRecords(
     return Object.freeze({ calendarYear,
       missingMonths: Object.freeze(missingMonths),
       incomeAvailable: taxBase !== undefined,
+      taxableIncomeForNonTaxLaw,
       available: assessment !== undefined,
       taxBase,
       assessment,

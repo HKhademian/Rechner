@@ -23,6 +23,7 @@ import {
   toFullCalendarYear,
   toHoursChangeId,
   toWorkingHours,
+  toChildIndex,
 } from "#engine/types";
 
 const base = { scenarioKey: ScenarioId.A,
@@ -73,9 +74,21 @@ it("distinguishes missing calendar data, manual nets and unknown benefit progres
     ? { ...month,
       benefitAssessmentAvailable: false } : month), [])[0];
   assert.equal(unknown.incomeAvailable, true);
+  assert.equal(unknown.taxableIncomeForNonTaxLaw, 46638);
   assert.equal(unknown.available, false);
   const manual = collectAnnualTaxRecords(months.map((month) => ({ ...month,
     payroll: undefined })), [])[0];
   assert.equal(manual.incomeAvailable, false);
   assert.throws(() => collectAnnualTaxRecords([...months, months[0]], []), /duplicate calendar months/);
+});
+
+
+it("deducts child allowances for income eligibility even when annual progression is unavailable", () => {
+  const months = runScenarioBatches(base).months.map((month) => ({ ...month,
+    benefitAssessmentAvailable: false }));
+  const result = collectAnnualTaxRecords(months, [{ childIndex: toChildIndex(1),
+    birthCalendarYear: toFullCalendarYear(2025),
+    birthCalendarMonth: toCalendarMonth(12) }])[0];
+  assert.equal(result.available, false);
+  assert.equal(result.taxableIncomeForNonTaxLaw, 36882); // 46638−9756, independently of favorability.
 });
