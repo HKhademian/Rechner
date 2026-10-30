@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: standardized pre-birth net prorates income-side work expenses to earning months; PAP still applies its own tax-side allowance. A six-work/six-zero-month reference (3000 average gross, 51.25 average expenses) gives 2280.42 net with independent 38.33 PAP tax. Full quality check passes.
+
 - 2026-10-30: standardized BEEG net is separate from payroll cash net. It locks deduction characteristics independently, applies configured work/social/church deductions, ignores ordinary SV ceilings, supports the BEEG transition-zone base, and checks January PAP provenance. Three new independent BMF fixtures and the official transition-zone example pass; full quality check/build pass. The required original 2025 January PAP is unavailable in the pinned provider, so positive-income 2026-birth gross assessments will be explicitly unavailable until that snapshot is added. This is a provider support limit, not a finding of statutory ineligibility. Wiring remains pending.
 
 - 2026-10-29: marginal/transition thresholds now have independent effective-year profiles (2024-2027) sourced to the current official BEEG guidelines. This uses the already published 2027 marginal limit 633 without inventing a complete 2027 PAP profile. Projection behavior and source-year selection pass their focused test; full quality check passes.

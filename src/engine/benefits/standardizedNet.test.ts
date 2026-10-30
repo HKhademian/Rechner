@@ -7,6 +7,7 @@ import {
   toGrossSalary,
   toFullCalendarYear,
   toTaxFactor,
+  toMonthDuration,
 } from "#engine/types";
 import {
   toChildAllowanceFactor,
@@ -50,4 +51,17 @@ it("matches the official transition-zone example and never applies ordinary cont
   assert.equal(computeBenefitContributionBase(toGrossSalary(603), rules), 0);
   assert.equal(computeBenefitContributionBase(toGrossSalary(2000), rules), 2000);
   assert.equal(computeStandardizedBenefitNet(toGrossSalary(0), toGrossSalary(0), characteristics, toFullCalendarYear(2027)).net, 0);
+});
+
+it("prorates income-side work expenses for assessment months without earnings", () => {
+  // Six months at 6000 and six at zero average to 3000. Only six expense shares apply.
+  const result = computeStandardizedBenefitNet(
+    toGrossSalary(3000),
+    toGrossSalary(3000),
+    characteristics,
+    toFullCalendarYear(2027),
+    undefined,
+    toMonthDuration(6),
+  );
+  assert.equal(result.net, 2280.42); // 3000 - 51.25 - 630 - independently referenced 38.33 PAP tax
 });

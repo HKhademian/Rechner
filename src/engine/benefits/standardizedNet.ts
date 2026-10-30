@@ -4,6 +4,7 @@ import {
   type TaxClass,
   type TaxFactor,
   type NetSalary,
+  type MonthDuration,
   TaxClass as Classes,
   toFullCalendarYear,
   toGrossSalary,
@@ -109,7 +110,13 @@ export function computeStandardizedBenefitNet(
   characteristics: BenefitDeductionCharacteristics,
   birthYear: FullCalendarYear,
   benefits: BenefitRules = DEFAULT_BENEFIT_RULES,
+  employmentMonthsInAssessment: MonthDuration = benefits.assessmentMonths.value,
 ): StandardizedBenefitNet {
+  if (!Number.isInteger(employmentMonthsInAssessment) || employmentMonthsInAssessment < 0 ||
+    employmentMonthsInAssessment > benefits.assessmentMonths.value ||
+    (averageRegularGross > 0 && employmentMonthsInAssessment === 0)) {
+    throw new TypeError("Employment months must fit the income assessment window.");
+  }
   if (averageRegularGross === 0) {
     return { net: toNetSalary(0),
       assumptions: [] };
@@ -132,7 +139,9 @@ export function computeStandardizedBenefitNet(
     characteristics.taxClass === Classes.IV ? characteristics.factor : undefined,
   );
   const withholding = calculatePayrollWithholding(inputs, rules);
-  const expense = toEuroAmount(rules.parameters.workExpenseAllowance.value / 12);
+  // Income-side expenses apply only in earning months; PAP still applies its own full tax allowance.
+  const expense = toEuroAmount(rules.parameters.workExpenseAllowance.value / 12 *
+    employmentMonthsInAssessment / benefits.assessmentMonths.value);
   const social = toEuroAmount(socialAssessmentBase * benefits.standardHealthCareDeduction.value) +
     toEuroAmount(socialAssessmentBase * benefits.standardPensionDeduction.value) +
     toEuroAmount(socialAssessmentBase * benefits.standardUnemploymentDeduction.value);
