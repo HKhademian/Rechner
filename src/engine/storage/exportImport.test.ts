@@ -1,4 +1,7 @@
 import {
+  ledgerRowsFixture,
+} from "../../../test/fixture/ledgerRows.ts";
+import {
   standardPreexistingConditions,
 } from "../../../test/fixture/standardHouseholds.ts";
 import {
@@ -322,4 +325,23 @@ it("reports all actual calendar years for a 72-month horizon starting in Septemb
   assert.match(report, /Year 1 \(2026\): Total Net Inflow: 4\.000/);
   assert.match(report, /Year 7 \(2032\): Total Net Inflow: 8\.000/);
   assert.doesNotMatch(report, /60-Month|60-MONTH|5-YEAR/);
+});
+
+
+function reportWithResults(a: SimulationResult, b = a, c = b): string {
+  return exportStateToTextReport({ ...getTestPersistedState(),
+    simulationDurationMonths: toMonthDuration(a.months.length) }, {
+    [ScenarioId.A]: { ...a,
+      scenarioKey: ScenarioId.A },
+    [ScenarioId.B]: { ...b,
+      scenarioKey: ScenarioId.B },
+    [ScenarioId.C]: { ...c,
+      scenarioKey: ScenarioId.C },
+  });
+}
+
+it("retains cents in text and print report totals", () => {
+  const report = reportWithResults(ledgerRowsFixture(100.25));
+  assert.ok(report.includes("36.060,25"));
+  assert.ok(report.includes("12.060,25"));
 });
