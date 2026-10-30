@@ -1,3 +1,18 @@
+import germanStates from "../data/germanStates.json" with { type: "json" };
+import {
+  LiveNumberInput,
+  LiveChoiceInput,
+  LiveToggleInput,
+} from "#components/LiveCalculatorInputs";
+import {
+  TaxClass,
+  toGrossSalary,
+  toChildrenCount,
+  toMonthDuration,
+} from "#engine/types";
+import {
+  toSalaryPaymentCount,
+} from "#engine/tax/employmentPeriod";
 import type {
   JSX,
 } from "preact";
@@ -12,6 +27,7 @@ import {
   type HouseholdScenarioData,
   type CalculatorInputs,
   type PersonDeductions,
+  getCurrentInputs,
   grossIncome,
   taxBracket,
   hasChurchTax,
@@ -81,6 +97,30 @@ export function ComparisonTableContent(): JSX.Element {
   };
 
   const isMonthly = displayMode.value === "monthly";
+
+  const validateLive = <K extends keyof CalculatorInputs>(field: K) => (value: CalculatorInputs[K]): void => {
+    calculateScenarioData({ ...getCurrentInputs(),
+      [field]: value });
+  };
+  const liveStateOptions = germanStates.map((value) => ({ value,
+    label: value }));
+  const liveClassOptions = Object.values(TaxClass).map((value, index) => ({ value: String(index + 1),
+    label: `Class ${value}` }));
+  const liveControls = {
+    grossIncome: <LiveNumberInput id="live-gross" label="Gross income" value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
+    state: <LiveChoiceInput label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
+    taxBracket: <LiveChoiceInput label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={validateLive("taxBracket")} />,
+    hasChurchTax: <LiveToggleInput label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
+    children: <LiveNumberInput id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
+    workingMonths: <LiveNumberInput id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
+    salariesPerYear: <LiveNumberInput id="live-salaries" label="Salaries per year" value={salariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("salariesPerYear")} step={0.5} />,
+    partnerGrossIncome: <LiveNumberInput id="live-partner-gross" label="Partner gross income" value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
+    partnerState: <LiveChoiceInput label="Partner federal state" value={partnerState} options={liveStateOptions} beforeChange={validateLive("partnerState")} />,
+    partnerTaxBracket: <LiveChoiceInput label="Partner tax class" value={partnerTaxBracket} options={liveClassOptions} beforeChange={validateLive("partnerTaxBracket")} />,
+    partnerHasChurchTax: <LiveToggleInput label="Partner church tax" value={partnerHasChurchTax} beforeChange={validateLive("partnerHasChurchTax")} />,
+    partnerWorkingMonths: <LiveNumberInput id="live-partner-months" label="Partner working months" value={partnerWorkingMonths} construct={toMonthDuration} beforeChange={validateLive("partnerWorkingMonths")} />,
+    partnerSalariesPerYear: <LiveNumberInput id="live-partner-salaries" label="Partner salaries per year" value={partnerSalariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("partnerSalariesPerYear")} step={0.5} />,
+  };
 
   const getMetric = (
     snapshot: HouseholdScenarioData,
@@ -422,9 +462,8 @@ export function ComparisonTableContent(): JSX.Element {
     );
   };
 
-  const renderInputRow = <K extends keyof CalculatorInputs>(
+  const renderInputRow = <K extends keyof typeof liveControls>(
     label: string,
-    currentVal: string | number,
     fieldKey: K,
     type: "select" | "checkbox" | "number",
     options: { value: string;
@@ -443,7 +482,7 @@ export function ComparisonTableContent(): JSX.Element {
           fontSize: "0.9rem",
         }}
       >
-        {currentVal}
+        {liveControls[fieldKey]}
       </td>,
     );
 
@@ -726,7 +765,7 @@ export function ComparisonTableContent(): JSX.Element {
                           padding: "2px 4px",
                         }}
                       >
-                        Reacts live to sliders
+                        Edit inputs below; results update immediately
                       </div>
                     </div>
 
@@ -1119,7 +1158,6 @@ export function ComparisonTableContent(): JSX.Element {
                 <>
                   {renderInputRow(
                     "Gross Income",
-                    format(grossIncome.value),
                     "grossIncome",
                     "number",
                     null,
@@ -1127,7 +1165,6 @@ export function ComparisonTableContent(): JSX.Element {
                   )}
                   {renderInputRow(
                     "Federal State",
-                    state.value,
                     "state",
                     "select",
                     stateOptions,
@@ -1135,7 +1172,6 @@ export function ComparisonTableContent(): JSX.Element {
                   )}
                   {renderInputRow(
                     "Tax Class",
-                    `Class ${taxBracket.value}`,
                     "taxBracket",
                     "select",
                     taxBracketOptions,
@@ -1143,7 +1179,6 @@ export function ComparisonTableContent(): JSX.Element {
                   )}
                   {renderInputRow(
                     "Church Tax",
-                    hasChurchTax.value ? "Yes" : "No",
                     "hasChurchTax",
                     "checkbox",
                     null,
@@ -1151,7 +1186,6 @@ export function ComparisonTableContent(): JSX.Element {
                   )}
                   {renderInputRow(
                     "Children",
-                    children.value,
                     "children",
                     "number",
                     null,
@@ -1159,7 +1193,6 @@ export function ComparisonTableContent(): JSX.Element {
                   )}
                   {renderInputRow(
                     "Working Months",
-                    `${workingMonths.value} Months`,
                     "workingMonths",
                     "number",
                     null,
@@ -1168,7 +1201,6 @@ export function ComparisonTableContent(): JSX.Element {
                   )}
                   {renderInputRow(
                     "Salaries / Year",
-                    `${salariesPerYear.value} Salaries`,
                     "salariesPerYear",
                     "number",
                     null,
@@ -1275,7 +1307,6 @@ export function ComparisonTableContent(): JSX.Element {
                     <>
                       {renderInputRow(
                         "Partner Gross",
-                        format(partnerGrossIncome.value),
                         "partnerGrossIncome",
                         "number",
                         null,
@@ -1283,7 +1314,6 @@ export function ComparisonTableContent(): JSX.Element {
                       )}
                       {renderInputRow(
                         "Partner Federal State",
-                        partnerState.value,
                         "partnerState",
                         "select",
                         stateOptions,
@@ -1291,7 +1321,6 @@ export function ComparisonTableContent(): JSX.Element {
                       )}
                       {renderInputRow(
                         "Partner Tax Class",
-                        `Class ${partnerTaxBracket.value}`,
                         "partnerTaxBracket",
                         "select",
                         taxBracketOptions,
@@ -1302,7 +1331,6 @@ export function ComparisonTableContent(): JSX.Element {
                       )}
                       {renderInputRow(
                         "Partner Church Tax",
-                        partnerHasChurchTax.value ? "Yes" : "No",
                         "partnerHasChurchTax",
                         "checkbox",
                         null,
@@ -1310,7 +1338,6 @@ export function ComparisonTableContent(): JSX.Element {
                       )}
                       {renderInputRow(
                         "Partner Working Months",
-                        `${partnerWorkingMonths.value} Months`,
                         "partnerWorkingMonths",
                         "number",
                         null,
@@ -1321,7 +1348,6 @@ export function ComparisonTableContent(): JSX.Element {
                       )}
                       {renderInputRow(
                         "Partner Salaries",
-                        `${partnerSalariesPerYear.value} Salaries`,
                         "partnerSalariesPerYear",
                         "number",
                         null,
