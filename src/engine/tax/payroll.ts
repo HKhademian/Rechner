@@ -46,6 +46,8 @@ export interface PayrollOptions {
   readonly priorBonusGrossYearToDate?: EuroAmount;
   readonly regularGrossYearToDate?: GrossSalary;
   readonly expectedRegularAnnualGross?: GrossSalary;
+  /** Contractual average including predictable extras, for transition-zone eligibility. */
+  readonly expectedMonthlyEmploymentGross?: GrossSalary;
   readonly regularHealthAssessmentYearToDate?: GrossSalary;
   readonly regularPensionAssessmentYearToDate?: GrossSalary;
   readonly bonusHealthAssessmentYearToDate?: GrossSalary;

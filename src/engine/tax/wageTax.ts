@@ -1,3 +1,6 @@
+import {
+  computeTransitionContributionBases,
+} from "#engine/tax/transitionContributions";
 /**
  * German Elterngeld & Parental Leave 5-Year Financial Simulator - Statutory Wage Tax Engine
  *
@@ -152,8 +155,9 @@ export function computeMonthlySocialSecurity(
   options: PayrollOptions = {},
 ): SocialInsuranceDeductions {
   const p = rules.parameters;
-  const assessedHealthGross = Math.min(monthlyGross, p.healthCapMonthly.value);
-  const assessedPensionGross = Math.min(monthlyGross, p.pensionCapMonthly.value);
+  const bases = computeTransitionContributionBases(monthlyGross, options.expectedMonthlyEmploymentGross ?? monthlyGross, rules);
+  const assessedHealthGross = Math.min(bases.employeeAssessment, p.healthCapMonthly.value);
+  const assessedPensionGross = Math.min(bases.employeeAssessment, p.pensionCapMonthly.value);
   const healthRate = p.healthEmployeeRate.value + (options.healthSupplementTotalRate ?? p.healthSupplementTotalRate.value) / 2;
   const health = healthContribution(toEuroAmount(assessedHealthGross), rules, options);
   const pensionRate = p.pensionEmployeeRate.value;
@@ -164,7 +168,13 @@ export function computeMonthlySocialSecurity(
   const careRate = toPercentageRate(p.careEmployeeBaseRate.value +
     (inputs.PVS ? p.careSaxonyExtraEmployeeRate.value : 0) +
     (inputs.PVZ ? p.careChildlessSurcharge.value : -(inputs.PVA ?? 0) * p.careChildDiscount.value));
-  const care = toEuroAmount(assessedHealthGross * careRate);
+  // In the transition zone, the childless surcharge uses the total base; discounts use the employee base.
+  // Standard payroll retains the permitted combined-rate method (GKV guidance §3.3).
+  const care = bases.reduced ? toEuroAmount(
+    toEuroAmount(assessedHealthGross * (p.careEmployeeBaseRate.value + (inputs.PVS ? p.careSaxonyExtraEmployeeRate.value : 0))) +
+    (inputs.PVZ ? toEuroAmount(bases.totalAssessment * p.careChildlessSurcharge.value)
+      : -toEuroAmount(assessedHealthGross * (inputs.PVA ?? 0) * p.careChildDiscount.value)),
+  ) : toEuroAmount(assessedHealthGross * careRate);
 
   const total = health + pension + unemployment + care;
 

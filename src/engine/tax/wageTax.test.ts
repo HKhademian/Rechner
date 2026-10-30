@@ -96,8 +96,8 @@ describe("German Wage Tax Withholding Engine (§ 32a, § 38b EStG)", () => {
   });
 
   describe("computeMonthlySocialSecurity - Statutory Assessment Ceilings (BBG)", () => {
-    it("calculates social contributions proportionally below the BBG", () => {
-      for (let gross = 1000; gross <= 4000; gross += 500) {
+    it("calculates ordinary contributions proportionally above the transition zone and below the BBG", () => {
+      for (let gross = 2000; gross <= 4000; gross += 500) {
         const sec = computeMonthlySocialSecurity(toGrossSalary(gross), 0);
         const total = sec.totalSocialSecurity;
         // Total employee share is approximately 20-21%
