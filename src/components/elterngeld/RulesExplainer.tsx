@@ -1,4 +1,7 @@
 import {
+  DEFAULT_TIMELINE_CONVENTIONS,
+} from "#engine/config/timelineConventions";
+import {
   TargetPerson,
 } from "#engine/types";
 import {
@@ -59,6 +62,7 @@ interface RuleItem {
 export default function RulesExplainer(): JSX.Element {
   const current = currentScenarioData.value;
   const benefits = current.configuration?.benefitRules ?? DEFAULT_BENEFIT_RULES;
+  const conventions = current.configuration?.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS;
   const money = (value: number | undefined) => value === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", { style: "currency",
     currency: "EUR" }).format(value);
   const rules: readonly RuleItem[] = [
@@ -86,115 +90,22 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.MuSchG_Maternity,
-      title: "2. Maternity Protection & Wage Replacement",
-      lawRef: "MuSchG § 3, § 19, § 20 & BEEG § 3 Para. 1",
-      tag: "§ 3 MuSchG",
-      summary:
-        "100% net wage replacement; legally consumes parental allowance months 1 & 2.",
-      statutoryText: (
-        <div>
-          <p>
-            Under the{" "}
-            <strong>
-              Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)
-            </strong>
-            , employed expectant mothers are placed on mandatory paid leave:
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>Protection Windows:</strong> 6 weeks prior to the expected
-              delivery date (§ 3 Abs. 1 MuSchG) and 8 weeks following delivery
-              (§ 3 Abs. 2 MuSchG; 12 weeks for premature/multiple births).
-            </li>
-            <li>
-              <strong>100% Wage Guarantee (§ 20 MuSchG):</strong> Statutory
-              health insurance pays up to €13 / day (*Mutterschaftsgeld* under §
-              19 MuSchG), and the employer is legally mandated to pay the
-              employer supplement (*Arbeitgeberzuschuss*) ensuring 100% of the
-              average net salary.
-            </li>
-            <li>
-              <strong>Statutory Offset (§ 3 Abs. 1 BEEG):</strong> Months in
-              which maternity allowance is drawn legally count as used Basic
-              Elterngeld months for the mother, meaning regular ElterngeldPlus
-              disbursements start in life month 3.
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            <div>
-              • Mother in Tax Class III earns{" "}
-              <strong>2.603 € net / month</strong> prior to leave.
-            </div>
-            <div>
-              • Health insurance pays: 13 € × 30 days = <strong>390 €</strong>{" "}
-              (*Mutterschaftsgeld*).
-            </div>
-            <div>
-              • Employer pays statutory supplement: 2.603 € - 390 € ={" "}
-              <strong>2.420 €</strong>.
-            </div>
-            <div>
-              • <strong>Total Inflow to Mother:</strong> Exactly{" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                2.603 € / month (100% net preservation)
-              </strong>{" "}
-              during all 3.5 months of protection.
-            </div>
-          </div>
-        </div>
-      ),
+      title: "2. Maternity Protection and Reference Pay",
+      lawRef: "MuSchG §§ 3, 19, 20; BEEG § 3",
+      tag: "MuSchG",
+      summary: "Calendar planning windows approximate statutory protection periods; reference pay comes from preceding wages.",
+      statutoryText: <p>The plan uses {conventions.maternityPreBirthMonths.value} calendar month(s) before birth and {conventions.maternityPostBirthMonths.value} beginning with birth. These are editable planning assumptions, not statutory day counts. The modeled combined maternity payment averages {benefits.maternityAverageMonths.value} preceding calendar wages and remains fixed through the protection window. Actual birth dates, special protection extensions and payer-specific eligibility need separate information.</p>,
+      example: <p>Modeled maternity cash in this scenario: {money(current.summary.totalMutterschutz)}. Missing reference wages repeat the initial baseline only as a disclosed assumption. Maternity payments offset the mother's ordinary allowance allocation.</p>,
       links: [
-        {
-          label: "§ 3 MuSchG - Schutzfristen vor und nach der Entbindung",
-          url: "https://www.gesetze-im-internet.de/muschg_2018/__3.html",
-          description:
-            "Statutory 6-week pre-birth and 8-week post-birth mandatory employment bans.",
-        },
-        {
-          label: "§ 20 MuSchG - Zuschuss zum Mutterschaftsgeld",
-          url: "https://www.gesetze-im-internet.de/muschg_2018/__20.html",
-          description:
-            "Employer obligation to top up maternity benefit to full previous average net salary.",
-        },
+        { label: "Protection periods (§ 3 MuSchG)",
+          url: conventions.maternityPreBirthMonths.statutoryContext,
+          description: "Actual statutory periods and exceptions." },
+        { label: "Employer supplement reference (§ 20 MuSchG)",
+          url: benefits.maternityAverageMonths.source,
+          description: "Reference earnings for the modeled payment." },
+        { label: "Maternity offset (§ 3 BEEG)",
+          url: "https://www.gesetze-im-internet.de/beeg/__3.html",
+          description: "Crediting maternity payments against parental allowance." },
       ],
     },
     {
