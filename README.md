@@ -1,6 +1,6 @@
 # German Net Salary Calculator & Elterngeld 5-Year Financial Simulator
 
-An interactive, client-side web analysis and financial simulation studio for precise German net income calculations and multi-year parental leave planning (BEEG / EStG / MuSchG).
+A client-side German payroll calculator and multi-year parental-leave planning simulator. It separates payroll, standardized benefit net, annual tax assessment and cash received, with source-linked configuration and visible calculation limits.
 
 ---
 
@@ -9,32 +9,22 @@ An interactive, client-side web analysis and financial simulation studio for pre
 The application is structured into two core modules:
 
 ### 1. German Net Salary Calculator (`/`)
-- **Complete Tax Computation**: Tax classes I through VI in accordance with German § 32a EStG and the 2024–2026 progressive income tax tariff.
-- **Social Security Contributions with Assessment Ceilings (*Beitragsbemessungsgrenzen - BBG*)**:
-  - Statutory Health Insurance (*Gesetzliche Krankenversicherung - GKV* § 241a SGB V: General rate 14.6% + individual supplementary contribution, split 50/50).
-  - Statutory Pension Insurance (*Gesetzliche Rentenversicherung - GRV* § 158 SGB VI: 18.6%, split 50/50).
-  - Statutory Unemployment Insurance (*Arbeitslosenversicherung - ALV* § 341 SGB III: 2.6%, split 50/50).
-  - Statutory Long-Term Care Insurance (*Pflegeversicherung - PV* § 55 SGB XI: 4.0% for childless individuals, with progressive relief tiers from the 2nd child onwards).
-- **Tax Deductions & Allowances**:
-  - Basic Tax-Free Allowance (*Grundfreibetrag* § 32a Abs. 1 EStG), Employee Lump-Sum Allowance (*Arbeitnehmer-Pauschbetrag* § 9a EStG), Special Expenses & Pension Expenses (*Sonderausgaben & Vorsorgeaufwendungen* § 10 EStG).
-  - Single Parent Relief (*Entlastungsbetrag für Alleinerziehende* § 24b EStG - Tax Class II / *Steuerklasse II*).
-  - Church Tax (*Kirchensteuer*: 8% in Bavaria/Baden-Württemberg, 9% in all other states) and Solidarity Surcharge (*Solidaritätszuschlag* SolzG) exemption threshold verification.
-- **Spouse & Household Modeling**: Direct side-by-side comparison of individual vs. household net income across tax class combinations (III/V, IV/IV, IV with factor).
-- **Scenario Manager**: Save, load, edit, and compare multiple household scenarios.
 
-### 2. Elterngeld & Parental Leave 5-Year Simulator (`/elterngeld`)
-- **60-Month Cash Flow Ledger**: Complete 5-year chronological simulation for a household planning two children.
-- **Special Life & Fiscal Event Rows**: Separate ledger rows for Vacation Bonus (40% in May), Christmas Bonus (60% in Nov), and Annual Tax Assessment Returns (March) with statutory tags.
-- **Statutory Wage Replacement Benefits & Legal Framework**:
-  - **Maternity Protection Act (*Mutterschutzgesetz - MuSchG*)**: 6 weeks pre-birth and 8 weeks post-birth with 100% net wage replacement (Maternity benefit + Employer supplement / *Mutterschaftsgeld & Arbeitgeberzuschuss* § 19, § 20 MuSchG).
-  - **Maternity Offset (*Anrechnung von Mutterschaftsleistungen* § 3 BEEG)**: Post-birth maternity protection legally consumes Basic Elterngeld months 1 and 2.
-  - **ElterngeldPlus & Statutory Cap (*ElterngeldPlus* § 4 BEEG)**: 65% replacement rate for part-time income losses, capped at **€900.00 / month**.
-  - **Proactive Tax Class Swap (*Steuerklassenwechsel* III/V § 39e EStG / § 2b BEEG)**: Swapping to Tax Class III at least 7 months before maternity protection to secure Tax Class III as the predominant class across the 12-month assessment window (Federal Fiscal Court / *BFH Urteil VI R 2/13*).
-  - **Synthetic Net Principle (*Fiktives Netto* § 2e BEEG)**: Swapping back to Tax Class III (Husband) / V (Wife) post-birth does not lower the approved ElterngeldPlus entitlement.
-  - **Tax Office Reconciliation (*Ehegatten-Splitting* § 26, § 26b EStG)**: Monthly withholding deductions during the swap period are 100% refunded to the couple via the annual joint tax assessment.
-  - **Partner Months & Partnership Bonus (*Partnermonate & Partnerschaftsbonus* § 4, § 4b BEEG)**: 4 partner months base rate (€150 / month) for the father plus 4 additional bonus months when both parents work part-time concurrently between 24 and 32 hours per week.
-  - **Sibling Bonus (*Geschwisterbonus* § 2a BEEG)**: +10% surcharge on Child 2 Elterngeld until Child 1 turns 3 years old (36 months).
-  - **14-Month Trap Avoidance (*14-Monate-Verwässerungsfalle* § 2b BEEG)**: Modeling the diluted assessment window (10 months part-time + 2 months full-time) and optimization via timed secondary tax class switching.
+- Verified 2025/2026 payroll profiles use the pinned offline BMF PAP. Select a published year and edit personal insurer, state, age, qualifying children, church-tax and factor inputs.
+- Ordinary employee contributions use the selected year's rates and ceilings, including supported monthly Midijob calculations. Unsupported regimes carry explicit limitations.
+- Monthly input means regular monthly pay; calculator yearly input means the actual annual total including contractual extras. Working months and extras are handled explicitly.
+- Saved inputs are recalculated through the shared payroll engine. Arbitrary hypothetical tax tariffs are outside the product scope.
+
+### 2. Elterngeld & Parental Leave Simulator (`/elterngeld`)
+
+- A configurable monthly cash horizon processes pregnancies, tax switches/reversions, raises, working-hour changes, bonuses and scoped financial events.
+- Each parent/birth gets an actual eligible assessment history and a frozen standardized BEEG net. Plus uses the personal no-income ceiling, household sibling eligibility, claim budgets, eligible hours and overlap credits.
+- Prior-year household taxable-income eligibility uses complete supported annual records or explicitly supplied personal evidence. Missing pre-birth months repeat the initial salary/class only as a labeled assumption; they do not establish annual taxable income.
+- Complete supported tax years produce signed refunds or repayments from actual credits and liability, including progression and child-allowance comparison. Cash is posted once in the configured following-year month. Outside-horizon balances remain separate metadata.
+- UI, CLI and CSV share ordered action, financial-event and regular-month rows. CSV v2 retains cents, progressive balances, escaped text, sources, projections and availability metadata.
+- Missing data and unsupported calculations remain visibly unavailable or provisional. Calendar months approximate statutory life-month/day periods. A required historical PAP snapshot may be unavailable; manual take-home is not automatically benefit-assessment net. Future payroll years are marked projections.
+
+See [statutory configuration and supported limits](.agents/docs/STATUTORY_CONFIGURATION.md), [timeline contracts](.agents/docs/TIMELINE_SIMULATION_MODEL.md), and [CSV v2 migration](.agents/docs/CSV_LEDGER_EXPORT.md). Passing reference cases verifies the modeled cases, not comprehensive statutory coverage or a guaranteed optimization gain.
 
 ---
 
@@ -66,11 +56,11 @@ The application is structured into two core modules:
 │   ├── engine/                    # Pure TypeScript statutory calculation engine
 │   │   ├── types.ts               # Nominal branded types & validation guards
 │   │   ├── tax/
-│   │   │   ├── wageTax.ts         # § 32a EStG polynomial, Solz, social caps
-│   │   │   └── jointAssessment.ts # § 26b EStG splitting & swap withholding reconciliation
+│   │   │   ├── wageTax.ts         # Offline PAP payroll & sourced contributions
+│   │   │   └── jointAssessment.ts # Joint splitting and child-allowance comparison
 │   │   ├── benefits/
 │   │   │   ├── mutterschutz.ts    # MuSchG § 19, 20 wage replacement
-│   │   │   ├── elterngeldAssessment.ts # 12M Bemessungszeitraum & 7M dominant class
+│   │   │   ├── elterngeldAssessment.ts # Tax-characteristic helpers; timeline uses assessmentHistory.ts
 │   │   │   ├── elterngeldPlus.ts  # BEEG § 2, 4, 4a sliding scale & caps
 │   │   │   ├── siblingBonus.ts    # BEEG § 2a Geschwisterbonus (+10% / min €75)
 │   │   │   └── kindergeld.ts      # EStG § 66 child benefit
@@ -165,22 +155,14 @@ Run all commands from the project root:
 
 ---
 
-## 📜 Statutory Foundations & Legal Precedents
+## 📜 Statutory Sources and Model Scope
 
-The underlying mathematical and legal models are strictly aligned with German statutory law and federal court rulings:
-1. **BEEG (Federal Parental Allowance and Parental Leave Act)**:
-   - § 2: Calculation and standard 65% replacement rate, statutory caps (€1,800 Basic / €900 ElterngeldPlus).
-   - § 2a: Sibling bonus (+10%, minimum €75 for ElterngeldPlus).
-   - § 2b: Assessment period (12 calendar months pre-maternity; predominant tax class rule).
-   - § 2e: Synthetic wage tax deductions for establishing Elterngeld net income.
-   - § 3: Offsetting maternity benefits against parental allowance entitlement.
-   - § 4b: Partnership bonus months for concurrent part-time work between 24 and 32 hours per week.
-2. **MuSchG (Maternity Protection Act)**:
-   - § 3: Statutory protection periods (6 weeks pre-birth / 8 weeks post-birth).
-   - § 19, 20: Maternity allowance and employer supplementary allowance (100% net wage compensation).
-3. **EStG (Income Tax Act)**:
-   - § 32a: Progressive income tax formula (Basic tariff & Splitting tariff).
-   - § 26, 26b: Joint income tax assessment for married couples (100% tax reconciliation).
-   - § 39e: Procedures for modifying wage tax deduction characteristics.
-4. **Jurisprudence**:
-   - **Federal Fiscal Court (BFH Ruling of March 27, 2014 – VI R 2/13)**: Tax class modifications executed to optimize parental allowance benefits are lawful and do not constitute an abuse of legal rights.
+Numerical defaults, effective profiles and primary links live in `src/data/benefitRules.json`, `taxRules.json`, `benefitIncomeLimits.json`, `employmentThresholds.json` and `timelineConventions.json`. Overridden assumptions and projected source years remain visible in results.
+
+- [BEEG](https://www.gesetze-im-internet.de/beeg/BJNR274810006.html): household income eligibility, eligible histories, standardized deductions, personal allowance limits, sibling conditions and claim budgets.
+- [Federal tax-class guidance](https://familienportal.de/familienportal/familienleistungen/elterngeld/arbeitssituation/auf-welche-steuerklasse-kommt-es-fuer-die-berechnung-meines-elterngelds-an-wenn-ich-die-steuerklasse-gewechselt-habe--124670): actual assessment characteristics and equal-duration classes.
+- [MuSchG section 20](https://www.gesetze-im-internet.de/muschg_2018/__20.html): preceding wage reference; [section 3](https://www.gesetze-im-internet.de/muschg_2018/__3.html): actual protection periods, approximated by explicit calendar planning conventions here.
+- [EStG section 36](https://www.gesetze-im-internet.de/estg/__36.html): payment credits and signed annual settlement. Tax deductions reduce the tax base; they are not guaranteed fixed cash refunds.
+- [BMF payroll plans](https://www.bmf-steuerrechner.de/interface/programmablauf.xhtml): year-specific withholding. Publication snapshots needed for BEEG are checked separately from payroll effective years.
+
+The [current model contract](.agents/docs/GERMAN_TAX_AND_ELTERNGELD_SCHEMES.md) links supported assumptions and independent regression references. Obsolete fixed-payout walkthroughs are retained only as clearly marked historical evidence.

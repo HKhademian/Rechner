@@ -289,8 +289,8 @@ export default function RulesExplainer(): JSX.Element {
                 margin: "3px 0 0 0",
               }}
             >
-              Official German Civil, Social, and Fiscal Code references (*BEEG,
-              MuSchG, EStG, BFH*) governing all simulator calculations.
+              Source-linked BEEG, MuSchG and EStG references for the supported
+              planning model, with actual scenario audit values.
             </p>
           </div>
         </div>
