@@ -18,6 +18,7 @@ import {
   toMonthDuration,
   toTaxFactor,
   toEuroAmount,
+  toFullCalendarYear,
 } from "#engine/types";
 
 const base = { scenarioKey: ScenarioId.A,
@@ -25,6 +26,7 @@ const base = { scenarioKey: ScenarioId.A,
   taxClassSwitches: [],
   salaryRaises: [],
   preexisting: { ...standardPreexistingConditions,
+    householdTaxableIncome: undefined,
     salaryInputMode: SalaryInputMode.Gross,
     husbandGross: toGrossSalary(5000),
     husbandInitialTaxClass: TaxClass.I,
@@ -72,4 +74,16 @@ it("does not convert supplied investment cash into precise annual tax data", () 
   assert.equal(result.taxComplete, false);
   assert.equal(result.summary.totalTaxRefunds, 0);
   assert.ok(result.annualTaxRecords?.[0].reasons.some((reason) => reason.includes("Capital-income")));
+});
+
+
+it("does not claim a precise settlement when supplied taxable income contradicts the employment model", () => {
+  const result = runScenarioBatches({ ...base,
+    preexisting: { ...base.preexisting,
+      householdTaxableIncome: [{ calendarYear: toFullCalendarYear(2026),
+        taxableIncome: toEuroAmount(175000.01) }] } });
+  assert.equal(result.taxComplete, false);
+  assert.equal(result.months[14].taxRefund, 0);
+  assert.equal(result.annualTaxRecords?.[0].assessment, undefined);
+  assert.ok(result.annualTaxRecords?.[0].reasons.some((reason) => reason.includes("differs from the modeled")));
 });

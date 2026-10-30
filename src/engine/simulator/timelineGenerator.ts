@@ -1454,7 +1454,17 @@ function generateScenario(
     }
     unsupportedByYear.set(year, reasons);
   }
-  const annualTaxRecords = collectAnnualTaxRecords(months, children, unsupportedByYear);
+  const annualTaxRecords = collectAnnualTaxRecords(months, children, unsupportedByYear).map((record) => {
+    const declared = preexisting.householdTaxableIncome?.find((entry) => entry.calendarYear === record.calendarYear);
+    if (declared && record.taxableIncomeForNonTaxLaw !== undefined && declared.taxableIncome !== record.taxableIncomeForNonTaxLaw) {
+      return Object.freeze({ ...record,
+        available: false,
+        assessment: undefined,
+        reasons: Object.freeze([...record.reasons,
+          "Supplied household taxable income differs from the modeled employment tax base; additional income or deduction details are required for an annual settlement."])});
+    }
+    return record;
+  });
   const settledMonths = applyAnnualTaxSettlements(
     months,
     annualTaxRecords.flatMap((record) => record.assessment ? [record.assessment] : []),
