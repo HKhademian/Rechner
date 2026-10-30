@@ -1,4 +1,7 @@
 import {
+  computeJointProgressionTax,
+} from "#engine/tax/progressionTax";
+import {
   type TaxRules,
   DEFAULT_TAX_RULES,
   createTaxRules,
@@ -117,6 +120,7 @@ export function computeKinderfreibetragGuenstigerpruefung(
   children: readonly ChildYearPresence[],
   reconciledYear: number,
   monthlyKindergeldPerChild?: number,
+  progressionIncome: EuroAmount = toEuroAmount(0),
 ): GuenstigerpruefungResult {
   const rules = createTaxRules(toFullCalendarYear(reconciledYear));
   const fullAllowance = rules.parameters.childAllowanceAnnual.value;
@@ -143,15 +147,11 @@ export function computeKinderfreibetragGuenstigerpruefung(
   });
 
   // 1. Joint tax liability WITHOUT Kinderfreibetrag
-  const taxWithout = computeJointTaxLiability(
-    jointAnnualZvE,
-    0,
-    rules,
-  ).jointTax;
+  const taxWithout = computeJointProgressionTax(toEuroAmount(Math.max(0, jointAnnualZvE)), progressionIncome, rules).incomeTax;
 
   // 2. Joint tax liability WITH Kinderfreibetrag (§ 32 Abs. 6 EStG)
   const reducedZvE = Math.max(0, jointAnnualZvE - totalKinderfreibetrag);
-  const taxWith = computeJointTaxLiability(reducedZvE, 0, rules).jointTax;
+  const taxWith = computeJointProgressionTax(toEuroAmount(reducedZvE), progressionIncome, rules).incomeTax;
 
   // §31 compares income tax only. Solidarity relief is assessed independently.
   // 3. Tax Savings

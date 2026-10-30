@@ -295,3 +295,17 @@ it("selects published child values for the assessment year without assuming the 
   assert.equal(result.extraTaxRefund, 972);
   assert.throws(() => computeKinderfreibetragGuenstigerpruefung(160000, [child], 2024), /No verified tax rules/);
 });
+
+it("compares child relief using each progression-adjusted income-tax liability", () => {
+  const child = { childIndex: toChildIndex(1),
+    birthCalendarYear: toFullCalendarYear(2025),
+    birthCalendarMonth: toCalendarMonth(1) };
+  // Independent §32a/§32b arithmetic: hypothetical14418 on80000 gives18.0225% ×60000 ->10813.
+  // After9756 allowance: hypothetical11412 on70244 gives16.2462% ×50244 ->8162.
+  const result = computeKinderfreibetragGuenstigerpruefung(60000, [child], 2026, undefined, toEuroAmount(20000));
+  assert.equal(result.jointTaxWithoutAllowance, 10813);
+  assert.equal(result.jointTaxWithAllowance, 8162);
+  assert.equal(result.taxSavingsFromAllowance, 2651);
+  assert.equal(result.isKinderfreibetragFavorable, false);
+  assert.equal(result.extraTaxRefund, 0);
+});
