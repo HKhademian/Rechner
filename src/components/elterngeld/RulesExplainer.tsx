@@ -130,115 +130,24 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.EStG_TaxSplitting,
-      title: "4. Annual Marital Tax Splitting Reconciliation",
-      lawRef: "EStG § 26, § 26b (Ehegatten-Splitting) & § 32a",
-      tag: "§ 26b EStG",
-      summary:
-        "Excess wage tax withheld during the temporary swap period is 100% refunded via the annual tax return.",
-      statutoryText: (
-        <div>
-          <p>
-            Under <strong>§§ 26, 26b EStG (Income Tax Act)</strong>, married
-            spouses filing jointly are taxed under the{" "}
-            <strong>
-              German Marital Splitting Tariff (*Splittingverfahren*)
-            </strong>
-            .
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>Monthly Withholding vs. Final Tax Liability:</strong>{" "}
-              Monthly tax classes (III/V vs IV/IV) represent only advance wage
-              tax prepayments (*Lohnsteuervorauszahlung*). Final annual tax
-              liability is computed strictly on combined household annual
-              income.
-            </li>
-            <li>
-              <strong>Mandatory Assessment (§ 46 EStG):</strong> Couples with
-              III/V combinations are required by law to file an annual income
-              tax return.
-            </li>
-            <li>
-              <strong>Guaranteed Refund:</strong> Any temporary decrease in the
-              husband's monthly salary while in Tax Class V is fully refunded by
-              the Tax Office (*Finanzamt*) upon filing the annual return.
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            <div>
-              • Husband temporarily in Tax Class V: monthly salary reduced from
-              2.895 € to 2.191 € (<strong>-995 € / mo</strong>).
-            </div>
-            <div>
-              • Over 6 swap months in Year 1: excess withholding ={" "}
-              <strong>5.970 €</strong>.
-            </div>
-            <div>
-              • Annual Tax Return Reconciliation (§ 26b EStG) refund paid out in
-              March:{" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                +2.800 € to +3.600 € lump-sum refund
-              </strong>
-              .
-            </div>
-            <div>
-              • <strong>Net Result:</strong> Zero permanent payroll loss;
-              maximum parental benefits achieved without tax penalties.
-            </div>
-          </div>
-        </div>
-      ),
+      title: "4. Signed Annual Joint Tax Settlement",
+      lawRef: "EStG §§ 26b, 31, 32a, 32b, 36; SolzG",
+      tag: "Annual tax",
+      summary: "Credited tax minus supported annual liability can produce a refund or repayment.",
+      statutoryText: <p>Complete calendar-year records aggregate actual gross, bonuses, deductible contributions, withholding and replacement benefits subject to progression. Joint assessment and the child-allowance comparison determine liability independently of withholding classes. Deductions reduce taxable income; they are not fixed cash refunds. Missing or unsupported tax details prevent a precise settlement.</p>,
+      example: <ul>{(current.annualTaxRecords ?? []).map((record) => (
+        <li key={record.calendarYear}>{record.calendarYear}: {money(record.assessment?.settlement)}; planned {record.settlementMonthId}, {record.scheduledMonthInHorizon ? "within" : "outside"} the cash period. {record.reasons.join(" ")}</li>
+      ))}</ul>,
       links: [
-        {
-          label: "§ 26b EStG - Zusammenveranlagung von Ehegatten",
+        { label: "Joint assessment (§ 26b EStG)",
           url: "https://www.gesetze-im-internet.de/estg/__26b.html",
-          description:
-            "Joint income tax assessment and marital splitting calculation under German income tax law.",
-        },
-        {
-          label: "§ 32a EStG - Einkommensteuertarif & Splittingtabelle",
-          url: "https://www.gesetze-im-internet.de/estg/__32a.html",
-          description: "Progressive tariff curves and splitting formula.",
-        },
+          description: "Joint-spouse assessment basis." },
+        { label: "Progression (§ 32b EStG)",
+          url: "https://www.gesetze-im-internet.de/estg/__32b.html",
+          description: "Replacement benefits can affect the tax rate." },
+        { label: "Credits and signed settlement (§ 36 EStG)",
+          url: "https://www.gesetze-im-internet.de/estg/__36.html",
+          description: "Tax payments are reconciled against assessed liability." },
       ],
     },
     {
