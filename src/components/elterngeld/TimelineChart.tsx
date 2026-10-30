@@ -353,7 +353,7 @@ export default function TimelineChart(): JSX.Element {
               letterSpacing: "-0.02em",
             }}
           >
-            Monthly Cash Inflow & Benefits Timeline (60 Months)
+            Monthly Cash Inflow &amp; Benefits Timeline ({displayedMonths.length} Months)
           </h3>
           <p
             style={{
