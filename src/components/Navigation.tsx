@@ -111,6 +111,7 @@ export default function Navigation({
         >
           {/* Navigation Tabs */}
           <nav
+            aria-label="Main navigation"
             style={{
               display: "flex",
               alignItems: "center",
@@ -124,6 +125,7 @@ export default function Navigation({
             {/* Tab 1: Net Pay Calculator */}
             <a
               href="/"
+              aria-current={isNetCalculator ? "page" : undefined}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -145,9 +147,10 @@ export default function Navigation({
               <span>Net Pay Calculator</span>
             </a>
 
-            {/* Tab 2: Elterngeld 5-Year Financial Simulator */}
+            {/* Tab 2: Parental Leave Planner */}
             <a
               href="/elterngeld"
+              aria-current={isElterngeld ? "page" : undefined}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -166,21 +169,7 @@ export default function Navigation({
               }}
             >
               <SimulatorNavigationIcon size={15} />
-              <span>Elterngeld 5-Year Simulator</span>
-              <span
-                style={{
-                  fontSize: "0.66rem",
-                  padding: "1px 5px",
-                  borderRadius: "4px",
-                  background: isElterngeld
-                    ? "rgba(255, 255, 255, 0.25)"
-                    : "var(--color-primary-bg)",
-                  color: isElterngeld ? "#ffffff" : "var(--color-primary)",
-                  fontWeight: 700,
-                }}
-              >
-                PRO
-              </span>
+              <span>Parental Leave Planner</span>
             </a>
           </nav>
 
