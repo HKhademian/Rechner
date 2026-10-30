@@ -18,11 +18,11 @@ import {
   ExternalLegalSourceIcon,
 } from "#components/Icons";
 
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: number, maximumFractionDigits = 0): string {
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR",
-    maximumFractionDigits: 0,
+    maximumFractionDigits,
   }).format(amount || 0);
 }
 
@@ -61,6 +61,7 @@ export default function KpiScorecard(): JSX.Element {
         padding: "16px" }}>
         <strong>{current.benefitsComplete ? "Benefits modeled under the stated assumptions" : "Incomplete benefit calculation"}</strong>
         {current.payrollComplete === false && <p>Payroll amounts include supplied values or provisional estimates. Review the calculation assumptions.</p>}
+        {current.taxComplete === false && <p>Some annual tax balances are unavailable. Displayed cash totals omit those settlements.</p>}
         {!current.benefitsComplete && <p>Displayed totals omit unavailable benefit payments and are a partial modeled cash flow.</p>}
         {(current.unavailableReasons ?? []).map((reason) => <p key={reason}>{reason}</p>)}
         <details>
@@ -74,6 +75,17 @@ export default function KpiScorecard(): JSX.Element {
               {assessment.reason && ` Unavailable: ${assessment.reason}`}
             </p>
           ))}
+        </details>
+        <details>
+          <summary>Annual tax settlements and cash timing</summary>
+          <p>Signed tax cash flow within the period: {formatCurrency(current.summary.totalTaxRefunds, 2)}</p>
+          <ul>{(current.annualTaxRecords ?? []).map((record) => (
+            <li key={record.calendarYear}>
+              {record.calendarYear}: {record.assessment ? formatCurrency(record.assessment.settlement, 2) : "Unavailable"}.
+              {" "}Planned {record.settlementMonthId}, {record.scheduledMonthInHorizon ? "within" : "outside"} the cash-flow period.
+              {record.reasons.map((reason) => <p key={reason}>{reason}</p>)}
+            </li>
+          ))}</ul>
         </details>
       </div>
       {/* KPI Card 1: Total Earned Salaries */}
@@ -155,7 +167,7 @@ export default function KpiScorecard(): JSX.Element {
         </div>
       </div>
 
-      {/* KPI Card 2: Total State Benefits (Subsidies & Tax Returns) */}
+      {/* KPI Card 2: Total State Benefits */}
       <div
         className="glass-panel"
         style={{
@@ -218,13 +230,6 @@ export default function KpiScorecard(): JSX.Element {
                 KG:{" "}
                 <strong className="tabular-nums">
                   {formatCurrency(current.summary.totalKindergeld)}
-                </strong>
-              </span>
-              <span>•</span>
-              <span>
-                Tax:{" "}
-                <strong className="tabular-nums">
-                  +{formatCurrency(current.summary.totalTaxRefunds)}
                 </strong>
               </span>
             </div>
