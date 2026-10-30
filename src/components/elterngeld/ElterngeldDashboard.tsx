@@ -60,11 +60,11 @@ export default function ElterngeldDashboard(): JSX.Element {
           </dl>
         </header>
 
+        {/* Select the scenario before reviewing its results. */}
+        <ScenarioSelector />
+
         {/* Dynamic KPI Scorecard */}
         <KpiScorecard />
-
-        {/* Scenario Selector & Comparison Tabs */}
-        <ScenarioSelector />
 
         {/* The Sandbox: Interactive Input Parameters & Sliders */}
         <SandboxControls />
