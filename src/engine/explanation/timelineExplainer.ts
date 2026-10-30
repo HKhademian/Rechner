@@ -1,4 +1,7 @@
 import {
+  createTaxRules,
+} from "#engine/tax/taxRules";
+import {
   type SourceUrl,
 } from "#engine/config/benefitRules";
 import {
@@ -217,6 +220,88 @@ function taxSettlementDetails(ev: SpecialEventItem, m: TimelineMonth) {
     streams };
 }
 
+/** Display recorded monthly payroll evidence; never infer deductions from supplied net pay. */
+function recordedSalaryExplanation(
+  month: TimelineMonth,
+  parent: Exclude<TargetPerson, typeof TargetPerson.Both>,
+  baseline?: TimelineMonth,
+): FieldExplanation {
+  const husband = parent === TargetPerson.Husband;
+  const salary = husband ? month.husbandSalary : month.wifeSalary;
+  const baselineSalary = husband ? baseline?.husbandSalary : baseline?.wifeSalary;
+  const payroll = husband ? month.payroll?.husband : month.payroll?.wife;
+  const difference = salary - (baselineSalary ?? salary);
+  const profile = payroll ? createTaxRules(payroll.taxRules.sourceYear) : undefined;
+  const factors: CalculationFactor[] = [
+    { name: "Ledger month",
+      value: `${month.monthId} · ${month.calendarLabel}` },
+    { name: "Earned net salary",
+      value: formatTaxAmount(salary),
+      description: "Recorded salary cash flow; benefits and bonus payments are separate." },
+  ];
+  if (payroll && profile) {
+    factors.push(
+      { name: "Recorded gross salary",
+        value: formatTaxAmount(payroll.monthlyGross) },
+      { name: "Actual tax class",
+        value: payroll.taxClass,
+        source: profile.papPublication.source },
+      { name: "Wage tax withheld",
+        value: formatTaxAmount(payroll.monthlyWageTax),
+        source: profile.papPublication.source },
+      { name: "Solidarity surcharge",
+        value: formatTaxAmount(payroll.monthlySolidaritySurcharge),
+        source: profile.parameters.solidarityRate.source },
+      { name: "Church tax withheld",
+        value: formatTaxAmount(payroll.monthlyChurchTax),
+        source: profile.parameters.churchRateOther.source },
+      { name: "Health insurance",
+        value: formatTaxAmount(payroll.healthInsurance),
+        source: profile.parameters.healthEmployeeRate.source },
+      { name: "Pension insurance",
+        value: formatTaxAmount(payroll.pensionInsurance),
+        source: profile.parameters.pensionEmployeeRate.source },
+      { name: "Unemployment insurance",
+        value: formatTaxAmount(payroll.unemploymentInsurance),
+        source: profile.parameters.unemploymentEmployeeRate.source },
+      { name: "Care insurance",
+        value: formatTaxAmount(payroll.careInsurance),
+        source: profile.parameters.careEmployeeBaseRate.source },
+      { name: "Total social insurance",
+        value: formatTaxAmount(payroll.totalSocialSecurity) },
+      { name: "Regular payroll net",
+        value: formatTaxAmount(payroll.regularNetTakeHome) },
+      { name: "Payroll rule profile",
+        value: `${payroll.taxRules.sourceYear}${payroll.taxRules.projected ? ` projected to ${payroll.taxRules.calendarYear}` : ""}`,
+        source: profile.papPublication.source },
+    );
+  }
+  return {
+    fieldKey: husband ? ExplanationFieldKey.HusbandSalary : ExplanationFieldKey.WifeSalary,
+    fieldTitle: husband ? "Husband's Earned Net Salary" : "Wife's Earned Net Salary",
+    valueFormatted: formatTaxAmount(salary),
+    derivationFormula: payroll
+      ? "Recorded gross − social insurance − wage tax − solidarity surcharge − church tax = regular payroll net"
+      : "Supplied net salary → recorded monthly earned salary",
+    explanation: payroll
+      ? `This month uses the stored payroll breakdown and actual tax class. Earned salary follows the ledger after working-hour and leave decisions; bonuses and benefits are separate. Annual assessment may produce a refund or a payment due. Source links identify the governing rules.${payroll.payrollLimitations.length > 0 ? ` Provisional payroll: ${payroll.payrollLimitations.join(" ")}` : ""}`
+      : "Payroll deductions are unavailable for this supplied net salary. Gross pay, withholding and contributions cannot be reconstructed from net pay. A zero salary alone does not establish the reason for an absence of earnings.",
+    contributingFactors: factors,
+    calculationSteps: payroll ? [
+      { stepNumber: 1,
+        description: "Reconcile recorded regular payroll",
+        formula: `${formatTaxAmount(payroll.monthlyGross)} − ${formatTaxAmount(payroll.totalSocialSecurity)} − ${formatTaxAmount(payroll.monthlyWageTax)} − ${formatTaxAmount(payroll.monthlySolidaritySurcharge)} − ${formatTaxAmount(payroll.monthlyChurchTax)}`,
+        result: formatTaxAmount(payroll.regularNetTakeHome) },
+      { stepNumber: 2,
+        description: "Read earned salary after the timeline's work and leave decisions",
+        formula: `Recorded earned salary at ${month.monthId}`,
+        result: formatTaxAmount(salary) },
+    ] : [],
+    legalCitation: toStatutoryCitation("EStG §§ 38b, 39b; SGB V, VI, III, XI; SolzG"),
+    diffVsBFormatted: difference === 0 ? undefined : `${difference > 0 ? "+" : ""}${formatTaxAmount(difference)} vs B`,
+  };
+}
+
 /**
  * Builds a comprehensive field-level explanation for any column in a standard monthly row.
  * Generates mathematical formulas, step-by-step calculation proofs, statutory legal citations,
@@ -369,70 +454,8 @@ export function getFieldExplanation(
         legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
       };
 
-    case FieldColumnKey.HusbandSalary: {
-      const bHusband = bMonth ? bMonth.husbandSalary : hSalary;
-      const diffH = hSalary - bHusband;
-      const activeClass = m.taxClassLabel.split("/")[0] || "Class III";
-      return {
-        fieldKey: ExplanationFieldKey.HusbandSalary,
-        fieldTitle: "Husband's Monthly Net Salary",
-        valueFormatted: formatCurrency(hSalary),
-        derivationFormula: `Gross Salary $\\rightarrow$ § 38b Wage Tax (${activeClass}) $\\rightarrow$ Social Contributions $\\rightarrow$ Net`,
-        explanation: `The husband's take-home pay for Month ${m.month} is ${formatCurrency(hSalary)}. When temporarily switched to Tax Class V during the prenatal swap, withholding increases, but the difference is fully refunded upon filing the annual tax return.`,
-        contributingFactors: [
-          {
-            name: "Base Gross Salary",
-            value: "~4.500 € / month",
-            description: "Regular full-time employment gross",
-          },
-          {
-            name: "Active Tax Class",
-            value: activeClass,
-            description: "Withholding wage tax tariff",
-          },
-          {
-            name: "Statutory Social Contributions",
-            value: "~1.065 € / month",
-            description: "Health, Pension, Care, Unemployment insurance",
-          },
-          {
-            name: "Wage Tax Withholding",
-            value: activeClass.includes("III")
-              ? "~1.200 € / month"
-              : "~2.195 € / month",
-            description: "Advance payroll tax deduction (§ 38b EStG)",
-          },
-        ],
-        calculationSteps: [
-          {
-            stepNumber: 1,
-            description: "Compute social security deductions",
-            formula: "BBG assessment ceilings applied",
-            result: "~1.065 €",
-          },
-          {
-            stepNumber: 2,
-            description: `Compute wage tax withholding for ${activeClass}`,
-            formula: "§ 32a progressive tariff formula",
-            result: activeClass.includes("III") ? "~1.200 €" : "~2.195 €",
-          },
-          {
-            stepNumber: 3,
-            description: "Compute net take-home salary",
-            formula: "Gross - Social Security - Wage Tax",
-            result: formatCurrency(hSalary),
-          },
-        ],
-        legalCitation: toStatutoryCitation(
-          "EStG § 38b (Lohnsteuerabzug) & § 32a (Einkommensteuertarif)",
-        ),
-        legalRuleKey: LegalRuleKey.EStG_TaxSplitting,
-        diffVsBFormatted:
-          diffH !== 0
-            ? `${diffH > 0 ? "+" : ""}${formatCurrency(diffH)} vs B`
-            : undefined,
-      };
-    }
+    case FieldColumnKey.HusbandSalary:
+      return recordedSalaryExplanation(m, TargetPerson.Husband, bMonth);
 
     case FieldColumnKey.WifeSalary: {
       const bWife = bMonth ? bMonth.wifeSalary : wSalary;
