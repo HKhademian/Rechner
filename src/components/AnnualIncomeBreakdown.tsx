@@ -40,6 +40,15 @@ export default function AnnualIncomeBreakdown({ people, base, profile }: AnnualI
     : undefined;
   return (
     <>
+      <div className="annual-income__result">
+        <h3>Income after modeled deductions</h3>
+        <p className="annual-income__amount">{money(base?.taxableIncome)}</p>
+        <p className="annual-income__caption">{base
+          ? "After the deductible pension, insurance and expense amounts modeled below. Before child allowances and further personal adjustments needed to determine final taxable income (zvE)."
+          : "See the unavailable-evidence details below."}</p>
+        <p className="annual-income__caption"><a href="https://www.kfw.de/PDF/Download-Center/F%C3%B6rderprogramme-(Inlandsf%C3%B6rderung)/PDF-Dokumente/6000005060_M_300_WEF.pdf" target="_blank" rel="noreferrer">KfW 300 income evidence</a>{" · "}KfW uses the taxable income recorded on the relevant tax-assessment notices.</p>
+      </div>
+      <h3 className="annual-income__steps-heading">How the estimate is built</h3>
       <div className={`annual-income__partners${joint ? "" : " annual-income__partners--single"}`}>
         {people.map(({ label, income }) => (
           <div className="annual-income__card" key={label}>
@@ -68,9 +77,9 @@ export default function AnnualIncomeBreakdown({ people, base, profile }: AnnualI
             <div><dt>{profile ? <a href={profile.parameters.pensionDeductibleFraction.source} target="_blank" rel="noreferrer">Deductible pension contributions</a> : "Deductible pension contributions"}</dt><dd>− {money(base.pensionDeduction)}</dd></div>
             <div><dt>{profile ? <a href={profile.parameters.healthDeductibleFraction.source} target="_blank" rel="noreferrer">Deductible health, care and other insurance</a> : "Deductible health, care and other insurance"}</dt><dd>− {money(base.insuranceDeduction)}</dd></div>
             <div><dt>{profile ? <a href={profile.parameters.specialExpenseAllowance.source} target="_blank" rel="noreferrer">Special-expense allowance</a> : "Special-expense allowance"}</dt><dd>− {money(base.specialExpenses)}</dd></div>
-            <div className="annual-income__total"><dt>{joint ? "Joint taxable income before child allowances" : "Taxable income before child allowances"}</dt><dd>{money(base.taxableIncome)}</dd></div>
+            <div className="annual-income__total"><dt>{joint ? "Joint income after modeled deductions" : "Income after modeled deductions"}</dt><dd>{money(base.taxableIncome)}</dd></div>
           </dl>
-          <p className="annual-income__caption">{joint ? "Shared deductions are applied to the household, without an invented split between partners. " : "Deductions use one person's limits. "}The model floors taxable income at zero. Child allowances are evaluated separately in the annual tax assessment.</p>
+          <p className="annual-income__caption">{joint ? "Shared deductions are applied to the household, without an invented split between partners. " : "Deductions use one person's limits. "}The model floors the amount at zero. Child allowances and additional personal deductions are separate steps toward final taxable income.</p>
         </div>
       ) : null}
     </>
