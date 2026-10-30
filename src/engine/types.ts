@@ -1,4 +1,7 @@
 import type {
+  assessCoupleBenefitIncome,
+} from "#engine/benefits/incomeEligibility";
+import type {
   AnnualTaxRecord,
 } from "#engine/tax/annualTaxRecords";
 /**
@@ -1700,6 +1703,7 @@ export interface MonthlyLedgerEntry {
  * Aggregates monthly chronological ledger entries and high-level KPI totals over the full horizon.
  */
 export interface BenefitAssessmentAudit {
+  readonly incomeEligibility?: ReturnType<typeof assessCoupleBenefitIncome>;
   readonly pregnancyId: PregnancyId;
   readonly parent: TargetPerson;
   readonly birthMonthId: MonthId;

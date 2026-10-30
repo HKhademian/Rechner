@@ -1,3 +1,6 @@
+import {
+  assessCoupleBenefitIncome,
+} from "#engine/benefits/incomeEligibility";
 import assert from "node:assert/strict";
 import {
   it,
@@ -10,6 +13,7 @@ import {
   TaxClass,
   TargetPerson,
   toGrossSalary,
+  toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
   toFullCalendarYear,
@@ -225,4 +229,33 @@ it("rejects plans exceeding ordinary budgets rather than inventing extra entitle
     partnershipBonusMonths: 0 });
   const income = buildIncomeSchedule(base, at(48), conventions);
   assert.throws(() => projectAllowanceSchedule(base, income, at(48), conventions), /individual or family budget/);
+});
+
+
+it("withholds denied and unknown claims without treating denied benefits as exclusion months", () => {
+  const batches = switched(9);
+  const income = buildIncomeSchedule(batches, at(48));
+  const denied = assessCoupleBenefitIncome(toFullCalendarYear(2027), toCalendarMonth(5), toEuroAmount(175000.01));
+  const unknown = assessCoupleBenefitIncome(toFullCalendarYear(2027), toCalendarMonth(5));
+  const projectWith = (eligibility: typeof denied) => projectAllowanceSchedule(batches, income, at(48), undefined, new Map([[pregnancy.pregnancyId, eligibility]]));
+  const rejected = projectWith(denied);
+  assert.equal(rejected.complete, true);
+  assert.equal(rejected.months.get(at(19))?.wifeElterngeld, 0);
+  assert.ok(rejected.assessments.every((assessment) => assessment.available && assessment.reason?.includes("excluded")));
+  const missing = projectWith(unknown);
+  assert.equal(missing.complete, false);
+  assert.equal(missing.months.get(at(19))?.wifeElterngeld, 0);
+  assert.match(missing.unavailableReasons[0], /taxable-income evidence/);
+  const second = { ...pregnancy,
+    pregnancyId: toPregnancyId("SECOND-INCOME-GATE"),
+    childIndex: toChildIndex(2),
+    calculatedDeliverySimulationMonth: toSimulationMonth(44) };
+  const two = { ...batches,
+    pregnancies: [pregnancy, second] };
+  const later = projectAllowanceSchedule(two, buildIncomeSchedule(two, at(64)), at(64), undefined, new Map([
+    [pregnancy.pregnancyId, denied],
+    [second.pregnancyId, assessCoupleBenefitIncome(toFullCalendarYear(2029), toCalendarMonth(8), toEuroAmount(0))],
+  ]));
+  const selected = later.assessments.find((assessment) => assessment.pregnancyId === second.pregnancyId && assessment.parent === TargetPerson.Wife)!;
+  assert.deepEqual(selected.excludedMonths, ["M07.2029"]); // Maternity only; no denied older benefits.
 });

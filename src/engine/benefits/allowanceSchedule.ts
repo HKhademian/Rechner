@@ -1,5 +1,10 @@
 import {
+  type assessCoupleBenefitIncome,
+  IncomeEligibilityStatus,
+} from "#engine/benefits/incomeEligibility";
+import {
   type ScenarioActionBatches,
+  type PregnancyId,
   type BenefitAssessmentAudit,
   type BenefitPaymentAudit,
   type EuroAmount,
@@ -76,6 +81,7 @@ export function projectAllowanceSchedule(
   income: readonly IncomeMonth[],
   visibleEnd: AssessmentMonthOrdinal,
   conventions: TimelineConventions = batches.preexisting.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS,
+  incomeEligibility?: ReadonlyMap<PregnancyId, ReturnType<typeof assessCoupleBenefitIncome>>,
 ) {
   const p = batches.preexisting;
   const rules = p.benefitRules ?? DEFAULT_BENEFIT_RULES;
@@ -140,6 +146,10 @@ export function projectAllowanceSchedule(
       continue;
     }
     const pregnancy = birth.pregnancy;
+    const eligibility = incomeEligibility?.get(pregnancy.pregnancyId);
+    if (incomeEligibility && !eligibility) {
+      throw new TypeError("Every visible birth needs an income-eligibility assessment.");
+    }
     if (!Number.isInteger(pregnancy.fatherPartnerMonthsCount) || pregnancy.fatherPartnerMonthsCount < 0 ||
       pregnancy.fatherPartnerMonthsCount > rules.familyBasisMonths.value / rules.plusFraction.value) {
       throw new TypeError("Requested father Plus months exceed the individual ordinary allowance capacity.");
@@ -321,7 +331,17 @@ export function projectAllowanceSchedule(
       catch (error) {
         reason ??= error instanceof Error ? error.message : "Post-birth income rules are unavailable.";
       }
-      const available = prepared.net !== undefined && after !== undefined;
+      const denied = eligibility?.status === IncomeEligibilityStatus.Ineligible;
+      const incomeUnknown = eligibility?.status === IncomeEligibilityStatus.Unavailable;
+      if (eligibility) {
+        const note = `Household taxable income for ${eligibility.relevantIncomeYear}: ${eligibility.taxableIncome ?? "unavailable"}; maximum ${eligibility.maximum}. ${eligibility.source}`;
+        notes.add(note);
+        if (denied || incomeUnknown) {
+          reason = denied ? `Elterngeld excluded: household taxable income exceeds the prior-year limit. ${note}`
+            : `Prior-year household taxable-income evidence is required for Elterngeld eligibility. ${note}`;
+        }
+      }
+      const available = denied || (!incomeUnknown && prepared.net !== undefined && after !== undefined);
       const priorBenefitMonths = prepared.window.records.filter((record) => {
         const prior = result.get(record.ordinal);
         return prior !== undefined && (husband ? prior.husbandElterngeld : prior.wifeElterngeld) > 0;
@@ -330,6 +350,9 @@ export function projectAllowanceSchedule(
       const uncertainExclusions = husband ? uncertainExclusionsH : uncertainExclusionsW;
       const uncertainCreditHistory = prepared.window.records.some((record) => uncertainAmounts.has(record.ordinal));
       for (const ordinal of planned) {
+        if (denied) {
+          continue;
+        }
         const month = at(ordinal);
         const row = result.get(ordinal)!;
         const unavailable = (problem: string): void => {
@@ -387,7 +410,8 @@ export function projectAllowanceSchedule(
         }
       }
       notes.forEach((note) => allAssumptions.add(note));
-      assessments.push(Object.freeze({ pregnancyId: pregnancy.pregnancyId,
+      assessments.push(Object.freeze({ incomeEligibility: eligibility,
+        pregnancyId: pregnancy.pregnancyId,
         parent: husband ? TargetPerson.Husband : TargetPerson.Wife,
         birthMonthId: monthId(birth.ordinal),
         incomeMode: grossMode ? SalaryInputMode.Gross : SalaryInputMode.Net,
