@@ -1509,7 +1509,16 @@ export interface AccountingTransaction {
  * Special Life & Accounting Event Item.
  * Represents sub-row visual entries and discrete payments (13th salaries, tax returns, baby equipment).
  */
+export interface TaxSettlementAudit {
+  readonly calendarYear: FullCalendarYear;
+  readonly settlement: EuroAmount;
+  readonly creditedIncomeTax: EuroAmount;
+  readonly creditedSolidarity: EuroAmount;
+  readonly totalLiability: EuroAmount;
+}
+
 export interface SpecialEventItem {
+  readonly taxSettlement?: TaxSettlementAudit;
   /** Unique event identifier. */
   readonly eventId: EventId;
   /** Absolute calendar month key formatted as 'M<MM>.<YYYY>'. */
