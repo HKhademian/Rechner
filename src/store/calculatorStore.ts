@@ -259,10 +259,8 @@ export const savedScenarios = persistedSignal<SavedScenarioItem[]>(
   "savedScenarios",
   [],
 );
-export const activeScenarioId = persistedSignal<string | null>(
-  "activeScenarioId",
-  null,
-);
+// Editing belongs to the current session, just like its unsaved draft.
+export const activeScenarioId = signal<string | null>(null);
 export const scenarioDraft = signal<SavedScenarioItem | null>(null);
 
 export function getCurrentInputs(): CalculatorInputs {

@@ -73,14 +73,6 @@ export default function ComparisonTable(): JSX.Element | null {
 
   useEffect(() => {
     setMounted(true);
-    // Initialize first scenario if none exist
-    if (savedScenarios.peek().length === 0) {
-      saveScenario(
-        "My First Scenario",
-        "Default starting point",
-        deductions.peek(),
-      );
-    }
   }, []);
 
   if (!mounted) {
@@ -670,6 +662,10 @@ export function ComparisonTableContent(): JSX.Element {
         }}>
         {showSavedComparison.value ? "Show live inputs only" : "Compare saved scenarios"}
       </button>}
+      {savedScenarios.value.length === 0 && <div className="comparison-empty">
+        <p>No saved scenarios yet. Edit your live inputs, then save a snapshot to compare.</p>
+        <button onClick={handleAddScenario} disabled={hasInvalidLive}>Save first scenario</button>
+      </div>}
       <LiveCalculationSummary data={deductions.value} hasInvalidInputs={hasInvalidLive} />
 
       <div className="comparison-scroll" style={{ overflowX: "auto",
