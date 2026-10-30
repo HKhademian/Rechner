@@ -67,7 +67,7 @@ export type TransactionId = Brand<string, 'TransactionId'>;
    - `jointAssessment.ts`: Annual Joint Assessment with Income Splitting (*Ehegatten-Splitting* § 26b, § 32a Abs. 5 EStG), providing the splitting/child-allowance comparison for the supported joint-spouse model.
    - `annualEmploymentIncome.ts`, `progressionTax.ts`, `annualTaxSettlement.ts`, `annualTaxRecords.ts`: Actual supported yearly deductions, progression, signed settlement and complete-record availability. Missing/manual/unsupported inputs remain unavailable.
 2. **`src/engine/benefits/`**:
-   - `mutterschutz.ts`: Maternity pay (*Mutterschaftsgeld & Arbeitgeberzuschuss* § 19, 20 MuSchG).
+   - `mutterschutz.ts`: Legacy diagnostic component-split helper; the integrated combined maternity payment uses preceding wages in `incomeSchedule.ts`, with explicit calendar-window assumptions.
    - `assessmentHistory.ts`, `standardizedNet.ts`, `allowanceSchedule.ts`: Frozen eligible histories, independently selected deduction characteristics (latest on a tie), BEEG net separate from payroll, and cohort payment/budget accounting. Missing prehistory is a labeled initial-baseline assumption.
    - `elterngeldPlus.ts`: Basiselterngeld & ElterngeldPlus (§ 4, 4a BEEG), sliding scale replacement rates (65%–100% § 2 BEEG), statutory caps (€900 / €1,800) and floors (€150 / €300).
    - `siblingBonus.ts`: Configured household age routes, positive-base sibling addition and Plus minimum/ceiling treatment.
