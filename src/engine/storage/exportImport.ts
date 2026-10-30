@@ -206,13 +206,13 @@ export function exportStateToTextReport(
     "--------------------------------------------------------------------------------",
   );
   lines.push(
-    " Scenario A: Baseline Standard (Wife Class V, Basis-Elterngeld, No Optimization)",
+    " Scenario A: Baseline employment without planned pregnancies",
   );
   lines.push(
-    " Scenario B: Strategic Tax Swap (Class III/V Shift, Basis-Elterngeld)",
+    " Scenario B: Planned family timeline with initial tax classes",
   );
   lines.push(
-    " Scenario C: Maximum Legal Strategy (Tax Swap + ElterngeldPlus + Partnerschaftsbonus)",
+    " Scenario C: Planned family timeline with supplied or synthesized tax switches",
   );
   lines.push("");
 
@@ -234,6 +234,7 @@ export function exportStateToTextReport(
     ? resC.summary.totalWifeElterngeld + resC.summary.totalHusbandElterngeld
     : 0;
 
+  const signed = (value: number) => `${value > 0 ? "+" : ""}${fmtEur(value)}`;
   lines.push(
     " Metric                               Scenario A        Scenario B        Scenario C",
   );
@@ -244,13 +245,13 @@ export function exportStateToTextReport(
     ` Total Period Net Family Inflow:   ${fmtEur(totalA).padEnd(16)}  ${fmtEur(totalB).padEnd(16)}  ${fmtEur(totalC).padEnd(16)}`,
   );
   lines.push(
-    ` Difference to Baseline (Scenario A): ${fmtEur(0).padEnd(16)}  +${fmtEur(totalB - totalA).padEnd(15)}  +${fmtEur(totalC - totalA).padEnd(15)}`,
+    ` Difference to Baseline (Scenario A): ${fmtEur(0).padEnd(16)}  ${signed(totalB - totalA).padEnd(15)}  ${signed(totalC - totalA).padEnd(15)}`,
   );
   lines.push(
     ` Total Elterngeld Benefits Paid:     ${fmtEur(egA).padEnd(16)}  ${fmtEur(egB).padEnd(16)}  ${fmtEur(egC).padEnd(16)}`,
   );
   lines.push(
-    ` Net Gain from Strategy:              ${fmtEur(0).padEnd(16)}  +${fmtEur(egB - egA).padEnd(15)}  +${fmtEur(egC - egA).padEnd(15)}`,
+    ` Elterngeld Difference vs A:           ${fmtEur(0).padEnd(16)}  ${signed(egB - egA).padEnd(15)}  ${signed(egC - egA).padEnd(15)}`,
   );
   lines.push("");
 
@@ -259,7 +260,7 @@ export function exportStateToTextReport(
     "--------------------------------------------------------------------------------",
   );
   lines.push(
-    " 3. YEAR-BY-YEAR FINANCIAL INFLOW SCHEDULE (OPTIMIZED SCENARIO C)",
+    " 3. YEAR-BY-YEAR FINANCIAL INFLOW SCHEDULE (SCENARIO C)",
   );
   lines.push(
     "--------------------------------------------------------------------------------",

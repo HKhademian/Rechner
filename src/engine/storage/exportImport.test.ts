@@ -345,3 +345,12 @@ it("retains cents in text and print report totals", () => {
   assert.ok(report.includes("36.060,25"));
   assert.ok(report.includes("12.060,25"));
 });
+
+
+it("keeps negative text-report comparisons signed without promising an optimal outcome", () => {
+  const report = reportWithResults(ledgerRowsFixture(100), ledgerRowsFixture(90), ledgerRowsFixture(80));
+  const comparison = report.split("\n").find((line) => line.includes("Difference to Baseline"))!;
+  assert.match(comparison, /-10,00/);
+  assert.match(comparison, /-20,00/);
+  assert.doesNotMatch(report, /\+-|Maximum Legal Strategy|Strategic Tax Swap \(Class III/);
+});
