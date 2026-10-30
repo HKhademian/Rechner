@@ -55,6 +55,8 @@ import {
   hasUnsavedScenarioChanges,
   saveScenario,
   deleteScenario,
+  pendingScenarioDeletion,
+  undoScenarioDeletion,
   loadScenario,
   editScenario,
   saveDraft,
@@ -663,6 +665,10 @@ export function ComparisonTableContent(): JSX.Element {
         }}>
         {showSavedComparison.value ? "Show live inputs only" : "Compare saved scenarios"}
       </button>}
+      {pendingScenarioDeletion.value && <div className="comparison-empty" role="status">
+        <p>Deleted “{pendingScenarioDeletion.value.scenario.title}”.</p>
+        <button onClick={undoScenarioDeletion}>Undo deletion</button>
+      </div>}
       {savedScenarios.value.length === 0 && <div className="comparison-empty">
         <p>No saved scenarios yet. Edit your live inputs, then save a snapshot to compare.</p>
         <button onClick={handleAddScenario} disabled={hasInvalidLive}>Save first scenario</button>

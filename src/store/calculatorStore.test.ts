@@ -13,6 +13,9 @@ import {
   updateScenarioInput,
   hasUnsavedScenarioChanges,
   saveDraft,
+  deleteScenario,
+  undoScenarioDeletion,
+  pendingScenarioDeletion,
 } from "#store/calculatorStore";
 import {
   DEFAULT_TAX_YEAR,
@@ -47,6 +50,33 @@ it("tracks only unsaved scenario input or metadata changes", () => {
   assert.equal(hasUnsavedScenarioChanges.value, false);
   editScenario("dirty-check");
   assert.equal(hasUnsavedScenarioChanges.value, false);
+  cancelEdit();
+  savedScenarios.value = [];
+});
+
+it("undoes scenario deletion in its original position and recovers the last valid draft", () => {
+  const inputs = getCurrentInputs();
+  const data = calculateScenarioData(inputs);
+  savedScenarios.value = ["first", "second"].map((id) => ({ id,
+    title: id,
+    description: "",
+    inputs,
+    data,
+    timestamp: "2026-10-30" }));
+  editScenario("first");
+  updateScenarioMetaData("Unsaved title", "");
+  deleteScenario("first");
+  assert.deepEqual(savedScenarios.value.map((scenario) => scenario.id), ["second"]);
+  assert.equal(scenarioDraft.value, null);
+  undoScenarioDeletion();
+  assert.deepEqual(savedScenarios.value.map((scenario) => scenario.id), ["first", "second"]);
+  assert.equal(savedScenarios.value[0].title, "first");
+  assert.equal(scenarioDraft.value?.title, "Unsaved title");
+  assert.equal(hasUnsavedScenarioChanges.value, true);
+  assert.deepEqual(getCurrentInputs(), inputs);
+  assert.equal(pendingScenarioDeletion.value, null);
+  undoScenarioDeletion();
+  assert.equal(savedScenarios.value.length, 2);
   cancelEdit();
   savedScenarios.value = [];
 });

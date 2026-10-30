@@ -262,6 +262,11 @@ export const savedScenarios = persistedSignal<SavedScenarioItem[]>(
 // Editing belongs to the current session, just like its unsaved draft.
 export const activeScenarioId = signal<string | null>(null);
 export const scenarioDraft = signal<SavedScenarioItem | null>(null);
+export const pendingScenarioDeletion = signal<{
+  readonly scenario: SavedScenarioItem;
+  readonly index: number;
+  readonly draft: SavedScenarioItem | null;
+} | null>(null);
 export const hasUnsavedScenarioChanges = computed(() => {
   const draft = scenarioDraft.value;
   const saved = savedScenarios.value.find((scenario) => scenario.id === activeScenarioId.value);
@@ -315,10 +320,35 @@ export function saveScenario(
 }
 
 export function deleteScenario(id: string): void {
+  const index = savedScenarios.peek().findIndex((scenario) => scenario.id === id);
+  if (index < 0) {
+    return;
+  }
+  pendingScenarioDeletion.value = {
+    scenario: savedScenarios.peek()[index],
+    index,
+    draft: activeScenarioId.peek() === id ? scenarioDraft.peek() : null,
+  };
   savedScenarios.value = savedScenarios.value.filter((s) => s.id !== id);
   if (activeScenarioId.value === id) {
     cancelEdit();
   }
+}
+
+/** Undo the most recent deletion without changing the live calculator inputs. */
+export function undoScenarioDeletion(): void {
+  const deleted = pendingScenarioDeletion.peek();
+  if (!deleted || savedScenarios.peek().some((scenario) => scenario.id === deleted.scenario.id)) {
+    return;
+  }
+  const scenarios = [...savedScenarios.peek()];
+  scenarios.splice(deleted.index, 0, deleted.scenario);
+  savedScenarios.value = scenarios;
+  if (deleted.draft && !scenarioDraft.peek()) {
+    scenarioDraft.value = deleted.draft;
+    activeScenarioId.value = deleted.scenario.id;
+  }
+  pendingScenarioDeletion.value = null;
 }
 
 export function loadScenario(id: string): void {
