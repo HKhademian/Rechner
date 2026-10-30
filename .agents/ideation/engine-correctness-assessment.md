@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - assessment and reconciliation
-status: in_progress
+status: completed
 created: 2026-10-29
 todos:
   - id: assessment-history
@@ -14,7 +14,7 @@ todos:
     status: completed
   - id: end-to-end-gate
     content: "Gate - verify independent household cases and document remaining limits"
-    status: in_progress
+    status: completed
 plans:
   requires: [engine-correctness-payroll.md]
   blocks: []
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: assessment and reconciliation
 
 ## Done
+
+- 2026-10-30: the reopened text/print-report gate is complete in four focused commits: actual horizon/calendar groups, monetary cents, signed scenario comparisons, and availability/provenance/cash timing. Regressions cover 72 months beginning in September (calendar years2026–2032), negative comparisons, manual-net unavailable tax and the independently worked4569 refund outside/inside its proper horizons. Full quality checks and build pass after the final code change. All planned work and final output verification are complete within the recorded supported model.
 
 - 2026-10-30: final export audit reopens the verification gate for the older text/print report: it still assumes a fixed horizon, positive gains and complete results. The eleven calculation/row fixes remain complete; report-boundary corrections and final rechecks follow as separate small commits.
 

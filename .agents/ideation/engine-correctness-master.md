@@ -1,6 +1,6 @@
 ---
 name: Engine correctness - sequential repair plan
-status: in_progress
+status: completed
 created: 2026-10-29
 todos:
   - id: wave-1-benefits
@@ -11,7 +11,7 @@ todos:
     status: completed
   - id: wave-3-assessment
     content: "Complete assessment, reconciliation, export parity, and final verification"
-    status: in_progress
+    status: completed
 plans:
   requires: []
   blocks: []
@@ -35,6 +35,8 @@ plans:
 Repair the financial engine one independently verified change at a time before feature development. Cover all eight findings from the 2026-10-29 review, including shared payroll and output contracts that affect the engine's visible results. This file defines order only; concrete edits and acceptance criteria live in the child plans. Implementation is authorized and proceeds sequentially in atomic commits.
 
 ## Done
+
+- 2026-10-30: the additional legacy text/print-report audit is resolved in separate horizon, cents, signed-comparison and metadata commits. The final quality/build gate passes; all eleven fixes and output-boundary corrections are complete. All related tracked changes are committed; the unrelated untracked test-random directory was preserved.
 
 - 2026-10-30: all eleven sequential fixes and the final gate are complete within the documented supported-household model. Implementation, configuration prerequisites, adapters, reference corrections and documentation were committed progressively as focused changes. Full quality/build checks pass; the representative CLI forecast preserves cash conservation, projection provenance and outside-horizon settlements. See the assessment plan's final evidence and STATUTORY_CONFIGURATION.md for retained unsupported cases. No general statutory-coverage or guaranteed-gain claim is made.
 
