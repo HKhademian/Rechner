@@ -1,0 +1,34 @@
+.live-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.live-input:focus-visible,
+.live-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.live-input[aria-invalid="true"] {
+  border-color: var(--color-warning);
+}
+
+.live-input__error {
+  margin: 6px 0 0;
+  color: var(--color-warning);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.live-toggle {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
