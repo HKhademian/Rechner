@@ -63,19 +63,20 @@ export type TransactionId = Brand<string, 'TransactionId'>;
 
 ### Engine Submodules:
 1. **`src/engine/tax/`**:
-   - `wageTax.ts`: Monthly wage tax withholding (*Lohnsteuerabzug* § 38b EStG), Solidarity Surcharge (*Solidaritätszuschlag* § 32a EStG), and net wage determination per `TaxClass`.
-   - `jointAssessment.ts`: Annual Joint Assessment with Income Splitting (*Ehegatten-Splitting* § 26b, § 32a Abs. 5 EStG), computing exact annual joint liability and wage tax prepayment reconciliations.
+   - `wageTax.ts`: Monthly wage tax withholding (*Lohnsteuerabzug* § 38b EStG), Solidarity Surcharge (*Solidaritätszuschlag* SolzG), and net wage determination per `TaxClass`.
+   - `jointAssessment.ts`: Annual Joint Assessment with Income Splitting (*Ehegatten-Splitting* § 26b, § 32a Abs. 5 EStG), providing the splitting/child-allowance comparison for the supported joint-spouse model.
+   - `annualEmploymentIncome.ts`, `progressionTax.ts`, `annualTaxSettlement.ts`, `annualTaxRecords.ts`: Actual supported yearly deductions, progression, signed settlement and complete-record availability. Missing/manual/unsupported inputs remain unavailable.
 2. **`src/engine/benefits/`**:
    - `mutterschutz.ts`: Maternity pay (*Mutterschaftsgeld & Arbeitgeberzuschuss* § 19, 20 MuSchG).
-   - `elterngeldAssessment.ts`: 12-Month pre-birth assessment baseline (*Bemessungszeitraum* § 2b BEEG) and statutory 7-month dominant tax class rule (*Überwiegende Steuerklasse* § 2b Abs. 1 Satz 3 BEEG).
+   - `assessmentHistory.ts`, `standardizedNet.ts`, `allowanceSchedule.ts`: Frozen eligible histories, independently selected deduction characteristics (latest on a tie), BEEG net separate from payroll, and cohort payment/budget accounting. Missing prehistory is a labeled initial-baseline assumption.
    - `elterngeldPlus.ts`: Basiselterngeld & ElterngeldPlus (§ 4, 4a BEEG), sliding scale replacement rates (65%–100% § 2 BEEG), statutory caps (€900 / €1,800) and floors (€150 / €300).
-   - `siblingBonus.ts`: Sibling bonus (*Geschwisterbonus* § 2a BEEG +10%, min. +€75 for ElterngeldPlus) until Child 1 reaches 36 months.
-   - `kindergeld.ts`: Statutory child benefit (*Kindergeld* § 66 EStG) per child.
+   - `siblingBonus.ts`: Configured household age routes, positive-base sibling addition and Plus minimum/ceiling treatment.
+   - `incomeEligibility.ts`: Birth-date couple limits, prior-year taxable-income eligibility and explicit unavailable status. Kindergeld cash retains the supplied per-child rate/count audit.
 3. **`src/engine/ledger/`**:
    - `transaction.ts`: Atomic financial ledger entry with unique `TransactionId`, `SimulationMonth`, signed `EuroAmount`, legal `StatutoryCitation`, and mathematical audit trail.
-   - `ledger.ts`: 60-Month double-entry accounting ledger aggregating monthly sub-accounts, running totals, and annual reconciliation audits.
+   - `ledger.ts`, `taxSettlements.ts`, `rows.ts`: Monthly accounting, once-only signed annual settlements and one ordered action/event/base-row projection for UI, CLI and CSV.
 4. **`src/engine/simulator/`**:
-   - `timelineGenerator.ts`: Pure deterministic multi-year timeline simulator generating 60-month ledgers for Scenarios A, B, and C with full branded-type safety.
+   - `incomeSchedule.ts`, `timelineGenerator.ts`: Chronological payroll and deterministic visible cash ledgers. An income pass establishes annual eligibility evidence before birth-ordered benefits are replayed; forecasting beyond the visible horizon completes averaging/bonus bases without posting unseen cash.
 
 ---
 
@@ -84,43 +85,43 @@ export type TransactionId = Brand<string, 'TransactionId'>;
 State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-tracked reactive updates connecting the TypeScript engine to the UI:
 
 ### Core Stores:
-1. **`src/store/calculatorStore.js`**:
+1. **`src/store/calculatorStore.ts`**:
    - Manages gross income, tax brackets (I to VI), church tax flags, federal states (*Bundesländer*), number of children, and partner income parameters.
    - Computes German tax progression (§ 32a EStG), social security deduction caps, health care Zusatzbeitrag, care insurance child allowances, and solidarity surcharge.
    - Handles multi-scenario persistence via local storage.
 
-2. **`src/store/elterngeldStore.js`**:
+2. **`src/store/elterngeldStore.ts`**:
    - Manages household financial parameters (Husband Class III / Class V Net; Wife Full-time Class V / III Net; Wife Part-time Class V / III Net; Kindergeld).
-   - Manages timeline signals: `prePregnancyPlanningMonths` (default 3M), `child1BirthMonth` (default 12M), `birthSpacingMonths` (default 27M), `swapLeadMonths` (default 7M).
+   - Persists timeline/actions, validated personal payroll inputs, optional yearly household taxable income and the explicit manual-net assessment assumption.
    - Reactive computation functions invoking `timelineGenerator.ts`:
-     - `computeTimelineData('A')`: Baseline scenario with flat salaries.
-     - `computeTimelineData('B')`: Unoptimized scenario with static Class III/V.
-     - `computeTimelineData('C')`: Optimized scenario with proactive swaps, synthetic net rule, sibling bonus, and annual tax refunds.
-   - Computes KPI metrics: Total Salaries, State Benefits Extracted, Tax Reconciliation Refund, Grand Total Inflow, and delta comparisons.
+     - `computeTimelineData('A')`: Baseline employment under the supplied hours, raises and financial actions.
+     - `computeTimelineData('B')`: Baseline scenario retaining the initial supplied tax classes.
+     - `computeTimelineData('C')`: Scenario with supplied or synthesized tax switches; actual history and eligibility determine benefits, and tax settlements can have either sign.
+   - Computes KPI metrics: Total Salaries, State Benefits, Signed Tax Settlements, Grand Total Cash Flow, and delta comparisons.
 
-3. **`src/store/taxConfigStore.js`**:
-   - Stores regulatory thresholds and statutory contribution rates (Health Cap, Pension Cap, Basic Allowance, Care Insurance rates).
+3. **`src/store/taxConfigStore.ts`**:
+   - Selects verified published payroll-year profiles. Arbitrary tariff editing is retired; personal inputs remain separately configurable.
 
 ---
 
 ## 3. UI Component Breakdown
 
 ### Navigation & Shell
-- **`Navigation.jsx`**: Global sticky header providing route links between `/` and `/elterngeld`, active tab highlighting, brand identity, and statutory status indicator.
+- **`Navigation.tsx`**: Global sticky header providing route links between `/` and `/elterngeld`, active tab highlighting, brand identity, and statutory status indicator.
 
 ### Elterngeld Multi-Year Studio (`/elterngeld`)
-- **`ElterngeldDashboard.jsx`**: Master layout coordinator.
-- **`KpiScorecard.jsx`**: Displays 4 metric cards (`Total Earned Salaries`, `State Benefits Extracted`, `Finanzamt Tax Refund`, `Grand Total Household Inflow`) with scenario delta indicators.
-- **`ScenarioSelector.jsx`**: Grid selector enabling instant switching between Scenario A, B, C, and the multi-scenario comparison overlay.
-- **`TimelineChart.jsx`**: Custom responsive SVG chart engine:
+- **`ElterngeldDashboard.tsx`**: Master layout coordinator.
+- **`KpiScorecard.tsx`**: Displays 4 metric cards with salaries, benefits, signed scenario differences and separate annual-tax availability/timing details.
+- **`ScenarioSelector.tsx`**: Grid selector enabling instant switching between Scenario A, B, C, and the multi-scenario comparison overlay.
+- **`TimelineChart.tsx`**: Custom responsive SVG chart engine:
   - **Stacked Bar Mode**: Renders 60 monthly stacked columns with distinct visual fills.
   - **Area Trend Mode**: Smooth stacked area paths illustrating cumulative household inflow trends.
   - **Compare Mode**: Overlay comparison curves of Scenario A vs. B vs. C with data points.
   - **Event Markers**: Visual pin markers for Pregnancy Starts, Tax Swaps, Births, and Sibling Bonus expiration.
   - **Hover Tooltip**: Interactive coordinate-tracked tooltip providing line-by-line monthly monetary composition.
-- **`SandboxControls.jsx`**: Interactive range sliders and numerical inputs for all household parameters, birth spacing, and pre-pregnancy lead time with preset configurations.
-- **`RulesExplainer.jsx`**: Interactive legal reference tabs detailing BEEG, MuSchG, EStG, and BFH rulings.
-- **`TimelineTable.jsx`**: Comprehensive 60-month tabular ledger with year filters, search capabilities, delta toggles, and CSV data export.
+- **`SandboxControls.tsx`**: Interactive range sliders and numerical inputs for all household parameters, birth spacing, and pre-pregnancy lead time with preset configurations.
+- **`RulesExplainer.tsx`**: Interactive legal reference tabs showing source-linked BEEG, MuSchG and EStG model contracts with actual scenario audit values.
+- **`TimelineTable.tsx`**: Comprehensive 60-month tabular ledger with year filters, search capabilities, delta toggles, and CSV data export.
 
 ---
 
