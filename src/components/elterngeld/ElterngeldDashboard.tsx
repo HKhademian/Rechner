@@ -1,3 +1,7 @@
+import "./ElterngeldDashboard.css";
+import {
+  currentScenarioData,
+} from "#store/elterngeldStore";
 import type {
   JSX, 
 } from "preact";
@@ -13,6 +17,7 @@ import {
 import Navigation from "#components/Navigation";
 
 export default function ElterngeldDashboard(): JSX.Element {
+  const months = currentScenarioData.value.months;
   return (
     <div
       style={{
@@ -37,62 +42,23 @@ export default function ElterngeldDashboard(): JSX.Element {
           width: "100%",
         }}
       >
-        {/* Page Hero Title & Header */}
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "28px",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: "var(--border-radius-sm)",
-              padding: "4px 12px",
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              marginBottom: "12px",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <span>
-              Federal Parental Allowance &amp; Leave Act (*BEEG*) • Multi-Year
-              Financial Modeling
-            </span>
+        <header className="simulator-header">
+          <div className="simulator-header__intro">
+            <p className="simulator-header__eyebrow">Household planning · BEEG / MuSchG / EStG</p>
+            <h1>Parental leave planner</h1>
+            <p className="simulator-header__description">Explore how your leave, working hours and tax choices affect household cash flow.</p>
           </div>
-
-          <h1
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 800,
-              color: "var(--text-primary)",
-              margin: "0 0 10px 0",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            Elterngeld &amp; Parental Leave 5-Year Simulator
-          </h1>
-
-          <p
-            style={{
-              color: "var(--text-secondary)",
-              fontSize: "0.98rem",
-              maxWidth: "820px",
-              margin: "0 auto",
-              lineHeight: 1.55,
-            }}
-          >
-            60-month household financial forecast for a family planning two
-            children. Comparing three timeline scenarios incorporating proactive
-            tax class optimization (III/V), statutory maternity pay,
-            ElterngeldPlus, and sibling bonuses.
-          </p>
-        </div>
+          <dl className="simulator-header__period" aria-label="Planning period">
+            <div>
+              <dt>Forecast period</dt>
+              <dd>{months[0]?.calendarLabel} – {months.at(-1)?.calendarLabel}</dd>
+            </div>
+            <div>
+              <dt>Duration</dt>
+              <dd>{months.length} months</dd>
+            </div>
+          </dl>
+        </header>
 
         {/* Dynamic KPI Scorecard */}
         <KpiScorecard />
