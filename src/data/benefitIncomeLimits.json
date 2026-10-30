@@ -1,0 +1,20 @@
+[
+  {
+    "effectiveBirthYear": 2021,
+    "effectiveBirthMonth": 9,
+    "coupleTaxableIncomeMaximum": 300000,
+    "source": "https://familienportal.de/familienportal/familienleistungen/elterngeld/faq/was-aendert-sich-fuer-geburten-ab-1-april-2024-beim-elterngeld-237122"
+  },
+  {
+    "effectiveBirthYear": 2024,
+    "effectiveBirthMonth": 4,
+    "coupleTaxableIncomeMaximum": 200000,
+    "source": "https://www.gesetze-im-internet.de/beeg/__28.html"
+  },
+  {
+    "effectiveBirthYear": 2025,
+    "effectiveBirthMonth": 4,
+    "coupleTaxableIncomeMaximum": 175000,
+    "source": "https://www.gesetze-im-internet.de/beeg/__1.html"
+  }
+]
