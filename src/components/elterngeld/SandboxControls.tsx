@@ -1,3 +1,4 @@
+import HouseholdIncomeInputs from "#components/HouseholdIncomeInputs";
 import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
 import type {
   JSX,
@@ -8,6 +9,7 @@ import {
 import {
   salaryPeriod,
   assumeManualNetIsAssessmentNet,
+  householdTaxableIncome,
   husbandGross,
   husbandPayrollOptions,
   wifePayrollOptions,
@@ -4785,6 +4787,7 @@ export default function SandboxControls(): JSX.Element {
                 {" "}In manual-net mode, use supplied take-home values as unverified BEEG-net estimates.
                 Payroll take-home and statutory assessment net differ; leave unchecked to report missing assessments.
               </label>
+              <HouseholdIncomeInputs values={householdTaxableIncome} suggestedYear={toFullCalendarYear(startCalendarYear.value - 1)} />
               <h4>Husband payroll details</h4>
               <PayrollPersonalInputs id="simulator-husband" options={husbandPayrollOptions} showLocation />
               <h4>Wife payroll details</h4>
