@@ -1,3 +1,4 @@
+import "./SandboxControls.css";
 import HouseholdIncomeInputs from "#components/HouseholdIncomeInputs";
 import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
 import type {
@@ -124,7 +125,6 @@ import {
 } from "#data/scenarios/scenarioRegistry";
 
 import {
-  ConfigureSandboxIcon,
   SimulationPeriodIcon,
   ChildBirthMilestoneIcon,
   EmploymentCompensationIcon,
@@ -274,74 +274,30 @@ export default function SandboxControls(): JSX.Element {
       style={{ padding: "22px",
         marginBottom: "28px" }}
     >
-      {/* Header with Collapsible Toggle */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          cursor: "pointer",
-        }}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <div style={{ display: "flex",
-          alignItems: "center",
-          gap: "10px" }}>
-          <div
-            style={{
-              background: "var(--color-primary-bg)",
-              padding: "8px",
-              borderRadius: "var(--border-radius-sm)",
-              color: "var(--color-primary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ConfigureSandboxIcon size={20} />
-          </div>
-          <div>
-            <h3
-              style={{
-                fontSize: "1.15rem",
-                fontWeight: 800,
-                color: "var(--text-primary)",
-                margin: 0,
-              }}
+      <div className="planner-input-header">
+        <div>
+          <h3>
+            <button
+              type="button"
+              className="planner-input-toggle"
+              aria-expanded={isOpen}
+              aria-controls={isOpen ? "planner-input-fields" : undefined}
+              onClick={() => setIsOpen((open) => !open)}
             >
-              Discrete Batch Action Sandbox & Simulation Runner
-            </h3>
-            <p
-              style={{
-                fontSize: "0.78rem",
-                color: "var(--text-muted)",
-                margin: "2px 0 0 0",
-              }}
-            >
-              Configured via discrete batches: 1. Pregnancy Decisions → 2. Tax
-              Switches → 3. Salary Raises → 4. Financial Events → 0. Preexisting
-              Baseline &amp; Parameters
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: "flex",
-          alignItems: "center",
-          gap: "8px" }}>
-          <span
-            style={{
-              fontSize: "0.8rem",
-              color: "var(--color-primary)",
-              fontWeight: 600,
-            }}
-          >
-            {isOpen ? "Collapse ▴" : "Expand ▾"}
-          </span>
+              <span>Your plan inputs</span>
+              <span className="planner-input-toggle__state">
+                {isOpen ? "Hide inputs" : "Show inputs"}
+                {isOpen ? <CollapseSectionIcon size={16} /> : <ExpandSectionIcon size={16} />}
+              </span>
+            </button>
+          </h3>
+          <p>Edit your household, planned births, tax choices and working hours.</p>
         </div>
       </div>
 
       {isOpen && (
         <div
+          id="planner-input-fields"
           style={{
             marginTop: "20px",
             borderTop: "1px solid var(--border-subtle)",

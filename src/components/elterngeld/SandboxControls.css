@@ -1,0 +1,46 @@
+.planner-input-header > div {
+  width: 100%;
+}
+
+.planner-input-header h3 {
+  margin: 0;
+}
+
+.planner-input-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+}
+
+.planner-input-toggle__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.planner-input-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+.planner-input-header p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
