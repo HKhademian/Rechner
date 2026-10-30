@@ -1,4 +1,7 @@
 import {
+  standardPreexistingConditions,
+} from "../../../test/fixture/standardHouseholds.ts";
+import {
   describe,
   it,
 } from "node:test";
@@ -27,6 +30,9 @@ import {
   toWorkingHours,
   toFullCalendarYear,
   toChildrenCount,
+  toMonthDuration,
+  toCalendarMonth,
+  toNetSalary,
 } from "#engine/types";
 
 describe("User Data Export & Import Engine", () => {
@@ -187,7 +193,7 @@ describe("User Data Export & Import Engine", () => {
 
       assert.ok(
         report.includes(
-          "GERMAN ELTERNGELD & PARENTAL LEAVE 5-YEAR FINANCIAL FORECAST & AUDIT REPORT",
+          "GERMAN ELTERNGELD & PARENTAL LEAVE FINANCIAL FORECAST & AUDIT REPORT",
         ),
       );
       assert.ok(
@@ -289,4 +295,31 @@ describe("User Data Export & Import Engine", () => {
       assert.equal(entryCount, 3);
     });
   });
+});
+
+
+it("reports all actual calendar years for a 72-month horizon starting in September", () => {
+  const result = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [],
+    preexisting: { ...standardPreexistingConditions,
+      startCalendarMonth: toCalendarMonth(9),
+      simulationDurationMonths: toMonthDuration(72),
+      husbandInitialNet: toNetSalary(1000),
+      wifeInitialFullTimeNet: toNetSalary(0),
+      enable13thSalary: false } });
+  const report = exportStateToTextReport({ ...getTestPersistedState(),
+    simulationDurationMonths: toMonthDuration(72),
+    startCalendarMonth: toCalendarMonth(9) }, {
+    [ScenarioId.A]: result,
+    [ScenarioId.B]: { ...result,
+      scenarioKey: ScenarioId.B },
+    [ScenarioId.C]: { ...result,
+      scenarioKey: ScenarioId.C },
+  });
+  assert.ok(report.includes("Simulation Horizon: 72 Months (2026 - 2032)"));
+  assert.match(report, /Year 1 \(2026\): Total Net Inflow: 4\.000/);
+  assert.match(report, /Year 7 \(2032\): Total Net Inflow: 8\.000/);
+  assert.doesNotMatch(report, /60-Month|60-MONTH|5-YEAR/);
 });

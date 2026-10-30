@@ -153,11 +153,11 @@ export function exportStateToTextReport(
     "================================================================================",
   );
   lines.push(
-    " GERMAN ELTERNGELD & PARENTAL LEAVE 5-YEAR FINANCIAL FORECAST & AUDIT REPORT",
+    " GERMAN ELTERNGELD & PARENTAL LEAVE FINANCIAL FORECAST & AUDIT REPORT",
   );
   lines.push(" Statutory Basis: BEEG (Bundeselterngeldgesetz), MuSchG & EStG");
   lines.push(
-    ` Generated: ${dateStr} • Simulation Horizon: 60 Months (${state.startCalendarYear} - ${state.startCalendarYear + Math.floor(state.simulationDurationMonths / 12)})`,
+    ` Generated: ${dateStr} • Simulation Horizon: ${state.simulationDurationMonths} Months (${state.startCalendarYear} - ${timelines[ScenarioId.C].months.at(-1)?.calendarYearNum ?? state.startCalendarYear})`,
   );
   lines.push(
     "================================================================================",
@@ -200,7 +200,7 @@ export function exportStateToTextReport(
     "--------------------------------------------------------------------------------",
   );
   lines.push(
-    " 2. EXECUTIVE 3-SCENARIO FINANCIAL OUTCOME COMPARISON (60-MONTH HORIZON)",
+    ` 2. EXECUTIVE 3-SCENARIO FINANCIAL OUTCOME COMPARISON (${state.simulationDurationMonths}-MONTH HORIZON)`,
   );
   lines.push(
     "--------------------------------------------------------------------------------",
@@ -241,7 +241,7 @@ export function exportStateToTextReport(
     " ----------------------------------------------------------------------------------",
   );
   lines.push(
-    ` Total 60-Month Net Family Inflow:   ${fmtEur(totalA).padEnd(16)}  ${fmtEur(totalB).padEnd(16)}  ${fmtEur(totalC).padEnd(16)}`,
+    ` Total Period Net Family Inflow:   ${fmtEur(totalA).padEnd(16)}  ${fmtEur(totalB).padEnd(16)}  ${fmtEur(totalC).padEnd(16)}`,
   );
   lines.push(
     ` Difference to Baseline (Scenario A): ${fmtEur(0).padEnd(16)}  +${fmtEur(totalB - totalA).padEnd(15)}  +${fmtEur(totalC - totalA).padEnd(15)}`,
@@ -265,10 +265,9 @@ export function exportStateToTextReport(
     "--------------------------------------------------------------------------------",
   );
   if (resC && resC.months) {
-    for (let yr = 1; yr <= 5; yr++) {
-      const startIdx = (yr - 1) * 12;
-      const endIdx = Math.min(startIdx + 12, resC.months.length);
-      const yrMonths = resC.months.slice(startIdx, endIdx);
+    const years = [...new Set(resC.months.map((month) => month.calendarYearNum))].sort((a, b) => a - b);
+    for (const [index, yrCalYear] of years.entries()) {
+      const yrMonths = resC.months.filter((month) => month.calendarYearNum === yrCalYear);
       const yrIncome = yrMonths.reduce(
         (acc, m: MonthlyLedgerEntry) => acc + m.monthlyTotal,
         0,
@@ -282,10 +281,9 @@ export function exportStateToTextReport(
         (acc, m: MonthlyLedgerEntry) => acc + m.mutterschutz,
         0,
       );
-      const yrCalYear = state.startCalendarYear + yr - 1;
 
       lines.push(
-        ` Year ${yr} (${yrCalYear}): Total Net Inflow: ${fmtEur(yrIncome)} • Elterngeld: ${fmtEur(yrEG)} • Mutterschutz: ${fmtEur(yrMuSch)}`,
+        ` Year ${index + 1} (${yrCalYear}): Total Net Inflow: ${fmtEur(yrIncome)} • Elterngeld: ${fmtEur(yrEG)} • Mutterschutz: ${fmtEur(yrMuSch)}`,
       );
     }
   }
