@@ -152,120 +152,22 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.BEEG_PartnershipBonus,
-      title:
-        "5. Parental Leave Allocation & Partnership Bonus (Partnerschaftsbonus)",
-      lawRef: "BEEG § 4, § 4a, § 4b (Elterngeld & Partnership Bonus)",
-      tag: "§ 4b BEEG",
-      summary:
-        "65% salary loss replacement; 2 full / 4 PT months (father) + 10 full / 20 PT months (mother) + 4 bonus months each (24–32h).",
-      statutoryText: (
-        <div>
-          <p>
-            Under <strong>§ 4, § 4a, and § 4b BEEG</strong>, parental allowance
-            covers <strong>65% of the net salary drop</strong> (&Delta;Net =
-            Pre-birth Net &minus; Post-birth Net) with a structured baseline
-            allocation:
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>Mother's Entitlement:</strong> 2 months covered by 100%
-              statutory <em>Mutterschutz</em> (which consume 2 Base months) +{" "}
-              <strong>10 full Basiselterngeld months</strong> (0h / week) OR{" "}
-              <strong>20 half ElterngeldPlus months</strong> (&le; 32h / week).
-            </li>
-            <li>
-              <strong>Father's Partner Months (§ 4 Abs. 3):</strong>{" "}
-              <strong>2 full Basiselterngeld months</strong> (0h / week) OR{" "}
-              <strong>4 half ElterngeldPlus months</strong> (&le; 32h / week).
-            </li>
-            <li>
-              <strong>Partnership Bonus Exception (§ 4b BEEG):</strong>{" "}
-              <strong>4 additional bonus months for EACH partner</strong> (4
-              months for mother + 4 months for father = 8 bonus months total)
-              when{" "}
-              <strong>
-                both partners work between 24 and 32 hours per week
-                simultaneously
-              </strong>{" "}
-              in the same month!
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Statutory Allocation &amp; Payout Example:</span>
-          </div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            <div>
-              • <strong>Mother:</strong> 20 ElterngeldPlus months (up to{" "}
-              <strong>900 € / mo</strong>) + 4 Partnership Bonus months (
-              <strong>900 € / mo</strong>) ={" "}
-              <strong>24 ElterngeldPlus months</strong>.
-            </div>
-            <div>
-              • <strong>Father:</strong> 4 ElterngeldPlus partner months (
-              <strong>150 € / mo</strong>) + 4 Partnership Bonus months (
-              <strong>150 € / mo</strong>) ={" "}
-              <strong>8 ElterngeldPlus months</strong>.
-            </div>
-            <div>
-              • 4 Partnership Bonus Months total payout: (900 € + 150 €) × 4
-              months ={" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                +4.200 € total cash benefit
-              </strong>
-              .
-            </div>
-          </div>
-        </div>
-      ),
+      title: "5. Ordinary Parent Claims and Partnership Bonus",
+      lawRef: "BEEG §§ 1, 4, 4a, 4b",
+      tag: "Parent claims",
+      summary: "Each parent needs their own income assessment, eligible hours and available claim budget.",
+      statutoryText: <p>Ordinary Plus claims require hours no higher than {benefits.maximumWeeklyHours.value} per week. Partnership months require both parents within {benefits.partnershipMinimumHours.value}–{benefits.maximumWeeklyHours.value} hours for {benefits.partnershipMinimumMonths.value}–{benefits.partnershipMaximumMonths.value} consecutive months. Minimum duration and individual/family budgets also apply. The father's payment is not a universal minimum. Reallocation fills only unfulfilled requested months and cannot create extra claims.</p>,
+      example: <p>This plan requests {conventions.partnershipBonusMonths.value} partnership calendar months per cohort. Actual modeled father payments total {money(current.summary.totalHusbandElterngeld)}; mother payments total {money(current.summary.totalWifeElterngeld)}. Availability and overlapping credits are shown in each payment audit.</p>,
       links: [
-        {
-          label: "§ 4b BEEG - Partnerschaftsbonus",
-          url: "https://www.gesetze-im-internet.de/beeg/__4b.html",
-          description:
-            "Statutory requirements for the 24–32 hour working corridor and 4 bonus months per parent.",
-        },
-        {
-          label: "§ 4a BEEG - ElterngeldPlus",
-          url: "https://www.gesetze-im-internet.de/beeg/__4a.html",
-          description:
-            "Conversion rule: 1 Basiselterngeld month = 2 ElterngeldPlus months while working up to 32h/week.",
-        },
+        { label: "Hours and eligibility (§ 1 BEEG)",
+          url: benefits.maximumWeeklyHours.source,
+          description: "Weekly-hours condition for ordinary claims." },
+        { label: "Claim budgets (§ 4 BEEG)",
+          url: benefits.familyBasisMonths.source,
+          description: "Individual and combined claim limits." },
+        { label: "Partnership bonus (§ 4b BEEG)",
+          url: benefits.partnershipMinimumMonths.source,
+          description: "Hours corridor and consecutive-month requirements." },
       ],
     },
     {
