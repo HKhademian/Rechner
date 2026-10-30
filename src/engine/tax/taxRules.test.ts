@@ -18,6 +18,8 @@ describe("Sourced annual statutory rules", () => {
     assert.equal(after.parameters.basicAllowance.value, 12348);
     assert.equal(after.parameters.healthCapMonthly.value, 5812.5);
     assert.equal(after.parameters.pensionCapMonthly.value, 8450);
+    assert.equal(after.parameters.priorYearBonusAllocationLastMonth.value, 3);
+    assert.match(after.parameters.priorYearBonusAllocationLastMonth.source, /sgb_4\/__23a/);
     assert.equal(after.projected, false);
     for (const entry of Object.values(after.parameters)) {
       assert.equal(new URL(entry.source).protocol, "https:");

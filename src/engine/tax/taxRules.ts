@@ -5,6 +5,7 @@ import {
   toPercentageRate,
   toChildrenCount,
   toFullCalendarYear,
+  toCalendarMonth,
 } from "#engine/types";
 import {
   type SourceUrl,
@@ -65,6 +66,7 @@ const constructors = {
   healthCapMonthly: money,
   pensionCapMonthly: money,
   transitionFlatRate: fraction,
+  priorYearBonusAllocationLastMonth: toCalendarMonth,
   healthEmployeeRate: fraction,
   healthDeductibleFraction: fraction,
   ageReliefMinimumAge: toAgeYears,
