@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: annual-accounting prerequisite: general health and insurer supplementary contributions round separately before summation. Independent 4166.67 gross example yields 304.17 + 60.42 = 364.59. Full quality check passes. GKV guidance permits either combined or separately rounded standard care adjustments; the existing combined standard-care method is valid and retained. Midijob care uses its distinct mandatory bases in the next correction.
+
 - 2026-10-30: removed invented 850 deduction refunds and opening-year refunds without prior-year records. A zero-income/zero-withholding household receives zero tax cash/events over 36 months. The compatibility helper defaults to zero adjustment; descriptions no longer invent 850. Full quality check passes. Remaining variance-based/child-relief estimates are replaced by actual annual accounting next.
 
 - 2026-10-30: Fix 9 integrated the calendar income/cohort projectors into the public simulator, removing scenario-class entitlement selection and the later-child blend. Early/tie/late independent references yield 724.48/724.48/531.43 Plus; pre-birth net remains frozen after a later raise. Per-parent audits, missing-history repetitions and unavailable snapshots reach JSON/UI/CLI. Manual cash-net estimates require a persisted, validated opt-in. Claim budgets/minimums and protected overlap minimums replace invented additional father payments. Calendar conventions and fixed maternity references are consumed. Full quality check/build and CLI JSON inspection pass. Annual reconciliation and its legacy assumptions remain Fix 10 work.

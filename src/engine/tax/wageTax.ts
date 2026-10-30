@@ -128,6 +128,14 @@ export interface SocialInsuranceDeductions {
   readonly totalSocialSecurity: EuroAmount;
 }
 
+/** General health and the insurer supplement are separate contribution components (BVV § 2).
+ * Round each employee share before adding; combining rates can lose a cent.
+ */
+function healthContribution(base: EuroAmount, rules: TaxRules, options: PayrollOptions): EuroAmount {
+  return toEuroAmount(toEuroAmount(base * rules.parameters.healthEmployeeRate.value) +
+    toEuroAmount(base * (options.healthSupplementTotalRate ?? rules.parameters.healthSupplementTotalRate.value) / 2));
+}
+
 /**
  * Computes monthly statutory employee social security contributions under SGB IV, V, VI, and XI.
  * Caps contributions at statutory monthly assessment ceilings (BBG 2024–2026: GKV €5.175/mo, GRV €7.550/mo)
@@ -147,7 +155,7 @@ export function computeMonthlySocialSecurity(
   const assessedHealthGross = Math.min(monthlyGross, p.healthCapMonthly.value);
   const assessedPensionGross = Math.min(monthlyGross, p.pensionCapMonthly.value);
   const healthRate = p.healthEmployeeRate.value + (options.healthSupplementTotalRate ?? p.healthSupplementTotalRate.value) / 2;
-  const health = toEuroAmount(assessedHealthGross * healthRate);
+  const health = healthContribution(toEuroAmount(assessedHealthGross), rules, options);
   const pensionRate = p.pensionEmployeeRate.value;
   const pension = toEuroAmount(assessedPensionGross * pensionRate);
   const unemploymentRate = p.unemploymentEmployeeRate.value;
@@ -261,7 +269,7 @@ export function computeBonusSocialInsurance(
     : options.regularPensionAssessmentYearToDate + (options.bonusPensionAssessmentYearToDate ?? 0);
   const assessedHealth = Math.min(p.healthCapMonthly.value * months, healthBase + bonus) - Math.min(p.healthCapMonthly.value * months, healthBase);
   const assessedPension = Math.min(p.pensionCapMonthly.value * months, pensionBase + bonus) - Math.min(p.pensionCapMonthly.value * months, pensionBase);
-  const healthInsurance = toEuroAmount(assessedHealth * rates.healthInsuranceRate);
+  const healthInsurance = healthContribution(toEuroAmount(assessedHealth), rules, options);
   const careInsurance = toEuroAmount(assessedHealth * rates.careInsuranceRate);
   const pensionInsurance = toEuroAmount(assessedPension * rates.pensionInsuranceRate);
   const unemploymentInsurance = toEuroAmount(assessedPension * rates.unemploymentInsuranceRate);
