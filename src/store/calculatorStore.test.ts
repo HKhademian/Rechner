@@ -71,7 +71,7 @@ it("undoes scenario deletion in its original position and recovers the last vali
   undoScenarioDeletion();
   assert.deepEqual(savedScenarios.value.map((scenario) => scenario.id), ["first", "second"]);
   assert.equal(savedScenarios.value[0].title, "first");
-  assert.equal(scenarioDraft.value?.title, "Unsaved title");
+  assert.equal(scenarioDraft.peek()?.title, "Unsaved title");
   assert.equal(hasUnsavedScenarioChanges.value, true);
   assert.deepEqual(getCurrentInputs(), inputs);
   assert.equal(pendingScenarioDeletion.value, null);
