@@ -25,6 +25,7 @@ import {
 } from "node:util";
 import {
   printLedgerTable,
+  printSummaryScorecard,
   normalizeCliGross,
   parseMonthArg,
   parseFieldArg,
@@ -99,7 +100,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.ok(stdout.includes("Scenario B (Unoptimized)"));
       assert.ok(stdout.includes("Scenario C (Optimized)"));
       assert.ok(
-        stdout.includes("Net Optimization Advantage (Scenario C vs B)"),
+        stdout.includes("Cash-flow difference (Scenario C vs B)"),
       );
     });
 
@@ -342,7 +343,7 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       assert.equal(stderr, "");
       assert.ok(stdout.includes("GERMAN ELTERNGELD SIMULATION KPI SCORECARD"));
       assert.ok(
-        stdout.includes("Net Optimization Advantage (Scenario C vs B)"),
+        stdout.includes("Cash-flow difference (Scenario C vs B)"),
       );
     });
 
@@ -687,4 +688,20 @@ it("prints the shared five-event stream without paying events again in base rows
   assert.equal(at(february, "Cum. Total"), "2060.00");
   assert.equal(at(february, "Bonuses"), "—");
   assert.equal(rows.reduce((sum, row) => sum + (at(row, "Monthly Total") === "—" ? 0 : Number(at(row, "Monthly Total"))), 0), 36060);
+});
+
+
+it("reports a negative scenario difference without a false positive prefix", () => {
+  const lines: string[] = [];
+  const capture = mock.method(console, "log", (...values: unknown[]) => lines.push(values.join(" ")));
+  try {
+    printSummaryScorecard(ledgerRowsFixture(100), ledgerRowsFixture(90), ledgerRowsFixture(80));
+  }
+  finally {
+    capture.mock.restore();
+  }
+  const difference = lines.find((line) => line.includes("Cash-flow difference (Scenario C vs B)"))!;
+  assert.match(difference, /-10/);
+  assert.doesNotMatch(difference, /\+-/);
+  assert.ok(!lines.some((line) => line.includes("Maxed EG+")));
 });

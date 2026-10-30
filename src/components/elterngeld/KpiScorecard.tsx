@@ -4,17 +4,13 @@ import type {
 import {
   currentScenarioData,
   comparisonMetrics,
-  activeScenario,
   scenarioBData,
   scrollToLegalRule,
   LegalRuleKey,
 } from "#store/elterngeldStore";
+
+
 import {
-  SimulationStrategy,
-} from "#engine/types";
-import {
-  EligibilityConfirmedIcon,
-  StatutoryLimitationWarningIcon,
   ExternalLegalSourceIcon,
 } from "#components/Icons";
 
@@ -29,11 +25,8 @@ function formatCurrency(amount: number, maximumFractionDigits = 0): string {
 export default function KpiScorecard(): JSX.Element {
   const current = currentScenarioData.value;
   const metrics = comparisonMetrics.value;
-  const scenario = activeScenario.value;
   const bSummary = scenarioBData.value.summary;
 
-  const isScenarioC = scenario === SimulationStrategy.StatutoryOptimized;
-  const isScenarioB = scenario === SimulationStrategy.UnoptimizedBaseline;
 
   const totalHusbandSalary = current.months.reduce(
     (acc, m) => acc + m.husbandSalary,
@@ -43,10 +36,8 @@ export default function KpiScorecard(): JSX.Element {
     (acc, m) => acc + m.wifeSalary,
     0,
   );
-  const percentGainCvsB = (
-    (metrics.gainCvsB / (bSummary.grandTotal || 1)) *
-    100
-  ).toFixed(1);
+  const gainColor = metrics.gainCvsB < 0 ? "var(--color-loss)" : "var(--color-gain)";
+  const percentGainCvsB = bSummary.grandTotal === 0 ? undefined : ((metrics.gainCvsB / Math.abs(bSummary.grandTotal)) * 100).toFixed(1);
 
   return (
     <div
@@ -159,11 +150,7 @@ export default function KpiScorecard(): JSX.Element {
             color: "var(--text-muted)",
           }}
         >
-          {isScenarioC
-            ? "Reflects optimized part-time return & marital tax swaps"
-            : isScenarioB
-              ? "Reflects standard unoptimized Tax Class V part-time"
-              : "Baseline full-time careers without parental leave"}
+          Salaries reflect the modeled working hours and actual tax classes.
         </div>
       </div>
 
@@ -242,38 +229,7 @@ export default function KpiScorecard(): JSX.Element {
             color: "var(--text-muted)",
           }}
         >
-          {isScenarioC ? (
-            <span
-              style={{
-                color: "var(--color-gain)",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <EligibilityConfirmedIcon size={13} />
-              <span>
-                Maximized via Class III booster, Sibling &amp; Partnership
-                bonuses
-              </span>
-            </span>
-          ) : isScenarioB ? (
-            <span
-              style={{
-                color: "var(--color-warning)",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <StatutoryLimitationWarningIcon size={13} />
-              <span>Minimum base rate due to unoptimized Tax Class V</span>
-            </span>
-          ) : (
-            "0 € state parental allowance (no children)"
-          )}
+          Benefits follow each parent's assessment history and income/hour eligibility. Review the calculation audit above.
         </div>
       </div>
 
@@ -346,15 +302,15 @@ export default function KpiScorecard(): JSX.Element {
         </div>
       </div>
 
-      {/* KPI Card 4: Scenario C Optimization Differential (The Value-Add) */}
+      {/* KPI Card 4: Scenario C Cash-Flow Differential */}
       <div
         className="glass-panel"
         style={{
           padding: "20px 24px",
           position: "relative",
           overflow: "hidden",
-          borderLeft: "4px solid var(--color-gain)",
-          background: "var(--color-gain-bg)",
+          borderLeft: `4px solid ${gainColor}`,
+          background: metrics.gainCvsB < 0 ? "var(--color-loss-bg)" : "var(--color-gain-bg)",
         }}
       >
         <div
@@ -369,23 +325,23 @@ export default function KpiScorecard(): JSX.Element {
               style={{
                 fontSize: "0.78rem",
                 fontWeight: 700,
-                color: "var(--color-gain)",
+                color: gainColor,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
             >
-              Optimization Net Benefit (C vs B)
+              Cash-Flow Difference (C vs B)
             </div>
             <div
               style={{
                 fontSize: "1.9rem",
                 fontWeight: 800,
-                color: "var(--color-gain)",
+                color: gainColor,
                 margin: "6px 0 4px 0",
               }}
               className="tabular-nums"
             >
-              +{formatCurrency(metrics.gainCvsB)}
+              {metrics.gainCvsB > 0 ? "+" : ""}{formatCurrency(metrics.gainCvsB)}
             </div>
             <div
               style={{
@@ -397,12 +353,12 @@ export default function KpiScorecard(): JSX.Element {
               }}
             >
               <span>
-                Elterngeld Booster:{" "}
+                Mother Elterngeld difference:{" "}
                 <strong
-                  style={{ color: "var(--color-gain)" }}
+                  style={{ color: metrics.wifeEgGainCvsB < 0 ? "var(--color-loss)" : "var(--color-gain)" }}
                   className="tabular-nums"
                 >
-                  +{formatCurrency(metrics.wifeEgGainCvsB)}
+                  {metrics.wifeEgGainCvsB > 0 ? "+" : ""}{formatCurrency(metrics.wifeEgGainCvsB)}
                 </strong>
               </span>
             </div>
@@ -419,9 +375,9 @@ export default function KpiScorecard(): JSX.Element {
             gap: "6px",
           }}
         >
-          <span style={{ color: "var(--color-gain)",
+          <span style={{ color: gainColor,
             fontWeight: 700 }}>
-            +{percentGainCvsB}% net cash gain
+            {percentGainCvsB === undefined ? "Percentage unavailable for a zero baseline" : `${Number(percentGainCvsB) > 0 ? "+" : ""}${percentGainCvsB}% cash-flow difference`}
           </span>
           <button
             type="button"

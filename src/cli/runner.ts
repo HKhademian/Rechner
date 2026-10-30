@@ -1323,7 +1323,7 @@ function buildSimulation(
   });
 }
 
-function printSummaryScorecard(
+export function printSummaryScorecard(
   resA: SimulationResult,
   resB: SimulationResult,
   resC: SimulationResult,
@@ -1379,21 +1379,16 @@ function printSummaryScorecard(
     "  --------------------------------------------------------------------------------------",
   );
   console.log(
-    `  ${BOLD}Grand Total Cash Inflow:      ${String(formatEuro(resA.summary.grandTotal)).padStart(15)}  ${String(formatEuro(resB.summary.grandTotal)).padStart(16)}  ${GREEN}${BOLD}${String(formatEuro(resC.summary.grandTotal)).padStart(15)}${RESET}`,
+    `  ${BOLD}Grand Total Cash Inflow:      ${String(formatEuro(resA.summary.grandTotal)).padStart(15)}  ${String(formatEuro(resB.summary.grandTotal)).padStart(16)}  ${resC.summary.grandTotal < 0 ? RED : GREEN}${BOLD}${String(formatEuro(resC.summary.grandTotal)).padStart(15)}${RESET}`,
   );
   console.log(
     "  ======================================================================================\n",
   );
 
-  console.log(
-    `  ${BOLD}${GREEN}✔ Net Optimization Advantage (Scenario C vs B):${RESET}  ${BOLD}${GREEN}+${formatEuro(gainOverB)}${RESET}`,
-  );
-  console.log(
-    `  ${BOLD}${GREEN}✔ State Benefit Surplus (§ 2b BEEG Maxed EG+):${RESET}   ${BOLD}${GREEN}+${formatEuro(benefitGainOverB)}${RESET}`,
-  );
-  console.log(
-    `  ${BOLD}${CYAN}✔ Net Financial Gain vs Status Quo (C vs A):${RESET}     ${BOLD}${CYAN}+${formatEuro(gainOverA)}${RESET}\n`,
-  );
+  const difference = (amount: number) => `${amount > 0 ? "+" : ""}${formatEuro(amount)}`;
+  console.log(`  ${BOLD}${gainOverB < 0 ? RED : GREEN}Cash-flow difference (Scenario C vs B): ${difference(gainOverB)}${RESET}`);
+  console.log(`  ${BOLD}${benefitGainOverB < 0 ? RED : GREEN}State-benefit difference (Scenario C vs B): ${difference(benefitGainOverB)}${RESET}`);
+  console.log(`  ${BOLD}${gainOverA < 0 ? RED : CYAN}Cash-flow difference (Scenario C vs A): ${difference(gainOverA)}${RESET}\n`);
 }
 
 function printMilestones(res: SimulationResult) {
