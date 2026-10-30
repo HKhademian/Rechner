@@ -1,4 +1,7 @@
 import {
+  lifecycleHouseholdTaxableIncome,
+} from "../fixture/standardHouseholds.ts";
+import {
   describe,
   it,
 } from "node:test";
@@ -35,6 +38,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
   const defaultParams = {
     // Explicit unverified assessment-net estimates for lifecycle tests.
     assumeManualNetIsAssessmentNet: true,
+    householdTaxableIncome: lifecycleHouseholdTaxableIncome,
     husbandGross: toGrossSalary(4500),
     wifeGross: toGrossSalary(3000),
     wifePostBirthHours: toWorkingHours(24),

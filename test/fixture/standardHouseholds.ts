@@ -11,6 +11,10 @@ import {
   toChildrenCount,
 } from "#engine/types";
 
+/** Explicit evidence for lifecycle-only tests; never a production default. */
+export const lifecycleHouseholdTaxableIncome = Array.from({ length: 17 }, (_, index) => ({ calendarYear: toFullCalendarYear(2024 + index),
+  taxableIncome: toEuroAmount(0) }));
+
 /**
  * Standard test household parameter fixture used across multi-year scenarios,
  * stress-testing combinatorial grids, and benchmarks.
@@ -18,6 +22,7 @@ import {
 export const standardHouseholdParams = {
   // Lifecycle-only fixture: cash nets explicitly stand in for unverified BEEG nets.
   assumeManualNetIsAssessmentNet: true,
+  householdTaxableIncome: lifecycleHouseholdTaxableIncome,
   husbandClass3Net: toNetSalary(3184),
   husbandClass5Net: toNetSalary(2398),
   wifeClass5FullTimeNet: toNetSalary(1751),
@@ -41,6 +46,7 @@ export const standardHouseholdParams = {
 export const standardPreexistingConditions: PreexistingConditions = {
   // Lifecycle-only fixture: cash nets explicitly stand in for unverified BEEG nets.
   assumeManualNetIsAssessmentNet: true,
+  householdTaxableIncome: lifecycleHouseholdTaxableIncome,
   startCalendarYear: toFullCalendarYear(2026),
   startCalendarMonth: toCalendarMonth(1),
   simulationDurationMonths: toMonthDuration(60),

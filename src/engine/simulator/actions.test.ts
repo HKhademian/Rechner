@@ -1,4 +1,7 @@
 import {
+  lifecycleHouseholdTaxableIncome,
+} from "../../../test/fixture/standardHouseholds.ts";
+import {
   describe,
   it,
 } from "node:test";
@@ -46,6 +49,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
   const basePreexisting: PreexistingConditions = {
   // Lifecycle-only fixture: cash nets explicitly stand in for unverified BEEG nets.
     assumeManualNetIsAssessmentNet: true,
+    householdTaxableIncome: lifecycleHouseholdTaxableIncome,
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: toMonthDuration(60),

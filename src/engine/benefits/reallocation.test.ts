@@ -1,4 +1,7 @@
 import {
+  lifecycleHouseholdTaxableIncome,
+} from "../../../test/fixture/standardHouseholds.ts";
+import {
   describe,
   it,
 } from "node:test";
@@ -29,6 +32,7 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
   const preexisting: PreexistingConditions = {
     // Explicit unverified assessment-net estimates for lifecycle tests.
     assumeManualNetIsAssessmentNet: true,
+    householdTaxableIncome: lifecycleHouseholdTaxableIncome,
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: toMonthDuration(60),

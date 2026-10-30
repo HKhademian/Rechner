@@ -1,4 +1,7 @@
 import {
+  lifecycleHouseholdTaxableIncome,
+} from "../../../test/fixture/standardHouseholds.ts";
+import {
   describe,
   it,
 } from "node:test";
@@ -56,6 +59,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
   const basePreexisting: PreexistingConditions = {
     // Explicit unverified assessment-net estimates for lifecycle tests.
     assumeManualNetIsAssessmentNet: true,
+    householdTaxableIncome: lifecycleHouseholdTaxableIncome,
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: toMonthDuration(60),

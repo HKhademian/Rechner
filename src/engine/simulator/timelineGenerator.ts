@@ -1,4 +1,10 @@
 import {
+  assessCoupleBenefitIncome,
+} from "#engine/benefits/incomeEligibility";
+import {
+  parseHouseholdTaxableIncome,
+} from "#engine/benefits/taxableIncomeInput";
+import {
   collectAnnualTaxRecords,
 } from "#engine/tax/annualTaxRecords";
 import {
@@ -22,6 +28,8 @@ import {
   toAgeYears,
 } from "#engine/tax/taxRules";
 import {
+  type HouseholdTaxableIncomeInput,
+  type PregnancyId,
   type BonusPayrollRecord,
   type GrossToNetBreakdown,
   type SimulationMonth,
@@ -118,6 +126,7 @@ export interface TimelineSimulationParams {
   /** Target strategy key (StatusQuo, UnoptimizedBaseline, StatutoryOptimized). */
   readonly scenarioKey: StrategyId;
   readonly assumeManualNetIsAssessmentNet?: boolean;
+  readonly householdTaxableIncome?: readonly HouseholdTaxableIncomeInput[];
   /** 4-digit Gregorian simulation start year (e.g. 2025). */
   readonly startCalendarYear?: FullCalendarYear;
   /** 1-based Gregorian simulation start month (1..12). */
@@ -229,6 +238,38 @@ export function runScenarioBatches(
   inputBatches: ScenarioActionBatches,
 ): SimulationResult {
   const batches = synthesizeStrategyBatches(inputBatches);
+  const supplied = parseHouseholdTaxableIncome(batches.preexisting.householdTaxableIncome);
+  // Taxable employment income is independent of Elterngeld receipt. Determine it first,
+  // then replay cohorts in birth order with eligibility known before any exclusions accrue.
+  const preliminary = generateScenario(batches);
+  const p = batches.preexisting;
+  const visibleBirths = batches.pregnancies.filter((pregnancy) => pregnancy.calculatedDeliverySimulationMonth <= p.simulationDurationMonths);
+  if (visibleBirths.length === 0) {
+    return preliminary;
+  }
+  const eligibility = new Map<PregnancyId, ReturnType<typeof assessCoupleBenefitIncome>>();
+  const assumptions: string[] = [];
+  const start = assessmentCalendarMonth(p.startCalendarYear, p.startCalendarMonth);
+  for (const pregnancy of visibleBirths) {
+    const birth = start + pregnancy.calculatedDeliverySimulationMonth - 1;
+    const year = toFullCalendarYear(Math.floor(birth / 12));
+    const declared = supplied.find((record) => record.calendarYear === year - 1);
+    const modeled = preliminary.annualTaxRecords?.find((record) => record.calendarYear === year - 1);
+    const income = declared?.taxableIncome ?? modeled?.taxableIncomeForNonTaxLaw;
+    eligibility.set(pregnancy.pregnancyId, assessCoupleBenefitIncome(year, toCalendarMonth(birth % 12 + 1), income));
+    assumptions.push(declared
+      ? `Eligibility uses supplied ${year - 1} household taxable income, including EStG section 2(5a) adjustments; it is personal evidence, not verified by this app.`
+      : `Eligibility for the ${year} birth uses ${year - 1} complete modeled employment income where available; missing annual income is not inferred from pre-birth salary repetitions.`);
+  }
+  const result = generateScenario(batches, eligibility);
+  return { ...result,
+    assumptions: [...new Set([...(result.assumptions ?? []), ...assumptions])] };
+}
+
+function generateScenario(
+  batches: ScenarioActionBatches,
+  incomeEligibility?: ReadonlyMap<PregnancyId, ReturnType<typeof assessCoupleBenefitIncome>>,
+): SimulationResult {
   const {
     scenarioKey,
     preexisting,
@@ -259,7 +300,7 @@ export function runScenarioBatches(
       Math.max(conventions.motherOrdinaryPlusMonths.value, pregnancy.fatherPartnerMonthsCount) +
       conventions.partnershipBonusMonths.value - 1)));
   const incomeSchedule = buildIncomeSchedule(batches, forecastEnd, conventions);
-  const allowanceSchedule = projectAllowanceSchedule(batches, incomeSchedule, visibleEnd, conventions);
+  const allowanceSchedule = projectAllowanceSchedule(batches, incomeSchedule, visibleEnd, conventions, incomeEligibility);
 
   // PASS 1: Month-by-month state reduction across action batches
   interface RawMonth {
@@ -1505,6 +1546,7 @@ export function generateTimelineSimulation(
   // Batch 0: Preexisting Conditions
   const preexisting: PreexistingConditions = {
     assumeManualNetIsAssessmentNet: params.assumeManualNetIsAssessmentNet,
+    householdTaxableIncome: params.householdTaxableIncome,
     startCalendarYear: startYear,
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: duration,

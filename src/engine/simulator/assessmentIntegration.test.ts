@@ -10,6 +10,7 @@ import {
   TaxClass,
   TargetPerson,
   toGrossSalary,
+  toEuroAmount,
   toSimulationMonth,
   toCalendarMonth,
   toFullCalendarYear,
@@ -130,4 +131,40 @@ it("requires explicit manual-net consent at the public timeline boundary", () =>
       assumeManualNetIsAssessmentNet: true } });
   assert.equal(assumed.benefitsComplete, true);
   assert.ok(assumed.assumptions?.some((note) => note.includes("Explicit assumption")));
+});
+
+
+it("enforces the supplied prior-year income boundary before projecting benefits", () => {
+  const batches = switched(9);
+  const run = (value: number) => runScenarioBatches({ ...batches,
+    preexisting: { ...batches.preexisting,
+      householdTaxableIncome: [{ calendarYear: toFullCalendarYear(2026),
+        taxableIncome: toEuroAmount(value) }] } });
+  assert.equal(run(175000).months[18].wifeElterngeld, 724.48);
+  const denied = run(175000.01);
+  assert.equal(denied.benefitsComplete, true);
+  assert.equal(denied.summary.totalWifeElterngeld, 0);
+  assert.equal(denied.summary.totalHusbandElterngeld, 0);
+  assert.equal(denied.benefitAssessments?.[0].incomeEligibility?.status, "INELIGIBLE");
+});
+
+it("uses complete modeled annual income and reports missing manual evidence", () => {
+  const batches = switched(9);
+  const modeled = runScenarioBatches({ ...batches,
+    preexisting: { ...batches.preexisting,
+      householdTaxableIncome: undefined } });
+  assert.equal(modeled.months[18].wifeElterngeld, 724.48);
+  assert.equal(modeled.benefitAssessments?.[0].incomeEligibility?.taxableIncome, modeled.annualTaxRecords?.[0].taxableIncomeForNonTaxLaw);
+  const high = runScenarioBatches({ ...batches,
+    preexisting: { ...batches.preexisting,
+      householdTaxableIncome: undefined,
+      husbandGross: toGrossSalary(12000),
+      wifeGross: toGrossSalary(12000) } });
+  assert.equal(high.summary.totalWifeElterngeld, 0);
+  const manual = runScenarioBatches({ ...batches,
+    preexisting: { ...standardPreexistingConditions,
+      householdTaxableIncome: undefined } });
+  assert.equal(manual.benefitsComplete, false);
+  assert.equal(manual.months[18].wifeElterngeld, 0);
+  assert.ok(manual.unavailableReasons?.some((reason) => reason.includes("taxable-income evidence")));
 });
