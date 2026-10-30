@@ -1,0 +1,147 @@
+.annual-income {
+  margin-bottom: 28px;
+  scroll-margin-top: 12rem;
+  padding: 22px;
+  min-width: 0;
+}
+
+.annual-income__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.annual-income h2,
+.annual-income h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.annual-income h3 {
+  font-size: 0.88rem;
+}
+
+.annual-income__header p,
+.annual-income__caption {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.annual-income__year {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.annual-income__year select {
+  min-height: 44px;
+  padding: 8px 12px;
+}
+
+.annual-income__partners {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.annual-income__card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius);
+  background: var(--bg-surface-secondary);
+}
+
+.annual-income__combined {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+}
+
+.annual-income__amount {
+  margin: 10px 0 0;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.annual-income dl {
+  margin: 16px 0 0;
+  font-size: 0.8rem;
+}
+
+.annual-income dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.annual-income dt {
+  color: var(--text-secondary);
+}
+
+.annual-income dd {
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.annual-income__joint {
+  margin-top: 22px;
+}
+
+.annual-income__joint dl {
+  margin-top: 8px;
+}
+
+.annual-income__total {
+  border-top: 1px solid var(--border-subtle);
+  font-weight: 750;
+}
+
+.annual-income__total dd {
+  color: var(--color-primary);
+}
+
+.annual-income a {
+  color: var(--color-primary);
+}
+
+.annual-income__notice {
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-bg);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.annual-income__reasons,
+.annual-income__evidence {
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.annual-income__evidence {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.annual-income__evidence summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .annual-income__partners {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
