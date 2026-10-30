@@ -1,12 +1,12 @@
 ---
 name: Calculator UI follow-up candidates
-status: proposed
+status: in_progress
 created: 2026-10-30
 ---
 
 # Calculator UI follow-up candidates
 
-The user asked what else could be improved after consolidating inputs into Live Calculation. These are proposed scopes based on the current source, not approved implementation work. Keep any selected work small, progressive and atomic. The completed inline-editing work is recorded in `editable-live-calculation.md`.
+The user asked what else could be improved after consolidating inputs into Live Calculation. The user approved these scopes, with the pregnancy-positive month picker fix first. Keep any selected work small, progressive and atomic. The completed inline-editing work is recorded in `editable-live-calculation.md`.
 
 ## Suggested order
 
@@ -22,3 +22,8 @@ The user asked what else could be improved after consolidating inputs into Live 
 Reviewed `ComparisonTable.tsx`, `LiveCalculatorInputs.tsx`, `LiveCalculatorSettings.tsx`, `Calculator.tsx`, `CalculatorTaxableIncome.tsx`, `PayrollPersonalInputs.tsx` and scenario mutation functions in `calculatorStore.ts`. This follow-up review used current source inspection; it did not add browser measurements or new test results. Mobile concerns are inferred from fixed column sizes and require device-width verification before choosing a layout.
 
 For each selected implementation scope, run the formatter before staging, relevant behavior checks, the full quality audit and the consumer build. Keep financial engine changes separate from UI work and preserve unrelated `test-random/` files.
+
+
+## Execution order
+
+First fix the pregnancy-positive date setter so selecting October 2026 updates the first pregnancy action as well as the simulation baseline, with a regression check and an isolated commit. Then implement the numbered scopes above in their stated order, separating validation, save gating, row ordering, summary, responsive layout and scenario lifecycle changes into focused commits. Verify each code scope with formatter, full audit, consumer build and relevant UI/behavior checks.
