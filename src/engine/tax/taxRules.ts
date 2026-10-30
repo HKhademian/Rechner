@@ -68,6 +68,8 @@ const constructors = {
   careChildAgeLimit: toAgeYears,
   careChildlessMinimumAge: toAgeYears,
   careSaxonyExtraEmployeeRate: fraction,
+  pensionDeductibleFraction: fraction,
+  otherInsuranceDeductionLimit: money,
   workExpenseAllowance: money,
   specialExpenseAllowance: money,
   singleParentRelief: money,

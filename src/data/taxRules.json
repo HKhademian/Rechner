@@ -206,6 +206,16 @@
         "value": 0.28,
         "label": "Transition factor numerator for ordinary payroll contributions",
         "source": "https://www.gesetze-im-internet.de/sgb_4/__20.html"
+      },
+      "pensionDeductibleFraction": {
+        "value": 1,
+        "label": "Deductible fraction of ordinary statutory pension contributions since 2023",
+        "source": "https://www.gesetze-im-internet.de/estg/__10.html"
+      },
+      "otherInsuranceDeductionLimit": {
+        "value": 1900,
+        "label": "Other insurance deduction ceiling per employer-insured spouse, with basic-health and care protection",
+        "source": "https://www.gesetze-im-internet.de/estg/__10.html"
       }
     },
     "papPublication": {
@@ -420,6 +430,16 @@
         "value": 0.28,
         "label": "Transition factor numerator for ordinary payroll contributions",
         "source": "https://www.gesetze-im-internet.de/sgb_4/__20.html"
+      },
+      "pensionDeductibleFraction": {
+        "value": 1,
+        "label": "Deductible fraction of ordinary statutory pension contributions since 2023",
+        "source": "https://www.gesetze-im-internet.de/estg/__10.html"
+      },
+      "otherInsuranceDeductionLimit": {
+        "value": 1900,
+        "label": "Other insurance deduction ceiling per employer-insured spouse, with basic-health and care protection",
+        "source": "https://www.gesetze-im-internet.de/estg/__10.html"
       }
     },
     "papPublication": {
