@@ -189,148 +189,21 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.BEEG_Child2Dilution,
-      title: "7. Consecutive Child Assessment & Dilution Mitigation",
-      lawRef: "BEEG § 2b Para. 1 & § 2b Para. 2 (Exclusion Periods)",
-      tag: "§ 2b Abs. 1 BEEG",
-      summary:
-        "Avoiding the base rate trap on Child 2 through a timed secondary tax class swap.",
-      statutoryText: (
-        <div>
-          <p>
-            When having children in close succession, the assessment window for
-            Child 2 consists of the{" "}
-            <strong>
-              12 calendar months prior to Child 2's maternity protection
-            </strong>
-            :
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>The Dilution Trap (Scenario B):</strong> Because the
-              mother worked part-time (24h) between births, her income is lower.
-              If she remains in Tax Class V, the Elterngeld for Child 2
-              collapses to the statutory minimum base rate of{" "}
-              <strong>150 € / month</strong>.
-            </li>
-            <li>
-              <strong>The Strategic Solution (Scenario C):</strong> Executing a
-              timely second swap to Tax Class III during the intermediate
-              part-time employment raises the assessment net salary to{" "}
-              <strong>1.686 € / mo</strong>.
-            </li>
-            <li>
-              <strong>Resulting Award:</strong> Child 2 ElterngeldPlus increases
-              from 150 € / mo to{" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                560,58 € / mo
-              </strong>{" "}
-              (+8.211 € total extra benefit).
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "10px",
-              fontSize: "0.78rem",
-            }}
-          >
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
-              <div style={{ color: "var(--color-loss)",
-                fontWeight: 700 }}>
-                Scenario B (No 2nd Swap)
-              </div>
-              <div>
-                Part-Time Net (Class V): <strong>1.254 €</strong>
-              </div>
-              <div>
-                Child 2 ElterngeldPlus:{" "}
-                <strong style={{ color: "var(--color-loss)" }}>
-                  150 € / mo (Min)
-                </strong>
-              </div>
-              <div>
-                Total 20-Mo Payout: <strong>3.000 €</strong>
-              </div>
-            </div>
-            <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid var(--color-primary-border)",
-              }}
-            >
-              <div style={{ color: "var(--color-gain)",
-                fontWeight: 700 }}>
-                Scenario C (2nd Swap to Class III)
-              </div>
-              <div>
-                Part-Time Net (Class III): <strong>1.686 €</strong>
-              </div>
-              <div>
-                Child 2 ElterngeldPlus:{" "}
-                <strong style={{ color: "var(--color-primary)" }}>
-                  560,58 € / mo
-                </strong>
-              </div>
-              <div>
-                Total 20-Mo Payout:{" "}
-                <strong style={{ color: "var(--color-gain)" }}>
-                  11.211 € (+8.211 € gain)
-                </strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
+      title: "7. Assessment for a Later Child",
+      lawRef: "BEEG §§ 2b, 2c",
+      tag: "Later birth",
+      summary: "Every later birth gets a new history-based assessment; there is no fixed full-time/part-time blend.",
+      statutoryText: <p>The lookback selects {benefits.assessmentMonths.value} eligible months before that birth and replaces maternity and eligible older-child benefit exclusions with earlier history. Older benefit exclusions use the configured {benefits.olderBenefitExclusionLifeMonths.value}-life-month window. Actual earnings and selected deduction characteristics determine the new basis. Denied older claims create no benefit-receipt exclusions; unknown receipt propagates uncertainty.</p>,
+      example: <ul>{(current.benefitAssessments ?? []).filter((audit) => audit.parent === TargetPerson.Wife).map((audit) => (
+        <li key={audit.pregnancyId}>Birth {audit.birthMonthId}: selected {audit.selectedMonths[0]}–{audit.selectedMonths.at(-1)}, {audit.excludedMonths.length} excluded and {audit.assumedMonths.length} assumed months; pre-birth net {money(audit.preBirthNet)}. {audit.reason}</li>
+      ))}</ul>,
       links: [
-        {
-          label: "§ 2b BEEG - Bemessungszeitraum bei mehreren Kindern",
-          url: "https://www.gesetze-im-internet.de/beeg/__2b.html",
-          description:
-            "Rules governing intermediate part-time work and exclusion periods for older siblings.",
-        },
+        { label: "Assessment and exclusions (§ 2b BEEG)",
+          url: benefits.olderBenefitExclusionLifeMonths.source,
+          description: "Actual eligible history replaces fixed scenario blends." },
+        { label: "Employment-income deductions (§ 2c BEEG)",
+          url: "https://www.gesetze-im-internet.de/beeg/__2c.html",
+          description: "History-based deduction characteristics." },
       ],
     },
     {
