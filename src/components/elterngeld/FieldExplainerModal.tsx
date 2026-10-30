@@ -208,7 +208,11 @@ export default function FieldExplainerModal({
                       color: "var(--text-muted)",
                     }}
                   >
-                    {f.name}
+                    {f.source ? (
+                      <a href={f.source} target="_blank" rel="noreferrer" style={{ color: "var(--color-primary)" }}>
+                        {f.name}
+                      </a>
+                    ) : f.name}
                   </span>
                   <span
                     style={{

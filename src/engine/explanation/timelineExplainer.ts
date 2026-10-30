@@ -1,4 +1,7 @@
 import {
+  type SourceUrl,
+} from "#engine/config/benefitRules";
+import {
   LedgerRowKind,
   projectLedgerMonth,
 } from "#engine/ledger/rows";
@@ -39,6 +42,8 @@ function formatCurrency(amount: number): string {
  * Itemizes key input assumptions, legal parameters, or intermediate calculation values.
  */
 export interface CalculationFactor {
+  /** Official reference for the recorded parameter or deduction, when available. */
+  readonly source?: SourceUrl;
   /** Name or title of the contributing factor (e.g. 'Statutory Replacement Rate'). */
   readonly name: string;
   /** Formatted display value (e.g. '65.0%', '1.975 €'). */
