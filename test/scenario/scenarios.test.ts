@@ -123,27 +123,27 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
       }
     });
 
-    it("calculates exact annual tax refunds for Year 1 (+2.786 €) and Year 3 (+4.180 €)", () => {
+    it("removes the flat refund from legacy withholding estimates pending annual accounting", () => {
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
       });
 
-      // Month 15: Year 1 Return = 8 * 242 (1936) + 850 = 2786 €
+      // Legacy variance only: 8 * 242 = 1936; no flat deduction refund.
       const m15 = res.months[14];
-      assert.equal(m15.taxRefund, 2786);
+      assert.equal(m15.taxRefund, 1936);
 
-      // Month 27: Year 2 Return = 0 deficit + 850 = 850 €
+      // No variance or assumed deduction refund.
       const m27 = res.months[26];
-      assert.equal(m27.taxRefund, 850);
+      assert.equal(m27.taxRefund, 0);
 
-      // Month 39: Year 3 Return = 6 * 555 (3330) + 850 = 4180 €
+      // Legacy variance only: 6 * 555 = 3330.
       const m39 = res.months[38];
-      assert.equal(m39.taxRefund, 4180);
+      assert.equal(m39.taxRefund, 3330);
 
-      // Month 51: Year 4 Return = 2 * 555 (1110) + 850 (Kindergeld floor protected) = 1960 €
+      // Legacy variance only: 2 * 555 = 1110.
       const m51 = res.months[50];
-      assert.equal(m51.taxRefund, 1960);
+      assert.equal(m51.taxRefund, 1110);
     });
   });
 

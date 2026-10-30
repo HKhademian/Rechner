@@ -194,7 +194,7 @@ export interface AnnualTaxReconciliationResult {
   readonly refundMonth: SimulationMonth;
   /** Total withholding deficit accumulated during the tax swap period in EUR. */
   readonly accumulatedSwapDeficit: EuroAmount;
-  /** Standard baseline itemized deductions refund in EUR (e.g. 850 €). */
+  /** Explicit externally supplied adjustment; no statutory flat refund is inferred. */
   readonly baseDeductionsRefund: EuroAmount;
   /** Statutory Günstigerprüfung assessment result. */
   readonly guenstigerpruefung: GuenstigerpruefungResult;
@@ -211,7 +211,7 @@ export interface AnnualTaxReconciliationResult {
  * @param taxYear - Simulation year being reconciled.
  * @param refundMonth - Simulation month when refund check is credited.
  * @param monthlyDeficitsInYear - Array of monthly withholding deficit amounts for the tax year.
- * @param baseStandardRefund - Baseline standard deductions refund (defaults to 850 €).
+ * @param baseStandardRefund - Explicit supplied adjustment (defaults to zero).
  * @param guenstigerpruefung - Optional Günstigerprüfung assessment result.
  * @returns Complete `AnnualTaxReconciliationResult`.
  */
@@ -219,7 +219,7 @@ export function computeAnnualTaxReconciliation(
   taxYear: CalendarYear,
   refundMonth: SimulationMonth,
   monthlyDeficitsInYear: readonly EuroAmount[],
-  baseStandardRefund: EuroAmount = toEuroAmount(850),
+  baseStandardRefund: EuroAmount = toEuroAmount(0),
   guenstigerpruefung?: GuenstigerpruefungResult,
 ): AnnualTaxReconciliationResult {
   const totalDeficitInYear = monthlyDeficitsInYear.reduce(

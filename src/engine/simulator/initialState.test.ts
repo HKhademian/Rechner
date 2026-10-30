@@ -370,15 +370,15 @@ describe("Sandbox Unit Tests: Initial State & Preexisting Conditions (Batch 0)",
         salaryRaises: emptyRaises,
       });
 
-      // Month 4 (April 2026) -> Receives refund for 2025
+      // No 2025 records establish an opening-year refund.
       const m4 = res.months[3];
       assert.equal(m4.calendarLabel, toCalendarLabel("04.2026"));
-      assert.equal(m4.taxRefund, 850);
+      assert.equal(m4.taxRefund, 0);
 
-      // Month 16 (April 2027) -> Receives refund for 2026
+      // No flat refund is inferred from deductions.
       const m16 = res.months[15];
       assert.equal(m16.calendarLabel, toCalendarLabel("04.2027"));
-      assert.equal(m16.taxRefund, 850);
+      assert.equal(m16.taxRefund, 0);
 
       // Other months have 0 tax refund
       assert.equal(res.months[0].taxRefund, 0);

@@ -449,13 +449,14 @@ export function runScenarioBatches(
     {};
   const taxRefundByMonth: Record<number, EuroAmount> = {};
   const tMonth = preexisting.taxReturnMonth ?? 3;
-  const baseStandardRefund = toEuroAmount(850);
+  // Deductions reduce taxable income; they do not establish a fixed cash refund.
+  const baseStandardRefund = toEuroAmount(0);
   const defaultState = getDefaultPersistedState();
   const monthlyKg =
     preexisting.kindergeldPerChild ?? defaultState.kindergeldPerChild;
 
   rawMonths.forEach((rm) => {
-    if (rm.calendarMonthNum === tMonth) {
+    if (rm.calendarMonthNum === tMonth && rawMonths.some((month) => month.calendarYearNum === rm.calendarYearNum - 1)) {
       const reconciledCalYear = rm.calendarYearNum - 1;
       const deficits = deficitsByCalYear[reconciledCalYear] || [];
 
@@ -1005,9 +1006,9 @@ export function runScenarioBatches(
           `Full refund of Tax Class V wage withholding deficit (+${swapDeficit.toLocaleString("de-DE")} €)`,
         );
       }
-      descParts.push(
-        `statutory deductions return (+${(recon?.baseDeductionsRefund || 850).toLocaleString("de-DE")} €)`,
-      );
+      if ((recon?.baseDeductionsRefund ?? 0) !== 0) {
+        descParts.push(`supplied tax adjustment (${recon?.baseDeductionsRefund.toLocaleString("de-DE")} €)`);
+      }
       if (extraGuenstiger > 0) {
         descParts.push(
           `§ 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+${extraGuenstiger.toLocaleString("de-DE")} € over Kindergeld)`,
@@ -1152,9 +1153,9 @@ export function runScenarioBatches(
           `Full refund of Tax Class V wage withholding deficit (+${swapDeficit.toLocaleString("de-DE")} €)`,
         );
       }
-      descParts.push(
-        `statutory deductions return (+${(recon?.baseDeductionsRefund || 850).toLocaleString("de-DE")} €)`,
-      );
+      if ((recon?.baseDeductionsRefund ?? 0) !== 0) {
+        descParts.push(`supplied tax adjustment (${recon?.baseDeductionsRefund.toLocaleString("de-DE")} €)`);
+      }
       if (extraGuenstiger > 0) {
         descParts.push(
           `§ 31 EStG Kinderfreibetrag Günstigerprüfung bonus (+${extraGuenstiger.toLocaleString("de-DE")} € over Kindergeld)`,

@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: removed invented 850 deduction refunds and opening-year refunds without prior-year records. A zero-income/zero-withholding household receives zero tax cash/events over 36 months. The compatibility helper defaults to zero adjustment; descriptions no longer invent 850. Full quality check passes. Remaining variance-based/child-relief estimates are replaced by actual annual accounting next.
+
 - 2026-10-30: Fix 9 integrated the calendar income/cohort projectors into the public simulator, removing scenario-class entitlement selection and the later-child blend. Early/tie/late independent references yield 724.48/724.48/531.43 Plus; pre-birth net remains frozen after a later raise. Per-parent audits, missing-history repetitions and unavailable snapshots reach JSON/UI/CLI. Manual cash-net estimates require a persisted, validated opt-in. Claim budgets/minimums and protected overlap minimums replace invented additional father payments. Calendar conventions and fixed maternity references are consumed. Full quality check/build and CLI JSON inspection pass. Annual reconciliation and its legacy assumptions remain Fix 10 work.
 
 - 2026-10-30: pure birth-cohort projection freezes each parent's assessment, averages positive post-birth Plus/partnership income, applies claim budgets, household siblings and overlap credits, and reports unavailable inputs. Manual cash net requires an explicit labeled BEEG-net assumption. Nine independently specified cohort/history cases and full quality/build pass. Main timeline integration remains pending.

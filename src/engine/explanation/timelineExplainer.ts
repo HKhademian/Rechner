@@ -167,10 +167,10 @@ function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
     : 0;
   const baseReturnStr = baseDeductionMatch
     ? `+${baseDeductionMatch[1]} €`
-    : "+850 €";
+    : "0 €";
   const baseReturnNum = baseDeductionMatch
     ? Number(baseDeductionMatch[1].replace(/\./g, ""))
-    : 850;
+    : 0;
   const guenstigerBonusStr = guenstigerMatch
     ? `+${guenstigerMatch[1]} € (Child Tax Allowance Bonus over Kindergeld)`
     : "Kindergeld minimum floor retained (0 € extra)";
@@ -197,9 +197,9 @@ function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
       description: "Reconciliation of interim Class V withholding deficit",
     },
     {
-      name: "Statutory Base Deductions Return",
+      name: "Explicitly Supplied Tax Adjustment",
       value: baseReturnStr,
-      description: "Werbungskosten & Sonderausgaben standard allowance",
+      description: "No fixed refund follows merely from a deductible allowance",
     },
     {
       name: "Child Allowance Günstigerprüfung (§ 31 EStG)",
@@ -224,8 +224,8 @@ function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
     {
       stepNumber: 2,
       description:
-        "Credit statutory baseline deductions & Werbungskosten return",
-      formula: "Statutory standard deduction allowance",
+        "Include an explicitly supplied adjustment",
+      formula: "No assumed cash refund from deductions",
       result: baseReturnStr,
     },
     {
@@ -248,7 +248,7 @@ function parseTaxReturnDetails(ev: SpecialEventItem, m: TimelineMonth) {
     },
   ];
 
-  const detailedExplanation = `Annual income tax reconciliation (*Einkommensteuererklärung / Steuerbescheid*) for Tax Year ${taxYear}. Under § 26b and § 46 Abs. 2 Nr. 3a EStG, married couples utilizing Tax Classes III/V are subject to mandatory joint assessment with splitting tariff (*Ehegatten-Splitting* § 32a Abs. 5 EStG). This legally guarantees 100% recovery of the interim Class V withholding deficit (${swapDeficitStr}), grants standard statutory deductions (${baseReturnStr}), and automatically executes the § 31 EStG *Günstigerprüfung* to add any child tax allowance savings above received Kindergeld. The resulting ${formatCurrency(totalRefundNum)} is credited directly to household liquidity in Month ${m.month}.`;
+  const detailedExplanation = `Annual income tax reconciliation (*Einkommensteuererklärung / Steuerbescheid*) for Tax Year ${taxYear}. Under § 26b and § 46 Abs. 2 Nr. 3a EStG, married couples utilizing Tax Classes III/V are subject to mandatory joint assessment with splitting tariff (*Ehegatten-Splitting* § 32a Abs. 5 EStG). The legacy estimate combines the recorded withholding variance (${swapDeficitStr}), explicitly supplied adjustments (${baseReturnStr}), and the § 31 EStG *Günstigerprüfung* to add any child tax allowance savings above received Kindergeld. The resulting ${formatCurrency(totalRefundNum)} is credited directly to household liquidity in Month ${m.month}.`;
 
   return {
     taxYear,
@@ -665,7 +665,7 @@ export function getFieldExplanation(
           fieldTitle: "Annual Tax Return & Special Fiscal Events",
           valueFormatted: formatCurrency(spTotal),
           derivationFormula:
-            "Swap Withholding Deficit Refund + Base Deductions (+850 €) + § 31 EStG Günstigerprüfung Bonus",
+            "Swap Withholding Deficit Refund + Supplied Adjustments + § 31 EStG Günstigerprüfung Bonus",
           explanation: taxDetails.detailedExplanation,
           contributingFactors: taxDetails.contributingFactors,
           calculationSteps: taxDetails.calculationSteps,
@@ -1043,7 +1043,7 @@ export function getSpecialEventFieldExplanation(
           fieldTitle: "Annual Income Tax Return Refund",
           valueFormatted: formatCurrency(ev.amount),
           derivationFormula:
-            "Swap Withholding Deficit Refund + Base Deductions (+850 €) + § 31 EStG Günstigerprüfung Bonus",
+            "Swap Withholding Deficit Refund + Supplied Adjustments + § 31 EStG Günstigerprüfung Bonus",
           explanation: taxDetails.detailedExplanation,
           contributingFactors: taxDetails.contributingFactors,
           calculationSteps: taxDetails.calculationSteps,

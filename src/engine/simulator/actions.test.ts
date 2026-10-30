@@ -377,7 +377,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       // 8 months of swap in 2026 (M4 to M11): net monthly deficit = (3184 - 2398) - (2295 - 1751) = 786 - 544 = 242 €/mo
       // Total 2026 deficit = 8 * 242 = 1.936 €
-      // Tax return in March 2027 (M15) = 1.936 € + 850 € = 2.786 €
+      // Legacy variance estimate = 1.936 €; actual annual accounting follows.
       const taxClassSwitches: TaxClassSwitchAction[] = [
         {
           switchId: toSwitchId("SWAP-1"),
@@ -401,8 +401,8 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
       const m15 = res.months[14];
       assert.equal(m15.calendarLabel, toCalendarLabel("03.2027"));
-      // 1.936 € swap deficit + 850 € base refund = 2.786 €
-      assert.equal(m15.taxRefund, 2786);
+      // No fictitious flat refund is added to the legacy variance.
+      assert.equal(m15.taxRefund, 1936);
     });
   });
 
@@ -1305,7 +1305,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
       // This legacy annual reconciliation still restores only the regular-pay variance.
       const monthly = spousal.husbandClass3Net + spousal.wifeClass5FullTimeNet;
       const bonus = 4000 - 870 - 310 - 472;
-      const expectedTotal = toEuroAmount(monthly * 72 + bonus * 6 + 850 * 6 - 1500 - 600);
+      const expectedTotal = toEuroAmount(monthly * 72 + bonus * 6 - 1500 - 600);
       assert.equal(resA.summary.grandTotal, expectedTotal);
       assert.equal(resC.summary.grandTotal, toEuroAmount(expectedTotal - (805 - 472)));
 

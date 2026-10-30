@@ -27,7 +27,7 @@ import {
   computeKinderfreibetragGuenstigerpruefung,
 } from "#engine/tax/jointAssessment";
 import {
-  runScenarioBatches, 
+  runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 
 describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG)", () => {
@@ -237,10 +237,10 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
         salaryRaises: [],
       });
 
-      // Month 15 (March 2027) -> Reconciles Tax Year 2026 (No child yet, standard refund = 850 €)
+      // No-child year has no variance or fixed deduction refund.
       const m15 = result.months[14];
       assert.equal(m15.month, 15);
-      assert.equal(m15.taxRefund, 850);
+      assert.equal(m15.taxRefund, 0);
 
       // Month 27 (March 2028) -> Reconciles Tax Year 2027 (Child 1 born in May 2027 -> 8 months prorated Günstigerprüfung bonus of +354 €)
       const m27 = result.months[26];
@@ -248,8 +248,8 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       // Independently checked §32a 2026 arithmetic on the current model's
       // BMF annual payroll bases 67354 + 35461 (see payroll2026.json):
       // the legacy monthly conversion gives 102814.92; a 6360 allowance saves 2228;
-      // minus 2072 Kindergeld = 156. Legacy 850 base remains until Fix 10.
-      assert.equal(m27.taxRefund, 1006);
+      // minus 2072 Kindergeld = 156. No fixed deduction refund is added.
+      assert.equal(m27.taxRefund, 156);
 
       const taxEventM27 = m27.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,
@@ -266,7 +266,7 @@ describe("Statutory Child Allowance Günstigerprüfung (§ 31, § 32 Abs. 6 EStG
       // BMF annual bases 67354 + 27480; monthly legacy conversion gives 94833.96.
       // A 9540 legacy allowance saves 3186;
       // minus 3108 Kindergeld = 78. Child allowance and actual refund are fixed later.
-      assert.equal(m39.taxRefund, 928);
+      assert.equal(m39.taxRefund, 78);
 
       const taxEventM39 = m39.specialEvents.find(
         (e) => e.type === SpecialEventType.TaxReturn,
