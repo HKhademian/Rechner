@@ -490,3 +490,20 @@ it("drills into a later same-title event using its stable ID and actual progress
   assert.equal(explanation.cumulatedTotal, 1050);
   assert.equal(explanation.diffVsB, 0);
 });
+
+
+it("explains the configured Kindergeld rate and zero children without inventing a count", () => {
+  const month = ledgerRowsFixture().months[0];
+  const zero = getFieldExplanation(FieldColumnKey.Kindergeld, month, undefined, ScenarioId.A);
+  assert.ok(zero.derivationFormula?.startsWith("0 Child(ren)"));
+  assert.equal(zero.contributingFactors?.[1].value, "259 € / month");
+  const two = getFieldExplanation(FieldColumnKey.Kindergeld, { ...month,
+    kindergeld: toEuroAmount(518),
+    kindergeldDetails: { ...month.kindergeldDetails!,
+      children: toChildrenCount(2) } }, undefined, ScenarioId.C);
+  assert.ok(two.derivationFormula?.startsWith("2 Child(ren)"));
+  assert.equal(two.valueFormatted, "518 €");
+  const legacy = getFieldExplanation(FieldColumnKey.Kindergeld, { ...month,
+    kindergeldDetails: undefined }, undefined, ScenarioId.A);
+  assert.equal(legacy.contributingFactors?.length, 0);
+});

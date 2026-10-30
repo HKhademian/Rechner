@@ -114,6 +114,7 @@ import {
 
 import {
   DEFAULT_BENEFIT_RULES,
+  toSourceUrl,
 } from "#engine/config/benefitRules";
 import {
   validatePartnerMonths,
@@ -284,6 +285,7 @@ function generateScenario(
   const startMonth = preexisting.startCalendarMonth;
   const duration = preexisting.simulationDurationMonths;
   const kgRate = preexisting.kindergeldPerChild;
+  const kindergeldSource = toSourceUrl("https://www.gesetze-im-internet.de/estg/__66.html");
   const benefitRules = preexisting.benefitRules ?? DEFAULT_BENEFIT_RULES;
   for (const pregnancy of pregnancies) {
     validatePartnerMonths(pregnancy.fatherPartnerMonthsCount, benefitRules);
@@ -1409,6 +1411,9 @@ function generateScenario(
     const income = incomeSchedule[i];
     const allowance = allowanceSchedule.months.get(income.ordinal)!;
     months.push({ ...entry,
+      kindergeldDetails: Object.freeze({ children: income.children,
+        monthlyPerChild: kgRate,
+        source: kindergeldSource }),
       benefitAssessmentAvailable: allowance.available,
       benefitPayments: allowance.payments,
       unavailableReasons: allowance.reasons,
@@ -1515,6 +1520,7 @@ function generateScenario(
     unavailableReasons: allowanceSchedule.unavailableReasons,
     assumptions: [...new Set([
       ...allowanceSchedule.assumptions,
+      `Kindergeld uses the supplied ${kgRate} EUR per modeled qualifying child/month throughout the period. ${kindergeldSource}`,
       ...Object.values(benefitRules).filter((rule) => rule.overridden).map((rule) =>
         `Overridden benefit rule assumption: ${rule.label} = ${rule.value}. Official reference: ${rule.source}`),
       ...annualTaxRecords.flatMap((record) => [

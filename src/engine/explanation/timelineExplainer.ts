@@ -564,13 +564,26 @@ export function getFieldExplanation(
     }
 
     case FieldColumnKey.Kindergeld: {
-      const childCount = Math.max(1, Math.round(kg / 250));
+      const details = m.kindergeldDetails;
+      if (!details) {
+        return { fieldKey: ExplanationFieldKey.Kindergeld,
+          fieldTitle: "Recorded Child Benefit (Kindergeld)",
+          valueFormatted: formatCurrency(kg),
+          derivationFormula: `Recorded total: ${formatCurrency(kg)}`,
+          explanation: "The recorded total has no per-child rate/count audit; these inputs cannot be inferred from the amount.",
+          contributingFactors: [],
+          calculationSteps: [],
+          legalCitation: toStatutoryCitation("EStG § 66"),
+          legalRuleKey: LegalRuleKey.EStG_Kindergeld };
+      }
+      const childCount = details.children;
+      const rate = formatCurrency(details.monthlyPerChild);
       return {
         fieldKey: ExplanationFieldKey.Kindergeld,
         fieldTitle: "Statutory Child Benefit (Kindergeld § 66 EStG)",
         valueFormatted: formatCurrency(kg),
-        derivationFormula: `${childCount} Child(ren) × 250 € / month = ${formatCurrency(kg)}`,
-        explanation: `Under § 66 EStG / BKGG, the family receives ${formatCurrency(kg)} per month in child benefit (${childCount} child/children × 250 €). Kindergeld is paid universally and is tax-free.`,
+        derivationFormula: `${childCount} Child(ren) × ${rate} / month = ${formatCurrency(kg)}`,
+        explanation: `The model counts ${childCount} qualifying child/children at the supplied ${rate} monthly rate. This is a planning input; actual entitlement conditions and the applicable rate must be checked. ${details.source}`,
         contributingFactors: [
           {
             name: "Eligible Living Children",
@@ -578,16 +591,16 @@ export function getFieldExplanation(
             description: "Children living in household",
           },
           {
-            name: "Statutory Monthly Rate per Child",
-            value: "250 € / month",
-            description: "Universal child benefit (§ 66 EStG)",
+            name: "Supplied Monthly Rate per Child",
+            value: `${rate} / month`,
+            description: details.source,
           },
         ],
         calculationSteps: [
           {
             stepNumber: 1,
-            description: "Multiply child count by statutory rate",
-            formula: `${childCount} × 250 €`,
+            description: "Multiply modeled qualifying children by the supplied rate",
+            formula: `${childCount} × ${rate}`,
             result: formatCurrency(kg),
           },
         ],

@@ -13,6 +13,7 @@ import type {
  */
 import {
   type BenefitRules,
+  type SourceUrl,
 } from "#engine/config/benefitRules";
 
 import {
@@ -1601,6 +1602,11 @@ export interface ActionRowItem {
  * Encapsulates the complete financial snapshot, benefit disbursements, tax withholdings, and running totals for one month.
  */
 export interface MonthlyLedgerEntry {
+  readonly kindergeldDetails?: {
+    readonly children: ChildrenCount;
+    readonly monthlyPerChild: EuroAmount;
+    readonly source: SourceUrl;
+  };
   readonly benefitAssessmentAvailable?: boolean;
   readonly benefitPayments?: readonly BenefitPaymentAudit[];
   readonly unavailableReasons?: readonly string[];
