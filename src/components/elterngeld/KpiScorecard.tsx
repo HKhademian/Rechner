@@ -1,3 +1,4 @@
+import CalculationStatus from "./CalculationStatus";
 import type {
   JSX,
 } from "preact";
@@ -48,37 +49,7 @@ export default function KpiScorecard(): JSX.Element {
         marginBottom: "28px",
       }}
     >
-      <div className="glass-panel" style={{ gridColumn: "1 / -1",
-        padding: "16px" }}>
-        <strong>{current.benefitsComplete ? "Benefits modeled under the stated assumptions" : "Incomplete benefit calculation"}</strong>
-        {current.payrollComplete === false && <p>Payroll amounts include supplied values or provisional estimates. Review the calculation assumptions.</p>}
-        {current.taxComplete === false && <p>Some annual tax balances are unavailable. Displayed cash totals omit those settlements.</p>}
-        {!current.benefitsComplete && <p>Displayed totals omit unavailable benefit payments and are a partial modeled cash flow.</p>}
-        {(current.unavailableReasons ?? []).map((reason) => <p key={reason}>{reason}</p>)}
-        <details>
-          <summary>Assessment history and assumptions</summary>
-          <ul>{(current.assumptions ?? []).map((note) => <li key={note}>{note}</li>)}</ul>
-          {(current.benefitAssessments ?? []).map((assessment) => (
-            <p key={`${assessment.pregnancyId}-${assessment.parent}`}>
-              {assessment.parent}, birth {assessment.birthMonthId}: class {assessment.taxClass};
-              {" "}assessment months {assessment.selectedMonths.join(", ")}.
-              {assessment.assumedMonths.length > 0 && ` Repeated initial inputs: ${assessment.assumedMonths.join(", ")}.`}
-              {assessment.reason && ` Unavailable: ${assessment.reason}`}
-            </p>
-          ))}
-        </details>
-        <details>
-          <summary>Annual tax settlements and cash timing</summary>
-          <p>Signed tax cash flow within the period: {formatCurrency(current.summary.totalTaxRefunds, 2)}</p>
-          <ul>{(current.annualTaxRecords ?? []).map((record) => (
-            <li key={record.calendarYear}>
-              {record.calendarYear}: {record.assessment ? formatCurrency(record.assessment.settlement, 2) : "Unavailable"}.
-              {" "}Planned {record.settlementMonthId}, {record.scheduledMonthInHorizon ? "within" : "outside"} the cash-flow period.
-              {record.reasons.map((reason) => <p key={reason}>{reason}</p>)}
-            </li>
-          ))}</ul>
-        </details>
-      </div>
+      <CalculationStatus result={current} />
       {/* KPI Card 1: Total Earned Salaries */}
       <div
         className="glass-panel"
