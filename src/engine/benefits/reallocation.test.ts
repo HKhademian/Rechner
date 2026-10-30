@@ -4,13 +4,12 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
-  runScenarioBatches, 
+  runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
   type PreexistingConditions,
   type PregnancyAction,
   ActionType,
-  ActionCategory,
   ScenarioId,
   TaxClass,
   toEuroAmount,
@@ -28,6 +27,8 @@ import {
 
 describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)", () => {
   const preexisting: PreexistingConditions = {
+    // Explicit unverified assessment-net estimates for lifecycle tests.
+    assumeManualNetIsAssessmentNet: true,
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: toMonthDuration(60),
@@ -79,7 +80,7 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
     },
   ];
 
-  it("automatically reallocates Child 1 remaining Elterngeld to Father during Child 2 Mutterschutz", () => {
+  it("does not invent father months after his requested allocation was fulfilled", () => {
     const res = runScenarioBatches({
       scenarioKey: ScenarioId.C,
       preexisting,
@@ -94,33 +95,13 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
     const m30 = res.months[29]; // Sim30
     assert.equal(m30.month, 30);
     assert.equal(m30.isMutterschutz, true);
-    assert.equal(m30.mutterschutz, 2167);
-    assert.equal(m30.wifeElterngeld, 0); // Offset under § 3 Abs. 1 BEEG
-    assert.ok(
-      m30.husbandElterngeld > 0,
-      "Father must receive reallocated Child 1 ElterngeldPlus",
-    );
-
-    // Verify Action Milestone Row is generated before Month 30
-    assert.ok(m30.startingActions, "Month 30 must have startingActions");
-    const reallocAction = m30.startingActions?.find(
-      (a) => a.type === ActionType.ElterngeldReallocation,
-    );
-    assert.ok(
-      reallocAction,
-      "Month 30 must contain ActionType.ElterngeldReallocation milestone row",
-    );
-    assert.equal(
-      reallocAction?.category,
-      ActionCategory.ElterngeldReallocation,
-    );
-    assert.ok(
-      reallocAction?.title.includes("Elterngeld Reallocation"),
-      "Title must specify Elterngeld Reallocation",
-    );
+    assert.equal(m30.mutterschutz, 1648);
+    assert.equal(m30.wifeElterngeld, 150);
+    assert.equal(m30.husbandElterngeld, 0);
+    assert.equal(m30.startingActions?.some((action) => action.type === ActionType.ElterngeldReallocation), false);
   });
 
-  it("offsets Mother Child 1 Elterngeld to 0 during Child 2 Mutterschutz under § 3 Abs. 1 BEEG", () => {
+  it("retains the protected Plus minimum during younger-child maternity overlap", () => {
     const res = runScenarioBatches({
       scenarioKey: ScenarioId.C,
       preexisting,
@@ -136,8 +117,8 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
       const m = res.months[mIndex];
       assert.equal(m.isMutterschutz, true);
       assert.equal(m.wifeSalary, 0);
-      assert.equal(m.wifeElterngeld, 0);
-      assert.equal(m.mutterschutz, 2167);
+      assert.equal(m.wifeElterngeld, m.month === 30 ? 150 : 0);
+      assert.equal(m.mutterschutz, 1648);
     }
   });
 
@@ -158,7 +139,7 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
     const m30 = res.months[29]; // Sim30
     assert.equal(m30.month, 30);
     assert.equal(m30.isMutterschutz, true);
-    assert.equal(m30.wifeElterngeld, 0);
+    assert.equal(m30.wifeElterngeld, 150);
     assert.equal(
       m30.husbandElterngeld,
       0,

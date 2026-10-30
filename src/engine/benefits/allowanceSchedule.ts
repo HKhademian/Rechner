@@ -369,6 +369,7 @@ export function projectAllowanceSchedule(
         ));
         row.payments.push(Object.freeze({ pregnancyId: pregnancy.pregnancyId,
           parent: husband ? TargetPerson.Husband : TargetPerson.Wife,
+          reallocated: husband && moved.has(ordinal),
           partnershipBonus: bonus.has(ordinal),
           grossEntitlement: sibling.totalElterngeldPlusWithBonus,
           offset: toEuroAmount(sibling.totalElterngeldPlusWithBonus - payment),

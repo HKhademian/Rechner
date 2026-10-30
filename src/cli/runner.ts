@@ -1143,6 +1143,7 @@ function buildSimulation(
     startCalendarYear: toFullCalendarYear(startYear),
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: toMonthDuration(duration),
+    assumeManualNetIsAssessmentNet: def.assumeManualNetIsAssessmentNet,
     salaryInputMode: def.salaryInputMode,
     salaryPeriod: opts.period,
     husbandGross: toGrossSalary(husbandGrossMonthly),
@@ -1321,6 +1322,15 @@ function printSummaryScorecard(
   resB: SimulationResult,
   resC: SimulationResult,
 ) {
+  for (const result of [resA, resB, resC]) {
+    console.log(`Scenario ${result.scenarioKey}: ${result.benefitsComplete ? "benefit calculation available under stated assumptions" : "incomplete benefit calculation; totals omit unavailable payments"}`);
+    for (const reason of result.unavailableReasons ?? []) {
+      console.log(`  Unavailable: ${reason}`);
+    }
+    for (const assumption of result.assumptions ?? []) {
+      console.log(`  Assumption: ${assumption}`);
+    }
+  }
   const gainOverB = resC.summary.grandTotal - resB.summary.grandTotal;
   const gainOverA = resC.summary.grandTotal - resA.summary.grandTotal;
   const benefitGainOverB =

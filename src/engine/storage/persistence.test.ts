@@ -18,6 +18,7 @@ import {
   validateAndSanitizePersistedState,
   serializeState,
   deserializeState,
+  parseRawScenarioData,
   saveToStorage,
   loadFromStorage,
   clearStorage,
@@ -39,6 +40,18 @@ import {
 } from "#engine/types";
 
 describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
+  it("keeps manual assessment estimates opt-in across import and storage", () => {
+    const state = getTestPersistedState();
+    assert.equal(parseRawScenarioData({ ...state,
+      assumeManualNetIsAssessmentNet: undefined }).assumeManualNetIsAssessmentNet, false);
+    assert.equal(deserializeState(serializeState({ ...state,
+      assumeManualNetIsAssessmentNet: true })).assumeManualNetIsAssessmentNet, true);
+    assert.throws(() => parseRawScenarioData({ ...state,
+      assumeManualNetIsAssessmentNet: "true" }), TypeError);
+    assert.equal(validateAndSanitizePersistedState({ ...state,
+      assumeManualNetIsAssessmentNet: "true" }).assumeManualNetIsAssessmentNet, false);
+  });
+
   it("returns valid canonical test state with complete batch collections", () => {
     const testState = getTestPersistedState();
 

@@ -33,6 +33,8 @@ import {
 
 describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variations)", () => {
   const defaultParams = {
+    // Explicit unverified assessment-net estimates for lifecycle tests.
+    assumeManualNetIsAssessmentNet: true,
     husbandGross: toGrossSalary(4500),
     wifeGross: toGrossSalary(3000),
     wifePostBirthHours: toWorkingHours(24),
@@ -100,7 +102,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
   });
 
   describe("Scenario C - Optimized Proactive Tax Class Swap (III/V)", () => {
-    it("accurately models Swap 1, Mutterschutz at Class III FT (€2.295), and optimized ElterngeldPlus (+723.45 €)", () => {
+    it("accurately models Swap 1, Mutterschutz at Class III FT (€2.295), and frozen-class ElterngeldPlus (+573.30 €)", () => {
       const res = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.C,
@@ -114,10 +116,10 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         assert.equal(m.mutterschutz, 2295);
       });
 
-      // Child 1 ElterngeldPlus (M14 to M25) = €723.45: (2295 - 1182) * 0.65
+      // Explicit manual estimate: use frozen class III on both sides, (2295 - 1413) × 0.65 = 573.30.
       for (let i = 14; i <= 25; i++) {
         const m = res.months[i - 1];
-        assert.equal(m.wifeElterngeld, 723.45);
+        assert.equal(m.wifeElterngeld, 573.30);
       }
     });
 
@@ -146,7 +148,7 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
   });
 
   describe("Optimization Advantage Audit (Scenario C vs Scenario B)", () => {
-    it("proves Scenario C provides substantial net financial gain over Scenario B", () => {
+    it("attributes this fixture's benefit gain to frozen-class assessment and maternity references", () => {
       const b = generateTimelineSimulation({
         ...defaultParams,
         scenarioKey: ScenarioId.B,
@@ -156,14 +158,15 @@ describe("End-to-End Simulation Scenarios (Scenarios A, B, C & Parameter Variati
         scenarioKey: ScenarioId.C,
       });
 
-      const netGain = c.summary.grandTotal - b.summary.grandTotal;
-      const benefitsGain = c.summary.totalBenefits - b.summary.totalBenefits;
-
-      assert.ok(netGain > 8000, `Net gain (${netGain} €) must exceed 8.000 €`);
-      assert.ok(
-        benefitsGain > 8000,
-        `Benefits gain (${benefitsGain} €) must exceed 8.000 €`,
-      );
+      // First birth: twelve Plus payments gain 573.30 - 369.85; three maternity
+      // months gain 2295 - 1751. This is an assumed-net fixture, not a verified tax return.
+      const firstBirthGain = c.months.slice(10, 25).reduce((sum, month, index) => {
+        const baseline = b.months[index + 10];
+        return sum + month.wifeElterngeld - baseline.wifeElterngeld + month.mutterschutz - baseline.mutterschutz;
+      }, 0);
+      assert.equal(Math.round(firstBirthGain * 100), 407340);
+      assert.equal(c.benefitsComplete, true);
+      assert.ok(c.assumptions?.some((note) => note.includes("Explicit assumption")));
     });
   });
 

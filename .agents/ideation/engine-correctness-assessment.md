@@ -5,10 +5,10 @@ created: 2026-10-29
 todos:
   - id: assessment-history
     content: "Fix 9 - derive and freeze each parent's assessment from actual history"
-    status: in_progress
+    status: completed
   - id: annual-reconciliation
     content: "Fix 10 - reconcile actual tax and enforce income eligibility"
-    status: pending
+    status: in_progress
   - id: export-parity
     content: "Fix 11 - share ledger event rows across UI, CLI, and CSV"
     status: pending
@@ -24,6 +24,8 @@ plans:
 # Engine correctness: assessment and reconciliation
 
 ## Done
+
+- 2026-10-30: Fix 9 integrated the calendar income/cohort projectors into the public simulator, removing scenario-class entitlement selection and the later-child blend. Early/tie/late independent references yield 724.48/724.48/531.43 Plus; pre-birth net remains frozen after a later raise. Per-parent audits, missing-history repetitions and unavailable snapshots reach JSON/UI/CLI. Manual cash-net estimates require a persisted, validated opt-in. Claim budgets/minimums and protected overlap minimums replace invented additional father payments. Calendar conventions and fixed maternity references are consumed. Full quality check/build and CLI JSON inspection pass. Annual reconciliation and its legacy assumptions remain Fix 10 work.
 
 - 2026-10-30: pure birth-cohort projection freezes each parent's assessment, averages positive post-birth Plus/partnership income, applies claim budgets, household siblings and overlap credits, and reports unavailable inputs. Manual cash net requires an explicit labeled BEEG-net assumption. Nine independently specified cohort/history cases and full quality/build pass. Main timeline integration remains pending.
 
@@ -49,21 +51,13 @@ plans:
 
 ## Mission and done
 
-Use the repaired benefit and payroll primitives to make simulation outcomes follow the household's actual history. The review reproduced equal benefits for early/late switches, fictitious 850 annual refunds, and flattened shared CSV exports. No repairs in this wave are complete.
+Use the repaired benefit and payroll primitives to make simulation outcomes follow the household's actual history. The review reproduced equal benefits for early/late switches, fictitious 850 annual refunds, and flattened shared CSV exports. History-driven assessment is integrated; annual reconciliation and exports remain pending.
 
 ## Plan links and read first
 
 - Orchestrator: [master plan](./engine-correctness-master.md), wave 3; shared constraints apply.
 - Prerequisite: [payroll](./engine-correctness-payroll.md), after [benefits](./engine-correctness-benefits.md).
 - Read `src/engine/benefits/elterngeldAssessment.ts`, `src/engine/simulator/timelineGenerator.ts`, `src/engine/simulator/strategySynthesizer.ts`, `src/engine/tax/jointAssessment.ts`, `src/engine/storage/persistence.ts`, and `src/engine/storage/exportImport.ts`.
-
-## Fix 9 - assessment-history
-
-**Depends on:** wave 2 complete.
-**Files:** modify the assessment module/tests, timeline generator/action tests, types, and necessary persistence/store/CLI adapters; introduce a focused immutable assessment result if useful.
-**Actions:** build the actual eligible assessment window for each recipient and birth, including prior-year lookback and statutory excluded-month handling. Resolve effective tax classes from action history, with the most recent class winning a tie; remove the scenario-label-based class selection and hardcoded later-child 10-PT/2-FT blend. Compute BEEG synthetic net using its statutory standardized deductions, separately from payroll take-home. Freeze the pre-birth assessment; use the appropriate same assessment deduction characteristics for post-birth income calculations. Wire the father's own assessment into Fix 4's allocation. Missing history needs an explicit validated assumption or incomplete result, not fabricated records.
-**Acceptance:** a valid majority switch and a late switch produce the independently expected distinct entitlements; a 6/6 tie chooses the applicable latest class. Post-birth tax switches or raises do not rewrite pre-birth assessment. Cover excluded months for a subsequent child, bonuses excluded without discarding regular wages, year boundaries, overlapping leaves, both recipients, and incomplete history. Each fixture states its eligible window and synthetic net calculation.
-**Verify:** assessment tests, strategy/action/reallocation tests, and longitudinal scenarios, then the shared commit gate. Split history construction, synthetic-net calculation, and simulator wiring into prerequisite atomic commits if needed.
 
 ## Fix 10 - annual-reconciliation
 

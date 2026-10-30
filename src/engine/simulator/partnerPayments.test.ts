@@ -74,7 +74,9 @@ describe("Partner payment simulation regressions", () => {
         reason: "Return above the allowance hours limit",
       }],
     });
-    assert.equal(result.months[13].husbandElterngeld, 200);
+    // One isolated eligible month is below the parent minimum; the injected floor
+    // cannot create an otherwise invalid claim.
+    assert.equal(result.months[13].husbandElterngeld, 0);
     assert.equal(result.months[14].husbandElterngeld, 0);
   });
 });

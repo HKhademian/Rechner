@@ -14,10 +14,10 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
-  execFile, 
+  execFile,
 } from "node:child_process";
 import {
-  promisify, 
+  promisify,
 } from "node:util";
 import {
   normalizeCliGross,
@@ -218,11 +218,11 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
         "partner",
       ]);
       assert.equal(stderr, "");
-      assert.ok(stdout.includes("FIELD EXPLANATION: Father's Partner Months"));
+      assert.ok(stdout.includes("FIELD EXPLANATION: Father's ElterngeldPlus"));
       assert.ok(stdout.includes("Value:"));
-      assert.ok(stdout.includes("150"));
+      assert.ok(stdout.includes("Overlap credits"));
       assert.ok(stdout.includes("Legal Citation:"));
-      assert.ok(stdout.includes("BEEG § 4 Abs. 3"));
+      assert.ok(stdout.includes("BEEG §§"));
       assert.ok(stdout.includes("Contributing Parameters / Factors:"));
       assert.ok(stdout.includes("Step-by-Step Calculation Breakdown:"));
     });
@@ -237,9 +237,9 @@ describe("Headless CLI Scenario Runner & Explainer (src/cli/runner.ts)", () => {
       ]);
       assert.equal(stderr, "");
       assert.ok(stdout.includes("FIELD EXPLANATION: Mother's ElterngeldPlus"));
-      assert.ok(stdout.includes("900"));
-      assert.ok(stdout.includes("Pre-Birth Assessment Net"));
-      assert.ok(stdout.includes("Statutory Replacement Rate"));
+      assert.ok(stdout.includes("claim cohorts"));
+      assert.ok(stdout.includes("Entitlement before overlap credits"));
+      assert.ok(stdout.includes("Overlap credits"));
       assert.ok(stdout.includes("Step-by-Step Calculation Breakdown:"));
     });
 

@@ -11,13 +11,15 @@ import {
   isElterngeldHoursEligible,
 } from "#engine/benefits/elterngeldPlus";
 
-/** Partner counts in saved scenarios denote Plus payments, not Basis equivalents. */
+/** Count validation only: the cohort projector checks the combined parent minimum and family budget.
+ * Partner counts in saved scenarios denote Plus payments, not Basis equivalents.
+ */
 export function validatePartnerMonths(
   requested: MonthDuration,
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): void {
-  const maximum = rules.additionalPartnerBasisMonths.value / rules.plusFraction.value;
-  if (!Number.isInteger(requested) || requested < 0 || requested > maximum || (requested > 0 && requested < rules.minimumParentClaimMonths.value)) {
+  const maximum = rules.familyBasisMonths.value / rules.plusFraction.value;
+  if (!Number.isInteger(requested) || requested < 0 || requested > maximum) {
     throw new TypeError(`Partner Plus months must be a whole count between 0 and ${maximum}.`);
   }
 }

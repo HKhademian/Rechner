@@ -35,8 +35,8 @@ describe("Ordinary partner Plus allocation", () => {
       additionalPartnerBasisMonths: 3 });
     assert.equal(isOrdinaryPartnerPaymentMonth(toSimulationMonth(17), toSimulationMonth(12), toMonthDuration(6), toWorkingHours(30), rules), true);
     assert.equal(isOrdinaryPartnerPaymentMonth(toSimulationMonth(12), toSimulationMonth(12), toMonthDuration(6), toWorkingHours(31), rules), false);
-    assert.throws(() => validatePartnerMonths(toMonthDuration(1)), TypeError);
+    assert.doesNotThrow(() => validatePartnerMonths(toMonthDuration(1)));
     assert.throws(() => validatePartnerMonths(toMonthDuration(1.5)), TypeError);
-    assert.throws(() => validatePartnerMonths(toMonthDuration(5)), TypeError);
+    assert.throws(() => validatePartnerMonths(toMonthDuration(25)), TypeError);
   });
 });

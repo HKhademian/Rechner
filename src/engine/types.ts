@@ -1586,6 +1586,9 @@ export interface ActionRowItem {
  * Encapsulates the complete financial snapshot, benefit disbursements, tax withholdings, and running totals for one month.
  */
 export interface MonthlyLedgerEntry {
+  readonly benefitAssessmentAvailable?: boolean;
+  readonly benefitPayments?: readonly BenefitPaymentAudit[];
+  readonly unavailableReasons?: readonly string[];
   /** Actual modeled withholding; absent when only manual net salaries were supplied. */
   readonly payroll?: { readonly husband: MonthlyPayrollRecord;
     readonly wife: MonthlyPayrollRecord };
@@ -1706,6 +1709,7 @@ export interface BenefitAssessmentAudit {
 }
 
 export interface BenefitPaymentAudit {
+  readonly reallocated?: boolean;
   readonly pregnancyId: PregnancyId;
   readonly parent: TargetPerson;
   readonly partnershipBonus: boolean;
@@ -1715,6 +1719,11 @@ export interface BenefitPaymentAudit {
 }
 
 export interface SimulationResult {
+  /** Availability under the disclosed calendar/household assumptions, not legal certification. */
+  readonly benefitsComplete?: boolean;
+  readonly benefitAssessments?: readonly BenefitAssessmentAudit[];
+  readonly assumptions?: readonly string[];
+  readonly unavailableReasons?: readonly string[];
   /** Scenario identifier (A, B, or C). */
   readonly scenarioKey: ScenarioId;
   /** Chronological array of monthly ledger snapshots (typically 60 or 120 months). */

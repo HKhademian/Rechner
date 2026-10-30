@@ -126,7 +126,8 @@ it("averages positive earnings across ordinary Plus and partnership claims", () 
 
 it("does not treat manual payroll take-home as BEEG net without an explicit assumption", () => {
   const manual = { ...base,
-    preexisting: standardPreexistingConditions };
+    preexisting: { ...standardPreexistingConditions,
+      assumeManualNetIsAssessmentNet: false } };
   const unavailable = project(manual);
   assert.equal(unavailable.complete, false);
   assert.match(unavailable.assessments[0].reason ?? "", /explicit manual assessment-net assumption/);

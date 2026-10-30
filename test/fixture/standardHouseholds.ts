@@ -16,6 +16,8 @@ import {
  * stress-testing combinatorial grids, and benchmarks.
  */
 export const standardHouseholdParams = {
+  // Lifecycle-only fixture: cash nets explicitly stand in for unverified BEEG nets.
+  assumeManualNetIsAssessmentNet: true,
   husbandClass3Net: toNetSalary(3184),
   husbandClass5Net: toNetSalary(2398),
   wifeClass5FullTimeNet: toNetSalary(1751),
@@ -37,6 +39,8 @@ export const standardHouseholdParams = {
  * Baseline preexisting conditions fixture for discrete multi-batch lifecycle testing.
  */
 export const standardPreexistingConditions: PreexistingConditions = {
+  // Lifecycle-only fixture: cash nets explicitly stand in for unverified BEEG nets.
+  assumeManualNetIsAssessmentNet: true,
   startCalendarYear: toFullCalendarYear(2026),
   startCalendarMonth: toCalendarMonth(1),
   simulationDurationMonths: toMonthDuration(60),

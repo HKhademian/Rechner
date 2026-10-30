@@ -12,7 +12,7 @@ import {
   getSpecialEventRowExplanation,
 } from "#engine/explanation/timelineExplainer";
 import {
-  runScenarioBatches, 
+  runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
   type PreexistingConditions,
@@ -54,6 +54,8 @@ import {
 
 describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
   const basePreexisting: PreexistingConditions = {
+    // Explicit unverified assessment-net estimates for lifecycle tests.
+    assumeManualNetIsAssessmentNet: true,
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: toMonthDuration(60),
@@ -191,21 +193,21 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         undefined,
         ScenarioId.C,
       );
-      assert.equal(exp.valueFormatted, "829\u00a0€");
-      assert.ok(exp.derivationFormula?.includes("65%"));
-      assert.ok(exp.explanation.includes("Class III"));
-      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 4);
+      assert.equal(exp.valueFormatted, "621\u00a0€");
+      assert.ok(exp.derivationFormula?.includes(" - "));
+      assert.ok(exp.explanation.includes("frozen pre-birth standardized net"));
+      assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Pre-Birth Assessment Net")),
+          f.name.includes("claim cohorts")),
       );
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Statutory Replacement Rate")),
+          f.name.includes("Entitlement before overlap credits")),
       );
-      assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 3);
+      assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 2);
       assert.equal(exp.calculationSteps[0].stepNumber, 1);
-      assert.ok(exp.calculationSteps[0].formula.includes("-"));
+      assert.ok(exp.calculationSteps[1].formula.includes("-"));
     });
 
     it("provides contributing factors and calculation steps for Father Partner Months (+150 €)", () => {
@@ -220,14 +222,14 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Father Post-Birth Hours")),
+          f.name.includes("claim cohorts")),
       );
       assert.ok(
         exp.contributingFactors.some((f) =>
-          f.name.includes("Statutory Minimum Allowance Floor")),
+          f.name.includes("Entitlement before overlap credits")),
       );
       assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 2);
-      assert.ok(exp.calculationSteps[1].formula.includes("Max(150"));
+      assert.ok(exp.calculationSteps[1].formula.includes(" - "));
     });
 
     it("provides exact mathematical formula and steps for Mutterschutz column during protection window", () => {
@@ -239,7 +241,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
         ScenarioId.C,
       );
       assert.ok(m12C.mutterschutz > 0);
-      assert.ok(exp.derivationFormula?.includes("100% Net"));
+      assert.ok(exp.derivationFormula?.includes("Average regular cash wages"));
       assert.ok(exp.legalCitation?.includes("MuSchG"));
       assert.ok(exp.contributingFactors && exp.contributingFactors.length >= 3);
       assert.ok(exp.calculationSteps && exp.calculationSteps.length >= 2);

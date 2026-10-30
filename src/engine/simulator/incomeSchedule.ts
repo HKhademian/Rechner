@@ -287,6 +287,7 @@ export function evaluateIncomeMonth(
     husbandNets: Object.freeze(husbandNets),
     wifeNets: Object.freeze(wifeNets),
     wifeFullNets: Object.freeze(wifeFullNets),
+    wifePartNets: Object.freeze(wifePartNets),
     maternityPregnancyId: maternity?.pregnancyId,
     isMutterschutz: maternity !== undefined,
     isSwapActive,

@@ -4,10 +4,10 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
-  runScenarioBatches, 
+  runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
-  deriveSpousalNetSalaries, 
+  deriveSpousalNetSalaries,
 } from "#engine/tax/wageTax";
 import {
   type PreexistingConditions,
@@ -44,6 +44,8 @@ import {
 
 describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
   const basePreexisting: PreexistingConditions = {
+  // Lifecycle-only fixture: cash nets explicitly stand in for unverified BEEG nets.
+    assumeManualNetIsAssessmentNet: true,
     startCalendarYear: toFullCalendarYear(2026),
     startCalendarMonth: toCalendarMonth(1),
     simulationDurationMonths: toMonthDuration(60),
@@ -890,10 +892,10 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         financialEvents: [],
       });
 
-      // Half of rounded no-income Basis 2295 * 0.65 = 1491.75 -> 745.88.
+      // Frozen class III applies to both sides: (2295 - 1405) × 0.65 = 578.50.
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld, 745.88);
+        assert.equal(month.wifeElterngeld, 578.50);
       }
 
       // Months 26..29: Partnerschaftsbonus window -> denied because 20h < 24h
@@ -910,7 +912,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
           0,
           `Month ${m} husbandElterngeld must be 0 for <24h during bonus window`,
         );
-        assert.ok(month.phaseLabel.includes("<24h: No PB"));
+        assert.ok(month.phaseLabel.includes("Partnership Bonus Planning Window"));
       }
     });
 
@@ -937,20 +939,20 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         financialEvents: [],
       });
 
-      // Income loss (2295 - 1328) * 0.65 = 628.55, below the ceiling.
+      // Frozen class III post-birth estimate is 1648: (2295 - 1648) × 0.65 = 420.55.
       for (let m = 14; m <= 25; m++) {
         const month = res.months[m - 1];
-        assert.equal(month.wifeElterngeld, 628.55);
+        assert.equal(month.wifeElterngeld, 420.55);
       }
 
       // Months 26..29: Partnerschaftsbonus granted for both parents
       for (let m = 26; m <= 29; m++) {
         const month = res.months[m - 1];
         assert.equal(month.isPartnerschaftsbonus, true);
-        assert.equal(month.wifeElterngeld, 628.55);
+        assert.equal(month.wifeElterngeld, 420.55);
         assert.equal(month.husbandElterngeld, 150);
         assert.ok(
-          month.phaseLabel.includes("Partnerschaftsbonus 1 (Both 24-32h)"),
+          month.phaseLabel.includes("Partnerschaftsbonus (Both Parents)"),
         );
       }
     });
@@ -1058,7 +1060,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
 
         // Verify that Month 1 has the Factor tax class label
         const m1 = res.months[0];
-        assert.equal(m1.taxClassLabel, "H: IV (F) | W: IV (F)");
+        assert.equal(m1.taxClassLabel, "H: IV(F=0.905) | W: IV(F=0.905)");
       });
 
       it("handles switch from Class IV/IV with Factor to V/III and reversion", () => {
@@ -1099,7 +1101,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         });
 
         // Month 1-4: Baseline IV (F)
-        assert.equal(res.months[0].taxClassLabel, "H: IV (F) | W: IV (F)");
+        assert.equal(res.months[0].taxClassLabel, "H: IV(F=0.905) | W: IV(F=0.905)");
 
         // Month 5: Switch active V / III
         assert.equal(res.months[4].taxClassLabel, "H: V | W: III");
@@ -1109,7 +1111,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         );
 
         // Month 12: Revert back to IV (F)
-        assert.equal(res.months[11].taxClassLabel, "H: IV (F) | W: IV (F)");
+        assert.equal(res.months[11].taxClassLabel, "H: IV(F=0.905) | W: IV(F=0.905)");
         assert.ok(
           res.months[11].startingActions!.some((a) =>
             a.title.includes("ACTION: Tax Class Reversion")),

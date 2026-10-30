@@ -7,6 +7,7 @@ import {
 } from "preact/hooks";
 import {
   salaryPeriod,
+  assumeManualNetIsAssessmentNet,
   husbandGross,
   husbandPayrollOptions,
   wifePayrollOptions,
@@ -4776,6 +4777,14 @@ export default function SandboxControls(): JSX.Element {
                 </span>
               </div>
 
+              <label>
+                <input type="checkbox" checked={assumeManualNetIsAssessmentNet.value}
+                  onChange={(event) => {
+                    assumeManualNetIsAssessmentNet.value = event.currentTarget.checked;
+                  }} />
+                {" "}In manual-net mode, use supplied take-home values as unverified BEEG-net estimates.
+                Payroll take-home and statutory assessment net differ; leave unchecked to report missing assessments.
+              </label>
               <h4>Husband payroll details</h4>
               <PayrollPersonalInputs id="simulator-husband" options={husbandPayrollOptions} showLocation />
               <h4>Wife payroll details</h4>

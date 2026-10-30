@@ -318,6 +318,8 @@ export function inferBonusPreset(
   return BonusDistributionPreset.Custom;
 }
 
+export const assumeManualNetIsAssessmentNet = signal(initialPersisted.assumeManualNetIsAssessmentNet === true);
+
 // Input Mode (Gross vs Net Mode) & Period (Monthly vs Yearly)
 export const salaryInputMode = signal<SalaryInputMode>(
   initialPersisted.salaryInputMode,
@@ -903,6 +905,7 @@ export function getCurrentPersistedState(): ElterngeldPersistedState {
   return {
     husbandPayrollOptions: husbandPayrollOptions.value,
     wifePayrollOptions: wifePayrollOptions.value,
+    assumeManualNetIsAssessmentNet: assumeManualNetIsAssessmentNet.value,
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: husbandGross.value,
@@ -976,6 +979,7 @@ export function importSimulationState(
   const currentView = activeScenario.value;
   husbandPayrollOptions.value = parsePersonalPayrollOptions(newState.husbandPayrollOptions ?? {});
   wifePayrollOptions.value = parsePersonalPayrollOptions(newState.wifePayrollOptions ?? {});
+  assumeManualNetIsAssessmentNet.value = newState.assumeManualNetIsAssessmentNet === true;
   salaryInputMode.value = newState.salaryInputMode;
   salaryPeriod.value = newState.salaryPeriod;
   husbandGross.value = newState.husbandGross;
@@ -1187,6 +1191,7 @@ export function resetToDefaults() {
 
   husbandPayrollOptions.value = defaults.husbandPayrollOptions ?? {};
   wifePayrollOptions.value = defaults.wifePayrollOptions ?? {};
+  assumeManualNetIsAssessmentNet.value = defaults.assumeManualNetIsAssessmentNet === true;
   salaryInputMode.value = defaults.salaryInputMode;
   salaryPeriod.value = defaults.salaryPeriod;
   husbandGross.value = defaults.husbandGross;
@@ -1297,6 +1302,7 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     simulationDurationMonths: duration,
     husbandPayrollOptions: husbandPayrollOptions.value,
     wifePayrollOptions: wifePayrollOptions.value,
+    assumeManualNetIsAssessmentNet: assumeManualNetIsAssessmentNet.value,
     salaryInputMode: salaryInputMode.value,
     salaryPeriod: salaryPeriod.value,
     husbandGross: toGrossSalary(husbandGross.value),

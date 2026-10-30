@@ -1,5 +1,5 @@
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
   currentScenarioData,
@@ -10,7 +10,7 @@ import {
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
-  SimulationStrategy, 
+  SimulationStrategy,
 } from "#engine/types";
 import {
   EligibilityConfirmedIcon,
@@ -57,6 +57,24 @@ export default function KpiScorecard(): JSX.Element {
         marginBottom: "28px",
       }}
     >
+      <div className="glass-panel" style={{ gridColumn: "1 / -1",
+        padding: "16px" }}>
+        <strong>{current.benefitsComplete ? "Benefits modeled under the stated assumptions" : "Incomplete benefit calculation"}</strong>
+        {!current.benefitsComplete && <p>Displayed totals omit unavailable benefit payments and are a partial modeled cash flow.</p>}
+        {(current.unavailableReasons ?? []).map((reason) => <p key={reason}>{reason}</p>)}
+        <details>
+          <summary>Assessment history and assumptions</summary>
+          <ul>{(current.assumptions ?? []).map((note) => <li key={note}>{note}</li>)}</ul>
+          {(current.benefitAssessments ?? []).map((assessment) => (
+            <p key={`${assessment.pregnancyId}-${assessment.parent}`}>
+              {assessment.parent}, birth {assessment.birthMonthId}: class {assessment.taxClass};
+              {" "}assessment months {assessment.selectedMonths.join(", ")}.
+              {assessment.assumedMonths.length > 0 && ` Repeated initial inputs: ${assessment.assumedMonths.join(", ")}.`}
+              {assessment.reason && ` Unavailable: ${assessment.reason}`}
+            </p>
+          ))}
+        </details>
+      </div>
       {/* KPI Card 1: Total Earned Salaries */}
       <div
         className="glass-panel"
