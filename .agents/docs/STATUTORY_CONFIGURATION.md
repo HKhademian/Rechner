@@ -20,7 +20,7 @@ The income-tax tariff, solidarity mitigation and standard employee social-insura
 
 ## Verified payroll boundary
 
-Payroll withholding runs locally through the pinned `lohnsteuerrechner` 1.0.7 implementation of the [BMF PAP](https://www.bmf-steuerrechner.de/interface/programmablauf.xhtml). Independent, source-linked responses for twenty-one 2026 cases are stored in `test/fixture/payroll2026.json`; six additional published annual examples cover the 2025/2026 comparison. Tax and solidarity amounts retain PAP cent rounding.
+Payroll withholding runs locally through the pinned `lohnsteuerrechner` 1.0.7 implementation of the [BMF PAP](https://www.bmf-steuerrechner.de/interface/programmablauf.xhtml). Independent, source-linked responses for twenty-four 2026 cases are stored in `test/fixture/payroll2026.json`; six additional published annual examples cover the 2025/2026 comparison. Tax and solidarity amounts retain PAP cent rounding.
 
 The accepted product policy is verified year profiles plus personal inputs, not arbitrary hypothetical tariffs. Personal input seams include insurer supplement, state/Saxony, age at year start, parental status, qualifying children, ELStAM child counter, church rate and IV factor. The PAP boundary rejects unsupported tariff overrides rather than claiming to apply them. Generic annual-tax profile overrides remain available for isolated mathematical tests; they do not redefine PAP withholding.
 
@@ -37,3 +37,9 @@ Monthly input is regular monthly earnings; yearly input is the actual year total
 Simulator scenarios persist validated husbandPayrollOptions and wifePayrollOptions. The same personal controls appear under preexisting conditions; CLI scenario files preserve them. Existing scenarios without these fields use the documented missing-input assumptions. Known ages advance each calendar year; newly born children increase care-discount counts. Ages of older children are not supplied, so their qualifying count is assumed unchanged until edited. Ordinary working hours and annual bonus schedules are modeled as contract assumptions. Day-level contribution periods and the prior-year March bonus allocation rule are not yet implemented.
 
 CLI salary amounts describe ordinary pay. Use an explicit monthly/yearly period; annual ordinary pay is divided by twelve and separately configured bonuses are additional. Amount size never changes its unit, and zero is a valid input. The general calculator yearly field instead describes the actual total including its contractual extra payments.
+
+## BEEG assessment deductions
+
+The standardized-net helper uses BEEG sections 2c-2f and remains separate from payroll take-home. The supported insurance model is taxable ordinary employment with mandatory public health, pension and unemployment coverage. Deduction characteristics are selected independently from earned-income months; ties use the latest evidence. BEEG social flat rates ignore ordinary contribution ceilings and use their own transition-zone factor; church deduction uses the BEEG rate. Marginal employment tax treatment, private/voluntary insurance, self-employment and special employment regimes require separate inputs/calculation paths.
+
+PAP publication provenance is recorded separately from retrospective payroll effective dates. The January snapshot of the year before birth must be verified before automatic BEEG tax deductions are used. The pinned 2025 provider is the January 22 revision; the earlier required snapshot has not been verified and must not silently be replaced. A missing snapshot yields unavailable standardized net, not statutory ineligibility. The 2026 January PAP is available; future required years retain projection metadata.

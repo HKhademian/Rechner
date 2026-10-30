@@ -580,5 +580,98 @@
       "WVFRBO": 2599100,
       "WVFRBM": 2790800
     }
+  },
+  {
+    "name": "beeg-standard-III-3000",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 300000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 0,
+      "PVA": 0,
+      "PVS": 0,
+      "R": 1,
+      "ZKF": 0
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=300000&STKL=3&KVZ=2.9&PVZ=0&PVA=0&PVS=0&R=1&ZKF=0",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 3833,
+      "BKS": 0,
+      "LSTLZZ": 3833,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 1534800,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "beeg-standard-V-3000",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 300000,
+      "STKL": 5,
+      "KVZ": 2.9,
+      "PVZ": 0,
+      "PVA": 0,
+      "PVS": 0,
+      "R": 1,
+      "ZKF": 0
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=300000&STKL=5&KVZ=2.9&PVZ=0&PVA=0&PVS=0&R=1&ZKF=0",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 63233,
+      "BKS": 0,
+      "LSTLZZ": 63233,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 1534800,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "beeg-standard-III-1800",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 180000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 0,
+      "PVA": 0,
+      "PVS": 0,
+      "R": 1,
+      "ZKF": 0
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=180000&STKL=3&KVZ=2.9&PVZ=0&PVA=0&PVS=0&R=1&ZKF=0",
+    "retrievedAt": "2026-10-29",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 0,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 376300,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
   }
 ]

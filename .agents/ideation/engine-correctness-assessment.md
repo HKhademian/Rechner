@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: standardized BEEG net is separate from payroll cash net. It locks deduction characteristics independently, applies configured work/social/church deductions, ignores ordinary SV ceilings, supports the BEEG transition-zone base, and checks January PAP provenance. Three new independent BMF fixtures and the official transition-zone example pass; full quality check/build pass. The required original 2025 January PAP is unavailable in the pinned provider, so positive-income 2026-birth gross assessments will be explicitly unavailable until that snapshot is added. This is a provider support limit, not a finding of statutory ineligibility. Wiring remains pending.
+
 - 2026-10-29: marginal/transition thresholds now have independent effective-year profiles (2024-2027) sourced to the current official BEEG guidelines. This uses the already published 2027 marginal limit 633 without inventing a complete 2027 PAP profile. Projection behavior and source-year selection pass their focused test; full quality check passes.
 
 - 2026-10-29: annual profiles record PAP publication dates/source URLs separately from payroll effective dates. BEEG must use the snapshot available on January 1 of the year before birth; the installed 2025 PAP is the January 22 revision and cannot silently stand in for the earlier snapshot. Source-linked marginal/transition thresholds and BEEG transition flat-rate input are configured. Full quality check passes. Snapshot availability checks and standardized net application follow.
