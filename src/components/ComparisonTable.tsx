@@ -62,11 +62,15 @@ export default function ComparisonTable(): JSX.Element | null {
     }
   }, []);
 
-  const displayMode = useSignal<"yearly" | "monthly">("yearly");
-
-  if (!mounted || savedScenarios.value.length === 0) {
+  if (!mounted) {
     return null;
   }
+  return <ComparisonTableContent />;
+}
+
+/** The live calculation remains available even after the last saved scenario is removed. */
+export function ComparisonTableContent(): JSX.Element {
+  const displayMode = useSignal<"yearly" | "monthly">("yearly");
 
   const format = (num: number): string => {
     return new Intl.NumberFormat("de-DE", {
