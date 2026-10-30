@@ -22,7 +22,6 @@ import {
   CitationReferenceIcon,
   ExternalLegalSourceIcon,
   StatutorySectionIcon,
-  SimulatorNavigationIcon,
 } from "#components/Icons";
 
 /**
@@ -208,111 +207,19 @@ export default function RulesExplainer(): JSX.Element {
     },
     {
       key: LegalRuleKey.EStG_Kindergeld,
-      title: "8. Child Benefit (Kindergeld § 66 EStG)",
-      lawRef: "EStG § 66 & BKGG (Federal Child Benefit Act)",
-      tag: "§ 66 EStG",
-      summary:
-        "Universal tax-free child benefit of €259 / month per child paid from birth until at least age 18.",
-      statutoryText: (
-        <div>
-          <p>
-            Under{" "}
-            <strong>
-              § 66 EStG and the Federal Child Benefit Act
-              (*Bundeskindergeldgesetz - BKGG*)
-            </strong>
-            , families in Germany are entitled to monthly child benefit
-            (*Kindergeld*):
-          </p>
-          <ul
-            style={{
-              paddingLeft: "18px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <li>
-              <strong>Standard Statutory Amount:</strong> Unified rate of{" "}
-              <strong>259.00 € / month per child</strong> (effective from
-              2025/2026 onwards).
-            </li>
-            <li>
-              <strong>Tax Exemption & Entitlement:</strong> Paid completely
-              tax-free by the Family Benefits Office (*Familienkasse*) directly
-              into the parent\'s account from the calendar month of birth.
-            </li>
-            <li>
-              <strong>Independent of Parental Allowance:</strong> Kindergeld is
-              paid simultaneously alongside Elterngeld and does not reduce or
-              offset parental allowance in any way.
-            </li>
-          </ul>
-        </div>
-      ),
-      example: (
-        <div
-          style={{
-            background: "var(--bg-surface-secondary)",
-            padding: "14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            marginTop: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              marginBottom: "8px",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <SimulatorNavigationIcon size={13} />
-            <span>Worked Numerical Example:</span>
-          </div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            <div>• Child 1 born Month 17 $\rightarrow$ 259 € / mo.</div>
-            <div>
-              • Child 2 born Month 44 $\rightarrow$ 259 € + 259 € ={" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                518 € / month
-              </strong>{" "}
-              combined child benefit.
-            </div>
-            <div>
-              • Total 60-Month Inflow: 44 months (Child 1) + 17 months (Child 2)
-              ={" "}
-              <strong style={{ color: "var(--color-gain)" }}>
-                15.800 € total tax-free cash support
-              </strong>
-              .
-            </div>
-          </div>
-        </div>
-      ),
+      title: "8. Configured Child Benefit",
+      lawRef: "EStG §§ 62–66",
+      tag: "Kindergeld",
+      summary: "Modeled qualifying children receive the supplied monthly planning rate.",
+      statutoryText: <p>Each month multiplies the modeled qualifying child count by the supplied rate. The rate is held through the forecast and should be checked for the applicable year. Existing children are assumed to qualify; age, education and other entitlement conditions need personal evidence. The annual tax child-allowance comparison uses the applicable statutory profile separately.</p>,
+      example: <p>Supplied per-child monthly rate: {money(current.months[0]?.kindergeldDetails?.monthlyPerChild)}. Modeled cash over the visible period: {money(current.summary.totalKindergeld)}. Each monthly explanation retains its actual count, rate and source.</p>,
       links: [
-        {
-          label: "§ 66 EStG - Höhe des Kindergeldes",
+        { label: "Monthly amount (§ 66 EStG)",
           url: "https://www.gesetze-im-internet.de/estg/__66.html",
-          description:
-            "Statutory child benefit monthly amounts and entitlement age rules.",
-        },
-        {
-          label: "Familienkasse der Bundesagentur für Arbeit",
-          url: "https://www.arbeitsagentur.de/familie-und-kinder",
-          description:
-            "Official application portal and payout tables for German child benefit.",
-        },
+          description: "Official amount for checking the supplied planning input." },
+        { label: "Entitlement (§ 62 EStG)",
+          url: "https://www.gesetze-im-internet.de/estg/__62.html",
+          description: "Child-benefit entitlement has additional personal conditions." },
       ],
     },
   ];
