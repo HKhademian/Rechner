@@ -1499,6 +1499,10 @@ function generateScenario(
   );
 
   return {
+    configuration: Object.freeze({ benefitRules,
+      timelineConventions: conventions,
+      taxProfiles: Object.freeze([...new Map(rawMonths.flatMap((month) =>
+        month.husbandPayroll ? [[month.calendarYearNum, month.husbandPayroll.taxRules] as const] : [])).values()]) }),
     scenarioKey,
     months: settledMonths,
     annualTaxRecords: scheduledTaxRecords,
@@ -1511,6 +1515,8 @@ function generateScenario(
     unavailableReasons: allowanceSchedule.unavailableReasons,
     assumptions: [...new Set([
       ...allowanceSchedule.assumptions,
+      ...Object.values(benefitRules).filter((rule) => rule.overridden).map((rule) =>
+        `Overridden benefit rule assumption: ${rule.label} = ${rule.value}. Official reference: ${rule.source}`),
       ...annualTaxRecords.flatMap((record) => [
         ...record.assumptions, ...record.reasons.map((reason) => `Tax year ${record.calendarYear} unavailable: ${reason}`),
       ]),

@@ -1740,6 +1740,11 @@ export interface ScheduledAnnualTaxRecord extends AnnualTaxRecord {
 }
 
 export interface SimulationResult {
+  readonly configuration?: {
+    readonly benefitRules: BenefitRules;
+    readonly timelineConventions: TimelineConventions;
+    readonly taxProfiles: readonly TaxRules[];
+  };
   readonly annualTaxRecords?: readonly ScheduledAnnualTaxRecord[];
   readonly taxComplete?: boolean;
   readonly payrollComplete?: boolean;
