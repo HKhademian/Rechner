@@ -22,6 +22,7 @@ import {
   toWorkingHours,
   toNetSalary,
   toMonthDuration,
+  toAnnualSalariesCount,
 } from "#engine/types";
 import {
   assessmentCalendarMonth,
@@ -52,6 +53,19 @@ const pregnancy: PregnancyAction = { pregnancyId: toPregnancyId("PREG-INCOME"),
   motherPostBirthPartTimeClass3Net: toNetSalary(1413),
   motherPostBirthPartTimeClass5Net: toNetSalary(1182),
   fatherPartnerMonthsCount: toMonthDuration(4) };
+
+it("includes predictable contract extras before deciding whether pay is a Midijob", () => {
+  const result = evaluateIncomeMonth({ ...base,
+    preexisting: { ...base.preexisting,
+      salaryInputMode: SalaryInputMode.Gross,
+      husbandGross: toGrossSalary(1800),
+      husbandSalariesCount: toAnnualSalariesCount(14),
+      wifeGross: toGrossSalary(1800),
+      wifeSalariesCount: toAnnualSalariesCount(12) } }, at(1));
+  // Husband: regular expected 2100 => ordinary RV 167.40. Wife: 1800 => reduced RV 159.37.
+  assert.equal(result.husbandPayroll?.pensionInsurance, 167.40);
+  assert.equal(result.wifePayroll?.pensionInsurance, 159.37);
+});
 
 it("evaluates verified gross payroll and applies raises only to their target", () => {
   const batches: ScenarioActionBatches = { ...base,

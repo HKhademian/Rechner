@@ -176,6 +176,12 @@ export function evaluateIncomeMonth(
   let wifePayroll: GrossToNetBreakdown | undefined;
   const wifeNets: NetClassMap = {};
   if (grossMode) {
+    const employmentAverage = (gross: GrossSalary, husband: boolean): GrossSalary => {
+      const slots = husband ? p.husbandBonusDistribution : p.wifeBonusDistribution;
+      const count = husband ? p.husbandSalariesCount ?? (p.enable13thSalary ? 13 : 12) : p.wifeSalariesCount ?? 12;
+      const extras = slots?.length ? slots.reduce((sum, slot) => sum + slot.payoutFraction, 0) : count - 12;
+      return toGrossSalary(gross * (1 + extras / 12) + (husband ? p.annualBonusGross ?? 0 : 0) / 12);
+    };
     const hPay = (taxClass: TaxClass) => computeGrossToNetBreakdown(
       hGross ?? toGrossSalary(0),
       taxClass,
@@ -183,7 +189,8 @@ export function evaluateIncomeMonth(
       undefined,
       taxClass === Classes.IV && useFactor ? factor : undefined,
       rules,
-      husbandPersonal,
+      { ...husbandPersonal,
+        expectedMonthlyEmploymentGross: employmentAverage(hGross ?? toGrossSalary(0), true) },
     );
     const wPay = (gross: GrossSalary, taxClass: TaxClass) => computeGrossToNetBreakdown(
       gross,
@@ -192,7 +199,8 @@ export function evaluateIncomeMonth(
       undefined,
       taxClass === Classes.IV && useFactor ? factor : undefined,
       rules,
-      wifePersonal,
+      { ...wifePersonal,
+        expectedMonthlyEmploymentGross: employmentAverage(gross, false) },
     );
     for (const taxClass of [Classes.III, Classes.V, Classes.IV]) {
       const husband = hPay(taxClass);
