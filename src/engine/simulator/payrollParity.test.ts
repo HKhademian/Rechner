@@ -155,3 +155,28 @@ it("keeps earlier bonus withholding independent of the visible timeline cutoff",
     salaryRaises: [] });
   assert.notEqual(short.months[4].payroll?.husband.bonuses?.[0].wageTax, unchanged.months[4].payroll?.husband.bonuses?.[0].wageTax);
 });
+
+
+it("marks missing opening-year bonus data and possible prior-year allocation as provisional", () => {
+  const batches = { scenarioKey: ScenarioId.A,
+    preexisting: { ...preexisting,
+      householdTaxableIncome: undefined,
+      husbandGross: toGrossSalary(7000),
+      husbandSalariesCount: toAnnualSalariesCount(13),
+      husbandBonusDistribution: [{ calendarMonth: toCalendarMonth(1),
+        payoutFraction: toPercentageRate(1) }] },
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [] };
+  const january = runScenarioBatches(batches);
+  assert.ok(january.months[0].payroll?.husband.bonuses?.[0].payrollLimitations?.some((reason) => reason.includes("Prior-year bonus allocation")));
+  assert.equal(january.payrollComplete, false);
+  assert.equal(january.taxComplete, false);
+  const partial = runScenarioBatches({ ...batches,
+    preexisting: { ...batches.preexisting,
+      startCalendarMonth: toCalendarMonth(9),
+      husbandBonusDistribution: [{ calendarMonth: toCalendarMonth(11),
+        payoutFraction: toPercentageRate(1) }] } });
+  assert.ok(partial.months[2].payroll?.husband.bonuses?.[0].payrollLimitations?.some((reason) => reason.includes("pre-simulation year-to-date")));
+  assert.equal(partial.payrollComplete, false);
+});

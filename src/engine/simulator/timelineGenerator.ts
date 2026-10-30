@@ -667,8 +667,15 @@ function generateScenario(
         options,
       );
       const social = computeBonusSocialInsurance(base.monthlyGross, gross, base.childrenCount, base.taxRules, options);
+      const bonusLimitations = [...payroll.payrollLimitations];
+      if (earlier[0]?.calendarMonthNum !== 1) {
+        bonusLimitations.push("Bonus payroll lacks pre-simulation year-to-date earnings and contribution periods; the estimate uses recorded months only.");
+      }
+      if (gross > 0 && calMonth <= parameters.priorYearBonusAllocationLastMonth.value && social.assessedHealth < gross) {
+        bonusLimitations.push(`Prior-year bonus allocation can apply when current-year health contribution capacity is exceeded; that allocation is not modeled. ${parameters.priorYearBonusAllocationLastMonth.source}`);
+      }
       const record: BonusPayrollRecord = { gross,
-        payrollLimitations: payroll.payrollLimitations,
+        payrollLimitations: Object.freeze(bonusLimitations),
         net: payroll.bonusNetTakeHome,
         wageTax: payroll.bonusWageTax,
         solidarity: payroll.bonusSolidaritySurcharge,
