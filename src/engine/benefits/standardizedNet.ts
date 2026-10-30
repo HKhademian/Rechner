@@ -78,6 +78,9 @@ export function computeBenefitContributionBase(
   incomeYear: FullCalendarYear,
   benefits: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): GrossSalary {
+  if (gross === 0) {
+    return gross;
+  }
   const thresholds = getEmploymentThresholds(incomeYear);
   const lower = thresholds.marginal.value;
   const upper = thresholds.transition.value;

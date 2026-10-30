@@ -148,5 +148,10 @@
     "value": 2,
     "label": "Other qualifying siblings required at the higher age limit",
     "source": "https://www.gesetze-im-internet.de/beeg/__2a.html"
+  },
+  "partnershipMinimumMonths": {
+    "value": 2,
+    "label": "Minimum consecutive partnership-bonus claim months",
+    "source": "https://www.gesetze-im-internet.de/beeg/__4b.html"
   }
 }

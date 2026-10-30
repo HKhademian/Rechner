@@ -6,6 +6,7 @@
  */
 
 import {
+  type Brand,
   type SimulationMonth,
   type EuroAmount,
   toEuroAmount,
@@ -64,7 +65,27 @@ export function computeHouseholdSiblingBonus(
   currentMonth: SimulationMonth,
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): SiblingBonusCalculation {
-  const ages = siblingBirthMonths.filter((birth) => birth <= currentMonth).map((birth) => currentMonth - birth);
+  return computeSiblingBonusForAges(
+    baseElterngeldPlus,
+    siblingBirthMonths.filter((birth) => birth <= currentMonth).map((birth) => toSiblingAgeMonths(currentMonth - birth)),
+    rules,
+  );
+}
+
+export type SiblingAgeMonths = Brand<number, "SiblingAgeMonths">;
+
+export function toSiblingAgeMonths(value: number): SiblingAgeMonths {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new TypeError("Sibling age must be a non-negative whole number of months.");
+  }
+  return value as SiblingAgeMonths;
+}
+
+export function computeSiblingBonusForAges(
+  baseElterngeldPlus: EuroAmount,
+  ages: readonly SiblingAgeMonths[],
+  rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+): SiblingBonusCalculation {
   const qualifying = ages.some((age) => age <= rules.siblingAgeLimitMonths.value) ||
     ages.filter((age) => age <= rules.siblingMultipleAgeLimitMonths.value).length >= rules.siblingMultipleMinimumCount.value;
   return applySiblingBonus(

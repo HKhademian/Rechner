@@ -15,6 +15,9 @@ import {
 import type {
   PayrollOptions,
 } from "#engine/tax/payroll";
+import type {
+  TimelineConventions,
+} from "#engine/config/timelineConventions";
 
 /**
  * Unique symbol discriminators enforcing nominal subtyping hierarchies at compile time.
@@ -1681,6 +1684,36 @@ export interface MonthlyLedgerEntry {
  * Complete Multi-Year Simulation Scenario Execution Result.
  * Aggregates monthly chronological ledger entries and high-level KPI totals over the full horizon.
  */
+export interface BenefitAssessmentAudit {
+  readonly pregnancyId: PregnancyId;
+  readonly parent: TargetPerson;
+  readonly birthMonthId: MonthId;
+  readonly incomeMode: SalaryInputMode;
+  readonly taxClass: TaxClass;
+  readonly preBirthNet?: NetSalary;
+  readonly postBirthAverageNet?: NetSalary;
+  readonly averageRegularGross?: GrossSalary;
+  readonly selectedMonths: readonly MonthId[];
+  readonly excludedMonths: readonly MonthId[];
+  readonly assumedMonths: readonly MonthId[];
+  readonly ordinaryClaimMonths: readonly MonthId[];
+  readonly partnershipClaimMonths: readonly MonthId[];
+  readonly available: boolean;
+  readonly required: boolean;
+  readonly taxRules?: Pick<TaxRules, "calendarYear" | "sourceYear" | "projected" | "papPublication">;
+  readonly reason?: string;
+  readonly assumptions: readonly string[];
+}
+
+export interface BenefitPaymentAudit {
+  readonly pregnancyId: PregnancyId;
+  readonly parent: TargetPerson;
+  readonly partnershipBonus: boolean;
+  readonly grossEntitlement: EuroAmount;
+  readonly offset: EuroAmount;
+  readonly payment: EuroAmount;
+}
+
 export interface SimulationResult {
   /** Scenario identifier (A, B, or C). */
   readonly scenarioKey: ScenarioId;
@@ -1902,6 +1935,9 @@ export interface SpousalGrossToNetSet {
  * Defines the initial state of the household prior to any pregnancy or timeline milestone events.
  */
 export interface PreexistingConditions {
+  readonly timelineConventions?: TimelineConventions;
+  /** Explicit planning assumption; never converts payroll take-home into verified BEEG net. */
+  readonly assumeManualNetIsAssessmentNet?: boolean;
   readonly husbandPayrollOptions?: PayrollOptions;
   readonly wifePayrollOptions?: PayrollOptions;
   /** Validated benefit rules; omitted uses the source-linked statutory defaults. */

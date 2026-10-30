@@ -673,5 +673,67 @@
       "WVFRBO": 0,
       "WVFRBM": 0
     }
+  },
+  {
+    "name": "beeg-standard-III-4000",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 400000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 0,
+      "PVA": 0,
+      "PVS": 0,
+      "R": 1,
+      "ZKF": 0
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=400000&STKL=3&KVZ=2.9&PVZ=0&PVA=0&PVS=0&R=1&ZKF=0",
+    "retrievedAt": "2026-10-30",
+    "outputs": {
+      "BK": 20766,
+      "BKS": 0,
+      "LSTLZZ": 20766,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 2500200,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
+  },
+  {
+    "name": "beeg-standard-III-2000",
+    "inputs": {
+      "LZZ": 2,
+      "RE4": 200000,
+      "STKL": 3,
+      "KVZ": 2.9,
+      "PVZ": 0,
+      "PVA": 0,
+      "PVS": 0,
+      "R": 1,
+      "ZKF": 0
+    },
+    "year": 2026,
+    "source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml?code=LSt2026ext&LZZ=2&RE4=200000&STKL=3&KVZ=2.9&PVZ=0&PVA=0&PVS=0&R=1&ZKF=0",
+    "retrievedAt": "2026-10-30",
+    "outputs": {
+      "BK": 0,
+      "BKS": 0,
+      "LSTLZZ": 0,
+      "SOLZLZZ": 0,
+      "SOLZS": 0,
+      "STS": 0,
+      "VFRB": 123000,
+      "VFRBS1": 0,
+      "VFRBS2": 0,
+      "WVFRB": 569400,
+      "WVFRBO": 0,
+      "WVFRBM": 0
+    }
   }
 ]

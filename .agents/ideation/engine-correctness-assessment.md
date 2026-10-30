@@ -25,6 +25,8 @@ plans:
 
 ## Done
 
+- 2026-10-30: pure birth-cohort projection freezes each parent's assessment, averages positive post-birth Plus/partnership income, applies claim budgets, household siblings and overlap credits, and reports unavailable inputs. Manual cash net requires an explicit labeled BEEG-net assumption. Nine independently specified cohort/history cases and full quality/build pass. Main timeline integration remains pending.
+
 - 2026-10-30: pure calendar income schedule resolves chronological switch/revert events (including same-month reversion/new-switch order), targeted raises, hours, personal/year-aware payroll, and frozen three-month maternity references. It supports internal forecasting beyond the public 120-month ledger limit without weakening branded SimulationMonth validation. Five reference/boundary/history tests and full quality check pass. Existing timeline consumption and cohort averaging follow.
 
 - 2026-10-30: household sibling eligibility accepts any other qualifying child (including a younger newborn) and the statutory two-other-children-under-six case. Added source-linked age/count rules; focused multi-sibling/birth cases and full quality check pass. Cohort projection will use all known household births instead of only child one.

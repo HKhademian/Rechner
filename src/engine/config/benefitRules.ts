@@ -83,12 +83,13 @@ const constructors = {
   siblingMultipleAgeLimitMonths: integerMonths,
   siblingMultipleMinimumCount: (value: number) => {
     if (value <= 0) {
-      throw new TypeError("A sibling count threshold must be positive."); 
+      throw new TypeError("A sibling count threshold must be positive.");
     }
     return toChildrenCount(value);
   },
   maximumWeeklyHours: toWorkingHours,
   partnershipMinimumHours: toWorkingHours,
+  partnershipMinimumMonths: integerMonths,
   partnershipMaximumMonths: integerMonths,
   assessmentMonths: integerMonths,
   familyBasisMonths: integerMonths,
@@ -135,6 +136,7 @@ export function createBenefitRules(overrides: unknown = {}): BenefitRules {
     rules.minimumReplacementRate.value > rules.standardReplacementRate.value ||
     rules.standardReplacementRate.value > rules.maximumReplacementRate.value ||
     rules.partnershipMinimumHours.value > rules.maximumWeeklyHours.value ||
+    rules.partnershipMinimumMonths.value > rules.partnershipMaximumMonths.value ||
     rules.plusFraction.value <= 0 ||
     rules.rateChangePerEuro.value <= 0
   ) {

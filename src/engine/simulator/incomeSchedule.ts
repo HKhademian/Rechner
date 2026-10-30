@@ -50,7 +50,7 @@ type NetClassMap = Partial<Record<TaxClass, NetSalary>>;
 export function evaluateIncomeMonth(
   batches: ScenarioActionBatches,
   ordinal: AssessmentMonthOrdinal,
-  conventions: TimelineConventions = DEFAULT_TIMELINE_CONVENTIONS,
+  conventions: TimelineConventions = batches.preexisting.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS,
 ) {
   const { preexisting: p, pregnancies, salaryRaises, taxClassSwitches, workingHoursChanges = [] } = batches;
   const start = assessmentCalendarMonth(p.startCalendarYear, p.startCalendarMonth);
@@ -315,7 +315,7 @@ export function initialAssessmentInputs(p: PreexistingConditions, husband: boole
 export function buildIncomeSchedule(
   batches: ScenarioActionBatches,
   end: AssessmentMonthOrdinal,
-  conventions: TimelineConventions = DEFAULT_TIMELINE_CONVENTIONS,
+  conventions: TimelineConventions = batches.preexisting.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS,
 ) {
   const p = batches.preexisting;
   const start = assessmentCalendarMonth(p.startCalendarYear, p.startCalendarMonth);

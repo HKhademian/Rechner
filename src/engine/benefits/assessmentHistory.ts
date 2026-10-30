@@ -52,6 +52,7 @@ export interface AssessmentHistoryMonth {
   readonly ordinal: AssessmentMonthOrdinal;
   /** Only ordinary employment pay, excluding separate bonus amounts. */
   readonly regularGross?: GrossSalary;
+  readonly hasEarnings?: boolean;
   /** Optional manual assessment-net assumptions, explicitly separate from verified gross payroll. */
   readonly manualNetByClass?: Readonly<Partial<Record<TaxClass, NetSalary>>>;
   readonly taxClass: TaxClass;
@@ -71,7 +72,7 @@ export function predominantCharacteristic<Value>(
   const counts = new Map<Value, number>();
   const newest = [...records].sort((a, b) => b.ordinal - a.ordinal);
   for (const record of newest) {
-    if ((record.regularGross ?? record.manualNetByClass?.[record.taxClass] ?? 0) <= 0) {
+    if (!(record.hasEarnings ?? (record.regularGross ?? record.manualNetByClass?.[record.taxClass] ?? 0) > 0)) {
       continue;
     }
     const value = pick(record);
