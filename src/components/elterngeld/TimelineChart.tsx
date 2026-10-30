@@ -17,16 +17,17 @@ import {
 import {
   type TimelineMonth,
   type ScenarioTimelineResult,
+  toEuroAmount,
   TimelineChartMode,
   TimelineTimeRangeFilter,
   toMonthSimRef,
 } from "#engine/types";
 
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: number, maximumFractionDigits = 0): string {
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR",
-    maximumFractionDigits: 0,
+    maximumFractionDigits,
   }).format(amount || 0);
 }
 
@@ -88,6 +89,15 @@ export default function TimelineChart(): JSX.Element {
   const aData = scenarioAData.value;
   const bData = scenarioBData.value;
   const cData = scenarioCData.value;
+
+  // Reference the initial baseline ledger salaries, excluding benefits and one-off cash.
+  const referenceMonth = bData.months[0];
+  const referenceProfile = bData.configuration?.taxProfiles.find((profile) => profile.calendarYear === referenceMonth?.calendarYearNum);
+  const referenceSalary = referenceMonth
+    ? toEuroAmount(referenceMonth.husbandSalary + referenceMonth.wifeSalary)
+    : undefined;
+  const referenceProvisional = referenceMonth !== undefined && (!referenceMonth.payroll ||
+    [referenceMonth.payroll.husband, referenceMonth.payroll.wife].some((payroll) => payroll.payrollLimitations.length > 0));
 
   // Toggle single series
   const toggleSeries = (key: keyof VisibleSeriesState): void => {
@@ -164,6 +174,7 @@ export default function TimelineChart(): JSX.Element {
   // Max scale Y calculation based on active series and modes
   const maxMonthValue = Math.max(
     6000,
+    referenceSalary ?? 0,
     ...displayedMonths.map((m) => getMonthActiveTotal(m)),
     ...cData.months.map((m) => m.monthlyTotal),
   );
@@ -365,6 +376,33 @@ export default function TimelineChart(): JSX.Element {
             Interactive timeline with visible line curves, stacked cash flow,
             and toggleable statutory benefit series.
           </p>
+          {referenceMonth && referenceSalary !== undefined && (
+            <div style={{ fontSize: "0.8rem",
+              color: "var(--text-secondary)",
+              margin: "8px 0 0" }}>
+              <p style={{ margin: "0 0 6px" }}>
+                Salary reference: {formatCurrency(referenceSalary, 2)} / month · Scenario B, {referenceMonth.calendarLabel}.
+                {" "}Initial net salaries only; later pay, benefits and one-off cash may differ.
+                {referenceProvisional && " Supplied or provisional payroll."}
+              </p>
+              <details>
+                <summary style={{ cursor: "pointer",
+                  color: "var(--color-primary)" }}>Inspect reference source</summary>
+                <p>Scenario B ledger · {referenceMonth.monthId} · {referenceMonth.taxClassLabel}</p>
+                <p className="tabular-nums">
+                  Husband {formatCurrency(referenceMonth.husbandSalary, 2)} + wife {formatCurrency(referenceMonth.wifeSalary, 2)} = {formatCurrency(referenceSalary, 2)}.
+                  {" "}Benefits, bonuses and annual tax settlements are excluded from this salary benchmark.
+                </p>
+                {referenceProfile && (
+                  <p>
+                    <a href={referenceProfile.papPublication.source} target="_blank" rel="noreferrer">Official payroll rules · {referenceProfile.sourceYear}</a>
+                    {referenceProfile.projected && ` · Projected to ${referenceProfile.calendarYear}`}
+                    {referenceProvisional && " · Amounts remain supplied or provisional; this source does not verify them."}
+                  </p>
+                )}
+              </details>
+            </div>
+          )}
         </div>
 
         {/* View Mode Switcher */}
@@ -1004,26 +1042,30 @@ export default function TimelineChart(): JSX.Element {
             </g>
           )}
 
-          {/* Baseline Net Salary Reference Line (€6,125) */}
-          <line
-            x1={margin.left}
-            y1={margin.top + scaleY(6125)}
-            x2={svgWidth - margin.right}
-            y2={margin.top + scaleY(6125)}
-            stroke="var(--border-medium)"
-            strokeWidth="1.5"
-            strokeDasharray="6 3"
-          />
-          <text
-            x={svgWidth - margin.right - 5}
-            y={margin.top + scaleY(6125) - 6}
-            fill="var(--text-muted)"
-            fontSize="10"
-            textAnchor="end"
-            fontFamily="monospace"
-          >
-            Baseline Net Inflow (€6,125 / mo)
-          </text>
+          {/* Initial Scenario B salary benchmark; source is available above the chart. */}
+          {referenceMonth && referenceSalary !== undefined && (
+            <g>
+              <line
+                x1={margin.left}
+                y1={margin.top + scaleY(referenceSalary)}
+                x2={svgWidth - margin.right}
+                y2={margin.top + scaleY(referenceSalary)}
+                stroke="var(--border-medium)"
+                strokeWidth="1.5"
+                strokeDasharray="6 3"
+              />
+              <text
+                x={svgWidth - margin.right - 5}
+                y={margin.top + scaleY(referenceSalary) - 6}
+                fill="var(--text-muted)"
+                fontSize="10"
+                textAnchor="end"
+                fontFamily="monospace"
+              >
+                Initial net salaries · B · {referenceMonth.calendarLabel}: {formatCurrency(referenceSalary, 2)} / mo
+              </text>
+            </g>
+          )}
 
           {/* Bottom X-Axis (Month & Calendar Markers) */}
           <line
