@@ -596,3 +596,39 @@ it("uses explicit CLI salary units, preserves cents and accepts zero", () => {
   assert.equal(normalizeCliGross(undefined, SalaryPeriod.Yearly, fallback), fallback);
   assert.throws(() => normalizeCliGross(Number.NaN, SalaryPeriod.Monthly, fallback), TypeError);
 });
+
+it("prints repayments as tax milestones and keeps later balances outside cash totals", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const os = await import("node:os");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "calculator-tax-cli-"));
+  const scenario = path.join(directory, "scenario.json");
+  try {
+    fs.writeFileSync(scenario, JSON.stringify({ salaryInputMode: "GROSS",
+      salaryPeriod: "MONTHLY",
+      husbandGross: 5000,
+      wifeGross: 0,
+      startCalendarYear: 2026,
+      startCalendarMonth: 1,
+      simulationDurationMonths: 24,
+      customPregnancies: [],
+      customSalaryRaises: [],
+      customTaxClassSwitches: [{ switchId: "SUPPLIED-ZERO-FACTOR",
+        effectiveSimulationMonth: 1,
+        effectiveCalendarMonth: 1,
+        effectiveCalendarYear: 2026,
+        targetHusbandTaxClass: "IV",
+        targetWifeTaxClass: "IV",
+        targetUseTaxFactor: true,
+        targetTaxFactor: 0,
+        statutoryReason: "Supplied factor after income changed" }] }));
+    const { stdout, stderr } = await execFileAsync("node", ["src/cli/runner.ts", "--scenario-file", scenario, "--scenario", "C", "--no-13th", "--format", "milestones"]);
+    assert.equal(stderr, "");
+    assert.match(stdout, /Tax Settlement \(§ 36 EStG: [^\n]*-4\.820/);
+    assert.ok(stdout.includes("M03.2028, outside the cash horizon"));
+  }
+  finally {
+    fs.rmSync(directory, { recursive: true,
+      force: true });
+  }
+});

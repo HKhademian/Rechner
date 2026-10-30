@@ -1325,6 +1325,10 @@ function printSummaryScorecard(
   for (const result of [resA, resB, resC]) {
     console.log(`Scenario ${result.scenarioKey}: ${result.benefitsComplete ? "benefit calculation available under stated assumptions" : "incomplete benefit calculation; totals omit unavailable payments"}`);
     console.log(`  Payroll: ${result.payrollComplete ? "available under stated assumptions" : "supplied values or provisional estimates; review assumptions"}`);
+    console.log(`  Annual tax: ${result.taxComplete ? "available under stated assumptions" : "incomplete; cash totals omit unavailable settlements"}`);
+    for (const record of result.annualTaxRecords ?? []) {
+      console.log(`  Tax year ${record.calendarYear}: ${record.assessment ? formatEuro(record.assessment.settlement) : "unavailable"}; planned ${record.settlementMonthId}, ${record.scheduledMonthInHorizon ? "within" : "outside"} the cash horizon.`);
+    }
     for (const reason of result.unavailableReasons ?? []) {
       console.log(`  Unavailable: ${reason}`);
     }
@@ -1363,7 +1367,7 @@ function printSummaryScorecard(
     `  13th Month Special Bonuses:   ${String(formatEuro(resA.summary.total13thSalaries)).padStart(15)}  ${String(formatEuro(resB.summary.total13thSalaries)).padStart(16)}  ${String(formatEuro(resC.summary.total13thSalaries)).padStart(15)}`,
   );
   console.log(
-    `  Annual Tax Returns (§ 26b):   ${String(formatEuro(resA.summary.totalTaxRefunds)).padStart(15)}  ${String(formatEuro(resB.summary.totalTaxRefunds)).padStart(16)}  ${String(formatEuro(resC.summary.totalTaxRefunds)).padStart(15)}`,
+    `  Annual Tax Settlements:       ${String(formatEuro(resA.summary.totalTaxRefunds)).padStart(15)}  ${String(formatEuro(resB.summary.totalTaxRefunds)).padStart(16)}  ${String(formatEuro(resC.summary.totalTaxRefunds)).padStart(15)}`,
   );
   console.log(
     "  --------------------------------------------------------------------------------------",
@@ -1427,9 +1431,9 @@ function printMilestones(res: SimulationResult) {
         `${GREEN}13th Salary Bonus (${formatEuro(m.specialBonusTotal)})${RESET}`,
       );
     }
-    if (m.taxRefund > 0) {
+    if (m.taxRefund !== 0) {
       events.push(
-        `${BOLD}${GREEN}Tax Return Refund (§ 26b EStG: ${formatEuro(m.taxRefund)})${RESET}`,
+        `${BOLD}${m.taxRefund > 0 ? GREEN : RED}Tax Settlement (§ 36 EStG: ${formatEuro(m.taxRefund)})${RESET}`,
       );
     }
 
