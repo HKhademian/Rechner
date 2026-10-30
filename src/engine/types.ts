@@ -1967,7 +1967,14 @@ export interface SpousalGrossToNetSet {
  * Batch 0: Preexisting Baseline Financial & Household Conditions.
  * Defines the initial state of the household prior to any pregnancy or timeline milestone events.
  */
+/** Supplied household taxable income for BEEG section 1(8), including EStG section 2(5a) adjustments. */
+export interface HouseholdTaxableIncomeInput {
+  readonly calendarYear: FullCalendarYear;
+  readonly taxableIncome: EuroAmount;
+}
+
 export interface PreexistingConditions {
+  readonly householdTaxableIncome?: readonly HouseholdTaxableIncomeInput[];
   readonly timelineConventions?: TimelineConventions;
   /** Explicit planning assumption; never converts payroll take-home into verified BEEG net. */
   readonly assumeManualNetIsAssessmentNet?: boolean;

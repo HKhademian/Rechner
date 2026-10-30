@@ -1,4 +1,7 @@
 import {
+  parseHouseholdTaxableIncome,
+} from "#engine/benefits/taxableIncomeInput";
+import {
   type PayrollOptions,
   parsePersonalPayrollOptions,
 } from "#engine/tax/payroll";
@@ -13,6 +16,7 @@ import {
  */
 
 import {
+  type HouseholdTaxableIncomeInput,
   type GrossSalary,
   type NetSalary,
   type WorkingHours,
@@ -78,6 +82,7 @@ export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
  * Contains all baseline financial parameters, action batch collections, and view preferences.
  */
 export interface ElterngeldPersistedState {
+  readonly householdTaxableIncome?: readonly HouseholdTaxableIncomeInput[];
   /** Explicit, unverified manual-net estimate of standardized BEEG net; opt-in only. */
   readonly assumeManualNetIsAssessmentNet?: boolean;
   readonly husbandPayrollOptions?: PayrollOptions;
@@ -644,6 +649,7 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
     : [];
 
   return {
+    householdTaxableIncome: parseHouseholdTaxableIncome(obj.householdTaxableIncome),
     husbandPayrollOptions: parsePersonalPayrollOptions(obj.husbandPayrollOptions ?? {}),
     wifePayrollOptions: parsePersonalPayrollOptions(obj.wifePayrollOptions ?? {}),
     assumeManualNetIsAssessmentNet: obj.assumeManualNetIsAssessmentNet === true,
@@ -1377,6 +1383,15 @@ export function validateAndSanitizePersistedState(
     : defaults.customFinancialEvents;
 
   return {
+    householdTaxableIncome: (() => {
+      try {
+        return parseHouseholdTaxableIncome(obj.householdTaxableIncome);
+      }
+      catch {
+        warnings?.push("Invalid household taxable-income evidence was removed; eligibility may be unavailable.");
+        return [];
+      }
+    })(),
     assumeManualNetIsAssessmentNet: obj.assumeManualNetIsAssessmentNet === true,
     salaryInputMode: salaryInputModeVal,
     salaryPeriod: salaryPeriodVal,
