@@ -201,6 +201,11 @@
         "value": 64,
         "label": "Age-relief minimum completed age at year start",
         "source": "https://www.gesetze-im-internet.de/estg/__24a.html"
+      },
+      "transitionFlatRate": {
+        "value": 0.28,
+        "label": "Transition factor numerator for ordinary payroll contributions",
+        "source": "https://www.gesetze-im-internet.de/sgb_4/__20.html"
       }
     },
     "papPublication": {
@@ -410,6 +415,11 @@
         "value": 64,
         "label": "Age-relief minimum completed age at year start",
         "source": "https://www.gesetze-im-internet.de/estg/__24a.html"
+      },
+      "transitionFlatRate": {
+        "value": 0.28,
+        "label": "Transition factor numerator for ordinary payroll contributions",
+        "source": "https://www.gesetze-im-internet.de/sgb_4/__20.html"
       }
     },
     "papPublication": {

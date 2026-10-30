@@ -54,6 +54,7 @@ const constructors = {
   tariffDivisor: money,
   healthCapMonthly: money,
   pensionCapMonthly: money,
+  transitionFlatRate: fraction,
   healthEmployeeRate: fraction,
   healthDeductibleFraction: fraction,
   ageReliefMinimumAge: toAgeYears,
