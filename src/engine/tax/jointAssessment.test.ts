@@ -6,13 +6,9 @@ import assert from "node:assert/strict";
 import {
   computeJointTaxLiability,
   computeMonthlySwapWithholdingVariance,
-  computeAnnualTaxReconciliation,
 } from "#engine/tax/jointAssessment";
 import {
   toNetSalary,
-  toEuroAmount,
-  toCalendarYear,
-  toSimulationMonth,
 } from "#engine/types";
 
 describe("Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)", () => {
@@ -70,38 +66,6 @@ describe("Joint Assessment & Tax Reconciliation Engine (§ 26b EStG)", () => {
       const w5 = toNetSalary(1800); // 700 relief
       const variance = computeMonthlySwapWithholdingVariance(h3, h5, w3, w5);
       assert.equal(variance, 0);
-    });
-  });
-
-  describe("computeAnnualTaxReconciliation - Multi-Month Deficit Aggregation & Refund", () => {
-    it("aggregates 8 months of swap deficit and attaches standard deduction return", () => {
-      const monthlyDeficits = Array(8).fill(toEuroAmount(242));
-      const recon = computeAnnualTaxReconciliation(
-        toCalendarYear(1),
-        toSimulationMonth(15),
-        monthlyDeficits,
-        toEuroAmount(850),
-      );
-
-      assert.equal(recon.accumulatedSwapDeficit, 1936); // 8 * 242 = 1936
-      assert.equal(recon.baseDeductionsRefund, 850);
-      assert.equal(recon.totalRefundAmount, 2786); // 1936 + 850 = 2786
-      assert.equal(recon.refundMonth, 15);
-      assert.equal(recon.taxYear, 1);
-    });
-
-    it("handles zero-deficit years (only standard base deduction refund)", () => {
-      const recon = computeAnnualTaxReconciliation(
-        toCalendarYear(2),
-        toSimulationMonth(27),
-        [],
-        toEuroAmount(850),
-      );
-
-      assert.equal(recon.accumulatedSwapDeficit, 0);
-      assert.equal(recon.baseDeductionsRefund, 850);
-      assert.equal(recon.totalRefundAmount, 850);
-      assert.equal(recon.refundMonth, 27);
     });
   });
 });

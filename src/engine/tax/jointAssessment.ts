@@ -10,18 +10,16 @@ import {
  * German Elterngeld & Parental Leave 5-Year Financial Simulator - Spousal Joint Assessment Engine
  *
  * Implements spousal splitting tax liability (§ 26b, § 32a Abs. 5 EStG), monthly tax class swap
- * withholding variance reconciliation, statutory child allowance favorability checks
- * (Kinderfreibetrag Günstigerprüfung § 31, § 32 Abs. 6 EStG), and annual tax return refunds (§ 46 EStG).
+ * cash-net comparisons and statutory child allowance favorability checks
+ * (Kinderfreibetrag Günstigerprüfung § 31, § 32 Abs. 6 EStG). Actual annual settlements use annualTaxSettlement.ts.
  */
 
 import {
   type EuroAmount,
   type NetSalary,
-  type CalendarYear,
   type CalendarMonth,
   type FullCalendarYear,
   type ChildIndex,
-  type SimulationMonth,
   type GuenstigerpruefungResult,
   toEuroAmount,
   toStatutoryCitation,
@@ -70,7 +68,7 @@ export function computeJointTaxLiability(
  * Calculates the monthly temporary tax withholding variance during the proactive tax class swap phase (§ 38b EStG).
  * When husband swaps from Class III to V and wife swaps from Class V to III:
  * Monthly Deficit = (Husband Class III Net - Husband Class V Net) - (Wife Class III Net - Wife Class V Net).
- * This deficit is fully restored upon annual tax reconciliation.
+ * This cash-net comparison does not establish an annual tax refund.
  *
  * @param husbandClass3Net - Husband's standard take-home net in Tax Class III.
  * @param husbandClass5Net - Husband's take-home net in swapped Tax Class V.
@@ -175,79 +173,5 @@ export function computeKinderfreibetragGuenstigerpruefung(
     statutoryCitation: toStatutoryCitation(
       "§ 31, § 32 Abs. 6 EStG (Familienleistungsausgleich Günstigerprüfung)",
     ),
-  };
-}
-
-/**
- * Annual Calendar Tax Return Reconciliation Result (§ 26b, § 31, § 46 Abs. 2 Nr. 3a EStG).
- * Encapsulates accumulated monthly withholding deficit recoveries, base deductions refunds, and child tax relief.
- */
-export interface AnnualTaxReconciliationResult {
-  /** Simulation year in which the tax return was filed. */
-  readonly taxYear: CalendarYear;
-  /** Simulation month in which the refund is paid out. */
-  readonly refundMonth: SimulationMonth;
-  /** Total withholding deficit accumulated during the tax swap period in EUR. */
-  readonly accumulatedSwapDeficit: EuroAmount;
-  /** Explicit externally supplied adjustment; no statutory flat refund is inferred. */
-  readonly baseDeductionsRefund: EuroAmount;
-  /** Statutory Günstigerprüfung assessment result. */
-  readonly guenstigerpruefung: GuenstigerpruefungResult;
-  /** Total combined tax refund disbursement in EUR. */
-  readonly totalRefundAmount: EuroAmount;
-  /** Statutory legal citations governing the reconciliation. */
-  readonly statutoryCitation: string;
-}
-
-/**
- * Computes annual calendar tax return reconciliation under § 26b, § 31, and § 46 Abs. 2 Nr. 3a EStG.
- * Aggregates monthly swap deficits, base deduction refunds, and favorable child tax relief.
- *
- * @param taxYear - Simulation year being reconciled.
- * @param refundMonth - Simulation month when refund check is credited.
- * @param monthlyDeficitsInYear - Array of monthly withholding deficit amounts for the tax year.
- * @param baseStandardRefund - Explicit supplied adjustment (defaults to zero).
- * @param guenstigerpruefung - Optional Günstigerprüfung assessment result.
- * @returns Complete `AnnualTaxReconciliationResult`.
- */
-export function computeAnnualTaxReconciliation(
-  taxYear: CalendarYear,
-  refundMonth: SimulationMonth,
-  monthlyDeficitsInYear: readonly EuroAmount[],
-  baseStandardRefund: EuroAmount = toEuroAmount(0),
-  guenstigerpruefung?: GuenstigerpruefungResult,
-): AnnualTaxReconciliationResult {
-  const totalDeficitInYear = monthlyDeficitsInYear.reduce(
-    (acc, val) => acc + val,
-    0,
-  );
-
-  const accumulatedSwapDeficit = toEuroAmount(totalDeficitInYear);
-  const extraRefund = guenstigerpruefung?.extraTaxRefund ?? 0;
-  const totalRefundAmount = toEuroAmount(
-    accumulatedSwapDeficit + baseStandardRefund + extraRefund,
-  );
-
-  return {
-    taxYear,
-    refundMonth,
-    accumulatedSwapDeficit,
-    baseDeductionsRefund: baseStandardRefund,
-    guenstigerpruefung: guenstigerpruefung || {
-      jointAnnualZvE: toEuroAmount(0),
-      totalKinderfreibetrag: toEuroAmount(0),
-      jointTaxWithoutAllowance: toEuroAmount(0),
-      jointTaxWithAllowance: toEuroAmount(0),
-      taxSavingsFromAllowance: toEuroAmount(0),
-      totalKindergeldReceived: toEuroAmount(0),
-      extraTaxRefund: toEuroAmount(0),
-      isKinderfreibetragFavorable: false,
-      statutoryCitation: toStatutoryCitation(
-        "§ 31 EStG (Familienleistungsausgleich)",
-      ),
-    },
-    totalRefundAmount,
-    statutoryCitation:
-      "EStG § 26b (*Ehegatten-Splitting*), § 31 (*Günstigerprüfung*), § 46 Abs. 2 Nr. 3a",
   };
 }
