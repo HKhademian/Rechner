@@ -24,8 +24,6 @@ import {
   ScenarioId,
   ExportFormat,
   toMonthId,
-  toMonthRef,
-  toMonthSimRef,
   toCalendarLabel,
 } from "#engine/types";
 import {
@@ -411,76 +409,9 @@ export function exportStateToTextReport(
   return lines.join("\n");
 }
 
-/**
- * Exports a specific simulation scenario ledger as a formatted CSV spreadsheet string
- * with semicolons as delimiters for Excel compatibility.
- *
- * @param scenarioResult - Complete multi-year simulation result.
- * @returns Semicolon-delimited CSV text.
- */
-export function exportScenarioToCsv(scenarioResult: SimulationResult): string {
-  const headers = [
-    "Month ID",
-    "Relative Month",
-    "Simulation Ref",
-    "Simulation Month",
-    "Calendar Date",
-    "Calendar Year",
-    "Calendar Month",
-    "Tax Class Label",
-    "Wife Salary (EUR)",
-    "Husband Salary (EUR)",
-    "Wife Elterngeld (EUR)",
-    "Husband Elterngeld (EUR)",
-    "Mutterschaftsgeld (EUR)",
-    "Kindergeld (EUR)",
-    "13th Salary / Bonus (EUR)",
-    "Tax Return Refund (EUR)",
-    "Custom Events (EUR)",
-    "Total Monthly Net Inflow (EUR)",
-    "Cumulative Net Inflow (EUR)",
-    "Is Partnerschaftsbonus",
-    "Action Milestones",
-  ];
-
-  const rows: string[] = [];
-  rows.push(headers.join(";"));
-
-  if (scenarioResult && scenarioResult.months) {
-    scenarioResult.months.forEach((m: MonthlyLedgerEntry) => {
-      const actionsStr = m.startingActions
-        ? m.startingActions.map((a) => a.title).join(" | ")
-        : "";
-
-      const row = [
-        `"${m.monthId}"`,
-        `"${m.monthRef || m.relativeMonthLabel || m.relativeBirthLabel}"`,
-        `"${m.monthSimRef || toMonthSimRef(m.month)}"`,
-        toMonthRef(m.month),
-        `"${m.calendarLabel}"`,
-        m.calendarYearNum,
-        m.calendarMonthNum,
-        `"${m.taxClassLabel}"`,
-        m.wifeSalary ?? 0,
-        m.husbandSalary ?? 0,
-        m.wifeElterngeld ?? 0,
-        m.husbandElterngeld ?? 0,
-        m.mutterschutz ?? 0,
-        m.kindergeld ?? 0,
-        m.specialBonusTotal ?? 0,
-        m.taxRefund ?? 0,
-        m.specialEventsTotal ?? 0,
-        m.monthlyTotal ?? 0,
-        m.cumulatedTotal ?? 0,
-        m.isPartnerschaftsbonus ? "YES" : "NO",
-        `"${actionsStr.replace(/"/g, '""')}"`,
-      ];
-      rows.push(row.join(";"));
-    });
-  }
-
-  return rows.join("\r\n");
-}
+export {
+  exportScenarioToCsv,
+} from "#engine/storage/ledgerCsv";
 
 /**
  * Pure TypeScript Zero-Dependency PKZIP Archive Packager.

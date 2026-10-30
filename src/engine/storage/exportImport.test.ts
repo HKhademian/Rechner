@@ -251,24 +251,15 @@ describe("User Data Export & Import Engine", () => {
 
       const csv = exportScenarioToCsv(res);
       assert.ok(typeof csv === "string");
-      assert.ok(
-        csv.startsWith(
-          "Month ID;Relative Month;Simulation Ref;Simulation Month;Calendar Date;Calendar Year;Calendar Month;",
-        ),
-      );
-
+      assert.ok(csv.startsWith("CSV Schema;Entry Type;Row ID;Month ID;"));
       const lines = csv.split("\r\n");
-      assert.equal(lines.length, defaultState.simulationDurationMonths + 1); // 1 Header + N Months
-      assert.ok(lines[1].startsWith('"M01.2026";"M-8";"Sim1";M1;'));
-      assert.ok(
-        lines[9].startsWith('"M09.2026";"M1 (Pregnancy Positive)";"Sim9";M9;'),
-      );
-      assert.ok(lines[17].startsWith('"M05.2027";"M9 (Birth 1)";"Sim17";M17;'));
-      assert.ok(
-        lines[lines.length - 1].includes(
-          `"Sim${defaultState.simulationDurationMonths}"`,
-        ),
-      );
+      const monthRows = lines.filter((line) => line.startsWith("2;MONTH_BASE;"));
+      assert.equal(monthRows.length, defaultState.simulationDurationMonths);
+      assert.ok(monthRows[0].startsWith("2;MONTH_BASE;M01.2026;M01.2026;M-8;Sim1;1;"));
+      assert.ok(monthRows[8].startsWith("2;MONTH_BASE;M09.2026;M09.2026;M1 (Pregnancy Positive);Sim9;9;"));
+      assert.ok(monthRows[16].startsWith("2;MONTH_BASE;M05.2027;M05.2027;M9 (Birth 1);Sim17;17;"));
+      assert.equal(lines.filter((line) => line.startsWith("2;ACTION;")).length, res.months.reduce((sum, month) => sum + (month.startingActions?.length ?? 0), 0));
+      assert.equal(lines.filter((line) => line.startsWith("2;FINANCIAL_EVENT;")).length, res.months.reduce((sum, month) => sum + month.specialEvents.length, 0));
     });
   });
 
