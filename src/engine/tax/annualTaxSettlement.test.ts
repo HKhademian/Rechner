@@ -65,3 +65,18 @@ it("records statutory credit rounding separately from actual cents withheld", ()
   assert.throws(() => computeAnnualTaxSettlement({ ...base,
     withheldIncomeTax: toEuroAmount(-1) }), TypeError);
 });
+
+it("rounds the separate aggregate tax credits without discarding withheld cents", () => {
+  // EStG §36(3), applied correspondingly by SolzG §1(2): ceil each credit, not each monthly payment.
+  // https://www.gesetze-im-internet.de/estg/__36.html
+  // https://www.gesetze-im-internet.de/solzg_1995/__1.html
+  // Independently: 5001 + 11 - 4560 = 452; the paid amounts remain 5000.01 and10.01.
+  const result = computeAnnualTaxSettlement({ ...base,
+    withheldIncomeTax: toEuroAmount(5000.01),
+    withheldSolidarity: toEuroAmount(10.01) });
+  assert.equal(result.creditedIncomeTax, 5001);
+  assert.equal(result.creditedSolidarity, 11);
+  assert.equal(result.withheldSolidarity, 10.01);
+  assert.equal(result.creditRoundingAdjustment, 1.98);
+  assert.equal(result.settlement, 452);
+});
