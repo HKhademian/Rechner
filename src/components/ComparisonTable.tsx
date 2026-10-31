@@ -1,3 +1,7 @@
+import {
+  LiveColumnImport,
+  SavedColumnTools,
+} from "#components/CalculatorColumnTools";
 import "./ComparisonTable.css";
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
 import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
@@ -90,6 +94,7 @@ export default function ComparisonTable(): JSX.Element | null {
 /** The live calculation remains available even after the last saved scenario is removed. */
 export function ComparisonTableContent(): JSX.Element {
   const showSavedComparison = useSignal(false);
+  const liveImportRevision = useSignal(0);
   const invalidInputs = useSignal<Record<string, boolean>>({});
   const trackValidity = (id: string) => (valid: boolean): void => {
     const previous = invalidInputs.peek();
@@ -122,7 +127,7 @@ export function ComparisonTableContent(): JSX.Element {
   const renderDetailRow = (label: string, render: (data: HouseholdScenarioData, id: string, live: boolean) => JSX.Element): JSX.Element => (
     <tr className="comparison-detail-row">
       <th scope="row">{label}</th>
-      <td className="comparison-detail-cell" aria-label={`Live calculation: ${label}`}>
+      <td key={`live-details-${liveImportRevision.value}`} className="comparison-detail-cell" aria-label={`Live calculation: ${label}`}>
         {hasInvalidLive && <p role="status">Results use the last valid inputs.</p>}
         {render(deductions.value, "live", true)}
       </td>
@@ -519,7 +524,7 @@ export function ComparisonTableContent(): JSX.Element {
     const cells: JSX.Element[] = [];
     cells.push(
       <td
-        key="current"
+        key={`current-${liveImportRevision.value}`}
         style={{
           padding: "12px 16px",
           borderBottom: "1px solid var(--border-subtle)",
@@ -796,9 +801,13 @@ export function ComparisonTableContent(): JSX.Element {
                     </button>
                   </div>
                 </div>
+                <LiveColumnImport onImported={() => {
+                  liveImportRevision.value += 1;
+                  invalidInputs.value = Object.fromEntries(Object.entries(invalidInputs.peek()).filter(([id]) => !id.startsWith("live-")));
+                }} />
               </th>
 
-              {savedScenarios.value.map((scenario) => {
+              {savedScenarios.value.map((scenario, index) => {
                 const isActive = activeScenarioId.value === scenario.id;
 
                 return (
@@ -1017,6 +1026,7 @@ export function ComparisonTableContent(): JSX.Element {
                         </div>
                       )}
                     </div>
+                    <SavedColumnTools scenario={scenario} first={index === 0} last={index === savedScenarios.value.length - 1} />
                   </th>
                 );
               })}
