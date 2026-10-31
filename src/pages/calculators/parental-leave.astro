@@ -1,0 +1,17 @@
+---
+import ParentalLeaveApp from "#/apps/parental-leave/App.tsx";
+import {
+  parentalLeaveApp,
+} from "#/apps/parental-leave/manifest.ts";
+import "#styles/global.css";
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{parentalLeaveApp.title} | Rechner</title>
+    <meta name="description" content={parentalLeaveApp.description} />
+  </head>
+  <body><ParentalLeaveApp client:load /></body>
+</html>
