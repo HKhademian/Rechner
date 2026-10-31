@@ -1,0 +1,66 @@
+.salary-change-editor {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface-secondary);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.salary-change-editor legend {
+  padding: 0 6px;
+  font-weight: 750;
+}
+
+.salary-change-editor__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 14px;
+  clear: both;
+}
+
+.salary-change-editor label,
+.salary-change-editor .live-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.salary-change-editor small,
+.salary-change-editor p {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.salary-change-editor .live-input {
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+}
+
+.salary-change-editor__remove {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-loss-border);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-loss-bg);
+  color: var(--color-loss);
+  font: inherit;
+  cursor: pointer;
+}
+
+.salary-change-editor__remove:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
