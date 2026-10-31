@@ -16,6 +16,10 @@ import {
   deleteScenario,
   undoScenarioDeletion,
   pendingScenarioDeletion,
+  setLiveTaxBracket,
+  taxBracket,
+  hasPartner,
+  partnerGrossIncome,
 } from "#store/calculatorStore";
 import {
   DEFAULT_TAX_YEAR,
@@ -29,6 +33,80 @@ import {
 import {
   toFullCalendarYear,
 } from "#engine/types";
+
+it("opens a draft partner only for III/IV/V selections and preserves manual overrides", () => {
+  const inputs = { ...getCurrentInputs(),
+    taxBracket: "1",
+    hasPartner: false };
+  const liveBefore = getCurrentInputs();
+  try {
+    for (const bracket of ["1", "2", "3", "4", "5", "6"]) {
+      savedScenarios.value = [{ id: "partner-class",
+        title: "Class selection",
+        description: "",
+        inputs,
+        data: calculateScenarioData(inputs),
+        timestamp: "2026-10-31" }];
+      editScenario("partner-class");
+      updateScenarioInput("taxBracket", bracket);
+      const draft = scenarioDraft.peek()!;
+      assert.equal(draft.inputs.hasPartner, ["3", "4", "5"].includes(bracket));
+      assert.equal(draft.inputs.partnerGrossIncome, inputs.partnerGrossIncome);
+      assert.equal(draft.inputs.partnerTaxBracket, inputs.partnerTaxBracket);
+      assert.equal(savedScenarios.value[0].inputs.hasPartner, false);
+      assert.deepEqual(getCurrentInputs(), liveBefore);
+    }
+    updateScenarioInput("taxBracket", "3");
+    updateScenarioInput("hasPartner", false);
+    assert.equal(scenarioDraft.peek()?.inputs.hasPartner, false);
+    updateScenarioInput("hasPartner", true);
+    updateScenarioInput("taxBracket", "6");
+    assert.equal(scenarioDraft.peek()?.inputs.hasPartner, true);
+  }
+  finally {
+    cancelEdit();
+    savedScenarios.value = [];
+  }
+});
+
+it("opens live partner inputs atomically without modifying saved drafts or partner values", () => {
+  const before = getCurrentInputs();
+  savedScenarios.value = [{ id: "live-partner",
+    title: "Untouched",
+    description: "",
+    inputs: before,
+    data: calculateScenarioData(before),
+    timestamp: "2026-10-31" }];
+  editScenario("live-partner");
+  const savedBefore = JSON.stringify(savedScenarios.value);
+  const draftBefore = JSON.stringify(scenarioDraft.value);
+  try {
+    for (const bracket of ["1", "2", "3", "4", "5", "6"]) {
+      hasPartner.value = false;
+      setLiveTaxBracket(bracket);
+      assert.equal(hasPartner.value, ["3", "4", "5"].includes(bracket));
+      assert.equal(partnerGrossIncome.value, before.partnerGrossIncome);
+    }
+    setLiveTaxBracket("4");
+    setLiveTaxBracket("1");
+    assert.equal(hasPartner.value, true);
+    hasPartner.value = false;
+    taxBracket.value = "1";
+    partnerGrossIncome.value = -1;
+    assert.throws(() => setLiveTaxBracket("3"), TypeError);
+    assert.equal(taxBracket.value, "1");
+    assert.equal(hasPartner.value, false);
+    assert.equal(JSON.stringify(savedScenarios.value), savedBefore);
+    assert.equal(JSON.stringify(scenarioDraft.value), draftBefore);
+  }
+  finally {
+    partnerGrossIncome.value = before.partnerGrossIncome;
+    taxBracket.value = before.taxBracket;
+    hasPartner.value = before.hasPartner;
+    cancelEdit();
+    savedScenarios.value = [];
+  }
+});
 
 it("tracks only unsaved scenario input or metadata changes", () => {
   const inputs = getCurrentInputs();

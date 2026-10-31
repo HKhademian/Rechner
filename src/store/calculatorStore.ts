@@ -6,6 +6,7 @@ import {
   signal,
   computed,
   effect,
+  batch,
 } from "@preact/signals";
 import {
   selectedTaxYear,
@@ -405,6 +406,36 @@ const inputTaxClasses: Readonly<Record<string, TaxClass>> = {
   "6": Classes.VI,
 };
 
+export const CALCULATOR_PARTNER_SHORTCUT = Object.freeze({
+  classes: Object.freeze([Classes.III, Classes.IV, Classes.V]),
+  source: "https://www.gesetze-im-internet.de/estg/__38b.html",
+});
+
+/** A class selection opens partner inputs; explicit partner switches and saved data stay authoritative. */
+function withCalculatorInputChange<K extends keyof CalculatorInputs>(
+  inputs: CalculatorInputs,
+  field: K,
+  value: CalculatorInputs[K],
+): CalculatorInputs {
+  const candidate = { ...inputs,
+    [field]: value };
+  if (field === "taxBracket" && CALCULATOR_PARTNER_SHORTCUT.classes.some((taxClass) => taxClass === inputTaxClasses[candidate.taxBracket])) {
+    return { ...candidate,
+      hasPartner: true };
+  }
+  return candidate;
+}
+
+/** Validate before publishing the class and partner switch together. */
+export function setLiveTaxBracket(value: string): void {
+  const candidate = withCalculatorInputChange(getCurrentInputs(), "taxBracket", value);
+  calculateScenarioData(candidate);
+  batch(() => {
+    taxBracket.value = candidate.taxBracket;
+    hasPartner.value = candidate.hasPartner;
+  });
+}
+
 /** UI primitives are parsed here; all financial calculations use the shared nominal engine. */
 export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenarioData {
   const rules = createTaxRules(parseVerifiedTaxYear(inputs.taxYear ?? DEFAULT_TAX_YEAR));
@@ -525,10 +556,7 @@ export function updateScenarioInput<K extends keyof CalculatorInputs>(
   value: CalculatorInputs[K],
 ): void {
   if (scenarioDraft.value) {
-    const newInputs: CalculatorInputs = {
-      ...scenarioDraft.value.inputs,
-      [field]: value,
-    };
+    const newInputs = withCalculatorInputChange(scenarioDraft.value.inputs, field, value);
     scenarioDraft.value = {
       ...scenarioDraft.value,
       inputs: newInputs,
