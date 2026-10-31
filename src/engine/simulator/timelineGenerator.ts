@@ -1318,6 +1318,13 @@ function generateScenario(
     salaryRaises.forEach((sr) => {
       const eff = sr.effectiveSimulationMonth;
       if (m === eff) {
+        const gross = (value: GrossSalary): string => new Intl.NumberFormat("de-DE", { style: "currency",
+          currency: "EUR" }).format(value);
+        const replacement = sr.newHusbandGross !== undefined || sr.newWifeGross !== undefined;
+        const salaryLabel = replacement
+          ? [sr.newHusbandGross === undefined ? undefined : `Husband ${gross(sr.newHusbandGross)} gross/month`,
+            sr.newWifeGross === undefined ? undefined : `Wife ${gross(sr.newWifeGross)} gross/month`].filter(Boolean).join(" | ")
+          : `${sr.targetPerson.toUpperCase()} ${sr.percentageIncrease === undefined ? "manual net" : `+${Number((sr.percentageIncrease * 100).toFixed(2))}%`}`;
         startingActions.push({
           actionId: toActionId(`${sr.raiseId}-${rm.monthId}-EFFECTIVE`),
           monthId: rm.monthId,
@@ -1325,7 +1332,7 @@ function generateScenario(
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           relativeMonthLabel: rm.relativeMonthLabel,
-          title: `ACTION: Salary Raise Effective (${sr.targetPerson.toUpperCase()} +${((sr.percentageIncrease || 0) * 100).toFixed(0)}%)`,
+          title: `ACTION: Salary ${replacement ? "Change" : "Raise"} Effective (${salaryLabel})`,
           description:
             sr.reason ||
             "Annual wage progression / tariff merit step adjustment.",

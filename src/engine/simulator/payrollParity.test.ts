@@ -180,3 +180,24 @@ it("marks missing opening-year bonus data and possible prior-year allocation as 
   assert.ok(partial.months[2].payroll?.husband.bonuses?.[0].payrollLimitations?.some((reason) => reason.includes("pre-simulation year-to-date")));
   assert.equal(partial.payrollComplete, false);
 });
+
+it("labels actual salary changes while applying their amount once in base payroll", () => {
+  const result = runScenarioBatches({ scenarioKey: ScenarioId.A,
+    preexisting,
+    pregnancies: [],
+    taxClassSwitches: [],
+    salaryRaises: [{ raiseId: toRaiseId("ACTUAL-SALARY"),
+      effectiveSimulationMonth: toSimulationMonth(2),
+      effectiveCalendarMonth: toCalendarMonth(2),
+      effectiveCalendarYear: toFullCalendarYear(2026),
+      targetPerson: TargetPerson.Husband,
+      newHusbandGross: toGrossSalary(6000),
+      reason: "New contract" }] });
+  const changed = result.months[1];
+  assert.ok(changed.startingActions);
+  assert.match(changed.startingActions[0].title, /Salary Change Effective.*6\.000,00.*gross\/month/);
+  assert.equal(changed.startingActions[0].description, "New contract");
+  assert.equal(changed.payroll?.husband.monthlyGross, 6000);
+  assert.equal(changed.husbandSalary, computeGrossToNetBreakdown(toGrossSalary(6000), TaxClass.I).regularNetTakeHome);
+  assert.equal(changed.wifeSalary, result.months[0].wifeSalary);
+});
