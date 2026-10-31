@@ -1,4 +1,7 @@
 import {
+  parseCalculatorScenario,
+} from "#engine/storage/calculatorScenario";
+import {
   computePayrollTaxBase,
 } from "#engine/tax/payrollTaxBase";
 import {
@@ -373,49 +376,62 @@ export function undoScenarioDeletion(): void {
   pendingScenarioDeletion.value = null;
 }
 
-export function loadScenario(id: string): void {
-  const scenario = savedScenarios.value.find((s) => s.id === id);
-  if (scenario && scenario.inputs) {
-    selectedTaxYear.value = parseVerifiedTaxYear(scenario.inputs.taxYear ?? DEFAULT_TAX_YEAR);
-    personalPayroll.value = parsePersonalPayrollOptions(scenario.inputs.personalPayroll ?? {});
-    partnerPersonalPayroll.value = parsePersonalPayrollOptions(scenario.inputs.partnerPersonalPayroll ?? {});
-    personalTaxFactor.value = scenario.inputs.taxFactor === undefined ? undefined : toTaxFactor(scenario.inputs.taxFactor);
+/** Applying a complete candidate in one batch prevents intermediate household calculations. */
+function applyLiveInputs(inputs: CalculatorInputs): void {
+  batch(() => {
+    selectedTaxYear.value = parseVerifiedTaxYear(inputs.taxYear ?? DEFAULT_TAX_YEAR);
+    personalPayroll.value = parsePersonalPayrollOptions(inputs.personalPayroll ?? {});
+    partnerPersonalPayroll.value = parsePersonalPayrollOptions(inputs.partnerPersonalPayroll ?? {});
+    personalTaxFactor.value = inputs.taxFactor === undefined ? undefined : toTaxFactor(inputs.taxFactor);
     inputMode.value =
-      scenario.inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
+      inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
     grossIncome.value =
-      scenario.inputs.grossIncome ?? DEFAULT_CALCULATOR_INPUTS.grossIncome;
+      inputs.grossIncome ?? DEFAULT_CALCULATOR_INPUTS.grossIncome;
     taxBracket.value =
-      scenario.inputs.taxBracket ?? DEFAULT_CALCULATOR_INPUTS.taxBracket;
+      inputs.taxBracket ?? DEFAULT_CALCULATOR_INPUTS.taxBracket;
     hasChurchTax.value =
-      scenario.inputs.hasChurchTax ?? DEFAULT_CALCULATOR_INPUTS.hasChurchTax;
-    state.value = scenario.inputs.state ?? DEFAULT_CALCULATOR_INPUTS.state;
+      inputs.hasChurchTax ?? DEFAULT_CALCULATOR_INPUTS.hasChurchTax;
+    state.value = inputs.state ?? DEFAULT_CALCULATOR_INPUTS.state;
     children.value =
-      scenario.inputs.children ?? DEFAULT_CALCULATOR_INPUTS.children;
+      inputs.children ?? DEFAULT_CALCULATOR_INPUTS.children;
     workingMonths.value =
-      scenario.inputs.workingMonths ?? DEFAULT_CALCULATOR_INPUTS.workingMonths;
+      inputs.workingMonths ?? DEFAULT_CALCULATOR_INPUTS.workingMonths;
     salariesPerYear.value =
-      scenario.inputs.salariesPerYear ??
+      inputs.salariesPerYear ??
       DEFAULT_CALCULATOR_INPUTS.salariesPerYear;
     hasPartner.value =
-      scenario.inputs.hasPartner ?? DEFAULT_CALCULATOR_INPUTS.hasPartner;
+      inputs.hasPartner ?? DEFAULT_CALCULATOR_INPUTS.hasPartner;
     partnerGrossIncome.value =
-      scenario.inputs.partnerGrossIncome ??
+      inputs.partnerGrossIncome ??
       DEFAULT_CALCULATOR_INPUTS.partnerGrossIncome;
     partnerTaxBracket.value =
-      scenario.inputs.partnerTaxBracket ??
+      inputs.partnerTaxBracket ??
       DEFAULT_CALCULATOR_INPUTS.partnerTaxBracket;
     partnerHasChurchTax.value =
-      scenario.inputs.partnerHasChurchTax ??
+      inputs.partnerHasChurchTax ??
       DEFAULT_CALCULATOR_INPUTS.partnerHasChurchTax;
     partnerState.value =
-      scenario.inputs.partnerState ?? DEFAULT_CALCULATOR_INPUTS.partnerState;
+      inputs.partnerState ?? DEFAULT_CALCULATOR_INPUTS.partnerState;
     partnerWorkingMonths.value =
-      scenario.inputs.partnerWorkingMonths ??
+      inputs.partnerWorkingMonths ??
       DEFAULT_CALCULATOR_INPUTS.partnerWorkingMonths;
     partnerSalariesPerYear.value =
-      scenario.inputs.partnerSalariesPerYear ??
+      inputs.partnerSalariesPerYear ??
       DEFAULT_CALCULATOR_INPUTS.partnerSalariesPerYear;
+  });
+}
+
+export function loadScenario(id: string): void {
+  const scenario = savedScenarios.value.find((item) => item.id === id);
+  if (scenario?.inputs) {
+    applyLiveInputs(scenario.inputs);
   }
+}
+
+export function importCalculatorScenario(value: unknown): void {
+  const inputs = parseCalculatorScenario(value);
+  calculateScenarioData(inputs);
+  applyLiveInputs(inputs);
 }
 
 const inputTaxClasses: Readonly<Record<string, TaxClass>> = {
