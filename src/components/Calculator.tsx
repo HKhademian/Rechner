@@ -12,7 +12,7 @@ export default function Calculator(): JSX.Element {
   return (
     <>
       <Navigation currentPath={calculatorPath(AppId.NetPay)} />
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <div
           style={{
             textAlign: "center",

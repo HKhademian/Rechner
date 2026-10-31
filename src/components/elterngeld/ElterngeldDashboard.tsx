@@ -38,7 +38,7 @@ export default function ElterngeldDashboard(): JSX.Element {
       <Navigation currentPath={calculatorPath(AppId.ParentalLeave)} />
 
       {/* Main Content Area */}
-      <main id="main-content"
+      <main id="main-content" tabIndex={-1}
         style={{
           flex: 1,
           maxWidth: "1400px",

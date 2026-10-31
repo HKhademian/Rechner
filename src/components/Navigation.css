@@ -96,6 +96,10 @@
 }
 
 @media (max-width: 700px) {
+  .calculator-navigation__brand small {
+    display: none;
+  }
+
   .calculator-navigation__inner {
     gap: 8px 12px;
     padding: 10px 16px;

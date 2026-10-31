@@ -1,18 +1,14 @@
 ---
-import Calculator from "#components/Calculator";
+import CalculatorCatalog from "#components/CalculatorCatalog";
 import "#styles/global.css";
 ---
-
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="generator" content={Astro.generator} />
-		<title>German Net Pay Calculator</title>
-		<meta name="description" content="Calculate your net income in Germany with this simple, dynamic calculator." />
-	</head>
-	<body>
-		<Calculator client:load />
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculator Marketplace | Rechner</title>
+    <meta name="description" content="Find calculators for salary, family and everyday planning. Each tool has its own workspace, saved inputs and source-linked results." />
+  </head>
+  <body><CalculatorCatalog client:load /></body>
 </html>
