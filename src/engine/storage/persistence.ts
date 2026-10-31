@@ -1,4 +1,7 @@
 import {
+  validateSalaryReplacement,
+} from "#engine/simulator/salaryChange";
+import {
   parseHouseholdTaxableIncome,
 } from "#engine/benefits/taxableIncomeInput";
 import {
@@ -73,6 +76,32 @@ import emptyScenarioData from "../../data/scenarios/empty.json" with { type: "js
 import {
   findBuiltinScenario,
 } from "#data/scenarios/scenarioRegistry";
+
+/** New contract amounts must survive imports without acquiring an invented zero-percent raise. */
+function salaryCompensation(raw: Record<string, unknown>, percentage: number): Pick<SalaryRaiseAction, "newHusbandGross" | "newWifeGross" | "percentageIncrease"> {
+  const amount = (value: unknown): GrossSalary | undefined => {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (typeof value !== "number") {
+      throw new TypeError("New gross salary must be a non-negative numeric amount.");
+    }
+    return toGrossSalary(value);
+  };
+  const newHusbandGross = amount(raw.newHusbandGross);
+  const newWifeGross = amount(raw.newWifeGross);
+  const replacement = newHusbandGross !== undefined || newWifeGross !== undefined;
+  return {
+    newHusbandGross,
+    newWifeGross,
+    percentageIncrease: replacement && raw.percentageIncrease === undefined ? undefined : toPercentageRate(percentage),
+  };
+}
+
+function checkedSalaryReplacement(action: SalaryRaiseAction): SalaryRaiseAction {
+  validateSalaryReplacement(action);
+  return action;
+}
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
@@ -551,7 +580,7 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
       if (rawPct > 1) {
         rawPct = rawPct / 100;
       }
-      return {
+      return checkedSalaryReplacement({
         raiseId: toRaiseId(
           typeof rObj.raiseId === "string"
             ? rObj.raiseId
@@ -570,11 +599,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
             typeof rObj.targetPerson === "string"
               ? toTargetPerson(rObj.targetPerson)
               : TargetPerson.Both,
-        percentageIncrease: toPercentageRate(
-          Math.min(1.0, Math.max(0, rawPct)),
-        ),
+        ...salaryCompensation(rObj, Math.min(1.0, Math.max(0, rawPct))),
         reason: typeof rObj.reason === "string" ? rObj.reason : "",
-      };
+      });
     })
     : [];
 
@@ -1221,7 +1248,7 @@ export function validateAndSanitizePersistedState(
       }
       rawPct = Math.min(1.0, Math.max(0, rawPct));
 
-      return {
+      return checkedSalaryReplacement({
         raiseId: toRaiseId(
           typeof rObj.raiseId === "string"
             ? rObj.raiseId
@@ -1253,12 +1280,12 @@ export function validateAndSanitizePersistedState(
           ),
         ),
         targetPerson: tp,
-        percentageIncrease: toPercentageRate(rawPct),
+        ...salaryCompensation(rObj, rawPct),
         reason: str(
           rObj.reason,
           defR?.reason || "Annual Merit / Tariff Raise",
         ),
-      };
+      });
     })
     : defaults.customSalaryRaises;
 

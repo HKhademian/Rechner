@@ -24,6 +24,7 @@ import {
   clearStorage,
 } from "#engine/storage/persistence";
 import {
+  TargetPerson,
   SalaryInputMode,
   SalaryPeriod,
   ActiveScenarioView,
@@ -37,6 +38,7 @@ import {
   toCalendarMonth,
   toFullCalendarYear,
   toFinancialEventId,
+  toRaiseId,
   toTaxFactor,
 } from "#engine/types";
 
@@ -411,4 +413,37 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       assert.equal(loaded.customFinancialEvents.length, 0);
     });
   });
+});
+
+it("round-trips actual salary replacements, including zero, without inventing a percentage", () => {
+  const state = getTestPersistedState();
+  const action = { raiseId: toRaiseId("REPLACE-SALARY"),
+    effectiveSimulationMonth: toSimulationMonth(2),
+    effectiveCalendarMonth: toCalendarMonth(2),
+    effectiveCalendarYear: toFullCalendarYear(2026),
+    reason: "New contract",
+    targetPerson: TargetPerson.Both,
+    percentageIncrease: undefined,
+    newHusbandGross: toGrossSalary(6123.45),
+    newWifeGross: toGrossSalary(0) };
+  const payload = { ...state,
+    customSalaryRaises: [action] };
+  for (const parsed of [parseRawScenarioData(payload), validateAndSanitizePersistedState(payload), deserializeState(serializeState(payload))]) {
+    assert.deepEqual(parsed.customSalaryRaises[0], action);
+  }
+  for (const parse of [parseRawScenarioData, validateAndSanitizePersistedState]) {
+    for (const invalid of [
+      { ...action,
+        newWifeGross: undefined },
+      { ...action,
+        newHusbandGross: -1 },
+      { ...action,
+        newHusbandGross: "" },
+      { ...action,
+        percentageIncrease: 0 },
+    ]) {
+      assert.throws(() => parse({ ...state,
+        customSalaryRaises: [invalid] }), TypeError);
+    }
+  }
 });
