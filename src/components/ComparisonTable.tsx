@@ -618,38 +618,8 @@ export function ComparisonTableContent(): JSX.Element {
   };
 
   return (
-    <div
-      class={`glass-panel fade-in comparison-shell${showSavedComparison.value ? " comparison-show-saved" : ""}`}
-      style={{
-        maxWidth: "95vw",
-        margin: "0 auto 40px auto",
-        padding: "25px",
-        position: "relative",
-        borderTop: "4px solid var(--color-primary)",
-      }}
-    >
-      <div className="comparison-heading"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
-      >
-        <div>
-          <h2 style={{ margin: 0 }}>Scenario Manager &amp; Household Models</h2>
-          <p
-            style={{
-              margin: "5px 0 0 0",
-              fontSize: "0.9rem",
-              color: "var(--text-muted)",
-            }}
-          >
-            Compare your active live inputs against saved household planning
-            scenarios.
-          </p>
-        </div>
-
+    <div class={`comparison-shell${showSavedComparison.value ? " comparison-show-saved" : ""}`}>
+      <div className="comparison-heading">
         <div role="group" aria-label="Result display period" style={{ display: "flex",
           gap: "15px",
           alignItems: "center" }}>
@@ -721,7 +691,7 @@ export function ComparisonTableContent(): JSX.Element {
         <table id="household-comparison-table" className="comparison-matrix" aria-label="Live and saved household calculations"
           style={{
             tableLayout: "fixed",
-            width: "max-content",
+            width: "100%",
             borderCollapse: "separate",
             borderSpacing: 0,
             textAlign: "left",

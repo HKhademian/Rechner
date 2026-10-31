@@ -1,3 +1,16 @@
+.comparison-shell {
+  max-width: 1400px;
+  margin: 0 auto 40px;
+  padding: 0 24px;
+}
+
+.comparison-heading {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .comparison-mobile-toggle {
   display: none;
 }
