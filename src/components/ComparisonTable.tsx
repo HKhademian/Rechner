@@ -32,6 +32,8 @@ import {
   type CalculatorInputs,
   type PersonDeductions,
   getCurrentInputs,
+  setLiveTaxBracket,
+  CALCULATOR_PARTNER_SHORTCUT,
   inputMode,
   hasPartner,
   grossIncome,
@@ -133,7 +135,7 @@ export function ComparisonTableContent(): JSX.Element {
     hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
     grossIncome: <LiveNumberInput onValidityChange={trackValidity("live-grossIncome")} id="live-gross" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
     state: <LiveChoiceInput onValidityChange={trackValidity("live-state")} label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
-    taxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-taxBracket")} label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={validateLive("taxBracket")} />,
+    taxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-taxBracket")} label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={setLiveTaxBracket} />,
     hasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-hasChurchTax")} label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
     children: <LiveNumberInput onValidityChange={trackValidity("live-children")} id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
     workingMonths: <LiveNumberInput onValidityChange={trackValidity("live-workingMonths")} id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
@@ -559,6 +561,10 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {label}
+          {fieldKey === "taxBracket" && <small className="comparison-field-hint">
+            {CALCULATOR_PARTNER_SHORTCUT.classes.join("/")} enable partner; review partner inputs.{" "}
+            <a href={CALCULATOR_PARTNER_SHORTCUT.source} target="_blank" rel="noreferrer">Tax-class rules</a>
+          </small>}
         </td>
         {cells}
       </tr>
