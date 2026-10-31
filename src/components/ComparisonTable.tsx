@@ -1041,46 +1041,8 @@ export function ComparisonTableContent(): JSX.Element {
               })}
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td
-                colSpan={savedScenarios.value.length + 2}
-                style={{
-                  padding: "20px 16px 8px 16px",
-                  fontSize: "0.85rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                  color: "var(--text-muted)",
-                  fontWeight: 700,
-                  background: "var(--bg-surface-secondary)",
-                }}
-              >
-                Household Summary
-              </td>
-            </tr>
-            {renderRow(
-              isMonthly ? "Household Avg Gross" : "Household Gross",
-              null,
-              "grossYearly",
-              true,
-              true,
-            )}
-            {renderRow(
-              isMonthly ? "Household Avg Net" : "Household Net Pay",
-              null,
-              "netIncome",
-              true,
-              true,
-            )}
-            {renderAverageMonthlyNetRow(null, true)}
-            {renderPerPaycheckRow(null, true)}
-            {renderRow(
-              isMonthly ? "Household Avg Deductions" : "Total Deductions",
-              null,
-              "totalDeductions",
-              true,
-            )}
-
+          <tbody aria-label="Inputs">
+            <tr><th className="comparison-section-heading" colSpan={savedScenarios.value.length + 2}>Inputs</th></tr>
             {renderInputRow(
               "Gross input period",
               "inputMode",
@@ -1318,9 +1280,51 @@ export function ComparisonTableContent(): JSX.Element {
               </>
             )}
 
-            {renderDetailRow("Payroll details and official sources", (data, _id, live) => live
+            {renderDetailRow("Payroll settings", (data, _id, live) => live
               ? <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
               : <p>Tax year {data.annualTaxableIncome.rules.calendarYear}. Use Edit in this column to change its saved payroll inputs. <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">Official payroll profile</a></p>)}
+
+          </tbody>
+          <tbody aria-label="Results and summaries">
+            <tr><th className="comparison-section-heading" colSpan={savedScenarios.value.length + 2}>Results and summaries</th></tr>
+            <tr>
+              <td
+                colSpan={savedScenarios.value.length + 2}
+                style={{
+                  padding: "20px 16px 8px 16px",
+                  fontSize: "0.85rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  color: "var(--text-muted)",
+                  fontWeight: 700,
+                  background: "var(--bg-surface-secondary)",
+                }}
+              >
+                Household Summary
+              </td>
+            </tr>
+            {renderRow(
+              isMonthly ? "Household Avg Gross" : "Household Gross",
+              null,
+              "grossYearly",
+              true,
+              true,
+            )}
+            {renderRow(
+              isMonthly ? "Household Avg Net" : "Household Net Pay",
+              null,
+              "netIncome",
+              true,
+              true,
+            )}
+            {renderAverageMonthlyNetRow(null, true)}
+            {renderPerPaycheckRow(null, true)}
+            {renderRow(
+              isMonthly ? "Household Avg Deductions" : "Total Deductions",
+              null,
+              "totalDeductions",
+              true,
+            )}
 
             <tr>
               <td
@@ -1422,6 +1426,14 @@ export function ComparisonTableContent(): JSX.Element {
             ))}
             {renderDetailRow("Calculation Breakdown", (data) => (
               <details><summary>View calculation breakdown</summary><ResultsDisplay data={data} /></details>
+            ))}
+            {renderDetailRow("Payroll assumptions and official sources", (data) => (
+              <details><summary>View payroll assumptions and sources</summary>
+                <h3>You</h3>
+                <ul>{data.person1.assumptions.map((note) => <li key={note}>{note}</li>)}</ul>
+                {data.partner && <><h3>Partner</h3><ul>{data.partner.assumptions.map((note) => <li key={note}>{note}</li>)}</ul></>}
+                <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">Official {data.annualTaxableIncome.rules.calendarYear} payroll profile</a>
+              </details>
             ))}
           </tbody>
         </table>

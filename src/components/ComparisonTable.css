@@ -147,3 +147,13 @@
     grid-column: 1 / -1;
   }
 }
+
+.comparison-section-heading {
+  grid-column: 1 / -1;
+  padding: 20px 16px;
+  text-align: left;
+  background: var(--bg-surface-secondary);
+  color: var(--text-primary);
+  border-block: 2px solid var(--border-subtle);
+  font-size: 1rem;
+}
