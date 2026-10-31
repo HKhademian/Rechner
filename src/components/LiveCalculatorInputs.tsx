@@ -13,7 +13,7 @@ import {
   parseCalculatorNumber,
 } from "#utils/calculatorNumberInput";
 
-export function LiveNumberInput({ id, label, value, construct, beforeChange, step = 1, scope = "Live Calculation", onValidityChange }: {
+export function LiveNumberInput({ id, label, value, construct, beforeChange, step = 1, scope = "Live Calculation", onValidityChange, descriptionId }: {
   id: string;
   label: string;
   value: Signal<number>;
@@ -22,6 +22,7 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
   step?: number;
   scope?: string;
   onValidityChange?: (valid: boolean) => void;
+  descriptionId?: string;
 }): JSX.Element {
   const current = value.value;
   const [draft, setDraft] = useState(String(current));
@@ -38,7 +39,7 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
   return (
     <div className="live-control">
       <input id={id} className="live-input" type="number" min="0" step={step} value={draft}
-        aria-label={`${scope}: ${label}`} aria-invalid={error !== ""} aria-describedby={error ? `${id}-error` : undefined}
+        aria-label={`${scope}: ${label}`} aria-invalid={error !== ""} aria-describedby={[descriptionId, error ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined}
         onInput={(event) => {
           const raw = event.currentTarget.value;
           setDraft(raw);

@@ -1,6 +1,7 @@
 import "./ComparisonTable.css";
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
 import LiveCalculationSummary from "#components/LiveCalculationSummary";
+import GrossPeriodPreview from "#components/GrossPeriodPreview";
 import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 import {
@@ -133,14 +134,14 @@ export function ComparisonTableContent(): JSX.Element {
       label: "Monthly gross input" }, { value: "yearly",
       label: "Yearly gross input" }]} beforeChange={validateLive("inputMode")} />,
     hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
-    grossIncome: <LiveNumberInput onValidityChange={trackValidity("live-grossIncome")} id="live-gross" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
+    grossIncome: <LiveNumberInput onValidityChange={trackValidity("live-grossIncome")} id="live-gross" descriptionId="live-gross-preview" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
     state: <LiveChoiceInput onValidityChange={trackValidity("live-state")} label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
     taxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-taxBracket")} label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={setLiveTaxBracket} />,
     hasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-hasChurchTax")} label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
     children: <LiveNumberInput onValidityChange={trackValidity("live-children")} id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
     workingMonths: <LiveNumberInput onValidityChange={trackValidity("live-workingMonths")} id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
     salariesPerYear: <LiveNumberInput onValidityChange={trackValidity("live-salariesPerYear")} id="live-salaries" label="Salaries per year" value={salariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("salariesPerYear")} step={0.5} />,
-    partnerGrossIncome: <LiveNumberInput onValidityChange={trackValidity("live-partnerGrossIncome")} id="live-partner-gross" label={`Partner gross income (${salaryUnit(inputMode.value)})`} value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
+    partnerGrossIncome: <LiveNumberInput onValidityChange={trackValidity("live-partnerGrossIncome")} id="live-partner-gross" descriptionId="live-partner-gross-preview" label={`Partner gross income (${salaryUnit(inputMode.value)})`} value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
     partnerState: <LiveChoiceInput onValidityChange={trackValidity("live-partnerState")} label="Partner federal state" value={partnerState} options={liveStateOptions} beforeChange={validateLive("partnerState")} />,
     partnerTaxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-partnerTaxBracket")} label="Partner tax class" value={partnerTaxBracket} options={liveClassOptions} beforeChange={validateLive("partnerTaxBracket")} />,
     partnerHasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-partnerHasChurchTax")} label="Partner church tax" value={partnerHasChurchTax} beforeChange={validateLive("partnerHasChurchTax")} />,
@@ -510,6 +511,11 @@ export function ComparisonTableContent(): JSX.Element {
       >
         {liveControls[fieldKey]}
         {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <small>{salaryUnit(inputMode.value)}</small>}
+        {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <GrossPeriodPreview
+          id={fieldKey === "grossIncome" ? "live-gross-preview" : "live-partner-gross-preview"}
+          inputMode={inputMode.value}
+          annualGross={fieldKey === "grossIncome" ? deductions.value.person1.grossYearly : deductions.value.partner?.grossYearly}
+          lastValid={hasInvalidLive} />}
       </td>,
     );
 
