@@ -1,6 +1,7 @@
 import "./ComparisonTable.css";
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
-import LiveCalculationSummary from "#components/LiveCalculationSummary";
+import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
+import ResultsDisplay from "#components/ResultsDisplay";
 import GrossPeriodPreview from "#components/GrossPeriodPreview";
 import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
@@ -118,6 +119,25 @@ export function ComparisonTableContent(): JSX.Element {
   };
 
   const isMonthly = displayMode.value === "monthly";
+  // Read saved inputs afresh; an open draft owns only its own column's results.
+  const renderDetailRow = (label: string, render: (data: HouseholdScenarioData, id: string, live: boolean) => JSX.Element): JSX.Element => (
+    <tr className="comparison-detail-row">
+      <th scope="row">{label}</th>
+      <td className="comparison-detail-cell" aria-label={`Live calculation: ${label}`}>
+        {hasInvalidLive && <p role="status">Results use the last valid inputs.</p>}
+        {render(deductions.value, "live", true)}
+      </td>
+      {savedScenarios.value.map((scenario) => {
+        const data = activeScenarioId.value === scenario.id && scenarioDraft.value
+          ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs);
+        return <td key={scenario.id} className="comparison-detail-cell" aria-label={`${scenario.title}: ${label}`}>
+          {hasInvalidSaved(scenario.id) && <p role="status">Results use the last valid draft inputs.</p>}
+          {render(data, `scenario-${scenario.id}`, false)}
+        </td>;
+      })}
+    </tr>
+  );
+
   const hasAnyPartner = Boolean(deductions.value.partner || scenarioDraft.value?.data.partner || savedScenarios.value.some((scenario) => scenario.data.partner));
 
   const validateLive = <K extends keyof CalculatorInputs>(field: K) => (value: CalculatorInputs[K]): void => {
@@ -693,7 +713,6 @@ export function ComparisonTableContent(): JSX.Element {
         <p>No saved scenarios yet. Edit your live inputs, then save a snapshot to compare.</p>
         <button onClick={handleAddScenario} disabled={hasInvalidLive}>Save first scenario</button>
       </div>}
-      <LiveCalculationSummary data={deductions.value} hasInvalidInputs={hasInvalidLive} />
 
       <div className="comparison-scroll" style={{ overflowX: "auto",
         paddingBottom: "10px" }}>
@@ -796,7 +815,6 @@ export function ComparisonTableContent(): JSX.Element {
                     </button>
                   </div>
                 </div>
-                <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
               </th>
 
               {savedScenarios.value.map((scenario) => {
@@ -1300,6 +1318,10 @@ export function ComparisonTableContent(): JSX.Element {
               </>
             )}
 
+            {renderDetailRow("Payroll details and official sources", (data, _id, live) => live
+              ? <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
+              : <p>Tax year {data.annualTaxableIncome.rules.calendarYear}. Use Edit in this column to change its saved payroll inputs. <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">Official payroll profile</a></p>)}
+
             <tr>
               <td
                 colSpan={savedScenarios.value.length + 2}
@@ -1393,6 +1415,14 @@ export function ComparisonTableContent(): JSX.Element {
 
               </>
             )}
+            {renderDetailRow("Annual taxable income", (data, id, live) => (
+              <details><summary>View annual taxable income</summary>
+                <CalculatorTaxableIncome data={data} id={`${id}-annual-taxable-income`} editable={live} />
+              </details>
+            ))}
+            {renderDetailRow("Calculation Breakdown", (data) => (
+              <details><summary>View calculation breakdown</summary><ResultsDisplay data={data} /></details>
+            ))}
           </tbody>
         </table>
       </div>

@@ -1,11 +1,6 @@
 import type {
   JSX, 
 } from "preact";
-import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
-import {
-  deductions,
-} from "#store/calculatorStore";
-import ResultsDisplay from "#components/ResultsDisplay";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
 
@@ -45,10 +40,7 @@ export default function Calculator(): JSX.Element {
 
       <ComparisonTable />
 
-      <div class="container">
-        <CalculatorTaxableIncome data={deductions.value} />
-        <ResultsDisplay />
-      </div>
+
     </>
   );
 }
