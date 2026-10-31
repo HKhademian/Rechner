@@ -2148,6 +2148,10 @@ export interface SalaryRaiseAction {
   readonly targetPerson: TargetPerson;
   /** Percentage raise applied to existing compensation (e.g. 0.05 for +5%). */
   readonly percentageIncrease?: PercentageRate;
+  /** New regular monthly gross at the initial contractual hours, before hours prorating. */
+  readonly newHusbandGross?: GrossSalary;
+  /** New regular monthly gross at the initial contractual hours, before hours prorating. */
+  readonly newWifeGross?: GrossSalary;
   /** Husband's updated monthly net salary in Tax Class III in EUR. */
   readonly newHusbandClass3Net?: NetSalary;
   /** Husband's updated monthly net salary in Tax Class V in EUR. */

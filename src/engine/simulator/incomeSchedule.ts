@@ -22,6 +22,9 @@ import {
   toTaxFactor,
 } from "#engine/types";
 import {
+  validateSalaryReplacement,
+} from "#engine/simulator/salaryChange";
+import {
   type PayrollOptions,
 } from "#engine/tax/payroll";
 import {
@@ -136,13 +139,21 @@ export function evaluateIncomeMonth(
     if (raise.effectiveSimulationMonth > index) {
       continue;
     }
-    if (grossMode && raise.percentageIncrease === undefined) {
-      throw new TypeError("Gross-mode raises require a percentage, rather than a manual net replacement.");
+    validateSalaryReplacement(raise);
+    const replacement = raise.newHusbandGross !== undefined || raise.newWifeGross !== undefined;
+    if (replacement && !grossMode) {
+      throw new TypeError("New gross salaries require gross-input mode.");
+    }
+    if (grossMode && raise.percentageIncrease === undefined && !replacement) {
+      throw new TypeError("Gross-mode salary changes require a percentage or new gross salary.");
     }
     if (raise.targetPerson === TargetPerson.Husband || raise.targetPerson === TargetPerson.Both) {
       if (raise.percentageIncrease !== undefined) {
         scale(husbandNets, raise.percentageIncrease);
         husbandGross = husbandGross === undefined ? undefined : toGrossSalary(husbandGross * (1 + raise.percentageIncrease));
+      }
+      else if (replacement) {
+        husbandGross = raise.newHusbandGross;
       }
       else {
         husbandNets[Classes.III] = raise.newHusbandClass3Net ?? husbandNets[Classes.III];
@@ -154,6 +165,9 @@ export function evaluateIncomeMonth(
         scale(wifeFullNets, raise.percentageIncrease);
         scale(wifePartNets, raise.percentageIncrease);
         wifeGross = wifeGross === undefined ? undefined : toGrossSalary(wifeGross * (1 + raise.percentageIncrease));
+      }
+      else if (replacement) {
+        wifeGross = raise.newWifeGross;
       }
       else {
         wifeFullNets[Classes.III] = raise.newWifeClass3FTNet ?? wifeFullNets[Classes.III];

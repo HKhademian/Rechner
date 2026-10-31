@@ -20,6 +20,7 @@ import {
   toPregnancyId,
   toChildIndex,
   toWorkingHours,
+  toHoursChangeId,
   toNetSalary,
   toMonthDuration,
   toAnnualSalariesCount,
@@ -159,4 +160,52 @@ it("repeats verified initial gross payroll rather than stale net presets in miss
   const months = buildIncomeSchedule(batches, at(4));
   assert.equal(months[0].mutterschutz, 3130.09);
   assert.ok(months[0].assumptions.some((message) => message.includes("3 missing maternity-reference")));
+});
+
+it("replaces contract gross, then compounds later raises and prorates hours once", () => {
+  const replacement = { raiseId: toRaiseId("NEW-GROSS"),
+    effectiveSimulationMonth: toSimulationMonth(2),
+    effectiveCalendarMonth: toCalendarMonth(2),
+    effectiveCalendarYear: toFullCalendarYear(2026),
+    targetPerson: TargetPerson.Husband,
+    newHusbandGross: toGrossSalary(6000),
+    reason: "New contract" };
+  const batches: ScenarioActionBatches = { ...base,
+    preexisting: { ...base.preexisting,
+      salaryInputMode: SalaryInputMode.Gross,
+      husbandGross: toGrossSalary(5000),
+      wifeGross: toGrossSalary(3000),
+      husbandWeeklyHours: toWorkingHours(40) },
+    // Deliberately unsorted: percentages must apply to the most recent replacement.
+    salaryRaises: [{ ...replacement,
+      raiseId: toRaiseId("LATER-PERCENT"),
+      effectiveSimulationMonth: toSimulationMonth(4),
+      newHusbandGross: undefined,
+      percentageIncrease: toPercentageRate(0.1) }, replacement],
+    workingHoursChanges: [{ changeId: toHoursChangeId("HALF-HOURS"),
+      effectiveSimulationMonth: toSimulationMonth(3),
+      effectiveCalendarMonth: toCalendarMonth(3),
+      effectiveCalendarYear: toFullCalendarYear(2026),
+      targetPerson: TargetPerson.Husband,
+      weeklyHours: toWorkingHours(20),
+      reason: "Part time" }] };
+  assert.deepEqual([1, 2, 3, 4].map((month) => evaluateIncomeMonth(batches, at(month)).husbandPayroll?.monthlyGross), [5000, 6000, 3000, 3300]);
+  assert.equal(evaluateIncomeMonth(batches, at(4)).wifePayroll?.monthlyGross, 3000);
+  const zero = { ...batches,
+    salaryRaises: [{ ...replacement,
+      newHusbandGross: toGrossSalary(0) }] };
+  assert.equal(evaluateIncomeMonth(zero, at(2)).husbandSalary, 0);
+  const both = { ...batches,
+    salaryRaises: [{ ...replacement,
+      targetPerson: TargetPerson.Both,
+      newWifeGross: toGrossSalary(2000) }] };
+  assert.equal(evaluateIncomeMonth(both, at(2)).wifePayroll?.monthlyGross, 2000);
+  assert.throws(() => evaluateIncomeMonth({ ...batches,
+    preexisting: base.preexisting }, at(2)), /gross-input mode/);
+  assert.throws(() => evaluateIncomeMonth({ ...batches,
+    salaryRaises: [{ ...replacement,
+      percentageIncrease: toPercentageRate(0.1) }] }, at(2)), /not both/);
+  assert.throws(() => evaluateIncomeMonth({ ...batches,
+    salaryRaises: [{ ...replacement,
+      targetPerson: TargetPerson.Both }] }, at(2)), /every selected person/);
 });
