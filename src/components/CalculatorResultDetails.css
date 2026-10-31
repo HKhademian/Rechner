@@ -1,0 +1,94 @@
+.calculator-result-summary dl {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.calculator-result-summary dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.calculator-result-summary dt {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.calculator-result-summary dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.calculator-result-details-button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.calculator-result-details-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.calculator-result-dialog {
+  box-sizing: border-box;
+  width: min(860px, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.calculator-result-dialog::backdrop {
+  background: color-mix(in srgb, var(--text-primary) 45%, transparent);
+}
+
+.calculator-result-dialog__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.calculator-result-dialog__header p {
+  margin: 0 0 4px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.calculator-result-dialog__header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.calculator-result-dialog__body {
+  padding: 16px;
+}
+
+.calculator-result-dialog__body > .glass-panel {
+  margin: 0;
+  padding: 16px;
+  box-shadow: none;
+}
