@@ -1,4 +1,10 @@
 import {
+  AppId,
+} from "#/apps/appDefinition.ts";
+import {
+  browserAppStorage,
+} from "#engine/storage/appStorage";
+import {
   signal,
   computed,
   effect,
@@ -22,10 +28,12 @@ export function parseVerifiedTaxYear(value: unknown) {
   return toFullCalendarYear(value);
 }
 
+const netPayStorage = browserAppStorage(AppId.NetPay);
+
 function loadYear() {
   try {
     return typeof window === "undefined" ? DEFAULT_TAX_YEAR
-      : parseVerifiedTaxYear(JSON.parse(localStorage.getItem("payroll_taxYear") ?? "null"));
+      : parseVerifiedTaxYear(JSON.parse(netPayStorage.getItem("payroll_taxYear") ?? "null"));
   }
   catch {
     return DEFAULT_TAX_YEAR;
@@ -35,7 +43,9 @@ function loadYear() {
 export const selectedTaxYear = signal(loadYear());
 export const selectedTaxRules = computed(() => createTaxRules(selectedTaxYear.value));
 if (typeof window !== "undefined") {
-  effect(() => localStorage.setItem("payroll_taxYear", JSON.stringify(selectedTaxYear.value)));
+  effect(() => {
+    netPayStorage.setItem("payroll_taxYear", JSON.stringify(selectedTaxYear.value));
+  });
 }
 export function resetConfig(): void {
   selectedTaxYear.value = DEFAULT_TAX_YEAR;

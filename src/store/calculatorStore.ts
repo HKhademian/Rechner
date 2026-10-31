@@ -1,4 +1,10 @@
 import {
+  AppId,
+} from "#/apps/appDefinition.ts";
+import {
+  browserAppStorage,
+} from "#engine/storage/appStorage";
+import {
   parseCalculatorScenario,
 } from "#engine/storage/calculatorScenario";
 import {
@@ -42,11 +48,13 @@ import {
   toTaxFactor,
 } from "#engine/types";
 
-// Helper to persist signals in localStorage
+const netPayStorage = browserAppStorage(AppId.NetPay);
+
+// Persist only within the net-pay app namespace, with a copy-only migration of older saves.
 function persistedSignal<T>(key: string, initialValue: T, parse?: (value: unknown) => T): Signal<T> {
   let initial = initialValue;
   if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(key);
+    const stored = netPayStorage.getItem(key);
     if (stored !== null) {
       try {
         initial = parse ? parse(JSON.parse(stored)) : JSON.parse(stored);
@@ -61,7 +69,13 @@ function persistedSignal<T>(key: string, initialValue: T, parse?: (value: unknow
 
   if (typeof window !== "undefined") {
     effect(() => {
-      localStorage.setItem(key, JSON.stringify(s.value));
+      const serialized = JSON.stringify(s.value);
+      if (serialized === undefined) {
+        netPayStorage.removeItem(key);
+      }
+      else {
+        netPayStorage.setItem(key, serialized);
+      }
     });
   }
 
