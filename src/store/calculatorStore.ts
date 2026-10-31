@@ -320,6 +320,27 @@ export function saveScenario(
   editScenario(newScenario.id);
 }
 
+/** Column order changes only the persisted list; IDs and active draft objects stay intact. */
+function moveSavedScenario(id: string, offset: number): void {
+  const current = savedScenarios.peek();
+  const index = current.findIndex((scenario) => scenario.id === id);
+  const destination = index + offset;
+  if (index < 0 || destination < 0 || destination >= current.length) {
+    return;
+  }
+  const reordered = [...current];
+  [reordered[index], reordered[destination]] = [reordered[destination], reordered[index]];
+  savedScenarios.value = reordered;
+}
+
+export function moveScenarioLeft(id: string): void {
+  moveSavedScenario(id, -1);
+}
+
+export function moveScenarioRight(id: string): void {
+  moveSavedScenario(id, 1);
+}
+
 export function deleteScenario(id: string): void {
   const index = savedScenarios.peek().findIndex((scenario) => scenario.id === id);
   if (index < 0) {

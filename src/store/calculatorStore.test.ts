@@ -3,6 +3,8 @@ import {
   it,
 } from "node:test";
 import {
+  moveScenarioLeft,
+  moveScenarioRight,
   calculateScenarioData,
   getCurrentInputs,
   savedScenarios,
@@ -274,4 +276,34 @@ it("calculator annual taxable income uses its own active months, bonuses and par
   assert.equal(joint.incomeByPerson[1].gross, 36000);
   assert.ok(joint.taxBase);
   assert.equal(joint.taxBase.specialExpenses, single.taxBase!.specialExpenses * joint.incomeByPerson.length);
+});
+
+it("reorders saved columns without changing live inputs or an active draft", () => {
+  const before = savedScenarios.peek();
+  const live = getCurrentInputs();
+  try {
+    savedScenarios.value = ["first", "middle", "last"].map((id) => ({ id,
+      title: id,
+      description: "",
+      timestamp: "",
+      inputs: live,
+      data: calculateScenarioData(live) }));
+    editScenario("middle");
+    updateScenarioMetaData("Draft title", "Keep me");
+    const draft = scenarioDraft.peek();
+    moveScenarioLeft("first");
+    moveScenarioRight("last");
+    moveScenarioRight("missing");
+    assert.deepEqual(savedScenarios.peek().map((item) => item.id), ["first", "middle", "last"]);
+    moveScenarioLeft("middle");
+    assert.deepEqual(savedScenarios.peek().map((item) => item.id), ["middle", "first", "last"]);
+    moveScenarioRight("middle");
+    assert.deepEqual(savedScenarios.peek().map((item) => item.id), ["first", "middle", "last"]);
+    assert.equal(scenarioDraft.peek(), draft);
+    assert.deepEqual(getCurrentInputs(), live);
+  }
+  finally {
+    cancelEdit();
+    savedScenarios.value = before;
+  }
 });
