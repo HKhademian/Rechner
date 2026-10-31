@@ -365,6 +365,17 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       Reflect.deleteProperty(globalThis, "localStorage");
     });
 
+    it("migrates legacy parental plans without deleting them or reviving them after clear", () => {
+      const legacy = serializeState({ ...getDefaultPersistedState(),
+        husbandGross: toGrossSalary(4321) });
+      localStorage.setItem("elterngeld_simulator_state_v1", legacy);
+      assert.equal(loadFromStorage().husbandGross, 4321);
+      assert.equal(localStorage.getItem("elterngeld_simulator_state_v1"), legacy);
+      assert.equal(clearStorage(), true);
+      assert.equal(loadFromStorage().husbandGross, getDefaultPersistedState().husbandGross);
+      assert.equal(localStorage.getItem("elterngeld_simulator_state_v1"), legacy);
+    });
+
     it("saves state, loads state, and clears state via localStorage adapter", () => {
       const state = getDefaultPersistedState();
       const updated: ElterngeldPersistedState = {

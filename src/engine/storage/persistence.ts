@@ -1,4 +1,11 @@
 import {
+  AppId,
+} from "#/apps/appDefinition.ts";
+import {
+  appStorageKey,
+  browserAppStorage,
+} from "#engine/storage/appStorage";
+import {
   validateSalaryReplacement,
 } from "#engine/simulator/salaryChange";
 import {
@@ -104,7 +111,8 @@ function checkedSalaryReplacement(action: SalaryRaiseAction): SalaryRaiseAction 
 }
 
 /** LocalStorage key for persisting the complete simulator state envelope. */
-export const ELTERNGELD_STORAGE_KEY = "elterngeld_simulator_state_v1";
+export const ELTERNGELD_STORAGE_KEY = appStorageKey(AppId.ParentalLeave, "state");
+const parentalLeaveStorage = browserAppStorage(AppId.ParentalLeave);
 
 /**
  * Strongly-Typed Simulator State Persistence Schema.
@@ -1729,11 +1737,14 @@ export function saveToStorage(
   state: ElterngeldPersistedState,
   key: string = ELTERNGELD_STORAGE_KEY,
 ): boolean {
-  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+  if (typeof window === "undefined") {
     return false;
   }
   try {
     const serialized = serializeState(state);
+    if (key === ELTERNGELD_STORAGE_KEY) {
+      return parentalLeaveStorage.setItem("state", serialized);
+    }
     localStorage.setItem(key, serialized);
     return true;
   }
@@ -1751,11 +1762,11 @@ export function saveToStorage(
 export function loadFromStorage(
   key: string = ELTERNGELD_STORAGE_KEY,
 ): ElterngeldPersistedState {
-  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+  if (typeof window === "undefined") {
     return getDefaultPersistedState();
   }
   try {
-    const item = localStorage.getItem(key);
+    const item = key === ELTERNGELD_STORAGE_KEY ? parentalLeaveStorage.getItem("state") : localStorage.getItem(key);
     if (!item) {
       return getDefaultPersistedState();
     }
@@ -1773,10 +1784,13 @@ export function loadFromStorage(
  * @returns True if successfully removed.
  */
 export function clearStorage(key: string = ELTERNGELD_STORAGE_KEY): boolean {
-  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+  if (typeof window === "undefined") {
     return false;
   }
   try {
+    if (key === ELTERNGELD_STORAGE_KEY) {
+      return parentalLeaveStorage.removeItem("state");
+    }
     localStorage.removeItem(key);
     return true;
   }
