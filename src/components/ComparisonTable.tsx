@@ -527,6 +527,9 @@ export function ComparisonTableContent(): JSX.Element {
           : scenario.inputs || {};
       const rawVal = inputsToUse[fieldKey];
       const savedVal = formatFn(inputsToUse);
+      const grossData = fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome"
+        ? isActive && scenarioDraft.value ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs)
+        : undefined;
 
       let content: JSX.Element | string | number = savedVal;
       if (isActive) {
@@ -546,6 +549,11 @@ export function ComparisonTableContent(): JSX.Element {
         >
           {content}
           {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <div><small>{salaryUnit(inputsToUse.inputMode ?? "yearly")}</small></div>}
+          {grossData && <GrossPeriodPreview
+            id={`scenario-${scenario.id}-${fieldKey}-preview`}
+            inputMode={inputsToUse.inputMode ?? "yearly"}
+            annualGross={fieldKey === "grossIncome" ? grossData.person1.grossYearly : grossData.partner?.grossYearly}
+            lastValid={isActive && hasInvalidSaved(scenario.id)} />}
         </td>,
       );
     });

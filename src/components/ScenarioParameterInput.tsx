@@ -69,7 +69,7 @@ export default function ScenarioParameterInput({ id, label, scope, field, value,
       step: 0.5 },
   ].find((entry) => entry.field === field);
   if (numeric) {
-    return <LiveNumberInput id={id} label={label} scope={scope} onValidityChange={onValidityChange} value={numberValue} construct={numeric.construct} step={numeric.step} beforeChange={update} />;
+    return <LiveNumberInput id={id} descriptionId={field === "grossIncome" || field === "partnerGrossIncome" ? `${id}-preview` : undefined} label={label} scope={scope} onValidityChange={onValidityChange} value={numberValue} construct={numeric.construct} step={numeric.step} beforeChange={update} />;
   }
   if (options) {
     return <LiveChoiceInput label={label} scope={scope} onValidityChange={onValidityChange} value={choiceValue} options={options} beforeChange={update} />;
