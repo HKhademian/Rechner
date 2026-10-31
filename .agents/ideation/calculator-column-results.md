@@ -16,3 +16,9 @@ Verification: formatter, full quality audit (zero errors/warnings), and static b
 ## Follow-up: inputs first, all outputs together
 
 Selected: group all input rows (including payroll settings) first, then a single results group containing Household Summary, person/partner summaries, annual taxable income, breakdown and payroll evidence. Keep the same scenario columns throughout. Move calculated payroll assumptions out of the settings disclosure into the results group. Preserve draft validation and values.
+
+Completed follow-up: `ef22ec7` groups all financial inputs in the Inputs row group and all household/person/partner summaries, annual income, breakdown and calculated payroll evidence in Results and summaries. Both groups share the existing scenario columns. Live payroll settings contain editable inputs; calculated assumptions now use the respective column's data in the result group.
+
+Save clarification: replace the live-header plus with a visible Save scenario label and save icon, retain invalid-input gating, and remove the duplicate empty-state message/button. Verified snapshot creation and removed the temporary fixture.
+
+Validation: full audit and build passed for each scope; headless checks assert input/output group ordering, per-column data, draft isolation and unique IDs. Browser confirmed both row groups, clear single save action, and 390px fit for the save button and results group; viewport restored. Screenshot: /tmp/calculator-inputs-first.png. No calculation formulas or user inputs changed.
