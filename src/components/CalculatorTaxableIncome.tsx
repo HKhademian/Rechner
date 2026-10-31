@@ -7,7 +7,9 @@ import {
 } from "#store/calculatorStore";
 
 /** Salary-calculator evidence uses its own payment schedule, independently of simulator inputs. */
-export default function CalculatorTaxableIncome({ data }: { data: HouseholdScenarioData }): JSX.Element {
+export default function CalculatorTaxableIncome({ data, id = "annual-taxable-income", editable = true }: { data: HouseholdScenarioData;
+  id?: string;
+  editable?: boolean }): JSX.Element {
   const annual = data.annualTaxableIncome;
   const people = [
     { label: "You",
@@ -17,13 +19,13 @@ export default function CalculatorTaxableIncome({ data }: { data: HouseholdScena
   ];
 
   return (
-    <section id="annual-taxable-income" className="annual-income glass-panel" aria-labelledby="calculator-income-heading">
+    <section id={id} className="annual-income glass-panel" aria-labelledby={`${id}-heading`}>
       <div className="annual-income__header">
         <div>
-          <h2 id="calculator-income-heading">Annual taxable income</h2>
+          <h2 id={`${id}-heading`}>Annual taxable income</h2>
           <p>{data.partner ? "Your income, your partner's income, their sum and joint deductions." : "Your employment income and individual annual deductions."}</p>
         </div>
-        <p>Tax year {annual.rules.calendarYear}{" · "}<a href="#payrollYear">Edit payroll rules</a></p>
+        <p>Tax year {annual.rules.calendarYear}{editable && <>{" · "}<a href="#payrollYear">Edit payroll rules</a></>}</p>
       </div>
       <p className="annual-income__caption">Based on the annual salary schedule you configured, including active working months and bonus payments. These are annual amounts, even when salary inputs are monthly.</p>
       <AnnualIncomeBreakdown people={people} base={annual.taxBase} profile={annual.rules} />

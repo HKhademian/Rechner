@@ -2,27 +2,17 @@ import type {
   JSX,
 } from "preact";
 import {
-  useState,
-  useEffect,
-} from "preact/hooks";
-import {
   useSignal,
 } from "@preact/signals";
 import {
+  type HouseholdScenarioData,
   type PersonDeductions,
   deductions,
-  hasPartner,
 } from "#store/calculatorStore";
 
-export default function ResultsDisplay(): JSX.Element {
-  const [mounted, setMounted] = useState<boolean>(false);
-  useEffect(() => setMounted(true), []);
-
+/** Each rendered breakdown owns its period toggle and receives its column's calculation. */
+export default function ResultsDisplay({ data = deductions.value }: { data?: HouseholdScenarioData }): JSX.Element {
   const displayMode = useSignal<"monthly" | "yearly">("monthly");
-
-  if (!mounted) {
-    return <div class="glass-panel fade-in">Loading results...</div>;
-  }
 
   const format = (num: number): string => {
     return new Intl.NumberFormat("de-DE", {
@@ -31,7 +21,7 @@ export default function ResultsDisplay(): JSX.Element {
     }).format(num);
   };
 
-  const d = deductions.value;
+  const d = data;
   const isMonthly = displayMode.value === "monthly";
 
   // Percentage of gross
@@ -299,7 +289,7 @@ export default function ResultsDisplay(): JSX.Element {
         flexDirection: "column",
         gap: "10px" }}>
         {renderPerson("Person 1", d.person1)}
-        {hasPartner.value &&
+        {Boolean(d.partner) &&
           renderPerson(
             "Spouse / Partner (*Ehegatte*)",
             d.partner,
@@ -316,7 +306,7 @@ export default function ResultsDisplay(): JSX.Element {
         }}
       >
         <span>
-          {hasPartner.value ? "Household Net Pay" : "Total Net Income"}
+          {d.partner ? "Household Net Pay" : "Total Net Income"}
           <div
             style={{
               fontSize: "0.8rem",
@@ -332,7 +322,7 @@ export default function ResultsDisplay(): JSX.Element {
           {isMonthly
             ? format(
               d.person1.netIncome / Math.max(1, d.person1.salariesReceived) +
-                  (hasPartner.value && d.partner
+                  (Boolean(d.partner) && d.partner
                     ? d.partner.netIncome / Math.max(1, d.partner.salariesReceived)
                     : 0),
             )
