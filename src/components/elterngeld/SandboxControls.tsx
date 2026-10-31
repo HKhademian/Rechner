@@ -1,4 +1,5 @@
 import "./SandboxControls.css";
+import SalaryChangeEditor from "./SalaryChangeEditor";
 import HouseholdIncomeInputs from "#components/HouseholdIncomeInputs";
 import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
 import type {
@@ -71,7 +72,6 @@ import {
   removeTaxClassSwitchAction,
   removeAllTaxClassSwitchActions,
   addSalaryRaiseAction,
-  removeSalaryRaiseAction,
   addWorkingHoursChangeAction,
   updateWorkingHoursChangeAction,
   removeWorkingHoursChangeAction,
@@ -2364,25 +2364,17 @@ export default function SandboxControls(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => {
-                      const count = customSalaryRaises.value.length;
-                      const newSimMonth = (count + 2) * 12 + 1;
-                      const totalElapsed =
-                        startCalendarMonth.value - 1 + (newSimMonth - 1);
-                      const sMonth = toCalendarMonth((totalElapsed % 12) + 1);
-                      const sYear =
-                        startCalendarYear.value + Math.floor(totalElapsed / 12);
-
+                      const raiseId = toRaiseId(`RAISE-CUSTOM-${crypto.randomUUID()}`);
                       addSalaryRaiseAction({
-                        raiseId: toRaiseId(`RAISE-CUSTOM-${count + 1}`),
-                        effectiveSimulationMonth: toSimulationMonth(
-                          Math.min(simulationDurationMonths.value, newSimMonth),
-                        ),
-                        effectiveCalendarMonth: sMonth,
-                        effectiveCalendarYear: toFullCalendarYear(sYear),
-                        targetPerson: TargetPerson.Both,
-                        percentageIncrease: toPercentageRate(0.05),
-                        reason: "Merit Promotion / Tariff Adjustment (+5%)",
+                        raiseId,
+                        effectiveSimulationMonth: toSimulationMonth(1),
+                        effectiveCalendarMonth: startCalendarMonth.value,
+                        effectiveCalendarYear: startCalendarYear.value,
+                        targetPerson: TargetPerson.Husband,
+                        percentageIncrease: toPercentageRate(0),
+                        reason: "",
                       });
+                      requestAnimationFrame(() => document.getElementById(`salary-change-${raiseId}-method`)?.focus());
                     }}
                     style={{
                       padding: "5px 12px",
@@ -2399,7 +2391,7 @@ export default function SandboxControls(): JSX.Element {
                     }}
                   >
                     <AddActionIcon size={12} />
-                    <span>+ Add Career Raise / Promotion</span>
+                    <span>+ Add Salary Change / Promotion</span>
                   </button>
                 </div>
               </div>
@@ -4091,96 +4083,10 @@ export default function SandboxControls(): JSX.Element {
                   );
                 })}
 
-                {/* ENTRY 5: Career Raises & Promotions Cards */}
-                {customSalaryRaises.value.map((sr, idx) => {
-                  const sMonth = sr.effectiveSimulationMonth;
-
-                  return (
-                    <div
-                      key={sr.raiseId || `raise-${idx}`}
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "6px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: "0.78rem",
-                              fontWeight: 800,
-                              color: "var(--color-warning)",
-                            }}
-                          >
-                            Raise #{idx + 1}: {sr.targetPerson.toUpperCase()} (+
-                            {((sr.percentageIncrease || 0) * 100).toFixed(0)}%)
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeSalaryRaiseAction(sr.raiseId)}
-                            style={{
-                              background: "var(--color-loss-bg)",
-                              color: "var(--color-loss)",
-                              border: "1px solid var(--color-loss-border)",
-                              borderRadius: "3px",
-                              padding: "2px 6px",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <RemoveItemIcon size={11} />
-                          </button>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "0.72rem",
-                            color: "var(--text-secondary)",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          <span>
-                            Effective:{" "}
-                            <strong style={{ color: "var(--color-warning)" }}>
-                              {getMonthSimRef(sMonth)} · {getCalDate(sMonth)}
-                            </strong>{" "}
-                            ({getRelativeMonthLabel(sMonth)}) ·{" "}
-                            {getMonthId(sMonth)}
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
-                          background: "var(--bg-surface)",
-                          padding: "4px 6px",
-                          borderRadius: "3px",
-                          marginTop: "6px",
-                        }}
-                      >
-                        ↳ {sr.reason}
-                      </div>
-                    </div>
-                  );
-                })}
+                {/* ENTRY 5: Editable salary changes */}
+                {customSalaryRaises.value.map((action, index) => (
+                  <SalaryChangeEditor key={action.raiseId} action={action} index={index} />
+                ))}
               </div>
             </div>
 
