@@ -1,3 +1,7 @@
+import {
+  useEffect,
+  useState,
+} from "preact/hooks";
 import type {
   JSX, 
 } from "preact";
@@ -15,7 +19,10 @@ import {
 } from "#components/Icons";
 
 export default function ThemeToggle(): JSX.Element {
-  const currentMode = activeThemeMode.value;
+  // Match server markup first, then show this app's saved preference after hydration.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const currentMode = hydrated ? activeThemeMode.value : ThemeMode.Light;
 
   return (
     <div
