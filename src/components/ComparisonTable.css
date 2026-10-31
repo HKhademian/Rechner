@@ -157,3 +157,30 @@
   border-block: 2px solid var(--border-subtle);
   font-size: 1rem;
 }
+
+.comparison-save-scenario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid var(--color-gain-border);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--color-gain);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.comparison-save-scenario:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.comparison-save-scenario:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

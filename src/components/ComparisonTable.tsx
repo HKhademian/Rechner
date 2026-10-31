@@ -68,7 +68,6 @@ import {
   cancelEdit,
 } from "#store/calculatorStore";
 import {
-  AddActionIcon,
   ExportDataIcon,
   RemoveItemIcon,
   SaveConfigurationIcon,
@@ -709,11 +708,6 @@ export function ComparisonTableContent(): JSX.Element {
         <p>Deleted “{pendingScenarioDeletion.value.scenario.title}”.</p>
         <button onClick={undoScenarioDeletion}>Undo deletion</button>
       </div>}
-      {savedScenarios.value.length === 0 && <div className="comparison-empty">
-        <p>No saved scenarios yet. Edit your live inputs, then save a snapshot to compare.</p>
-        <button onClick={handleAddScenario} disabled={hasInvalidLive}>Save first scenario</button>
-      </div>}
-
       <div className="comparison-scroll" style={{ overflowX: "auto",
         paddingBottom: "10px" }}>
         <table id="household-comparison-table" className="comparison-matrix" aria-label="Live and saved household calculations"
@@ -794,24 +788,11 @@ export function ComparisonTableContent(): JSX.Element {
                     <button
                       onClick={handleAddScenario}
                       disabled={hasInvalidLive}
-                      aria-label="Save as New Scenario"
-                      style={{
-                        background: "transparent",
-                        color: "var(--color-gain)",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: "4px",
-                        borderRadius: "4px",
-                        flexShrink: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        opacity: 0.8,
-                        transition: "opacity 0.2s",
-                      }}
-                      title={hasInvalidLive ? "Complete or correct live inputs before saving" : "Save as New Scenario"}
+                      aria-label="Save scenario"
+                      className="comparison-save-scenario"
+                      title={hasInvalidLive ? "Complete or correct live inputs before saving" : "Save a new scenario from these live inputs"}
                     >
-                      <AddActionIcon />
+                      <SaveConfigurationIcon /> Save scenario
                     </button>
                   </div>
                 </div>
