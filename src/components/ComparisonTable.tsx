@@ -4,8 +4,11 @@ import {
 } from "#components/CalculatorColumnTools";
 import "./ComparisonTable.css";
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
-import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
-import ResultsDisplay from "#components/ResultsDisplay";
+import {
+  TaxableIncomeSummary,
+  CalculationSummary,
+  PayrollEvidenceSummary,
+} from "#components/CalculatorResultSummaries";
 import GrossPeriodPreview from "#components/GrossPeriodPreview";
 import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
@@ -124,19 +127,19 @@ export function ComparisonTableContent(): JSX.Element {
 
   const isMonthly = displayMode.value === "monthly";
   // Read saved inputs afresh; an open draft owns only its own column's results.
-  const renderDetailRow = (label: string, render: (data: HouseholdScenarioData, id: string, live: boolean) => JSX.Element): JSX.Element => (
+  const renderDetailRow = (label: string, render: (data: HouseholdScenarioData, id: string, live: boolean, context: string) => JSX.Element): JSX.Element => (
     <tr className="comparison-detail-row">
       <th scope="row">{label}</th>
       <td key={`live-details-${liveImportRevision.value}`} className="comparison-detail-cell" aria-label={`Live calculation: ${label}`}>
         {hasInvalidLive && <p role="status">Results use the last valid inputs.</p>}
-        {render(deductions.value, "live", true)}
+        {render(deductions.value, "live", true, "Live Calculation")}
       </td>
       {savedScenarios.value.map((scenario) => {
         const data = activeScenarioId.value === scenario.id && scenarioDraft.value
           ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs);
         return <td key={scenario.id} className="comparison-detail-cell" aria-label={`${scenario.title}: ${label}`}>
           {hasInvalidSaved(scenario.id) && <p role="status">Results use the last valid draft inputs.</p>}
-          {render(data, `scenario-${scenario.id}`, false)}
+          {render(data, `scenario-${scenario.id}`, false, `${scenario.title}${activeScenarioId.value === scenario.id ? " (draft)" : ""}`)}
         </td>;
       })}
     </tr>
@@ -1410,22 +1413,9 @@ export function ComparisonTableContent(): JSX.Element {
 
               </>
             )}
-            {renderDetailRow("Annual taxable income", (data, id, live) => (
-              <details><summary>View annual taxable income</summary>
-                <CalculatorTaxableIncome data={data} id={`${id}-annual-taxable-income`} editable={live} />
-              </details>
-            ))}
-            {renderDetailRow("Calculation Breakdown", (data) => (
-              <details><summary>View calculation breakdown</summary><ResultsDisplay data={data} /></details>
-            ))}
-            {renderDetailRow("Payroll assumptions and official sources", (data) => (
-              <details><summary>View payroll assumptions and sources</summary>
-                <h3>You</h3>
-                <ul>{data.person1.assumptions.map((note) => <li key={note}>{note}</li>)}</ul>
-                {data.partner && <><h3>Partner</h3><ul>{data.partner.assumptions.map((note) => <li key={note}>{note}</li>)}</ul></>}
-                <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">Official {data.annualTaxableIncome.rules.calendarYear} payroll profile</a>
-              </details>
-            ))}
+            {renderDetailRow("Annual taxable income", (data, id, _live, context) => <TaxableIncomeSummary data={data} id={id} context={context} />)}
+            {renderDetailRow("Calculation Breakdown", (data, id, _live, context) => <CalculationSummary data={data} id={id} context={context} />)}
+            {renderDetailRow("Payroll assumptions and official sources", (data, id, _live, context) => <PayrollEvidenceSummary data={data} id={id} context={context} />)}
           </tbody>
         </table>
       </div>

@@ -33,9 +33,9 @@ export default function CalculatorResultDetails({ id, title, context, summary, c
   return <div className="calculator-result-summary">
     {summary}
     <button ref={trigger} type="button" className="calculator-result-details-button" aria-haspopup="dialog" aria-label={`${context}: ${title} details`} onClick={() => setOpen(true)}>View details</button>
-    {open && createPortal(<dialog ref={dialog} className="calculator-result-dialog" aria-labelledby={`${id}-title`} onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
+    {open && createPortal(<dialog ref={dialog} className="calculator-result-dialog" aria-labelledby={`${id}-context ${id}-title`} onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
       <div className="calculator-result-dialog__header">
-        <div><p>{context}</p><h2 id={`${id}-title`}>{title}</h2></div>
+        <div><p id={`${id}-context`}>{context}</p><h2 id={`${id}-title`}>{title}</h2></div>
         <button type="button" autoFocus className="calculator-result-details-button" aria-label={`Close ${title} details`} onClick={() => setOpen(false)}>Close</button>
       </div>
       <div className="calculator-result-dialog__body">{children}</div>

@@ -18,6 +18,7 @@
 
 .calculator-result-summary dd {
   margin: 0;
+  margin-inline-start: auto;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -91,4 +92,27 @@
   margin: 0;
   padding: 16px;
   box-shadow: none;
+}
+
+.calculator-result-dialog__body > .glass-panel > div:first-child {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calculator-result-dialog .deduction-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-block: 8px;
+}
+
+.calculator-result-dialog .amount {
+  margin-inline-start: auto;
+  white-space: nowrap;
+}
+
+.calculator-result-dialog h3 {
+  flex-wrap: wrap;
+  gap: 6px;
 }
