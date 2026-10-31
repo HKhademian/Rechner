@@ -1,21 +1,30 @@
-# German Net Salary Calculator & Elterngeld 5-Year Financial Simulator
+# Rechner — Calculator Marketplace
 
-A client-side German payroll calculator and multi-year parental-leave planning simulator. It separates payroll, standardized benefit net, annual tax assessment and cash received, with source-linked configuration and visible calculation limits.
+A calculator marketplace with independent German payroll and multi-year parental-leave planning workspaces. It separates payroll, standardized benefit net, annual tax assessment and cash received, with source-linked configuration and visible calculation limits.
 
 ---
 
 ## 📌 Feature Overview
 
-The application is structured into two core modules:
+The home catalog lists the available calculators. Each has a dedicated route, client entry, financial state and local storage namespace. Existing saved inputs migrate without deleting legacy data.
 
-### 1. German Net Salary Calculator (`/`)
+### Home catalog (`/`)
+
+- Search by name or German/English keywords and filter by category. Filters are bookmarkable and support browser history.
+- Pagination appears when the catalog exceeds the configured page size.
+- Metadata-only registration prepares additional calculators without initializing their financial stores on the home page.
+- See the [calculator app contract](.agents/docs/CALCULATOR_APPS.md) for adding another independent tool.
+
+### 1. German Net Salary Calculator (`/calculators/net-pay/`)
 
 - Verified 2025/2026 payroll profiles use the pinned offline BMF PAP. Select a published year and edit personal insurer, state, age, qualifying children, church-tax and factor inputs.
 - Ordinary employee contributions use the selected year's rates and ceilings, including supported monthly Midijob calculations. Unsupported regimes carry explicit limitations.
 - Monthly input means regular monthly pay; calculator yearly input means the actual annual total including contractual extras. Working months and extras are handled explicitly.
 - Saved inputs are recalculated through the shared payroll engine. Arbitrary hypothetical tax tariffs are outside the product scope.
 
-### 2. Elterngeld & Parental Leave Simulator (`/elterngeld`)
+### 2. Elterngeld & Parental Leave Simulator (`/calculators/parental-leave/`)
+
+Existing `/elterngeld` bookmarks redirect to this route.
 
 - A configurable monthly cash horizon processes pregnancies, tax switches/reversions, raises, working-hour changes, bonuses and scoped financial events.
 - Each parent/birth gets an actual eligible assessment history and a frozen standardized BEEG net. Plus uses the personal no-income ceiling, household sibling eligibility, claim budgets, eligible hours and overlap credits.
@@ -53,6 +62,10 @@ See [statutory configuration and supported limits](.agents/docs/STATUTORY_CONFIG
 │   │   └── TIMELINE_SIMULATION_MODEL.md
 │   └── rules/                     # Version control, atomic commit, and behavioral rules
 ├── src/
+│   ├── apps/                      # Independent app manifests and page entries
+│   │   ├── registry.ts            # Metadata-only catalog and pagination model
+│   │   ├── net-pay/               # Net pay entry and manifest
+│   │   └── parental-leave/        # Parental leave entry and manifest
 │   ├── engine/                    # Pure TypeScript statutory calculation engine
 │   │   ├── types.ts               # Nominal branded types & validation guards
 │   │   ├── tax/
@@ -78,16 +91,20 @@ See [statutory configuration and supported limits](.agents/docs/STATUTORY_CONFIG
 │   │   │   ├── SandboxControls.tsx       # Parameter sliders, presets & bonus controls
 │   │   │   ├── RulesExplainer.tsx        # Statutory references & legal precedents
 │   │   │   └── TimelineTable.tsx         # 60-month tabular ledger with event rows & CSV export
+│   │   ├── CalculatorCatalog.tsx         # Searchable home marketplace
 │   │   ├── Calculator.tsx                # Main container for net pay calculator
 │   │   ├── ComparisonTable.tsx           # Scenario comparison matrix
 │   │   ├── Icons.tsx                     # Minimalist icon components
-│   │   ├── InputForm.tsx                 # Salary and household inputs
+│   │   ├── LiveCalculatorInputs.tsx      # Editable salary and household controls
 │   │   ├── Navigation.tsx                # Global application header and navigation
 │   │   ├── ResultsDisplay.tsx            # Wage deductions & social security breakdown
 │   │   └── TaxSettings.tsx               # Statutory rates and contribution ceiling settings
 │   ├── pages/
-│   │   ├── index.astro                   # Route: / (Net Pay Calculator)
-│   │   └── elterngeld.astro              # Route: /elterngeld (Elterngeld Simulation)
+│   │   ├── index.astro                   # Route: / (calculator marketplace)
+│   │   ├── calculators/                  # Dedicated calculator routes
+│   │   │   ├── net-pay.astro
+│   │   │   └── parental-leave.astro
+│   │   └── elterngeld.astro              # Compatibility redirect
 │   ├── store/
 │   │   ├── calculatorStore.ts            # Reactive state for salary calculations
 │   │   ├── elterngeldStore.ts            # Signal store bridging to TypeScript engine
@@ -132,7 +149,7 @@ See [statutory configuration and supported limits](.agents/docs/STATUTORY_CONFIG
 npm install
 npm run dev
 ```
-Open [http://localhost:4321](http://localhost:4321) in your browser.
+Open [http://localhost:4321](http://localhost:4321) in your browser to browse the calculator marketplace.
 
 ### Run Comprehensive Tests (1,116+ Tests)
 ```bash

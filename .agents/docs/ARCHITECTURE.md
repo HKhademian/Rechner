@@ -2,18 +2,18 @@
 
 ## 1. System Architecture Overview
 
-The application is structured as a high-performance, reactive, static-first web application powered by **Astro 7** and **Preact**. All financial calculations, state management, tax modeling, and chart renderings run **100% client-side** in the browser with zero external network overhead and complete data privacy.
-
+Astro builds separate calculator pages with Preact client entry points. Financial input state belongs to each calculator app; the home marketplace imports metadata only. Browser-side calculations reuse the TypeScript engine. See [Calculator Apps](CALCULATOR_APPS.md) for route registration, storage ownership and migration.
 ```mermaid
 graph TD
-    A[Astro Router] --> B["Page: / (Nettolohnrechner)"]
-    A --> C["Page: /elterngeld (5-Jahres-Simulation)"]
+    A[Astro Router] --> HOME["Page: / (Calculator marketplace)"]
+    HOME --> REG[App registry metadata]
+    A --> B["Page: /calculators/net-pay/"]
+    A --> C["Page: /calculators/parental-leave/"]
     
     B --> N1[Navigation]
     B --> CALC[Calculator Container]
-    CALC --> IF[InputForm]
-    CALC --> RD[ResultsDisplay]
     CALC --> CT[ComparisonTable]
+    CT --> RD[Compact summaries and full detail dialogs]
     
     C --> N2[Navigation]
     C --> ED[ElterngeldDashboard]
@@ -24,8 +24,7 @@ graph TD
     ED --> RE[RulesExplainer]
     ED --> TT[TimelineTable]
     
-    IF -.-> CS[(calculatorStore)]
-    RD -.-> CS
+    RD -.-> CS[(calculatorStore)]
     CT -.-> CS
     
     KS -.-> ES[(elterngeldStore)]
@@ -88,11 +87,11 @@ State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-
 1. **`src/store/calculatorStore.ts`**:
    - Manages gross income, tax brackets (I to VI), church tax flags, federal states (*Bundesländer*), number of children, and partner income parameters.
    - Computes German tax progression (§ 32a EStG), social security deduction caps, health care Zusatzbeitrag, care insurance child allowances, and solidarity surcharge.
-   - Handles multi-scenario persistence via local storage.
+   - Handles multi-scenario persistence under `rechner:net-pay:v1:*`.
 
 2. **`src/store/elterngeldStore.ts`**:
    - Manages household financial parameters (Husband Class III / Class V Net; Wife Full-time Class V / III Net; Wife Part-time Class V / III Net; Kindergeld).
-   - Persists timeline/actions, validated personal payroll inputs, optional yearly household taxable income and the explicit manual-net assessment assumption.
+   - Persists timeline/actions, validated personal payroll inputs, optional yearly household taxable income and the explicit manual-net assessment assumption under `rechner:parental-leave:v1:state`.
    - Reactive computation functions invoking `timelineGenerator.ts`:
      - `computeTimelineData('A')`: Baseline employment under the supplied hours, raises and financial actions.
      - `computeTimelineData('B')`: Baseline scenario retaining the initial supplied tax classes.
@@ -107,9 +106,10 @@ State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-
 ## 3. UI Component Breakdown
 
 ### Navigation & Shell
-- **`Navigation.tsx`**: Global sticky header providing route links between `/` and `/elterngeld`, active tab highlighting, brand identity, and statutory status indicator.
+- **`Navigation.tsx`**: Shared sticky header linking to the catalog and current calculator, with keyboard skip navigation and app-scoped appearance controls.
+- **`CalculatorCatalog.tsx`**: Home search/category filters, bookmarkable pagination state and registered calculator cards. It does not load financial stores.
 
-### Elterngeld Multi-Year Studio (`/elterngeld`)
+### Elterngeld Multi-Year Studio (`/calculators/parental-leave/`)
 - **`ElterngeldDashboard.tsx`**: Master layout coordinator.
 - **`KpiScorecard.tsx`**: Displays 4 metric cards with salaries, benefits, signed scenario differences and separate annual-tax availability/timing details.
 - **`ScenarioSelector.tsx`**: Grid selector enabling instant switching between Scenario A, B, C, and the multi-scenario comparison overlay.
