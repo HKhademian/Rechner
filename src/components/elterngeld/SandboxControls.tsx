@@ -334,7 +334,7 @@ export default function SandboxControls(): JSX.Element {
                   fontWeight: 600,
                 }}
               >
-                Scenario Presets:
+                Example plans:
               </span>
               {BUILTIN_SCENARIO_CATALOG.map((preset) => (
                 <button
@@ -362,7 +362,7 @@ export default function SandboxControls(): JSX.Element {
                   }}
                   title={preset.description}
                 >
-                  {preset.name}
+                  {preset.id === "empty" ? "Empty plan" : preset.name}
                 </button>
               ))}
             </div>
