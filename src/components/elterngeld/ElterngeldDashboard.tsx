@@ -47,7 +47,7 @@ export default function ElterngeldDashboard(): JSX.Element {
           <div className="simulator-header__intro">
             <p className="simulator-header__eyebrow">Household planning · BEEG / MuSchG / EStG</p>
             <h1>Parental leave planner</h1>
-            <p className="simulator-header__description">Explore how your leave, working hours and tax choices affect household cash flow.</p>
+            <p className="simulator-header__description">Start with your household and planned leave below, then compare the calculated results.</p>
           </div>
           <dl className="simulator-header__period" aria-label="Planning period">
             <div>
@@ -61,16 +61,15 @@ export default function ElterngeldDashboard(): JSX.Element {
           </dl>
         </header>
 
-        {/* Select the scenario before reviewing its results. */}
+        {/* Set up the plan before choosing which calculated results to review. */}
+        <SandboxControls />
+
         <ScenarioSelector />
 
         {/* Dynamic KPI Scorecard */}
         <KpiScorecard />
 
         <AnnualTaxableIncome result={currentScenarioData.value} />
-
-        {/* The Sandbox: Interactive Input Parameters & Sliders */}
-        <SandboxControls />
 
         {/* Full 60-Month Cash Flow Table & Audit */}
         <TimelineTable />
