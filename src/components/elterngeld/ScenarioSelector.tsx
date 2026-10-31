@@ -1,3 +1,6 @@
+import {
+  plannerCalculationLabels,
+} from "#utils/plannerCalculationLabels";
 import "./ScenarioSelector.css";
 import type {
   JSX, 
@@ -11,6 +14,7 @@ import {
 } from "#store/elterngeldStore";
 import {
   type SimulationResult,
+  ScenarioId,
   ActiveScenarioView, 
 } from "#engine/types";
 import {
@@ -31,7 +35,7 @@ function formatCurrency(amount: number): string {
 interface ScenarioCardItem {
   /** Target active scenario view selection. */
   scenarioViewId: ActiveScenarioView;
-  /** Scenario card header title (e.g. 'Scenario C'). */
+  /** Plain-language calculation title. */
   title: string;
   /** Scenario identifier or comparison mode. */
   badge: string;
@@ -59,31 +63,31 @@ export default function ScenarioSelector(): JSX.Element {
   const scenarios: ScenarioCardItem[] = [
     {
       scenarioViewId: ActiveScenarioView.StatutoryOptimized,
-      title: "Apply tax switches",
-      badge: "Scenario C",
+      title: plannerCalculationLabels[ScenarioId.C],
+      badge: "Your plan",
       description: "Use your planned tax-class switches alongside births, leave and working-hour changes.",
       highlights: resultHighlights(scenarioCData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.UnoptimizedBaseline,
-      title: "Keep tax classes",
-      badge: "Scenario B",
+      title: plannerCalculationLabels[ScenarioId.B],
+      badge: "Your plan",
       description: "Keep the initial tax classes with the same planned births, leave and working-hour changes.",
       highlights: resultHighlights(scenarioBData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.StatusQuo,
-      title: "Without planned births",
-      badge: "Scenario A",
+      title: plannerCalculationLabels[ScenarioId.A],
+      badge: "Reference",
       description: "Exclude planned births and tax switches; retain existing children, hours, raises and financial events.",
       highlights: resultHighlights(scenarioAData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.Compare,
-      title: "Compare scenarios",
-      badge: "A / B / C",
-      description: "Compare monthly cash flow and cumulative totals across all three scenarios.",
-      highlights: ["Chart and timeline comparison", "Summary figures use Scenario C"],
+      title: "Compare all three",
+      badge: "Comparison",
+      description: "Compare monthly cash flow and cumulative totals across all three calculations.",
+      highlights: ["Chart and timeline comparison", "Summary figures use your planned tax-class changes"],
     },
   ];
 
@@ -91,8 +95,8 @@ export default function ScenarioSelector(): JSX.Element {
     <section className="scenario-selector" aria-labelledby="scenario-heading">
       <div className="scenario-selector__header">
         <div>
-          <h2 id="scenario-heading">Choose a scenario</h2>
-          <p>Update the summary, timeline and chart below.</p>
+          <h2 id="scenario-heading">Compare versions of your plan</h2>
+          <p>These are different calculations using your inputs above. Choose which results to view; your inputs stay the same.</p>
         </div>
         <button
           type="button"

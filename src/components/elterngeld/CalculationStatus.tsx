@@ -1,3 +1,6 @@
+import {
+  plannerCalculationLabels,
+} from "#utils/plannerCalculationLabels";
 import "./CalculationStatus.css";
 import {
   type JSX,
@@ -5,7 +8,6 @@ import {
 import {
   type EuroAmount,
   type SimulationResult,
-  ScenarioId,
 } from "#engine/types";
 
 function formatTaxCurrency(amount: EuroAmount): string {
@@ -16,11 +18,7 @@ function formatTaxCurrency(amount: EuroAmount): string {
   }).format(amount);
 }
 
-const scenarioLabels: Record<ScenarioId, string> = {
-  [ScenarioId.A]: "A",
-  [ScenarioId.B]: "B",
-  [ScenarioId.C]: "C",
-};
+
 
 /** Keep availability visible while leaving supporting audit detail on demand. */
 export default function CalculationStatus({ result }: { result: SimulationResult }): JSX.Element {
@@ -33,7 +31,7 @@ export default function CalculationStatus({ result }: { result: SimulationResult
     <section className="calculation-status glass-panel" aria-labelledby="calculation-status-heading">
       <div className="calculation-status__heading">
         <h2 id="calculation-status-heading">Calculation status</h2>
-        <span>Summary · Scenario {scenarioLabels[result.scenarioKey]}</span>
+        <span>Summary · {plannerCalculationLabels[result.scenarioKey]}</span>
       </div>
       <dl className="calculation-status__overview">
         <div>

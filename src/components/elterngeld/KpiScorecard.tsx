@@ -272,7 +272,7 @@ export default function KpiScorecard(): JSX.Element {
         </div>
       </div>
 
-      {/* KPI Card 4: Scenario C Cash-Flow Differential */}
+      {/* Compare the same birth and leave plan with changed versus original tax classes. */}
       <div
         className="glass-panel"
         style={{
@@ -300,8 +300,9 @@ export default function KpiScorecard(): JSX.Element {
                 letterSpacing: "0.05em",
               }}
             >
-              Cash-Flow Difference (C vs B)
+              Effect of your tax-class changes
             </div>
+            <p>Compared with keeping your original tax classes for the same plan.</p>
             <div
               style={{
                 fontSize: "1.9rem",

@@ -1,3 +1,6 @@
+import {
+  plannerCalculationLabels,
+} from "#utils/plannerCalculationLabels";
 import AnnualIncomeBreakdown from "#components/AnnualIncomeBreakdown";
 import {
   type JSX,
@@ -8,15 +11,10 @@ import {
 import {
   type FullCalendarYear,
   type SimulationResult,
-  ScenarioId,
   toFullCalendarYear,
 } from "#engine/types";
 
-const scenarioLabels: Record<ScenarioId, string> = {
-  [ScenarioId.A]: "A",
-  [ScenarioId.B]: "B",
-  [ScenarioId.C]: "C",
-};
+
 
 /** Partner contributions reconcile to the joint record without allocating shared deductions. */
 export default function AnnualTaxableIncome({ result }: { result: SimulationResult }): JSX.Element {
@@ -32,7 +30,7 @@ export default function AnnualTaxableIncome({ result }: { result: SimulationResu
       <div className="annual-income__header">
         <div>
           <h2 id="annual-income-heading">Annual taxable income</h2>
-          <p>Scenario {scenarioLabels[result.scenarioKey]} · Each partner's employment income, its sum and the joint deductions.</p>
+          <p>{plannerCalculationLabels[result.scenarioKey]} · Each partner's employment income, its sum and the joint deductions.</p>
         </div>
         <div className="annual-income__year">
           <label for="annual-income-year">Tax year</label>
