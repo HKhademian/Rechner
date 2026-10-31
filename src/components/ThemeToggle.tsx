@@ -32,6 +32,7 @@ export default function ThemeToggle(): JSX.Element {
       <button
         type="button"
         onClick={() => setThemeMode(ThemeMode.Light)}
+        aria-pressed={currentMode === ThemeMode.Light}
         title="Institutional Light Theme (Default)"
         style={{
           display: "flex",
@@ -64,6 +65,7 @@ export default function ThemeToggle(): JSX.Element {
       <button
         type="button"
         onClick={() => setThemeMode(ThemeMode.Dark)}
+        aria-pressed={currentMode === ThemeMode.Dark}
         title="Dark Theme"
         style={{
           display: "flex",
@@ -96,6 +98,7 @@ export default function ThemeToggle(): JSX.Element {
       <button
         type="button"
         onClick={() => setThemeMode(ThemeMode.System)}
+        aria-pressed={currentMode === ThemeMode.System}
         title="Follow System OS Preference"
         style={{
           display: "flex",

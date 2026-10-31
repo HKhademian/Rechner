@@ -1,18 +1,8 @@
 ---
-import ElterngeldDashboard from "#components/elterngeld/ElterngeldDashboard";
-import "#styles/global.css";
+import {
+  AppId,
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
+// Preserve existing bookmarks while the calculator owns its canonical app route.
+return Astro.redirect(calculatorPath(AppId.ParentalLeave), 301);
 ---
-
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Parental Leave Planner | German Household Cash Flow</title>
-		<meta name="description" content="Compare German household cash flow across parental leave, working hours and tax-class scenarios over your chosen planning period." />
-	</head>
-	<body>
-		<ElterngeldDashboard client:load />
-	</body>
-</html>

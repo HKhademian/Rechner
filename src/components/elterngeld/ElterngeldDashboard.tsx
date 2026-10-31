@@ -1,3 +1,7 @@
+import {
+  AppId,
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import "./ElterngeldDashboard.css";
 import {
   currentScenarioData,
@@ -31,10 +35,10 @@ export default function ElterngeldDashboard(): JSX.Element {
       }}
     >
       {/* Global Top Navigation */}
-      <Navigation currentPath="/elterngeld" />
+      <Navigation currentPath={calculatorPath(AppId.ParentalLeave)} />
 
       {/* Main Content Area */}
-      <main
+      <main id="main-content"
         style={{
           flex: 1,
           maxWidth: "1400px",

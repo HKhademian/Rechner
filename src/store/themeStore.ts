@@ -1,4 +1,13 @@
 import {
+  AppId,
+} from "#/apps/appDefinition.ts";
+import {
+  calculatorAtPath,
+} from "#/apps/registry.ts";
+import {
+  browserAppStorage,
+} from "#engine/storage/appStorage";
+import {
   signal,
   effect,
 } from "@preact/signals";
@@ -7,7 +16,8 @@ import {
   toThemeMode,
 } from "#engine/types";
 
-const THEME_STORAGE_KEY = "german_calc_theme_mode";
+const scope = typeof window === "undefined" ? AppId.Catalog : calculatorAtPath(window.location.pathname)?.id ?? AppId.Catalog;
+const appearanceStorage = browserAppStorage(scope);
 
 /**
  * Initializes the default theme mode from storage or defaults to institutional Light
@@ -17,7 +27,7 @@ function getInitialThemeMode(): ThemeMode {
     return ThemeMode.Light;
   }
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = appearanceStorage.getItem("theme");
     if (stored) {
       return toThemeMode(stored);
     }
@@ -69,7 +79,7 @@ export function setThemeMode(newMode: ThemeMode): void {
   activeThemeMode.value = newMode;
   if (typeof window !== "undefined") {
     try {
-      localStorage.setItem(THEME_STORAGE_KEY, newMode);
+      appearanceStorage.setItem("theme", newMode);
     }
     catch {
       // Ignore storage write exceptions

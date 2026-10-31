@@ -41,3 +41,23 @@ it("parental-leave boot migrates its plan without initializing net-pay storage",
   assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
     stdio: "pipe" }));
 });
+
+it("appearance preferences are scoped to the current app route", () => {
+  for (const app of ["net-pay", "parental-leave", "catalog"]) {
+    const script = `
+      import assert from "node:assert/strict";
+      const values = new Map([["german_calc_theme_mode", "dark"]]);
+      globalThis.window = globalThis;
+      globalThis.location = new URL("http://example.test/${app === "catalog" ? "" : `calculators/${app}/`}");
+      globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+      const theme = await import("#store/themeStore");
+      assert.equal(theme.activeThemeMode.value, "dark");
+      theme.setThemeMode("light");
+      assert.equal(values.get("rechner:${app}:v1:theme"), "light");
+      assert.equal(values.get("german_calc_theme_mode"), "dark");
+      assert.ok([...values.keys()].filter(key => key.startsWith("rechner:")).every(key => key.startsWith("rechner:${app}:")));
+    `;
+    assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
+      stdio: "pipe" }));
+  }
+});
