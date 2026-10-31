@@ -1,6 +1,7 @@
 import {
   plannerCalculationLabels,
 } from "#utils/plannerCalculationLabels";
+import "./AnnualTaxableIncome.css";
 import AnnualIncomeBreakdown from "#components/AnnualIncomeBreakdown";
 import {
   type JSX,
@@ -26,11 +27,15 @@ export default function AnnualTaxableIncome({ result }: { result: SimulationResu
   const profile = record?.assessment?.taxRules ?? result.configuration?.taxProfiles.find((item) => item.calendarYear === record?.calendarYear);
 
   return (
-    <section id="annual-taxable-income" className="annual-income glass-panel" aria-labelledby="annual-income-heading">
+    <details id="annual-taxable-income" className="annual-income glass-panel annual-income--disclosure" aria-labelledby="annual-income-heading">
+      <summary>
+        <h2 id="annual-income-heading">Yearly income and deductions</h2>
+        <span>Optional detail · calculated from your salary inputs</span>
+      </summary>
       <div className="annual-income__header">
         <div>
-          <h2 id="annual-income-heading">Annual taxable income</h2>
           <p>{plannerCalculationLabels[result.scenarioKey]} · Each partner's employment income, its sum and the joint deductions.</p>
+          <p>This yearly result uses your salary inputs and the modeled deductions below. It supports the annual tax estimate; the cash-flow results track money coming in and going out during your plan.</p>
         </div>
         <div className="annual-income__year">
           <label for="annual-income-year">Tax year</label>
@@ -57,6 +62,6 @@ export default function AnnualTaxableIncome({ result }: { result: SimulationResu
         {(record?.assumptions ?? []).map((assumption) => <p key={assumption}>{assumption}</p>)}
         <p><a href="https://www.gesetze-im-internet.de/estg/__2.html" target="_blank" rel="noreferrer">Income and taxable income (§ 2 EStG)</a>{" · "}<a href="https://www.gesetze-im-internet.de/estg/__26b.html" target="_blank" rel="noreferrer">Joint assessment (§ 26b EStG)</a></p>
       </details>
-    </section>
+    </details>
   );
 }
