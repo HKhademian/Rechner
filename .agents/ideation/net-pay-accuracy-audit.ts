@@ -1,3 +1,6 @@
+import {
+  TaxAssessment,
+} from "#engine/tax/taxAssessment";
 /** Read-only reproductions for the accuracy review; findings describe the reviewed revision, not desired behavior. */
 import assert from "node:assert/strict";
 import vectors from "../../test/fixture/payroll2026.json" with { type: "json" };
@@ -39,6 +42,7 @@ const base: CalculatorInputs = {
   state: "Berlin",
   hasChurchTax: false,
   hasPartner: false,
+  assessmentMode: TaxAssessment.Joint,
   children: 0,
   personalPayroll: { ageAtYearStart: toAgeYears(40) },
   partnerPersonalPayroll: { ageAtYearStart: toAgeYears(40) },
@@ -61,7 +65,7 @@ const summarize = (inputs: CalculatorInputs) => {
 console.log(JSON.stringify({
   referenceFixtures: { cases: vectors.length, outputComparisons: comparisons },
   ageRelief: [40, 64, 65].map((age) => ({ age, ...summarize({ ...base, personalPayroll: { ageAtYearStart: toAgeYears(age) } }) })),
-  partnerAssessment: [false, true].map((hasPartner) => ({ hasPartner, ...summarize({ ...base, hasPartner }) })),
+  partnerAssessment: Object.values(TaxAssessment).map((assessmentMode) => ({ assessmentMode, ...summarize({ ...base, hasPartner: true, assessmentMode }) })),
   childAllowances: [0, 1].map((children) => ({ children, ...summarize({
     ...base,
     grossIncome: 12000,

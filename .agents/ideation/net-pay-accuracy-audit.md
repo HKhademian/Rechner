@@ -52,3 +52,13 @@ KfW 300 requires the relevant prior tax assessments; the current one-year salary
 Run `ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node .agents/ideation/net-pay-accuracy-audit.ts`. It checks the pinned BMF fixture outputs and prints the three finding probes without changing live/saved state. Its finding outputs are observations of the reviewed revision, not assertions that the incomplete behavior is correct.
 
 The fresh external verification used four concurrent read-only requests to the existing fixture URLs, parsed every returned output and rejected non-ok input markers. No user financial data was transmitted. The runtime engine remains offline. A class-IV child-factor suspicion was discarded after checking the official ELStAM documentation: its 1.0 marker is correct for a common child because PAP halves the allowance internally for class IV. [ELStAM guide, pages 80–81](https://www.elster.de/elsterweb/attachments/help_arbeitgeber_eop/Informationen_fuer_Arbeitgeber_und_Arbeitnehmer.pdf).
+
+## Mitigations implemented after review
+
+- `ef68e7f`: child-allowance cases now withhold the unsupported annual base and return the section 32 source. Payroll net remains available. This is a completeness guard, not a new child-allowance calculation.
+- `e9af337`: age-relief cases now carry an annual-assessment limitation through employment payroll, without incorrectly marking valid monthly PAP withholding provisional. The incomplete annual figure is withheld.
+- `36c7da2`: explicit typed assessment choice, independent deduction limits/zero floors, persistence and schema-3 transfers. Two-person cases without a choice are unavailable rather than silently joint. Legacy versions 1 and 2 import with an unspecified choice.
+- `7a544ea`: explicit positive ELStAM child-allowance overrides also trigger the annual completeness guard, even with a zero child count. Child-allowance limitation sources now follow the selected profile metadata.
+- `eaaa878`: compact per-column assessment selector, matching result labels, and separate individual detail panels. A standalone person uses individual assessment; partner toggles preserve the stored choice.
+
+Full checks/build passed for each implementation scope. Additional headless checks verified required selection, individual/joint amounts, saved-draft isolation and unavailable relief results. Isolated-origin browser verification covered selection, separate per-person details, child-allowance suppression and restoration to standalone mode. The reproduction script now also prints the three explicit assessment modes; the original finding descriptions above remain a snapshot of the reviewed revision. All 26 pinned BMF withholding fixtures still match after these changes.
