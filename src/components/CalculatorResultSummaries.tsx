@@ -3,7 +3,11 @@ import {
 } from "preact";
 import {
   type HouseholdScenarioData,
+  calculatorViewPeriod,
 } from "#store/calculatorStore";
+import {
+  SalaryPeriod,
+} from "#engine/types";
 import CalculatorResultDetails from "#components/CalculatorResultDetails";
 import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
 import ResultsDisplay from "#components/ResultsDisplay";
@@ -33,10 +37,12 @@ export function TaxableIncomeSummary({ data, id, context }: ResultSummaryProps):
 
 export function CalculationSummary({ data, id, context }: ResultSummaryProps): JSX.Element {
   const household = data.household;
+  const monthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;
+  const divider = monthly ? 12 : 1;
   return <CalculatorResultDetails id={`${id}-breakdown-dialog`} title="Calculation Breakdown" context={context} summary={
     <dl>
-      <div><dt>Annual net pay</dt><dd>{money(household.netIncome)}</dd></div>
-      <div><dt>Annual deductions</dt><dd>{money(household.totalDeductions)}</dd></div>
+      <div><dt>{monthly ? "Monthly avg. net pay" : "Annual net pay"}</dt><dd>{money(household.netIncome / divider)}</dd></div>
+      <div><dt>{monthly ? "Monthly avg. deductions" : "Annual deductions"}</dt><dd>{money(household.totalDeductions / divider)}</dd></div>
       <div><dt>Deductions / gross</dt><dd>{household.grossYearly > 0 ? `${(household.totalDeductions / household.grossYearly * 100).toFixed(1)}%` : "—"}</dd></div>
     </dl>
   }><ResultsDisplay data={data} /></CalculatorResultDetails>;

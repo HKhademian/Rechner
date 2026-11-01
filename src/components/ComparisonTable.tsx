@@ -1,3 +1,9 @@
+import CalculatorGrossInput from "#components/CalculatorGrossInput";
+import {
+  CalculatorGrossField,
+  grossInputForPeriod,
+  inputModeForPeriod,
+} from "#engine/tax/calculatorGrossPeriod";
 import {
   LiveColumnImport,
   SavedColumnTools,
@@ -19,7 +25,7 @@ import {
 } from "#components/LiveCalculatorInputs";
 import {
   TaxClass,
-  toGrossSalary,
+  SalaryPeriod,
   toChildrenCount,
   toMonthDuration,
 } from "#engine/types";
@@ -43,16 +49,17 @@ import {
   getCurrentInputs,
   setLiveTaxBracket,
   CALCULATOR_PARTNER_SHORTCUT,
-  inputMode,
+  calculatorViewPeriod,
+  calculatorInvalidInputs,
+  updateLiveGrossInput,
+  updateDraftGrossInput,
   hasPartner,
-  grossIncome,
   taxBracket,
   hasChurchTax,
   state,
   children,
   workingMonths,
   salariesPerYear,
-  partnerGrossIncome,
   partnerTaxBracket,
   partnerHasChurchTax,
   partnerState,
@@ -98,7 +105,7 @@ export default function ComparisonTable(): JSX.Element | null {
 export function ComparisonTableContent(): JSX.Element {
   const showSavedComparison = useSignal(false);
   const liveImportRevision = useSignal(0);
-  const invalidInputs = useSignal<Record<string, boolean>>({});
+  const invalidInputs = calculatorInvalidInputs;
   const trackValidity = (id: string) => (valid: boolean): void => {
     const previous = invalidInputs.peek();
     if (Boolean(previous[id]) === !valid) {
@@ -115,7 +122,7 @@ export function ComparisonTableContent(): JSX.Element {
   };
   const hasInvalidLive = Object.keys(invalidInputs.value).some((id) => id.startsWith("live-"));
   const hasInvalidSaved = (id: string): boolean => Object.keys(invalidInputs.value).some((key) => key.startsWith(`scenario-${id}-`));
-  const displayMode = useSignal<"yearly" | "monthly">("yearly");
+  const viewMode = inputModeForPeriod(calculatorViewPeriod.value);
 
   const format = (num: number): string => {
     return new Intl.NumberFormat("de-DE", {
@@ -125,7 +132,7 @@ export function ComparisonTableContent(): JSX.Element {
     }).format(num);
   };
 
-  const isMonthly = displayMode.value === "monthly";
+  const isMonthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;
   // Read saved inputs afresh; an open draft owns only its own column's results.
   const renderDetailRow = (label: string, render: (data: HouseholdScenarioData, id: string, live: boolean, context: string) => JSX.Element): JSX.Element => (
     <tr className="comparison-detail-row">
@@ -157,18 +164,15 @@ export function ComparisonTableContent(): JSX.Element {
     label: `Class ${value}` }));
   const salaryUnit = (mode: CalculatorInputs["inputMode"]): string => mode === "monthly" ? "€ / month" : "€ / year";
   const liveControls = {
-    inputMode: <LiveChoiceInput<CalculatorInputs["inputMode"]> onValidityChange={trackValidity("live-inputMode")} label="Gross input period" value={inputMode} options={[{ value: "monthly",
-      label: "Monthly gross input" }, { value: "yearly",
-      label: "Yearly gross input" }]} beforeChange={validateLive("inputMode")} />,
     hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
-    grossIncome: <LiveNumberInput onValidityChange={trackValidity("live-grossIncome")} id="live-gross" descriptionId="live-gross-preview" label={`Gross income (${salaryUnit(inputMode.value)})`} value={grossIncome} construct={toGrossSalary} beforeChange={validateLive("grossIncome")} step={0.01} />,
+    grossIncome: <CalculatorGrossInput inputs={getCurrentInputs()} field={CalculatorGrossField.Primary} id="live-gross" descriptionId="live-gross-preview" label="Live Calculation: Gross income" onChange={(amount) => updateLiveGrossInput(CalculatorGrossField.Primary, amount)} onValidityChange={trackValidity("live-grossIncome")} />,
     state: <LiveChoiceInput onValidityChange={trackValidity("live-state")} label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
     taxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-taxBracket")} label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={setLiveTaxBracket} />,
     hasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-hasChurchTax")} label="Church tax" value={hasChurchTax} beforeChange={validateLive("hasChurchTax")} />,
     children: <LiveNumberInput onValidityChange={trackValidity("live-children")} id="live-children" label="Children" value={children} construct={toChildrenCount} beforeChange={validateLive("children")} />,
     workingMonths: <LiveNumberInput onValidityChange={trackValidity("live-workingMonths")} id="live-months" label="Working months" value={workingMonths} construct={toMonthDuration} beforeChange={validateLive("workingMonths")} />,
     salariesPerYear: <LiveNumberInput onValidityChange={trackValidity("live-salariesPerYear")} id="live-salaries" label="Salaries per year" value={salariesPerYear} construct={toSalaryPaymentCount} beforeChange={validateLive("salariesPerYear")} step={0.5} />,
-    partnerGrossIncome: <LiveNumberInput onValidityChange={trackValidity("live-partnerGrossIncome")} id="live-partner-gross" descriptionId="live-partner-gross-preview" label={`Partner gross income (${salaryUnit(inputMode.value)})`} value={partnerGrossIncome} construct={toGrossSalary} beforeChange={validateLive("partnerGrossIncome")} step={0.01} />,
+    partnerGrossIncome: <CalculatorGrossInput inputs={getCurrentInputs()} field={CalculatorGrossField.Partner} id="live-partner-gross" descriptionId="live-partner-gross-preview" label="Live Calculation: Partner gross income" onChange={(amount) => updateLiveGrossInput(CalculatorGrossField.Partner, amount)} onValidityChange={trackValidity("live-partnerGrossIncome")} />,
     partnerState: <LiveChoiceInput onValidityChange={trackValidity("live-partnerState")} label="Partner federal state" value={partnerState} options={liveStateOptions} beforeChange={validateLive("partnerState")} />,
     partnerTaxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-partnerTaxBracket")} label="Partner tax class" value={partnerTaxBracket} options={liveClassOptions} beforeChange={validateLive("partnerTaxBracket")} />,
     partnerHasChurchTax: <LiveToggleInput onValidityChange={trackValidity("live-partnerHasChurchTax")} label="Partner church tax" value={partnerHasChurchTax} beforeChange={validateLive("partnerHasChurchTax")} />,
@@ -186,7 +190,7 @@ export function ComparisonTableContent(): JSX.Element {
     if (!person) {
       return 0;
     }
-    const divider = isMonthly && useDivider ? Math.max(1, person.monthsWorked) : 1;
+    const divider = isMonthly && useDivider ? 12 : 1;
     return person[metricKey] / divider;
   };
 
@@ -326,7 +330,10 @@ export function ComparisonTableContent(): JSX.Element {
   const renderAverageMonthlyNetRow = (
     personKey: "person1" | "partner" | null,
     isHousehold = false,
-  ): JSX.Element => {
+  ): JSX.Element | null => {
+    if (isMonthly) {
+      return null;
+    }
     const cells: JSX.Element[] = [];
 
     const getAvgVal = (snapshot: HouseholdScenarioData): number => {
@@ -537,10 +544,10 @@ export function ComparisonTableContent(): JSX.Element {
         }}
       >
         {liveControls[fieldKey]}
-        {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <small>{salaryUnit(inputMode.value)}</small>}
+        {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <small>{salaryUnit(viewMode)}</small>}
         {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <GrossPeriodPreview
           id={fieldKey === "grossIncome" ? "live-gross-preview" : "live-partner-gross-preview"}
-          inputMode={inputMode.value}
+          inputMode={viewMode}
           annualGross={fieldKey === "grossIncome" ? deductions.value.person1.grossYearly : deductions.value.partner?.grossYearly}
           lastValid={hasInvalidLive} />}
       </td>,
@@ -553,14 +560,18 @@ export function ComparisonTableContent(): JSX.Element {
           ? scenarioDraft.value.inputs
           : scenario.inputs || {};
       const rawVal = inputsToUse[fieldKey];
-      const savedVal = formatFn(inputsToUse);
+      const grossField = fieldKey === CalculatorGrossField.Primary ? CalculatorGrossField.Primary : fieldKey === CalculatorGrossField.Partner ? CalculatorGrossField.Partner : undefined;
+      const included = fieldKey !== "partnerGrossIncome" || inputsToUse.hasPartner;
+      const grossValue = grossField && included ? grossInputForPeriod(inputsToUse, grossField, calculatorViewPeriod.value) : undefined;
+      const savedVal = grossField ? !included ? "Not included" : grossValue === undefined ? "Unset" : new Intl.NumberFormat("de-DE", { style: "currency",
+        currency: "EUR" }).format(grossValue) : formatFn(inputsToUse);
       const grossData = fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome"
         ? isActive && scenarioDraft.value ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs)
         : undefined;
 
       let content: JSX.Element | string | number = savedVal;
       if (isActive) {
-        content = <ScenarioParameterInput id={`scenario-${scenario.id}-${fieldKey}`} label={label} scope={`Saved scenario ${scenario.title}`} field={fieldKey} onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)} value={rawVal} options={options} />;
+        content = grossField ? <CalculatorGrossInput inputs={inputsToUse} field={grossField} id={`scenario-${scenario.id}-${fieldKey}`} descriptionId={`scenario-${scenario.id}-${fieldKey}-preview`} label={`${scenario.title}: ${label}`} onChange={(amount) => updateDraftGrossInput(grossField, amount)} onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)} /> : <ScenarioParameterInput id={`scenario-${scenario.id}-${fieldKey}`} label={label} scope={`Saved scenario ${scenario.title}`} field={fieldKey} onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)} value={rawVal} options={options} />;
       }
 
       cells.push(
@@ -575,10 +586,10 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {content}
-          {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <div><small>{salaryUnit(inputsToUse.inputMode ?? "yearly")}</small></div>}
+          {(fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <div><small>{salaryUnit(viewMode)}</small></div>}
           {grossData && <GrossPeriodPreview
             id={`scenario-${scenario.id}-${fieldKey}-preview`}
-            inputMode={inputsToUse.inputMode ?? "yearly"}
+            inputMode={viewMode}
             annualGross={fieldKey === "grossIncome" ? grossData.person1.grossYearly : grossData.partner?.grossYearly}
             lastValid={isActive && hasInvalidSaved(scenario.id)} />}
         </td>,
@@ -619,63 +630,6 @@ export function ComparisonTableContent(): JSX.Element {
 
   return (
     <div class={`comparison-shell${showSavedComparison.value ? " comparison-show-saved" : ""}`}>
-      <div className="comparison-heading">
-        <div role="group" aria-label="Result display period" style={{ display: "flex",
-          gap: "15px",
-          alignItems: "center" }}>
-          <span>Results</span>
-          <div
-            style={{
-              display: "flex",
-              gap: "5px",
-              background: "var(--bg-surface-secondary)",
-              padding: "4px",
-              borderRadius: "var(--border-radius-sm)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          >
-            <button
-              aria-pressed={isMonthly}
-              style={{
-                padding: "6px 12px",
-                borderRadius: "4px",
-                border: "none",
-                cursor: "pointer",
-                transition: "var(--transition)",
-                fontSize: "0.8rem",
-                fontWeight: "bold",
-                background: isMonthly ? "var(--color-primary)" : "transparent",
-                color: isMonthly ? "#ffffff" : "var(--text-secondary)",
-              }}
-              onClick={() => {
-                displayMode.value = "monthly";
-              }}
-            >
-              Monthly
-            </button>
-            <button
-              aria-pressed={!isMonthly}
-              style={{
-                padding: "6px 12px",
-                borderRadius: "4px",
-                border: "none",
-                cursor: "pointer",
-                transition: "var(--transition)",
-                fontSize: "0.8rem",
-                fontWeight: "bold",
-                background: !isMonthly ? "var(--color-primary)" : "transparent",
-                color: !isMonthly ? "#ffffff" : "var(--text-secondary)",
-              }}
-              onClick={() => {
-                displayMode.value = "yearly";
-              }}
-            >
-              Yearly
-            </button>
-          </div>
-        </div>
-      </div>
-
       {savedScenarios.value.length > 0 && <button className="comparison-mobile-toggle" aria-expanded={showSavedComparison.value} aria-controls="household-comparison-table"
         onClick={() => {
           showSavedComparison.value = !showSavedComparison.value;
@@ -1007,15 +961,6 @@ export function ComparisonTableContent(): JSX.Element {
           </thead>
           <tbody aria-label="Inputs">
             <tr><th className="comparison-section-heading" colSpan={savedScenarios.value.length + 2}>Inputs</th></tr>
-            {renderInputRow(
-              "Gross input period",
-              "inputMode",
-              "select",
-              [{ value: "monthly",
-                label: "Monthly gross input" }, { value: "yearly",
-                label: "Yearly gross input" }],
-              (inputs) => inputs.inputMode === "monthly" ? "Monthly gross input" : "Yearly gross input",
-            )}
             {renderInputRow(
               "Include partner",
               "hasPartner",

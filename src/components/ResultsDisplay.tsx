@@ -2,17 +2,18 @@ import type {
   JSX,
 } from "preact";
 import {
-  useSignal,
-} from "@preact/signals";
+  SalaryPeriod,
+} from "#engine/types";
 import {
   type HouseholdScenarioData,
   type PersonDeductions,
   deductions,
+  calculatorViewPeriod,
 } from "#store/calculatorStore";
 
-/** Each rendered breakdown owns its period toggle and receives its column's calculation. */
+/** Every breakdown follows the calculator-wide presentation period. */
 export default function ResultsDisplay({ data = deductions.value }: { data?: HouseholdScenarioData }): JSX.Element {
-  const displayMode = useSignal<"monthly" | "yearly">("monthly");
+
 
   const format = (num: number): string => {
     return new Intl.NumberFormat("de-DE", {
@@ -22,7 +23,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
   };
 
   const d = data;
-  const isMonthly = displayMode.value === "monthly";
+  const isMonthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;
 
   // Percentage of gross
   const pct = (val: number, gross: number): string =>
@@ -36,8 +37,8 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
       return null;
     }
 
-    // Divide by the number of salaries received (e.g. 12, 13) in monthly view
-    const divider = isMonthly ? Math.max(1, personData.salariesReceived) : 1;
+    // Match every summary with a calendar-month average of annual totals.
+    const divider = isMonthly ? 12 : 1;
     const gross = personData.grossYearly / divider;
 
     return (
@@ -69,7 +70,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
               marginTop: "4px",
             }}
           >
-            {isMonthly ? "Monthly Average" : "Yearly Total"}
+            {isMonthly ? "Calendar-month average" : "Yearly Total"}
           </span>
         </h3>
 
@@ -234,53 +235,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
       >
         <h2 style={{ margin: 0 }}>Calculation Breakdown</h2>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "5px",
-            background: "var(--bg-surface-secondary)",
-            padding: "4px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-          }}
-        >
-          <button
-            style={{
-              padding: "6px 12px",
-              borderRadius: "4px",
-              border: "none",
-              cursor: "pointer",
-              transition: "var(--transition)",
-              fontSize: "0.8rem",
-              fontWeight: "bold",
-              background: isMonthly ? "var(--color-primary)" : "transparent",
-              color: isMonthly ? "#ffffff" : "var(--text-secondary)",
-            }}
-            onClick={() => {
-              displayMode.value = "monthly";
-            }}
-          >
-            Monthly
-          </button>
-          <button
-            style={{
-              padding: "6px 12px",
-              borderRadius: "4px",
-              border: "none",
-              cursor: "pointer",
-              transition: "var(--transition)",
-              fontSize: "0.8rem",
-              fontWeight: "bold",
-              background: !isMonthly ? "var(--color-primary)" : "transparent",
-              color: !isMonthly ? "#ffffff" : "var(--text-secondary)",
-            }}
-            onClick={() => {
-              displayMode.value = "yearly";
-            }}
-          >
-            Yearly
-          </button>
-        </div>
+
       </div>
 
       <p>Payroll withholding is an advance payment; this salary view does not determine the final tax assessment.</p>
@@ -315,18 +270,11 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
               marginTop: "4px",
             }}
           >
-            {isMonthly ? "Sum of monthly net salaries" : "Yearly net total"}
+            {isMonthly ? "Calendar-month average (annual / 12)" : "Yearly net total"}
           </div>
         </span>
         <span style={{ alignSelf: "center" }} class="tabular-nums">
-          {isMonthly
-            ? format(
-              d.person1.netIncome / Math.max(1, d.person1.salariesReceived) +
-                  (Boolean(d.partner) && d.partner
-                    ? d.partner.netIncome / Math.max(1, d.partner.salariesReceived)
-                    : 0),
-            )
-            : format(d.household.netIncome)}
+          {format(d.household.netIncome / (isMonthly ? 12 : 1))}
         </span>
       </div>
 

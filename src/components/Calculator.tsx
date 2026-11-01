@@ -5,6 +5,7 @@ import {
 import type {
   JSX, 
 } from "preact";
+import CalculatorPeriodControl from "#components/CalculatorPeriodControl";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
 
@@ -43,6 +44,7 @@ export default function Calculator(): JSX.Element {
           </p>
         </div>
 
+        <CalculatorPeriodControl />
         <ComparisonTable />
       </main>
 
