@@ -7,3 +7,5 @@ Changing presentation must not rewrite saved/live inputs, lose cents or change p
 Atomic progression: representation/conversion/store and roundtrip tests; global control and gross-input adapters; remove repeated selectors and connect all outputs; verify no-toggle drift, partial years/extra salaries, mixed saved cases, invalid drafts and dialogs.
 
 Prerequisite complete: outer workspace card and redundant Scenario Manager heading removed in a separate focused commit; table fills the workspace. Screenshot: /tmp/calculator-without-outer-card.png.
+
+Implemented: salary-basis foundation `c5c103d`; shared UI control and repeated-selector removal `b39e2c3`. Full audit/build and isolated browser checks passed. Browser reload verification also caught and resolved the saved-selection hydration mismatch. Current behavior is documented in `.agents/docs/CALCULATOR_APPS.md`.
