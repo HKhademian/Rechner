@@ -82,7 +82,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
             marginBottom: "15px",
           }}
         >
-          <span>Gross Income</span>
+          <span>Gross pay</span>
           <span class="amount tabular-nums">{format(gross)}</span>
         </div>
 
@@ -96,11 +96,11 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
             fontWeight: 600,
           }}
         >
-          Social Security Contributions (*Sozialabgaben*)
+          Social insurance
         </div>
         <div class="deduction-item">
           <span>
-            Health Insurance (*Krankenversicherung - GKV*){" "}
+            Health insurance{" "}
             <small>
               ({pct(personData.healthCare, personData.grossYearly)})
             </small>
@@ -114,7 +114,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
         </div>
         <div class="deduction-item">
           <span>
-            Pension Insurance (*Rentenversicherung - GRV*){" "}
+            Pension insurance{" "}
             <small>({pct(personData.pension, personData.grossYearly)})</small>
           </span>
           <span
@@ -126,7 +126,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
         </div>
         <div class="deduction-item">
           <span>
-            Unemployment (*Arbeitslosenversicherung - ALV*){" "}
+            Unemployment insurance{" "}
             <small>
               ({pct(personData.unemployment, personData.grossYearly)})
             </small>
@@ -140,7 +140,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
         </div>
         <div class="deduction-item">
           <span>
-            Long-Term Care (*Pflegeversicherung - PV*){" "}
+            Care insurance{" "}
             <small>({pct(personData.care, personData.grossYearly)})</small>
           </span>
           <span
@@ -162,11 +162,11 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
             fontWeight: 600,
           }}
         >
-          Taxes &amp; Surcharges (*Steuern*)
+          Taxes
         </div>
         <div class="deduction-item">
           <span>
-            Wage Tax (*Lohnsteuer - EStG*){" "}
+            Wage tax{" "}
             <small>({pct(personData.tax, personData.grossYearly)})</small>
           </span>
           <span
@@ -185,7 +185,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
         {personData.churchTax > 0 && (
           <div class="deduction-item">
             <span>
-              Church Tax (*Kirchensteuer*){" "}
+              Church tax{" "}
               <small>
                 ({pct(personData.churchTax, personData.grossYearly)})
               </small>
@@ -210,7 +210,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
             color: "var(--text-primary)",
           }}
         >
-          <span>Net Take-Home Pay</span>
+          <span>Net pay</span>
           <span
             class="tabular-nums"
             style={{ color: "var(--color-gain)",
@@ -225,28 +225,13 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
 
   return (
     <div class="glass-panel fade-in" style={{ animationDelay: "0.1s" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Calculation Breakdown</h2>
-
-
-      </div>
-
-      <p>Payroll withholding is an advance payment; this salary view does not determine the final tax assessment.</p>
-      <ul>{[...new Set([...d.person1.assumptions, ...(d.partner?.assumptions ?? [])])].map((assumption) => <li key={assumption}>{assumption}</li>)}</ul>
       <div style={{ display: "flex",
         flexDirection: "column",
         gap: "10px" }}>
         {renderPerson("Person 1", d.person1)}
         {Boolean(d.partner) &&
           renderPerson(
-            "Spouse / Partner (*Ehegatte*)",
+            "Partner",
             d.partner,
           )}
       </div>
@@ -286,22 +271,16 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
           fontSize: "0.8rem",
         }}
       >
-        Effective Tax &amp; Social Security Rate:{" "}
+        Deductions / gross:{" "}
         <strong style={{ color: "var(--text-primary)" }}>
           {pct(d.household.totalDeductions, d.household.grossYearly)}
         </strong>
       </div>
-      <div
-        style={{
-          marginTop: "0.5rem",
-          textAlign: "center",
-          color: "var(--text-muted)",
-          fontSize: "0.75rem",
-        }}
-      >
-        Computed in compliance with German § 32a EStG and Social Insurance
-        Assessment Ceilings (*Beitragsbemessungsgrenzen - BBG*).
-      </div>
+      <details>
+        <summary>Assumptions</summary>
+        <p>Withholding estimate; final assessment may differ.</p>
+        <ul>{[...new Set([...d.person1.assumptions, ...(d.partner?.assumptions ?? [])])].map((assumption) => <li key={assumption}>{assumption}</li>)}</ul>
+      </details>
     </div>
   );
 }

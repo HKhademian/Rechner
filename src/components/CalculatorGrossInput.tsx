@@ -51,7 +51,7 @@ export default function CalculatorGrossInput({ inputs, field, id, label, onChang
         try {
           const amount = parseCalculatorNumber(event.currentTarget.value, toGrossSalary);
           if (amount === undefined) {
-            throw new TypeError("Enter a value. Results retain the last valid value.");
+            throw new TypeError("Enter a value.");
           }
           onChange(amount);
           setError("");
@@ -63,7 +63,7 @@ export default function CalculatorGrossInput({ inputs, field, id, label, onChang
         }
       }} />
     <small id={`${id}-note`} role={error ? "status" : undefined} className={error ? "live-input__error" : undefined}>
-      {error || (current === undefined ? "No working months: enter a regular monthly salary if needed." : "")}
+      {error || (current === undefined ? "No working months. Enter monthly pay if needed." : "")}
     </small>
   </div>;
 }

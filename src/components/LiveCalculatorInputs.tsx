@@ -46,7 +46,7 @@ export function LiveNumberInput({ id, label, value, construct, beforeChange, ste
           try {
             const parsed = parseCalculatorNumber(raw, construct);
             if (parsed === undefined) {
-              reportError("Enter a value. Results retain the last valid value.");
+              reportError("Enter a value.");
             }
             else {
               beforeChange?.(parsed);

@@ -26,7 +26,7 @@ export function TaxableIncomeSummary({ data, id, context }: ResultSummaryProps):
   const annual = data.annualTaxableIncome;
   return <CalculatorResultDetails id={`${id}-income-dialog`} title="Annual taxable income" context={context} summary={
     <dl>
-      <div><dt>Income after modeled deductions</dt><dd>{money(annual.taxBase?.taxableIncome)}</dd></div>
+      <div><dt>Taxable income</dt><dd>{money(annual.taxBase?.taxableIncome)}</dd></div>
       <div><dt>Tax year</dt><dd>{annual.rules.calendarYear}</dd></div>
       <div><dt>Assessment</dt><dd>{data.partner ? "Joint" : "Individual"}</dd></div>
     </dl>
@@ -39,7 +39,7 @@ export function CalculationSummary({ data, id, context }: ResultSummaryProps): J
   const household = data.household;
   const monthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;
   const divider = monthly ? 12 : 1;
-  return <CalculatorResultDetails id={`${id}-breakdown-dialog`} title="Calculation Breakdown" context={context} summary={
+  return <CalculatorResultDetails id={`${id}-breakdown-dialog`} title="Payroll breakdown" context={context} summary={
     <dl>
       <div><dt>{monthly ? "Monthly avg. net pay" : "Annual net pay"}</dt><dd>{money(household.netIncome / divider)}</dd></div>
       <div><dt>{monthly ? "Monthly avg. deductions" : "Annual deductions"}</dt><dd>{money(household.totalDeductions / divider)}</dd></div>
@@ -51,11 +51,11 @@ export function CalculationSummary({ data, id, context }: ResultSummaryProps): J
 export function PayrollEvidenceSummary({ data, id, context }: ResultSummaryProps): JSX.Element {
   const rules = data.annualTaxableIncome.rules;
   const count = new Set([...data.person1.assumptions, ...(data.partner?.assumptions ?? [])]).size;
-  return <CalculatorResultDetails id={`${id}-payroll-dialog`} title="Payroll assumptions and official sources" context={context} summary={
+  return <CalculatorResultDetails id={`${id}-payroll-dialog`} title="Payroll sources" context={context} summary={
     <dl>
       <div><dt>Tax year</dt><dd>{rules.calendarYear}</dd></div>
-      <div><dt>Published profile</dt><dd>{rules.sourceYear}</dd></div>
-      <div><dt>Distinct assumptions</dt><dd>{count}</dd></div>
+      <div><dt>Profile</dt><dd>{rules.sourceYear}</dd></div>
+      <div><dt>Assumptions</dt><dd>{count}</dd></div>
     </dl>
   }>
     <h3>You</h3>

@@ -1229,8 +1229,8 @@ export function ComparisonTableContent(): JSX.Element {
               </>
             )}
             {renderDetailRow("Annual taxable income", (data, id, _live, context) => <TaxableIncomeSummary data={data} id={id} context={context} />)}
-            {renderDetailRow("Calculation Breakdown", (data, id, _live, context) => <CalculationSummary data={data} id={id} context={context} />)}
-            {renderDetailRow("Payroll assumptions and official sources", (data, id, _live, context) => <PayrollEvidenceSummary data={data} id={id} context={context} />)}
+            {renderDetailRow("Breakdown", (data, id, _live, context) => <CalculationSummary data={data} id={id} context={context} />)}
+            {renderDetailRow("Payroll sources", (data, id, _live, context) => <PayrollEvidenceSummary data={data} id={id} context={context} />)}
           </tbody>
         </table>
       </div>

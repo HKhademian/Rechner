@@ -20,7 +20,7 @@ import {
 export default function TaxSettings({ onValidityChange }: { onValidityChange?: (valid: boolean) => void }): JSX.Element {
   return (
     <section style={{ marginTop: "15px" }}>
-      <h3>Published payroll rules</h3>
+      <h3>Tax profile</h3>
       <label for="payrollYear">Tax year</label>
       <select id="payrollYear" value={selectedTaxYear.value}
         onChange={(event) => {
@@ -32,10 +32,9 @@ export default function TaxSettings({ onValidityChange }: { onValidityChange?: (
         onChange={(value) => {
           personalTaxFactor.value = value === undefined ? undefined : toTaxFactor(value);
         }} onValidityChange={onValidityChange} />
-      <button onClick={resetConfig}>Use latest published year</button>
-      <p>Personal insurance and payroll details are editable for each earner. Published tariffs stay tied to their year.</p>
+      <button onClick={resetConfig}>Latest year</button>
       <details>
-        <summary>Values and official sources</summary>
+        <summary>Rates and sources</summary>
         <dl>
           {Object.entries(selectedTaxRules.value.parameters).map(([key, parameter]) => (
             <div key={key}>
