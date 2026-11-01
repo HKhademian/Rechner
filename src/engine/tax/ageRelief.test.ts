@@ -23,6 +23,7 @@ it("uses gross wages, the personal cohort and its permanent cap", () => {
   assert.equal(relief(60000, 63), 0);
   assert.equal(relief(60000, 64), 608);
   assert.equal(relief(1000, 64), 128);
+  assert.equal(relief(1000, 68), 144);
   assert.equal(relief(60000, 65), 627);
   assert.equal(relief(60000, 100), 1900);
   assert.equal(relief(0, 64), 0);
