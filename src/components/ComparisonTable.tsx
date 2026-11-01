@@ -1,3 +1,7 @@
+import {
+  TaxAssessment,
+  TAX_ASSESSMENT_SOURCE,
+} from "#engine/tax/taxAssessment";
 import CalculatorGrossInput from "#components/CalculatorGrossInput";
 import {
   CalculatorGrossField,
@@ -50,6 +54,7 @@ import {
   setLiveTaxBracket,
   CALCULATOR_PARTNER_SHORTCUT,
   calculatorViewPeriod,
+  assessmentMode,
   calculatorInvalidInputs,
   updateLiveGrossInput,
   updateDraftGrossInput,
@@ -172,8 +177,17 @@ export function ComparisonTableContent(): JSX.Element {
     label: value }));
   const liveClassOptions = Object.values(TaxClass).map((value, index) => ({ value: String(index + 1),
     label: `Class ${value}` }));
+  const assessmentOptions = [
+    { value: TaxAssessment.Unspecified,
+      label: "Choose…" },
+    { value: TaxAssessment.Individual,
+      label: "Individual" },
+    { value: TaxAssessment.Joint,
+      label: "Joint (spouses)" },
+  ];
   const salaryUnit = (mode: CalculatorInputs["inputMode"]): string => mode === "monthly" ? "€ / month" : "€ / year";
   const liveControls = {
+    assessmentMode: <LiveChoiceInput label="Assessment" value={assessmentMode} options={assessmentOptions} beforeChange={validateLive("assessmentMode")} onValidityChange={trackValidity("live-assessmentMode")} />,
     hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
     grossIncome: <CalculatorGrossInput inputs={getCurrentInputs()} field={CalculatorGrossField.Primary} id="live-gross" descriptionId="live-gross-preview" label="Live Calculation: Gross income" onChange={(amount) => updateLiveGrossInput(CalculatorGrossField.Primary, amount)} onValidityChange={trackValidity("live-grossIncome")} />,
     state: <LiveChoiceInput onValidityChange={trackValidity("live-state")} label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
@@ -542,7 +556,8 @@ export function ComparisonTableContent(): JSX.Element {
     formatFn: (inputs: Partial<CalculatorInputs>) => string | number,
   ): JSX.Element => {
     const partnerField = fieldKey.startsWith("partner");
-    const liveIncluded = !partnerField || hasPartner.value;
+    const optionalField = partnerField || fieldKey === "assessmentMode";
+    const liveIncluded = !optionalField || hasPartner.value;
     const accessibleLabel = partnerField ? `Partner ${label.toLowerCase()}` : label;
     const cells: JSX.Element[] = [];
     cells.push(
@@ -574,9 +589,9 @@ export function ComparisonTableContent(): JSX.Element {
         isActive && scenarioDraft.value
           ? scenarioDraft.value.inputs
           : scenario.inputs || {};
-      const rawVal = inputsToUse[fieldKey];
+      const rawVal = fieldKey === "assessmentMode" ? inputsToUse.assessmentMode ?? TaxAssessment.Unspecified : inputsToUse[fieldKey];
       const grossField = fieldKey === CalculatorGrossField.Primary ? CalculatorGrossField.Primary : fieldKey === CalculatorGrossField.Partner ? CalculatorGrossField.Partner : undefined;
-      const included = !partnerField || inputsToUse.hasPartner;
+      const included = !optionalField || inputsToUse.hasPartner;
       const grossValue = grossField && included ? grossInputForPeriod(inputsToUse, grossField, calculatorViewPeriod.value) : undefined;
       const savedVal = grossField ? !included ? "Not included" : grossValue === undefined ? "Unset" : new Intl.NumberFormat("de-DE", { style: "currency",
         currency: "EUR" }).format(grossValue) : formatFn(inputsToUse);
@@ -628,6 +643,7 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {label}
+          {fieldKey === "assessmentMode" && <small className="comparison-field-hint"><a href={TAX_ASSESSMENT_SOURCE} title="Joint assessment: eligible spouses or registered partners" target="_blank" rel="noreferrer">Rules</a></small>}
           {fieldKey === "taxBracket" && <small className="comparison-field-hint">
             <a href={CALCULATOR_PARTNER_SHORTCUT.source} title={`${CALCULATOR_PARTNER_SHORTCUT.classes.join("/")} enable partner`} target="_blank" rel="noreferrer">Class rules</a>
           </small>}
@@ -1038,6 +1054,13 @@ export function ComparisonTableContent(): JSX.Element {
             })()}
 
             {renderInputRow("Partner 2", "hasPartner", "checkbox", null, (inputs) => inputs.hasPartner ? "Yes" : "No")}
+            {hasAnyPartner && renderInputRow(
+              "Assessment",
+              "assessmentMode",
+              "select",
+              assessmentOptions,
+              (inputs) => assessmentOptions.find((option) => option.value === (inputs.assessmentMode ?? TaxAssessment.Unspecified))?.label ?? "Choose…",
+            )}
             {hasAnyPartner && ([
               { field: "partnerGrossIncome",
                 label: "Gross Income",

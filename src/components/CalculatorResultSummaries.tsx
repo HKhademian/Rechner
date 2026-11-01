@@ -1,4 +1,7 @@
 import {
+  TaxAssessment,
+} from "#engine/tax/taxAssessment";
+import {
   type JSX,
 } from "preact";
 import {
@@ -28,7 +31,7 @@ export function TaxableIncomeSummary({ data, id, context }: ResultSummaryProps):
     <dl>
       <div><dt>Taxable income</dt><dd>{money(annual.taxBase?.taxableIncome)}</dd></div>
       <div><dt>Tax year</dt><dd>{annual.rules.calendarYear}</dd></div>
-      <div><dt>Assessment</dt><dd>{data.partner ? "Joint" : "Individual"}</dd></div>
+      <div><dt>Assessment</dt><dd>{annual.assessment === TaxAssessment.Unspecified ? "Choose…" : annual.assessment === TaxAssessment.Joint ? "Joint" : "Individual"}</dd></div>
     </dl>
   }>
     <CalculatorTaxableIncome data={data} id={`${id}-annual-income-detail`} editable={false} />
