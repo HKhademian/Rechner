@@ -1,3 +1,17 @@
+.comparison-matrix {
+  --comparison-label-width: 180px;
+  --comparison-value-width: 300px;
+}
+
+/* Reserve only the label width; unassigned value columns share the remaining space. */
+.comparison-label-column {
+  width: var(--comparison-label-width);
+}
+
+.comparison-matrix tr > :first-child:not([colspan]) {
+  overflow-wrap: anywhere;
+}
+
 .comparison-shell {
   max-width: 1400px;
   margin: 0 auto 40px;
@@ -70,6 +84,7 @@
   .comparison-shell:not(.comparison-show-saved) .comparison-matrix tbody {
     display: block;
     width: 100% !important;
+    min-width: 0 !important;
   }
 
   .comparison-shell:not(.comparison-show-saved) .comparison-matrix tr {

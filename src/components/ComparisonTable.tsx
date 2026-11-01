@@ -646,18 +646,22 @@ export function ComparisonTableContent(): JSX.Element {
           style={{
             tableLayout: "fixed",
             width: "100%",
+            minWidth: `calc(var(--comparison-label-width) + ${savedScenarios.value.length + 1} * var(--comparison-value-width))`,
             borderCollapse: "separate",
             borderSpacing: 0,
             textAlign: "left",
           }}
         >
+          <colgroup>
+            <col className="comparison-label-column" />
+            <col span={savedScenarios.value.length + 1} />
+          </colgroup>
           <thead>
             <tr>
               <th
                 style={{
                   padding: "16px",
                   borderBottom: "2px solid var(--border-subtle)",
-                  width: "250px",
                   position: "sticky",
                   left: 0,
                   top: 0,
@@ -675,7 +679,6 @@ export function ComparisonTableContent(): JSX.Element {
                   position: "sticky",
                   top: 0,
                   zIndex: 15,
-                  width: "300px",
                   borderTop: "2px solid var(--color-gain)",
                 }}
               >
@@ -749,7 +752,6 @@ export function ComparisonTableContent(): JSX.Element {
                         ? "var(--color-primary-bg)"
                         : "var(--bg-surface)",
                       zIndex: 15,
-                      width: "300px",
                       borderTop: isActive
                         ? "2px solid var(--color-primary)"
                         : "none",
