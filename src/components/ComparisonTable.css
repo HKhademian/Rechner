@@ -249,3 +249,16 @@
   font-size: 0.75rem;
   font-weight: 400;
 }
+
+.comparison-partner-fields {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.comparison-partner-field > span:first-child {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}

@@ -46,6 +46,7 @@ import {
   type HouseholdScenarioData,
   type CalculatorInputs,
   type PersonDeductions,
+  type SavedScenarioItem,
   getCurrentInputs,
   setLiveTaxBracket,
   CALCULATOR_PARTNER_SHORTCUT,
@@ -153,7 +154,8 @@ export function ComparisonTableContent(): JSX.Element {
     </tr>
   );
 
-  const hasAnyPartner = Boolean(deductions.value.partner || scenarioDraft.value?.data.partner || savedScenarios.value.some((scenario) => scenario.data.partner));
+  const hasAnyPartner = hasPartner.value || savedScenarios.value.some((scenario) =>
+    (activeScenarioId.value === scenario.id && scenarioDraft.value ? scenarioDraft.value.inputs : scenario.inputs).hasPartner);
 
   // Keep section labels in their own sticky cell instead of scrolling a spanning label away.
   const renderSectionRow = (label: string, major = false): JSX.Element => (
@@ -631,6 +633,58 @@ export function ComparisonTableContent(): JSX.Element {
     );
   };
 
+  /** Each column expands independently; disabled partners retain their stored inputs. */
+  const renderPartnerPanel = (scenario?: SavedScenarioItem): JSX.Element => {
+    const active = scenario !== undefined && activeScenarioId.value === scenario.id;
+    const inputs = scenario ? active && scenarioDraft.value ? scenarioDraft.value.inputs : scenario.inputs : getCurrentInputs();
+    const data = scenario ? active && scenarioDraft.value ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs) : deductions.value;
+    const scope = scenario ? `Saved scenario ${scenario.title}` : "Live Calculation";
+    const prefix = scenario ? `scenario-${scenario.id}` : "live";
+    const fields = [
+      { field: "partnerGrossIncome",
+        label: "Gross",
+        options: null },
+      { field: "partnerState",
+        label: "Federal state",
+        options: liveStateOptions },
+      { field: "partnerTaxBracket",
+        label: "Tax class",
+        options: liveClassOptions },
+      { field: "partnerHasChurchTax",
+        label: "Church tax",
+        options: null },
+      { field: "partnerWorkingMonths",
+        label: "Working months",
+        options: null },
+      { field: "partnerSalariesPerYear",
+        label: "Salaries / year",
+        options: null },
+    ] as const;
+    return <div role="group" aria-label={`${scope}: Partner 2`}>
+      {!scenario ? liveControls.hasPartner : active
+        ? <ScenarioParameterInput id={`${prefix}-hasPartner`} label="Include partner" scope={scope} field="hasPartner" value={inputs.hasPartner} options={null} onValidityChange={trackValidity(`${prefix}-hasPartner`)} />
+        : <span>{inputs.hasPartner ? "Included" : "Off"}</span>}
+      {inputs.hasPartner && <div className="comparison-partner-fields">
+        {fields.map(({ field, label, options }) => {
+          const gross = field === "partnerGrossIncome";
+          const id = `${prefix}-${field}`;
+          const amount = gross ? grossInputForPeriod(inputs, CalculatorGrossField.Partner, calculatorViewPeriod.value) : undefined;
+          const value = inputs[field];
+          const readonly = gross ? amount === undefined ? "Unset" : new Intl.NumberFormat("de-DE", { style: "currency",
+            currency: "EUR" }).format(amount)
+            : typeof value === "boolean" ? value ? "Yes" : "No" : options?.find((option) => option.value === String(value))?.label ?? String(value);
+          return <div className="comparison-partner-field" key={field}>
+            <span>{label}{gross && <small> · {salaryUnit(viewMode)}</small>}</span>
+            {!scenario ? liveControls[field] : !active ? <span className="tabular-nums">{readonly}</span> : gross
+              ? <CalculatorGrossInput inputs={inputs} field={CalculatorGrossField.Partner} id={id} label={`${scope}: Partner gross`} descriptionId={`${id}-preview`} onChange={(amount) => updateDraftGrossInput(CalculatorGrossField.Partner, amount)} onValidityChange={trackValidity(id)} />
+              : <ScenarioParameterInput id={id} label={`Partner ${label.toLowerCase()}`} scope={scope} field={field} value={value} options={options} onValidityChange={trackValidity(id)} />}
+            {gross && <GrossPeriodPreview id={scenario ? `${id}-preview` : "live-partner-gross-preview"} inputMode={viewMode} annualGross={data.partner?.grossYearly} lastValid={scenario ? hasInvalidSaved(scenario.id) : hasInvalidLive} />}
+          </div>;
+        })}
+      </div>}
+    </div>;
+  };
+
   const handleAddScenario = (): void => {
     const count = savedScenarios.peek().length + 1;
     saveScenario(`Scenario ${count}`, "", deductions.peek());
@@ -936,13 +990,7 @@ export function ComparisonTableContent(): JSX.Element {
           </thead>
           <tbody aria-label="Inputs">
             {renderSectionRow("Inputs", true)}
-            {renderInputRow(
-              "Include partner",
-              "hasPartner",
-              "checkbox",
-              null,
-              (inputs) => inputs.hasPartner ? "Yes" : "No",
-            )}
+
 
             {renderSectionRow("Person 1")}
             {(() => {
@@ -1037,102 +1085,11 @@ export function ComparisonTableContent(): JSX.Element {
               );
             })()}
 
-            {hasAnyPartner && (
-              <>
-                {renderSectionRow("Partner")}
-                {(() => {
-                  const taxBracketOptions = [
-                    { value: "1",
-                      label: "Class I" },
-                    { value: "2",
-                      label: "Class II" },
-                    { value: "3",
-                      label: "Class III" },
-                    { value: "4",
-                      label: "Class IV" },
-                    { value: "5",
-                      label: "Class V" },
-                    { value: "6",
-                      label: "Class VI" },
-                  ];
-                  const stateOptions = [
-                    "Baden-Württemberg",
-                    "Bayern",
-                    "Berlin",
-                    "Brandenburg",
-                    "Bremen",
-                    "Hamburg",
-                    "Hessen",
-                    "Mecklenburg-Vorpommern",
-                    "Niedersachsen",
-                    "Nordrhein-Westfalen",
-                    "Rheinland-Pfalz",
-                    "Saarland",
-                    "Sachsen",
-                    "Sachsen-Anhalt",
-                    "Schleswig-Holstein",
-                    "Thüringen",
-                  ].map((s) => ({ value: s,
-                    label: s }));
-
-                  return (
-                    <>
-                      {renderInputRow(
-                        "Partner Gross",
-                        "partnerGrossIncome",
-                        "number",
-                        null,
-                        (s) => format(s.partnerGrossIncome || 0),
-                      )}
-                      {renderInputRow(
-                        "Partner Federal State",
-                        "partnerState",
-                        "select",
-                        stateOptions,
-                        (s) => s.partnerState || "-",
-                      )}
-                      {renderInputRow(
-                        "Partner Tax Class",
-                        "partnerTaxBracket",
-                        "select",
-                        taxBracketOptions,
-                        (s) =>
-                          s.partnerTaxBracket
-                            ? `Class ${s.partnerTaxBracket}`
-                            : "-",
-                      )}
-                      {renderInputRow(
-                        "Partner Church Tax",
-                        "partnerHasChurchTax",
-                        "checkbox",
-                        null,
-                        (s) => (s.partnerHasChurchTax ? "Yes" : "No"),
-                      )}
-                      {renderInputRow(
-                        "Partner Working Months",
-                        "partnerWorkingMonths",
-                        "number",
-                        null,
-                        (s) =>
-                          s.partnerWorkingMonths
-                            ? `${s.partnerWorkingMonths} Months`
-                            : "-",
-                      )}
-                      {renderInputRow(
-                        "Partner Salaries",
-                        "partnerSalariesPerYear",
-                        "number",
-                        null,
-                        (s) =>
-                          s.partnerSalariesPerYear
-                            ? `${s.partnerSalariesPerYear} Salaries`
-                            : "-",
-                      )}
-                    </>
-                  );
-                })()}
-              </>
-            )}
+            <tr className="comparison-detail-row">
+              <th scope="row">Partner 2</th>
+              <td key={`live-partner-${liveImportRevision.value}`} className="comparison-detail-cell" style={{ background: "var(--color-gain-bg)" }}>{renderPartnerPanel()}</td>
+              {savedScenarios.value.map((scenario) => <td key={scenario.id} className="comparison-detail-cell" style={{ background: activeScenarioId.value === scenario.id ? "var(--color-primary-bg)" : "transparent" }}>{renderPartnerPanel(scenario)}</td>)}
+            </tr>
 
             {renderDetailRow("Payroll settings", (data, _id, live) => live
               ? <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
