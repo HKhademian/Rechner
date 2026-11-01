@@ -1,0 +1,22 @@
+.net-pay-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 24px;
+}
+
+.net-pay-header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+@media (max-width: 700px) {
+  .net-pay-header { padding: 12px; }
+}
