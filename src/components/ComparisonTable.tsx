@@ -154,6 +154,14 @@ export function ComparisonTableContent(): JSX.Element {
 
   const hasAnyPartner = Boolean(deductions.value.partner || scenarioDraft.value?.data.partner || savedScenarios.value.some((scenario) => scenario.data.partner));
 
+  // Keep section labels in their own sticky cell instead of scrolling a spanning label away.
+  const renderSectionRow = (label: string, major = false): JSX.Element => (
+    <tr className="comparison-section-row">
+      <th scope="row" className={major ? "comparison-section-heading" : "comparison-subsection-heading"}>{label}</th>
+      <td className={major ? "comparison-section-heading" : "comparison-subsection-heading"} colSpan={savedScenarios.value.length + 1} aria-hidden="true" />
+    </tr>
+  );
+
   const validateLive = <K extends keyof CalculatorInputs>(field: K) => (value: CalculatorInputs[K]): void => {
     calculateScenarioData({ ...getCurrentInputs(),
       [field]: value });
@@ -669,7 +677,7 @@ export function ComparisonTableContent(): JSX.Element {
                   zIndex: 20,
                   borderRight: "2px solid var(--border-subtle)",
                 }}
-              ></th>
+              >Field</th>
 
               <th
                 style={{
@@ -962,7 +970,7 @@ export function ComparisonTableContent(): JSX.Element {
             </tr>
           </thead>
           <tbody aria-label="Inputs">
-            <tr><th className="comparison-section-heading" colSpan={savedScenarios.value.length + 2}>Inputs</th></tr>
+            {renderSectionRow("Inputs", true)}
             {renderInputRow(
               "Include partner",
               "hasPartner",
@@ -971,22 +979,7 @@ export function ComparisonTableContent(): JSX.Element {
               (inputs) => inputs.hasPartner ? "Yes" : "No",
             )}
 
-            <tr>
-              <td
-                colSpan={savedScenarios.value.length + 2}
-                style={{
-                  padding: "25px 16px 8px 16px",
-                  fontSize: "0.8rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                  color: "var(--text-muted)",
-                  fontWeight: 600,
-                  background: "var(--bg-surface-secondary)",
-                }}
-              >
-                Person 1 Parameters
-              </td>
-            </tr>
+            {renderSectionRow("Person 1 Parameters")}
             {(() => {
               const taxBracketOptions = [
                 { value: "1",
@@ -1081,22 +1074,7 @@ export function ComparisonTableContent(): JSX.Element {
 
             {hasAnyPartner && (
               <>
-                <tr>
-                  <td
-                    colSpan={savedScenarios.value.length + 2}
-                    style={{
-                      padding: "25px 16px 8px 16px",
-                      fontSize: "0.8rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                      color: "var(--text-muted)",
-                      fontWeight: 600,
-                      background: "var(--bg-surface-secondary)",
-                    }}
-                  >
-                    Partner Parameters
-                  </td>
-                </tr>
+                {renderSectionRow("Partner Parameters")}
                 {(() => {
                   const taxBracketOptions = [
                     { value: "1",
@@ -1197,23 +1175,8 @@ export function ComparisonTableContent(): JSX.Element {
 
           </tbody>
           <tbody aria-label="Results and summaries">
-            <tr><th className="comparison-section-heading" colSpan={savedScenarios.value.length + 2}>Results and summaries</th></tr>
-            <tr>
-              <td
-                colSpan={savedScenarios.value.length + 2}
-                style={{
-                  padding: "20px 16px 8px 16px",
-                  fontSize: "0.85rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                  color: "var(--text-muted)",
-                  fontWeight: 700,
-                  background: "var(--bg-surface-secondary)",
-                }}
-              >
-                Household Summary
-              </td>
-            </tr>
+            {renderSectionRow("Results and summaries", true)}
+            {renderSectionRow("Household Summary")}
             {renderRow(
               isMonthly ? "Household Avg Gross" : "Household Gross",
               null,
@@ -1237,22 +1200,7 @@ export function ComparisonTableContent(): JSX.Element {
               true,
             )}
 
-            <tr>
-              <td
-                colSpan={savedScenarios.value.length + 2}
-                style={{
-                  padding: "25px 16px 8px 16px",
-                  fontSize: "0.85rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                  color: "var(--text-muted)",
-                  fontWeight: 700,
-                  background: "var(--bg-surface-secondary)",
-                }}
-              >
-                Person 1 Summary
-              </td>
-            </tr>
+            {renderSectionRow("Person 1 Summary")}
             {renderRow(
               isMonthly ? "Avg Gross" : "Gross Income",
               "person1",
@@ -1289,22 +1237,7 @@ export function ComparisonTableContent(): JSX.Element {
 
             {hasAnyPartner && (
               <>
-                <tr>
-                  <td
-                    colSpan={savedScenarios.value.length + 2}
-                    style={{
-                      padding: "25px 16px 8px 16px",
-                      fontSize: "0.85rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                      color: "var(--text-muted)",
-                      fontWeight: 700,
-                      background: "var(--bg-surface-secondary)",
-                    }}
-                  >
-                    Partner Summary
-                  </td>
-                </tr>
+                {renderSectionRow("Partner Summary")}
                 {renderRow(
                   isMonthly ? "Avg Gross" : "Gross Income",
                   "partner",
