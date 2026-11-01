@@ -21,7 +21,7 @@ export function computePayrollTaxBase(
   rules: TaxRules,
 ) {
   const reasons = [...new Set(payrolls.flatMap((person) => {
-    const limitations = person.payments.flatMap((payment) => payment.payroll.payrollLimitations);
+    const limitations = [...person.annualAssessmentLimitations, ...person.payments.flatMap((payment) => payment.payroll.payrollLimitations)];
     if (person.churchTax > 0) {
       limitations.push("The annual church-tax deduction is not supported by this taxable-income model.");
     }

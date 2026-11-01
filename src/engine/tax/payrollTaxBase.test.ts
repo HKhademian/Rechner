@@ -10,6 +10,7 @@ import {
 } from "#engine/tax/payrollTaxBase";
 import {
   DEFAULT_TAX_RULES,
+  toAgeYears,
 } from "#engine/tax/taxRules";
 import {
   toSalaryPaymentCount,
@@ -88,4 +89,19 @@ it("withholds an incomplete annual base when child allowances are not modeled", 
   assert.equal(result.reasons.length, 1);
   assert.match(result.reasons[0], /Child allowances.*https:\/\/www.gesetze-im-internet.de\/estg\/__32.html/);
   assert.ok(parents.every((person) => person.netIncome > 0 && person.tax > 0));
+});
+
+it("flags missing annual age relief without marking monthly withholding provisional", () => {
+  const older = computeEmploymentPayroll({
+    gross: toGrossSalary(5000),
+    period: SalaryPeriod.Monthly,
+    monthsWorked: toMonthDuration(12),
+    annualSalaryPayments: toSalaryPaymentCount(12),
+  }, TaxClass.I, toChildrenCount(0), DEFAULT_TAX_RULES, { ageAtYearStart: toAgeYears(64) });
+  const result = computePayrollTaxBase([older], DEFAULT_TAX_RULES);
+  assert.equal(result.taxBase, undefined);
+  assert.equal(result.reasons.length, 1);
+  assert.match(result.reasons[0], /Annual age relief.*https:\/\/www.gesetze-im-internet.de\/estg\/__24a.html/);
+  assert.ok(older.netIncome > payroll(5000).netIncome);
+  assert.ok(older.payments.every((payment) => payment.payroll.payrollLimitations.length === 0));
 });

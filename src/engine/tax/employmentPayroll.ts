@@ -97,5 +97,9 @@ export function computeEmploymentPayroll(
     totalSocialSecurity,
     totalDeductions,
     netIncome: toEuroAmount(schedule.annualGross - totalDeductions),
+    // Annual assessment relief is separate from the correctly applied PAP withholding relief.
+    annualAssessmentLimitations: Object.freeze(schedule.annualGross > 0 && personal.ageAtYearStart !== undefined &&
+      personal.ageAtYearStart >= rules.parameters.ageReliefMinimumAge.value
+      ? [`Annual age relief is not modeled. ${rules.parameters.ageReliefMinimumAge.source}`] : []),
     assumptions: [...new Set([...schedule.assumptions, ...payments.flatMap((p) => p.payroll.assumptions)])] };
 }
