@@ -1,3 +1,6 @@
+import {
+  TaxAssessment,
+} from "#engine/tax/taxAssessment";
 import assert from "node:assert/strict";
 import {
   it,
@@ -40,7 +43,7 @@ it("uses individual annual receipts rather than a joint allowance for one person
 });
 
 it("keeps both partner contributions and their sum before joint deductions", () => {
-  const result = computePayrollTaxBase([payroll(5000), payroll(3000)], DEFAULT_TAX_RULES);
+  const result = computePayrollTaxBase([payroll(5000), payroll(3000)], DEFAULT_TAX_RULES, TaxAssessment.Joint);
   assert.equal(result.incomeByPerson.length, 2);
   const combined = result.incomeByPerson.reduce((sum, person) => sum + person.employmentIncome, 0);
   const base = result.taxBase!;
@@ -83,7 +86,7 @@ it("withholds an incomplete annual base when child allowances are not modeled", 
     monthsWorked: toMonthDuration(12),
     annualSalaryPayments: toSalaryPaymentCount(12),
   }, TaxClass.IV, toChildrenCount(1), DEFAULT_TAX_RULES));
-  const result = computePayrollTaxBase([parents[0], parents[1]], DEFAULT_TAX_RULES);
+  const result = computePayrollTaxBase([parents[0], parents[1]], DEFAULT_TAX_RULES, TaxAssessment.Joint);
   assert.equal(result.taxBase, undefined);
   assert.deepEqual(result.incomeByPerson, []);
   assert.equal(result.reasons.length, 1);
@@ -104,4 +107,23 @@ it("flags missing annual age relief without marking monthly withholding provisio
   assert.match(result.reasons[0], /Annual age relief.*https:\/\/www.gesetze-im-internet.de\/estg\/__24a.html/);
   assert.ok(older.netIncome > payroll(5000).netIncome);
   assert.ok(older.payments.every((payment) => payment.payroll.payrollLimitations.length === 0));
+});
+
+it("requires an explicit assessment for two people instead of pooling allowances silently", () => {
+  const result = computePayrollTaxBase([payroll(5000), payroll(0)], DEFAULT_TAX_RULES);
+  assert.equal(result.assessment, TaxAssessment.Unspecified);
+  assert.equal(result.taxBase, undefined);
+  assert.match(result.reasons[0], /Choose individual or joint assessment/);
+});
+
+it("sums individual bases after separate deduction limits and zero floors", () => {
+  const people = [payroll(5000), payroll(0)] as const;
+  const separate = computePayrollTaxBase(people, DEFAULT_TAX_RULES, TaxAssessment.Individual);
+  const joint = computePayrollTaxBase(people, DEFAULT_TAX_RULES, TaxAssessment.Joint);
+  assert.equal(separate.taxBase?.taxableIncome, 46674);
+  assert.equal(separate.individualBases.length, 2);
+  assert.equal(separate.individualBases[1].taxableIncome, 0);
+  assert.equal(joint.taxBase?.taxableIncome, 46638);
+  assert.equal(joint.individualBases.length, 0);
+  assert.throws(() => computePayrollTaxBase([people[0]], DEFAULT_TAX_RULES, TaxAssessment.Joint), TypeError);
 });

@@ -1,3 +1,6 @@
+import {
+  TaxAssessment,
+} from "#engine/tax/taxAssessment";
 import assert from "node:assert/strict";
 import {
   it,
@@ -267,6 +270,7 @@ it("calculator annual taxable income uses its own active months, bonuses and par
   assert.deepEqual(single, yearly);
   const joint = calculateScenarioData({ ...inputs,
     hasPartner: true,
+    assessmentMode: TaxAssessment.Joint,
     partnerGrossIncome: 3000,
     partnerWorkingMonths: 12,
     partnerSalariesPerYear: 12,
@@ -306,4 +310,25 @@ it("reorders saved columns without changing live inputs or an active draft", () 
     cancelEdit();
     savedScenarios.value = before;
   }
+});
+
+it("keeps assessment choice independent of partner presence and net withholding", () => {
+  const inputs = { ...getCurrentInputs(),
+    children: 0,
+    hasChurchTax: false,
+    partnerHasChurchTax: false,
+    personalPayroll: {},
+    partnerPersonalPayroll: {},
+    hasPartner: true,
+    assessmentMode: TaxAssessment.Unspecified };
+  const pending = calculateScenarioData(inputs);
+  const individual = calculateScenarioData({ ...inputs,
+    assessmentMode: TaxAssessment.Individual });
+  const joint = calculateScenarioData({ ...inputs,
+    assessmentMode: TaxAssessment.Joint });
+  assert.equal(pending.annualTaxableIncome.taxBase, undefined);
+  assert.deepEqual(pending.household, individual.household);
+  assert.deepEqual(individual.household, joint.household);
+  assert.equal(calculateScenarioData({ ...inputs,
+    hasPartner: false }).annualTaxableIncome.assessment, TaxAssessment.Individual);
 });

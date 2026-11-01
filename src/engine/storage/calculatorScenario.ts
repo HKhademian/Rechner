@@ -1,4 +1,8 @@
 import {
+  TaxAssessment,
+  toTaxAssessment,
+} from "#engine/tax/taxAssessment";
+import {
   DEFAULT_TAX_YEAR,
 } from "#engine/tax/taxRules";
 import {
@@ -23,7 +27,7 @@ import {
 import states from "../../data/germanStates.json" with { type: "json" };
 
 const DOCUMENT_FORMAT = "german-net-pay-scenario";
-const DOCUMENT_VERSION = 2;
+const DOCUMENT_VERSION = 3;
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -35,7 +39,7 @@ function record(value: unknown): Record<string, unknown> {
 /** Parse all inputs before touching live state; never accept cached results or tariff overrides. */
 export function parseCalculatorScenario(value: unknown): CalculatorInputs {
   const document = record(value);
-  if (document.format !== DOCUMENT_FORMAT || (document.version !== 1 && document.version !== DOCUMENT_VERSION)) {
+  if (document.format !== DOCUMENT_FORMAT || (document.version !== 1 && document.version !== 2 && document.version !== DOCUMENT_VERSION)) {
     throw new TypeError("Unsupported file. Choose a JSON file exported from a saved Net Pay Calculator scenario.");
   }
   const inputs = record(document.inputs);
@@ -84,6 +88,7 @@ export function parseCalculatorScenario(value: unknown): CalculatorInputs {
   return {
     inputMode: mode,
     partnerInputMode: partnerMode,
+    assessmentMode: inputs.assessmentMode === undefined ? TaxAssessment.Unspecified : typeof inputs.assessmentMode === "string" ? toTaxAssessment(inputs.assessmentMode) : toTaxAssessment(""),
     grossIncome: toGrossSalary(numeric("grossIncome")),
     taxBracket: bracket("taxBracket"),
     hasChurchTax: flag("hasChurchTax"),

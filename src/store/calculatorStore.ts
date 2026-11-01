@@ -1,4 +1,8 @@
 import {
+  TaxAssessment,
+  toTaxAssessment,
+} from "#engine/tax/taxAssessment";
+import {
   type CalculatorGrossField,
   withGrossInputForPeriod,
 } from "#engine/tax/calculatorGrossPeriod";
@@ -111,6 +115,8 @@ export interface CalculatorInputs {
   salariesPerYear: number;
   /** True if household includes a spouse / partner. */
   hasPartner: boolean;
+  /** Required explicitly before combining two annual tax assessments. */
+  assessmentMode?: TaxAssessment;
   /** Partner's gross income amount in EUR. */
   partnerGrossIncome: number;
   /** Partner's tax class bracket. */
@@ -225,6 +231,8 @@ export const partnerInputMode = persistedSignal<CalculatorInputs["inputMode"] | 
   throw new TypeError("Invalid partner salary input basis.");
 });
 
+export const assessmentMode = persistedSignal<TaxAssessment>("assessmentMode", TaxAssessment.Unspecified, (value) => toTaxAssessment(String(value)));
+
 // Person 1 Settings
 export const grossIncome = persistedSignal<number>(
   "grossIncome",
@@ -329,6 +337,7 @@ export function getCurrentInputs(): CalculatorInputs {
     workingMonths: workingMonths.value,
     salariesPerYear: salariesPerYear.value,
     hasPartner: hasPartner.value,
+    assessmentMode: assessmentMode.value,
     partnerGrossIncome: partnerGrossIncome.value,
     partnerTaxBracket: partnerTaxBracket.value,
     partnerHasChurchTax: partnerHasChurchTax.value,
@@ -418,6 +427,7 @@ function applyLiveInputs(inputs: CalculatorInputs): void {
     inputMode.value =
       inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
     partnerInputMode.value = inputs.partnerInputMode;
+    assessmentMode.value = inputs.assessmentMode === undefined ? TaxAssessment.Unspecified : toTaxAssessment(inputs.assessmentMode);
     grossIncome.value =
       inputs.grossIncome ?? DEFAULT_CALCULATOR_INPUTS.grossIncome;
     taxBracket.value =
@@ -584,7 +594,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     person1.totalDeductions + (partner ? partner.totalDeductions : 0);
 
   return {
-    annualTaxableIncome: computePayrollTaxBase(partner ? [annualPayrolls[0], annualPayrolls[1]] : [annualPayrolls[0]], rules),
+    annualTaxableIncome: computePayrollTaxBase(partner ? [annualPayrolls[0], annualPayrolls[1]] : [annualPayrolls[0]], rules, partner ? inputs.assessmentMode === undefined ? TaxAssessment.Unspecified : toTaxAssessment(inputs.assessmentMode) : TaxAssessment.Individual),
     person1,
     partner,
     household: {
