@@ -174,7 +174,7 @@
 
 .comparison-section-heading {
   grid-column: 1 / -1;
-  padding: 20px 16px;
+  padding: 12px;
   text-align: left;
   background: var(--bg-surface-secondary);
   color: var(--text-primary);
@@ -210,7 +210,7 @@
 }
 
 .comparison-subsection-heading {
-  padding: 25px 16px 8px;
+  padding: 12px 12px 8px;
   text-align: left;
   background: var(--bg-surface-secondary);
   color: var(--text-muted);
@@ -228,4 +228,24 @@
   .comparison-shell:not(.comparison-show-saved) .comparison-section-row > td {
     display: none;
   }
+}
+
+.comparison-live-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px 44px;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gain);
+  font-size: 1.1rem;
+}
+
+/* Import feedback spans the header instead of squeezing the icon toolbar. */
+.comparison-live-header .calculator-column-tools {
+  display: contents;
+}
+
+.comparison-live-header .calculator-column-tools small {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  font-weight: 400;
 }

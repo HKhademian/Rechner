@@ -139,14 +139,14 @@ export function ComparisonTableContent(): JSX.Element {
     <tr className="comparison-detail-row">
       <th scope="row">{label}</th>
       <td key={`live-details-${liveImportRevision.value}`} className="comparison-detail-cell" aria-label={`Live calculation: ${label}`}>
-        {hasInvalidLive && <p role="status">Results use the last valid inputs.</p>}
+        {hasInvalidLive && <p role="status">Last valid inputs</p>}
         {render(deductions.value, "live", true, "Live Calculation")}
       </td>
       {savedScenarios.value.map((scenario) => {
         const data = activeScenarioId.value === scenario.id && scenarioDraft.value
           ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs);
         return <td key={scenario.id} className="comparison-detail-cell" aria-label={`${scenario.title}: ${label}`}>
-          {hasInvalidSaved(scenario.id) && <p role="status">Results use the last valid draft inputs.</p>}
+          {hasInvalidSaved(scenario.id) && <p role="status">Last valid inputs</p>}
           {render(data, `scenario-${scenario.id}`, false, `${scenario.title}${activeScenarioId.value === scenario.id ? " (draft)" : ""}`)}
         </td>;
       })}
@@ -259,7 +259,7 @@ export function ComparisonTableContent(): JSX.Element {
         key="current"
         class="tabular-nums"
         style={{
-          padding: "12px 16px",
+          padding: "8px 12px",
           fontWeight: "bold",
           borderBottom: "1px solid var(--border-subtle)",
           background: "var(--color-gain-bg)",
@@ -292,7 +292,7 @@ export function ComparisonTableContent(): JSX.Element {
           key={scenario.id}
           class="tabular-nums"
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             fontWeight: "bold",
             borderBottom: "1px solid var(--border-subtle)",
             minWidth: "220px",
@@ -318,7 +318,7 @@ export function ComparisonTableContent(): JSX.Element {
       <tr class="comparison-row">
         <td
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             fontWeight: 600,
             borderBottom: "1px solid var(--border-subtle)",
             color: "var(--text-secondary)",
@@ -362,7 +362,7 @@ export function ComparisonTableContent(): JSX.Element {
         key="current"
         class="tabular-nums"
         style={{
-          padding: "12px 16px",
+          padding: "8px 12px",
           borderBottom: "1px solid var(--border-subtle)",
           background: "var(--color-gain-bg)",
           minWidth: "220px",
@@ -391,7 +391,7 @@ export function ComparisonTableContent(): JSX.Element {
           key={scenario.id}
           class="tabular-nums"
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             borderBottom: "1px solid var(--border-subtle)",
             minWidth: "220px",
             color: "var(--text-primary)",
@@ -411,7 +411,7 @@ export function ComparisonTableContent(): JSX.Element {
       <tr class="comparison-row">
         <td
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             fontWeight: 500,
             borderBottom: "1px solid var(--border-subtle)",
             color: "var(--text-muted)",
@@ -466,7 +466,7 @@ export function ComparisonTableContent(): JSX.Element {
         key="current"
         class="tabular-nums"
         style={{
-          padding: "12px 16px",
+          padding: "8px 12px",
           fontWeight: isHeader ? "bold" : "normal",
           borderBottom: "1px solid var(--border-subtle)",
           background: "var(--color-gain-bg)",
@@ -498,7 +498,7 @@ export function ComparisonTableContent(): JSX.Element {
           key={scenario.id}
           class="tabular-nums"
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             fontWeight: isHeader ? "bold" : "normal",
             borderBottom: "1px solid var(--border-subtle)",
             minWidth: "220px",
@@ -514,7 +514,7 @@ export function ComparisonTableContent(): JSX.Element {
       <tr class="comparison-row">
         <td
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             fontWeight: 600,
             borderBottom: "1px solid var(--border-subtle)",
             color: "var(--text-primary)",
@@ -545,7 +545,7 @@ export function ComparisonTableContent(): JSX.Element {
       <td
         key={`current-${liveImportRevision.value}`}
         style={{
-          padding: "12px 16px",
+          padding: "8px 12px",
           borderBottom: "1px solid var(--border-subtle)",
           background: "var(--color-gain-bg)",
           color: "var(--text-primary)",
@@ -587,7 +587,7 @@ export function ComparisonTableContent(): JSX.Element {
         <td
           key={scenario.id}
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             borderBottom: "1px solid var(--border-subtle)",
             color: "var(--text-secondary)",
             fontSize: "0.9rem",
@@ -609,7 +609,7 @@ export function ComparisonTableContent(): JSX.Element {
       <tr class="comparison-row">
         <td
           style={{
-            padding: "12px 16px",
+            padding: "8px 12px",
             fontWeight: 500,
             borderBottom: "1px solid var(--border-subtle)",
             color: "var(--text-muted)",
@@ -623,8 +623,7 @@ export function ComparisonTableContent(): JSX.Element {
         >
           {label}
           {fieldKey === "taxBracket" && <small className="comparison-field-hint">
-            {CALCULATOR_PARTNER_SHORTCUT.classes.join("/")} enable partner; review partner inputs.{" "}
-            <a href={CALCULATOR_PARTNER_SHORTCUT.source} target="_blank" rel="noreferrer">Tax-class rules</a>
+            <a href={CALCULATOR_PARTNER_SHORTCUT.source} title={`${CALCULATOR_PARTNER_SHORTCUT.classes.join("/")} enable partner`} target="_blank" rel="noreferrer">Class rules</a>
           </small>}
         </td>
         {cells}
@@ -634,7 +633,7 @@ export function ComparisonTableContent(): JSX.Element {
 
   const handleAddScenario = (): void => {
     const count = savedScenarios.peek().length + 1;
-    saveScenario(`Scenario ${count}`, "New simulation", deductions.peek());
+    saveScenario(`Scenario ${count}`, "", deductions.peek());
   };
 
   return (
@@ -691,59 +690,17 @@ export function ComparisonTableContent(): JSX.Element {
                   borderTop: "2px solid var(--color-gain)",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "start",
-                      gap: "8px",
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontSize: "1.1rem",
-                          color: "var(--color-gain)",
-                          padding: "2px 4px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Live Calculation
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.8rem",
-                          fontWeight: "normal",
-                          color: "var(--text-muted)",
-                          padding: "2px 4px",
-                        }}
-                      >
-                        Edit inputs below; results update immediately
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={handleAddScenario}
-                      disabled={hasInvalidLive}
-                      aria-label="Save scenario"
-                      className="comparison-save-scenario"
-                      title={hasInvalidLive ? "Complete or correct live inputs before saving" : "Save a new scenario from these live inputs"}
-                    >
-                      <SaveConfigurationIcon />
-                    </button>
-                  </div>
+                <div className="comparison-live-header">
+                  <span>Live</span>
+                  <button onClick={handleAddScenario} disabled={hasInvalidLive} aria-label="Save scenario"
+                    className="comparison-save-scenario" title={hasInvalidLive ? "Check inputs before saving" : "Save scenario"}>
+                    <SaveConfigurationIcon />
+                  </button>
+                  <LiveColumnImport onImported={() => {
+                    liveImportRevision.value += 1;
+                    invalidInputs.value = Object.fromEntries(Object.entries(invalidInputs.peek()).filter(([id]) => !id.startsWith("live-")));
+                  }} />
                 </div>
-                <LiveColumnImport onImported={() => {
-                  liveImportRevision.value += 1;
-                  invalidInputs.value = Object.fromEntries(Object.entries(invalidInputs.peek()).filter(([id]) => !id.startsWith("live-")));
-                }} />
               </th>
 
               {savedScenarios.value.map((scenario, index) => {
@@ -814,14 +771,14 @@ export function ComparisonTableContent(): JSX.Element {
                             }}
                             title={isActive ? "Edit title" : scenario.title}
                           />
-                          <input
+                          {(isActive || scenario.description) && <input
                             type="text"
                             value={
                               isActive && scenarioDraft.value
                                 ? scenarioDraft.value.description
                                 : scenario.description
                             }
-                            placeholder={isActive ? "Add description..." : ""}
+                            placeholder={isActive ? "Note" : ""}
                             onInput={(e) => {
                               if (isActive && scenarioDraft.value) {
                                 updateScenarioMetaData(
@@ -848,7 +805,7 @@ export function ComparisonTableContent(): JSX.Element {
                                 ? "Edit description"
                                 : scenario.description
                             }
-                          />
+                          />}
                         </div>
 
                         <div style={{ display: "flex",
@@ -987,7 +944,7 @@ export function ComparisonTableContent(): JSX.Element {
               (inputs) => inputs.hasPartner ? "Yes" : "No",
             )}
 
-            {renderSectionRow("Person 1 Parameters")}
+            {renderSectionRow("Person 1")}
             {(() => {
               const taxBracketOptions = [
                 { value: "1",
@@ -1082,7 +1039,7 @@ export function ComparisonTableContent(): JSX.Element {
 
             {hasAnyPartner && (
               <>
-                {renderSectionRow("Partner Parameters")}
+                {renderSectionRow("Partner")}
                 {(() => {
                   const taxBracketOptions = [
                     { value: "1",
@@ -1179,12 +1136,12 @@ export function ComparisonTableContent(): JSX.Element {
 
             {renderDetailRow("Payroll settings", (data, _id, live) => live
               ? <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
-              : <p>Tax year {data.annualTaxableIncome.rules.calendarYear}. Use Edit in this column to change its saved payroll inputs. <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">Official payroll profile</a></p>)}
+              : <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">{data.annualTaxableIncome.rules.calendarYear} payroll profile</a>)}
 
           </tbody>
           <tbody aria-label="Results and summaries">
-            {renderSectionRow("Results and summaries", true)}
-            {renderSectionRow("Household Summary")}
+            {renderSectionRow("Results", true)}
+            {renderSectionRow("Household")}
             {renderRow(
               isMonthly ? "Household Avg Gross" : "Household Gross",
               null,
@@ -1208,7 +1165,7 @@ export function ComparisonTableContent(): JSX.Element {
               true,
             )}
 
-            {renderSectionRow("Person 1 Summary")}
+            {renderSectionRow("Person 1")}
             {renderRow(
               isMonthly ? "Avg Gross" : "Gross Income",
               "person1",
@@ -1245,7 +1202,7 @@ export function ComparisonTableContent(): JSX.Element {
 
             {hasAnyPartner && (
               <>
-                {renderSectionRow("Partner Summary")}
+                {renderSectionRow("Partner")}
                 {renderRow(
                   isMonthly ? "Avg Gross" : "Gross Income",
                   "partner",
