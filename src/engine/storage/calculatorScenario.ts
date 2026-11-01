@@ -23,7 +23,7 @@ import {
 import states from "../../data/germanStates.json" with { type: "json" };
 
 const DOCUMENT_FORMAT = "german-net-pay-scenario";
-const DOCUMENT_VERSION = 1;
+const DOCUMENT_VERSION = 2;
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -35,7 +35,7 @@ function record(value: unknown): Record<string, unknown> {
 /** Parse all inputs before touching live state; never accept cached results or tariff overrides. */
 export function parseCalculatorScenario(value: unknown): CalculatorInputs {
   const document = record(value);
-  if (document.format !== DOCUMENT_FORMAT || document.version !== DOCUMENT_VERSION) {
+  if (document.format !== DOCUMENT_FORMAT || (document.version !== 1 && document.version !== DOCUMENT_VERSION)) {
     throw new TypeError("Unsupported file. Choose a JSON file exported from a saved Net Pay Calculator scenario.");
   }
   const inputs = record(document.inputs);
@@ -77,8 +77,13 @@ export function parseCalculatorScenario(value: unknown): CalculatorInputs {
   if (mode !== "monthly" && mode !== "yearly") {
     throw new TypeError("Choose monthly or yearly gross input.");
   }
+  const partnerMode = inputs.partnerInputMode;
+  if (partnerMode !== undefined && partnerMode !== "monthly" && partnerMode !== "yearly") {
+    throw new TypeError("Partner gross input basis must be monthly or yearly.");
+  }
   return {
     inputMode: mode,
+    partnerInputMode: partnerMode,
     grossIncome: toGrossSalary(numeric("grossIncome")),
     taxBracket: bracket("taxBracket"),
     hasChurchTax: flag("hasChurchTax"),

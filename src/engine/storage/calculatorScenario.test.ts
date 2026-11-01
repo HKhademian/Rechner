@@ -20,7 +20,8 @@ it("round-trips complete calculator inputs and imports transactionally without c
     grossIncome: 6123.45,
     inputMode: "monthly" as const,
     hasPartner: true,
-    partnerGrossIncome: 0 };
+    partnerGrossIncome: 0,
+    partnerInputMode: "yearly" as const };
   const scenario = { id: "transfer",
     title: "Transfer",
     description: "A saved case",
@@ -29,6 +30,11 @@ it("round-trips complete calculator inputs and imports transactionally without c
     data: calculateScenarioData(inputs) };
   const raw = JSON.parse(serializeCalculatorScenario(scenario));
   assert.equal(raw.data, undefined);
+  assert.equal(raw.version, 2);
+  assert.equal(parseCalculatorScenario({ ...raw,
+    version: 1,
+    inputs: { ...inputs,
+      partnerInputMode: undefined } }).partnerInputMode, undefined);
   assert.deepEqual(parseCalculatorScenario(raw), inputs);
   const saved = savedScenarios.peek();
   const draft = scenarioDraft.peek();
@@ -43,7 +49,7 @@ it("round-trips complete calculator inputs and imports transactionally without c
         version: 999 },
       { ...raw,
         format: "simulator" },
-      ...[{ grossIncome: -1 }, { hasPartner: "yes" }, { workingMonths: 13 }, { state: "unknown" }, { taxYear: 2035 }, { inputMode: "weekly" }, { partnerGrossIncome: "" }, { taxFactor: 2 }, { partnerPersonalPayroll: { ageAtYearStart: -1 } }].map((change) => ({ ...raw,
+      ...[{ grossIncome: -1 }, { hasPartner: "yes" }, { workingMonths: 13 }, { state: "unknown" }, { taxYear: 2035 }, { inputMode: "weekly" }, { partnerInputMode: "weekly" }, { partnerGrossIncome: "" }, { taxFactor: 2 }, { partnerPersonalPayroll: { ageAtYearStart: -1 } }].map((change) => ({ ...raw,
         inputs: { ...inputs,
           ...change } })),
     ]) {

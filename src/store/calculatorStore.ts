@@ -1,4 +1,8 @@
 import {
+  type CalculatorGrossField,
+  withGrossInputForPeriod,
+} from "#engine/tax/calculatorGrossPeriod";
+import {
   AppId,
 } from "#/apps/appDefinition.ts";
 import {
@@ -39,6 +43,7 @@ import {
   type FullCalendarYear,
   type TaxFactor,
   type TaxClass,
+  toSalaryPeriod,
   SalaryPeriod,
   TaxClass as Classes,
   toGrossSalary,
@@ -88,6 +93,8 @@ function persistedSignal<T>(key: string, initialValue: T, parse?: (value: unknow
 export interface CalculatorInputs {
   /** Salary input frequency ("yearly" or "monthly"). */
   inputMode: "yearly" | "monthly";
+  /** Omitted by legacy cases: partner uses the primary input basis. */
+  partnerInputMode?: CalculatorInputs["inputMode"];
   /** Primary earner gross income amount in EUR. */
   grossIncome: number;
   /** Primary earner tax class bracket (e.g. "I", "III", "IV", "V"). */
@@ -208,6 +215,16 @@ export const inputMode = persistedSignal<"yearly" | "monthly">(
   DEFAULT_CALCULATOR_INPUTS.inputMode,
 );
 
+/** One presentation setting for all columns; it is not part of a saved financial scenario. */
+export const calculatorViewPeriod = persistedSignal<SalaryPeriod>("viewPeriod", inputMode.value === "monthly" ? SalaryPeriod.Monthly : SalaryPeriod.Yearly, (value) => toSalaryPeriod(String(value)));
+export const calculatorInvalidInputs = signal<Record<string, boolean>>({});
+export const partnerInputMode = persistedSignal<CalculatorInputs["inputMode"] | undefined>("partnerInputMode", undefined, (value) => {
+  if (value === undefined || value === "monthly" || value === "yearly") {
+    return value;
+  }
+  throw new TypeError("Invalid partner salary input basis.");
+});
+
 // Person 1 Settings
 export const grossIncome = persistedSignal<number>(
   "grossIncome",
@@ -303,6 +320,7 @@ export function getCurrentInputs(): CalculatorInputs {
     partnerPersonalPayroll: partnerPersonalPayroll.value,
     taxFactor: personalTaxFactor.value,
     inputMode: inputMode.value,
+    partnerInputMode: partnerInputMode.value,
     grossIncome: grossIncome.value,
     taxBracket: taxBracket.value,
     hasChurchTax: hasChurchTax.value,
@@ -399,6 +417,7 @@ function applyLiveInputs(inputs: CalculatorInputs): void {
     personalTaxFactor.value = inputs.taxFactor === undefined ? undefined : toTaxFactor(inputs.taxFactor);
     inputMode.value =
       inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
+    partnerInputMode.value = inputs.partnerInputMode;
     grossIncome.value =
       inputs.grossIncome ?? DEFAULT_CALCULATOR_INPUTS.grossIncome;
     taxBracket.value =
@@ -499,6 +518,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     months: number,
     salaries: number,
     personal: PayrollOptions,
+    mode: CalculatorInputs["inputMode"],
   ): PersonDeductions => {
     const taxClass = inputTaxClasses[bracket];
     if (!taxClass) {
@@ -507,7 +527,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     const options = parsePersonalPayrollOptions(personal);
     const result = computeEmploymentPayroll(
       { gross: toGrossSalary(gross),
-        period: inputs.inputMode === "monthly" ? SalaryPeriod.Monthly : SalaryPeriod.Yearly,
+        period: mode === "monthly" ? SalaryPeriod.Monthly : SalaryPeriod.Yearly,
         monthsWorked: toMonthDuration(months),
         annualSalaryPayments: toSalaryPaymentCount(salaries) },
       taxClass,
@@ -544,6 +564,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     inputs.workingMonths,
     inputs.salariesPerYear,
     inputs.personalPayroll ?? {},
+    inputs.inputMode,
   );
   const partner = inputs.hasPartner ? calculatePerson(
     inputs.partnerGrossIncome,
@@ -553,6 +574,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
     inputs.partnerWorkingMonths,
     inputs.partnerSalariesPerYear,
     inputs.partnerPersonalPayroll ?? {},
+    inputs.partnerInputMode ?? inputs.inputMode,
   ) : null;
 
   const householdGross =
@@ -613,6 +635,28 @@ export function updateScenarioInput<K extends keyof CalculatorInputs>(
       inputs: newInputs,
       data: calculateScenarioData(newInputs),
     };
+  }
+}
+
+export function updateLiveGrossInput(field: CalculatorGrossField, amount: ReturnType<typeof toGrossSalary>): void {
+  const next = withGrossInputForPeriod(getCurrentInputs(), field, amount, calculatorViewPeriod.value);
+  calculateScenarioData(next);
+  batch(() => {
+    inputMode.value = next.inputMode;
+    partnerInputMode.value = next.partnerInputMode;
+    grossIncome.value = next.grossIncome;
+    partnerGrossIncome.value = next.partnerGrossIncome;
+  });
+}
+
+export function updateDraftGrossInput(field: CalculatorGrossField, amount: ReturnType<typeof toGrossSalary>): void {
+  const draft = scenarioDraft.peek();
+  if (draft) {
+    const inputs = withGrossInputForPeriod(draft.inputs, field, amount, calculatorViewPeriod.value);
+    const data = calculateScenarioData(inputs);
+    scenarioDraft.value = { ...draft,
+      inputs,
+      data };
   }
 }
 
