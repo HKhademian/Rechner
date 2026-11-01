@@ -42,7 +42,7 @@ export function computePayrollTaxBase(
       limitations.push("The annual single-parent relief is not supported by this taxable-income model.");
     }
     if (person.payments.some((payment) => payment.payroll.childrenCount > 0)) {
-      limitations.push("Child allowances need eligibility and allocation details. https://www.gesetze-im-internet.de/estg/__32.html");
+      limitations.push(`Child allowances need eligibility and allocation details. ${rules.parameters.childAllowanceAnnual.source}`);
     }
     return limitations;
   }))];

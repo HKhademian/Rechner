@@ -85,6 +85,14 @@ export function computeEmploymentPayroll(
   const solidarity = sum((p) => p.payroll.monthlySolidaritySurcharge + p.payroll.bonusSolidaritySurcharge);
   const totalSocialSecurity = toEuroAmount(healthCare + pension + unemployment + care);
   const totalDeductions = toEuroAmount(totalSocialSecurity + tax + churchTax + solidarity);
+  // Annual assessment relief is separate from the correctly applied PAP withholding relief.
+  const annualAssessmentLimitations: string[] = [];
+  if (schedule.annualGross > 0 && personal.ageAtYearStart !== undefined && personal.ageAtYearStart >= rules.parameters.ageReliefMinimumAge.value) {
+    annualAssessmentLimitations.push(`Annual age relief is not modeled. ${rules.parameters.ageReliefMinimumAge.source}`);
+  }
+  if ((personal.childAllowanceFactor ?? 0) > 0) {
+    annualAssessmentLimitations.push(`Child allowances need eligibility and allocation details. ${rules.parameters.childAllowanceAnnual.source}`);
+  }
   return { ...schedule,
     payments,
     healthCare,
@@ -97,9 +105,6 @@ export function computeEmploymentPayroll(
     totalSocialSecurity,
     totalDeductions,
     netIncome: toEuroAmount(schedule.annualGross - totalDeductions),
-    // Annual assessment relief is separate from the correctly applied PAP withholding relief.
-    annualAssessmentLimitations: Object.freeze(schedule.annualGross > 0 && personal.ageAtYearStart !== undefined &&
-      personal.ageAtYearStart >= rules.parameters.ageReliefMinimumAge.value
-      ? [`Annual age relief is not modeled. ${rules.parameters.ageReliefMinimumAge.source}`] : []),
+    annualAssessmentLimitations: Object.freeze(annualAssessmentLimitations),
     assumptions: [...new Set([...schedule.assumptions, ...payments.flatMap((p) => p.payroll.assumptions)])] };
 }

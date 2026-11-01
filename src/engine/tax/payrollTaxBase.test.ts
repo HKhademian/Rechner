@@ -1,4 +1,7 @@
 import {
+  toChildAllowanceFactor,
+} from "#engine/tax/payroll";
+import {
   TaxAssessment,
 } from "#engine/tax/taxAssessment";
 import assert from "node:assert/strict";
@@ -90,7 +93,8 @@ it("withholds an incomplete annual base when child allowances are not modeled", 
   assert.equal(result.taxBase, undefined);
   assert.deepEqual(result.incomeByPerson, []);
   assert.equal(result.reasons.length, 1);
-  assert.match(result.reasons[0], /Child allowances.*https:\/\/www.gesetze-im-internet.de\/estg\/__32.html/);
+  assert.match(result.reasons[0], /^Child allowances/);
+  assert.ok(result.reasons[0].endsWith(DEFAULT_TAX_RULES.parameters.childAllowanceAnnual.source));
   assert.ok(parents.every((person) => person.netIncome > 0 && person.tax > 0));
 });
 
@@ -126,4 +130,18 @@ it("sums individual bases after separate deduction limits and zero floors", () =
   assert.equal(joint.taxBase?.taxableIncome, 46638);
   assert.equal(joint.individualBases.length, 0);
   assert.throws(() => computePayrollTaxBase([people[0]], DEFAULT_TAX_RULES, TaxAssessment.Joint), TypeError);
+});
+
+it("guards an explicit ELStAM child allowance even when the household child count is zero", () => {
+  const person = computeEmploymentPayroll({
+    gross: toGrossSalary(5000),
+    period: SalaryPeriod.Monthly,
+    monthsWorked: toMonthDuration(12),
+    annualSalaryPayments: toSalaryPaymentCount(12),
+  }, TaxClass.I, toChildrenCount(0), DEFAULT_TAX_RULES, { childAllowanceFactor: toChildAllowanceFactor(0.5) });
+  const result = computePayrollTaxBase([person], DEFAULT_TAX_RULES);
+  assert.equal(result.taxBase, undefined);
+  assert.equal(result.reasons.length, 1);
+  assert.ok(result.reasons[0].endsWith(DEFAULT_TAX_RULES.parameters.childAllowanceAnnual.source));
+  assert.ok(person.payments.every((payment) => payment.payroll.payrollLimitations.length === 0));
 });
