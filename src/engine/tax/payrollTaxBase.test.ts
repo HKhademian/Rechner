@@ -74,3 +74,18 @@ it("keeps provisional payroll and unsupported annual deductions unavailable", ()
   assert.equal(result.taxBase, undefined);
   assert.ok(result.reasons.some((reason) => reason.includes("church-tax deduction")));
 });
+
+it("withholds an incomplete annual base when child allowances are not modeled", () => {
+  const parents = [12000, 8000].map((gross) => computeEmploymentPayroll({
+    gross: toGrossSalary(gross),
+    period: SalaryPeriod.Monthly,
+    monthsWorked: toMonthDuration(12),
+    annualSalaryPayments: toSalaryPaymentCount(12),
+  }, TaxClass.IV, toChildrenCount(1), DEFAULT_TAX_RULES));
+  const result = computePayrollTaxBase([parents[0], parents[1]], DEFAULT_TAX_RULES);
+  assert.equal(result.taxBase, undefined);
+  assert.deepEqual(result.incomeByPerson, []);
+  assert.equal(result.reasons.length, 1);
+  assert.match(result.reasons[0], /Child allowances.*https:\/\/www.gesetze-im-internet.de\/estg\/__32.html/);
+  assert.ok(parents.every((person) => person.netIncome > 0 && person.tax > 0));
+});
