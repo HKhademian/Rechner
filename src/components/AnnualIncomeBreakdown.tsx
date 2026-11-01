@@ -10,12 +10,15 @@ import {
   type TaxRules,
 } from "#engine/tax/taxRules";
 import {
+  DEFAULT_AGE_RELIEF_RULES,
+} from "#engine/tax/ageRelief";
+import {
   type computeAnnualEmploymentTaxBase,
   type computeIndividualEmploymentTaxBase,
 } from "#engine/tax/annualEmploymentIncome";
 
 type IncomeContribution = ReturnType<typeof computeIndividualEmploymentTaxBase>["income"];
-type TaxBase = Pick<ReturnType<typeof computeAnnualEmploymentTaxBase>, "pensionDeduction" | "insuranceDeduction" | "specialExpenses" | "taxableIncome">;
+type TaxBase = Pick<ReturnType<typeof computeAnnualEmploymentTaxBase>, "ageRelief" | "pensionDeduction" | "insuranceDeduction" | "specialExpenses" | "taxableIncome">;
 
 export interface AnnualIncomeBreakdownProps {
   readonly people: readonly { readonly label: string;
@@ -74,6 +77,7 @@ export default function AnnualIncomeBreakdown({ people, base, profile }: AnnualI
           <h3>{joint ? "Joint assessment" : "Individual assessment"}</h3>
           <dl>
             <div><dt>{joint ? "Combined employment income" : "Employment income"}</dt><dd>{money(combined)}</dd></div>
+            {base.ageRelief > 0 && <div><dt><a href={DEFAULT_AGE_RELIEF_RULES.source} target="_blank" rel="noreferrer">Age relief</a></dt><dd>− {money(base.ageRelief)}</dd></div>}
             <div><dt>{profile ? <a href={profile.parameters.pensionDeductibleFraction.source} target="_blank" rel="noreferrer">Deductible pension contributions</a> : "Deductible pension contributions"}</dt><dd>− {money(base.pensionDeduction)}</dd></div>
             <div><dt>{profile ? <a href={profile.parameters.healthDeductibleFraction.source} target="_blank" rel="noreferrer">Deductible health, care and other insurance</a> : "Deductible health, care and other insurance"}</dt><dd>− {money(base.insuranceDeduction)}</dd></div>
             <div><dt>{profile ? <a href={profile.parameters.specialExpenseAllowance.source} target="_blank" rel="noreferrer">Special-expense allowance</a> : "Special-expense allowance"}</dt><dd>− {money(base.specialExpenses)}</dd></div>
