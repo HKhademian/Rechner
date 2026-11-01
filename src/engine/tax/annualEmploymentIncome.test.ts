@@ -80,3 +80,14 @@ it("uses individual deduction limits without an invented second household member
   assert.equal(limited.insuranceDeduction, DEFAULT_TAX_RULES.parameters.otherInsuranceDeductionLimit.value);
   assert.equal(computeIndividualEmploymentTaxBase(income(), DEFAULT_TAX_RULES).taxableIncome, 0);
 });
+
+it("subtracts age relief without changing work expenses or inventing a negative base", () => {
+  const person = { ...income(1000),
+    ageRelief: toEuroAmount(128) };
+  const result = computeIndividualEmploymentTaxBase(person, DEFAULT_TAX_RULES);
+  assert.equal(result.income.workExpenses, 1000);
+  assert.equal(result.ageRelief, 128);
+  assert.equal(result.taxableIncome, 0);
+  assert.throws(() => computeIndividualEmploymentTaxBase({ ...income(100),
+    ageRelief: toEuroAmount(101) }, DEFAULT_TAX_RULES), TypeError);
+});

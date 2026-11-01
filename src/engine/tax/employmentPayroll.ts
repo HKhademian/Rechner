@@ -17,6 +17,9 @@ import {
   type TaxRules,
 } from "#engine/tax/taxRules";
 import {
+  computeEmploymentAgeRelief,
+} from "#engine/tax/ageRelief";
+import {
   computeGrossToNetBreakdown,
   computeBonusSocialInsurance,
 } from "#engine/tax/wageTax";
@@ -85,11 +88,9 @@ export function computeEmploymentPayroll(
   const solidarity = sum((p) => p.payroll.monthlySolidaritySurcharge + p.payroll.bonusSolidaritySurcharge);
   const totalSocialSecurity = toEuroAmount(healthCare + pension + unemployment + care);
   const totalDeductions = toEuroAmount(totalSocialSecurity + tax + churchTax + solidarity);
-  // Annual assessment relief is separate from the correctly applied PAP withholding relief.
+  // Deduct age relief once on actual annual wages, independently of monthly PAP rounding.
+  const ageRelief = computeEmploymentAgeRelief(schedule.annualGross, personal.ageAtYearStart, rules);
   const annualAssessmentLimitations: string[] = [];
-  if (schedule.annualGross > 0 && personal.ageAtYearStart !== undefined && personal.ageAtYearStart >= rules.parameters.ageReliefMinimumAge.value) {
-    annualAssessmentLimitations.push(`Annual age relief is not modeled. ${rules.parameters.ageReliefMinimumAge.source}`);
-  }
   if ((personal.childAllowanceFactor ?? 0) > 0) {
     annualAssessmentLimitations.push(`Child allowances need eligibility and allocation details. ${rules.parameters.childAllowanceAnnual.source}`);
   }
@@ -104,6 +105,7 @@ export function computeEmploymentPayroll(
     solidarity,
     totalSocialSecurity,
     totalDeductions,
+    ageRelief,
     netIncome: toEuroAmount(schedule.annualGross - totalDeductions),
     annualAssessmentLimitations: Object.freeze(annualAssessmentLimitations),
     assumptions: [...new Set([...schedule.assumptions, ...payments.flatMap((p) => p.payroll.assumptions)])] };

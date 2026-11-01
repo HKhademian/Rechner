@@ -98,7 +98,7 @@ it("withholds an incomplete annual base when child allowances are not modeled", 
   assert.ok(parents.every((person) => person.netIncome > 0 && person.tax > 0));
 });
 
-it("flags missing annual age relief without marking monthly withholding provisional", () => {
+it("deducts annual age relief while retaining the valid monthly withholding", () => {
   const older = computeEmploymentPayroll({
     gross: toGrossSalary(5000),
     period: SalaryPeriod.Monthly,
@@ -106,11 +106,30 @@ it("flags missing annual age relief without marking monthly withholding provisio
     annualSalaryPayments: toSalaryPaymentCount(12),
   }, TaxClass.I, toChildrenCount(0), DEFAULT_TAX_RULES, { ageAtYearStart: toAgeYears(64) });
   const result = computePayrollTaxBase([older], DEFAULT_TAX_RULES);
-  assert.equal(result.taxBase, undefined);
-  assert.equal(result.reasons.length, 1);
-  assert.match(result.reasons[0], /Annual age relief.*https:\/\/www.gesetze-im-internet.de\/estg\/__24a.html/);
+  assert.equal(result.taxBase?.taxableIncome, 46066);
+  assert.equal(result.taxBase?.ageRelief, 608);
+  assert.deepEqual(result.reasons, []);
   assert.ok(older.netIncome > payroll(5000).netIncome);
   assert.ok(older.payments.every((payment) => payment.payroll.payrollLimitations.length === 0));
+});
+
+it("applies separate age-relief cohorts before either assessment's deductions", () => {
+  const older = (age: number, months = 12, salaries = 12) => computeEmploymentPayroll({
+    gross: toGrossSalary(5000),
+    period: SalaryPeriod.Monthly,
+    monthsWorked: toMonthDuration(months),
+    annualSalaryPayments: toSalaryPaymentCount(salaries),
+  }, TaxClass.I, toChildrenCount(0), DEFAULT_TAX_RULES, { ageAtYearStart: toAgeYears(age) });
+  const people = [older(64), older(65)] as const;
+  const separate = computePayrollTaxBase(people, DEFAULT_TAX_RULES, TaxAssessment.Individual);
+  const joint = computePayrollTaxBase(people, DEFAULT_TAX_RULES, TaxAssessment.Joint);
+  assert.equal(separate.individualBases[0].ageRelief, 608);
+  assert.equal(separate.individualBases[1].ageRelief, 627);
+  assert.equal(joint.taxBase?.ageRelief, 1235);
+  assert.equal(joint.taxBase?.taxableIncome, separate.taxBase?.taxableIncome);
+  // No monthly proration of the personal annual cap, including bonus receipts.
+  assert.equal(older(64, 6, 13).ageRelief, 608);
+  assert.equal(older(64, 0).ageRelief, 0);
 });
 
 it("requires an explicit assessment for two people instead of pooling allowances silently", () => {

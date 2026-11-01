@@ -55,6 +55,7 @@ export function computePayrollTaxBase(
     care: person.care,
     pension: person.pension,
     unemployment: person.unemployment,
+    ageRelief: person.ageRelief,
   }));
   const individualBases = reasons.length === 0 && mode === TaxAssessment.Individual
     ? incomes.map((income) => computeIndividualEmploymentTaxBase(income, rules)) : [];
@@ -68,6 +69,7 @@ export function computePayrollTaxBase(
       pensionDeduction: sum((base) => base.pensionDeduction),
       insuranceDeduction: sum((base) => base.insuranceDeduction),
       specialExpenses: sum((base) => base.specialExpenses),
+      ageRelief: sum((base) => base.ageRelief),
       taxableIncome: sum((base) => base.taxableIncome) }) : undefined);
   const incomeByPerson = jointBase ? [jointBase.incomeByPartner.husband, jointBase.incomeByPartner.wife]
     : individualBases.map((base) => base.income);

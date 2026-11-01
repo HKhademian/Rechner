@@ -15,6 +15,7 @@ export interface AnnualEmploymentIncome {
   readonly care: EuroAmount;
   readonly pension: EuroAmount;
   readonly unemployment: EuroAmount;
+  readonly ageRelief?: EuroAmount;
 }
 
 /** Joint taxable employment income for ordinary employer-insured spouses, before child allowances.
@@ -30,6 +31,9 @@ function employmentTaxBase(
   for (const income of incomes) {
     if (Object.values(income).some((amount) => !Number.isFinite(amount) || amount < 0)) {
       throw new TypeError("Annual wages and employee contributions must be non-negative finite amounts.");
+    }
+    if ((income.ageRelief ?? 0) > income.gross) {
+      throw new TypeError("Employment age relief cannot exceed gross wages.");
     }
   }
   const p = rules.parameters;
@@ -47,8 +51,10 @@ function employmentTaxBase(
   ));
   const specialExpenses = toEuroAmount(incomes.length * p.specialExpenseAllowance.value);
   const gross = toEuroAmount(husband.gross + wifeGross);
+  // Each person's cohort limit is applied before combining the household amounts (§24a).
+  const ageRelief = toEuroAmount((husband.ageRelief ?? 0) + (wife?.ageRelief ?? 0));
   const taxableIncome = toEuroAmount(Math.max(0, gross - husbandWorkExpenses - wifeWorkExpenses -
-    pensionDeduction - insuranceDeduction - specialExpenses));
+    ageRelief - pensionDeduction - insuranceDeduction - specialExpenses));
   // Preserve each partner's contribution before the deductions pooled by joint assessment.
   const incomeByPartner = Object.freeze({
     husband: Object.freeze({ gross: husband.gross,
@@ -67,6 +73,7 @@ function employmentTaxBase(
     pensionDeduction,
     protectedInsurance,
     insuranceDeduction,
+    ageRelief,
     specialExpenses,
     taxableIncome });
 }
@@ -92,6 +99,7 @@ export function computeIndividualEmploymentTaxBase(
     pensionDeduction: base.pensionDeduction,
     protectedInsurance: base.protectedInsurance,
     insuranceDeduction: base.insuranceDeduction,
+    ageRelief: base.ageRelief,
     specialExpenses: base.specialExpenses,
     taxableIncome: base.taxableIncome,
   });
