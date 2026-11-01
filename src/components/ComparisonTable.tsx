@@ -86,6 +86,7 @@ import {
   RemoveItemIcon,
   SaveConfigurationIcon,
   EditSettingsIcon,
+  DismissIcon,
 } from "#components/Icons";
 
 export default function ComparisonTable(): JSX.Element | null {
@@ -735,7 +736,7 @@ export function ComparisonTableContent(): JSX.Element {
                       className="comparison-save-scenario"
                       title={hasInvalidLive ? "Complete or correct live inputs before saving" : "Save a new scenario from these live inputs"}
                     >
-                      <SaveConfigurationIcon /> Save scenario
+                      <SaveConfigurationIcon />
                     </button>
                   </div>
                 </div>
@@ -924,6 +925,7 @@ export function ComparisonTableContent(): JSX.Element {
                         <div style={{ display: "flex",
                           gap: "5px" }}>
                           <button
+                            aria-label={`${scenario.title}: Save changes`}
                             onClick={saveDraft}
                             disabled={hasInvalidSaved(scenario.id) || !hasUnsavedScenarioChanges.value}
                             style={{
@@ -934,17 +936,19 @@ export function ComparisonTableContent(): JSX.Element {
                               borderRadius: "4px",
                               fontWeight: "bold",
                               cursor: "pointer",
-                              flex: 1,
+                              width: "44px",
+                              minHeight: "44px",
+                              flexShrink: 0,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              gap: "4px",
                             }}
                             title={hasInvalidSaved(scenario.id) ? "Complete or correct scenario inputs before saving" : "Save changes to scenario"}
                           >
-                            <SaveConfigurationIcon /> Save
+                            <SaveConfigurationIcon />
                           </button>
                           <button
+                            aria-label={`${scenario.title}: Cancel editing`}
                             onClick={cancelEdit}
                             style={{
                               background: "transparent",
@@ -954,11 +958,15 @@ export function ComparisonTableContent(): JSX.Element {
                               borderRadius: "4px",
                               fontWeight: "bold",
                               cursor: "pointer",
-                              flex: 1,
+                              width: "44px",
+                              minHeight: "44px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                             title="Cancel editing"
                           >
-                            Cancel
+                            <DismissIcon />
                           </button>
                         </div>
                       )}

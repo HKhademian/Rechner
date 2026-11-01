@@ -741,6 +741,18 @@ export const StepTransitionIcon = ({
   </svg>
 );
 
+/** Intention: Reorder a comparison column toward the beginning. */
+export const MoveColumnLeftIcon = ({ size = 16, className = "" }: IconProps): JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} class={className}
+    viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M19 12H5m7-7-7 7 7 7" />
+  </svg>
+);
+
+/** Intention: Reorder a comparison column toward the end. */
+export const MoveColumnRightIcon = StepTransitionIcon;
+
 /** Intention: Expand collapsed accordion or details drawer */
 export const ExpandSectionIcon = ({
   size = 14,

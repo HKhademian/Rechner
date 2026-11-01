@@ -20,7 +20,9 @@ import {
 } from "#engine/storage/calculatorScenario";
 import {
   ImportDataIcon,
-  JsonExportIcon,
+  DownloadFileIcon,
+  MoveColumnLeftIcon,
+  MoveColumnRightIcon,
 } from "#components/Icons";
 
 /** A selected file replaces live inputs only after complete validation and payroll recalculation. */
@@ -30,8 +32,8 @@ export function LiveColumnImport({ onImported }: { onImported: () => void }): JS
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   return <div className="calculator-column-tools">
-    <button type="button" disabled={busy} title="Import a saved calculator JSON file into live inputs" onClick={() => fileInput.current?.click()}>
-      <ImportDataIcon size={16} /> {busy ? "Importing…" : "Import"}
+    <button type="button" disabled={busy} aria-busy={busy} aria-label={busy ? "Importing calculator scenario" : "Import calculator scenario"} title="Import a saved calculator JSON file into live inputs" onClick={() => fileInput.current?.click()}>
+      <ImportDataIcon size={16} />
     </button>
     <input ref={fileInput} type="file" accept=".json,application/json" hidden aria-label="Import calculator scenario file"
       onChange={async (event) => {
@@ -86,9 +88,9 @@ export function SavedColumnTools({ scenario, first, last }: { scenario: SavedSce
         catch (problem) {
           setError(problem instanceof Error ? problem.message : "Could not export this scenario.");
         }
-      }}><JsonExportIcon size={16} /> Export saved</button>
-    <button type="button" aria-label={`${scenario.title}: Move left`} disabled={first} onClick={() => moveScenarioLeft(scenario.id)}>Move left</button>
-    <button type="button" aria-label={`${scenario.title}: Move right`} disabled={last} onClick={() => moveScenarioRight(scenario.id)}>Move right</button>
+      }}><DownloadFileIcon size={16} /></button>
+    <button type="button" aria-label={`${scenario.title}: Move left`} title="Move scenario left" disabled={first} onClick={() => moveScenarioLeft(scenario.id)}><MoveColumnLeftIcon /></button>
+    <button type="button" aria-label={`${scenario.title}: Move right`} title="Move scenario right" disabled={last} onClick={() => moveScenarioRight(scenario.id)}><MoveColumnRightIcon size={16} /></button>
     {error && <small role="alert">{error}</small>}
   </div>;
 }
