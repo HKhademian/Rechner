@@ -62,3 +62,13 @@ The fresh external verification used four concurrent read-only requests to the e
 - `eaaa878`: compact per-column assessment selector, matching result labels, and separate individual detail panels. A standalone person uses individual assessment; partner toggles preserve the stored choice.
 
 Full checks/build passed for each implementation scope. Additional headless checks verified required selection, individual/joint amounts, saved-draft isolation and unavailable relief results. Isolated-origin browser verification covered selection, separate per-person details, child-allowance suppression and restoration to standalone mode. The reproduction script now also prints the three explicit assessment modes; the original finding descriptions above remain a snapshot of the reviewed revision. All 26 pinned BMF withholding fixtures still match after these changes.
+
+## Annual age-relief correction
+
+Implemented after the safeguards, on 2026-11-01:
+
+- `9991f8d`: extracted and verified all 54 cohorts (2005–2058) from the current official section 24a table into source-linked configuration. The parser validates rates, caps, consecutive years and the terminal zero allowance. The cohort helper uses the existing age-on-1-January/PAP convention; older cohorts retain the first table limit.
+- `0409731`: net-pay payroll carries a separately calculated annual deduction on actual wages, including bonuses. Annual assessment deducts each person's own cohort amount before combining the household; individual assessments still apply separate limits and zero floors. The age-only unavailable guard is removed on this path. Standard 2026 age 64 case: EUR 608 relief and EUR 46,066 modeled taxable income, with unchanged PAP payroll results. Age 65 retains the 2025 cohort cap of EUR 627.
+- `a00073f`: annual details show a compact source-linked age-relief deduction only when positive, including each person's individual assessment panel.
+
+Validation: full checks and build passed for each implementation scope; all pinned BMF fixtures pass. Added regressions cover cohort/year boundaries, capped and uncapped wages, zero wages, both assessments, partial-year/bonus receipts and invalid configuration. Headless rendering verified the row, source link, separate partner amounts and zero-row omission. This does not establish support for pension receipts, exempt social-insurance status or other income. Child-allowance, church-tax and single-parent limitations remain. The parental-leave annual collector retains its independent age-relief guard.
