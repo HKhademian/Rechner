@@ -37,4 +37,4 @@ These tools support planning and learning. Estimates depend on the information s
 
 ## Use and permissions
 
-The hosted calculators are free for individual personal, non-commercial use. Commercial, professional, organizational, service-provision, source-code, modification, and redistribution uses require a separate written license and agreed benefit for the Maintainer. See the [Personal Use License](LICENSE), [Use Terms](TERMS_OF_USE.md), and [Contributor License Agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md).
+The hosted calculators are free for personal use and for freelancers or small businesses planning their own finances internally. Using Rechner for client advice, paid consulting, or a service for others requires a separate written license and agreed benefit for the Maintainer. Source-code, modification, and redistribution rights also require written permission. See the [Personal Use License](LICENSE), [Use Terms](TERMS_OF_USE.md), and [Contributor License Agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md).
