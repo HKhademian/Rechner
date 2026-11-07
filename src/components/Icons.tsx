@@ -297,17 +297,12 @@ export const CalculatorNavigationIcon = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <rect width="16" height="20" x="4" y="2" rx="2" />
-    <line x1="8" x2="16" y1="6" y2="6" />
-    <line x1="16" x2="16" y1="14" y2="14" />
-    <line x1="16" x2="16" y1="18" y2="18" />
-    <line x1="8" x2="8.01" y1="10" y2="10" />
-    <line x1="12" x2="12.01" y1="10" y2="10" />
-    <line x1="16" x2="16.01" y1="10" y2="10" />
-    <line x1="8" x2="8.01" y1="14" y2="14" />
-    <line x1="12" x2="12.01" y1="14" y2="14" />
-    <line x1="8" x2="8.01" y1="18" y2="18" />
-    <line x1="12" x2="12.01" y1="18" y2="18" />
+    <rect width="18" height="18" x="3" y="3" rx="4" />
+    <path d="M7 8h10" />
+    <path d="M7 12h4" />
+    <path d="M7 16h4" />
+    <path d="M15 12v4" />
+    <path d="M13 14h4" />
   </svg>
 );
 
