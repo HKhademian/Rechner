@@ -6,8 +6,9 @@ Notable user-facing changes to Rechner are grouped by release. Unreleased change
 
 ### Added
 
-- Added a proprietary personal-use license for the hosted calculators and a contributor agreement for project code contributions.
+- Added a proprietary personal-use license for the hosted calculators and terms covering commercial use, redistribution, and automated extraction.
 - Added a project-wide use, accuracy, warranty, and liability notice.
+- Added a visible footer notice linking to the terms for hosted calculator use, including automated access.
 - Published the Rechner calculator catalog and workspaces on GitHub Pages.
 - Added selectable page-only, tab-only and on-device storage modes for calculator inputs.
 - Added visible source revision provenance to calculator pages and saved exports.

@@ -1,3 +1,21 @@
+.source-use-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-primary);
+  background: var(--bg-app);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.source-use-notice a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 .source-revision {
   margin: 8px 0 0;
   color: var(--text-muted);
