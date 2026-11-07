@@ -22,6 +22,7 @@ export const OfflineState = {
   Preparing: "preparing",
 } as const;
 type OfflineState = (typeof OfflineState)[keyof typeof OfflineState];
+const showOfflineSection = false;
 
 /** Compact privacy and offline controls in one popup. */
 export default function PrivacyStatus({ app }: { app?: AppId }): JSX.Element {
@@ -122,25 +123,27 @@ export default function PrivacyStatus({ app }: { app?: AppId }): JSX.Element {
             : "checking";
 
   return <details className="privacy-status" ref={detailsRef}>
-    <summary aria-label={`Privacy and offline settings. Offline status: ${offlineLabel}`}>
+    <summary aria-label="Privacy and offline settings">
       <svg className="privacy-status__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none">
         <path d="M12 3 19 6v5c0 4.7-2.8 8.2-7 10-4.2-1.8-7-5.3-7-10V6l7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
         <path d="m9 12 2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span>Offline</span>
-      <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
     </summary>
     <div className="privacy-status__panel">
       <p className="privacy-status__assurance">No tracking · No cookies · No profiling</p>
       <p>Calculations stay in your browser · no data server</p>
       {app && <StorageModeControl app={app} />}
       <p>App API calls blocked · source links in clean new tabs</p>
-      <div className="privacy-status__offline">
-        <p>Offline cache · {offlineLabel} · first visit online</p>
+      {showOfflineSection && <div className="privacy-status__offline">
+        <p className="privacy-status__offline-status">
+          <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
+          <span>Offline cache · {offlineLabel} · first visit online</span>
+        </p>
         <button className="privacy-status__offline-action" type="button" onClick={prepareOffline} disabled={offlineState === OfflineState.Preparing || offlineState === OfflineState.Offline}>
           {offlineState === OfflineState.Preparing ? "Preparing…" : offlineState === OfflineState.Prepared ? "Offline ready" : "Prepare offline"}
         </button>
-      </div>
+      </div>}
       <p className="privacy-status__limit">First request visible to host · browser storage unencrypted</p>
     </div>
   </details>;

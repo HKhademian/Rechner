@@ -97,6 +97,12 @@
   border-top: 1px solid var(--border-subtle);
 }
 
+.privacy-status__offline-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .privacy-status__panel button:disabled {
   opacity: 0.6;
   cursor: wait;
