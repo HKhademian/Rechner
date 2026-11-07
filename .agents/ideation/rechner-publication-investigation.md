@@ -20,7 +20,7 @@ References: [Cloudflare Pages Astro guide](https://developers.cloudflare.com/pag
 ## Recommended release sequence
 
 1. Decide the public product name, URL/domain, whether the source repository should be public, and whether this is a public beta or a general release.
-2. Review the exact commit intended for release and the repository's public contents. The local `main` currently reports 123 commits ahead of its recorded `origin/main` tracking ref; that ref may be stale, so compare against GitHub before any push. An unrelated untracked `test-random/` directory is present and must not be included accidentally.
+2. Review the exact commit intended for release and the repository's public contents. Before this investigation commit, local `main` reported 123 commits ahead of its recorded remote tracking ref; after the commit, it tracks `github/main` and reports one commit ahead. Confirm the actual remote state before any push because local tracking refs can be stale. An unrelated untracked `test-random/` directory is present and must not be included accidentally.
 3. Confirm a suitable root `LICENSE` if the source is intended to be open source. Website hosting does not require an open-source source repository.
 4. Review the production-facing legal/model limitations and privacy wording. The README already states important calculation limits; make the user-facing notices easy to find before launch.
 5. Build from a clean checkout using Node.js 22.12 or newer, deploy a preview, and check the catalog and calculator routes, client-side assets, browser persistence, exports, and mobile layout.
