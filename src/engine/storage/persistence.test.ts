@@ -6,6 +6,14 @@ import {
 } from "node:test";
 import assert from "node:assert/strict";
 import {
+  AppId,
+} from "#/apps/appDefinition.ts";
+import {
+  getStorageMode,
+  setStorageMode,
+  StorageMode,
+} from "#engine/storage/appStorage";
+import {
   type ElterngeldPersistedState,
   ELTERNGELD_STORAGE_KEY,
   getDefaultPersistedState,
@@ -328,20 +336,22 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
   describe("Storage Mocking & Browser Environment Guards", () => {
     let mockStorage: Record<string, string> = {};
 
-    const createMockStorage = (): Storage => ({
-      getItem: (k: string) => mockStorage[k] ?? null,
+    const createMockStorage = (values: Record<string, string>): Storage => ({
+      getItem: (k: string) => values[k] ?? null,
       setItem: (k: string, v: string) => {
-        mockStorage[k] = v;
+        values[k] = v;
       },
       removeItem: (k: string) => {
-        delete mockStorage[k];
+        delete values[k];
       },
       clear: () => {
-        mockStorage = {};
+        for (const key of Object.keys(values)) {
+          delete values[key];
+        }
       },
-      key: (index: number) => Object.keys(mockStorage)[index] ?? null,
+      key: (index: number) => Object.keys(values)[index] ?? null,
       get length() {
-        return Object.keys(mockStorage).length;
+        return Object.keys(values).length;
       },
     });
 
@@ -354,21 +364,31 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
         writable: true,
       });
       Object.defineProperty(globalThis, "localStorage", {
-        value: createMockStorage(),
+        value: createMockStorage(mockStorage),
         configurable: true,
         writable: true,
       });
+      Object.defineProperty(globalThis, "sessionStorage", {
+        value: createMockStorage({}),
+        configurable: true,
+        writable: true,
+      });
+      clearStorage();
     });
 
     afterEach(() => {
       Reflect.deleteProperty(globalThis, "window");
       Reflect.deleteProperty(globalThis, "localStorage");
+      Reflect.deleteProperty(globalThis, "sessionStorage");
     });
 
     it("migrates legacy parental plans without deleting them or reviving them after clear", () => {
       const legacy = serializeState({ ...getDefaultPersistedState(),
         husbandGross: toGrossSalary(4321) });
       localStorage.setItem("elterngeld_simulator_state_v1", legacy);
+      assert.equal(setStorageMode(AppId.ParentalLeave, StorageMode.Persistent, true), true);
+      assert.equal(getStorageMode(AppId.ParentalLeave), StorageMode.Persistent);
+      assert.equal(JSON.parse(localStorage.getItem(ELTERNGELD_STORAGE_KEY) ?? "{}").husbandGross, 4321);
       assert.equal(loadFromStorage().husbandGross, 4321);
       assert.equal(localStorage.getItem("elterngeld_simulator_state_v1"), legacy);
       assert.equal(clearStorage(), true);
@@ -377,6 +397,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     });
 
     it("saves state, loads state, and clears state via localStorage adapter", () => {
+      assert.equal(setStorageMode(AppId.ParentalLeave, StorageMode.Persistent, true), true);
       const state = getDefaultPersistedState();
       const updated: ElterngeldPersistedState = {
         ...state,

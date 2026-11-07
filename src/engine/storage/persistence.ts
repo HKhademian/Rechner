@@ -19,7 +19,7 @@ import {
  * German Elterngeld & Parental Leave 5-Year Simulator - State Persistence Engine
  *
  * Provides type-safe serialization, deserialization, schema validation,
- * and robust localStorage persistence for all user sandbox inputs,
+ * and selectable browser storage for all user sandbox inputs,
  * timeline parameters, custom actions, and UI view preferences.
  * Enforces nominal branded types, const object enums, and runtime validation
  * per repository rules and domain modeling guidelines.
@@ -110,7 +110,7 @@ function checkedSalaryReplacement(action: SalaryRaiseAction): SalaryRaiseAction 
   return action;
 }
 
-/** LocalStorage key for persisting the complete simulator state envelope. */
+/** Namespaced key for persisting the complete simulator state envelope. */
 export const ELTERNGELD_STORAGE_KEY = appStorageKey(AppId.ParentalLeave, "state");
 const parentalLeaveStorage = browserAppStorage(AppId.ParentalLeave);
 
@@ -1727,7 +1727,7 @@ export function deserializeState(
 }
 
 /**
- * Saves simulator state directly into browser `localStorage`.
+ * Saves simulator state through the selected parental-leave storage adapter.
  *
  * @param state - Complete simulator state to persist.
  * @param key - Storage key (defaults to `ELTERNGELD_STORAGE_KEY`).
@@ -1742,11 +1742,7 @@ export function saveToStorage(
   }
   try {
     const serialized = serializeState(state);
-    if (key === ELTERNGELD_STORAGE_KEY) {
-      return parentalLeaveStorage.setItem("state", serialized);
-    }
-    localStorage.setItem(key, serialized);
-    return true;
+    return parentalLeaveStorage.setItem(key === ELTERNGELD_STORAGE_KEY ? "state" : key, serialized);
   }
   catch {
     return false;
@@ -1754,7 +1750,7 @@ export function saveToStorage(
 }
 
 /**
- * Loads and validates simulator state from browser `localStorage`, falling back to statutory defaults.
+ * Loads and validates simulator state from the selected storage adapter, falling back to statutory defaults.
  *
  * @param key - Storage key (defaults to `ELTERNGELD_STORAGE_KEY`).
  * @returns Validated `ElterngeldPersistedState`.
@@ -1766,7 +1762,7 @@ export function loadFromStorage(
     return getDefaultPersistedState();
   }
   try {
-    const item = key === ELTERNGELD_STORAGE_KEY ? parentalLeaveStorage.getItem("state") : localStorage.getItem(key);
+    const item = parentalLeaveStorage.getItem(key === ELTERNGELD_STORAGE_KEY ? "state" : key);
     if (!item) {
       return getDefaultPersistedState();
     }
@@ -1778,7 +1774,7 @@ export function loadFromStorage(
 }
 
 /**
- * Removes persisted simulator state from browser `localStorage`.
+ * Removes simulator state from the selected storage adapter.
  *
  * @param key - Storage key to purge (defaults to `ELTERNGELD_STORAGE_KEY`).
  * @returns True if successfully removed.
@@ -1788,11 +1784,7 @@ export function clearStorage(key: string = ELTERNGELD_STORAGE_KEY): boolean {
     return false;
   }
   try {
-    if (key === ELTERNGELD_STORAGE_KEY) {
-      return parentalLeaveStorage.removeItem("state");
-    }
-    localStorage.removeItem(key);
-    return true;
+    return parentalLeaveStorage.removeItem(key === ELTERNGELD_STORAGE_KEY ? "state" : key);
   }
   catch {
     return false;

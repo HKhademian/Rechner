@@ -1,7 +1,7 @@
 # Rechner Privacy and Storage Modes
 
 **Date:** 2026-11-07  
-**Status:** Product direction; implementation not started.
+**Status:** Storage selection implemented; network and offline controls remain future work.
 
 ## Goal
 
@@ -41,15 +41,14 @@ Rechner can promise that its application code does not transmit calculator input
 
 A web page cannot revoke the browser/device's network permission in the way Android can restrict an app. A stronger offline experience would require an installable, locally cached application and a restrictive Content Security Policy, with all runtime assets served locally and no third-party dependencies. Opening a legal source link still makes a user-initiated request to that external site. Keep offline packaging and network policy as a separate, later decision from storage mode.
 
-## Current implementation evidence
+## Implementation update
 
-- `src/engine/storage/appStorage.ts` exposes an app-scoped storage interface, but its browser provider is hard-coded to `localStorage` and it may copy legacy keys during reads/writes.
-- `src/engine/storage/persistence.ts` saves, loads, and clears parental-leave state through that app-scoped provider; other stores also persist automatically.
-- `src/store/elterngeldStore.ts` automatically persists reactive state changes.
-- The repository already opts out of framework telemetry and tracking through Rule 18, but that does not itself define browser storage consent or a device-level network block.
+- The app-scoped provider now supports memory, tab session, and persistent browser storage modes.
+- Calculator pages expose a storage selector. New sessions default to memory; persistent mode requires an explicit browser confirmation.
+- Changing modes transfers only that calculator's namespaced data. Leaving persistent mode removes its Rechner-owned persistent keys.
+- Parental-leave save, load, and reset operations use the selected adapter.
+- No cookie or app network-request API was found in the code search; no browser network permission or offline package has been implemented.
 
 ## Open decisions
 
-- Whether first use should start in memory-only mode or ask the user to select a mode before entering data.
-- Whether session storage should be the default for users who want reload recovery without long-term persistence.
 - Whether a later offline/PWA package is part of Rechner's release scope.

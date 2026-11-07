@@ -81,7 +81,7 @@ import {
   triggerPrintableReport,
 } from "#engine/storage/exportImport";
 
-// Initial state loaded from localStorage (or statutory defaults)
+// Initial state comes from the selected browser storage mode or statutory defaults.
 const initialPersisted = loadFromStorage();
 
 /**
@@ -909,7 +909,7 @@ export function removeAllCustomActions(): void {
 }
 
 /**
- * Persists the entire reactive state of the simulator into localStorage.
+ * Persists the entire reactive state through the selected browser storage mode.
  */
 /**
  * Constructs the strongly-typed snapshot of the active simulation state.
@@ -975,7 +975,7 @@ export function getCurrentPersistedState(): ElterngeldPersistedState {
 }
 
 /**
- * Persists the entire reactive state of the simulator into localStorage.
+ * Persists the entire reactive state through the selected browser storage mode.
  */
 export function persistCurrentState(): void {
   saveToStorage(getCurrentPersistedState());
@@ -1091,7 +1091,7 @@ export function importSimulationState(
   persistCurrentState();
 }
 
-// Auto-persist signal changes to localStorage in browser environment
+// Auto-persist signal changes through the selected storage adapter in the browser.
 if (typeof window !== "undefined") {
   effect(() => {
     persistCurrentState();

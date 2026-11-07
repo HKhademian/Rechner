@@ -71,7 +71,7 @@ export function applyThemeToDocument(mode: ThemeMode): void {
 }
 
 /**
- * Updates the active theme mode signal, persists preference to localStorage, and updates document DOM attribute.
+ * Updates the active theme mode, saves it through the selected storage adapter, and updates the document theme.
  *
  * @param newMode - Selected `ThemeMode` (Light, Dark, or System).
  */
