@@ -131,16 +131,17 @@ export default function PrivacyStatus({ app }: { app?: AppId }): JSX.Element {
       <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
     </summary>
     <div className="privacy-status__panel">
-      <p>No account, cookies, analytics, or calculator-data server. Calculations run here.</p>
+      <p className="privacy-status__assurance">No tracking · No cookies · No profiling</p>
+      <p>Calculations stay in your browser · no data server</p>
       {app && <StorageModeControl app={app} />}
-      <p>API calls are blocked. Source links open in clean new tabs.</p>
+      <p>App API calls blocked · source links in clean new tabs</p>
       <div className="privacy-status__offline">
-        <p>Offline: {offlineLabel}. First visit needs internet.</p>
+        <p>Offline cache · {offlineLabel} · first visit online</p>
         <button className="privacy-status__offline-action" type="button" onClick={prepareOffline} disabled={offlineState === OfflineState.Preparing || offlineState === OfflineState.Offline}>
-          {offlineState === OfflineState.Preparing ? "Preparing…" : offlineState === OfflineState.Prepared ? "Offline copy ready" : "Prepare Rechner offline"}
+          {offlineState === OfflineState.Preparing ? "Preparing…" : offlineState === OfflineState.Prepared ? "Offline ready" : "Prepare offline"}
         </button>
       </div>
-      <p className="privacy-status__limit">Your browser, device, and host handle the first request. Saved data is not encrypted.</p>
+      <p className="privacy-status__limit">First request visible to host · browser storage unencrypted</p>
     </div>
   </details>;
 }

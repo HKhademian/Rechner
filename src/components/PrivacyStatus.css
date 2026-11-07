@@ -76,6 +76,11 @@
   margin: 0;
 }
 
+.privacy-status__assurance {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
 .privacy-status__limit {
   color: var(--text-muted);
   font-size: 0.69rem;

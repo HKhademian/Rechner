@@ -43,7 +43,7 @@ export default function StorageModeControl({ app }: { app: AppId }): JSX.Element
     }
     const acknowledge = pendingMode === StorageMode.Persistent;
     if (!setStorageMode(app, pendingMode, acknowledge)) {
-      setNotice("Storage unavailable. Existing data was kept.");
+      setNotice("Storage unavailable · data kept");
       setPendingMode(null);
       return;
     }
@@ -56,10 +56,10 @@ export default function StorageModeControl({ app }: { app: AppId }): JSX.Element
   };
 
   const pendingNotice = pendingMode === StorageMode.Persistent
-    ? "Save in this browser until deleted?"
+    ? "Save on this device · clear manually?"
     : pendingMode === StorageMode.Session
-      ? "Keep in this tab; clear device copies?"
-      : "Keep on this page; clear saved copies?";
+      ? "Keep in this tab · clear device copy?"
+      : "Keep on this page · clear saved copies?";
 
   return <section className="storage-mode-control" aria-label="Calculator data storage">
     <div className="storage-mode-control__buttons" role="group" aria-label="Choose where calculator data is kept">
