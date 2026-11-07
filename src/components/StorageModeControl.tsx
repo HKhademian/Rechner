@@ -16,14 +16,20 @@ import {
 
 const modeLabels: Readonly<Record<StorageMode, string>> = {
   [StorageMode.Memory]: "Page",
-  [StorageMode.Session]: "Tab",
+  [StorageMode.Session]: "Session",
   [StorageMode.Persistent]: "Device",
 };
 
+const modeLifetimes: Readonly<Record<StorageMode, string>> = {
+  [StorageMode.Memory]: "until refresh or close",
+  [StorageMode.Session]: "until browser closes",
+  [StorageMode.Persistent]: "until cleared",
+};
+
 const modeAccessibleLabels: Readonly<Record<StorageMode, string>> = {
-  [StorageMode.Memory]: "Keep data only on this page",
-  [StorageMode.Session]: "Keep data in this browser tab",
-  [StorageMode.Persistent]: "Save data in this browser on this device",
+  [StorageMode.Memory]: "Page · until refresh or close",
+  [StorageMode.Session]: "Session · until browser closes",
+  [StorageMode.Persistent]: "Device · until cleared",
 };
 
 export default function StorageModeControl({ app }: { app: AppId }): JSX.Element {
@@ -58,10 +64,11 @@ export default function StorageModeControl({ app }: { app: AppId }): JSX.Element
   const pendingNotice = pendingMode === StorageMode.Persistent
     ? "Save on this device · clear manually?"
     : pendingMode === StorageMode.Session
-      ? "Keep in this tab · clear device copy?"
+      ? "Keep until browser closes · clear device copy?"
       : "Keep on this page · clear saved copies?";
 
   return <section className="storage-mode-control" aria-label="Calculator data storage">
+    <p className="storage-mode-control__heading">Storage</p>
     <div className="storage-mode-control__buttons" role="group" aria-label="Choose where calculator data is kept">
       {Object.values(StorageMode).map((option) => <button
         key={option}
@@ -74,7 +81,10 @@ export default function StorageModeControl({ app }: { app: AppId }): JSX.Element
           setNotice("");
           setPendingMode(option === mode ? null : option);
         }}
-      >{modeLabels[option]}</button>)}
+      >
+        <span>{modeLabels[option]}</span>
+        <small>{modeLifetimes[option]}</small>
+      </button>)}
     </div>
     {pendingMode && <div className="storage-mode-control__notice" role="status">
       <span>{pendingNotice}</span>
