@@ -1,0 +1,47 @@
+# Personal Use License
+
+Project: Rechner
+
+Copyright © 2026 Hossain Khademian. All rights reserved.
+
+This is a proprietary, source-available license. Rechner is not open-source software. Publishing source code does not grant permission to copy, modify, redistribute, commercialize, or provide services using it except as expressly stated here.
+
+## 1. Free personal and own-business use of the hosted product
+
+An individual may access and use the hosted Rechner calculators, free of charge, for personal planning and learning. A freelancer, sole proprietor, or small business may also use them, free of charge, for its own internal planning of its pay, taxes, benefits, and finances. These permissions do not allow using Rechner to advise clients, prepare client work, deliver paid consulting, resell access, or provide a calculator or other service to others.
+
+## 2. Source code and other project materials
+
+The source code, designs, documentation, calculation models, data arrangements, and other project materials remain protected by the rights held by their respective rightsholders. Merely viewing or downloading publicly accessible material does not grant a license to reuse it. Except for the permission in section 1 and any signed separate license, all rights are reserved. Statutory permissions and exceptions remain as stated in section 8.
+
+No permission is granted to copy, modify, adapt, publish, distribute, sublicense, sell, or make a derivative or competing product from project materials. No permission is granted to embed, host, expose, or use any part of Rechner in a service for other people. Each of these uses requires a separate written license signed by the Maintainer.
+
+## 3. Commercial permission and benefit
+
+Except for the own-business internal planning permission in section 1, commercial, professional, organizational, client-facing, resale, and service-provision uses require a separate written agreement signed by the Maintainer before the use begins. A consultant or other professional using Rechner to advise a client or deliver paid work must obtain that agreement. It must state the permission granted and the benefit or compensation provided to the Maintainer. No such permission is granted by silence, public availability, contribution, or this license alone.
+
+## 4. Modifications and redistribution under a separate agreement
+
+This license does not grant a general right to modify or redistribute Rechner. Any separate license that authorizes source-code use, modification, publication, redistribution, or service use must require the licensee to provide the complete corresponding source and all changes to the Maintainer without charge, promptly as they are made and again on request, and to grant the Maintainer exclusive worldwide rights of use in the licensee's own changes. A change does not avoid that condition merely because it is small or stylistic.
+
+No permission to use, copy, modify, redistribute, or provide a service using source code is effective until every person whose rights are included has signed a written agreement with these conditions. Each creator must grant the Maintainer the exclusive rights of use in their own changes, without charge and without a retained approval or control right, subject to section 8.
+
+No person may claim ownership of the original Rechner materials. Rights in third-party changes can be granted only by a written agreement signed by the person who created or controls those changes.
+
+## 5. Automated access and text and data mining
+
+Bots, agents, crawlers, scrapers, automated clients, and other automated systems have no permission under this license to access or use Rechner source code, documentation, data, pages, or outputs for bulk extraction, dataset creation, text or data mining, model training, evaluation, or other automated processing. Such use requires a separate written license signed by the Maintainer, subject to the statutory permissions and exceptions in section 8.
+
+## 6. No warranty
+
+Rechner and all project materials are provided "as is" and "as available," without any express or implied warranty, promise, or guarantee, including as to accuracy, completeness, currency, fitness, availability, security, or suitability for any purpose.
+
+## 7. Limitation of liability
+
+The Maintainer and contributors accept no responsibility or liability for any use or misuse of Rechner or project materials, or for any claim, loss, damage, cost, decision, action, omission, or consequence connected with access to, inability to use, copying, modification, distribution, commercial use, service provision, or reliance on any part of Rechner. This includes calculation mistakes, misleading or outdated material, conduct by users or automated systems, lost income or benefits, additional tax, penalties, and data loss. This limitation is subject to section 8.
+
+## 8. Other rights and governing terms
+
+Statutory permissions, exceptions, authorship rights, and liability that cannot be waived or excluded remain unaffected. This clause applies throughout this license and the [Rechner Use Terms](TERMS_OF_USE.md). The Use Terms describe the hosted service, personal use, automated access, and accuracy notice. If a separate written license conflicts with this document, the signed separate license controls for the use it expressly covers.
+
+For permissions, commercial licensing, or automated text and data mining, contact the Maintainer through the project repository.
