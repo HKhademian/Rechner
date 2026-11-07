@@ -13,12 +13,12 @@ const termsUrl = `https://github.com/${buildInfo.repository}/blob/${buildInfo.co
 export default function SourceRevision(): JSX.Element {
   return <>
     <p className="source-use-notice">
-      Use of this calculator, including automated access and scraping, is subject to the <a href={termsUrl}>Use Terms</a>.
+      Use of this calculator, including automated access and scraping, is subject to the <a href={termsUrl} target="_blank" rel="noopener noreferrer">Use Terms</a>.
     </p>
     <p className="source-revision">
-      Source code: <a href={sourceCommitUrl} title={buildInfo.commit}>
+      Source code: <a href={sourceCommitUrl} title={buildInfo.commit} target="_blank" rel="noopener noreferrer">
         <code><strong>{buildInfo.shortCommit}</strong>{buildInfo.commit.slice(12)}</code>
-      </a> · <a href={licenseUrl}>Personal Use License</a> · <a href={termsUrl}>Use Terms</a>
+      </a> · <a href={licenseUrl} target="_blank" rel="noopener noreferrer">Personal Use License</a> · <a href={termsUrl} target="_blank" rel="noopener noreferrer">Use Terms</a>
     </p>
   </>;
 }

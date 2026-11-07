@@ -1,5 +1,59 @@
 const CACHE_NAME = "rechner-offline-v1";
 
+async function cachePageAndAssets(pageUrl, cache, visited) {
+  const url = new URL(pageUrl);
+  const scope = new URL(self.registration.scope);
+  if (url.origin !== scope.origin || !url.pathname.startsWith(scope.pathname) || visited.has(url.href)) {
+    return true;
+  }
+  visited.add(url.href);
+
+  let response;
+  try {
+    response = await fetch(url, { cache: "reload" });
+  }
+  catch {
+    return false;
+  }
+  if (!response.ok || response.type !== "basic") {
+    return false;
+  }
+  try {
+    await cache.put(url, response.clone());
+  }
+  catch {
+    return false;
+  }
+
+  const contentType = response.headers.get("Content-Type") ?? "";
+  const body = await response.clone().text();
+  const references = contentType.includes("text/html")
+    ? [...body.matchAll(/(?:src|href|component-url|renderer-url|before-hydration-url)="([^"]+)"/g)].map((match) => match[1])
+    : contentType.includes("text/css")
+      ? [...body.matchAll(/url\(["']?([^\)"']+)["']?\)/g)].map((match) => match[1])
+      : [];
+  const sameScope = references.map((reference) => new URL(reference, url))
+    .filter((reference) => reference.origin === scope.origin && reference.pathname.startsWith(scope.pathname))
+    .map((reference) => {
+      reference.hash = "";
+      return reference;
+    });
+  const results = await Promise.all(sameScope.map((reference) => cachePageAndAssets(reference, cache, visited)));
+  return results.every(Boolean);
+}
+
+async function prepareOfflineCache() {
+  const cache = await caches.open(CACHE_NAME);
+  const scope = new URL(self.registration.scope);
+  const routes = [
+    "",
+    "calculators/net-pay/",
+    "calculators/parental-leave/",
+  ].map((route) => new URL(route, scope));
+  const results = await Promise.all(routes.map((route) => cachePageAndAssets(route, cache, new Set())));
+  return results.every(Boolean);
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
@@ -22,6 +76,16 @@ self.addEventListener("activate", (event) => {
     const names = await caches.keys();
     await Promise.all(names.filter((name) => name.startsWith("rechner-offline-") && name !== CACHE_NAME).map((name) => caches.delete(name)));
     await self.clients.claim();
+  })());
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "PREPARE_RECHNER_OFFLINE") {
+    return;
+  }
+  event.waitUntil((async () => {
+    const ok = await prepareOfflineCache();
+    event.ports[0]?.postMessage({ ok });
   })());
 });
 

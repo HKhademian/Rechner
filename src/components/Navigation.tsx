@@ -3,7 +3,6 @@ import {
   type JSX,
 } from "preact";
 import ThemeToggle from "#components/ThemeToggle";
-import StorageModeControl from "#components/StorageModeControl";
 import PrivacyStatus from "#components/PrivacyStatus";
 import {
   CalculatorNavigationIcon,
@@ -37,8 +36,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
           {app && <a href={calculatorPath(app.id)} aria-current="page">{app.title}</a>}
         </nav>
         <div className="calculator-navigation__preferences">
-          <PrivacyStatus />
-          {app && <StorageModeControl app={app.id} />}
+          <PrivacyStatus app={app?.id} />
           <ThemeToggle />
         </div>
       </div>

@@ -246,6 +246,15 @@ function appKeys(storage: EnumerableBrowserStorage, app: AppId): string[] {
   return keys;
 }
 
+function appDataKeys(storage: EnumerableBrowserStorage, app: AppId): string[] {
+  return appKeys(storage, app).filter((key) =>
+    !key.endsWith(":legacy-migrated") && !key.endsWith(":envelopes-v1-migrated"));
+}
+
+function hasAppData(storage: EnumerableBrowserStorage, app: AppId): boolean {
+  return appDataKeys(storage, app).length > 0;
+}
+
 function ownedLegacyKeys(app: AppId): string[] {
   return [...new Set(Object.values(legacyKeys[app]))].filter((key) =>
     Object.values(legacyKeys).filter((fields) => Object.values(fields).includes(key)).length === 1);
@@ -387,27 +396,44 @@ export function browserAppStorage(app: AppId): AppStorage {
   };
 }
 
-/** New users start in memory mode; only an explicit persistent choice is remembered across visits. */
+/** Respect device-storage consent and recover existing tab data before using memory. */
 export function getStorageMode(app: AppId): StorageMode {
   if (typeof window === "undefined") {
     return StorageMode.Memory;
   }
+  let persistentMode: StorageMode | null = null;
   try {
     const persistent = window.localStorage.getItem(storageModeKey(app));
     if (persistent !== null) {
-      return toStorageMode(persistent);
+      persistentMode = toStorageMode(persistent);
     }
   }
   catch {
-    return StorageMode.Memory;
+    // Continue to inspect the tab store if device storage is unavailable.
   }
+  if (persistentMode === StorageMode.Persistent) {
+    return StorageMode.Persistent;
+  }
+  let sessionMode: StorageMode | null = null;
   try {
     const session = window.sessionStorage.getItem(storageModeKey(app));
-    return session === null ? StorageMode.Memory : toStorageMode(session);
+    sessionMode = session === null ? null : toStorageMode(session);
   }
   catch {
-    return StorageMode.Memory;
+    // Fall back to detected tab data if the mode marker cannot be read.
   }
+  if (sessionMode === StorageMode.Session) {
+    return StorageMode.Session;
+  }
+  try {
+    if (hasAppData(window.sessionStorage, app)) {
+      return StorageMode.Session;
+    }
+  }
+  catch {
+    // Memory mode remains available when browser storage is blocked.
+  }
+  return StorageMode.Memory;
 }
 
 /** Detects calculator data left by an earlier persistent-storage session. */
@@ -416,7 +442,7 @@ export function hasPersistentAppData(app: AppId): boolean {
     return false;
   }
   try {
-    return appKeys(window.localStorage, app).some((key) => !key.endsWith(":legacy-migrated"))
+    return hasAppData(window.localStorage, app)
       || ownedLegacyKeys(app).some((key) => window.localStorage.getItem(key) !== null);
   }
   catch {
@@ -438,7 +464,7 @@ export function clearPersistentAppData(app: AppId): boolean {
   }
 }
 
-/** Moves only this calculator's namespaced data and requires explicit consent for persistent storage. */
+/** Moves this calculator's data to one scope, preferring the widest existing copy. */
 export function setStorageMode(
   app: AppId,
   nextMode: StorageMode,
@@ -459,53 +485,75 @@ export function setStorageMode(
     if (nextMode === StorageMode.Persistent) {
       migrateLegacyData(app);
     }
-    const current = rawStorageForMode(app, currentMode);
+    const stores: Readonly<Record<StorageMode, EnumerableBrowserStorage | null>> = {
+      [StorageMode.Memory]: rawStorageForMode(app, StorageMode.Memory),
+      [StorageMode.Session]: rawStorageForMode(app, StorageMode.Session),
+      [StorageMode.Persistent]: rawStorageForMode(app, StorageMode.Persistent),
+    };
+    const snapshots = new Map<StorageMode, readonly (readonly [string, string])[]>();
+    for (const mode of Object.values(StorageMode)) {
+      const storage = stores[mode];
+      const entries = storage
+        ? appKeys(storage, app).map((key) => [key, safeGet(storage, key)] as const)
+          .filter((entry): entry is readonly [string, string] => entry[1] !== null)
+        : [];
+      snapshots.set(mode, entries);
+    }
+    const sourceCandidates = nextMode === StorageMode.Persistent
+      ? [StorageMode.Persistent, currentMode]
+      : [currentMode];
+    const sourceMode = sourceCandidates
+      .find((mode) => {
+        const entries = snapshots.get(mode) ?? [];
+        return entries.some(([key]) => !key.endsWith(":legacy-migrated") && !key.endsWith(":envelopes-v1-migrated"));
+      }) ?? currentMode;
+    const sourceEntries = snapshots.get(sourceMode) ?? [];
     const destination = rawStorageForMode(app, nextMode);
     if (!destination) {
       return false;
     }
-    if (current && currentMode !== StorageMode.Persistent) {
-      const sourceValues = appKeys(current, app).map((key) => [key, current.getItem(key)] as const)
-        .filter((entry): entry is readonly [string, string] => entry[1] !== null);
-      for (const [key, value] of sourceValues) {
-        const existing = nextMode === StorageMode.Persistent ? safeGet(window.localStorage, key) : null;
-        if (existing === null || nextMode !== StorageMode.Persistent) {
-          if (!safeSet(destination, key, value)) {
-            return false;
+    const destinationBefore = new Map(appKeys(destination, app)
+      .map((key) => [key, safeGet(destination, key)] as const)
+      .filter((entry): entry is readonly [string, string] => entry[1] !== null));
+    for (const [key, value] of sourceEntries) {
+      if (!safeSet(destination, key, value)) {
+        for (const destinationKey of appKeys(destination, app)) {
+          if (!destinationBefore.has(destinationKey)) {
+            safeRemove(destination, destinationKey);
           }
         }
-      }
-    }
-    else if (currentMode === StorageMode.Persistent && nextMode !== StorageMode.Persistent) {
-      for (const key of appKeys(window.localStorage, app)) {
-        const value = window.localStorage.getItem(key);
-        if (value !== null && !safeSet(destination, key, value)) {
-          return false;
+        for (const [oldKey, oldValue] of destinationBefore) {
+          safeSet(destination, oldKey, oldValue);
         }
+        return false;
       }
     }
 
     if (nextMode === StorageMode.Persistent) {
       window.localStorage.setItem(storageModeKey(app), nextMode);
       safeRemove(window.sessionStorage, storageModeKey(app));
-      if (currentMode === StorageMode.Session) {
-        clearOwnedBrowserData(window.sessionStorage, app);
-      }
-      memoryStores.delete(app);
     }
-    else {
-      if (nextMode === StorageMode.Session) {
-        if (!safeSet(window.sessionStorage, storageModeKey(app), nextMode)) {
-          return false;
-        }
-      }
-      else {
-        safeRemove(window.sessionStorage, storageModeKey(app));
+    else if (nextMode === StorageMode.Session) {
+      if (!safeSet(window.sessionStorage, storageModeKey(app), nextMode)) {
+        return false;
       }
       safeRemove(window.localStorage, storageModeKey(app));
-      clearOwnedBrowserData(window.localStorage, app);
-      if (currentMode === StorageMode.Session) {
-        clearOwnedBrowserData(window.sessionStorage, app);
+    }
+    else {
+      safeRemove(window.sessionStorage, storageModeKey(app));
+      safeRemove(window.localStorage, storageModeKey(app));
+    }
+
+    const sourceKeys = new Set(sourceEntries.map(([key]) => key));
+    for (const key of appKeys(destination, app)) {
+      if (!sourceKeys.has(key)) {
+        destination.removeItem(key);
+      }
+    }
+    for (const mode of Object.values(StorageMode)) {
+      const storage = stores[mode];
+      if (mode !== nextMode && storage) {
+        clearOwnedBrowserData(storage, app);
       }
     }
     return true;
