@@ -234,6 +234,11 @@
   font-size: 0.8rem;
 }
 
+.calculator-catalog__footer a {
+  color: var(--color-primary);
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 700px) {
   .calculator-catalog {
     padding: 24px 16px;

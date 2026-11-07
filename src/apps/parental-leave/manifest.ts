@@ -7,8 +7,8 @@ import {
 export const parentalLeaveApp = {
   id: AppId.ParentalLeave,
   title: "Parental Leave Planner",
-  description: "Plan births, parental leave, working hours and salary changes across your household timeline.",
+  description: "Plan parental leave, benefits, work hours and household income over time.",
   category: CalculatorCategory.Family,
-  features: ["Maternity and parental benefits", "Working hours and career changes", "Monthly cash flow comparisons"],
+  features: ["Maternity and parental benefits", "Work and salary changes", "Monthly income comparison"],
   keywords: ["Elterngeld", "Elternzeit", "Rechner", "pregnancy", "birth", "family", "benefits", "parental"],
 } satisfies CalculatorAppDefinition;

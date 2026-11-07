@@ -108,16 +108,16 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
     <main id="main-content" className="calculator-catalog" tabIndex={-1}>
       <header className="calculator-catalog__intro">
         <div>
-          <p className="calculator-catalog__eyebrow">Calculator marketplace</p>
-          <h1>What would you like to calculate?</h1>
-          <p>Choose a tool for work, family and everyday planning. Each calculator keeps its own inputs and saved scenarios.</p>
+          <p className="calculator-catalog__eyebrow">Free online calculators</p>
+          <h1>Plan your pay and family finances.</h1>
+          <p>Clear estimates for German salary, taxes and parental leave.</p>
         </div>
-        <aside className="calculator-catalog__privacy"><strong>Your own workspace</strong><p>No account needed. Calculations run in your browser, with saved inputs on this device.</p></aside>
+        <aside className="calculator-catalog__privacy"><strong>Private by default</strong><p>No account. Your saved inputs stay in this browser.</p></aside>
       </header>
 
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
-        <label for="calculator-search">Search calculators
-          <input ref={search} id="calculator-search" type="search" placeholder="Try salary, Netto or Elterngeld" value={query.value} aria-controls="calculator-results"
+        <label for="calculator-search">Find a calculator
+          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
         </label>
         <label for="calculator-category">Category
@@ -150,7 +150,10 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
           <button type="button" disabled={page.page === page.pages} onClick={() => changePage(page.page + 1)}>Next</button>
         </nav>}
       </section>
-      <footer className="calculator-catalog__footer"><p>Separate calculators. Your inputs stay with the tool you use.</p><p>Review the assumptions and source references beside each calculation.</p></footer>
+      <footer className="calculator-catalog__footer">
+        <p>Check assumptions and sources beside each estimate.</p>
+        <p>Law texts: <a href="https://www.gesetze-im-internet.de/beeg/BJNR274810006.html" target="_blank" rel="noreferrer">BEEG</a> · <a href="https://www.gesetze-im-internet.de/estg/" target="_blank" rel="noreferrer">EStG</a> · <a href="https://www.gesetze-im-internet.de/muschg_2018/BJNR122810017.html" target="_blank" rel="noreferrer">MuSchG</a></p>
+      </footer>
     </main>
   </>;
 }

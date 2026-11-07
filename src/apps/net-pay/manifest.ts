@@ -7,8 +7,8 @@ import {
 export const netPayApp = {
   id: AppId.NetPay,
   title: "Net Pay Calculator",
-  description: "See what stays from your German salary, compare household scenarios and understand your deductions.",
+  description: "Estimate take-home pay and see how tax and social contributions affect your salary.",
   category: CalculatorCategory.Money,
-  features: ["Monthly or yearly salary", "Partner and saved comparisons", "Taxable income and payroll details"],
+  features: ["Monthly or yearly pay", "Household comparisons", "Tax and contribution breakdown"],
   keywords: ["salary", "gross", "net", "Brutto", "Netto", "Gehalt", "Rechner", "tax", "insurance"],
 } satisfies CalculatorAppDefinition;
