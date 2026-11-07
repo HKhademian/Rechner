@@ -3,12 +3,15 @@ import NetPayApp from "#/apps/net-pay/App.tsx";
 import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
 import "#styles/global.css";
 ---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={sitePath("/favicon.svg")} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{netPayApp.title} | Rechner</title>
     <meta name="description" content={netPayApp.description} />

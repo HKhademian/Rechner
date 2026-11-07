@@ -29,6 +29,12 @@ export interface CalculatorAppDefinition {
   readonly keywords: readonly string[];
 }
 
+export function sitePath(path: string): string {
+  const basePath = (import.meta.env?.BASE_URL ?? "/").replace(/\/+$/, "");
+  const relativePath = path.replace(/^\/+/, "");
+  return relativePath ? `${basePath}/${relativePath}` : `${basePath}/`;
+}
+
 export function calculatorPath(id: CalculatorAppDefinition["id"]): string {
-  return `/calculators/${id}/`;
+  return sitePath(`/calculators/${id}/`);
 }
