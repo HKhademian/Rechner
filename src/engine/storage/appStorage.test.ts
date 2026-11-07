@@ -155,30 +155,31 @@ it("keeps new calculator data in memory until the user selects a storage mode", 
       sessionStorage: session } });
   try {
     const storage = browserAppStorage(AppId.NetPay);
-    assert.equal(getStorageMode(AppId.NetPay), StorageMode.Memory);
+    assert.equal(getStorageMode(), StorageMode.Memory);
     assert.equal(storage.getItem("grossIncome"), null);
     assert.equal(storage.setItem("grossIncome", "50000"), true);
     assert.equal(storage.getItem("grossIncome"), "50000");
     assert.equal(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")), "older saved value");
     assert.equal(session.getItem(appStorageKey(AppId.NetPay, "grossIncome")), null);
 
-    assert.equal(setStorageMode(AppId.NetPay, StorageMode.Session), true);
-    assert.equal(getStorageMode(AppId.NetPay), StorageMode.Session);
+    assert.equal(setStorageMode(StorageMode.Session), true);
+    assert.equal(getStorageMode(), StorageMode.Session);
     assert.equal(JSON.parse(session.getItem(appStorageKey(AppId.NetPay, "grossIncome")) ?? "{}").value, "50000");
     assert.equal(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")), null);
     assert.equal(local.getItem("grossIncome"), null);
-    assert.equal(setStorageMode(AppId.NetPay, StorageMode.Persistent), false);
-    assert.equal(setStorageMode(AppId.NetPay, StorageMode.Persistent, true), true);
-    assert.equal(getStorageMode(AppId.NetPay), StorageMode.Persistent);
+    assert.equal(setStorageMode(StorageMode.Persistent), false);
+    assert.equal(setStorageMode(StorageMode.Persistent, true), true);
+    assert.equal(getStorageMode(), StorageMode.Persistent);
     assert.equal(JSON.parse(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")) ?? "{}").value, "50000");
 
     local.setItem(appStorageKey(AppId.ParentalLeave, "state"), "other calculator data");
-    assert.equal(setStorageMode(AppId.NetPay, StorageMode.Memory), true);
+    assert.equal(setStorageMode(StorageMode.Memory), true);
     assert.equal(storage.getItem("grossIncome"), "50000");
     assert.equal(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")), null);
-    assert.equal(local.getItem("rechner:privacy:net-pay:storage-mode:v1"), null);
-    assert.equal(session.getItem("rechner:privacy:net-pay:storage-mode:v1"), null);
-    assert.equal(local.getItem(appStorageKey(AppId.ParentalLeave, "state")), "other calculator data");
+    assert.equal(local.getItem("rechner:privacy:storage-mode:v1"), null);
+    assert.equal(session.getItem("rechner:privacy:storage-mode:v1"), null);
+    assert.equal(local.getItem(appStorageKey(AppId.ParentalLeave, "state")), null);
+    assert.equal(browserAppStorage(AppId.ParentalLeave).getItem("state"), "other calculator data");
   }
   finally {
     if (previousWindow === undefined) {

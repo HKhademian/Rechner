@@ -8,7 +8,6 @@ import type {
   JSX,
 } from "preact";
 import {
-  type AppId,
   sitePath,
 } from "#/apps/appDefinition.ts";
 import StorageModeControl from "#components/StorageModeControl";
@@ -25,7 +24,7 @@ type OfflineState = (typeof OfflineState)[keyof typeof OfflineState];
 const showOfflineSection = false;
 
 /** Compact privacy and offline controls in one popup. */
-export default function PrivacyStatus({ app }: { app?: AppId }): JSX.Element {
+export default function PrivacyStatus(): JSX.Element {
   const [offlineState, setOfflineState] = useState<OfflineState>(OfflineState.Checking);
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
@@ -133,8 +132,7 @@ export default function PrivacyStatus({ app }: { app?: AppId }): JSX.Element {
     <div className="privacy-status__panel">
       <p className="privacy-status__assurance">No tracking · No cookies · No profiling</p>
       <p>Calculations stay in your browser · no data server</p>
-      {app && <StorageModeControl app={app} />}
-      <p>App API calls blocked · source links in clean new tabs</p>
+      <StorageModeControl />
       {showOfflineSection && <div className="privacy-status__offline">
         <p className="privacy-status__offline-status">
           <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
@@ -144,7 +142,6 @@ export default function PrivacyStatus({ app }: { app?: AppId }): JSX.Element {
           {offlineState === OfflineState.Preparing ? "Preparing…" : offlineState === OfflineState.Prepared ? "Offline ready" : "Prepare offline"}
         </button>
       </div>}
-      <p className="privacy-status__limit">First request visible to host · browser storage unencrypted</p>
     </div>
   </details>;
 }

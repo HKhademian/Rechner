@@ -81,11 +81,6 @@
   font-weight: 700;
 }
 
-.privacy-status__limit {
-  color: var(--text-muted);
-  font-size: 0.69rem;
-}
-
 .privacy-status__offline-action {
   justify-self: start;
 }

@@ -14,7 +14,7 @@ it("net-pay boot migrates owned values and never initializes parental-leave stor
     globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
     globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
     const { setStorageMode, StorageMode } = await import("#engine/storage/appStorage");
-    assert.equal(setStorageMode("net-pay", StorageMode.Persistent, true), true);
+    assert.equal(setStorageMode(StorageMode.Persistent, true), true);
     const store = await import("#store/calculatorStore");
     assert.equal(store.grossIncome.value, 12345);
     assert.equal(store.getCurrentInputs().taxYear, 2025);
@@ -36,7 +36,7 @@ it("parental-leave boot migrates its plan without initializing net-pay storage",
     globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
     globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
     const { setStorageMode, StorageMode } = await import("#engine/storage/appStorage");
-    assert.equal(setStorageMode("parental-leave", StorageMode.Persistent, true), true);
+    assert.equal(setStorageMode(StorageMode.Persistent, true), true);
     const store = await import("#store/elterngeldStore");
     assert.equal(store.husbandGross.value, 4321);
     store.husbandGross.value = 5000;
@@ -58,7 +58,7 @@ it("appearance preferences are scoped to the current app route", () => {
       globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
       globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
       const { setStorageMode, StorageMode } = await import("#engine/storage/appStorage");
-      assert.equal(setStorageMode("${app}", StorageMode.Persistent, true), true);
+      assert.equal(setStorageMode(StorageMode.Persistent, true), true);
       const theme = await import("#store/themeStore");
       assert.equal(theme.activeThemeMode.value, "dark");
       theme.setThemeMode("light");

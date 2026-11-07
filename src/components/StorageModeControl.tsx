@@ -6,9 +6,6 @@ import type {
   JSX,
 } from "preact";
 import {
-  type AppId,
-} from "#/apps/appDefinition.ts";
-import {
   getStorageMode,
   setStorageMode,
   StorageMode,
@@ -21,34 +18,34 @@ const modeLabels: Readonly<Record<StorageMode, string>> = {
 };
 
 const modeLifetimes: Readonly<Record<StorageMode, string>> = {
-  [StorageMode.Memory]: "until refresh or close",
-  [StorageMode.Session]: "until browser closes",
+  [StorageMode.Memory]: "until refresh",
+  [StorageMode.Session]: "until close",
   [StorageMode.Persistent]: "until cleared",
 };
 
 const modeAccessibleLabels: Readonly<Record<StorageMode, string>> = {
-  [StorageMode.Memory]: "Page · until refresh or close",
-  [StorageMode.Session]: "Session · until browser closes",
+  [StorageMode.Memory]: "Page · until refresh",
+  [StorageMode.Session]: "Session · until close",
   [StorageMode.Persistent]: "Device · until cleared",
 };
 
-export default function StorageModeControl({ app }: { app: AppId }): JSX.Element {
+export default function StorageModeControl(): JSX.Element {
   const [mode, setMode] = useState<StorageMode>(StorageMode.Memory);
   const [pendingMode, setPendingMode] = useState<StorageMode | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    setMode(getStorageMode(app));
+    setMode(getStorageMode());
     setHydrated(true);
-  }, [app]);
+  }, []);
 
   const applyMode = (): void => {
     if (!pendingMode) {
       return;
     }
     const acknowledge = pendingMode === StorageMode.Persistent;
-    if (!setStorageMode(app, pendingMode, acknowledge)) {
+    if (!setStorageMode(pendingMode, acknowledge)) {
       setNotice("Storage unavailable · data kept");
       setPendingMode(null);
       return;
@@ -68,8 +65,8 @@ export default function StorageModeControl({ app }: { app: AppId }): JSX.Element
       : "Keep on this page · clear saved copies?";
 
   return <section className="storage-mode-control" aria-label="Calculator data storage">
-    <p className="storage-mode-control__heading">Storage</p>
-    <div className="storage-mode-control__buttons" role="group" aria-label="Choose where calculator data is kept">
+    <p className="storage-mode-control__heading">Storage · all calculators</p>
+    <div className="storage-mode-control__buttons" role="group" aria-label="Choose where calculator data is kept for all calculators">
       {Object.values(StorageMode).map((option) => <button
         key={option}
         type="button"

@@ -36,7 +36,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
           {app && <a href={calculatorPath(app.id)} aria-current="page">{app.title}</a>}
         </nav>
         <div className="calculator-navigation__preferences">
-          <PrivacyStatus app={app?.id} />
+          <PrivacyStatus />
           <ThemeToggle />
         </div>
       </div>

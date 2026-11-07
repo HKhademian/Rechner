@@ -5,9 +5,8 @@ import {
   afterEach,
 } from "node:test";
 import assert from "node:assert/strict";
-import {
-  AppId,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   getStorageMode,
   setStorageMode,
@@ -386,8 +385,8 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       const legacy = serializeState({ ...getDefaultPersistedState(),
         husbandGross: toGrossSalary(4321) });
       localStorage.setItem("elterngeld_simulator_state_v1", legacy);
-      assert.equal(setStorageMode(AppId.ParentalLeave, StorageMode.Persistent, true), true);
-      assert.equal(getStorageMode(AppId.ParentalLeave), StorageMode.Persistent);
+      assert.equal(setStorageMode(StorageMode.Persistent, true), true);
+      assert.equal(getStorageMode(), StorageMode.Persistent);
       const envelope = JSON.parse(localStorage.getItem(ELTERNGELD_STORAGE_KEY) ?? "{}");
       assert.equal(JSON.parse(envelope.value).husbandGross, 4321);
       assert.equal(loadFromStorage().husbandGross, 4321);
@@ -398,7 +397,7 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
     });
 
     it("saves state, loads state, and clears state via localStorage adapter", () => {
-      assert.equal(setStorageMode(AppId.ParentalLeave, StorageMode.Persistent, true), true);
+      assert.equal(setStorageMode(StorageMode.Persistent, true), true);
       const state = getDefaultPersistedState();
       const updated: ElterngeldPersistedState = {
         ...state,
