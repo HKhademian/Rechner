@@ -1,9 +1,3 @@
-.privacy-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .privacy-status {
   position: relative;
   color: var(--text-primary);
@@ -42,8 +36,8 @@
 }
 
 .privacy-status__dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #a16207;
   box-shadow: 0 0 0 2px rgb(161 98 7 / 14%);
@@ -66,7 +60,8 @@
   z-index: 60;
   display: grid;
   gap: 10px;
-  width: min(320px, calc(100vw - 32px));
+  width: min(340px, calc(100vw - 32px));
+  box-sizing: border-box;
   padding: 14px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--border-radius);
@@ -90,21 +85,31 @@
   justify-self: start;
 }
 
+.privacy-status__offline {
+  display: grid;
+  gap: 7px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border-subtle);
+}
+
 .privacy-status__panel button:disabled {
   opacity: 0.6;
   cursor: wait;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 640px) {
   .privacy-status summary {
     padding-inline: 7px;
   }
 
   .privacy-status__panel {
     position: fixed;
-    top: 76px;
-    right: 12px;
-    left: 12px;
-    width: auto;
+    top: 50%;
+    right: auto;
+    left: 50%;
+    width: min(360px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    transform: translate(-50%, -50%);
   }
 }
