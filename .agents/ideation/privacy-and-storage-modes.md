@@ -44,6 +44,7 @@ A web page cannot revoke the browser/device's network permission in the way Andr
 ## Implementation update
 
 - The app-scoped provider now supports memory, tab session, and persistent browser storage modes.
+- Stored calculator values use an envelope containing a schema version, write timestamp, Rechner package version, source release commit hash, and SHA-256 hash. Older raw values are upgraded on read/migration, and hash mismatches are ignored.
 - Calculator pages expose a storage selector. New sessions default to memory; persistent mode requires an explicit browser confirmation.
 - Changing modes transfers only that calculator's namespaced data. Leaving persistent mode removes its Rechner-owned persistent keys.
 - Parental-leave save, load, and reset operations use the selected adapter.

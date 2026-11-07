@@ -19,7 +19,7 @@ it("net-pay boot migrates owned values and never initializes parental-leave stor
     assert.equal(store.grossIncome.value, 12345);
     assert.equal(store.getCurrentInputs().taxYear, 2025);
     store.grossIncome.value = 0;
-    assert.equal(values.get("rechner:net-pay:v1:grossIncome"), "0");
+    assert.equal(JSON.parse(values.get("rechner:net-pay:v1:grossIncome")).value, "0");
     assert.equal(values.get("grossIncome"), "12345");
     assert.ok(![...values.keys()].some(key => key.startsWith("rechner:parental-leave:")));
   `;
@@ -40,7 +40,7 @@ it("parental-leave boot migrates its plan without initializing net-pay storage",
     const store = await import("#store/elterngeldStore");
     assert.equal(store.husbandGross.value, 4321);
     store.husbandGross.value = 5000;
-    assert.equal(JSON.parse(values.get("rechner:parental-leave:v1:state")).husbandGross, 5000);
+    assert.equal(JSON.parse(JSON.parse(values.get("rechner:parental-leave:v1:state")).value).husbandGross, 5000);
     assert.equal(values.get("elterngeld_simulator_state_v1"), plan);
     assert.ok(![...values.keys()].some(key => key.startsWith("rechner:net-pay:")));
   `;
@@ -62,7 +62,7 @@ it("appearance preferences are scoped to the current app route", () => {
       const theme = await import("#store/themeStore");
       assert.equal(theme.activeThemeMode.value, "dark");
       theme.setThemeMode("light");
-      assert.equal(values.get("rechner:${app}:v1:theme"), "light");
+      assert.equal(JSON.parse(values.get("rechner:${app}:v1:theme")).value, "light");
       assert.equal(values.get("german_calc_theme_mode"), "dark");
       assert.ok([...values.keys()].filter(key => key.startsWith("rechner:") && !key.startsWith("rechner:privacy:")).every(key => key.startsWith("rechner:${app}:")));
     `;

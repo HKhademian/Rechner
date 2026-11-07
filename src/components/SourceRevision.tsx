@@ -3,7 +3,7 @@ import type {
 } from "preact";
 import {
   buildInfo,
-} from "#/data/buildInfo";
+} from "#data/buildInfo";
 import "./SourceRevision.css";
 
 const sourceCommitUrl = `https://github.com/${buildInfo.repository}/commit/${buildInfo.commit}`;

@@ -2,6 +2,13 @@ import {
   type AppId,
   AppId as Apps,
 } from "#/apps/appDefinition.ts";
+import packageManifest from "../../../package.json" with { type: "json" };
+import {
+  sha256,
+} from "#engine/storage/sha256";
+import {
+  buildInfo,
+} from "#data/buildInfo";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -24,6 +31,118 @@ export interface AppStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): boolean;
   removeItem(key: string): boolean;
+}
+
+export const STORAGE_VALUE_VERSION = 1;
+export const APPLICATION_VERSION = packageManifest.version;
+export const APPLICATION_RELEASE_HASH = buildInfo.commit;
+
+export interface StorageValueEnvelope {
+  readonly format: "rechner-storage-value";
+  readonly version: number;
+  readonly timestamp: string;
+  readonly applicationVersion: string;
+  readonly applicationReleaseHash: string;
+  readonly value: string;
+  readonly hash: string;
+}
+
+export const DecodedStorageStatus = {
+  Valid: "valid",
+  Legacy: "legacy",
+  Invalid: "invalid",
+} as const;
+type DecodedStorageStatus = (typeof DecodedStorageStatus)[keyof typeof DecodedStorageStatus];
+
+function envelopeHash(
+  version: number,
+  timestamp: string,
+  applicationVersion: string,
+  applicationReleaseHash: string,
+  value: string,
+): string {
+  const payload = JSON.stringify({
+    format: "rechner-storage-value",
+    version,
+    timestamp,
+    applicationVersion,
+    applicationReleaseHash,
+    value,
+  });
+  return `sha256:${sha256(payload)}`;
+}
+
+function serializeStorageValue(value: string): string {
+  const timestamp = new Date().toISOString();
+  const envelope: StorageValueEnvelope = {
+    format: "rechner-storage-value",
+    version: STORAGE_VALUE_VERSION,
+    timestamp,
+    applicationVersion: APPLICATION_VERSION,
+    applicationReleaseHash: APPLICATION_RELEASE_HASH,
+    value,
+    hash: envelopeHash(STORAGE_VALUE_VERSION, timestamp, APPLICATION_VERSION, APPLICATION_RELEASE_HASH, value),
+  };
+  return JSON.stringify(envelope);
+}
+
+interface DecodedStorageValue {
+  readonly status: DecodedStorageStatus;
+  readonly value?: string;
+}
+
+function deserializeStorageValue(serialized: string): DecodedStorageValue {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(serialized);
+  }
+  catch {
+    return { status: DecodedStorageStatus.Legacy,
+      value: serialized };
+  }
+  if (typeof parsed !== "object" || parsed === null || !(("format" in parsed) && parsed.format === "rechner-storage-value")) {
+    return { status: DecodedStorageStatus.Legacy,
+      value: serialized };
+  }
+  if (!(
+    "version" in parsed
+    && parsed.version === STORAGE_VALUE_VERSION
+    && "timestamp" in parsed
+    && typeof parsed.timestamp === "string"
+    && !Number.isNaN(Date.parse(parsed.timestamp))
+    && "applicationVersion" in parsed
+    && typeof parsed.applicationVersion === "string"
+    && "applicationReleaseHash" in parsed
+    && typeof parsed.applicationReleaseHash === "string"
+    && "value" in parsed
+    && typeof parsed.value === "string"
+    && "hash" in parsed
+    && typeof parsed.hash === "string"
+  )) {
+    return { status: DecodedStorageStatus.Invalid };
+  }
+  const expected = envelopeHash(parsed.version, parsed.timestamp, parsed.applicationVersion, parsed.applicationReleaseHash, parsed.value);
+  return parsed.hash === expected
+    ? { status: DecodedStorageStatus.Valid,
+      value: parsed.value }
+    : { status: DecodedStorageStatus.Invalid };
+}
+
+function upgradeStoredAppValues(app: AppId, storage: BrowserStorage): void {
+  const enumerable = storage as Partial<EnumerableBrowserStorage>;
+  if (typeof enumerable.length !== "number" || typeof enumerable.key !== "function") {
+    return;
+  }
+  for (const key of appKeys(enumerable as EnumerableBrowserStorage, app)) {
+    const stored = storage.getItem(key);
+    if (stored === null) {
+      continue;
+    }
+    const decoded = deserializeStorageValue(stored);
+    if (decoded.status === DecodedStorageStatus.Legacy && decoded.value !== undefined) {
+      storage.setItem(key, serializeStorageValue(decoded.value));
+    }
+  }
 }
 
 /** Only this app's owned legacy keys are copied. Old keys remain available for recovery. */
@@ -156,8 +275,17 @@ export function appStorageKey(app: AppId, key: string): string {
 /** A completion marker prevents cleared app data from being revived by an old legacy key. */
 export function createAppStorage(app: AppId, storage: BrowserStorage): AppStorage {
   const marker = appStorageKey(app, "legacy-migrated");
+  const envelopeMarker = appStorageKey(app, "envelopes-v1-migrated");
   const migrate = (): void => {
     if (storage.getItem(marker) !== null) {
+      const storedMarker = storage.getItem(marker);
+      if (storedMarker !== null && deserializeStorageValue(storedMarker).status === DecodedStorageStatus.Legacy) {
+        storage.setItem(marker, serializeStorageValue("1"));
+      }
+      if (storage.getItem(envelopeMarker) === null) {
+        upgradeStoredAppValues(app, storage);
+        storage.setItem(envelopeMarker, serializeStorageValue("1"));
+      }
       return;
     }
     for (const [field, oldKey] of Object.entries(legacyKeys[app])) {
@@ -165,11 +293,13 @@ export function createAppStorage(app: AppId, storage: BrowserStorage): AppStorag
       if (storage.getItem(key) === null) {
         const value = storage.getItem(oldKey);
         if (value !== null) {
-          storage.setItem(key, value);
+          storage.setItem(key, serializeStorageValue(value));
         }
       }
     }
-    storage.setItem(marker, "1");
+    storage.setItem(marker, serializeStorageValue("1"));
+    upgradeStoredAppValues(app, storage);
+    storage.setItem(envelopeMarker, serializeStorageValue("1"));
   };
   return {
     getItem(key) {
@@ -180,12 +310,34 @@ export function createAppStorage(app: AppId, storage: BrowserStorage): AppStorag
         // Quota failures may leave a partial copy; prefer copied values and read legacy until completion.
       }
       try {
-        const value = storage.getItem(appStorageKey(app, key));
-        if (value !== null) {
-          return value;
+        const stored = storage.getItem(appStorageKey(app, key));
+        if (stored !== null) {
+          const decoded = deserializeStorageValue(stored);
+          if (decoded.status === DecodedStorageStatus.Invalid) {
+            return null;
+          }
+          if (decoded.status === DecodedStorageStatus.Legacy && decoded.value !== undefined) {
+            try {
+              storage.setItem(appStorageKey(app, key), serializeStorageValue(decoded.value));
+            }
+            catch {
+              return decoded.value;
+            }
+          }
+          return decoded.value ?? null;
         }
         const legacy = legacyKeys[app][key];
-        return storage.getItem(marker) === null && legacy ? storage.getItem(legacy) : null;
+        const legacyValue = storage.getItem(marker) === null && legacy ? storage.getItem(legacy) : null;
+        if (legacyValue !== null) {
+          try {
+            storage.setItem(appStorageKey(app, key), serializeStorageValue(legacyValue));
+          }
+          catch {
+            return legacyValue;
+          }
+          return legacyValue;
+        }
+        return null;
       }
       catch {
         return null;
@@ -194,7 +346,7 @@ export function createAppStorage(app: AppId, storage: BrowserStorage): AppStorag
     setItem(key, value) {
       try {
         migrate();
-        storage.setItem(appStorageKey(app, key), value);
+        storage.setItem(appStorageKey(app, key), serializeStorageValue(value));
         return true;
       }
       catch {

@@ -388,7 +388,8 @@ describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
       localStorage.setItem("elterngeld_simulator_state_v1", legacy);
       assert.equal(setStorageMode(AppId.ParentalLeave, StorageMode.Persistent, true), true);
       assert.equal(getStorageMode(AppId.ParentalLeave), StorageMode.Persistent);
-      assert.equal(JSON.parse(localStorage.getItem(ELTERNGELD_STORAGE_KEY) ?? "{}").husbandGross, 4321);
+      const envelope = JSON.parse(localStorage.getItem(ELTERNGELD_STORAGE_KEY) ?? "{}");
+      assert.equal(JSON.parse(envelope.value).husbandGross, 4321);
       assert.equal(loadFromStorage().husbandGross, 4321);
       assert.equal(localStorage.getItem("elterngeld_simulator_state_v1"), legacy);
       assert.equal(clearStorage(), true);

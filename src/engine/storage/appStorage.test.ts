@@ -7,11 +7,14 @@ import {
 } from "#/apps/appDefinition.ts";
 import {
   appStorageKey,
+  APPLICATION_VERSION,
+  APPLICATION_RELEASE_HASH,
   createAppStorage,
   browserAppStorage,
   getStorageMode,
   setStorageMode,
   StorageMode,
+  STORAGE_VALUE_VERSION,
   toStorageMode,
 } from "#engine/storage/appStorage";
 
@@ -75,6 +78,43 @@ it("copies owned legacy data once without overwriting destinations or crossing a
   assert.equal(catalog.getItem("grossIncome"), null);
 });
 
+it("wraps values in timestamped, versioned SHA-256 envelopes and rejects changed contents", () => {
+  const values = new Map<string, string>();
+  const storage = createAppStorage(AppId.NetPay, memoryStorage(values));
+  assert.equal(storage.setItem("grossIncome", "50000"), true);
+  const key = appStorageKey(AppId.NetPay, "grossIncome");
+  const envelope = JSON.parse(values.get(key) ?? "{}") as Record<string, unknown>;
+  assert.equal(envelope.format, "rechner-storage-value");
+  assert.equal(envelope.version, STORAGE_VALUE_VERSION);
+  assert.equal(envelope.applicationVersion, APPLICATION_VERSION);
+  assert.equal(envelope.applicationReleaseHash, APPLICATION_RELEASE_HASH);
+  assert.equal(envelope.value, "50000");
+  assert.equal(typeof envelope.timestamp, "string");
+  assert.equal(Number.isNaN(Date.parse(envelope.timestamp as string)), false);
+  assert.match(envelope.hash as string, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(storage.getItem("grossIncome"), "50000");
+
+  values.set(key, JSON.stringify({ ...envelope,
+    value: "edited" }));
+  assert.equal(storage.getItem("grossIncome"), null);
+  values.set(key, JSON.stringify({ ...envelope,
+    applicationReleaseHash: `${APPLICATION_RELEASE_HASH}-changed` }));
+  assert.equal(storage.getItem("grossIncome"), null);
+});
+
+it("upgrades previously stored raw values when they are read", () => {
+  const key = appStorageKey(AppId.NetPay, "grossIncome");
+  const values = new Map([[key, "50000"]]);
+  const storage = createAppStorage(AppId.NetPay, memoryStorage(values));
+  assert.equal(storage.getItem("grossIncome"), "50000");
+  const upgraded = JSON.parse(values.get(key) ?? "{}") as Record<string, unknown>;
+  assert.equal(upgraded.value, "50000");
+  assert.equal(upgraded.applicationVersion, APPLICATION_VERSION);
+  assert.equal(upgraded.applicationReleaseHash, APPLICATION_RELEASE_HASH);
+  assert.equal(typeof upgraded.timestamp, "string");
+  assert.match(upgraded.hash as string, /^sha256:[a-f0-9]{64}$/);
+});
+
 it("retries incomplete migration and remains usable when browser storage is blocked or full", () => {
   const values = new Map([["grossIncome", "50000"]]);
   let blocked = true;
@@ -124,13 +164,13 @@ it("keeps new calculator data in memory until the user selects a storage mode", 
 
     assert.equal(setStorageMode(AppId.NetPay, StorageMode.Session), true);
     assert.equal(getStorageMode(AppId.NetPay), StorageMode.Session);
-    assert.equal(session.getItem(appStorageKey(AppId.NetPay, "grossIncome")), "50000");
+    assert.equal(JSON.parse(session.getItem(appStorageKey(AppId.NetPay, "grossIncome")) ?? "{}").value, "50000");
     assert.equal(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")), null);
     assert.equal(local.getItem("grossIncome"), null);
     assert.equal(setStorageMode(AppId.NetPay, StorageMode.Persistent), false);
     assert.equal(setStorageMode(AppId.NetPay, StorageMode.Persistent, true), true);
     assert.equal(getStorageMode(AppId.NetPay), StorageMode.Persistent);
-    assert.equal(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")), "50000");
+    assert.equal(JSON.parse(local.getItem(appStorageKey(AppId.NetPay, "grossIncome")) ?? "{}").value, "50000");
 
     local.setItem(appStorageKey(AppId.ParentalLeave, "state"), "other calculator data");
     assert.equal(setStorageMode(AppId.NetPay, StorageMode.Memory), true);

@@ -1,4 +1,4 @@
-const sourceCommit = import.meta.env.PUBLIC_SOURCE_COMMIT;
+const sourceCommit = import.meta.env?.PUBLIC_SOURCE_COMMIT ?? "unknown";
 
 export const buildInfo = Object.freeze({
   schemaVersion: 1,
