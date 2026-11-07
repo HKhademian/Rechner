@@ -121,12 +121,13 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
           <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
         </label>
-        <label for="calculator-category">Category
-          <select id="calculator-category" value={category.value ?? ""} aria-controls="calculator-results" onChange={(event) => update(query.value, event.currentTarget.value === "" ? undefined : toCalculatorCategory(event.currentTarget.value), 1)}>
-            <option value="">All calculators</option>
-            {categories.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-        </label>
+        <div className="calculator-catalog__category-filter">
+          <span>Category</span>
+          <div className="calculator-catalog__category-options" role="group" aria-label="Filter by category">
+            <button type="button" aria-pressed={category.value === undefined} aria-controls="calculator-results" onClick={() => update(query.value, undefined, 1)}>All calculators</button>
+            {categories.map((item) => <button key={item} type="button" aria-pressed={category.value === item} aria-controls="calculator-results" onClick={() => update(query.value, item, 1)}>{item}</button>)}
+          </div>
+        </div>
         {(query.value || category.value) && <button type="button" onClick={clear}>Clear filters</button>}
       </form>
 
@@ -151,11 +152,11 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
           <button type="button" disabled={page.page === page.pages} onClick={() => changePage(page.page + 1)}>Next</button>
         </nav>}
       </section>
-      <footer className="calculator-catalog__footer">
-        <p>Check assumptions and sources beside each estimate.</p>
-        <p>Law texts: <a href="https://www.gesetze-im-internet.de/beeg/BJNR274810006.html" target="_blank" rel="noreferrer">BEEG</a> · <a href="https://www.gesetze-im-internet.de/estg/" target="_blank" rel="noreferrer">EStG</a> · <a href="https://www.gesetze-im-internet.de/muschg_2018/BJNR122810017.html" target="_blank" rel="noreferrer">MuSchG</a></p>
-        <SourceRevision />
-      </footer>
     </main>
+    <footer className="calculator-catalog__footer">
+      <p>Check assumptions and sources beside each estimate.</p>
+      <p>Law texts: <a href="https://www.gesetze-im-internet.de/beeg/BJNR274810006.html" target="_blank" rel="noreferrer">BEEG</a> · <a href="https://www.gesetze-im-internet.de/estg/" target="_blank" rel="noreferrer">EStG</a> · <a href="https://www.gesetze-im-internet.de/muschg_2018/BJNR122810017.html" target="_blank" rel="noreferrer">MuSchG</a></p>
+      <SourceRevision />
+    </footer>
   </>;
 }
