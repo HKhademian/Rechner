@@ -16,9 +16,11 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
     runs-on: ubuntu-latest
     env:
       GITHUB_PAGES: "true"
+      PUBLIC_SOURCE_COMMIT: ${{ github.sha }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7

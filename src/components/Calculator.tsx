@@ -8,6 +8,7 @@ import type {
 import CalculatorPeriodControl from "#components/CalculatorPeriodControl";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
+import SourceRevision from "#components/SourceRevision";
 import "./Calculator.css";
 
 export default function Calculator(): JSX.Element {
@@ -21,8 +22,9 @@ export default function Calculator(): JSX.Element {
         </header>
         <ComparisonTable />
       </main>
-
-
+      <footer className="source-revision-footer">
+        <SourceRevision />
+      </footer>
     </>
   );
 }

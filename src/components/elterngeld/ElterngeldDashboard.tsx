@@ -20,6 +20,7 @@ import {
   DataExportImportModal, 
 } from "#components/elterngeld/DataExportImportModal";
 import Navigation from "#components/Navigation";
+import SourceRevision from "#components/SourceRevision";
 
 export default function ElterngeldDashboard(): JSX.Element {
   const months = currentScenarioData.value.months;
@@ -118,6 +119,7 @@ export default function ElterngeldDashboard(): JSX.Element {
             external servers
           </div>
         </div>
+        <SourceRevision />
       </footer>
     </div>
   );

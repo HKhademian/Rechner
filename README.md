@@ -170,6 +170,18 @@ Run all commands from the project root:
 | `npm run build` | Builds static production bundle in `./dist/` |
 | `npm run preview` | Previews production build locally |
 
+## GitHub Pages and build provenance
+
+The [Pages workflow](.github/workflows/deploy.yml) builds and deploys `main` to
+`https://hkhademian.github.io/Rechner/`. Push-triggered deployments run only
+when the repository is public; a manual workflow dispatch is also supported.
+Set the repository's Pages source to **GitHub Actions** before the first
+deployment.
+
+Each calculator page shows the full source commit, with its 12-character
+prefix bolded and linked to the commit on GitHub. The full and short hashes are
+also available as JSON at `/Rechner/build.json`.
+
 ---
 
 ## 📜 Statutory Sources and Model Scope

@@ -23,6 +23,7 @@ import {
   CATALOG_PAGE_SIZE,
 } from "#/apps/registry.ts";
 import Navigation from "#components/Navigation";
+import SourceRevision from "#components/SourceRevision";
 import {
   CalculatorNavigationIcon,
   SimulatorNavigationIcon,
@@ -153,6 +154,7 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
       <footer className="calculator-catalog__footer">
         <p>Check assumptions and sources beside each estimate.</p>
         <p>Law texts: <a href="https://www.gesetze-im-internet.de/beeg/BJNR274810006.html" target="_blank" rel="noreferrer">BEEG</a> · <a href="https://www.gesetze-im-internet.de/estg/" target="_blank" rel="noreferrer">EStG</a> · <a href="https://www.gesetze-im-internet.de/muschg_2018/BJNR122810017.html" target="_blank" rel="noreferrer">MuSchG</a></p>
+        <SourceRevision />
       </footer>
     </main>
   </>;

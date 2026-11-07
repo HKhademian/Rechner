@@ -1,0 +1,30 @@
+.source-revision {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.source-revision a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.source-revision code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.source-revision strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.source-revision-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 16px 24px;
+  text-align: right;
+  background: var(--bg-surface);
+}
