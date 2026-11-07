@@ -120,6 +120,16 @@ export function DataExportImportModal() {
     }
   };
 
+  const handlePasteJson = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      handleJsonChange(text);
+    }
+    catch {
+      // Clipboard access can be unavailable; the text field remains available.
+    }
+  };
+
   const handleExecuteImport = () => {
     if (importResult && importResult.success) {
       importSimulationState(importResult.state);
@@ -217,8 +227,7 @@ export function DataExportImportModal() {
                   margin: "2px 0 0 0",
                 }}
               >
-                Export comprehensive audit reports or import JSON presets with
-                100% client-side data privacy
+                Save a backup or restore it later. Your data stays in this browser.
               </p>
             </div>
           </div>
@@ -943,8 +952,24 @@ export function DataExportImportModal() {
                       textTransform: "uppercase",
                     }}
                   >
-                    Or Paste Simulation JSON Directly
+                    Paste JSON
                   </label>
+                  <button
+                    type="button"
+                    onClick={handlePasteJson}
+                    style={{
+                      padding: "4px 8px",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "var(--border-radius-sm)",
+                      background: "var(--bg-surface)",
+                      color: "var(--color-primary)",
+                      fontSize: "0.72rem",
+                      fontWeight: 650,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Paste from clipboard
+                  </button>
                   {importResult && (
                     <span
                       style={{
