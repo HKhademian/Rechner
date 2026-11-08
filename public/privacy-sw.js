@@ -1,4 +1,4 @@
-const CACHE_NAME = "rechner-offline-v1";
+const CACHE_NAME = "rechner-offline-v2";
 
 async function cachePageAndAssets(pageUrl, cache, visited) {
   const url = new URL(pageUrl);
@@ -98,18 +98,18 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request, { ignoreSearch: false });
-    if (cached) {
-      return cached;
-    }
     try {
-      const response = await fetch(request);
+      const response = await fetch(request, { cache: "no-cache" });
       if (response.ok && response.type === "basic") {
         await cache.put(request, response.clone());
       }
       return response;
     }
     catch {
+      const cached = await cache.match(request, { ignoreSearch: false });
+      if (cached) {
+        return cached;
+      }
       if (request.mode === "navigate") {
         const root = await cache.match(self.registration.scope);
         if (root) {
