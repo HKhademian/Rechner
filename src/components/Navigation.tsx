@@ -29,7 +29,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
       <div className="calculator-navigation__inner">
         <a href={sitePath("/")} className="calculator-navigation__brand" aria-label="Rechner home">
           <span className="calculator-navigation__mark"><CalculatorNavigationIcon size={22} /></span>
-          <span><strong>Rechner</strong><small>German salary and family tools</small></span>
+          <span><strong>Rechner</strong><small>Life in Germany, calculated</small></span>
         </a>
         <nav aria-label="Main navigation" className="calculator-navigation__links">
           <a href={sitePath("/")} aria-current={home ? "page" : undefined}>All calculators</a>
