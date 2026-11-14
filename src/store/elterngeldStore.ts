@@ -5,8 +5,12 @@ import {
 import {
   createTaxRulesFromContext,
   createTimelineConventionsFromContext,
+  createInflationAssumptionsFromContext,
   extractTaxRuleOverridesFromContext,
 } from "#engine/parameters/contextAdapters";
+import {
+  createDefaultChildcarePlanConfig,
+} from "#engine/benefits/childcare";
 import {
   activeStatutoryContext,
 } from "#store/parameterStore";
@@ -21,6 +25,8 @@ import {
   type ActiveScenarioView,
   type TimelineChartMode,
   type TimelineTimeRangeFilter,
+  type ChildcarePlanConfig,
+  type ChildrenCount,
   type SalaryBonusSlot,
   type SalaryPeriod,
   type PregnancyId,
@@ -642,6 +648,46 @@ export const wifeClass3PartTimeNet = computed(() => {
   return Math.round(ft * ratio);
 });
 
+export const existingChildrenCount = signal<ChildrenCount>(
+  initialPersisted.existingChildrenCount ?? toChildrenCount(0),
+);
+export const childcarePlan = signal<ChildcarePlanConfig>(
+  initialPersisted.childcarePlan ?? createDefaultChildcarePlanConfig(),
+);
+export const indexFutureTaxBrackets = signal<boolean>(
+  initialPersisted.indexFutureTaxBrackets ?? false,
+);
+
+export function setExistingChildrenCount(count: number): void {
+  const clamped = Math.max(0, Math.min(10, Math.trunc(Number(count) || 0)));
+  existingChildrenCount.value = toChildrenCount(clamped);
+}
+
+export function updateChildcarePlan(updates: Partial<ChildcarePlanConfig>): void {
+  const cur = childcarePlan.value;
+  const startAgeMonths = Math.max(
+    0,
+    Math.min(168, Math.trunc(updates.startAgeMonths ?? cur.startAgeMonths)),
+  );
+  const endAgeMonths = Math.max(
+    startAgeMonths,
+    Math.min(168, Math.trunc(updates.endAgeMonths ?? cur.endAgeMonths)),
+  );
+  childcarePlan.value = Object.freeze({
+    enabled: updates.enabled ?? cur.enabled,
+    presetId: updates.presetId ?? cur.presetId,
+    customMonthlyFeePerChild: updates.customMonthlyFeePerChild !== undefined
+      ? toEuroAmount(Math.max(0, Number(updates.customMonthlyFeePerChild) || 0))
+      : cur.customMonthlyFeePerChild,
+    startAgeMonths,
+    endAgeMonths,
+  });
+}
+
+export function setIndexFutureTaxBrackets(enabled: boolean): void {
+  indexFutureTaxBrackets.value = Boolean(enabled);
+}
+
 export const kindergeldPerChild = signal<EuroAmount>(
   initialPersisted.kindergeldPerChild,
 );
@@ -957,6 +1003,10 @@ export function getCurrentPersistedState(): ElterngeldPersistedState {
     annualBonusMonth: annualBonusMonth.value,
     investmentReturnMonthly: investmentReturnMonthly.value,
 
+    existingChildrenCount: existingChildrenCount.value,
+    childcarePlan: childcarePlan.value,
+    indexFutureTaxBrackets: indexFutureTaxBrackets.value,
+
     kindergeldPerChild: kindergeldPerChild.value,
     enable13thSalary: enable13thSalary.value,
     bonus40Month: bonus40Month.value,
@@ -1059,6 +1109,12 @@ export function importSimulationState(
   annualBonusGross.value = newState.annualBonusGross;
   annualBonusMonth.value = newState.annualBonusMonth;
   investmentReturnMonthly.value = newState.investmentReturnMonthly;
+
+  existingChildrenCount.value =
+    newState.existingChildrenCount ?? toChildrenCount(0);
+  childcarePlan.value =
+    newState.childcarePlan ?? createDefaultChildcarePlanConfig();
+  indexFutureTaxBrackets.value = newState.indexFutureTaxBrackets === true;
 
   kindergeldPerChild.value = newState.kindergeldPerChild;
   enable13thSalary.value = newState.enable13thSalary;
@@ -1273,6 +1329,12 @@ export function resetToDefaults() {
   annualBonusMonth.value = defaults.annualBonusMonth;
   investmentReturnMonthly.value = defaults.investmentReturnMonthly;
 
+  existingChildrenCount.value =
+    defaults.existingChildrenCount ?? toChildrenCount(0);
+  childcarePlan.value =
+    defaults.childcarePlan ?? createDefaultChildcarePlanConfig();
+  indexFutureTaxBrackets.value = defaults.indexFutureTaxBrackets === true;
+
   kindergeldPerChild.value = defaults.kindergeldPerChild;
   enable13thSalary.value = defaults.enable13thSalary;
   bonus40Month.value = defaults.bonus40Month;
@@ -1370,7 +1432,12 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
     annualBonusGross: toEuroAmount(annualBonusGross.value),
     annualBonusMonth: toCalendarMonth(annualBonusMonth.value),
     investmentReturnMonthly: toEuroAmount(investmentReturnMonthly.value),
-    existingChildrenCount: toChildrenCount(0),
+    existingChildrenCount: existingChildrenCount.value,
+    childcarePlan: childcarePlan.value,
+    inflationAssumptions: createInflationAssumptionsFromContext(
+      statutoryContext,
+      indexFutureTaxBrackets.value,
+    ),
     kindergeldPerChild: toEuroAmount(kindergeldPerChild.value),
     enable13thSalary: enable13thSalary.value,
     bonus40Month: toCalendarMonth(bonus40Month.value),
