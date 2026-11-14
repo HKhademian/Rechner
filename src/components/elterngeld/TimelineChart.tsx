@@ -14,6 +14,11 @@ import {
   currentScenarioData,
   hoveredMonth,
 } from "#store/elterngeldStore";
+import LawRefLink from "#components/laws/LawRefLink";
+import {
+  LawGroupId,
+  LawId,
+} from "#engine/laws/types";
 import {
   type TimelineMonth,
   type ScenarioTimelineResult,
@@ -395,7 +400,11 @@ export default function TimelineChart(): JSX.Element {
                 </p>
                 {referenceProfile && (
                   <p>
-                    <a href={referenceProfile.papPublication.source} target="_blank" rel="noreferrer">Official payroll rules · {referenceProfile.sourceYear}</a>
+                    <LawRefLink
+                      lawId={LawId.BMF_PAP}
+                      groupId={LawGroupId.EStG_PayrollWithholding}
+                      label={`Official payroll rules · ${referenceProfile.sourceYear}`}
+                    />
                     {referenceProfile.projected && ` · Projected to ${referenceProfile.calendarYear}`}
                     {referenceProvisional && " · Amounts remain supplied or provisional; this source does not verify them."}
                   </p>

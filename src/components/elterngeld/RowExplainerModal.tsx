@@ -7,8 +7,10 @@ import {
 import {
   ExplainerRowType, 
 } from "#engine/types";
+import LawRefLink from "#components/laws/LawRefLink";
 import {
-  scrollToLegalRule, 
+  LEGAL_RULE_LAW_MAP,
+  activeLegalRuleKey,
 } from "#store/elterngeldStore";
 import {
   SimulationPeriodIcon,
@@ -297,7 +299,7 @@ export default function RowExplainerModal({
           </div>
         )}
 
-        {/* Action Button: Jump to Legal Rule Explainer */}
+        {/* Action Link: Open Statutory Reference Popup or Ctrl+Click Full Law Page */}
         {explanation.legalRuleKey && (
           <div
             style={{
@@ -307,13 +309,15 @@ export default function RowExplainerModal({
               borderTop: "1px solid var(--border-subtle)",
             }}
           >
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
+            <LawRefLink
+              lawId={LEGAL_RULE_LAW_MAP[explanation.legalRuleKey].lawId}
+              groupId={LEGAL_RULE_LAW_MAP[explanation.legalRuleKey].groupId}
+              variant="plain"
+              onOpen={() => {
                 if (explanation.legalRuleKey) {
-                  scrollToLegalRule(explanation.legalRuleKey);
+                  activeLegalRuleKey.value = explanation.legalRuleKey;
                 }
+                onClose();
               }}
               style={{
                 background: "var(--color-primary-bg)",
@@ -323,7 +327,6 @@ export default function RowExplainerModal({
                 borderRadius: "var(--border-radius-sm)",
                 fontSize: "0.8rem",
                 fontWeight: 700,
-                cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
@@ -332,7 +335,7 @@ export default function RowExplainerModal({
             >
               <span>Open Statutory Reference Popup</span>
               <StepTransitionIcon size={14} />
-            </button>
+            </LawRefLink>
           </div>
         )}
       </div>

@@ -86,8 +86,9 @@ import {
   resetToEmptyScenario,
   importSimulationState,
   openExportImportModal,
-  scrollToLegalRule,
+  LEGAL_RULE_LAW_MAP,
   LegalRuleKey,
+  activeLegalRuleKey,
 } from "#store/elterngeldStore";
 
 import {
@@ -139,7 +140,7 @@ import {
   DeleteActionIcon,
   EligibilityConfirmedIcon,
   StatutoryLimitationWarningIcon,
-  ExternalLegalSourceIcon,
+  StatutorySectionIcon,
   ExpandSectionIcon,
   CollapseSectionIcon,
   SimulatorNavigationIcon,
@@ -1147,14 +1148,14 @@ export default function SandboxControls(): JSX.Element {
                     gap: "8px",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_TaxSwap)}
+                  <LawRefLink
+                    lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].lawId}
+                    groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].groupId}
+                    variant="plain"
+                    onOpen={() => {
+                      activeLegalRuleKey.value = LegalRuleKey.BEEG_TaxSwap;
+                    }}
                     style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
                       fontWeight: 800,
                       fontSize: "0.92rem",
                       color: "var(--color-gain)",
@@ -1163,7 +1164,7 @@ export default function SandboxControls(): JSX.Element {
                       alignItems: "center",
                       gap: "4px",
                     }}
-                    title="Click to view § 2b BEEG & BEEG § 2c(3) tax optimization rules"
+                    title="§ 2b BEEG & BEEG § 2c(3) tax optimization rules — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>2. Tax Classes &amp; Strategy</span>
                     <span
@@ -1176,9 +1177,9 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       <span>(§ 2b BEEG)</span>
-                      <ExternalLegalSourceIcon size={10} />
+                      <StatutorySectionIcon size={10} />
                     </span>
-                  </button>
+                  </LawRefLink>
                   <span className="badge-gain">
                     {customTaxClassSwitches.value.length} Switches Active
                   </span>
@@ -3916,13 +3917,14 @@ export default function SandboxControls(): JSX.Element {
                             </span>
                           </div>
                         ) : hours >= 24 && hours <= 32 ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              scrollToLegalRule(
-                                LegalRuleKey.BEEG_PartnershipBonus,
-                              )
-                            }
+                          <LawRefLink
+                            lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_PartnershipBonus].lawId}
+                            groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_PartnershipBonus].groupId}
+                            variant="plain"
+                            onOpen={() => {
+                              activeLegalRuleKey.value =
+                                LegalRuleKey.BEEG_PartnershipBonus;
+                            }}
                             style={{
                               width: "100%",
                               textAlign: "left",
@@ -3934,19 +3936,18 @@ export default function SandboxControls(): JSX.Element {
                               marginTop: "4px",
                               fontWeight: 600,
                               border: "1px solid var(--color-gain-border)",
-                              cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "4px",
                             }}
-                            title="Click to view § 4b BEEG Partnership Bonus rules and worked example"
+                            title="§ 4b BEEG Partnership Bonus rules and worked example — Click for quick popup · Ctrl+Click for full page"
                           >
                             <EligibilityConfirmedIcon size={11} />
                             <span>
                               Partnerschaftsbonus (§ 4b BEEG) OK (24–32h / 3–4d)
                             </span>
-                            <ExternalLegalSourceIcon size={10} />
-                          </button>
+                            <StatutorySectionIcon size={10} />
+                          </LawRefLink>
                         ) : hours === 0 ? (
                           <div
                             style={{
@@ -3961,13 +3962,14 @@ export default function SandboxControls(): JSX.Element {
                             ℹ Full Parental Leave (0h / week · 100% leave)
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              scrollToLegalRule(
-                                LegalRuleKey.BEEG_PartnershipBonus,
-                              )
-                            }
+                          <LawRefLink
+                            lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_PartnershipBonus].lawId}
+                            groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_PartnershipBonus].groupId}
+                            variant="plain"
+                            onOpen={() => {
+                              activeLegalRuleKey.value =
+                                LegalRuleKey.BEEG_PartnershipBonus;
+                            }}
                             style={{
                               width: "100%",
                               textAlign: "left",
@@ -3979,20 +3981,19 @@ export default function SandboxControls(): JSX.Element {
                               marginTop: "4px",
                               fontWeight: 600,
                               border: "1px solid var(--color-warning-border)",
-                              cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "4px",
                             }}
-                            title="Click to view § 4b BEEG corridor requirements"
+                            title="§ 4b BEEG corridor requirements — Click for quick popup · Ctrl+Click for full page"
                           >
                             <InformationalNoticeIcon size={11} />
                             <span>
                               ElterngeldPlus eligible, outside PB corridor
                               (24–32h)
                             </span>
-                            <ExternalLegalSourceIcon size={10} />
-                          </button>
+                            <StatutorySectionIcon size={10} />
+                          </LawRefLink>
                         )}
                       </div>
 
@@ -4923,17 +4924,15 @@ export default function SandboxControls(): JSX.Element {
                         marginBottom: "4px",
                       }}
                     >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)
-                        }
+                      <LawRefLink
+                        lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_Kindergeld].lawId}
+                        groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_Kindergeld].groupId}
+                        variant="plain"
+                        onOpen={() => {
+                          activeLegalRuleKey.value = LegalRuleKey.EStG_Kindergeld;
+                        }}
                         style={{
-                          background: "none",
-                          border: "none",
                           color: "var(--text-secondary)",
-                          padding: 0,
-                          cursor: "pointer",
                           fontSize: "0.74rem",
                           fontWeight: 700,
                           textAlign: "left",
@@ -4941,7 +4940,7 @@ export default function SandboxControls(): JSX.Element {
                           alignItems: "center",
                           gap: "4px",
                         }}
-                        title="Click to view § 66 EStG Kindergeld legal rule & example"
+                        title="§ 66 EStG Kindergeld legal rule & example — Click for quick popup · Ctrl+Click for full page"
                       >
                         <span>Kindergeld</span>
                         <span
@@ -4955,10 +4954,10 @@ export default function SandboxControls(): JSX.Element {
                           }}
                         >
                           <span>(§ 66 EStG)</span>
-                          <ExternalLegalSourceIcon size={10} />
+                          <StatutorySectionIcon size={10} />
                         </span>
                         :
-                      </button>
+                      </LawRefLink>
                       <span
                         style={{
                           fontVariantNumeric: "tabular-nums",

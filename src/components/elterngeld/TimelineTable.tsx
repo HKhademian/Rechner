@@ -12,14 +12,16 @@ import {
   useState,
   useEffect,
 } from "preact/hooks";
+import LawRefLink from "#components/laws/LawRefLink";
 import {
   currentScenarioData,
   activeScenario,
   scenarioBData,
   hoveredMonth,
   showSpecialEventRows,
-  scrollToLegalRule,
+  LEGAL_RULE_LAW_MAP,
   LegalRuleKey,
+  activeLegalRuleKey,
 } from "#store/elterngeldStore";
 import {
   type CalendarYear,
@@ -41,7 +43,7 @@ import {
   TaxClassSwapMilestoneIcon,
   CareerPromotionMilestoneIcon,
   FinancialInflowIcon,
-  ExternalLegalSourceIcon,
+  StatutorySectionIcon,
   InformationalNoticeIcon,
   StepTransitionIcon,
 } from "#components/Icons";
@@ -487,28 +489,26 @@ export default function TimelineTable(): JSX.Element {
               <th style={{ padding: "10px 12px" }}>
                 <div>
                   <span>Maternity </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      scrollToLegalRule(LegalRuleKey.MuSchG_Maternity)
-                    }
+                  <LawRefLink
+                    lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.MuSchG_Maternity].lawId}
+                    groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.MuSchG_Maternity].groupId}
+                    variant="plain"
+                    onOpen={() => {
+                      activeLegalRuleKey.value = LegalRuleKey.MuSchG_Maternity;
+                    }}
                     style={{
-                      background: "none",
-                      border: "none",
                       color: "var(--color-primary)",
-                      cursor: "pointer",
-                      padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "2px",
                     }}
-                    title="Click to view § 3 MuSchG statutory rule and example"
+                    title="§ 3 MuSchG statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>(*MuSchG*)</span>
-                    <ExternalLegalSourceIcon size={10} />
-                  </button>
+                    <StatutorySectionIcon size={10} />
+                  </LawRefLink>
                 </div>
                 {showDelta &&
                   scenario === SimulationStrategy.StatutoryOptimized && (
@@ -526,28 +526,26 @@ export default function TimelineTable(): JSX.Element {
               <th style={{ padding: "10px 12px" }}>
                 <div>
                   <span>ElterngeldPlus </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      scrollToLegalRule(LegalRuleKey.BEEG_SyntheticNet)
-                    }
+                  <LawRefLink
+                    lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_SyntheticNet].lawId}
+                    groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_SyntheticNet].groupId}
+                    variant="plain"
+                    onOpen={() => {
+                      activeLegalRuleKey.value = LegalRuleKey.BEEG_SyntheticNet;
+                    }}
                     style={{
-                      background: "none",
-                      border: "none",
                       color: "var(--color-gain)",
-                      cursor: "pointer",
-                      padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "2px",
                     }}
-                    title="Click to view § 4 BEEG statutory rule and example"
+                    title="§ 4 BEEG statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>(*§ 4 BEEG*)</span>
-                    <ExternalLegalSourceIcon size={10} />
-                  </button>
+                    <StatutorySectionIcon size={10} />
+                  </LawRefLink>
                 </div>
                 {showDelta &&
                   scenario === SimulationStrategy.StatutoryOptimized && (
@@ -565,28 +563,26 @@ export default function TimelineTable(): JSX.Element {
               <th style={{ padding: "10px 12px" }}>
                 <div>
                   <span>Partner Months </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      scrollToLegalRule(LegalRuleKey.BEEG_PartnershipBonus)
-                    }
+                  <LawRefLink
+                    lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_PartnershipBonus].lawId}
+                    groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_PartnershipBonus].groupId}
+                    variant="plain"
+                    onOpen={() => {
+                      activeLegalRuleKey.value = LegalRuleKey.BEEG_PartnershipBonus;
+                    }}
                     style={{
-                      background: "none",
-                      border: "none",
                       color: "var(--color-warning)",
-                      cursor: "pointer",
-                      padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "2px",
                     }}
-                    title="Click to view § 4b BEEG Partnership Bonus statutory rule and example"
+                    title="§ 4b BEEG Partnership Bonus statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>(*§ 4b BEEG*)</span>
-                    <ExternalLegalSourceIcon size={10} />
-                  </button>
+                    <StatutorySectionIcon size={10} />
+                  </LawRefLink>
                 </div>
                 {showDelta &&
                   scenario === SimulationStrategy.StatutoryOptimized && (
@@ -604,29 +600,26 @@ export default function TimelineTable(): JSX.Element {
               <th style={{ padding: "10px 12px" }}>
                 <div>
                   <span>Child Benefit </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      scrollToLegalRule(LegalRuleKey.EStG_Kindergeld)
-                    }
+                  <LawRefLink
+                    lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_Kindergeld].lawId}
+                    groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_Kindergeld].groupId}
+                    variant="plain"
+                    onOpen={() => {
+                      activeLegalRuleKey.value = LegalRuleKey.EStG_Kindergeld;
+                    }}
                     style={{
-                      background: "none",
-                      border: "none",
                       color: "var(--series-kindergeld)",
-                      cursor: "pointer",
-                      padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "2px",
                     }}
-
-                    title="Click to view § 66 EStG Kindergeld statutory rule and example"
+                    title="§ 66 EStG Kindergeld statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>(*§ 66 EStG*)</span>
-                    <ExternalLegalSourceIcon size={10} />
-                  </button>
+                    <StatutorySectionIcon size={10} />
+                  </LawRefLink>
                 </div>
                 {showDelta &&
                   scenario === SimulationStrategy.StatutoryOptimized && (
@@ -645,28 +638,26 @@ export default function TimelineTable(): JSX.Element {
                 <div>
                   <span>Special / Tax </span>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      scrollToLegalRule(LegalRuleKey.EStG_TaxSplitting)
-                    }
+                  <LawRefLink
+                    lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_TaxSplitting].lawId}
+                    groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_TaxSplitting].groupId}
+                    variant="plain"
+                    onOpen={() => {
+                      activeLegalRuleKey.value = LegalRuleKey.EStG_TaxSplitting;
+                    }}
                     style={{
-                      background: "none",
-                      border: "none",
                       color: "var(--series-tax-refund)",
-                      cursor: "pointer",
-                      padding: 0,
                       textDecoration: "underline",
                       fontSize: "0.74rem",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "2px",
                     }}
-                    title="Click to view § 26b EStG Marital Splitting statutory rule and example"
+                    title="§ 26b EStG Marital Splitting statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>(*§ 26b*)</span>
-                    <ExternalLegalSourceIcon size={10} />
-                  </button>
+                    <StatutorySectionIcon size={10} />
+                  </LawRefLink>
                 </div>
                 {showDelta &&
                   scenario === SimulationStrategy.StatutoryOptimized && (

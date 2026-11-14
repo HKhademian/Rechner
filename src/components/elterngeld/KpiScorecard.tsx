@@ -2,17 +2,18 @@ import CalculationStatus from "./CalculationStatus";
 import type {
   JSX,
 } from "preact";
+import LawRefLink from "#components/laws/LawRefLink";
 import {
   currentScenarioData,
   comparisonMetrics,
   scenarioBData,
-  scrollToLegalRule,
+  LEGAL_RULE_LAW_MAP,
   LegalRuleKey,
+  activeLegalRuleKey,
 } from "#store/elterngeldStore";
 
-
 import {
-  ExternalLegalSourceIcon,
+  StatutorySectionIcon,
 } from "#components/Icons";
 
 function formatCurrency(amount: number, maximumFractionDigits = 0): string {
@@ -350,27 +351,27 @@ export default function KpiScorecard(): JSX.Element {
             fontWeight: 700 }}>
             {percentGainCvsB === undefined ? "Percentage unavailable for a zero baseline" : `${Number(percentGainCvsB) > 0 ? "+" : ""}${percentGainCvsB}% cash-flow difference`}
           </span>
-          <button
-            type="button"
-            onClick={() => scrollToLegalRule(LegalRuleKey.BEEG_TaxSwap)}
+          <LawRefLink
+            lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].lawId}
+            groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].groupId}
+            variant="plain"
+            onOpen={() => {
+              activeLegalRuleKey.value = LegalRuleKey.BEEG_TaxSwap;
+            }}
             style={{
-              background: "none",
-              border: "none",
               color: "var(--color-primary)",
               textDecoration: "underline",
-              cursor: "pointer",
               fontSize: "0.72rem",
-              padding: 0,
               fontWeight: 600,
               display: "inline-flex",
               alignItems: "center",
               gap: "4px",
             }}
-            title="View § 2b BEEG legal basis and strategy"
+            title="View § 2b BEEG legal basis and strategy — Click for quick popup · Ctrl+Click for full page"
           >
             <span>How is this calculated? (§ 2b BEEG)</span>
-            <ExternalLegalSourceIcon size={11} />
-          </button>
+            <StatutorySectionIcon size={11} />
+          </LawRefLink>
         </div>
       </div>
     </div>
