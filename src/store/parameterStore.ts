@@ -1,12 +1,29 @@
 import {
+  createStatutoryCalculationContext,
+} from "#engine/formulas/context/statutoryContext";
+import {
+  type StatutoryCalculationContext,
+} from "#engine/formulas/types";
+import {
   type LawId,
 } from "#engine/laws/types";
+import {
+  type ProjectedParameterView,
+  FormProjectionProfileId,
+  projectParametersForProfile,
+} from "#engine/parameters/projections";
 import {
   attemptParameterModification,
   getParametersByLaw,
   resolveParameterForYear,
   searchParameters,
 } from "#engine/parameters/registry";
+import {
+  SHARED_PARAMETERS_STORAGE_KEY,
+  clearSharedParameterSnapshot,
+  readSharedParameterSnapshot,
+  writeSharedParameterSnapshot,
+} from "#engine/parameters/storage";
 import {
   type ParameterDomain,
   type ParameterId,
@@ -27,11 +44,17 @@ import {
   signal,
 } from "@preact/signals";
 
+const initialSnapshot = readSharedParameterSnapshot();
+
 /** Active calendar year used to observe and resolve year-indexed statutory parameters. */
-export const activeParameterYear = signal<FullCalendarYear>(DEFAULT_TAX_YEAR);
+export const activeParameterYear = signal<FullCalendarYear>(
+  initialSnapshot?.year ?? DEFAULT_TAX_YEAR,
+);
 
 /** User-customized parameter overrides (only `Customizable` parameters are permitted). */
-export const customParameterOverrides = signal<Readonly<Partial<Record<ParameterId, number>>>>({});
+export const customParameterOverrides = signal<Readonly<Partial<Record<ParameterId, number>>>>(
+  initialSnapshot?.overrides ?? {},
+);
 
 /** Optional domain filter inside the Parameter Observer & Editor UI. */
 export const activeParameterDomainFilter = signal<ParameterDomain | undefined>(undefined);
@@ -42,11 +65,37 @@ export const activeParameterMutabilityFilter = signal<ParameterMutability | unde
 /** Search query inside the Parameter Observer & Editor UI. */
 export const activeParameterSearchQuery = signal<string>("");
 
+/** Active Form Projection Profile controlling which parameter domains are highlighted by default. */
+export const activeProjectionProfileId = signal<FormProjectionProfileId>(
+  FormProjectionProfileId.FullCatalog,
+);
+
+/** When true, out-of-focus default-projected domains are also shown inside `<ParameterObserverSection />`. */
+export const showProjectedOutDomains = signal<boolean>(false);
+
 /** Most recent flag raised when an unmodifiable or out-of-bounds edit was attempted. */
 export const lastParameterModificationFlag = signal<ParameterModificationFlag | null>(null);
 
 /** Audit trail of raised statutory/validation flags (newest first, max 10). */
 export const parameterModificationFlagHistory = signal<readonly ParameterModificationFlag[]>([]);
+
+/**
+ * Reactive `@preact/signals` bridge projecting the active shared parameter year and
+ * validated user overrides into an immutable Tier 2 `StatutoryCalculationContext`.
+ */
+export const activeStatutoryContext = computed<StatutoryCalculationContext>(() =>
+  createStatutoryCalculationContext({
+    calendarYear: activeParameterYear.value,
+    customParameterOverrides: customParameterOverrides.value,
+  }));
+
+/** Projected focused vs. out-of-focus parameters for the active calculator form profile. */
+export const projectedParameterView = computed<ProjectedParameterView>(() =>
+  projectParametersForProfile(
+    activeProjectionProfileId.value,
+    activeParameterYear.value,
+    customParameterOverrides.value,
+  ));
 
 /** Complete list of all parameters resolved for `activeParameterYear` and active overrides. */
 export const allResolvedParameters = computed<readonly ResolvedParameterValue[]>(() =>
@@ -56,9 +105,12 @@ export const allResolvedParameters = computed<readonly ResolvedParameterValue[]>
     customParameterOverrides.value,
   ));
 
-/** Filtered list of parameters matching the active query, domain, and mutability filters. */
-export const filteredResolvedParameters = computed<readonly ResolvedParameterValue[]>(() =>
-  searchParameters(
+/**
+ * Filtered list of parameters matching the active query, domain, mutability, and
+ * current form projection profile (or full catalog when expanded).
+ */
+export const filteredResolvedParameters = computed<readonly ResolvedParameterValue[]>(() => {
+  const candidates = searchParameters(
     activeParameterSearchQuery.value,
     {
       domain: activeParameterDomainFilter.value,
@@ -66,15 +118,74 @@ export const filteredResolvedParameters = computed<readonly ResolvedParameterVal
       year: activeParameterYear.value,
     },
     customParameterOverrides.value,
-  ));
+  );
+
+  if (
+    showProjectedOutDomains.value ||
+    activeProjectionProfileId.value === FormProjectionProfileId.FullCatalog ||
+    activeParameterDomainFilter.value !== undefined ||
+    activeParameterSearchQuery.value.trim().length > 0
+  ) {
+    return candidates;
+  }
+
+  const focusedDomainSet = new Set<ParameterDomain>(
+    projectedParameterView.value.profile.focusedDomains,
+  );
+  return candidates.filter((item) => focusedDomainSet.has(item.definition.domain));
+});
 
 /** Number of customizable parameters currently overridden away from their baseline default. */
 export const activeParameterOverrideCount = computed<number>(() =>
   allResolvedParameters.value.filter((item) => item.overridden).length);
 
+function persistCurrentSharedParameters(): void {
+  writeSharedParameterSnapshot(
+    activeParameterYear.value,
+    customParameterOverrides.value,
+  );
+}
+
+/**
+ * Reloads shared statutory year and customizable overrides from active privacy storage,
+ * enabling cross-tab / cross-page synchronization between `/laws/` and calculator forms.
+ */
+export function reloadSharedParametersFromStorage(): void {
+  const snapshot = readSharedParameterSnapshot();
+  if (!snapshot) {
+    activeParameterYear.value = DEFAULT_TAX_YEAR;
+    customParameterOverrides.value = {};
+    return;
+  }
+  activeParameterYear.value = snapshot.year;
+  customParameterOverrides.value = snapshot.overrides;
+}
+
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+  window.addEventListener("storage", (event: StorageEvent) => {
+    if (event.key === SHARED_PARAMETERS_STORAGE_KEY || event.key === null) {
+      reloadSharedParametersFromStorage();
+    }
+  });
+}
+
+/** Sets the active Form Projection Profile for `<ParameterObserverSection />`. */
+export function setParameterProjectionProfile(
+  profileId: FormProjectionProfileId,
+): void {
+  activeProjectionProfileId.value = profileId;
+  showProjectedOutDomains.value = false;
+}
+
+/** Toggles whether out-of-focus default-projected domains are expanded into view. */
+export function setShowProjectedOutDomains(showAll: boolean): void {
+  showProjectedOutDomains.value = showAll;
+}
+
 /** Switches the active calendar year used for year-indexed statutory parameter resolution. */
 export function setParameterYear(year: FullCalendarYear): void {
   activeParameterYear.value = toFullCalendarYear(year);
+  persistCurrentSharedParameters();
 }
 
 /** Updates the active domain filter in the unified parameter observer. */
@@ -128,6 +239,7 @@ export function modifyParameterValue(
     nextOverrides[id] = result.value;
   }
   customParameterOverrides.value = nextOverrides;
+  persistCurrentSharedParameters();
 
   if (lastParameterModificationFlag.value?.parameterId === id) {
     lastParameterModificationFlag.value = null;
@@ -161,6 +273,7 @@ export function resetParameterOverride(id: ParameterId): void {
   };
   delete nextOverrides[id];
   customParameterOverrides.value = nextOverrides;
+  persistCurrentSharedParameters();
 }
 
 /** Clears all parameter overrides, filters, and raised flags back to clean defaults. */
@@ -172,6 +285,8 @@ export function resetAllParameterOverrides(): void {
   lastParameterModificationFlag.value = null;
   parameterModificationFlagHistory.value = [];
   activeParameterYear.value = DEFAULT_TAX_YEAR;
+  showProjectedOutDomains.value = false;
+  clearSharedParameterSnapshot();
 }
 
 /** Dismisses the currently visible statutory modification warning flag banner. */
