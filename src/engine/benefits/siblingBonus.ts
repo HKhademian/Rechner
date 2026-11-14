@@ -6,10 +6,12 @@
  */
 
 import {
+  evaluateSiblingBonusFormula,
+} from "#engine/formulas/pure/parentalBenefitFormulas";
+import {
   type Brand,
   type SimulationMonth,
   type EuroAmount,
-  toEuroAmount,
 } from "#engine/types";
 import {
   type BenefitRules,
@@ -37,11 +39,6 @@ export interface SiblingBonusCalculation {
 
 /**
  * Computes statutory sibling bonus under § 2a BEEG for a given simulation month.
- *
- * @param baseElterngeldPlus - Monthly un-augmented ElterngeldPlus benefit.
- * @param olderChildBirthMonth - Simulation month when older child was delivered.
- * @param currentMonth - Current simulation month being evaluated.
- * @returns Complete `SiblingBonusCalculation` structure.
  */
 export function computeSiblingBonus(
   baseElterngeldPlus: EuroAmount,
@@ -50,12 +47,7 @@ export function computeSiblingBonus(
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): SiblingBonusCalculation {
   const olderChildAgeInMonths = currentMonth - olderChildBirthMonth;
-
-  // § 2a(3): payment includes the life-month in which the qualifying age is reached.
-  // Calendar-month simulation approximates life-months; exact birth days are not modeled.
-  const isEligible = baseElterngeldPlus > 0 && olderChildAgeInMonths >= 0 && olderChildAgeInMonths <= rules.siblingAgeLimitMonths.value;
-
-  return applySiblingBonus(baseElterngeldPlus, isEligible, olderChildAgeInMonths, rules);
+  return evaluateWithSiblingAges(baseElterngeldPlus, [olderChildAgeInMonths], rules);
 }
 
 /** All other household children count, including a younger sibling born during the claim. */
@@ -86,44 +78,34 @@ export function computeSiblingBonusForAges(
   ages: readonly SiblingAgeMonths[],
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): SiblingBonusCalculation {
-  const qualifying = ages.some((age) => age <= rules.siblingAgeLimitMonths.value) ||
-    ages.filter((age) => age <= rules.siblingMultipleAgeLimitMonths.value).length >= rules.siblingMultipleMinimumCount.value;
-  return applySiblingBonus(
-    baseElterngeldPlus,
-    baseElterngeldPlus > 0 && qualifying,
-    ages.length > 0 ? Math.min(...ages) : -1,
-    rules,
-  );
+  return evaluateWithSiblingAges(baseElterngeldPlus, ages, rules);
 }
 
-function applySiblingBonus(
+function evaluateWithSiblingAges(
   baseElterngeldPlus: EuroAmount,
-  isEligible: boolean,
-  olderChildAgeInMonths: number,
+  siblingAgesInMonths: readonly number[],
   rules: BenefitRules,
 ): SiblingBonusCalculation {
-  if (!isEligible) {
-    return {
-      isEligible: false,
-      baseElterngeldPlus,
-      siblingBonusAmount: toEuroAmount(0),
-      totalElterngeldPlusWithBonus: baseElterngeldPlus,
-      olderChildAgeInMonths,
-      statutoryCitation: "BEEG § 2a (No underlying entitlement or no qualifying sibling)",
-    };
-  }
-
-  const minimum = toEuroAmount(rules.siblingMinimumBasis.value * rules.plusFraction.value);
-  const bonusAddition = Math.max(minimum, toEuroAmount(baseElterngeldPlus * rules.siblingRate.value));
-  const maximum = toEuroAmount(rules.basisMaximum.value * rules.plusFraction.value * (1 + rules.siblingRate.value));
-  const total = toEuroAmount(Math.min(maximum, baseElterngeldPlus + bonusAddition));
+  const formulaResult = evaluateSiblingBonusFormula({
+    baseElterngeldPlus,
+    siblingAgesInMonths,
+    siblingBonusRate: rules.siblingRate.value,
+    siblingMinimumBasisAmount: rules.siblingMinimumBasis.value,
+    basisMaximumAmount: rules.basisMaximum.value,
+    elterngeldPlusFraction: rules.plusFraction.value,
+    singleOlderSiblingMaxAgeMonths: rules.siblingAgeLimitMonths.value,
+    multipleSiblingsMaxAgeMonths: rules.siblingMultipleAgeLimitMonths.value,
+    multipleSiblingsMinimumCount: rules.siblingMultipleMinimumCount.value,
+  });
 
   return {
-    isEligible: true,
-    baseElterngeldPlus,
-    siblingBonusAmount: toEuroAmount(total - baseElterngeldPlus),
-    totalElterngeldPlusWithBonus: toEuroAmount(total),
-    olderChildAgeInMonths,
-    statutoryCitation: "BEEG § 2a & § 4a Abs. 2 (Geschwisterbonus für ElterngeldPlus)",
+    isEligible: formulaResult.isEligible,
+    baseElterngeldPlus: formulaResult.baseElterngeldPlus,
+    siblingBonusAmount: formulaResult.siblingBonusAmount,
+    totalElterngeldPlusWithBonus: formulaResult.totalElterngeldPlusWithBonus,
+    olderChildAgeInMonths: formulaResult.youngestQualifyingAgeInMonths,
+    statutoryCitation: formulaResult.isEligible
+      ? "BEEG § 2a & § 4a Abs. 2 (Geschwisterbonus für ElterngeldPlus)"
+      : "BEEG § 2a (No underlying entitlement or no qualifying sibling)",
   };
 }

@@ -1,4 +1,7 @@
 import {
+  evaluateBenefitTransitionContributionBaseFormula,
+} from "#engine/formulas/pure/socialContributionFormulas";
+import {
   type FullCalendarYear,
   type GrossSalary,
   type TaxClass,
@@ -7,7 +10,6 @@ import {
   type MonthDuration,
   TaxClass as Classes,
   toFullCalendarYear,
-  toGrossSalary,
   toNetSalary,
   toEuroAmount,
   toChildrenCount,
@@ -78,25 +80,16 @@ export function computeBenefitContributionBase(
   incomeYear: FullCalendarYear,
   benefits: BenefitRules = DEFAULT_BENEFIT_RULES,
 ): GrossSalary {
-  if (gross === 0) {
-    return gross;
-  }
   const thresholds = getEmploymentThresholds(incomeYear);
-  const lower = thresholds.marginal.value;
-  const upper = thresholds.transition.value;
-  if (gross <= lower) {
-    return toGrossSalary(0);
-  }
-  if (gross > upper) {
-    return gross;
-  }
-  const rates = benefits.standardHealthCareDeduction.value + benefits.standardPensionDeduction.value + benefits.standardUnemploymentDeduction.value;
-  if (rates === 0) {
-    return gross;
-  }
-  // Official BEEG guidelines § 2f.2.3: double employee flat rates, then round F to four decimals.
-  const factor = Math.round(benefits.transitionFlatRate.value / (rates * 2) * 10000) / 10000;
-  return toGrossSalary(factor * lower + (upper / (upper - lower) - lower / (upper - lower) * factor) * (gross - lower));
+  return evaluateBenefitTransitionContributionBaseFormula({
+    monthlyGross: gross,
+    marginalEarningsLimitMonthly: thresholds.marginal.value,
+    transitionZoneCeilingMonthly: thresholds.transition.value,
+    benefitTransitionFlatRate: benefits.transitionFlatRate.value,
+    standardHealthCareDeductionRate: benefits.standardHealthCareDeduction.value,
+    standardPensionDeductionRate: benefits.standardPensionDeduction.value,
+    standardUnemploymentDeductionRate: benefits.standardUnemploymentDeduction.value,
+  });
 }
 
 export interface StandardizedBenefitNet {

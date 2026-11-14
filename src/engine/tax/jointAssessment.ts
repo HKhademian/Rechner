@@ -15,6 +15,9 @@ import {
  */
 
 import {
+  evaluateChildAllowanceFavorabilityFormula,
+} from "#engine/formulas/pure/parentalBenefitFormulas";
+import {
   evaluateSplittingTaxTariffFormula,
   evaluateSwapWithholdingVarianceFormula,
 } from "#engine/formulas/pure/incomeTaxFormulas";
@@ -157,24 +160,21 @@ export function computeKinderfreibetragGuenstigerpruefung(
   const taxWith = computeJointProgressionTax(toEuroAmount(reducedZvE), progressionIncome, rules).incomeTax;
 
   // §31 compares income tax only. Solidarity relief is assessed independently.
-  // 3. Tax Savings
-  const taxSavings = Math.max(0, taxWithout - taxWith);
-
-  // 4. Statutory Favorability Comparison (§ 31 Satz 4 EStG Günstigerprüfung)
-  const isFavorable = taxSavings > totalKindergeldReceived;
-  const extraTaxRefund = isFavorable
-    ? Math.max(0, taxSavings - totalKindergeldReceived)
-    : 0;
+  const favorability = evaluateChildAllowanceFavorabilityFormula({
+    jointTaxWithoutAllowance: toEuroAmount(taxWithout),
+    jointTaxWithAllowance: toEuroAmount(taxWith),
+    totalKindergeldReceived: toEuroAmount(totalKindergeldReceived),
+  });
 
   return {
     jointAnnualZvE: toEuroAmount(jointAnnualZvE),
     totalKinderfreibetrag: toEuroAmount(totalKinderfreibetrag),
     jointTaxWithoutAllowance: toEuroAmount(taxWithout),
     jointTaxWithAllowance: toEuroAmount(taxWith),
-    taxSavingsFromAllowance: toEuroAmount(taxSavings),
+    taxSavingsFromAllowance: favorability.taxSavingsFromAllowance,
     totalKindergeldReceived: toEuroAmount(totalKindergeldReceived),
-    extraTaxRefund: toEuroAmount(extraTaxRefund),
-    isKinderfreibetragFavorable: isFavorable,
+    extraTaxRefund: favorability.extraTaxRefund,
+    isKinderfreibetragFavorable: favorability.isKinderfreibetragFavorable,
     statutoryCitation: toStatutoryCitation(
       "§ 31, § 32 Abs. 6 EStG (Familienleistungsausgleich Günstigerprüfung)",
     ),

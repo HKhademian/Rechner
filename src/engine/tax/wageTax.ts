@@ -41,6 +41,10 @@ import {
   evaluateSolidaritySurchargeFormula,
 } from "#engine/formulas/pure/incomeTaxFormulas";
 import {
+  evaluateCareInsuranceContributionFormula,
+  evaluateHealthInsuranceContributionFormula,
+} from "#engine/formulas/pure/socialContributionFormulas";
+import {
   type PayrollOptions,
   payrollInputs,
   calculatePayrollWithholding,
@@ -134,8 +138,13 @@ export interface SocialInsuranceDeductions {
  * Round each employee share before adding; combining rates can lose a cent.
  */
 function healthContribution(base: EuroAmount, rules: TaxRules, options: PayrollOptions): EuroAmount {
-  return toEuroAmount(toEuroAmount(base * rules.parameters.healthEmployeeRate.value) +
-    toEuroAmount(base * (options.healthSupplementTotalRate ?? rules.parameters.healthSupplementTotalRate.value) / 2));
+  return evaluateHealthInsuranceContributionFormula({
+    assessmentBase: base,
+    baseHealthEmployeeRate: rules.parameters.healthEmployeeRate.value,
+    insurerSupplementTotalRate: toPercentageRate(
+      options.healthSupplementTotalRate ?? rules.parameters.healthSupplementTotalRate.value,
+    ),
+  });
 }
 
 /**
@@ -164,16 +173,20 @@ export function computeMonthlySocialSecurity(
   const unemploymentRate = p.unemploymentEmployeeRate.value;
   const unemployment = toEuroAmount(assessedPensionGross * unemploymentRate);
   const inputs = payrollInputs(monthlyGross, TaxClass.I, toChildrenCount(childrenCount), rules, options);
-  const careRate = toPercentageRate(p.careEmployeeBaseRate.value +
-    (inputs.PVS ? p.careSaxonyExtraEmployeeRate.value : 0) +
-    (inputs.PVZ ? p.careChildlessSurcharge.value : -(inputs.PVA ?? 0) * p.careChildDiscount.value));
-  // In the transition zone, the childless surcharge uses the total base; discounts use the employee base.
-  // Standard payroll retains the permitted combined-rate method (GKV guidance §3.3).
-  const care = bases.reduced ? toEuroAmount(
-    toEuroAmount(assessedHealthGross * (p.careEmployeeBaseRate.value + (inputs.PVS ? p.careSaxonyExtraEmployeeRate.value : 0))) +
-    (inputs.PVZ ? toEuroAmount(bases.totalAssessment * p.careChildlessSurcharge.value)
-      : -toEuroAmount(assessedHealthGross * (inputs.PVA ?? 0) * p.careChildDiscount.value)),
-  ) : toEuroAmount(assessedHealthGross * careRate);
+  const careResult = evaluateCareInsuranceContributionFormula({
+    healthAssessmentBase: toEuroAmount(assessedHealthGross),
+    totalTransitionAssessmentBase: bases.totalAssessment,
+    isReducedTransitionZone: bases.reduced,
+    careBaseEmployeeRate: p.careEmployeeBaseRate.value,
+    saxonyExtraEmployeeRate: p.careSaxonyExtraEmployeeRate.value,
+    childlessSurchargeRate: p.careChildlessSurcharge.value,
+    childDiscountRatePerChild: p.careChildDiscount.value,
+    appliesSaxonyRate: Boolean(inputs.PVS),
+    appliesChildlessSurcharge: Boolean(inputs.PVZ),
+    qualifyingDiscountChildCount: inputs.PVA ?? 0,
+  });
+  const careRate = careResult.effectiveCareRate;
+  const care = careResult.careContribution;
 
   const total = health + pension + unemployment + care;
 
