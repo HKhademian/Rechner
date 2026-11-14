@@ -29,6 +29,10 @@ import {
   PaymentQrCodeIcon,
   SimulatorNavigationIcon,
 } from "#components/Icons";
+import {
+  LawId,
+} from "#engine/laws/types";
+import LawRefLink from "#components/laws/LawRefLink";
 
 /** The marketplace imports manifests, never a calculator entry or financial store. */
 export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CATALOG_PAGE_SIZE }: {
@@ -156,7 +160,14 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
     </main>
     <footer className="calculator-catalog__footer">
       <p>Check assumptions and sources beside each estimate.</p>
-      <p>Law texts: <a href="https://www.gesetze-im-internet.de/beeg/BJNR274810006.html" target="_blank" rel="noreferrer">BEEG</a> · <a href="https://www.gesetze-im-internet.de/estg/" target="_blank" rel="noreferrer">EStG</a> · <a href="https://www.gesetze-im-internet.de/muschg_2018/BJNR122810017.html" target="_blank" rel="noreferrer">MuSchG</a></p>
+      <p>
+        Law texts:{" "}
+        <LawRefLink lawId={LawId.BEEG_1} label="BEEG" />
+        {" · "}
+        <LawRefLink lawId={LawId.EStG_32a} label="EStG" />
+        {" · "}
+        <LawRefLink lawId={LawId.MuSchG_3} label="MuSchG" />
+      </p>
       <SourceRevision />
     </footer>
   </>;

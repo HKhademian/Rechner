@@ -171,6 +171,29 @@
   font-weight: 700;
 }
 
+.calculator-navigation__law-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.calculator-navigation__law-btn:hover {
+  background: var(--bg-surface-secondary);
+  border-color: var(--color-primary);
+}
+
+.calculator-navigation__law-btn:focus-visible,
 .calculator-navigation a:focus-visible,
 .calculator-skip-link:focus-visible {
   outline: 2px solid var(--color-primary);

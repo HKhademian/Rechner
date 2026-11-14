@@ -4,16 +4,25 @@ import {
 } from "preact";
 import ThemeToggle from "#components/ThemeToggle";
 import PrivacyStatus from "#components/PrivacyStatus";
+import LawReferenceModal from "#components/laws/LawReferenceModal";
 import {
   CalculatorNavigationIcon,
+  StatutorySectionIcon,
 } from "#components/Icons";
 import {
+  AppId,
   calculatorPath,
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
   calculatorAtPath,
 } from "#/apps/registry.ts";
+import {
+  LawId,
+} from "#engine/laws/types";
+import {
+  openLawReference,
+} from "#store/lawReferenceStore";
 
 export interface NavigationProps {
   currentPath?: string;
@@ -23,6 +32,8 @@ export interface NavigationProps {
 export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.Element {
   const app = calculatorAtPath(currentPath);
   const home = currentPath === "/" || currentPath === "";
+  const defaultLawId = app?.id === AppId.ParentalLeave ? LawId.BEEG_1 : LawId.EStG_32a;
+
   return <>
     <a className="calculator-skip-link" href="#main-content">Skip to content</a>
     <header id="main-navigation" className="calculator-navigation">
@@ -36,10 +47,21 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
           {app && <a href={calculatorPath(app.id)} aria-current="page">{app.title}</a>}
         </nav>
         <div className="calculator-navigation__preferences">
+          <button
+            type="button"
+            className="calculator-navigation__law-btn"
+            aria-label="Open unified statutory law reference popup"
+            title="Browse German statutes (§), trade-offs, tags, and cross-references"
+            onClick={() => openLawReference(defaultLawId)}
+          >
+            <StatutorySectionIcon size={13} />
+            <span>Law Reference</span>
+          </button>
           <PrivacyStatus />
           <ThemeToggle />
         </div>
       </div>
     </header>
+    <LawReferenceModal />
   </>;
 }
