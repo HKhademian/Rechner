@@ -1608,10 +1608,15 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
     benefit: "Provides subsidized housing loans for energy-efficient homes when zvE stays below the family threshold.",
     antiBenefit: "Uses exact final taxable income from official tax notices; modeled employment estimates exclude non-salary deductions.",
     tags: [LawTag.Housing, LawTag.Child, LawTag.Parent, LawTag.Energy, LawTag.Green],
+    groupId: LawGroupId.Housing_HomeAcquisition,
     relatedLaws: {
       [LawId.EStG_2]: {
         relationType: LawRelationType.DependsOn,
         description: "Tests household taxable income (zvE) from official tax assessments.",
+      },
+      [LawId.GrEStG_11]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Combines with regional real estate transfer tax during family home acquisition.",
       },
     },
     externalSources: {
@@ -1619,6 +1624,317 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
         url: toSourceUrl("https://www.kfw.de/PDF/Download-Center/F%C3%B6rderprogramme-(Inlandsf%C3%B6rderung)/PDF-Dokumente/6000005060_M_300_WEF.pdf"),
         label: "KfW 300 Program Information Sheet",
         description: "Official income-evidence rules for KfW 300 family housing loans.",
+      },
+    },
+  }),
+
+  [LawId.EStG_3_72]: freezeEntry({
+    id: LawId.EStG_3_72,
+    citation: toStatutoryCitation("§ 3 Nr. 72 EStG"),
+    code: LawCode.EStG,
+    section: "3 Nr. 72",
+    title: "Residential Photovoltaic Income Tax Exemption",
+    summary: "Exempts income and self-consumption withdrawals from small photovoltaic installations (up to 30 kWp on single-family homes) from German income tax.",
+    benefit: "Eliminates income-tax reporting and EÜR profit taxation on qualifying rooftop solar earnings.",
+    antiBenefit: "Does not shield installations exceeding statutory kWp ceilings per residential unit.",
+    tags: [LawTag.Solar, LawTag.Energy, LawTag.Green, LawTag.Tax],
+    groupId: LawGroupId.EEG_ResidentialSolar,
+    relatedLaws: {
+      [LawId.UStG_12_3]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Pairs with 0% VAT on system purchase for tax-free rooftop solar operation.",
+      },
+      [LawId.EEG_48]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Applies to feed-in remuneration collected under § 48 EEG.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/estg/__3.html"),
+        label: "§ 3 Nr. 72 EStG Statutory Text",
+        description: "Official statutory text governing income tax exemptions for small PV plants.",
+      },
+    },
+  }),
+
+  [LawId.EStG_6_1_4]: freezeEntry({
+    id: LawId.EStG_6_1_4,
+    citation: toStatutoryCitation("§ 6 Abs. 1 Nr. 4 EStG"),
+    code: LawCode.EStG,
+    section: "6 Abs. 1 Nr. 4",
+    title: "Company Car Private Use & Electric Vehicle Basis Reduction",
+    summary: "Sets monthly taxable private-use valuation at 1% of gross list price (0.5% PHEV; 0.25% pure EV up to the statutory price cap).",
+    benefit: "Pure electric company cars up to €100,000 gross list price pay tax on only one-quarter of the list price.",
+    antiBenefit: "Vehicles above the €100,000 BEV cap drop from 0.25% to 0.5%; ICE vehicles carry the full 1.0% taxable uplift.",
+    tags: [LawTag.Car, LawTag.Tax, LawTag.Payroll, LawTag.Green],
+    groupId: LawGroupId.EStG_CompanyCar,
+    relatedLaws: {
+      [LawId.EStG_8_2]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Combined with the 0.03%/km commute surcharge on the reduced assessment basis.",
+      },
+      [LawId.EStG_19]: {
+        relationType: LawRelationType.Extends,
+        description: "Adds imputed benefit-in-kind to monthly taxable employment wages.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/estg/__6.html"),
+        label: "§ 6 Abs. 1 Nr. 4 EStG Statutory Text",
+        description: "Official valuation rules for company car private usage.",
+      },
+    },
+  }),
+
+  [LawId.EStG_8_2]: freezeEntry({
+    id: LawId.EStG_8_2,
+    citation: toStatutoryCitation("§ 8 Abs. 2 S. 3 EStG"),
+    code: LawCode.EStG,
+    section: "8 Abs. 2",
+    title: "Company Car Commute Valuation (0.03% / 0.002%)",
+    summary: "Values regular home-to-work commutes with a company car at 0.03% of effective list price per one-way km monthly (or 0.002% per actual office trip).",
+    benefit: "Employees frequently working remotely can switch to 0.002% actual-trip valuation if commuting under ~15 days/month.",
+    antiBenefit: "Long one-way commutes compound monthly taxable benefit rapidly under the standard 0.03% flat rule.",
+    tags: [LawTag.Car, LawTag.Tax, LawTag.Payroll],
+    groupId: LawGroupId.EStG_CompanyCar,
+    relatedLaws: {
+      [LawId.EStG_6_1_4]: {
+        relationType: LawRelationType.DependsOn,
+        description: "Applies 0.03% or 0.002% to the quartered/halved EV/PHEV or full ICE list-price basis.",
+      },
+      [LawId.EStG_9a]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Offset partially by commuter distance allowance (Entfernungspauschale) in annual tax filing.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/estg/__8.html"),
+        label: "§ 8 EStG Benefit-in-Kind Text",
+        description: "Official valuation rules for commuting benefits in kind.",
+      },
+    },
+  }),
+
+  [LawId.EStG_35a]: freezeEntry({
+    id: LawId.EStG_35a,
+    citation: toStatutoryCitation("§ 35a EStG"),
+    code: LawCode.EStG,
+    section: "35a",
+    title: "Household Services & Craftsmanship Tax Credit",
+    summary: "Credits 20% of qualifying craftsman labor invoices directly against annual income tax liability, capped at €1,200/year (€6,000 labor).",
+    benefit: "Direct euro-for-euro income tax reduction up to €1,200/year for home renovation and maintenance labor.",
+    antiBenefit: "Material costs and cash payments are excluded; requires bank-transfer invoice verification.",
+    tags: [LawTag.Housing, LawTag.Tax],
+    groupId: LawGroupId.Housing_HomeAcquisition,
+    relatedLaws: {
+      [LawId.KfW_300]: {
+        relationType: LawRelationType.ContrastsWith,
+        description: "Applies to direct unsubsidized renovation labor not funded by public grant programs.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/estg/__35a.html"),
+        label: "§ 35a EStG Statutory Text",
+        description: "Official tax credit limits for household craftsmanship services.",
+      },
+    },
+  }),
+
+  [LawId.AufenthG_18_2_5]: freezeEntry({
+    id: LawId.AufenthG_18_2_5,
+    citation: toStatutoryCitation("§ 18 Abs. 2 Nr. 5 AufenthG"),
+    code: LawCode.AufenthG,
+    section: "18 Abs. 2 Nr. 5",
+    title: "Age 45+ Skilled Worker Pension-Adequacy Salary Floor",
+    summary: "Applicants receiving their first skilled work residence permit at age 45 or older must earn at least 55% of the statutory pension ceiling or prove adequate retirement provision.",
+    benefit: "Protects older incoming professionals from old-age poverty risk through an objective salary or pension-proof gate.",
+    antiBenefit: "First-time applicants aged 45+ below €55,770 gross/yr (2026) must document separate private pension assets.",
+    tags: [LawTag.Visa, LawTag.Payroll, LawTag.Insurance],
+    groupId: LawGroupId.AufenthG_BlueCard,
+    relatedLaws: {
+      [LawId.AufenthG_18g]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "EU Blue Card carries its own salary gate; non-Blue-Card skilled permits apply the 45+ threshold.",
+      },
+      [LawId.SGB6_158]: {
+        relationType: LawRelationType.DependsOn,
+        description: "55% threshold derives directly from the annual general pension BBG ceiling.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/aufenthg_2004/__18.html"),
+        label: "§ 18 AufenthG Statutory Text",
+        description: "Official skilled immigration conditions and 45+ pension adequacy rule.",
+      },
+    },
+  }),
+
+  [LawId.AufenthG_18c]: freezeEntry({
+    id: LawId.AufenthG_18c,
+    citation: toStatutoryCitation("§ 18c AufenthG"),
+    code: LawCode.AufenthG,
+    section: "18c",
+    title: "Fast-Track Permanent Settlement (Niederlassungserlaubnis)",
+    summary: "EU Blue Card holders qualify for permanent settlement after 27 months with basic A1 German, or after 21 months with B1 German proficiency.",
+    benefit: "Shortens permanent residency wait from 60 months to 21 months (B1 German) or 27 months (A1 German).",
+    antiBenefit: "Requires uninterrupted qualified employment and compulsory statutory pension contributions throughout the period.",
+    tags: [LawTag.Visa, LawTag.Benefits],
+    groupId: LawGroupId.AufenthG_BlueCard,
+    relatedLaws: {
+      [LawId.AufenthG_18g]: {
+        relationType: LawRelationType.DependsOn,
+        description: "Blue Card duration directly accelerates § 18c settlement eligibility.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/aufenthg_2004/__18c.html"),
+        label: "§ 18c AufenthG Statutory Text",
+        description: "Official permanent residence timelines for skilled workers and Blue Card holders.",
+      },
+    },
+  }),
+
+  [LawId.AufenthG_18g]: freezeEntry({
+    id: LawId.AufenthG_18g,
+    citation: toStatutoryCitation("§ 18g AufenthG"),
+    code: LawCode.AufenthG,
+    section: "18g",
+    title: "EU Blue Card (Blaue Karte EU)",
+    summary: "Primary German work permit for university graduates earning at least 50% of BBG RV (2026: €50,700) or 45.3% for shortage/recent graduates/IT (€45,934.20).",
+    benefit: "Unlocks spouse work authorization without German tests and accelerated permanent residency under § 18c AufenthG.",
+    antiBenefit: "Annual salary adjustments are reassessed at renewal against updated BBG-indexed thresholds.",
+    tags: [LawTag.Visa, LawTag.Payroll],
+    groupId: LawGroupId.AufenthG_BlueCard,
+    relatedLaws: {
+      [LawId.AufenthG_18c]: {
+        relationType: LawRelationType.Extends,
+        description: "Qualifies holder for 21/27-month permanent residence track.",
+      },
+      [LawId.AufenthG_20a]: {
+        relationType: LawRelationType.ContrastsWith,
+        description: "Applies when an eligible job offer exists; otherwise Opportunity Card enables job-search entry.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/aufenthg_2004/__18g.html"),
+        label: "§ 18g AufenthG Statutory Text",
+        description: "Official German EU Blue Card eligibility and salary rules.",
+      },
+      [ExternalSourceId.MakeItInGermany]: {
+        url: toSourceUrl("https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card"),
+        label: "Make it in Germany — EU Blue Card",
+        description: "Official federal portal confirming current Blue Card salary thresholds.",
+      },
+    },
+  }),
+
+  [LawId.AufenthG_20a]: freezeEntry({
+    id: LawId.AufenthG_20a,
+    citation: toStatutoryCitation("§ 20a AufenthG"),
+    code: LawCode.AufenthG,
+    section: "20a",
+    title: "Opportunity Card (Chancenkarte) Points System",
+    summary: "Permits 1-year job-seeking entry in Germany via recognized degree OR 6 statutory points covering qualifications, experience, German/English level, and age, plus €1,091/mo living funds.",
+    benefit: "Allows international specialists without a pre-signed job contract to search on-site and work up to 20h/week part-time.",
+    antiBenefit: "Requires proof of secured monthly livelihood (typically blocked account or declaration of commitment).",
+    tags: [LawTag.Visa],
+    groupId: LawGroupId.AufenthG_BlueCard,
+    relatedLaws: {
+      [LawId.AufenthG_18g]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Holders transition directly to EU Blue Card once a qualifying job contract is signed.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/aufenthg_2004/__20a.html"),
+        label: "§ 20a AufenthG Statutory Text",
+        description: "Official statutory text for Opportunity Card scoring and subsistence.",
+      },
+    },
+  }),
+
+  [LawId.UStG_12_3]: freezeEntry({
+    id: LawId.UStG_12_3,
+    citation: toStatutoryCitation("§ 12 Abs. 3 UStG"),
+    code: LawCode.UStG,
+    section: "12 Abs. 3",
+    title: "0% VAT Rate on Residential Solar PV & Storage",
+    summary: "Reduces German value-added tax from 19% to 0% for delivery and installation of residential solar panels, inverters, and home batteries.",
+    benefit: "Saves 19/119 (~15.97%) off standard gross hardware and installation invoices immediately at purchase.",
+    antiBenefit: "Applies strictly to systems installed on or near residential/public buildings; commercial-only sites remain at 19%.",
+    tags: [LawTag.Solar, LawTag.Energy, LawTag.Green, LawTag.Tax],
+    groupId: LawGroupId.EEG_ResidentialSolar,
+    relatedLaws: {
+      [LawId.EStG_3_72]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Pairs zero acquisition VAT with zero ongoing income tax on residential PV.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/ustg_1980/__12.html"),
+        label: "§ 12 UStG Tax Rates",
+        description: "Official VAT zero-rating rules for residential photovoltaic installations.",
+      },
+    },
+  }),
+
+  [LawId.EEG_48]: freezeEntry({
+    id: LawId.EEG_48,
+    citation: toStatutoryCitation("§ 48 EEG 2023"),
+    code: LawCode.EEG,
+    section: "48",
+    title: "Statutory 20-Year Solar Feed-In Tariff (Einspeisevergütung)",
+    summary: "Guarantees fixed ct/kWh feed-in tariffs for surplus (Teileinspeisung) or full export (Volleinspeisung) over 20 calendar years, tiered at <= 10 kWp and 10–40 kWp.",
+    benefit: "Guarantees stable 20-year grid export revenues alongside ~37 ct/kWh avoided retail grid purchases.",
+    antiBenefit: "Semi-annual 1% tariff degression reduces rates slightly for later commissioning dates.",
+    tags: [LawTag.Solar, LawTag.Energy, LawTag.Green],
+    groupId: LawGroupId.EEG_ResidentialSolar,
+    relatedLaws: {
+      [LawId.EStG_3_72]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Feed-in payments under § 48 EEG remain income-tax exempt up to 30 kWp.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.Bundesnetzagentur]: {
+        url: toSourceUrl("https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/ErneuerbareEnergien/EEG_Foerderung/start.html"),
+        label: "Bundesnetzagentur EEG Tariffs",
+        description: "Official semi-annual PV feed-in tariff schedule.",
+      },
+    },
+  }),
+
+  [LawId.GrEStG_11]: freezeEntry({
+    id: LawId.GrEStG_11,
+    citation: toStatutoryCitation("§ 11 GrEStG"),
+    code: LawCode.GrEStG,
+    section: "11",
+    title: "Real Estate Transfer Tax (Grunderwerbsteuer)",
+    summary: "Applies state-specific real estate transfer tax (3.5% in Bavaria to 6.5% in NRW, Brandenburg, Saarland, Schleswig-Holstein) on residential property purchases.",
+    benefit: "Exemptions apply to close direct-line family transfers (§ 3 Nr. 4/6 GrEStG).",
+    antiBenefit: "Closing taxes plus notary/registry and agent fees cannot typically be financed with equity-free mortgages.",
+    tags: [LawTag.Housing, LawTag.Tax],
+    groupId: LawGroupId.Housing_HomeAcquisition,
+    relatedLaws: {
+      [LawId.KfW_300]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Upfront closing taxes remain required alongside KfW 300 subsidized financing.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: toSourceUrl("https://www.gesetze-im-internet.de/grestg_1983/__11.html"),
+        label: "§ 11 GrEStG Statutory Text",
+        description: "Official tax rate framework for German Real Estate Transfer Tax.",
       },
     },
   }),
@@ -1794,6 +2110,54 @@ export const LAW_GROUP_REGISTRY: Readonly<Record<LawGroupId, LawGroupEntry>> = O
     tags: [LawTag.Insurance, LawTag.Payroll, LawTag.Child],
     primaryLawId: LawId.SGB5_241,
     memberLawIds: [LawId.SGB4_20, LawId.SGB4_23a, LawId.SGB5_241, LawId.SGB6_158, LawId.SGB3_341, LawId.SGB11_55, LawId.SGB11_58, LawId.BVV_2],
+  }),
+
+  [LawGroupId.AufenthG_BlueCard]: freezeGroup({
+    id: LawGroupId.AufenthG_BlueCard,
+    title: "EU Blue Card, Opportunity Card & Permanent Settlement",
+    citationLabel: "§§ 18 Abs. 2 Nr. 5, 18c, 18g, 20a AufenthG",
+    summary: "Governs skilled worker salary floors, shortage/graduate exemptions, Opportunity Card points, and accelerated permanent residency.",
+    benefit: "Enables 21- or 27-month permanent residence and streamlined spousal work rights when Blue Card thresholds are met.",
+    antiBenefit: "Thresholds scale annually with statutory pension BBG limits and require careful salary verification at renewal.",
+    tags: [LawTag.Visa, LawTag.Payroll],
+    primaryLawId: LawId.AufenthG_18g,
+    memberLawIds: [LawId.AufenthG_18_2_5, LawId.AufenthG_18c, LawId.AufenthG_18g, LawId.AufenthG_20a],
+  }),
+
+  [LawGroupId.EStG_CompanyCar]: freezeGroup({
+    id: LawGroupId.EStG_CompanyCar,
+    title: "Company Car & Electric Mobility Taxation",
+    citationLabel: "§§ 6 Abs. 1 Nr. 4, 8 Abs. 2 EStG",
+    summary: "Models imputed benefit-in-kind for private vehicle use (1% ICE, 0.5% PHEV, 0.25% EV up to €100,000) and commute distance surcharges.",
+    benefit: "Pure electric vehicles within the €100,000 cap reduce monthly imputed taxable income by 75%.",
+    antiBenefit: "Longer commutes add 0.03%/km monthly (quarter/halved for qualifying EVs/PHEVs) unless switched to actual-trip records.",
+    tags: [LawTag.Car, LawTag.Tax, LawTag.Payroll, LawTag.Green],
+    primaryLawId: LawId.EStG_6_1_4,
+    memberLawIds: [LawId.EStG_6_1_4, LawId.EStG_8_2, LawId.EStG_19],
+  }),
+
+  [LawGroupId.EEG_ResidentialSolar]: freezeGroup({
+    id: LawGroupId.EEG_ResidentialSolar,
+    title: "Residential Photovoltaic & Green Energy Incentives",
+    citationLabel: "§ 12 Abs. 3 UStG; § 3 Nr. 72 EStG; § 48 EEG",
+    summary: "Combines 0% VAT purchase relief, full income tax exemption up to 30 kWp, and 20-year statutory EEG grid feed-in tariffs.",
+    benefit: "Zero VAT upfront plus tax-free self-consumption savings (~37 ct/kWh) and guaranteed 20-year feed-in income.",
+    antiBenefit: "EEG feed-in rates degress 1% semi-annually and export alone earns lower per-kWh returns than self-consumption.",
+    tags: [LawTag.Solar, LawTag.Energy, LawTag.Green, LawTag.Tax],
+    primaryLawId: LawId.EEG_48,
+    memberLawIds: [LawId.UStG_12_3, LawId.EStG_3_72, LawId.EEG_48],
+  }),
+
+  [LawGroupId.Housing_HomeAcquisition]: freezeGroup({
+    id: LawGroupId.Housing_HomeAcquisition,
+    title: "Family Home Acquisition, KfW 300 & Closing Taxes",
+    citationLabel: "KfW 300; § 11 GrEStG; § 35a EStG",
+    summary: "Evaluates federal-state real estate transfer taxes, KfW 300 subsidized family loan limits by child count, and renovation craftsmanship tax credits.",
+    benefit: "KfW 300 provides up to €270,000 low-interest family loans while § 35a refunds up to €1,200/yr in renovation labor tax.",
+    antiBenefit: "Upfront closing taxes (3.5%–6.5% GrEStG + notary/agent) require liquid equity and KfW 300 tests prior-year zvE.",
+    tags: [LawTag.Housing, LawTag.Tax, LawTag.Benefits, LawTag.Child],
+    primaryLawId: LawId.KfW_300,
+    memberLawIds: [LawId.KfW_300, LawId.GrEStG_11, LawId.EStG_35a, LawId.EStG_2],
   }),
 });
 

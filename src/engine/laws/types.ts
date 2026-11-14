@@ -21,6 +21,10 @@ export const LawCode = {
   BVV: "BVV",
   KfW: "KfW",
   BMF: "BMF",
+  AufenthG: "AufenthG",
+  UStG: "UStG",
+  EEG: "EEG",
+  GrEStG: "GrEStG",
 } as const;
 export type LawCode = (typeof LawCode)[keyof typeof LawCode];
 
@@ -45,6 +49,9 @@ export const LawId = {
 
   // EStG (Einkommensteuergesetz)
   EStG_2: "estg-2",
+  EStG_3_72: "estg-3-72",
+  EStG_6_1_4: "estg-6-1-4",
+  EStG_8_2: "estg-8-2",
   EStG_9a: "estg-9a",
   EStG_10: "estg-10",
   EStG_10_1_5: "estg-10-1-5",
@@ -59,6 +66,7 @@ export const LawId = {
   EStG_32: "estg-32",
   EStG_32a: "estg-32a",
   EStG_32b: "estg-32b",
+  EStG_35a: "estg-35a",
   EStG_36: "estg-36",
   EStG_38b: "estg-38b",
   EStG_39b: "estg-39b",
@@ -87,7 +95,16 @@ export const LawId = {
   SGB11_58: "sgb11-58",
   BVV_2: "bvv-2",
 
-  // Administrative Programs & Official Guidelines
+  // Residence & Immigration (AufenthG)
+  AufenthG_18_2_5: "aufenthg-18-2-5",
+  AufenthG_18c: "aufenthg-18c",
+  AufenthG_18g: "aufenthg-18g",
+  AufenthG_20a: "aufenthg-20a",
+
+  // Energy, Solar & Housing (UStG, EEG, GrEStG, KfW, BMF)
+  UStG_12_3: "ustg-12-3",
+  EEG_48: "eeg-48",
+  GrEStG_11: "grestg-11",
   KfW_300: "kfw-300",
   BMF_PAP: "bmf-pap",
 } as const;
@@ -107,6 +124,10 @@ export const LawGroupId = {
   EStG_Kindergeld: "group-estg-kindergeld",
   EStG_PayrollWithholding: "group-estg-payroll-withholding",
   SGB_SocialSecurity: "group-sgb-social-security",
+  AufenthG_BlueCard: "group-aufenthg-blue-card",
+  EStG_CompanyCar: "group-estg-company-car",
+  EEG_ResidentialSolar: "group-eeg-residential-solar",
+  Housing_HomeAcquisition: "group-housing-home-acquisition",
 } as const;
 export type LawGroupId = (typeof LawGroupId)[keyof typeof LawGroupId];
 
@@ -157,6 +178,8 @@ export const ExternalSourceId = {
   BmgPflege: "bmg_pflege",
   GkvSpitzenverband: "gkv_spitzenverband",
   KfwPortal: "kfw_portal",
+  MakeItInGermany: "make_it_in_germany",
+  Bundesnetzagentur: "bundesnetzagentur",
 } as const;
 export type ExternalSourceId = (typeof ExternalSourceId)[keyof typeof ExternalSourceId];
 
