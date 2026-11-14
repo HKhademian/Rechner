@@ -17,6 +17,9 @@ import {
   getAvailableParameterYears,
 } from "#engine/parameters/registry";
 import {
+  FormProjectionProfileId,
+} from "#engine/parameters/projections";
+import {
   type ParameterDomain as ParameterDomainType,
   type ParameterId,
   type ParameterMutability as ParameterMutabilityType,
@@ -34,29 +37,36 @@ import {
   activeParameterOverrideCount,
   activeParameterSearchQuery,
   activeParameterYear,
+  activeProjectionProfileId,
   allResolvedParameters,
   dismissParameterModificationFlag,
   filteredResolvedParameters,
   lastParameterModificationFlag,
   modifyParameterValue,
   parameterModificationFlagHistory,
+  projectedParameterView,
   resetAllParameterOverrides,
   resetParameterOverride,
   setParameterDomainFilter,
   setParameterMutabilityFilter,
+  setParameterProjectionProfile,
   setParameterSearchQuery,
   setParameterYear,
+  setShowProjectedOutDomains,
+  showProjectedOutDomains,
 } from "#store/parameterStore";
 import type {
   JSX,
 } from "preact";
 import {
+  useEffect,
   useState,
 } from "preact/hooks";
 
 export interface ParameterObserverSectionProps {
   readonly defaultExpanded?: boolean;
   readonly embedded?: boolean;
+  readonly projectionProfile?: FormProjectionProfileId;
 }
 
 const DOMAIN_OPTIONS: readonly ParameterDomainType[] = Object.values(ParameterDomain);
@@ -65,15 +75,21 @@ const MUTABILITY_OPTIONS: readonly ParameterMutabilityType[] = Object.values(Par
 /**
  * Shared Unified Parameter Value Storage Observer & Editor Section.
  * Allows observing all law-linked statutory constants, year-indexed profiles, and
- * customizable assumptions in one place across calculators, while raising explicit
- * statutory protection flags whenever modification is attempted on locked parameters.
+ * customizable assumptions in one place across calculators, using per-calculator
+ * Form Projection Profiles to keep out-of-focus domains cleanly default-projected
+ * while allowing full inspection on demand.
  */
 export default function ParameterObserverSection({
   defaultExpanded = false,
   embedded = false,
+  projectionProfile = FormProjectionProfileId.FullCatalog,
 }: ParameterObserverSectionProps): JSX.Element {
   const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
   const [draftValues, setDraftValues] = useState<Readonly<Partial<Record<ParameterId, string>>>>({});
+
+  useEffect(() => {
+    setParameterProjectionProfile(projectionProfile);
+  }, [projectionProfile]);
 
   const activeYear = activeParameterYear.value;
   const availableYears = getAvailableParameterYears();
@@ -85,6 +101,14 @@ export default function ParameterObserverSection({
   const searchQuery = activeParameterSearchQuery.value;
   const activeFlag = lastParameterModificationFlag.value;
   const flagHistory = parameterModificationFlagHistory.value;
+  const currentProfileId = activeProjectionProfileId.value;
+  const projectionView = projectedParameterView.value;
+  const showingAllDomains = showProjectedOutDomains.value;
+  const hasProjectedOut = projectionView.projectedOutParameters.length > 0;
+  const domainButtonOptions =
+    hasProjectedOut && !showingAllDomains
+      ? projectionView.profile.focusedDomains
+      : DOMAIN_OPTIONS;
 
   const isExpanded = expanded || activeFlag !== null;
 
@@ -108,9 +132,16 @@ export default function ParameterObserverSection({
             </strong>
           </span>
           <span className="parameter-observer__toggle-meta">
-            <span className="parameter-observer__badge">
-              {totalCount} parameters
-            </span>
+            {hasProjectedOut && (
+              <span className="parameter-observer__badge">
+                {projectionView.profile.label}: {projectionView.focusedParameters.length}/{totalCount}
+              </span>
+            )}
+            {!hasProjectedOut && (
+              <span className="parameter-observer__badge">
+                {totalCount} parameters
+              </span>
+            )}
             <span className="parameter-observer__badge">
               Year {activeYear}
             </span>
@@ -137,6 +168,28 @@ export default function ParameterObserverSection({
             All calculators read statutory rates, annual thresholds, and planning assumptions from this single law-linked registry.
             Customizable planning defaults can be edited freely; statutory or year-indexed legal constants raise a protection flag if modification is attempted.
           </p>
+
+          {hasProjectedOut && (
+            <div className="parameter-observer__projection-bar">
+              <div className="parameter-observer__projection-info">
+                <strong>{projectionView.profile.label}</strong>
+                <span>
+                  {showingAllDomains
+                    ? `Showing all ${totalCount} statutory parameters across every domain.`
+                    : `${projectionView.profile.description} (${projectionView.projectedOutParameters.length} out-of-focus values projected at ${activeYear} defaults.)`}
+                </span>
+              </div>
+              <button
+                type="button"
+                className={`parameter-observer__projection-toggle${showingAllDomains ? " parameter-observer__projection-toggle--active" : ""}`}
+                onClick={() => setShowProjectedOutDomains(!showingAllDomains)}
+              >
+                {showingAllDomains
+                  ? `Return to focused (${projectionView.focusedParameters.length})`
+                  : `Inspect all ${totalCount} parameters`}
+              </button>
+            </div>
+          )}
 
           {activeFlag && (
             <div className="parameter-observer__flag-banner" role="alert">
@@ -189,6 +242,7 @@ export default function ParameterObserverSection({
                 aria-label="Active parameter calendar year"
                 value={activeYear}
                 onChange={(event) => {
+                  setDraftValues({});
                   setParameterYear(toFullCalendarYear(Number(event.currentTarget.value)));
                 }}
               >
@@ -203,6 +257,7 @@ export default function ParameterObserverSection({
               className="parameter-observer__reset-all-btn"
               onClick={() => {
                 resetAllParameterOverrides();
+                setParameterProjectionProfile(currentProfileId);
                 setDraftValues({});
               }}
             >
@@ -218,9 +273,9 @@ export default function ParameterObserverSection({
                 className={`parameter-observer__filter-pill${activeDomain === undefined ? " parameter-observer__filter-pill--active" : ""}`}
                 onClick={() => setParameterDomainFilter(undefined)}
               >
-                All Domains
+                {hasProjectedOut && !showingAllDomains ? "Focused Domains" : "All Domains"}
               </button>
-              {DOMAIN_OPTIONS.map((domain) => (
+              {domainButtonOptions.map((domain) => (
                 <button
                   key={domain}
                   type="button"
@@ -255,6 +310,9 @@ export default function ParameterObserverSection({
 
           <div className="parameter-observer__count-row">
             Showing {filteredParams.length} of {totalCount} parameters
+            {hasProjectedOut && !showingAllDomains && !searchQuery.trim() && !activeDomain
+              ? ` (${projectionView.projectedOutParameters.length} default-projected)`
+              : ""}
           </div>
 
           <div className="parameter-observer__list">
