@@ -22,6 +22,9 @@ import {
 import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
+import {
+  FormProjectionProfileId,
+} from "#engine/parameters/projections";
 
 export default function ElterngeldDashboard(): JSX.Element {
   const months = currentScenarioData.value.months;
@@ -84,7 +87,10 @@ export default function ElterngeldDashboard(): JSX.Element {
         <TimelineChart />
 
         {/* Unified Law-Linked Parameter Value Storage Observer & Editor */}
-        <ParameterObserverSection embedded />
+        <ParameterObserverSection
+          embedded
+          projectionProfile={FormProjectionProfileId.ParentalLeaveFocus}
+        />
 
         {/* German Law Rules, Statutory Framework & Legal Precedents */}
         <RulesExplainer />

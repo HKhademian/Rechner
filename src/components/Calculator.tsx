@@ -10,6 +10,9 @@ import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
+import {
+  FormProjectionProfileId,
+} from "#engine/parameters/projections";
 import "./Calculator.css";
 
 export default function Calculator(): JSX.Element {
@@ -22,7 +25,7 @@ export default function Calculator(): JSX.Element {
           <CalculatorPeriodControl />
         </header>
         <ComparisonTable />
-        <ParameterObserverSection />
+        <ParameterObserverSection projectionProfile={FormProjectionProfileId.NetPayFocus} />
       </main>
       <footer className="source-revision-footer">
         <SourceRevision />
