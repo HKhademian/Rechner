@@ -16,6 +16,7 @@ import {
   ScenarioId,
   TaxClass,
   TargetPerson,
+  toEuroAmount,
   toGrossSalary,
   toMonthDuration,
   toSimulationMonth,
@@ -25,6 +26,9 @@ import {
   toWorkingHours,
   toChildIndex,
 } from "#engine/types";
+import {
+  resolveEffectiveTaxRulesForYear,
+} from "#engine/tax/inflationIndexing";
 
 const base = { scenarioKey: ScenarioId.A,
   pregnancies: [],
@@ -91,4 +95,24 @@ it("deducts child allowances for income eligibility even when annual progression
     birthCalendarMonth: toCalendarMonth(12) }])[0];
   assert.equal(result.available, false);
   assert.equal(result.taxableIncomeForNonTaxLaw, 36882); // 46638−9756, independently of favorability.
+});
+
+it("applies § 10 Abs. 1 Nr. 5 EStG childcare deductions and custom year rule resolvers in annual settlements", () => {
+  const months = runScenarioBatches(base).months;
+  const baseline = collectAnnualTaxRecords(months, [])[0];
+  const paidByYear = new Map([
+    [toFullCalendarYear(2026), [{ annualPaidFee: toEuroAmount(4000),
+      childAgeYears: 3 }]],
+  ]);
+  const withChildcare = collectAnnualTaxRecords(
+    months,
+    [],
+    new Map(),
+    undefined,
+    paidByYear,
+    (year) => resolveEffectiveTaxRulesForYear(year),
+  )[0];
+  assert.equal(withChildcare.childcareDeduction, 3200);
+  assert.equal(withChildcare.taxBase?.taxableIncome, (baseline.taxBase?.taxableIncome ?? 0) - 3200);
+  assert.ok((withChildcare.assessment?.settlement ?? 0) > (baseline.assessment?.settlement ?? 0));
 });

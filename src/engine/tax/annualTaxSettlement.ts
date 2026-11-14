@@ -4,6 +4,7 @@ import {
   toEuroAmount,
 } from "#engine/types";
 import {
+  type TaxRules,
   createTaxRules,
 } from "#engine/tax/taxRules";
 import {
@@ -23,6 +24,8 @@ export interface AnnualTaxSettlementInput {
   readonly withheldIncomeTax: EuroAmount;
   readonly withheldSolidarity: EuroAmount;
   readonly children: readonly ChildYearPresence[];
+  /** Optional pre-resolved/overridden or future-indexed tax rules for this assessment year. */
+  readonly taxRules?: TaxRules;
 }
 
 /** Reconcile credited actual withholding against modeled annual liability, including repayments.
@@ -34,8 +37,15 @@ export function computeAnnualTaxSettlement(input: AnnualTaxSettlementInput) {
       throw new TypeError("Annual settlement inputs must be non-negative finite amounts.");
     }
   }
-  const rules = createTaxRules(input.calendarYear);
-  const childComparison = computeKinderfreibetragGuenstigerpruefung(input.taxableIncome, input.children, input.calendarYear, undefined, input.progressionIncome);
+  const rules = input.taxRules ?? createTaxRules(input.calendarYear);
+  const childComparison = computeKinderfreibetragGuenstigerpruefung(
+    input.taxableIncome,
+    input.children,
+    input.calendarYear,
+    undefined,
+    input.progressionIncome,
+    rules,
+  );
   const incomeTaxLiability = toEuroAmount(childComparison.isKinderfreibetragFavorable
     ? childComparison.jointTaxWithAllowance + childComparison.totalKindergeldReceived
     : childComparison.jointTaxWithoutAllowance);

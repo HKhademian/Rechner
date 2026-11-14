@@ -91,3 +91,16 @@ it("subtracts age relief without changing work expenses or inventing a negative 
   assert.throws(() => computeIndividualEmploymentTaxBase({ ...income(100),
     ageRelief: toEuroAmount(101) }, DEFAULT_TAX_RULES), TypeError);
 });
+
+it("subtracts extra Sonderausgaben deductions such as § 10 Abs. 1 Nr. 5 EStG childcare costs", () => {
+  const baseline = computeAnnualEmploymentTaxBase(income(60000, 5250, 1440, 5580, 780), income(), DEFAULT_TAX_RULES);
+  const withChildcare = computeAnnualEmploymentTaxBase(
+    income(60000, 5250, 1440, 5580, 780),
+    income(),
+    DEFAULT_TAX_RULES,
+    toEuroAmount(3200),
+  );
+  assert.equal(withChildcare.extraDeductions, 3200);
+  assert.equal(withChildcare.taxableIncome, baseline.taxableIncome - 3200);
+  assert.throws(() => computeAnnualEmploymentTaxBase(income(50000), income(), DEFAULT_TAX_RULES, toEuroAmount(-1)), TypeError);
+});

@@ -127,8 +127,9 @@ export function computeKinderfreibetragGuenstigerpruefung(
   reconciledYear: number,
   monthlyKindergeldPerChild?: number,
   progressionIncome: EuroAmount = toEuroAmount(0),
+  rulesOverride?: TaxRules,
 ): GuenstigerpruefungResult {
-  const rules = createTaxRules(toFullCalendarYear(reconciledYear));
+  const rules = rulesOverride ?? createTaxRules(toFullCalendarYear(reconciledYear));
   const fullAllowance = rules.parameters.childAllowanceAnnual.value;
   const monthlyKindergeld = monthlyKindergeldPerChild ?? rules.parameters.childBenefitMonthly.value;
 

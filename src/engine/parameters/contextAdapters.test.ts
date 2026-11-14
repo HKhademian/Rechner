@@ -10,6 +10,7 @@ import {
   createStatutoryCalculationContext,
 } from "#engine/formulas/context/statutoryContext";
 import {
+  createInflationAssumptionsFromContext,
   createTaxRulesFromContext,
   createTimelineConventionsFromContext,
   extractTaxRuleOverridesFromContext,
@@ -77,5 +78,30 @@ describe("Statutory Context Engine Adapters", () => {
     const conventions = createTimelineConventionsFromContext(context);
     assert.equal(conventions.motherOrdinaryPlusMonths.value, 8);
     assert.equal(conventions.partnershipBonusMonths.value, 4);
+  });
+
+  it("extracts inflation, wage growth, and future bracket indexing planning parameters", () => {
+    const defaultContext = createStatutoryCalculationContext({
+      calendarYear: toFullCalendarYear(2026),
+    });
+    const defaults = createInflationAssumptionsFromContext(defaultContext);
+    assert.equal(defaults.annualInflationRate, 0.02);
+    assert.equal(defaults.annualWageGrowthRate, 0);
+    assert.equal(defaults.annualBracketIndexRate, 0);
+    assert.equal(defaults.indexFutureTaxBrackets, false);
+
+    const customContext = createStatutoryCalculationContext({
+      calendarYear: toFullCalendarYear(2026),
+      customParameterOverrides: {
+        [ParameterId.Planning_AnnualInflationRate]: 0.025,
+        [ParameterId.Planning_AnnualWageGrowthRate]: 0.03,
+        [ParameterId.Planning_AnnualBracketIndexRate]: 0.02,
+      },
+    });
+    const custom = createInflationAssumptionsFromContext(customContext, true);
+    assert.equal(custom.annualInflationRate, 0.025);
+    assert.equal(custom.annualWageGrowthRate, 0.03);
+    assert.equal(custom.annualBracketIndexRate, 0.02);
+    assert.equal(custom.indexFutureTaxBrackets, true);
   });
 });

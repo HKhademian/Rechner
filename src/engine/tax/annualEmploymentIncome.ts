@@ -25,7 +25,11 @@ export interface AnnualEmploymentIncome {
 function employmentTaxBase(
   incomes: readonly [AnnualEmploymentIncome] | readonly [AnnualEmploymentIncome, AnnualEmploymentIncome],
   rules: TaxRules,
+  extraDeductions: EuroAmount = toEuroAmount(0),
 ) {
+  if (!Number.isFinite(extraDeductions) || extraDeductions < 0) {
+    throw new TypeError("Extra annual deductions must be a non-negative finite amount.");
+  }
   const [husband, wife] = incomes;
   const wifeGross = wife?.gross ?? toGrossSalary(0);
   for (const income of incomes) {
@@ -54,7 +58,7 @@ function employmentTaxBase(
   // Each person's cohort limit is applied before combining the household amounts (§24a).
   const ageRelief = toEuroAmount((husband.ageRelief ?? 0) + (wife?.ageRelief ?? 0));
   const taxableIncome = toEuroAmount(Math.max(0, gross - husbandWorkExpenses - wifeWorkExpenses -
-    ageRelief - pensionDeduction - insuranceDeduction - specialExpenses));
+    ageRelief - pensionDeduction - insuranceDeduction - specialExpenses - extraDeductions));
   // Preserve each partner's contribution before the deductions pooled by joint assessment.
   const incomeByPartner = Object.freeze({
     husband: Object.freeze({ gross: husband.gross,
@@ -75,6 +79,7 @@ function employmentTaxBase(
     insuranceDeduction,
     ageRelief,
     specialExpenses,
+    extraDeductions,
     taxableIncome });
 }
 
@@ -83,16 +88,18 @@ export function computeAnnualEmploymentTaxBase(
   husband: AnnualEmploymentIncome,
   wife: AnnualEmploymentIncome,
   rules: TaxRules,
+  extraDeductions: EuroAmount = toEuroAmount(0),
 ) {
-  return employmentTaxBase([husband, wife], rules);
+  return employmentTaxBase([husband, wife], rules, extraDeductions);
 }
 
 /** Individual assessment uses one person's limits, including when annual earnings are zero. */
 export function computeIndividualEmploymentTaxBase(
   person: AnnualEmploymentIncome,
   rules: TaxRules,
+  extraDeductions: EuroAmount = toEuroAmount(0),
 ) {
-  const base = employmentTaxBase([person], rules);
+  const base = employmentTaxBase([person], rules, extraDeductions);
   return Object.freeze({
     income: base.incomeByPartner.husband,
     gross: base.gross,
@@ -101,6 +108,7 @@ export function computeIndividualEmploymentTaxBase(
     insuranceDeduction: base.insuranceDeduction,
     ageRelief: base.ageRelief,
     specialExpenses: base.specialExpenses,
+    extraDeductions: base.extraDeductions,
     taxableIncome: base.taxableIncome,
   });
 }

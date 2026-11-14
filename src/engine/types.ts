@@ -503,6 +503,71 @@ export interface SalaryBonusSlot {
   readonly label?: string;
 }
 
+/**
+ * Strongly-typed German federal state / municipal daycare (Kita) reference schedule keys.
+ */
+export const FederalStateKitaPresetId = {
+  Custom: "custom",
+  Berlin: "berlin",
+  NrwDuesseldorf: "nrw_duesseldorf",
+  BavariaMunich: "bavaria_munich",
+  BwStuttgart: "bw_stuttgart",
+  Hamburg: "hamburg",
+} as const;
+export type FederalStateKitaPresetId =
+  (typeof FederalStateKitaPresetId)[keyof typeof FederalStateKitaPresetId];
+
+const FEDERAL_STATE_KITA_PRESET_ID_SET: ReadonlySet<string> = new Set<string>(
+  Object.values(FederalStateKitaPresetId),
+);
+
+/** Runtime type guard validating a `FederalStateKitaPresetId`. */
+export function isFederalStateKitaPresetId(
+  value: string,
+): value is FederalStateKitaPresetId {
+  return FEDERAL_STATE_KITA_PRESET_ID_SET.has(value);
+}
+
+/** Validated runtime constructor for `FederalStateKitaPresetId` (Rule 11). */
+export function toFederalStateKitaPresetId(
+  value: string,
+): FederalStateKitaPresetId {
+  if (!isFederalStateKitaPresetId(value)) {
+    throw new TypeError(`Invalid FederalStateKitaPresetId: "${value}".`);
+  }
+  return value;
+}
+
+/**
+ * Household municipal daycare (Kita / Kindertagesbetreuung) cost and § 10 Abs. 1 Nr. 5 EStG tax deduction config.
+ */
+export interface ChildcarePlanConfig {
+  /** Enables monthly Kita fee outflows and § 10 Abs. 1 Nr. 5 EStG Sonderausgaben deduction modeling. */
+  readonly enabled: boolean;
+  /** Selected illustrative federal-state / municipal fee table or custom per-child monthly fee. */
+  readonly presetId: FederalStateKitaPresetId;
+  /** Fixed monthly fee per child in EUR when `presetId` is `FederalStateKitaPresetId.Custom`. */
+  readonly customMonthlyFeePerChild: EuroAmount;
+  /** Child age in months at which daycare fees begin (e.g. 12 months). */
+  readonly startAgeMonths: number;
+  /** Child age in months at which daycare fees end / school enrollment begins (e.g. 72 months). */
+  readonly endAgeMonths: number;
+}
+
+/**
+ * Dynamic macroeconomic inflation, nominal wage growth, and future tax bracket indexing configuration.
+ */
+export interface InflationAssumptionsConfig {
+  /** Annual CPI inflation rate (0..0.25) used to discount nominal cash flows into real Month-1 purchasing power. */
+  readonly annualInflationRate: PercentageRate;
+  /** Optional compounding nominal annual wage growth rate across years (default 0). */
+  readonly annualWageGrowthRate: PercentageRate;
+  /** Optional annual upward shift applied to § 32a EStG brackets for unverified future years (> latest verified year). */
+  readonly annualBracketIndexRate: PercentageRate;
+  /** Enables bracket indexing strictly on future years projected beyond latest published statutory tax tables. */
+  readonly indexFutureTaxBrackets: boolean;
+}
+
 // ============================================================================
 // 6. Runtime Branded Constructors & Type Guards (Rule 12)
 // ============================================================================
@@ -1701,6 +1766,14 @@ export interface MonthlyLedgerEntry {
   readonly isPartnerschaftsbonus: boolean;
   /** Boolean flag indicating whether sibling bonus under § 2a BEEG is active. */
   readonly hasSiblingBonus: boolean;
+  /** Monthly childcare / daycare fee outflow in EUR (non-negative cost magnitude when enabled). */
+  readonly childcareFee?: EuroAmount;
+  /** Purchasing power discount multiplier relative to Month 1 (`1 / (1 + inflation)^((m - 1)/12)`). */
+  readonly purchasingPowerFactor?: number;
+  /** Inflation-adjusted Month-1 real EUR household net cash inflow for this month. */
+  readonly realMonthlyTotal?: EuroAmount;
+  /** Inflation-adjusted Month-1 real EUR cumulative net household cash flow through this month. */
+  readonly realCumulatedTotal?: EuroAmount;
   /** Detailed list of itemized double-entry accounting ledger transactions for this month. */
   readonly transactions: readonly AccountingTransaction[];
 }
@@ -1784,6 +1857,18 @@ export interface SimulationResult {
     readonly totalKindergeld: EuroAmount;
     /** Total 13th salary bonus disbursements received in EUR. */
     readonly total13thSalaries: EuroAmount;
+    /** Cumulative municipal daycare / Kita fees paid across the horizon in EUR. */
+    readonly totalChildcareFees?: EuroAmount;
+    /** Cumulative § 10 Abs. 1 Nr. 5 EStG childcare tax deduction applied across complete tax years in EUR. */
+    readonly childcareTaxDeductionTotal?: EuroAmount;
+    /** Real Month-1 EUR cumulative grand total discounted by active annual CPI inflation. */
+    readonly realGrandTotal?: EuroAmount;
+    /** Real Month-1 EUR cumulative earned net employment salaries. */
+    readonly realTotalSalaries?: EuroAmount;
+    /** Real Month-1 EUR cumulative family benefits. */
+    readonly realTotalBenefits?: EuroAmount;
+    /** Active annual CPI inflation rate used for purchasing-power discounting. */
+    readonly inflationRateApplied?: PercentageRate;
   };
 }
 
@@ -2072,6 +2157,10 @@ export interface PreexistingConditions {
   readonly bonus60Month?: CalendarMonth;
   /** Calendar month in which annual income tax reconciliation refund is disbursed (e.g. May = 5). */
   readonly taxReturnMonth: CalendarMonth;
+  /** Optional household municipal daycare (Kita) and § 10 Abs. 1 Nr. 5 EStG tax deduction config. */
+  readonly childcarePlan?: ChildcarePlanConfig;
+  /** Optional macroeconomic inflation, wage growth, and future tax bracket indexing config. */
+  readonly inflationAssumptions?: InflationAssumptionsConfig;
 }
 
 /**

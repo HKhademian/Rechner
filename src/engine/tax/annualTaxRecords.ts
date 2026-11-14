@@ -9,8 +9,15 @@ import {
 } from "#engine/types";
 import {
   type TaxParameters,
+  type TaxRules,
   createTaxRules,
 } from "#engine/tax/taxRules";
+import {
+  type ChildPaidFeeEntry,
+} from "#engine/formulas/pure/childcareFormulas";
+import {
+  computeAnnualChildcareTaxDeduction,
+} from "#engine/benefits/childcare";
 import {
   type ChildYearPresence,
   computeKinderfreibetragGuenstigerpruefung,
@@ -29,6 +36,8 @@ export interface AnnualTaxRecord {
   readonly incomeAvailable: boolean;
   /** EStG section 2(5): child allowances apply even when Kindergeld is more favorable. */
   readonly taxableIncomeForNonTaxLaw?: EuroAmount;
+  /** § 10 Abs. 1 Nr. 5 EStG childcare Sonderausgaben deduction applied for this year. */
+  readonly childcareDeduction?: EuroAmount;
   readonly available: boolean;
   readonly taxBase?: ReturnType<typeof computeAnnualEmploymentTaxBase>;
   readonly assessment?: ReturnType<typeof computeAnnualTaxSettlement>;
@@ -44,6 +53,8 @@ export function collectAnnualTaxRecords(
   children: readonly ChildYearPresence[],
   unsupportedByYear: ReadonlyMap<FullCalendarYear, readonly string[]> = new Map(),
   taxRuleOverrides?: Readonly<Partial<Record<keyof TaxParameters, number>>>,
+  annualChildcarePaidByYear?: ReadonlyMap<FullCalendarYear, readonly ChildPaidFeeEntry[]>,
+  resolveYearRules?: (calendarYear: FullCalendarYear) => TaxRules,
 ): readonly AnnualTaxRecord[] {
   const years = [...new Set(months.map((month) => month.calendarYearNum))].sort((a, b) => a - b);
   return Object.freeze(years.map((calendarYear): AnnualTaxRecord => {
@@ -73,9 +84,12 @@ export function collectAnnualTaxRecords(
     }
     let taxBase: AnnualTaxRecord["taxBase"];
     let taxableIncomeForNonTaxLaw: EuroAmount | undefined;
+    let childcareDeduction: EuroAmount | undefined;
     let assessment: AnnualTaxRecord["assessment"];
     try {
-      const rules = createTaxRules(calendarYear, taxRuleOverrides);
+      const rules = resolveYearRules
+        ? resolveYearRules(calendarYear)
+        : createTaxRules(calendarYear, taxRuleOverrides);
       if (rules.projected) {
         assumptions.push(`Published ${rules.sourceYear} annual rules are projected to ${calendarYear}.`);
       }
@@ -100,8 +114,27 @@ export function collectAnnualTaxRecords(
         };
         const husband = parent(true);
         const wife = parent(false);
-        taxBase = computeAnnualEmploymentTaxBase(husband, wife, rules);
-        const childAllowance = computeKinderfreibetragGuenstigerpruefung(taxBase.taxableIncome, children, calendarYear).totalKinderfreibetrag;
+        const paidChildcare = annualChildcarePaidByYear?.get(calendarYear) ?? [];
+        const childcareDeductionResult = paidChildcare.length > 0
+          ? computeAnnualChildcareTaxDeduction(calendarYear, paidChildcare)
+          : undefined;
+        childcareDeduction = childcareDeductionResult && childcareDeductionResult.deductibleAmount > 0
+          ? childcareDeductionResult.deductibleAmount
+          : undefined;
+        if (childcareDeduction && childcareDeduction > 0) {
+          assumptions.push(
+            `Applied § 10 Abs. 1 Nr. 5 EStG childcare deduction (${childcareDeduction} EUR Sonderausgaben).`,
+          );
+        }
+        taxBase = computeAnnualEmploymentTaxBase(husband, wife, rules, childcareDeduction ?? toEuroAmount(0));
+        const childAllowance = computeKinderfreibetragGuenstigerpruefung(
+          taxBase.taxableIncome,
+          children,
+          calendarYear,
+          undefined,
+          toEuroAmount(0),
+          rules,
+        ).totalKinderfreibetrag;
         taxableIncomeForNonTaxLaw = toEuroAmount(Math.max(0, taxBase.taxableIncome - childAllowance));
         if (records.some((month) => month.benefitAssessmentAvailable === false)) {
           reasons.push("An unavailable benefit payment prevents annual progression-income assessment.");
@@ -116,7 +149,8 @@ export function collectAnnualTaxRecords(
             progressionIncome,
             withheldIncomeTax: toEuroAmount(husband.withheldIncomeTax + wife.withheldIncomeTax),
             withheldSolidarity: toEuroAmount(husband.withheldSolidarity + wife.withheldSolidarity),
-            children });
+            children,
+            taxRules: rules });
         }
       }
     }
@@ -127,6 +161,7 @@ export function collectAnnualTaxRecords(
       missingMonths: Object.freeze(missingMonths),
       incomeAvailable: taxBase !== undefined,
       taxableIncomeForNonTaxLaw,
+      childcareDeduction,
       available: assessment !== undefined,
       taxBase,
       assessment,

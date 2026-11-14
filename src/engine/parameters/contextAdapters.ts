@@ -18,6 +18,8 @@ import {
 } from "#engine/tax/taxRules";
 import {
   type FullCalendarYear,
+  type InflationAssumptionsConfig,
+  toPercentageRate,
 } from "#engine/types";
 
 /**
@@ -64,5 +66,21 @@ export function createTimelineConventionsFromContext(
     maternityPostBirthMonths: context.getParameterNumber(ParameterId.Convention_MaternityPostBirthMonths),
     motherOrdinaryPlusMonths: context.getParameterNumber(ParameterId.Convention_MotherOrdinaryPlusMonths),
     partnershipBonusMonths: context.getParameterNumber(ParameterId.Convention_PartnershipBonusMonths),
+  });
+}
+
+/**
+ * Builds `InflationAssumptionsConfig` from Tier 2 `Planning_*` parameters in `context`
+ * combined with the caller's opt-in flag for future-year bracket indexing.
+ */
+export function createInflationAssumptionsFromContext(
+  context: StatutoryCalculationContext,
+  indexFutureTaxBrackets: boolean = false,
+): InflationAssumptionsConfig {
+  return Object.freeze({
+    annualInflationRate: toPercentageRate(context.getParameterNumber(ParameterId.Planning_AnnualInflationRate)),
+    annualWageGrowthRate: toPercentageRate(context.getParameterNumber(ParameterId.Planning_AnnualWageGrowthRate)),
+    annualBracketIndexRate: toPercentageRate(context.getParameterNumber(ParameterId.Planning_AnnualBracketIndexRate)),
+    indexFutureTaxBrackets,
   });
 }
