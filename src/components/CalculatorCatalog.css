@@ -257,7 +257,7 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 1248px;
-  margin: 0 auto;
+  margin: auto auto 0;
   padding: 20px 24px 24px;
   border-top: 1px solid var(--border-subtle);
   color: var(--text-muted);
