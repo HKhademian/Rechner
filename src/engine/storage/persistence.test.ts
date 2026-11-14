@@ -47,7 +47,12 @@ import {
   toFinancialEventId,
   toRaiseId,
   toTaxFactor,
+  toChildrenCount,
+  FederalStateKitaPresetId,
 } from "#engine/types";
+import {
+  createDefaultChildcarePlanConfig,
+} from "#engine/benefits/childcare";
 
 describe("Storage Persistence Engine (Elterngeld State Persistence)", () => {
   it("preserves a valid zero factor through strict import and saved-state sanitization", () => {
@@ -478,4 +483,83 @@ it("round-trips actual salary replacements, including zero, without inventing a 
         customSalaryRaises: [invalid] }), TypeError);
     }
   }
+});
+
+it("persists, validates, and sanitizes existingChildrenCount, childcarePlan, and indexFutureTaxBrackets", () => {
+  const base = getTestPersistedState();
+  const customChildcare = {
+    enabled: true,
+    presetId: FederalStateKitaPresetId.NrwDuesseldorf,
+    customMonthlyFeePerChild: toEuroAmount(420),
+    startAgeMonths: 14,
+    endAgeMonths: 42,
+  };
+  const payload: ElterngeldPersistedState = {
+    ...base,
+    existingChildrenCount: toChildrenCount(2),
+    childcarePlan: customChildcare,
+    indexFutureTaxBrackets: true,
+  };
+
+  for (const parsed of [
+    parseRawScenarioData(payload),
+    validateAndSanitizePersistedState(payload),
+    deserializeState(serializeState(payload)),
+  ]) {
+    assert.equal(parsed.existingChildrenCount, 2);
+    assert.deepEqual(parsed.childcarePlan, customChildcare);
+    assert.equal(parsed.indexFutureTaxBrackets, true);
+  }
+
+  // Omitted fields fall back cleanly to conservative defaults
+  const omitted = parseRawScenarioData({
+    ...base,
+    existingChildrenCount: undefined,
+    childcarePlan: undefined,
+    indexFutureTaxBrackets: undefined,
+  });
+  assert.equal(omitted.existingChildrenCount, 0);
+  assert.deepEqual(omitted.childcarePlan, createDefaultChildcarePlanConfig());
+  assert.equal(omitted.indexFutureTaxBrackets, false);
+
+  // Strict parser rejects malformed types and out-of-range fields
+  for (const invalidPatch of [
+    { existingChildrenCount: -1 },
+    { existingChildrenCount: 11 },
+    { existingChildrenCount: "2" },
+    { existingChildrenCount: 1.5 },
+    { indexFutureTaxBrackets: "true" },
+    { childcarePlan: "invalid" },
+    { childcarePlan: { enabled: "yes" } },
+    { childcarePlan: { presetId: "UNKNOWN_BUNDESLAND" } },
+    { childcarePlan: { customMonthlyFeePerChild: -50 } },
+    { childcarePlan: { customMonthlyFeePerChild: "" } },
+    { childcarePlan: { startAgeMonths: 40,
+      endAgeMonths: 20 } },
+    { childcarePlan: { startAgeMonths: "12" } },
+  ]) {
+    assert.throws(() => parseRawScenarioData({ ...base,
+      ...invalidPatch }), TypeError);
+  }
+
+  // Non-strict validator clamps and sanitizes cleanly
+  const sanitized = validateAndSanitizePersistedState({
+    ...base,
+    existingChildrenCount: 99,
+    indexFutureTaxBrackets: "not_bool",
+    childcarePlan: {
+      enabled: true,
+      presetId: "UNKNOWN_BUNDESLAND",
+      customMonthlyFeePerChild: -100,
+      startAgeMonths: 48,
+      endAgeMonths: 24,
+    },
+  }, base);
+  assert.equal(sanitized.existingChildrenCount, 10);
+  assert.equal(sanitized.indexFutureTaxBrackets, false);
+  assert.equal(sanitized.childcarePlan?.enabled, true);
+  assert.equal(sanitized.childcarePlan?.presetId, createDefaultChildcarePlanConfig().presetId);
+  assert.equal(sanitized.childcarePlan?.customMonthlyFeePerChild, 0);
+  assert.equal(sanitized.childcarePlan?.startAgeMonths, 48);
+  assert.equal(sanitized.childcarePlan?.endAgeMonths, 48);
 });

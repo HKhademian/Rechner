@@ -19,6 +19,14 @@ import {
   salaryInputMode,
   husbandGross,
   wifeGross,
+  existingChildrenCount,
+  setExistingChildrenCount,
+  childcarePlan,
+  updateChildcarePlan,
+  indexFutureTaxBrackets,
+  setIndexFutureTaxBrackets,
+  getCurrentPersistedState,
+  importSimulationState,
 } from "#store/elterngeldStore";
 import {
   activeLawModalState,
@@ -32,11 +40,15 @@ import {
   ParameterId,
 } from "#engine/parameters/types";
 import {
+  getStandard3ChildrenPersistedState,
+} from "#engine/storage/persistence";
+import {
   getLawEntry,
   getLawGroupEntry,
 } from "#engine/laws/registry";
 import {
   SalaryInputMode,
+  FederalStateKitaPresetId,
   toPregnancyId,
   toChildIndex,
   toCalendarMonth,
@@ -46,6 +58,7 @@ import {
   toNetSalary,
   toMonthDuration,
   toGrossSalary,
+  toEuroAmount,
 } from "#engine/types";
 
 it("keeps October 2026 selected in the pregnancy action and delivery baseline", () => {
@@ -127,6 +140,71 @@ it("propagates unified parameterStore tax and planning convention overrides into
     assert.equal(result.configuration?.timelineConventions.motherOrdinaryPlusMonths.value, 8);
     assert.equal(result.configuration?.taxProfiles[0].parameters.healthSupplementTotalRate.value, 0.045);
     assert.equal(result.configuration?.taxProfiles[0].parameters.healthSupplementTotalRate.overridden, true);
+  }
+  finally {
+    resetAllParameterOverrides();
+    resetToDefaults();
+  }
+});
+
+it("wires existingChildrenCount, childcarePlan, and inflation planning assumptions into reactive simulation results", () => {
+  resetToDefaults();
+  resetAllParameterOverrides();
+  importSimulationState(getStandard3ChildrenPersistedState());
+  try {
+    const baseResult = statutoryOptimizedData.peek();
+    assert.equal(existingChildrenCount.peek(), 0);
+    assert.equal(childcarePlan.peek().enabled, false);
+    assert.equal(indexFutureTaxBrackets.peek(), false);
+
+    // 1. Prior living children increases statutory Kindergeld flow and clamps to 0..10
+    setExistingChildrenCount(2);
+    assert.equal(existingChildrenCount.peek(), 2);
+    const twoPriorResult = statutoryOptimizedData.peek();
+    assert.ok(twoPriorResult.summary.totalKindergeld > baseResult.summary.totalKindergeld);
+
+    setExistingChildrenCount(99);
+    assert.equal(existingChildrenCount.peek(), 10);
+    setExistingChildrenCount(-3);
+    assert.equal(existingChildrenCount.peek(), 0);
+
+    // 2. Enabling Kita fee schedule produces outflows and § 10(1)5 EStG tax deductions
+    updateChildcarePlan({
+      enabled: true,
+      presetId: FederalStateKitaPresetId.Custom,
+      customMonthlyFeePerChild: toEuroAmount(400),
+      startAgeMonths: 12,
+      endAgeMonths: 48,
+    });
+    const kitaResult = statutoryOptimizedData.peek();
+    assert.ok((kitaResult.summary.totalChildcareFees ?? 0) > 0);
+    assert.ok((kitaResult.summary.childcareTaxDeductionTotal ?? 0) > 0);
+    assert.ok(kitaResult.summary.grandTotal < twoPriorResult.summary.grandTotal);
+
+    // 3. CPI inflation & wage growth affect real purchasing power and nominal salaries
+    assert.equal(modifyParameterValue(ParameterId.Planning_AnnualInflationRate, 0.03).ok, true);
+    assert.equal(modifyParameterValue(ParameterId.Planning_AnnualWageGrowthRate, 0.02).ok, true);
+    setIndexFutureTaxBrackets(true);
+    assert.equal(indexFutureTaxBrackets.peek(), true);
+
+    const inflResult = statutoryOptimizedData.peek();
+    assert.equal(inflResult.summary.inflationRateApplied, 0.03);
+    assert.ok(inflResult.summary.totalSalaries > kitaResult.summary.totalSalaries);
+    assert.ok((inflResult.summary.realGrandTotal ?? 0) < inflResult.summary.grandTotal);
+
+    // 4. Snapshot roundtrip via getCurrentPersistedState / importSimulationState & resetToDefaults
+    setExistingChildrenCount(1);
+    const snapshot = getCurrentPersistedState();
+    resetToDefaults();
+    assert.equal(existingChildrenCount.peek(), 0);
+    assert.equal(childcarePlan.peek().enabled, false);
+    assert.equal(indexFutureTaxBrackets.peek(), false);
+
+    importSimulationState(snapshot);
+    assert.equal(existingChildrenCount.peek(), 1);
+    assert.equal(childcarePlan.peek().enabled, true);
+    assert.equal(childcarePlan.peek().customMonthlyFeePerChild, 400);
+    assert.equal(indexFutureTaxBrackets.peek(), true);
   }
   finally {
     resetAllParameterOverrides();
