@@ -47,6 +47,7 @@ export const LawId = {
   EStG_2: "estg-2",
   EStG_9a: "estg-9a",
   EStG_10: "estg-10",
+  EStG_10_1_5: "estg-10-1-5",
   EStG_10c: "estg-10c",
   EStG_19: "estg-19",
   EStG_20: "estg-20",
@@ -64,6 +65,7 @@ export const LawId = {
   EStG_39f: "estg-39f",
   EStG_62: "estg-62",
   EStG_66: "estg-66",
+  InflG: "inflg",
 
   // MuSchG (Mutterschutzgesetz)
   MuSchG_3: "muschg-3",

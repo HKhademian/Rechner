@@ -560,6 +560,45 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
     },
   }),
 
+  [LawId.EStG_10_1_5]: freezeEntry({
+    id: LawId.EStG_10_1_5,
+    citation: toStatutoryCitation("§ 10 Abs. 1 Nr. 5 EStG"),
+    code: LawCode.EStG,
+    section: "§ 10 Abs. 1 Nr. 5",
+    title: "Childcare Expenses Special Deduction (Kinderbetreuungskosten)",
+    summary: "Allows deducting qualified daycare, Kita, Tagesmutter, or nanny care expenses as Sonderausgaben for children under age 14: two-thirds up to €4,000/child through 2024, raised to 80% up to €4,800/child/year from 2025 under JStG 2024.",
+    benefit: "Lowers annual joint taxable income (zvE) by up to €4,800 per child under 14 from 2025 onward (80% of €6,000 paid care expenses).",
+    antiBenefit: "Covers pure care contributions only — meal charges and sports/music tuition remain non-deductible, and cash reimbursement requires verified invoices plus bank transfer.",
+    tags: [LawTag.Child, LawTag.Parent, LawTag.Tax],
+    groupId: LawGroupId.EStG_TaxSplitting,
+    relatedLaws: {
+      [LawId.EStG_10]: {
+        relationType: LawRelationType.Extends,
+        description: "Itemized under § 10 EStG Sonderausgaben alongside provident insurance deductions.",
+      },
+      [LawId.EStG_2]: {
+        relationType: LawRelationType.Modifies,
+        description: "Reduces annual joint taxable income (§ 2 Abs. 4 EStG).",
+      },
+      [LawId.EStG_66]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Applies independently alongside Kindergeld / Kinderfreibetrag.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: gesetzeUrl("estg", "10"),
+        label: "§ 10 Abs. 1 Nr. 5 EStG Statutory Text",
+        description: "Deductibility of childcare expenses as Sonderausgaben.",
+      },
+      [ExternalSourceId.Bundesgesetzblatt]: {
+        url: toSourceUrl("https://www.recht.bund.de/bgbl/1/2024/387/regelungstext.pdf"),
+        label: "Jahressteuergesetz 2024 (BGBl. I 2024 Nr. 387)",
+        description: "Raised deductible share from 2/3 (€4,000) to 80% (€4,800) starting 2025.",
+      },
+    },
+  }),
+
   [LawId.EStG_10c]: freezeEntry({
     id: LawId.EStG_10c,
     citation: toStatutoryCitation("§ 10c EStG"),
@@ -1074,6 +1113,41 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
         url: gesetzeUrl("estg", "66"),
         label: "§ 66 EStG Statutory Text",
         description: "Monthly Kindergeld euro amount per child.",
+      },
+    },
+  }),
+
+  [LawId.InflG]: freezeEntry({
+    id: LawId.InflG,
+    citation: toStatutoryCitation("InflAusG / StFortEntwG (§ 32a EStG)"),
+    code: LawCode.EStG,
+    section: "Tarifverschiebung (kalte Progression)",
+    title: "Bracket Creep Relief & Inflation Adjustment (Inflationsausgleich)",
+    summary: "Periodically shifts § 32a EStG tariff brackets, Grundfreibetrag, and Kinderfreibetrag upward to neutralize cold progression and model future statutory inflation indexing.",
+    benefit: "Prevents inflation-driven nominal wage increases from pushing households into higher real income tax brackets.",
+    antiBenefit: "Unlegislated future years beyond verified statutory tables (2026+) depend on optional projection assumptions rather than fixed law.",
+    tags: [LawTag.Tax, LawTag.Child],
+    groupId: LawGroupId.EStG_TaxSplitting,
+    relatedLaws: {
+      [LawId.EStG_32a]: {
+        relationType: LawRelationType.Modifies,
+        description: "Adjusts § 32a EStG Grundfreibetrag and zone ceilings for inflation.",
+      },
+      [LawId.EStG_32]: {
+        relationType: LawRelationType.Modifies,
+        description: "Accompanies periodic adjustments to the § 32 Kinderfreibetrag.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.Bundesgesetzblatt]: {
+        url: toSourceUrl("https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"),
+        label: "Steuerfortentwicklungsgesetz (BGBl. I 2024 Nr. 449)",
+        description: "Statutory inflation-compensation adjustments for 2025 and 2026 tariffs.",
+      },
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: gesetzeUrl("estg", "32a"),
+        label: "§ 32a EStG Statutory Text",
+        description: "Underlying progressive income tax tariff structure.",
       },
     },
   }),
@@ -1637,6 +1711,7 @@ export const LAW_GROUP_REGISTRY: Readonly<Record<LawGroupId, LawGroupEntry>> = O
       LawId.EStG_2,
       LawId.EStG_9a,
       LawId.EStG_10,
+      LawId.EStG_10_1_5,
       LawId.EStG_10c,
       LawId.EStG_24a,
       LawId.EStG_26,
@@ -1644,6 +1719,7 @@ export const LAW_GROUP_REGISTRY: Readonly<Record<LawGroupId, LawGroupEntry>> = O
       LawId.EStG_32a,
       LawId.EStG_32b,
       LawId.EStG_36,
+      LawId.InflG,
       LawId.SolzG_3,
     ],
   }),

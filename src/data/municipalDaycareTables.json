@@ -1,0 +1,88 @@
+{
+  "berlin": {
+    "id": "berlin",
+    "label": "Berlin (Statutory Core Free; Meal Fee Only Reference)",
+    "federalState": "Berlin",
+    "isIllustrativeReferenceModel": true,
+    "description": "Illustrative reference model: Berlin exempts Kita core care fees (Elternbeitragsfreiheit); typically only a flat meal contribution (~23 €/mo) applies.",
+    "source": "https://www.berlin.de/sen/jugend/familie-und-kinder/kindertagesbetreuung/kostenbeteiligung/",
+    "siblingDiscountRateSecondChild": 0,
+    "siblingDiscountRateThirdPlusChild": 0,
+    "feeFreeFromAgeMonths": 0,
+    "incomeBrackets": [
+      { "maxAnnualGrossIncome": null, "monthlyFee": 23 }
+    ]
+  },
+  "nrw_duesseldorf": {
+    "id": "nrw_duesseldorf",
+    "label": "NRW Reference (Municipal U3/Ü3 Scale Model)",
+    "federalState": "Nordrhein-Westfalen",
+    "isIllustrativeReferenceModel": true,
+    "description": "Illustrative municipal reference table modeled after NRW progressive income brackets with full sibling exemption for additional children in simultaneous care.",
+    "source": "https://www.mkjfgfi.nrw/elternbeitraege-und-beitragsbefreiung",
+    "siblingDiscountRateSecondChild": 1.0,
+    "siblingDiscountRateThirdPlusChild": 1.0,
+    "feeFreeFromAgeMonths": 48,
+    "incomeBrackets": [
+      { "maxAnnualGrossIncome": 30000, "monthlyFee": 0 },
+      { "maxAnnualGrossIncome": 50000, "monthlyFee": 140 },
+      { "maxAnnualGrossIncome": 75000, "monthlyFee": 260 },
+      { "maxAnnualGrossIncome": 100000, "monthlyFee": 370 },
+      { "maxAnnualGrossIncome": 130000, "monthlyFee": 460 },
+      { "maxAnnualGrossIncome": null, "monthlyFee": 540 }
+    ]
+  },
+  "bavaria_munich": {
+    "id": "bavaria_munich",
+    "label": "Bavaria / Munich Reference (Graduated Bracket Model)",
+    "federalState": "Bayern",
+    "isIllustrativeReferenceModel": true,
+    "description": "Illustrative reference model based on Munich/Bavaria income-tiered municipal daycare tariffs with 50% second-child discount and 100% third+ child exemption.",
+    "source": "https://stadt.muenchen.de/infos/kitagebuehren.html",
+    "siblingDiscountRateSecondChild": 0.5,
+    "siblingDiscountRateThirdPlusChild": 1.0,
+    "feeFreeFromAgeMonths": 36,
+    "incomeBrackets": [
+      { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+      { "maxAnnualGrossIncome": 70000, "monthlyFee": 140 },
+      { "maxAnnualGrossIncome": 90000, "monthlyFee": 220 },
+      { "maxAnnualGrossIncome": 120000, "monthlyFee": 300 },
+      { "maxAnnualGrossIncome": null, "monthlyFee": 380 }
+    ]
+  },
+  "bw_stuttgart": {
+    "id": "bw_stuttgart",
+    "label": "Baden-Württemberg / Stuttgart Reference (U3/Ü3 Model)",
+    "federalState": "Baden-Württemberg",
+    "isIllustrativeReferenceModel": true,
+    "description": "Illustrative municipal reference table modeled after Stuttgart/BW full-day childcare income brackets with progressive sibling relief.",
+    "source": "https://www.stuttgart.de/leben/kinder-und-jugendliche/kinderbetreuung/elternbeitraege/",
+    "siblingDiscountRateSecondChild": 0.5,
+    "siblingDiscountRateThirdPlusChild": 1.0,
+    "feeFreeFromAgeMonths": null,
+    "incomeBrackets": [
+      { "maxAnnualGrossIncome": 40000, "monthlyFee": 95 },
+      { "maxAnnualGrossIncome": 65000, "monthlyFee": 195 },
+      { "maxAnnualGrossIncome": 95000, "monthlyFee": 310 },
+      { "maxAnnualGrossIncome": 130000, "monthlyFee": 410 },
+      { "maxAnnualGrossIncome": null, "monthlyFee": 490 }
+    ]
+  },
+  "hamburg": {
+    "id": "hamburg",
+    "label": "Hamburg (Kita-Gutschein Reference: 5h Free + Extended Scale)",
+    "federalState": "Hamburg",
+    "isIllustrativeReferenceModel": true,
+    "description": "Illustrative reference model reflecting Hamburg's 5-hour basic Kita-Gutschein exemption plus income-tiered extension contribution for full-day care.",
+    "source": "https://www.hamburg.de/politik-und-verwaltung/behoerden/sozialbehoerde/themen/familie/kinderbetreuung/kita-beitraege",
+    "siblingDiscountRateSecondChild": 0.5,
+    "siblingDiscountRateThirdPlusChild": 1.0,
+    "feeFreeFromAgeMonths": 60,
+    "incomeBrackets": [
+      { "maxAnnualGrossIncome": 45000, "monthlyFee": 45 },
+      { "maxAnnualGrossIncome": 75000, "monthlyFee": 130 },
+      { "maxAnnualGrossIncome": 110000, "monthlyFee": 215 },
+      { "maxAnnualGrossIncome": null, "monthlyFee": 290 }
+    ]
+  }
+}
