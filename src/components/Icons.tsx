@@ -1055,3 +1055,83 @@ export const CheckmarkIcon = EligibilityConfirmedIcon;
 
 /** Semantic alias for warning / limitation icon */
 export const WarningIcon = StatutoryLimitationWarningIcon;
+
+// ============================================================================
+// 9. SEPA Payment & GiroCode Icons (Intention: Payment Slips & Form Actions)
+// ============================================================================
+
+/** Intention: Represent SEPA GiroCode QR payment generator in catalog and page headers */
+export const PaymentQrCodeIcon = ({
+  size = 20,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <path d="M14 14h3v3h-3z" />
+    <path d="M20 14v3h1" />
+    <path d="M14 20h3v1" />
+    <path d="M20 20h1v1" />
+  </svg>
+);
+
+/** Intention: Populate neutral sample transfer values into payment form */
+export const SamplePresetIcon = ({
+  size = 16,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <path d="M9 15l2 2 4-4" />
+  </svg>
+);
+
+/** Intention: Clear all entered payment fields back to empty state */
+export const ClearFormIcon = ({
+  size = 16,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 6h18" />
+    <path d="M8 6V4h8v2" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+  </svg>
+);
