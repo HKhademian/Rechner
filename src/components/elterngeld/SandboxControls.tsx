@@ -2,6 +2,10 @@ import "./SandboxControls.css";
 import SalaryChangeEditor from "./SalaryChangeEditor";
 import HouseholdIncomeInputs from "#components/HouseholdIncomeInputs";
 import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
+import LawRefLink from "#components/laws/LawRefLink";
+import {
+  LawId,
+} from "#engine/laws/types";
 import type {
   JSX,
 } from "preact";
@@ -1100,7 +1104,9 @@ export default function SandboxControls(): JSX.Element {
                           ) : (
                             <>
                               ↳ Assessment period based on prior 12-month net
-                              earnings (§ 2b BEEG).
+                              earnings (
+                              <LawRefLink lawId={LawId.BEEG_2b} />
+                              ).
                             </>
                           )}
                         </div>
@@ -1998,7 +2004,17 @@ export default function SandboxControls(): JSX.Element {
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
                       <span>
-                        Automatic Tax Take-Home & Factor (§ 38b, § 39f EStG)
+                        Automatic Tax Take-Home &amp; Factor (
+                        <LawRefLink
+                          lawId={LawId.EStG_38b}
+                          label="§ 38b"
+                        />
+                        ,{" "}
+                        <LawRefLink
+                          lawId={LawId.EStG_39f}
+                          label="§ 39f EStG"
+                        />
+                        )
                       </span>
                     </div>
                     <div
@@ -2194,7 +2210,12 @@ export default function SandboxControls(): JSX.Element {
                         }}
                       >
                         <span>
-                          Class IV + Factor (§ 39f · F ={" "}
+                          Class IV + Factor (
+                          <LawRefLink
+                            lawId={LawId.EStG_39f}
+                            label="§ 39f"
+                          />{" "}
+                          · F ={" "}
                           {(derivedSpousalSet.value.taxFactor ?? 1.0).toFixed(
                             3,
                           )}
@@ -3889,8 +3910,9 @@ export default function SandboxControls(): JSX.Element {
                           >
                             <StatutoryLimitationWarningIcon size={11} />
                             <span>
-                              &gt; 32h/week disqualifies from Elterngeld (§ 1
-                              BEEG).
+                              &gt; 32h/week disqualifies from Elterngeld (
+                              <LawRefLink lawId={LawId.BEEG_1} />
+                              ).
                             </span>
                           </div>
                         ) : hours >= 24 && hours <= 32 ? (
@@ -4430,8 +4452,9 @@ export default function SandboxControls(): JSX.Element {
                       marginTop: "4px",
                     }}
                   >
-                    ↳ Precondition channels: dividend, rental, ETF cash flow (§
-                    20 EStG).
+                    ↳ Precondition channels: dividend, rental, ETF cash flow (
+                    <LawRefLink lawId={LawId.EStG_20} />
+                    ).
                   </div>
                 </div>
 
@@ -4967,12 +4990,10 @@ export default function SandboxControls(): JSX.Element {
                     }}
                   >
                     ↳ Reconciled in tax return (
-                    <span
-                      style={{ color: "var(--color-primary)",
-                        fontWeight: 600 }}
-                    >
-                      Günstigerprüfung § 31 EStG
-                    </span>
+                    <LawRefLink
+                      lawId={LawId.EStG_31}
+                      label="Günstigerprüfung § 31 EStG"
+                    />
                     ).
                   </div>
                 </div>

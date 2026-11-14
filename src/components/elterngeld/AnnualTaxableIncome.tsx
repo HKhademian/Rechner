@@ -14,6 +14,10 @@ import {
   type SimulationResult,
   toFullCalendarYear,
 } from "#engine/types";
+import {
+  LawId,
+} from "#engine/laws/types";
+import LawRefLink from "#components/laws/LawRefLink";
 
 
 
@@ -60,7 +64,11 @@ export default function AnnualTaxableIncome({ result }: { result: SimulationResu
         <summary>Calculation scope and sources</summary>
         <p>Amounts come from the annual payroll record for the selected year, including regular and bonus wages. The model uses ordinary employment, standard work expenses and recorded employee contributions. Other taxable income and additional deductions are outside this calculation.</p>
         {(record?.assumptions ?? []).map((assumption) => <p key={assumption}>{assumption}</p>)}
-        <p><a href="https://www.gesetze-im-internet.de/estg/__2.html" target="_blank" rel="noreferrer">Income and taxable income (§ 2 EStG)</a>{" · "}<a href="https://www.gesetze-im-internet.de/estg/__26b.html" target="_blank" rel="noreferrer">Joint assessment (§ 26b EStG)</a></p>
+        <p>
+          <LawRefLink lawId={LawId.EStG_2} label="Income and taxable income (§ 2 EStG)" />
+          {" · "}
+          <LawRefLink lawId={LawId.EStG_26b} label="Joint assessment (§ 26b EStG)" />
+        </p>
       </details>
     </details>
   );

@@ -21,6 +21,7 @@ import {
 } from "#components/elterngeld/DataExportImportModal";
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
+import LawReferenceModal from "#components/laws/LawReferenceModal";
 
 export default function ElterngeldDashboard(): JSX.Element {
   const months = currentScenarioData.value.months;
@@ -87,6 +88,9 @@ export default function ElterngeldDashboard(): JSX.Element {
 
         {/* Data Export / Import Modal Dialog */}
         <DataExportImportModal />
+
+        {/* Unified Statutory Law Reference Popup Modal */}
+        <LawReferenceModal />
       </main>
 
       {/* Footer */}

@@ -385,7 +385,7 @@ export default function FieldExplainerModal({
                 transition: "var(--transition)",
               }}
             >
-              <span>View Full Statutory Rule &amp; Case Law</span>
+              <span>Open Statutory Reference Popup</span>
               <StepTransitionIcon size={14} />
             </button>
           </div>
