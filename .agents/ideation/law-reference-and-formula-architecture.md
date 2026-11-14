@@ -24,14 +24,14 @@ Replace isolated per-calculator statutory links and scattered rule summaries wit
 
 ## Large Stages & Atomic Steps
 
-### Stage 1: Typed Law Reference Registry & Graph (`src/engine/laws/`)
-1. Define nominal types, `const` enums (`LawId`, `LawGroupId`, `LawTag`, `LawRelationType`, `ExternalSourceId`), runtime validators, and record/map metadata interfaces (`relatedLaws`, `externalSources`).
-2. Populate the central frozen `LAW_REGISTRY` and `LAW_GROUP_REGISTRY` covering all existing BEEG, MuSchG, EStG, SolzG, SGB, BVV, and official guidance references, with graph & integrity unit tests.
+### Stage 1: Typed Law Reference Registry & Graph (`src/engine/laws/`) — Completed
+1. [x] Define nominal types, `const` enums (`LawId`, `LawGroupId`, `LawTag`, `LawRelationType`, `ExternalSourceId`), runtime validators, and record/map metadata interfaces (`relatedLaws`, `externalSources`).
+2. [x] Populate the central frozen `LAW_REGISTRY` and `LAW_GROUP_REGISTRY` covering all existing BEEG, MuSchG, EStG, SolzG, SGB, BVV, and official guidance references, with graph & integrity unit tests.
 
-### Stage 2: Unified Law Reference Popup UI (`src/components/laws/`)
-1. Add intention-named legal/benefit/navigation icons to `src/components/Icons.tsx` and create an app-boundary-safe `lawReferenceStore.ts` managing modal state and in-popup navigation history.
-2. Build `<LawReferenceModal />` and `<LawRefLink />` using semantic institutional CSS tokens, supporting cross-reference navigation, back history, tag filtering, benefit/anti-benefit callouts, and external source links.
-3. Integrate `<LawReferenceModal />` and `<LawRefLink />` into Net Pay Calculator (`Calculator.tsx`, `CalculatorTaxableIncome.tsx`, `AnnualIncomeBreakdown.tsx`, `TaxSettings.tsx`) and Parental Leave Planner (`ElterngeldDashboard.tsx`, `RulesExplainer.tsx`, `FieldExplainerModal.tsx`, `RowExplainerModal.tsx`, `SandboxControls.tsx`, `TimelineTable.tsx`, `HouseholdIncomeInputs.tsx`).
+### Stage 2: Unified Law Reference Popup UI (`src/components/laws/`) — Completed
+1. [x] Add intention-named legal/benefit/navigation icons to `src/components/Icons.tsx` and create an app-boundary-safe `lawReferenceStore.ts` managing modal state and in-popup navigation history.
+2. [x] Build `<LawReferenceModal />` and `<LawRefLink />` using semantic institutional CSS tokens, supporting cross-reference navigation, back history, tag filtering, benefit/anti-benefit callouts, and external source links.
+3. [x] Integrate `<LawReferenceModal />` and `<LawRefLink />` into Net Pay Calculator (`Calculator.tsx`, `CalculatorTaxableIncome.tsx`, `AnnualIncomeBreakdown.tsx`, `PayrollPersonalInputs.tsx`, `HouseholdIncomeInputs.tsx`, `CalculatorResultSummaries.tsx`) and Parental Leave Planner (`elterngeldStore.ts`, `ElterngeldDashboard.tsx`, `AnnualTaxableIncome.tsx`, `RulesExplainer.tsx`, `FieldExplainerModal.tsx`, `RowExplainerModal.tsx`, `SandboxControls.tsx`, `TimelineTable.tsx`).
 
 ### Stage 3: Unified Law-Linked Value Storage & Observer/Editor Section
 1. Define `ParameterId`, `ParameterMutability` (`StatutoryFixed`, `YearIndexed`, `Customizable`), `YearProfile`, and `ParameterDefinition` linking every rule value to `LawId[]`.
