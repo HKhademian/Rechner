@@ -50,7 +50,8 @@
     "@preact/signals": "^2.9.4",
     "astro": "^7.1.2",
     "lohnsteuerrechner": "1.0.7",
-    "preact": "^10.29.7"
+    "preact": "^10.29.7",
+    "qrcode-generator": "2.0.4"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
