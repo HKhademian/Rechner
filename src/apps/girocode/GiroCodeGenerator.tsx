@@ -23,6 +23,7 @@ import {
   ClipboardCopyIcon,
   DownloadFileIcon,
   EligibilityConfirmedIcon,
+  ExpandSectionIcon,
   PaymentQrCodeIcon,
   SamplePresetIcon,
   StatutoryLimitationWarningIcon,
@@ -311,28 +312,6 @@ export default function GiroCodeGenerator(): JSX.Element {
               </div>
             </div>
 
-            <div className="girocode-mode-box">
-              <div>
-                <span className="girocode-mode-box__title">Encoding</span>
-              </div>
-              <div className="girocode-segmented" role="group" aria-label="Character encoding mode">
-                <button
-                  type="button"
-                  aria-pressed={draft.charsetMode === GiroCodeCharsetMode.Utf8}
-                  onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.Utf8)}
-                >
-                  UTF-8
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={draft.charsetMode === GiroCodeCharsetMode.AsciiTransliterated}
-                  onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.AsciiTransliterated)}
-                >
-                  ASCII
-                </button>
-              </div>
-            </div>
-
             <div className="girocode-qr-actions">
               <button
                 type="button"
@@ -555,21 +534,6 @@ export default function GiroCodeGenerator(): JSX.Element {
                   </div>
                 </div>
 
-                <div>
-                  <div className="girocode-field__top">
-                    <label htmlFor="girocode-purpose">Purpose (optional)</label>
-                  </div>
-                  <input
-                    id="girocode-purpose"
-                    type="text"
-                    maxLength={EPC_MAX_PURPOSE_LENGTH}
-                    className="girocode-mono"
-                    placeholder="CHAR, SALA, RENT"
-                    value={draft.purposeCode}
-                    onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
-                  />
-                </div>
-
                 {build.utf8ByteLength > build.maxByteLength && (
                   <div className="girocode-errors" role="alert">
                     Payload exceeds {build.maxByteLength} bytes.
@@ -578,30 +542,87 @@ export default function GiroCodeGenerator(): JSX.Element {
               </div>
             </div>
 
-            <div className="girocode-card">
-              <div className="girocode-card__header">
-                <h2>EPC069-12 Payload</h2>
-                <div className="girocode-field__actions">
-                  <span className={build.utf8ByteLength > build.maxByteLength ? "badge-loss" : "badge-neutral"}>
-                    {build.utf8ByteLength} / {build.maxByteLength} B
-                  </span>
-                  <button
-                    type="button"
-                    className="girocode-copy-btn"
-                    disabled={!build.payload}
-                    onClick={() => {
-                      if (build.payload) {
-                        void copyText(build.payload, "Payload");
-                      }
-                    }}
-                  >
-                    <ClipboardCopyIcon size={13} />
-                    <span>Copy</span>
-                  </button>
+            <details className="girocode-card girocode-details">
+              <summary className="girocode-details__summary">
+                <span className="girocode-details__title">
+                  <ExpandSectionIcon size={16} className="girocode-details__chevron" />
+                  <span>Technical details</span>
+                </span>
+                {build.utf8ByteLength > build.maxByteLength
+                  ? (
+                    <span className="badge-loss">
+                      {build.utf8ByteLength} / {build.maxByteLength} B
+                    </span>
+                  )
+                  : <span className="girocode-details__meta">EPC069-12</span>}
+              </summary>
+
+              <div className="girocode-details__body">
+                <div className="girocode-row-2">
+                  <div>
+                    <div className="girocode-field__top">
+                      <span>Encoding</span>
+                    </div>
+                    <div className="girocode-segmented" role="group" aria-label="Character encoding mode">
+                      <button
+                        type="button"
+                        aria-pressed={draft.charsetMode === GiroCodeCharsetMode.Utf8}
+                        onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.Utf8)}
+                      >
+                        UTF-8
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={draft.charsetMode === GiroCodeCharsetMode.AsciiTransliterated}
+                        onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.AsciiTransliterated)}
+                      >
+                        ASCII
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="girocode-field__top">
+                      <label htmlFor="girocode-purpose">Purpose (optional)</label>
+                    </div>
+                    <input
+                      id="girocode-purpose"
+                      type="text"
+                      maxLength={EPC_MAX_PURPOSE_LENGTH}
+                      className="girocode-mono"
+                      placeholder="CHAR, SALA, RENT"
+                      value={draft.purposeCode}
+                      onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="girocode-payload-block">
+                  <div className="girocode-field__top">
+                    <span>EPC069-12 Payload</span>
+                    <div className="girocode-field__actions">
+                      <span className={build.utf8ByteLength > build.maxByteLength ? "badge-loss" : "badge-neutral"}>
+                        {build.utf8ByteLength} / {build.maxByteLength} B
+                      </span>
+                      <button
+                        type="button"
+                        className="girocode-copy-btn"
+                        disabled={!build.payload}
+                        onClick={() => {
+                          if (build.payload) {
+                            void copyText(build.payload, "Payload");
+                          }
+                        }}
+                      >
+                        <ClipboardCopyIcon size={13} />
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                  </div>
+                  <pre className="girocode-payload">{numberedPreview}</pre>
                 </div>
               </div>
-              <pre className="girocode-payload">{numberedPreview}</pre>
-            </div>
+            </details>
           </section>
         </div>
 
