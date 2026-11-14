@@ -58,6 +58,11 @@ export const FormulaId = {
   ParentalAllowanceEntitlement: "formula.parentalAllowance.entitlement",
   ParentalSiblingBonus: "formula.parentalAllowance.siblingBonus",
   MaternityProtectionBenefit: "formula.maternityProtection.monthlyBenefit",
+  ChildcareTaxDeduction: "formula.familyBenefits.childcareTaxDeduction",
+  MunicipalDaycareFee: "formula.familyBenefits.municipalDaycareFee",
+  PurchasingPowerDiscount: "formula.planning.purchasingPowerDiscount",
+  CompoundedWageGrowth: "formula.planning.compoundedWageGrowth",
+  TaxBracketInflationIndex: "formula.incomeTax.bracketInflationIndex",
 } as const;
 export type FormulaId = (typeof FormulaId)[keyof typeof FormulaId];
 
