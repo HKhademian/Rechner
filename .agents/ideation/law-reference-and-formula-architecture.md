@@ -39,10 +39,10 @@ Replace isolated per-calculator statutory links and scattered rule summaries wit
 3. [x] Build unified `<ParameterObserverSection />` (`src/components/parameters/`) mounted across Net Pay and Parental Leave showing every parameter, its linked `§` badge, year profile, default vs. active value, and mutability protection flags whenever unmodifiable statutory constants are touched.
 4. [x] Cross-link `<LawReferenceModal />` to display, switch year profiles, edit customizable defaults, and verify statutory protection flags for all parameters governed by the currently viewed law.
 
-### Stage 4: Three-Tier Formula Architecture (`math` → `context` → `scenario`)
-1. Extract Tier 1 context-unaware pure mathematical functions (every constant as an explicit named parameter) with comprehensive 1:1 mathematical unit tests.
-2. Build Tier 2 context-aware evaluators reading constants from the unified value storage / environment context (`CalculationContext`).
-3. Refactor Tier 3 user/scenario calculators (`wageTax`, `annualEmploymentIncome`, `jointAssessment`, `elterngeldPlus`, `timelineGenerator`, etc.) to compose Tier 2 evaluators with user salary history and scenario overrides, emitting formula audit trails linked to `LawId`s.
+### Stage 4: Three-Tier Formula Architecture (`pure` → `context` → `scenario`) — Completed
+1. [x] Extract Tier 1 context-unaware pure mathematical functions (`incomeTaxFormulas`, `socialContributionFormulas`, `parentalBenefitFormulas`) with every statutory constant as an explicit named parameter and 1:1 mathematical unit tests, delegating existing engine modules (`wageTax`, `progressionTax`, `jointAssessment`, `transitionContributions`, `standardizedNet`, `elterngeldPlus`, `siblingBonus`, `mutterschutz`).
+2. [x] Build Tier 2 context-aware evaluators (`statutoryContext`, `statutoryEvaluators`, `STATUTORY_FORMULA_DESCRIPTORS`) reading constants from Unified Law-Linked Parameter Value Storage via immutable `StatutoryCalculationContext` and emitting `FormulaEvaluationAudit`.
+3. [x] Build Tier 3 user & scenario calculators (`scenarioFormulaEvaluators`) composing Tier 2 evaluators with `UserHouseholdStatutoryProfile` and hypothetical `ScenarioOverrideInput` diffs, emitting consolidated `LawId[]` and `ParameterId[]` provenance.
 
 ### Stage 5: Shared Storage & Form-Focused Default Projections
 1. Unify backend/storage persistence and reactive `@preact/signals` adapters for the shared law & parameter store while preserving `dependencyBoundaries.test.ts` and app-scoped personal scenario privacy.
