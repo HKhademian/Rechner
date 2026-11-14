@@ -52,6 +52,10 @@ describe("Form Projection Profiles & Out-of-Focus Default Projections", () => {
     assert.equal(getProjectionProfileForApp(AppId.NetPay).id, FormProjectionProfileId.NetPayFocus);
     assert.equal(getProjectionProfileForApp(AppId.ParentalLeave).id, FormProjectionProfileId.ParentalLeaveFocus);
     assert.equal(getProjectionProfileForApp(AppId.GiroCode).id, FormProjectionProfileId.GiroCodeFocus);
+    assert.equal(getProjectionProfileForApp(AppId.Visa).id, FormProjectionProfileId.VisaFocus);
+    assert.equal(getProjectionProfileForApp(AppId.CompanyCar).id, FormProjectionProfileId.CompanyCarFocus);
+    assert.equal(getProjectionProfileForApp(AppId.SolarEnergy).id, FormProjectionProfileId.SolarEnergyFocus);
+    assert.equal(getProjectionProfileForApp(AppId.Housing).id, FormProjectionProfileId.HousingFocus);
     assert.equal(getProjectionProfileForApp(AppId.Catalog).id, FormProjectionProfileId.FullCatalog);
   });
 

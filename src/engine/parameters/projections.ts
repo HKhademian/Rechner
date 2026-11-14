@@ -23,6 +23,10 @@ export const FormProjectionProfileId = {
   NetPayFocus: "net_pay_focus",
   ParentalLeaveFocus: "parental_leave_focus",
   GiroCodeFocus: "girocode_focus",
+  VisaFocus: "visa_focus",
+  CompanyCarFocus: "company_car_focus",
+  SolarEnergyFocus: "solar_energy_focus",
+  HousingFocus: "housing_focus",
 } as const;
 export type FormProjectionProfileId = (typeof FormProjectionProfileId)[keyof typeof FormProjectionProfileId];
 
@@ -130,6 +134,46 @@ export const FORM_PROJECTION_PROFILES: Readonly<Record<FormProjectionProfileId, 
     description: "Keeps SEPA GiroCode workflows uncluttered by projecting defaults for statutory tax and family-benefit rules.",
     focusedDomains: [],
   }),
+  [FormProjectionProfileId.VisaFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.VisaFocus,
+    appId: AppId.Visa,
+    label: "Visa & EU Blue Card Focus",
+    description: "Focuses on AufenthG § 18g / § 18c / § 20a salary thresholds, settlement durations, and Opportunity Card benchmarks.",
+    focusedDomains: [
+      ParameterDomain.VisaResidence,
+      ParameterDomain.PlanningAssumptions,
+    ],
+  }),
+  [FormProjectionProfileId.CompanyCarFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.CompanyCarFocus,
+    appId: AppId.CompanyCar,
+    label: "Company Car & EV Focus",
+    description: "Focuses on EStG § 6 Abs. 1 Nr. 4 EV price caps, benefit fractions, commute multipliers, and wage-tax context.",
+    focusedDomains: [
+      ParameterDomain.CompanyCar,
+      ParameterDomain.IncomeTax,
+      ParameterDomain.SocialSecurity,
+    ],
+  }),
+  [FormProjectionProfileId.SolarEnergyFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.SolarEnergyFocus,
+    appId: AppId.SolarEnergy,
+    label: "Solar PV & EEG Focus",
+    description: "Focuses on EEG § 48 feed-in tariff tiers, § 12 UStG zero VAT, § 3 Nr. 72 EStG kWp cap, and grid price assumptions.",
+    focusedDomains: [
+      ParameterDomain.SolarEnergy,
+    ],
+  }),
+  [FormProjectionProfileId.HousingFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.HousingFocus,
+    appId: AppId.Housing,
+    label: "Housing & KfW 300 Focus",
+    description: "Focuses on KfW 300 family income ceilings, QNG-Plus loan caps, § 35a EStG craftsmanship credits, and closing cost conventions.",
+    focusedDomains: [
+      ParameterDomain.HousingProperty,
+      ParameterDomain.FamilyBenefits,
+    ],
+  }),
 });
 
 /** Looks up a `FormProjectionProfile` by `FormProjectionProfileId`. */
@@ -150,6 +194,14 @@ export function getProjectionProfileForApp(
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.ParentalLeaveFocus];
     case AppId.GiroCode:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.GiroCodeFocus];
+    case AppId.Visa:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.VisaFocus];
+    case AppId.CompanyCar:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.CompanyCarFocus];
+    case AppId.SolarEnergy:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.SolarEnergyFocus];
+    case AppId.Housing:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.HousingFocus];
     case AppId.Catalog:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.FullCatalog];
   }

@@ -156,6 +156,10 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
   [Apps.ParentalLeave]: { state: "elterngeld_simulator_state_v1",
     theme: "german_calc_theme_mode" },
   [Apps.GiroCode]: {},
+  [Apps.Visa]: {},
+  [Apps.CompanyCar]: {},
+  [Apps.SolarEnergy]: {},
+  [Apps.Housing]: {},
 };
 
 const memoryStores = new Map<AppId, Map<string, string>>();

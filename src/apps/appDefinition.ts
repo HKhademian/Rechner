@@ -6,7 +6,11 @@ import {
 export const AppId = { Catalog: "catalog",
   NetPay: "net-pay",
   ParentalLeave: "parental-leave",
-  GiroCode: "girocode" } as const;
+  GiroCode: "girocode",
+  Visa: "visa",
+  CompanyCar: "company-car",
+  SolarEnergy: "solar-energy",
+  Housing: "housing" } as const;
 export type AppId = (typeof AppId)[keyof typeof AppId];
 export function toAppId(value: string): AppId {
   if (!Object.values(AppId).includes(value as AppId)) {
