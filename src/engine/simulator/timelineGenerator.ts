@@ -1462,7 +1462,7 @@ function generateScenario(
       reasons.push("Annual church tax and its deductions require a separate supported assessment model.");
     }
     try {
-      const rules = createTaxRules(year);
+      const rules = createTaxRules(year, preexisting.taxRuleOverrides);
       if ([preexisting.husbandPayrollOptions, preexisting.wifePayrollOptions].some((personal) =>
         personal?.ageAtYearStart !== undefined && personal.ageAtYearStart + year - startYear >= rules.parameters.ageReliefMinimumAge.value)) {
         reasons.push("Annual age-relief deductions are not supported by this employment-income model.");
@@ -1473,7 +1473,12 @@ function generateScenario(
     }
     unsupportedByYear.set(year, reasons);
   }
-  const annualTaxRecords = collectAnnualTaxRecords(months, children, unsupportedByYear).map((record) => {
+  const annualTaxRecords = collectAnnualTaxRecords(
+    months,
+    children,
+    unsupportedByYear,
+    preexisting.taxRuleOverrides,
+  ).map((record) => {
     const declared = preexisting.householdTaxableIncome?.find((entry) => entry.calendarYear === record.calendarYear);
     if (declared && record.taxableIncomeForNonTaxLaw !== undefined && declared.taxableIncome !== record.taxableIncomeForNonTaxLaw) {
       return Object.freeze({ ...record,

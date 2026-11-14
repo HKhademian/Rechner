@@ -183,7 +183,7 @@ export function evaluateIncomeMonth(
     }
     return toGrossSalary(baseline === 0 ? 0 : gross * hours / baseline);
   };
-  const rules = grossMode ? createTaxRules(year) : undefined;
+  const rules = grossMode ? createTaxRules(year, p.taxRuleOverrides) : undefined;
   const hGross = husbandGross === undefined ? undefined : forHours(husbandGross, husbandHours, p.husbandWeeklyHours);
   const wGross = wifeGross === undefined ? undefined : forHours(wifeGross, paidWifeHours, p.wifeWeeklyHours);
   let husbandPayroll: GrossToNetBreakdown | undefined;
@@ -362,7 +362,7 @@ export function buildIncomeSchedule(
             p.existingChildrenCount,
             undefined,
             p.initialUseTaxFactor && initial.taxClass === Classes.IV ? p.initialTaxFactor : undefined,
-            createTaxRules(p.startCalendarYear),
+            createTaxRules(p.startCalendarYear, p.taxRuleOverrides),
             p.wifePayrollOptions,
           ).regularNetTakeHome
           : initial.manualNetByClass[initial.taxClass];

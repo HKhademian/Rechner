@@ -8,6 +8,7 @@ import {
   toCalendarMonth,
 } from "#engine/types";
 import {
+  type TaxParameters,
   createTaxRules,
 } from "#engine/tax/taxRules";
 import {
@@ -42,6 +43,7 @@ export function collectAnnualTaxRecords(
   months: readonly MonthlyLedgerEntry[],
   children: readonly ChildYearPresence[],
   unsupportedByYear: ReadonlyMap<FullCalendarYear, readonly string[]> = new Map(),
+  taxRuleOverrides?: Readonly<Partial<Record<keyof TaxParameters, number>>>,
 ): readonly AnnualTaxRecord[] {
   const years = [...new Set(months.map((month) => month.calendarYearNum))].sort((a, b) => a - b);
   return Object.freeze(years.map((calendarYear): AnnualTaxRecord => {
@@ -73,7 +75,7 @@ export function collectAnnualTaxRecords(
     let taxableIncomeForNonTaxLaw: EuroAmount | undefined;
     let assessment: AnnualTaxRecord["assessment"];
     try {
-      const rules = createTaxRules(calendarYear);
+      const rules = createTaxRules(calendarYear, taxRuleOverrides);
       if (rules.projected) {
         assumptions.push(`Published ${rules.sourceYear} annual rules are projected to ${calendarYear}.`);
       }

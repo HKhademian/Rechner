@@ -17,6 +17,7 @@ import {
 } from "#engine/config/benefitRules";
 
 import {
+  type TaxParameters,
   type TaxRules,
 } from "#engine/tax/taxRules";
 import type {
@@ -1997,6 +1998,8 @@ export interface PreexistingConditions {
   readonly wifePayrollOptions?: PayrollOptions;
   /** Validated benefit rules; omitted uses the source-linked statutory defaults. */
   readonly benefitRules?: BenefitRules;
+  /** Validated customizable tax rule overrides (e.g. personal health supplement rate) applied across years. */
+  readonly taxRuleOverrides?: Readonly<Partial<Record<keyof TaxParameters, number>>>;
   /** 4-digit Gregorian calendar year for simulation start (e.g. 2025). */
   readonly startCalendarYear: FullCalendarYear;
   /** 1-based Gregorian calendar month for simulation start (1..12). */
