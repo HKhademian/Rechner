@@ -34,6 +34,31 @@
   gap: 10px;
 }
 
+.law-page-sidebar__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.law-page-sidebar__clear-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-surface-secondary);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.law-page-sidebar__clear-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
 .law-page-sidebar__heading {
   display: inline-flex;
   align-items: center;
@@ -232,10 +257,54 @@
   line-height: 1.6;
 }
 
+.law-page-article__submeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+}
+
 .law-page-article__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.law-page-article__calculators {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.law-page-article__submeta-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.law-page-calculator-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface-secondary);
+  color: var(--text-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.law-page-calculator-link:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
 }
 
 .law-page-tradeoffs {
@@ -503,6 +572,15 @@
   gap: 6px;
 }
 
+.law-page-formula-card__domain {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
 .law-page-formula-card__id {
   font-size: 0.68rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -516,6 +594,30 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
   line-height: 1.45;
+}
+
+.law-page-formula-card__params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.law-page-formula-param-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface-secondary);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.law-page-formula-param-pill strong {
+  color: var(--text-primary);
+  font-size: 0.72rem;
 }
 
 .law-page-relation-card__citation {

@@ -1,10 +1,12 @@
 import "./LawReferencePage.css";
 import {
+  calculatorPath,
   lawCatalogPath,
   lawDetailPath,
 } from "#/apps/appDefinition.ts";
 import {
   AuditInspectionIcon,
+  CalculatorNavigationIcon,
   CitationReferenceIcon,
   CloseIcon,
   EditableParameterIcon,
@@ -21,6 +23,13 @@ import {
 } from "#components/Icons";
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
+import {
+  FORMULA_DOMAIN_LABELS,
+  buildLawPageTitle,
+  filterLawsByGroup,
+  getCalculatorsUsingLaw,
+  parseLawPageLocation,
+} from "#/components/laws/lawPageHelpers.ts";
 import {
   STATUTORY_FORMULA_DESCRIPTORS,
 } from "#engine/formulas/context/statutoryEvaluators";
@@ -42,12 +51,11 @@ import {
   LAW_TAG_LABELS,
   LawId,
   isLawGroupId,
-  isLawId,
-  toLawTag,
 } from "#engine/laws/types";
 import {
   formatParameterValue,
   getAvailableParameterYears,
+  getParameterDefinition,
   getParametersByLaw,
   resolveParameterForYear,
 } from "#engine/parameters/registry";
@@ -88,8 +96,9 @@ const DEFAULT_FALLBACK_LAW_ID = LawId.EStG_32a;
 
 /**
  * Dedicated Full Statutory Law Reference Page (`/laws/` and `/laws/<lawId>/`).
- * Houses complete search, tag filtering, thematic law groups, full benefit/limitation breakdown,
- * governed parameter observation & customization, linked three-tier formulas, and cross-reference graphs.
+ * Houses complete search, tag filtering, thematic law groups, calculator usage links,
+ * full benefit/limitation breakdown, governed parameter observation & customization,
+ * linked three-tier formulas, and cross-reference graphs.
  */
 export default function LawReferencePage({
   initialLawId,
@@ -100,6 +109,7 @@ export default function LawReferencePage({
   const [selectedGroupId, setSelectedGroupId] = useState<LawGroupId | undefined>(
     initialLawId ? getLawEntry(initialLawId).groupId : undefined,
   );
+  const [groupFilter, setGroupFilter] = useState<LawGroupId | undefined>(undefined);
   const [tagFilter, setTagFilter] = useState<LawTag | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [draftInputs, setDraftInputs] = useState<Readonly<Partial<Record<ParameterId, string>>>>({});
@@ -112,33 +122,32 @@ export default function LawReferencePage({
     if (typeof window === "undefined") {
       return;
     }
-    const params = new URLSearchParams(window.location.search);
-    const paramLaw = params.get("law");
-    const paramGroup = params.get("group");
-    const paramTag = params.get("tag");
-    const paramQuery = params.get("q");
 
-    if (!initialLawId && paramLaw && isLawId(paramLaw)) {
-      setSelectedLawId(paramLaw);
-      setSelectedGroupId(getLawEntry(paramLaw).groupId);
-    }
-    if (paramGroup && isLawGroupId(paramGroup)) {
-      setSelectedGroupId(paramGroup);
-      if (!initialLawId && !paramLaw) {
-        setSelectedLawId(getLawGroupEntry(paramGroup).primaryLawId);
+    const syncFromLocation = (): void => {
+      const parsed = parseLawPageLocation(
+        window.location.pathname,
+        window.location.search,
+        lawCatalogPath(),
+      );
+      const nextLawId = parsed.lawId ?? initialLawId ?? DEFAULT_FALLBACK_LAW_ID;
+      setSelectedLawId(nextLawId);
+      setSelectedGroupId(parsed.groupId ?? getLawEntry(nextLawId).groupId);
+      setDraftInputs({});
+      document.title = buildLawPageTitle(getLawEntry(nextLawId));
+
+      if (parsed.tagFilter !== undefined) {
+        setTagFilter(parsed.tagFilter);
       }
-    }
-    if (paramTag) {
-      try {
-        setTagFilter(toLawTag(paramTag));
+      if (parsed.searchQuery !== undefined) {
+        setSearchQuery(parsed.searchQuery);
       }
-      catch {
-        // Ignore invalid query tag parameter
-      }
-    }
-    if (paramQuery) {
-      setSearchQuery(paramQuery);
-    }
+    };
+
+    syncFromLocation();
+    window.addEventListener("popstate", syncFromLocation);
+    return () => {
+      window.removeEventListener("popstate", syncFromLocation);
+    };
   }, [initialLawId]);
 
   const selectLaw = (
@@ -149,8 +158,15 @@ export default function LawReferencePage({
     const resolvedGroup = groupId ?? nextEntry.groupId;
     setSelectedLawId(lawId);
     setSelectedGroupId(resolvedGroup);
+    setDraftInputs({});
     if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", lawDetailPath(lawId, resolvedGroup));
+      const targetUrl = lawDetailPath(lawId, resolvedGroup);
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+      if (targetUrl !== currentUrl) {
+        window.history.pushState({ lawId,
+          groupId: resolvedGroup }, "", targetUrl);
+      }
+      document.title = buildLawPageTitle(nextEntry);
       window.scrollTo({ top: 0,
         behavior: "smooth" });
     }
@@ -164,11 +180,13 @@ export default function LawReferencePage({
       : undefined;
   const allGroups = getAllLawGroupEntries();
   const usedTags = getUsedLawTags();
-  const matchingLaws = searchLaws(searchQuery, tagFilter);
+  const matchingLaws = filterLawsByGroup(searchLaws(searchQuery, tagFilter), groupFilter);
+  const hasActiveFilters = Boolean(searchQuery.trim() || tagFilter || groupFilter);
   const outgoingRefs = getRelatedLaws(entry.id);
   const incomingRefs = getLawsReferencing(entry.id);
   const externalSources = getExternalSourceEntries(entry);
   const availableYears = getAvailableParameterYears();
+  const usingCalculators = getCalculatorsUsingLaw(entry);
 
   const governedParameters = getParametersByLaw(entry.id).map((def) =>
     resolveParameterForYear(def.id, activeYear, overrides));
@@ -189,10 +207,25 @@ export default function LawReferencePage({
       <main id="main-content" className="law-page-layout">
         <aside className="law-page-sidebar" aria-label="Law directory and filters">
           <div className="law-page-sidebar__header">
-            <h2 className="law-page-sidebar__heading">
-              <LegalStatuteDocumentationIcon size={16} />
-              <span>Law Directory ({matchingLaws.length}/{getAllLawEntries().length})</span>
-            </h2>
+            <div className="law-page-sidebar__title-row">
+              <h2 className="law-page-sidebar__heading">
+                <LegalStatuteDocumentationIcon size={16} />
+                <span>Law Directory ({matchingLaws.length}/{getAllLawEntries().length})</span>
+              </h2>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  className="law-page-sidebar__clear-btn"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setTagFilter(undefined);
+                    setGroupFilter(undefined);
+                  }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
             <input
               type="search"
               className="law-page-sidebar__search"
@@ -231,13 +264,21 @@ export default function LawReferencePage({
               <span className="law-page-sidebar__filter-label">Thematic Law Group</span>
               <select
                 className="law-page-sidebar__select"
-                aria-label="Jump to thematic law group"
-                value={activeGroup?.id ?? ""}
+                aria-label="Filter or jump to thematic law group"
+                value={groupFilter ?? ""}
                 onChange={(event) => {
                   const val = event.currentTarget.value;
-                  if (val && isLawGroupId(val)) {
+                  if (!val) {
+                    setGroupFilter(undefined);
+                    return;
+                  }
+                  if (isLawGroupId(val)) {
                     const group = getLawGroupEntry(val);
-                    selectLaw(group.primaryLawId, group.id);
+                    setGroupFilter(group.id);
+                    const targetLawId = group.memberLawIds.includes(selectedLawId)
+                      ? selectedLawId
+                      : group.primaryLawId;
+                    selectLaw(targetLawId, group.id);
                   }
                 }}
               >
@@ -275,7 +316,7 @@ export default function LawReferencePage({
             })}
             {matchingLaws.length === 0 && (
               <p className="law-page-sidebar__empty">
-                No statutes match your current search or tag filter.
+                No statutes match your current search, tag, or group filter.
               </p>
             )}
           </nav>
@@ -304,21 +345,39 @@ export default function LawReferencePage({
               {entry.title}
             </h1>
             <p className="law-page-article__summary">{entry.summary}</p>
-            <div className="law-page-article__tags" aria-label="Law tags">
-              {entry.tags.map((tag) => {
-                const isSelected = tagFilter === tag;
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`law-page__tag-chip${isSelected ? " law-page__tag-chip--active" : ""}`}
-                    onClick={() => setTagFilter(isSelected ? undefined : tag)}
-                  >
-                    <LawTagClassificationIcon size={11} />
-                    <span>{LAW_TAG_LABELS[tag]}</span>
-                  </button>
-                );
-              })}
+            <div className="law-page-article__submeta">
+              <div className="law-page-article__tags" aria-label="Law tags">
+                {entry.tags.map((tag) => {
+                  const isSelected = tagFilter === tag;
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`law-page__tag-chip${isSelected ? " law-page__tag-chip--active" : ""}`}
+                      onClick={() => setTagFilter(isSelected ? undefined : tag)}
+                    >
+                      <LawTagClassificationIcon size={11} />
+                      <span>{LAW_TAG_LABELS[tag]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {usingCalculators.length > 0 && (
+                <div className="law-page-article__calculators" aria-label="Used in calculators">
+                  <span className="law-page-article__submeta-label">Used in:</span>
+                  {usingCalculators.map((app) => (
+                    <a
+                      key={app.id}
+                      href={calculatorPath(app.id)}
+                      className="law-page-calculator-link"
+                    >
+                      <CalculatorNavigationIcon size={12} />
+                      <span>{app.title}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </header>
 
@@ -358,6 +417,7 @@ export default function LawReferencePage({
                     aria-label="Parameter reference year"
                     value={activeYear}
                     onChange={(event) => {
+                      setDraftInputs({});
                       setParameterYear(toFullCalendarYear(Number(event.currentTarget.value)));
                     }}
                   >
@@ -431,7 +491,13 @@ export default function LawReferencePage({
 
                         {isEditable
                           ? (
-                            <div className="law-page-param-row__edit">
+                            <form
+                              className="law-page-param-row__edit"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                modifyParameterValue(def.id, Number(draftString));
+                              }}
+                            >
                               <input
                                 type="number"
                                 className="law-page-param-row__input"
@@ -448,11 +514,8 @@ export default function LawReferencePage({
                                 }}
                               />
                               <button
-                                type="button"
+                                type="submit"
                                 className="law-page-btn"
-                                onClick={() => {
-                                  modifyParameterValue(def.id, Number(draftString));
-                                }}
                               >
                                 Apply
                               </button>
@@ -471,7 +534,7 @@ export default function LawReferencePage({
                                   <ResetDefaultsIcon size={12} />
                                 </button>
                               )}
-                            </div>
+                            </form>
                           )
                           : (
                             <button
@@ -503,9 +566,28 @@ export default function LawReferencePage({
                   <div key={formula.id} className="law-page-formula-card">
                     <div className="law-page-formula-card__top">
                       <strong>{formula.label}</strong>
-                      <span className="law-page-formula-card__id">{formula.id}</span>
+                      <span className="law-page-formula-card__domain">
+                        {FORMULA_DOMAIN_LABELS[formula.domain]}
+                      </span>
                     </div>
+                    <span className="law-page-formula-card__id">{formula.id}</span>
                     <p>{formula.description}</p>
+                    {formula.consumedParameterIds.length > 0 && (
+                      <div className="law-page-formula-card__params" aria-label="Consumed parameters">
+                        {formula.consumedParameterIds.map((paramId) => {
+                          const def = getParameterDefinition(paramId);
+                          const resolved = resolveParameterForYear(paramId, activeYear, overrides);
+                          return (
+                            <span key={paramId} className="law-page-formula-param-pill" title={def.description}>
+                              <span>{def.label}:</span>
+                              <strong className="tabular-nums">
+                                {formatParameterValue(resolved.activeValue, def.unit)}
+                              </strong>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
