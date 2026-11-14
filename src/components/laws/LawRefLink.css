@@ -1,0 +1,42 @@
+.law-ref-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-sm);
+  padding: 1px 5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: var(--transition);
+}
+
+.law-ref-link:hover {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  text-decoration-style: solid;
+}
+
+.law-ref-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.law-ref-link--badge {
+  font-size: 0.72rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  padding: 2px 7px;
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  text-decoration: none;
+}
+
+.law-ref-link--badge:hover {
+  background: var(--bg-surface-secondary);
+  border-color: var(--color-primary);
+}
