@@ -55,6 +55,12 @@ import {
   setWifeSalariesCount,
   setWifeBonusPreset,
   kindergeldPerChild,
+  existingChildrenCount,
+  setExistingChildrenCount,
+  childcarePlan,
+  updateChildcarePlan,
+  indexFutureTaxBrackets,
+  setIndexFutureTaxBrackets,
   startCalendarYear,
   startCalendarMonth,
   simulationDurationMonths,
@@ -90,18 +96,30 @@ import {
   LegalRuleKey,
   activeLegalRuleKey,
 } from "#store/elterngeldStore";
+import {
+  activeStatutoryContext,
+  modifyParameterValue,
+} from "#store/parameterStore";
+import {
+  ParameterId,
+} from "#engine/parameters/types";
+import {
+  getAllMunicipalDaycarePresets,
+} from "#engine/benefits/childcare";
 
 import {
   type MonthId,
   type MonthRef,
   type MonthSimRef,
   type CalendarLabel,
+  FederalStateKitaPresetId,
   TaxClass,
   TargetPerson,
   FinancialEventCategory,
   SalaryPeriod,
   AnnualSalariesCount,
   BonusDistributionPreset,
+  toFederalStateKitaPresetId,
   toWorkingHours,
   toSimulationMonth,
   toCalendarMonth,
@@ -206,22 +224,21 @@ export default function SandboxControls(): JSX.Element {
     return toMonthSimRef(simMonth);
   };
 
-  // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1), M12)
+  // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1), ..., Birth N)
   const getRelativeMonthLabel = (simMonth: number): MonthRef => {
     if (customPregnancies.value.length === 0) {
       return toMonthRef(simMonth);
     }
+    const ordered = [...customPregnancies.value].sort(
+      (a, b) => a.calculatedDeliverySimulationMonth - b.calculatedDeliverySimulationMonth,
+    );
+    const first = ordered[0];
     const p1 =
-      customPregnancies.value[0]?.positiveTestSimulationMonth ??
+      first?.positiveTestSimulationMonth ??
       Math.max(
         1,
-        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) -
-          8,
+        (first?.calculatedDeliverySimulationMonth ?? 12) - 8,
       );
-    const d1 =
-      customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12;
-    const d2 =
-      customPregnancies.value[1]?.calculatedDeliverySimulationMonth ?? 999;
 
     if (simMonth < p1) {
       return toMonthRef(simMonth - p1);
@@ -230,11 +247,11 @@ export default function SandboxControls(): JSX.Element {
     if (simMonth === p1) {
       return toMonthRef(idx, "Pregnancy Positive");
     }
-    if (simMonth === d1) {
-      return toMonthRef(idx, "Birth 1");
-    }
-    if (simMonth === d2) {
-      return toMonthRef(idx, "Birth 2");
+    const delivered = ordered.find(
+      (preg) => preg.calculatedDeliverySimulationMonth === simMonth,
+    );
+    if (delivered) {
+      return toMonthRef(idx, `Birth ${delivered.childIndex}`);
     }
     return toMonthRef(idx);
   };
@@ -545,22 +562,34 @@ export default function SandboxControls(): JSX.Element {
                   type="button"
                   onClick={() => {
                     const count = customPregnancies.value.length;
+                    const maxChildIdx = Math.max(
+                      0,
+                      ...customPregnancies.value.map((p) => p.childIndex),
+                    );
+                    const nextChildIdx = Math.min(10, maxChildIdx + 1);
+                    const maxStart = Math.max(1, simulationDurationMonths.value - 10);
                     let newSimMonth: number;
                     if (count === 0) {
-                      newSimMonth = Math.min(
-                        simulationDurationMonths.value - 10,
-                        prePregnancyPlanningMonths.value > 0
-                          ? prePregnancyPlanningMonths.value + 1
-                          : 9,
+                      newSimMonth = Math.max(
+                        1,
+                        Math.min(
+                          maxStart,
+                          prePregnancyPlanningMonths.value > 0
+                            ? prePregnancyPlanningMonths.value + 1
+                            : 9,
+                        ),
                       );
                     }
                     else {
                       const lastPreg = customPregnancies.value[count - 1];
                       const lastDeliv =
                         lastPreg.calculatedDeliverySimulationMonth;
-                      newSimMonth = Math.min(
-                        simulationDurationMonths.value - 10,
-                        lastDeliv + 19,
+                      newSimMonth = Math.max(
+                        1,
+                        Math.min(
+                          maxStart,
+                          lastDeliv + 19,
+                        ),
                       );
                     }
 
@@ -572,8 +601,8 @@ export default function SandboxControls(): JSX.Element {
 
                     const defs = getDefaultPersistedState();
                     addPregnancyAction({
-                      pregnancyId: toPregnancyId(`PREG-CUSTOM-${count + 1}`),
-                      childIndex: toChildIndex(count + 1),
+                      pregnancyId: toPregnancyId(`PREG-CUSTOM-${nextChildIdx}-${count + 1}`),
+                      childIndex: toChildIndex(nextChildIdx),
                       positiveTestCalendarMonth: calMonth,
                       positiveTestCalendarYear: toFullCalendarYear(calYear),
                       positiveTestSimulationMonth:
@@ -612,7 +641,7 @@ export default function SandboxControls(): JSX.Element {
                 >
                   <AddActionIcon size={12} />
                   <span>
-                    Add Pregnancy (Child #{customPregnancies.value.length + 1})
+                    Add Pregnancy (Child #{Math.min(10, Math.max(0, ...customPregnancies.value.map((p) => p.childIndex)) + 1)})
                   </span>
                 </button>
               </div>
@@ -4886,8 +4915,9 @@ export default function SandboxControls(): JSX.Element {
                         Class {wifeInitialTaxClass.value}
                       </div>
                       <div>
-                        <strong>Children:</strong> 0 prior children · Kindergeld{" "}
-                        {formatCurrency(kindergeldPerChild.value)}/mo
+                        <strong>Children:</strong> {existingChildrenCount.value}{" "}
+                        {existingChildrenCount.value === 1 ? "prior child" : "prior children"}{" "}
+                        · Kindergeld {formatCurrency(kindergeldPerChild.value)}/mo
                       </div>
                     </div>
                   </div>
@@ -5195,6 +5225,614 @@ export default function SandboxControls(): JSX.Element {
                     )}
                   </div>
                 </div>
+
+                {/* ENTRY 5: Prior Living Children (Pre-Simulation) */}
+                <div
+                  style={{
+                    background: "var(--bg-surface-secondary)",
+                    padding: "12px 14px",
+                    borderRadius: "var(--border-radius-sm)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        fontSize: "0.76rem",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--text-secondary)",
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        <ChildBirthMilestoneIcon size={12} />
+                        <span>Prior Living Children ($t=0$):</span>
+                      </span>
+                      <span
+                        style={{
+                          fontVariantNumeric: "tabular-nums",
+                          fontWeight: 700,
+                          color: "var(--color-primary)",
+                        }}
+                      >
+                        {existingChildrenCount.value}{" "}
+                        {existingChildrenCount.value === 1 ? "child" : "children"}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExistingChildrenCount(existingChildrenCount.value - 1)
+                        }
+                        disabled={existingChildrenCount.value <= 0}
+                        aria-label="Decrease prior living children"
+                        style={{
+                          padding: "4px 10px",
+                          borderRadius: "4px",
+                          border: "1px solid var(--border-subtle)",
+                          background: "var(--bg-surface)",
+                          color: "var(--text-primary)",
+                          fontWeight: 700,
+                          cursor:
+                            existingChildrenCount.value <= 0
+                              ? "not-allowed"
+                              : "pointer",
+                        }}
+                      >
+                        -
+                      </button>
+                      <input
+                        id="prior-children-count-input"
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={existingChildrenCount.value}
+                        onInput={(e) =>
+                          setExistingChildrenCount(
+                            Number((e.target as HTMLInputElement).value),
+                          )
+                        }
+                        style={{
+                          flex: 1,
+                          textAlign: "center",
+                          fontVariantNumeric: "tabular-nums",
+                          background: "var(--bg-surface)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-subtle)",
+                          borderRadius: "4px",
+                          padding: "4px 6px",
+                          fontSize: "0.76rem",
+                          fontWeight: 700,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExistingChildrenCount(existingChildrenCount.value + 1)
+                        }
+                        disabled={existingChildrenCount.value >= 10}
+                        aria-label="Increase prior living children"
+                        style={{
+                          padding: "4px 10px",
+                          borderRadius: "4px",
+                          border: "1px solid var(--border-subtle)",
+                          background: "var(--bg-surface)",
+                          color: "var(--text-primary)",
+                          fontWeight: 700,
+                          cursor:
+                            existingChildrenCount.value >= 10
+                              ? "not-allowed"
+                              : "pointer",
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.64rem",
+                      color:
+                        existingChildrenCount.value > 0
+                          ? "var(--color-warning)"
+                          : "var(--text-muted)",
+                      marginTop: "6px",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {existingChildrenCount.value > 0 ? (
+                      <>
+                        ↳ Kindergeld (<LawRefLink lawId={LawId.EStG_66} label="§ 66 EStG" />),{" "}
+                        SGB XI care discount (<LawRefLink lawId={LawId.SGB11_55} label="§ 55 SGB XI" />),{" "}
+                        and tax allowances scale for {existingChildrenCount.value} prior child(ren).{" "}
+                        <LawRefLink lawId={LawId.BEEG_2a} label="§ 2a BEEG" /> sibling bonus stays locked unless birth ages are modeled in Batch 1.
+                      </>
+                    ) : (
+                      <>
+                        ↳ Model prior children here, or add Child #1..#N pregnancies in Batch 1 for automatic{" "}
+                        <LawRefLink lawId={LawId.BEEG_2a} label="§ 2a BEEG" /> sibling-bonus tracking.
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* ENTRY 6: Municipal Daycare (Kita) & § 10 Abs. 1 Nr. 5 EStG */}
+                {(() => {
+                  const kita = childcarePlan.value;
+                  const presets = getAllMunicipalDaycarePresets();
+                  const selectedPreset =
+                    kita.presetId !== FederalStateKitaPresetId.Custom
+                      ? presets.find((item) => item.id === kita.presetId)
+                      : undefined;
+                  return (
+                    <div
+                      style={{
+                        background: "var(--bg-surface-secondary)",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
+                        border: "1px solid var(--border-subtle)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontSize: "0.76rem",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <label
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              color: "var(--text-secondary)",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <input
+                              id="kita-enabled-toggle"
+                              type="checkbox"
+                              checked={kita.enabled}
+                              onChange={(e) =>
+                                updateChildcarePlan({
+                                  enabled: (e.target as HTMLInputElement).checked,
+                                })
+                              }
+                            />
+                            <span>Daycare / Kita Costs</span>
+                          </label>
+                          <LawRefLink
+                            lawId={LawId.EStG_10_1_5}
+                            label="§ 10(1)5 EStG"
+                          />
+                        </div>
+
+                        <select
+                          id="kita-preset-select"
+                          value={kita.presetId}
+                          disabled={!kita.enabled}
+                          onChange={(e) =>
+                            updateChildcarePlan({
+                              presetId: toFederalStateKitaPresetId(
+                                (e.target as HTMLSelectElement).value,
+                              ),
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            background: "var(--bg-surface)",
+                            color: "var(--text-primary)",
+                            border: "1px solid var(--border-subtle)",
+                            borderRadius: "4px",
+                            padding: "4px 6px",
+                            fontSize: "0.72rem",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          {presets.map((preset) => (
+                            <option key={preset.id} value={preset.id}>
+                              {preset.label} (Illustrative Municipal Table)
+                            </option>
+                          ))}
+                          <option value={FederalStateKitaPresetId.Custom}>
+                            Custom Monthly Fee Per Child
+                          </option>
+                        </select>
+
+                        {kita.presetId === FederalStateKitaPresetId.Custom && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "6px",
+                              marginBottom: "6px",
+                              fontSize: "0.70rem",
+                            }}
+                          >
+                            <span style={{ color: "var(--text-secondary)" }}>
+                              Fee / Child / Mo (EUR):
+                            </span>
+                            <input
+                              id="kita-custom-fee-input"
+                              type="number"
+                              min={0}
+                              max={2500}
+                              step={10}
+                              disabled={!kita.enabled}
+                              value={kita.customMonthlyFeePerChild}
+                              onInput={(e) =>
+                                updateChildcarePlan({
+                                  customMonthlyFeePerChild: toEuroAmount(
+                                    Number((e.target as HTMLInputElement).value),
+                                  ),
+                                })
+                              }
+                              style={{
+                                width: "90px",
+                                textAlign: "right",
+                                fontVariantNumeric: "tabular-nums",
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "3px 6px",
+                                fontSize: "0.72rem",
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "6px",
+                            fontSize: "0.68rem",
+                          }}
+                        >
+                          <label
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "2px",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span>Entry Age (months)</span>
+                            <input
+                              id="kita-start-age-input"
+                              type="number"
+                              min={0}
+                              max={167}
+                              disabled={!kita.enabled}
+                              value={kita.startAgeMonths}
+                              onInput={(e) =>
+                                updateChildcarePlan({
+                                  startAgeMonths: Number(
+                                    (e.target as HTMLInputElement).value,
+                                  ),
+                                })
+                              }
+                              style={{
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "3px 6px",
+                                fontSize: "0.72rem",
+                                fontVariantNumeric: "tabular-nums",
+                              }}
+                            />
+                          </label>
+                          <label
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "2px",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span>End Age (months)</span>
+                            <input
+                              id="kita-end-age-input"
+                              type="number"
+                              min={kita.startAgeMonths}
+                              max={168}
+                              disabled={!kita.enabled}
+                              value={kita.endAgeMonths}
+                              onInput={(e) =>
+                                updateChildcarePlan({
+                                  endAgeMonths: Number(
+                                    (e.target as HTMLInputElement).value,
+                                  ),
+                                })
+                              }
+                              style={{
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "3px 6px",
+                                fontSize: "0.72rem",
+                                fontVariantNumeric: "tabular-nums",
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.64rem",
+                          color: "var(--text-muted)",
+                          marginTop: "6px",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        ↳ Illustrative municipal reference schedule (not statutory federal rates).{" "}
+                        {selectedPreset
+                          ? `${selectedPreset.federalState}: sibling discount ${Math.round(selectedPreset.siblingDiscountRateSecondChild * 100)}% (2nd)${selectedPreset.feeFreeFromAgeMonths !== null ? `, fee-free from age ${selectedPreset.feeFreeFromAgeMonths}mo` : ""}.`
+                          : "Flat monthly rate per active child."}{" "}
+                        Deductible up to 80% / max €4,800/child from 2025.
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* ENTRY 7: Inflation, Wage Growth & Future Bracket Indexing */}
+                {(() => {
+                  const ctx = activeStatutoryContext.value;
+                  const cpiPct = Number(
+                    (
+                      ctx.getParameterNumber(ParameterId.Planning_AnnualInflationRate) *
+                      100
+                    ).toFixed(2),
+                  );
+                  const wagePct = Number(
+                    (
+                      ctx.getParameterNumber(ParameterId.Planning_AnnualWageGrowthRate) *
+                      100
+                    ).toFixed(2),
+                  );
+                  const bracketPct = Number(
+                    (
+                      ctx.getParameterNumber(ParameterId.Planning_AnnualBracketIndexRate) *
+                      100
+                    ).toFixed(2),
+                  );
+                  return (
+                    <div
+                      style={{
+                        background: "var(--bg-surface-secondary)",
+                        padding: "12px 14px",
+                        borderRadius: "var(--border-radius-sm)",
+                        border: "1px solid var(--border-subtle)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontSize: "0.76rem",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--text-secondary)",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Inflation &amp; Purchasing Power
+                          </span>
+                          <LawRefLink
+                            lawId={LawId.InflG}
+                            label="InflG / § 32a EStG"
+                          />
+                        </div>
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 1fr",
+                            gap: "6px",
+                            fontSize: "0.66rem",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <label
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "2px",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span>CPI Infl. (%/yr)</span>
+                            <input
+                              id="planning-inflation-rate-input"
+                              type="number"
+                              min={0}
+                              max={25}
+                              step={0.5}
+                              value={cpiPct}
+                              onInput={(e) => {
+                                const pct = Math.max(
+                                  0,
+                                  Math.min(
+                                    25,
+                                    Number((e.target as HTMLInputElement).value) || 0,
+                                  ),
+                                );
+                                modifyParameterValue(
+                                  ParameterId.Planning_AnnualInflationRate,
+                                  pct / 100,
+                                );
+                              }}
+                              style={{
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "3px 5px",
+                                fontSize: "0.72rem",
+                                fontVariantNumeric: "tabular-nums",
+                              }}
+                            />
+                          </label>
+                          <label
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "2px",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span>Wage Gr. (%/yr)</span>
+                            <input
+                              id="planning-wage-growth-input"
+                              type="number"
+                              min={0}
+                              max={25}
+                              step={0.5}
+                              value={wagePct}
+                              onInput={(e) => {
+                                const pct = Math.max(
+                                  0,
+                                  Math.min(
+                                    25,
+                                    Number((e.target as HTMLInputElement).value) || 0,
+                                  ),
+                                );
+                                modifyParameterValue(
+                                  ParameterId.Planning_AnnualWageGrowthRate,
+                                  pct / 100,
+                                );
+                              }}
+                              style={{
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "3px 5px",
+                                fontSize: "0.72rem",
+                                fontVariantNumeric: "tabular-nums",
+                              }}
+                            />
+                          </label>
+                          <label
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "2px",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span>Bracket (%/yr)</span>
+                            <input
+                              id="planning-bracket-index-input"
+                              type="number"
+                              min={0}
+                              max={25}
+                              step={0.5}
+                              disabled={!indexFutureTaxBrackets.value}
+                              value={bracketPct}
+                              onInput={(e) => {
+                                const pct = Math.max(
+                                  0,
+                                  Math.min(
+                                    25,
+                                    Number((e.target as HTMLInputElement).value) || 0,
+                                  ),
+                                );
+                                modifyParameterValue(
+                                  ParameterId.Planning_AnnualBracketIndexRate,
+                                  pct / 100,
+                                );
+                              }}
+                              style={{
+                                background: "var(--bg-surface)",
+                                color: "var(--text-primary)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: "4px",
+                                padding: "3px 5px",
+                                fontSize: "0.72rem",
+                                fontVariantNumeric: "tabular-nums",
+                              }}
+                            />
+                          </label>
+                        </div>
+
+                        <label
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            fontSize: "0.68rem",
+                            color: "var(--text-secondary)",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <input
+                            id="index-future-brackets-toggle"
+                            type="checkbox"
+                            checked={indexFutureTaxBrackets.value}
+                            onChange={(e) =>
+                              setIndexFutureTaxBrackets(
+                                (e.target as HTMLInputElement).checked,
+                              )
+                            }
+                          />
+                          <span>
+                            Index future &sect; 32a EStG brackets (unverified years only)
+                          </span>
+                        </label>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.64rem",
+                          color: "var(--text-muted)",
+                          marginTop: "6px",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        ↳ Discounts future cash flows to Month-1 purchasing power. Published statutory tax years stay unmodified.
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

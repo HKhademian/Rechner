@@ -251,6 +251,7 @@ export default function KpiScorecard(): JSX.Element {
                 color: "var(--text-secondary)",
                 display: "flex",
                 gap: "8px",
+                flexWrap: "wrap",
               }}
             >
               <span>
@@ -259,7 +260,59 @@ export default function KpiScorecard(): JSX.Element {
                   {current.months.length > 0 ? formatCurrency(current.summary.grandTotal / current.months.length) : "Unavailable"}
                 </strong>
               </span>
+              {current.summary.realGrandTotal !== undefined &&
+                current.summary.inflationRateApplied !== undefined &&
+                current.summary.inflationRateApplied > 0 && (
+                <>
+                  <span>•</span>
+                  <span>
+                    Real Value (M1 @{" "}
+                    {(current.summary.inflationRateApplied * 100).toFixed(1)}
+                    %):{" "}
+                    <strong className="tabular-nums">
+                      {formatCurrency(current.summary.realGrandTotal)}
+                    </strong>
+                  </span>
+                </>
+              )}
             </div>
+            {current.summary.totalChildcareFees !== undefined &&
+              current.summary.totalChildcareFees > 0 && (
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  color: "var(--text-secondary)",
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  marginTop: "4px",
+                }}
+              >
+                <span>
+                  Kita Fees:{" "}
+                  <strong
+                    className="tabular-nums"
+                    style={{ color: "var(--color-loss)" }}
+                  >
+                    -{formatCurrency(current.summary.totalChildcareFees)}
+                  </strong>
+                </span>
+                {current.summary.childcareTaxDeductionTotal !== undefined &&
+                    current.summary.childcareTaxDeductionTotal > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>
+                      Tax Deductible (§ 10(1)5 EStG):{" "}
+                      <strong className="tabular-nums">
+                        {formatCurrency(
+                          current.summary.childcareTaxDeductionTotal,
+                        )}
+                      </strong>
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div
