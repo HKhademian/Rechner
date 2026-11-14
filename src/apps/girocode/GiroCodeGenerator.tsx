@@ -21,6 +21,7 @@ import {
 import {
   ClearFormIcon,
   ClipboardCopyIcon,
+  DismissIcon,
   DownloadFileIcon,
   EligibilityConfirmedIcon,
   ExpandSectionIcon,
@@ -31,6 +32,7 @@ import {
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
 import {
+  type EpcPayload,
   AmountValidationStatus,
   BicValidationStatus,
   createGiroCodeQrMatrix,
@@ -49,10 +51,41 @@ interface ToastMessage {
   readonly isError: boolean;
 }
 
+function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: number): void {
+  const matrix = createGiroCodeQrMatrix(payload);
+  const quietZone = 4;
+  const totalModules = matrix.moduleCount + quietZone * 2;
+  const size = totalModules * scale;
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return;
+  }
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = "#0F172A";
+  for (let row = 0; row < matrix.moduleCount; row += 1) {
+    for (let col = 0; col < matrix.moduleCount; col += 1) {
+      if (matrix.isDark(row, col)) {
+        ctx.fillRect(
+          (col + quietZone) * scale,
+          (row + quietZone) * scale,
+          scale,
+          scale,
+        );
+      }
+    }
+  }
+}
+
 export default function GiroCodeGenerator(): JSX.Element {
   const draft = giroCodeDraft.value;
   const build = giroCodeBuild.value;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const zoomCanvasRef = useRef<HTMLCanvasElement>(null);
+  const qrTriggerRef = useRef<HTMLButtonElement>(null);
+  const [isQrZoomOpen, setIsQrZoomOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const toastTimerRef = useRef<number | null>(null);
 
@@ -84,38 +117,43 @@ export default function GiroCodeGenerator(): JSX.Element {
       return;
     }
     try {
-      const matrix = createGiroCodeQrMatrix(build.payload);
-      const quietZone = 4;
-      const totalModules = matrix.moduleCount + quietZone * 2;
-      const scale = 10;
-      const size = totalModules * scale;
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        return;
-      }
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = "#0F172A";
-      for (let row = 0; row < matrix.moduleCount; row += 1) {
-        for (let col = 0; col < matrix.moduleCount; col += 1) {
-          if (matrix.isDark(row, col)) {
-            ctx.fillRect(
-              (col + quietZone) * scale,
-              (row + quietZone) * scale,
-              scale,
-              scale,
-            );
-          }
-        }
-      }
+      drawQrToCanvas(canvas, build.payload, 10);
     }
     catch (error) {
       const message = error instanceof Error ? error.message : "Could not render QR code.";
       notify(message, true);
     }
   }, [build.payload]);
+
+  useEffect(() => {
+    if (!isQrZoomOpen) {
+      return;
+    }
+    if (!build.isReady || !build.payload) {
+      setIsQrZoomOpen(false);
+      return;
+    }
+    const zoomCanvas = zoomCanvasRef.current;
+    if (zoomCanvas) {
+      try {
+        drawQrToCanvas(zoomCanvas, build.payload, 16);
+      }
+      catch (error) {
+        const message = error instanceof Error ? error.message : "Could not render QR code.";
+        notify(message, true);
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setIsQrZoomOpen(false);
+        qrTriggerRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isQrZoomOpen, build.isReady, build.payload]);
 
   const copyText = async (text: string, label: string): Promise<void> => {
     const trimmed = text.trim();
@@ -297,7 +335,18 @@ export default function GiroCodeGenerator(): JSX.Element {
 
             <div className="girocode-qr-frame">
               {build.isReady && build.payload
-                ? <canvas ref={canvasRef} className="girocode-qr-canvas" aria-label="Scannable SEPA GiroCode QR" />
+                ? (
+                  <button
+                    ref={qrTriggerRef}
+                    type="button"
+                    className="girocode-qr-trigger"
+                    onClick={() => setIsQrZoomOpen(true)}
+                    aria-label="Enlarge QR code for scanning"
+                    title="Click to enlarge"
+                  >
+                    <canvas ref={canvasRef} className="girocode-qr-canvas" />
+                  </button>
+                )
                 : (
                   <div className="girocode-qr-placeholder" role="status">
                     <PaymentQrCodeIcon size={36} />
@@ -625,6 +674,58 @@ export default function GiroCodeGenerator(): JSX.Element {
             </details>
           </section>
         </div>
+
+        {isQrZoomOpen && build.isReady && build.payload && (
+          <div
+            className="girocode-modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="girocode-zoom-title"
+            onClick={() => {
+              setIsQrZoomOpen(false);
+              qrTriggerRef.current?.focus();
+            }}
+          >
+            <div
+              className="girocode-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="girocode-modal__header">
+                <div className="girocode-qr-card__brand">
+                  <span className="girocode-qr-badge">GiroCode</span>
+                  <span id="girocode-zoom-title" className="girocode-modal__title">
+                    {build.previewLines[5] || "SEPA"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  autoFocus
+                  className="girocode-modal__close"
+                  aria-label="Close enlarged QR code"
+                  onClick={() => {
+                    setIsQrZoomOpen(false);
+                    qrTriggerRef.current?.focus();
+                  }}
+                >
+                  <DismissIcon size={18} />
+                </button>
+              </div>
+
+              <div className="girocode-modal__qr-wrap">
+                <canvas
+                  ref={zoomCanvasRef}
+                  className="girocode-modal__canvas"
+                  aria-label="Enlarged scannable SEPA GiroCode QR"
+                />
+              </div>
+
+              <div className="girocode-modal__footer">
+                <span className="girocode-mono">{build.ibanValidation.spaced}</span>
+                <span className="girocode-modal__amount">{build.amountValidation.formattedDisplay}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {toast && (
           <div
