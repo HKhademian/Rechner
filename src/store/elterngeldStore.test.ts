@@ -10,7 +10,19 @@ import {
   child1BirthMonth,
   prePregnancyPlanningMonths,
   resetToDefaults,
+  LegalRuleKey,
+  LEGAL_RULE_LAW_MAP,
+  activeLegalRuleKey,
+  scrollToLegalRule,
 } from "#store/elterngeldStore";
+import {
+  activeLawModalState,
+  closeLawReference,
+} from "#store/lawReferenceStore";
+import {
+  getLawEntry,
+  getLawGroupEntry,
+} from "#engine/laws/registry";
 import {
   toPregnancyId,
   toChildIndex,
@@ -59,5 +71,27 @@ it("keeps October 2026 selected in the pregnancy action and delivery baseline", 
   }
   finally {
     resetToDefaults();
+  }
+});
+
+it("maps every LegalRuleKey to valid LawRegistry entries and opens unified modal", () => {
+  closeLawReference();
+  try {
+    for (const ruleKey of Object.values(LegalRuleKey)) {
+      const mapping = LEGAL_RULE_LAW_MAP[ruleKey];
+      const law = getLawEntry(mapping.lawId);
+      const group = getLawGroupEntry(mapping.groupId);
+      assert.equal(law.id, mapping.lawId);
+      assert.equal(group.id, mapping.groupId);
+      assert.equal(group.memberLawIds.includes(mapping.lawId), true);
+
+      scrollToLegalRule(ruleKey);
+      assert.equal(activeLegalRuleKey.peek(), ruleKey);
+      assert.equal(activeLawModalState.peek()?.currentLawId, mapping.lawId);
+      assert.equal(activeLawModalState.peek()?.activeGroupId, mapping.groupId);
+    }
+  }
+  finally {
+    closeLawReference();
   }
 });

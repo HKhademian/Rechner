@@ -80,6 +80,15 @@ import {
   triggerFileDownload,
   triggerPrintableReport,
 } from "#engine/storage/exportImport";
+import {
+  type LawGroupId as LawGroupIdType,
+  type LawId as LawIdType,
+  LawGroupId,
+  LawId,
+} from "#engine/laws/types";
+import {
+  openLawReference,
+} from "#store/lawReferenceStore";
 
 // Initial state comes from the selected browser storage mode or statutory defaults.
 const initialPersisted = loadFromStorage();
@@ -1450,23 +1459,63 @@ export const LegalRuleKey = {
 /** Type alias for statutory legal rule keys. */
 export type LegalRuleKeyType = (typeof LegalRuleKey)[keyof typeof LegalRuleKey];
 
+/** Mapping from legacy scenario legal rule keys to canonical LawId and LawGroupId entries. */
+export const LEGAL_RULE_LAW_MAP: Readonly<
+  Record<
+    LegalRuleKeyType,
+    {
+      readonly lawId: LawIdType;
+      readonly groupId: LawGroupIdType;
+    }
+  >
+> = Object.freeze({
+  [LegalRuleKey.MuSchG_Maternity]: {
+    lawId: LawId.MuSchG_20,
+    groupId: LawGroupId.MuSchG_Maternity,
+  },
+  [LegalRuleKey.BEEG_TaxSwap]: {
+    lawId: LawId.BEEG_2c,
+    groupId: LawGroupId.BEEG_TaxSwap,
+  },
+  [LegalRuleKey.BEEG_SyntheticNet]: {
+    lawId: LawId.BEEG_2,
+    groupId: LawGroupId.BEEG_SyntheticNet,
+  },
+  [LegalRuleKey.EStG_TaxSplitting]: {
+    lawId: LawId.EStG_26b,
+    groupId: LawGroupId.EStG_TaxSplitting,
+  },
+  [LegalRuleKey.BEEG_PartnershipBonus]: {
+    lawId: LawId.BEEG_4b,
+    groupId: LawGroupId.BEEG_PartnershipBonus,
+  },
+  [LegalRuleKey.BEEG_SiblingBonus]: {
+    lawId: LawId.BEEG_2a,
+    groupId: LawGroupId.BEEG_SiblingBonus,
+  },
+  [LegalRuleKey.BEEG_Child2Dilution]: {
+    lawId: LawId.BEEG_2b,
+    groupId: LawGroupId.BEEG_Child2Dilution,
+  },
+  [LegalRuleKey.EStG_Kindergeld]: {
+    lawId: LawId.EStG_66,
+    groupId: LawGroupId.EStG_Kindergeld,
+  },
+});
+
 /** Active highlighted legal framework card identifier. */
 export const activeLegalRuleKey = signal<LegalRuleKeyType>(
   LegalRuleKey.BEEG_TaxSwap,
 );
 
 /**
- * Smoothly scrolls the viewport to the statutory legal framework card corresponding to `ruleKey`.
+ * Selects the legal rule in state and opens the unified Law Reference popup
+ * focused on its statutory section and thematic group.
  *
  * @param ruleKey - Statutory legal rule identifier.
  */
 export function scrollToLegalRule(ruleKey: LegalRuleKeyType): void {
   activeLegalRuleKey.value = ruleKey;
-  if (typeof document !== "undefined") {
-    const container = document.getElementById("statutory-legal-framework");
-    if (container) {
-      container.scrollIntoView({ behavior: "smooth",
-        block: "start" });
-    }
-  }
+  const target = LEGAL_RULE_LAW_MAP[ruleKey];
+  openLawReference(target.lawId, target.groupId);
 }
