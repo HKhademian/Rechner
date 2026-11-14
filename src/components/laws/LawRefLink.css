@@ -16,9 +16,14 @@
   transition: var(--transition);
 }
 
+.law-ref-link:visited {
+  color: var(--color-primary);
+}
+
 .law-ref-link:hover {
   background: var(--color-primary-bg);
   border-color: var(--color-primary-border);
+  color: var(--color-primary);
   text-decoration-style: solid;
 }
 

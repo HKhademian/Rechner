@@ -1,3 +1,8 @@
+import {
+  type LawGroupId,
+  type LawId,
+} from "#engine/laws/types";
+
 export const AppId = { Catalog: "catalog",
   NetPay: "net-pay",
   ParentalLeave: "parental-leave",
@@ -38,4 +43,18 @@ export function sitePath(path: string): string {
 
 export function calculatorPath(id: CalculatorAppDefinition["id"]): string {
   return sitePath(`/calculators/${id}/`);
+}
+
+/** Canonical base path for the full interactive Law Reference Directory page. */
+export function lawCatalogPath(): string {
+  return sitePath("/laws/");
+}
+
+/** Canonical path for a dedicated full statute page, optionally carrying a thematic group highlight. */
+export function lawDetailPath(
+  lawId: LawId,
+  groupId?: LawGroupId,
+): string {
+  const base = sitePath(`/laws/${lawId}/`);
+  return groupId ? `${base}?group=${encodeURIComponent(groupId)}` : base;
 }

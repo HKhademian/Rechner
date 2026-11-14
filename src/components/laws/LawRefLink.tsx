@@ -1,5 +1,8 @@
 import "./LawRefLink.css";
 import {
+  lawDetailPath,
+} from "#/apps/appDefinition.ts";
+import {
   StatutorySectionIcon,
 } from "#components/Icons";
 import {
@@ -11,6 +14,7 @@ import {
   type LawId,
 } from "#engine/laws/types";
 import {
+  isPlainPrimaryClick,
   openLawGroupReference,
   openLawReference,
 } from "#store/lawReferenceStore";
@@ -36,7 +40,9 @@ export type LawRefLinkProps = (
 };
 
 /**
- * Strongly-typed clickable statutory reference (`§`) that opens the unified Law Reference popup.
+ * Strongly-typed statutory reference (`§`) rendered as a semantic anchor:
+ * - Plain click opens the compact Quick-Reference Popup.
+ * - Ctrl+Click / Cmd+Click / Middle-Click opens the dedicated Full Law Page.
  */
 export default function LawRefLink({
   lawId,
@@ -49,15 +55,22 @@ export default function LawRefLink({
 }: LawRefLinkProps): JSX.Element {
   const entry = lawId ? getLawEntry(lawId) : undefined;
   const group = groupId ? getLawGroupEntry(groupId) : undefined;
+  const targetLawId = lawId ?? group?.primaryLawId;
   const resolvedLabel = label ?? entry?.citation ?? group?.citationLabel ?? "";
-  const resolvedTitle = title ?? `Open statutory reference: ${entry?.title ?? group?.title ?? resolvedLabel}`;
+  const resolvedTitle = title ??
+    `${entry?.title ?? group?.title ?? resolvedLabel} — Click for quick popup · Ctrl+Click for full page`;
+  const href = targetLawId ? lawDetailPath(targetLawId, groupId) : "#";
   const classes = [
     "law-ref-link",
     variant === "badge" ? "law-ref-link--badge" : "",
     className,
   ].filter(Boolean).join(" ");
 
-  const handleClick = (): void => {
+  const handleClick = (event: JSX.TargetedMouseEvent<HTMLAnchorElement>): void => {
+    if (!isPlainPrimaryClick(event)) {
+      return;
+    }
+    event.preventDefault();
     if (lawId) {
       openLawReference(lawId, groupId);
     }
@@ -67,8 +80,8 @@ export default function LawRefLink({
   };
 
   return (
-    <button
-      type="button"
+    <a
+      href={href}
       className={classes}
       title={resolvedTitle}
       aria-label={resolvedTitle}
@@ -76,6 +89,6 @@ export default function LawRefLink({
     >
       {showIcon && <StatutorySectionIcon size={variant === "badge" ? 11 : 13} />}
       <span>{resolvedLabel}</span>
-    </button>
+    </a>
   );
 }

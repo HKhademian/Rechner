@@ -101,3 +101,25 @@ export function setLawTagFilter(tag: LawTag | undefined): void {
 export function setLawSearchQuery(query: string): void {
   activeLawSearchQuery.value = query;
 }
+
+/**
+ * Returns true only for an unmodified primary click (plain left click without Ctrl/Cmd/Shift/Alt),
+ * letting Ctrl+Click / Cmd+Click / middle-click on semantic `<a>` law links open the full Law Page.
+ */
+export function isPlainPrimaryClick(
+  event: Readonly<{
+    readonly button: number;
+    readonly ctrlKey: boolean;
+    readonly metaKey: boolean;
+    readonly shiftKey: boolean;
+    readonly altKey: boolean;
+  }>,
+): boolean {
+  return (
+    event.button === 0 &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.shiftKey &&
+    !event.altKey
+  );
+}

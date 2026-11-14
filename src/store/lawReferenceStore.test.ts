@@ -14,6 +14,7 @@ import {
   activeLawSearchQuery,
   activeLawTagFilter,
   closeLawReference,
+  isPlainPrimaryClick,
   navigateLawHistoryBack,
   navigateToRelatedLaw,
   openLawGroupReference,
@@ -21,6 +22,10 @@ import {
   setLawSearchQuery,
   setLawTagFilter,
 } from "#store/lawReferenceStore";
+import {
+  lawCatalogPath,
+  lawDetailPath,
+} from "#/apps/appDefinition.ts";
 
 describe("lawReferenceStore navigation & history", () => {
   beforeEach(() => {
@@ -69,5 +74,46 @@ describe("lawReferenceStore navigation & history", () => {
     assert.equal(activeLawModalState.value, null);
     assert.equal(activeLawTagFilter.value, undefined);
     assert.equal(activeLawSearchQuery.value, "");
+  });
+
+  it("distinguishes plain primary click (popup) from Ctrl/Cmd/middle click (full Law Page)", () => {
+    assert.equal(
+      isPlainPrimaryClick({ button: 0,
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false,
+        altKey: false }),
+      true,
+    );
+    assert.equal(
+      isPlainPrimaryClick({ button: 0,
+        ctrlKey: true,
+        metaKey: false,
+        shiftKey: false,
+        altKey: false }),
+      false,
+    );
+    assert.equal(
+      isPlainPrimaryClick({ button: 0,
+        ctrlKey: false,
+        metaKey: true,
+        shiftKey: false,
+        altKey: false }),
+      false,
+    );
+    assert.equal(
+      isPlainPrimaryClick({ button: 1,
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false,
+        altKey: false }),
+      false,
+    );
+    assert.equal(lawCatalogPath(), "/laws/");
+    assert.equal(lawDetailPath(LawId.BEEG_2b), "/laws/beeg-2b/");
+    assert.equal(
+      lawDetailPath(LawId.BEEG_2b, LawGroupId.BEEG_TaxSwap),
+      "/laws/beeg-2b/?group=group-beeg-tax-swap",
+    );
   });
 });
