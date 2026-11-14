@@ -37,9 +37,17 @@ import {
   parsePersonalPayrollOptions,
 } from "#engine/tax/payroll";
 import {
+  type StatutoryCalculationContext,
+} from "#engine/formulas/types";
+import {
+  createTaxRulesFromContext,
+} from "#engine/parameters/contextAdapters";
+import {
   DEFAULT_TAX_YEAR,
-  createTaxRules,
 } from "#engine/tax/taxRules";
+import {
+  activeStatutoryContext,
+} from "#store/parameterStore";
 import {
   computeEmploymentPayroll,
 } from "#engine/tax/employmentPayroll";
@@ -520,8 +528,14 @@ export function setLiveTaxBracket(value: string): void {
 }
 
 /** UI primitives are parsed here; all financial calculations use the shared nominal engine. */
-export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenarioData {
-  const rules = createTaxRules(parseVerifiedTaxYear(inputs.taxYear ?? DEFAULT_TAX_YEAR));
+export function calculateScenarioData(
+  inputs: CalculatorInputs,
+  statutoryContext: StatutoryCalculationContext = activeStatutoryContext.peek(),
+): HouseholdScenarioData {
+  const rules = createTaxRulesFromContext(
+    statutoryContext,
+    parseVerifiedTaxYear(inputs.taxYear ?? DEFAULT_TAX_YEAR),
+  );
   const annualPayrolls: ReturnType<typeof computeEmploymentPayroll>[] = [];
   const calculatePerson = (
     gross: number,
@@ -609,7 +623,7 @@ export function calculateScenarioData(inputs: CalculatorInputs): HouseholdScenar
 }
 
 export const deductions = computed<HouseholdScenarioData>(() => {
-  return calculateScenarioData(getCurrentInputs());
+  return calculateScenarioData(getCurrentInputs(), activeStatutoryContext.value);
 });
 
 export function editScenario(id: string): void {

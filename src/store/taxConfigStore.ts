@@ -10,12 +10,17 @@ import {
   effect,
 } from "@preact/signals";
 import {
+  createTaxRulesFromContext,
+} from "#engine/parameters/contextAdapters";
+import {
   DEFAULT_TAX_YEAR,
-  createTaxRules,
 } from "#engine/tax/taxRules";
 import {
   toFullCalendarYear,
 } from "#engine/types";
+import {
+  activeStatutoryContext,
+} from "#store/parameterStore";
 import profiles from "../data/taxRules.json" with { type: "json" };
 
 export const verifiedTaxYears = Object.freeze(Object.keys(profiles).map(Number));
@@ -41,7 +46,8 @@ function loadYear() {
 }
 
 export const selectedTaxYear = signal(loadYear());
-export const selectedTaxRules = computed(() => createTaxRules(selectedTaxYear.value));
+export const selectedTaxRules = computed(() =>
+  createTaxRulesFromContext(activeStatutoryContext.value, selectedTaxYear.value));
 if (typeof window !== "undefined") {
   effect(() => {
     netPayStorage.setItem("payroll_taxYear", JSON.stringify(selectedTaxYear.value));

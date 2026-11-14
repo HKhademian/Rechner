@@ -25,6 +25,9 @@ import {
   taxBracket,
   hasPartner,
   partnerGrossIncome,
+  grossIncome,
+  personalPayroll,
+  deductions,
 } from "#store/calculatorStore";
 import {
   DEFAULT_TAX_YEAR,
@@ -33,6 +36,14 @@ import {
   parsePersonalPayrollOptions,
 } from "#engine/tax/payroll";
 import {
+  ParameterId,
+} from "#engine/parameters/types";
+import {
+  modifyParameterValue,
+  resetAllParameterOverrides,
+} from "#store/parameterStore";
+import {
+  selectedTaxRules,
   parseVerifiedTaxYear,
 } from "#store/taxConfigStore";
 import {
@@ -331,4 +342,28 @@ it("keeps assessment choice independent of partner presence and net withholding"
   assert.deepEqual(individual.household, joint.household);
   assert.equal(calculateScenarioData({ ...inputs,
     hasPartner: false }).annualTaxableIncome.assessment, TaxAssessment.Individual);
+});
+
+it("updates live Net Pay deductions and selectedTaxRules when unified parameter overrides change", () => {
+  const previousGross = grossIncome.peek();
+  const previousPersonal = personalPayroll.peek();
+  resetAllParameterOverrides();
+  try {
+    grossIncome.value = 60000;
+    personalPayroll.value = {};
+    const baselineHealth = deductions.peek().person1.healthCare;
+    const baselineSupplement = selectedTaxRules.peek().parameters.healthSupplementTotalRate.value;
+
+    const result = modifyParameterValue(ParameterId.Tax_HealthSupplementTotalRate, 0.045);
+    assert.equal(result.ok, true);
+    assert.equal(selectedTaxRules.peek().parameters.healthSupplementTotalRate.value, 0.045);
+    assert.equal(selectedTaxRules.peek().parameters.healthSupplementTotalRate.overridden, true);
+    assert.ok(deductions.peek().person1.healthCare > baselineHealth);
+    assert.ok(baselineSupplement < 0.045);
+  }
+  finally {
+    resetAllParameterOverrides();
+    grossIncome.value = previousGross;
+    personalPayroll.value = previousPersonal;
+  }
 });
