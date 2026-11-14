@@ -26,6 +26,7 @@ import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
 import {
   CalculatorNavigationIcon,
+  PaymentQrCodeIcon,
   SimulatorNavigationIcon,
 } from "#components/Icons";
 
@@ -118,7 +119,7 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
 
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <label for="calculator-search">Find a calculator
-          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld" value={query.value} aria-controls="calculator-results"
+          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
         </label>
         <div className="calculator-catalog__category-filter">
@@ -138,7 +139,7 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
         </div>
         <div className="calculator-catalog__grid">
           {page.items.map((app) => <article key={app.id} className="calculator-catalog__card">
-            <div className="calculator-catalog__card-top"><span className="calculator-catalog__icon" aria-hidden="true">{app.category === Categories.Family ? <SimulatorNavigationIcon size={24} /> : <CalculatorNavigationIcon size={24} />}</span><span className="calculator-catalog__category">{app.category}</span></div>
+            <div className="calculator-catalog__card-top"><span className="calculator-catalog__icon" aria-hidden="true">{app.category === Categories.Family ? <SimulatorNavigationIcon size={24} /> : app.category === Categories.Everyday ? <PaymentQrCodeIcon size={24} /> : <CalculatorNavigationIcon size={24} />}</span><span className="calculator-catalog__category">{app.category}</span></div>
             <h3>{app.title}</h3>
             <p>{app.description}</p>
             <ul>{app.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>

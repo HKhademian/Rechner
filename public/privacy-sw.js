@@ -49,6 +49,8 @@ async function prepareOfflineCache() {
     "",
     "calculators/net-pay/",
     "calculators/parental-leave/",
+    "calculators/girocode/",
+    "THIRD_PARTY_NOTICES.txt",
   ].map((route) => new URL(route, scope));
   const results = await Promise.all(routes.map((route) => cachePageAndAssets(route, cache, new Set())));
   return results.every(Boolean);

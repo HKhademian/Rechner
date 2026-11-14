@@ -4,6 +4,9 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  giroCodeApp,
+} from "#/apps/girocode/manifest.ts";
+import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
 import {
@@ -11,7 +14,7 @@ import {
 } from "#/apps/parental-leave/manifest.ts";
 
 /** Metadata only: the catalog must never initialize a calculator's financial store. */
-export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([netPayApp, parentalLeaveApp]);
+export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([netPayApp, parentalLeaveApp, giroCodeApp]);
 export const CATALOG_PAGE_SIZE = 6;
 
 export function calculatorAtPath(pathname: string): CalculatorAppDefinition | undefined {
