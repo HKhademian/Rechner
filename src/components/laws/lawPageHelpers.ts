@@ -44,6 +44,10 @@ export const FORMULA_DOMAIN_LABELS: Readonly<Record<FormulaDomainType, string>> 
   [FormulaDomain.ParentalAllowance]: "Parental Allowance",
   [FormulaDomain.MaternityProtection]: "Maternity Protection",
   [FormulaDomain.FamilyBenefits]: "Family Benefits",
+  [FormulaDomain.VisaResidence]: "Visa & Residence",
+  [FormulaDomain.CompanyCar]: "Company Car & Mobility",
+  [FormulaDomain.SolarEnergy]: "Solar & Green Energy",
+  [FormulaDomain.HousingProperty]: "Housing & KfW 300",
 });
 
 const NET_PAY_LAW_CODES = new Set<string>([

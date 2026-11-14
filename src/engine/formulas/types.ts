@@ -33,6 +33,10 @@ export const FormulaDomain = {
   ParentalAllowance: "parental_allowance",
   MaternityProtection: "maternity_protection",
   FamilyBenefits: "family_benefits",
+  VisaResidence: "visa_residence",
+  CompanyCar: "company_car",
+  SolarEnergy: "solar_energy",
+  HousingProperty: "housing_property",
 } as const;
 export type FormulaDomain = (typeof FormulaDomain)[keyof typeof FormulaDomain];
 
@@ -63,6 +67,11 @@ export const FormulaId = {
   PurchasingPowerDiscount: "formula.planning.purchasingPowerDiscount",
   CompoundedWageGrowth: "formula.planning.compoundedWageGrowth",
   TaxBracketInflationIndex: "formula.incomeTax.bracketInflationIndex",
+  VisaBlueCardEligibility: "formula.visa.blueCardEligibility",
+  VisaOpportunityCardPoints: "formula.visa.opportunityCardPoints",
+  CompanyCarBenefitValuation: "formula.companyCar.benefitValuation",
+  SolarEnergyYieldAndTariff: "formula.solarEnergy.yieldAndTariff",
+  HousingAcquisitionAndKfW300: "formula.housing.acquisitionAndKfW300",
 } as const;
 export type FormulaId = (typeof FormulaId)[keyof typeof FormulaId];
 
