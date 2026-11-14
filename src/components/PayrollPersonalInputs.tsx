@@ -4,7 +4,11 @@ import {
 import {
   type Signal,
 } from "@preact/signals";
+import LawRefLink from "#components/laws/LawRefLink";
 import OptionalNumberInput from "#components/OptionalNumberInput";
+import {
+  LawId,
+} from "#engine/laws/types";
 import {
   type PayrollOptions,
   parsePersonalPayrollOptions,
@@ -45,7 +49,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
           }} />
         Parent status continues even if no child is currently counted above
       </label>
-      <p><a href="https://www.gesetze-im-internet.de/sgb_11/__55.html" target="_blank" rel="noreferrer">Care contribution rules</a></p>
+      <p><LawRefLink lawId={LawId.SGB11_55} label="Care contribution rules (§ 55 SGB XI)" /></p>
       {showLocation && <>
         <label><input type="checkbox" checked={options.value.saxony ?? false}
           onChange={(event) => {

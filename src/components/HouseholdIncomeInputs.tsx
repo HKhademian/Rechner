@@ -1,3 +1,7 @@
+import LawRefLink from "#components/laws/LawRefLink";
+import {
+  LawId,
+} from "#engine/laws/types";
 import {
   type JSX,
 } from "preact";
@@ -42,7 +46,7 @@ export default function HouseholdIncomeInputs({ values, suggestedYear }: {
       <summary>Household taxable income for Elterngeld eligibility</summary>
       <p>Use the combined taxable income for the calendar year before birth, including the adjustments required by EStG section 2(5a). This differs from gross salary. Supplied figures take priority for eligibility; they do not replace the annual tax calculation.</p>
       <p>Without a supplied figure, the result uses supported complete-year employment records. Missing evidence remains unavailable.</p>
-      <p><a href="https://www.gesetze-im-internet.de/beeg/__1.html" target="_blank" rel="noreferrer">Eligibility limit (§ 1(8) BEEG)</a>{" · "}<a href="https://www.gesetze-im-internet.de/estg/__2.html" target="_blank" rel="noreferrer">Taxable income and adjustments (§ 2 EStG)</a></p>
+      <p><LawRefLink lawId={LawId.BEEG_1} label="Eligibility limit (§ 1(8) BEEG)" />{" · "}<LawRefLink lawId={LawId.EStG_2} label="Taxable income and adjustments (§ 2 EStG)" /></p>
       <label for="household-income-year">Income calendar year</label>
       <input id="household-income-year" type="number" min="1900" max="2100" step="1" value={year}
         onInput={(event) => setYear(event.currentTarget.value)} />

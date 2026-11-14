@@ -1,7 +1,11 @@
 import {
   TaxAssessment,
 } from "#engine/tax/taxAssessment";
+import {
+  LawId,
+} from "#engine/laws/types";
 import AnnualIncomeBreakdown from "#components/AnnualIncomeBreakdown";
+import LawRefLink from "#components/laws/LawRefLink";
 import {
   type JSX,
 } from "preact";
@@ -46,7 +50,7 @@ export default function CalculatorTaxableIncome({ data, id = "annual-taxable-inc
         <p>This calculation uses ordinary employment receipts and employee contributions for the configured payment schedule. It assumes no other income and uses the published standard deductions; additional personal deductions are outside this model. It does not calculate an annual refund or payment due.</p>
         {annual.assessment === TaxAssessment.Joint && <p>Joint assessment assumes eligible spouses or registered partners.</p>}
         {data.partner && annual.assessment === TaxAssessment.Individual && <p>Each person uses separate deduction limits.</p>}
-        <p><a href={annual.rules.papPublication.source} target="_blank" rel="noreferrer">Published payroll profile · {annual.rules.sourceYear}</a>{" · "}<a href="https://www.gesetze-im-internet.de/estg/__2.html" target="_blank" rel="noreferrer">Income and taxable income (§ 2 EStG)</a>{data.partner && <>{" · "}<a href="https://www.gesetze-im-internet.de/estg/__26b.html" target="_blank" rel="noreferrer">Joint assessment (§ 26b EStG)</a></>}</p>
+        <p><LawRefLink lawId={LawId.BMF_PAP} label={`Published payroll profile · ${annual.rules.sourceYear}`} />{" · "}<LawRefLink lawId={LawId.EStG_2} label="Income and taxable income (§ 2 EStG)" />{data.partner && <>{" · "}<LawRefLink lawId={LawId.EStG_26b} label="Joint assessment (§ 26b EStG)" /></>}</p>
       </details>
     </section>
   );

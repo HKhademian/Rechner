@@ -1,3 +1,7 @@
+import LawRefLink from "#components/laws/LawRefLink";
+import {
+  LawId,
+} from "#engine/laws/types";
 import {
   TaxAssessment,
 } from "#engine/tax/taxAssessment";
@@ -64,6 +68,6 @@ export function PayrollEvidenceSummary({ data, id, context }: ResultSummaryProps
     <h3>You</h3>
     <ul>{data.person1.assumptions.map((note) => <li key={note}>{note}</li>)}</ul>
     {data.partner && <><h3>Partner</h3><ul>{data.partner.assumptions.map((note) => <li key={note}>{note}</li>)}</ul></>}
-    <a href={rules.papPublication.source} target="_blank" rel="noreferrer">Official {rules.calendarYear} payroll profile</a>
+    <LawRefLink lawId={LawId.BMF_PAP} label={`Official ${rules.calendarYear} payroll profile`} />
   </CalculatorResultDetails>;
 }

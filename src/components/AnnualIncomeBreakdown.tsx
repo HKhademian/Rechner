@@ -1,4 +1,8 @@
 import "./AnnualIncomeBreakdown.css";
+import LawRefLink from "#components/laws/LawRefLink";
+import {
+  LawId,
+} from "#engine/laws/types";
 import {
   type JSX,
 } from "preact";
@@ -9,9 +13,6 @@ import {
 import {
   type TaxRules,
 } from "#engine/tax/taxRules";
-import {
-  DEFAULT_AGE_RELIEF_RULES,
-} from "#engine/tax/ageRelief";
 import {
   type computeAnnualEmploymentTaxBase,
   type computeIndividualEmploymentTaxBase,
@@ -49,7 +50,7 @@ export default function AnnualIncomeBreakdown({ people, base, profile }: AnnualI
         <p className="annual-income__caption">{base
           ? "After the deductible pension, insurance and expense amounts modeled below. Before child allowances and further personal adjustments needed to determine final taxable income (zvE)."
           : "See the unavailable-evidence details below."}</p>
-        <p className="annual-income__caption"><a href="https://www.kfw.de/PDF/Download-Center/F%C3%B6rderprogramme-(Inlandsf%C3%B6rderung)/PDF-Dokumente/6000005060_M_300_WEF.pdf" target="_blank" rel="noreferrer">KfW 300 income evidence</a>{" · "}KfW uses the taxable income recorded on the relevant tax-assessment notices.</p>
+        <p className="annual-income__caption"><LawRefLink lawId={LawId.KfW_300} label="KfW 300 income evidence" />{" · "}KfW uses the taxable income recorded on the relevant tax-assessment notices.</p>
       </div>
       <h3 className="annual-income__steps-heading">How the estimate is built</h3>
       <div className={`annual-income__partners${joint ? "" : " annual-income__partners--single"}`}>
@@ -61,7 +62,7 @@ export default function AnnualIncomeBreakdown({ people, base, profile }: AnnualI
             {income && (
               <dl>
                 <div><dt>Annual gross, including bonuses</dt><dd>{money(income.gross)}</dd></div>
-                <div><dt>{profile ? <a href={profile.parameters.workExpenseAllowance.source} target="_blank" rel="noreferrer">Work expenses</a> : "Work expenses"}</dt><dd>− {money(income.workExpenses)}</dd></div>
+                <div><dt>{profile ? <LawRefLink lawId={LawId.EStG_9a} label="Work expenses" /> : "Work expenses"}</dt><dd>− {money(income.workExpenses)}</dd></div>
               </dl>
             )}
           </div>
@@ -77,10 +78,10 @@ export default function AnnualIncomeBreakdown({ people, base, profile }: AnnualI
           <h3>{joint ? "Joint assessment" : "Individual assessment"}</h3>
           <dl>
             <div><dt>{joint ? "Combined employment income" : "Employment income"}</dt><dd>{money(combined)}</dd></div>
-            {base.ageRelief > 0 && <div><dt><a href={DEFAULT_AGE_RELIEF_RULES.source} target="_blank" rel="noreferrer">Age relief</a></dt><dd>− {money(base.ageRelief)}</dd></div>}
-            <div><dt>{profile ? <a href={profile.parameters.pensionDeductibleFraction.source} target="_blank" rel="noreferrer">Deductible pension contributions</a> : "Deductible pension contributions"}</dt><dd>− {money(base.pensionDeduction)}</dd></div>
-            <div><dt>{profile ? <a href={profile.parameters.healthDeductibleFraction.source} target="_blank" rel="noreferrer">Deductible health, care and other insurance</a> : "Deductible health, care and other insurance"}</dt><dd>− {money(base.insuranceDeduction)}</dd></div>
-            <div><dt>{profile ? <a href={profile.parameters.specialExpenseAllowance.source} target="_blank" rel="noreferrer">Special-expense allowance</a> : "Special-expense allowance"}</dt><dd>− {money(base.specialExpenses)}</dd></div>
+            {base.ageRelief > 0 && <div><dt><LawRefLink lawId={LawId.EStG_24a} label="Age relief" /></dt><dd>− {money(base.ageRelief)}</dd></div>}
+            <div><dt>{profile ? <LawRefLink lawId={LawId.EStG_10} label="Deductible pension contributions" /> : "Deductible pension contributions"}</dt><dd>− {money(base.pensionDeduction)}</dd></div>
+            <div><dt>{profile ? <LawRefLink lawId={LawId.EStG_10} label="Deductible health, care and other insurance" /> : "Deductible health, care and other insurance"}</dt><dd>− {money(base.insuranceDeduction)}</dd></div>
+            <div><dt>{profile ? <LawRefLink lawId={LawId.EStG_10c} label="Special-expense allowance" /> : "Special-expense allowance"}</dt><dd>− {money(base.specialExpenses)}</dd></div>
             <div className="annual-income__total"><dt>{joint ? "Joint income after modeled deductions" : "Income after modeled deductions"}</dt><dd>{money(base.taxableIncome)}</dd></div>
           </dl>
           <p className="annual-income__caption">{joint ? "Shared deductions are applied to the household, without an invented split between partners. " : "Deductions use one person's limits. "}The model floors the amount at zero. Child allowances and additional personal deductions are separate steps toward final taxable income.</p>
