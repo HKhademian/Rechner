@@ -28,6 +28,9 @@ import {
   type PayrollOptions,
 } from "#engine/tax/payroll";
 import {
+  evaluateCompoundedWageGrowthFormula,
+} from "#engine/formulas/pure/inflationFormulas";
+import {
   createTaxRules,
   toAgeYears,
 } from "#engine/tax/taxRules";
@@ -127,6 +130,48 @@ export function evaluateIncomeMonth(
   const wifePartNets: NetClassMap = { [Classes.III]: delivered?.motherPostBirthPartTimeClass3Net ?? p.wifeInitialPartTimeClass3Net,
     [Classes.V]: delivered?.motherPostBirthPartTimeClass5Net ?? p.wifeInitialPartTimeClass5Net,
     [Classes.IV]: p.wifeInitialPartTimeClass4Net };
+  const wageGrowthRate = p.inflationAssumptions?.annualWageGrowthRate;
+  const growthYearsElapsed = Math.max(0, Math.floor((index - 1) / 12));
+  const growNetMap = (nets: NetClassMap): void => {
+    if (!wageGrowthRate || wageGrowthRate <= 0 || growthYearsElapsed === 0) {
+      return;
+    }
+    for (const taxClass of Object.values(Classes)) {
+      const net = nets[taxClass];
+      if (net !== undefined) {
+        nets[taxClass] = toNetSalary(
+          evaluateCompoundedWageGrowthFormula({
+            baseAmount: toEuroAmount(net),
+            annualGrowthRate: wageGrowthRate,
+            yearsElapsed: growthYearsElapsed,
+          }),
+        );
+      }
+    }
+  };
+  if (wageGrowthRate && wageGrowthRate > 0 && growthYearsElapsed > 0) {
+    if (husbandGross !== undefined) {
+      husbandGross = toGrossSalary(
+        evaluateCompoundedWageGrowthFormula({
+          baseAmount: toEuroAmount(husbandGross),
+          annualGrowthRate: wageGrowthRate,
+          yearsElapsed: growthYearsElapsed,
+        }),
+      );
+    }
+    if (wifeGross !== undefined) {
+      wifeGross = toGrossSalary(
+        evaluateCompoundedWageGrowthFormula({
+          baseAmount: toEuroAmount(wifeGross),
+          annualGrowthRate: wageGrowthRate,
+          yearsElapsed: growthYearsElapsed,
+        }),
+      );
+    }
+    growNetMap(husbandNets);
+    growNetMap(wifeFullNets);
+    growNetMap(wifePartNets);
+  }
   const scale = (nets: NetClassMap, increase: PercentageRate): void => {
     for (const taxClass of Object.values(Classes)) {
       const net = nets[taxClass];

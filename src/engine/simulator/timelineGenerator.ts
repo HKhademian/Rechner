@@ -24,7 +24,19 @@ import {
   projectAllowanceSchedule,
 } from "#engine/benefits/allowanceSchedule";
 import {
-  createTaxRules,
+  type ActiveDaycareChild,
+  computeMonthlyChildcarePlanCosts,
+} from "#engine/benefits/childcare";
+import {
+  type ChildPaidFeeEntry,
+} from "#engine/formulas/pure/childcareFormulas";
+import {
+  evaluatePurchasingPowerDiscountFormula,
+} from "#engine/formulas/pure/inflationFormulas";
+import {
+  resolveEffectiveTaxRulesForYear,
+} from "#engine/tax/inflationIndexing";
+import {
   toAgeYears,
 } from "#engine/tax/taxRules";
 import {
@@ -361,15 +373,14 @@ function generateScenario(
   });
   const rawMonths: RawMonth[] = [];
 
-  // Identify Child 1 and Child 2 deliveries for relative notation
-  const child1Delivery =
-    pregnancies.length > 0
-      ? pregnancies[0].calculatedDeliverySimulationMonth
-      : 12;
-  const child2Delivery =
-    pregnancies.length > 1
-      ? pregnancies[1].calculatedDeliverySimulationMonth
-      : 999;
+  // Map all modeled child deliveries for arbitrary N-child relative notation (Birth 1, Birth 2, Birth 3, ...)
+  const orderedPregnancies = [...pregnancies].sort(
+    (a, b) => a.calculatedDeliverySimulationMonth - b.calculatedDeliverySimulationMonth,
+  );
+  const deliveryByMonth = new Map<number, PregnancyAction>(
+    orderedPregnancies.map((pregnancy) => [pregnancy.calculatedDeliverySimulationMonth, pregnancy]),
+  );
+  const firstDeliveryMonth = orderedPregnancies[0]?.calculatedDeliverySimulationMonth ?? 12;
 
   for (let m = 1; m <= duration; m++) {
     const sMonth = toSimulationMonth(m);
@@ -389,15 +400,15 @@ function generateScenario(
     let relativeBirthLabel: MonthRef;
     let relativeMonthLabel: MonthRef;
 
-    if (pregnancies.length === 0) {
+    if (orderedPregnancies.length === 0) {
       relativeMonthIndex = m;
       relativeMonthLabel = toMonthRef(m);
       relativeBirthLabel = relativeMonthLabel;
     }
     else {
       const preg1PositiveMonth =
-        pregnancies[0]?.positiveTestSimulationMonth ??
-        Math.max(1, child1Delivery - 8);
+        orderedPregnancies[0]?.positiveTestSimulationMonth ??
+        Math.max(1, firstDeliveryMonth - 8);
 
       if (m < preg1PositiveMonth) {
         relativeMonthIndex = m - preg1PositiveMonth; // Negative offset: M-1, M-2, ..., M-8
@@ -406,14 +417,12 @@ function generateScenario(
       }
       else {
         relativeMonthIndex = m - preg1PositiveMonth + 1; // M1, M2, M3, ...
+        const deliveredPregnancy = deliveryByMonth.get(m);
         if (m === preg1PositiveMonth) {
           relativeMonthLabel = toMonthRef(1, "Pregnancy Positive");
         }
-        else if (m === child1Delivery) {
-          relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 1");
-        }
-        else if (pregnancies.length > 1 && m === child2Delivery) {
-          relativeMonthLabel = toMonthRef(relativeMonthIndex, "Birth 2");
+        else if (deliveredPregnancy) {
+          relativeMonthLabel = toMonthRef(relativeMonthIndex, `Birth ${deliveredPregnancy.childIndex}`);
         }
         else {
           relativeMonthLabel = toMonthRef(relativeMonthIndex);
@@ -621,6 +630,35 @@ function generateScenario(
     pension: GrossSalary }> = {};
   const priorWAssessments: Record<number, { health: GrossSalary;
     pension: GrossSalary }> = {};
+
+  const childcarePlan = preexisting.childcarePlan;
+  const childcareFeesAccumulator = new Map<
+    FullCalendarYear,
+    Map<string, { totalFee: number;
+      maxAgeMonths: number }>
+  >();
+  const annualHouseholdGrossByYear = new Map<FullCalendarYear, EuroAmount>();
+  if (childcarePlan?.enabled) {
+    for (const calYear of new Set(rawMonths.map((month) => month.calendarYearNum))) {
+      const yearMonths = rawMonths.filter((month) => month.calendarYearNum === calYear);
+      if (grossMode) {
+        const recordedGrossSum = yearMonths.reduce(
+          (sum, month) =>
+            sum + (month.husbandPayroll?.monthlyGross ?? 0) + (month.wifePayroll?.monthlyGross ?? 0),
+          0,
+        );
+        const annualized =
+          yearMonths.length > 0 ? (recordedGrossSum * 12) / yearMonths.length : 0;
+        annualHouseholdGrossByYear.set(calYear, toEuroAmount(annualized));
+      }
+      else {
+        const baselineAnnual =
+          yearMonths.reduce((sum, month) => sum + month.husbandSalary + month.wifeSalary, 0) *
+          (yearMonths.length > 0 ? 12 / yearMonths.length : 0);
+        annualHouseholdGrossByYear.set(calYear, toEuroAmount(baselineAnnual));
+      }
+    }
+  }
   for (let i = 0; i < rawMonths.length; i++) {
     const rm = rawMonths[i];
     const m = rm.month;
@@ -1190,6 +1228,82 @@ function generateScenario(
       }
     });
 
+    // Municipal Daycare (Kita / Betreuungskosten) fee outflow & § 10 Abs. 1 Nr. 5 EStG accumulation
+    let monthChildcareFee: EuroAmount | undefined;
+    if (childcarePlan?.enabled) {
+      const activeDaycareChildren: ActiveDaycareChild[] = orderedPregnancies
+        .filter((preg) => preg.calculatedDeliverySimulationMonth <= m)
+        .map((preg) => ({
+          childKey: preg.pregnancyId,
+          ageMonths: m - preg.calculatedDeliverySimulationMonth,
+        }));
+      const householdAnnualGross =
+        annualHouseholdGrossByYear.get(rm.calendarYearNum) ?? toEuroAmount(0);
+      const daycareResult = computeMonthlyChildcarePlanCosts(
+        childcarePlan,
+        householdAnnualGross,
+        activeDaycareChildren,
+      );
+      if (daycareResult.totalMonthlyFee > 0) {
+        monthChildcareFee = daycareResult.totalMonthlyFee;
+        const paidChildrenCount = daycareResult.perChildFees.filter(
+          (item) => item.netMonthlyFee > 0,
+        ).length;
+        const daycareYearBucket =
+          childcareFeesAccumulator.get(rm.calendarYearNum) ?? new Map();
+        for (const item of daycareResult.perChildFees) {
+          const prev = daycareYearBucket.get(item.childKey) ?? {
+            totalFee: 0,
+            maxAgeMonths: 0,
+          };
+          daycareYearBucket.set(item.childKey, {
+            totalFee: prev.totalFee + item.netMonthlyFee,
+            maxAgeMonths: Math.max(prev.maxAgeMonths, item.ageMonths),
+          });
+        }
+        childcareFeesAccumulator.set(rm.calendarYearNum, daycareYearBucket);
+
+        specialEvents.push({
+          eventId: toEventId(`EVENT-${rm.monthId}-CHILDCARE-FEES`),
+          monthId: rm.monthId,
+          month: rm.month,
+          year,
+          calendarYearNum: rm.calendarYearNum,
+          calendarMonthNum: rm.calendarMonthNum,
+          calendarLabel: rm.calendarLabel,
+          relativeBirthLabel: rm.relativeBirthLabel,
+          relativeMonthLabel: rm.relativeMonthLabel,
+          type: SpecialEventType.CustomCost,
+          title: `Daycare / Kita Fees (${paidChildrenCount} ${paidChildrenCount === 1 ? "child" : "children"})`,
+          category: SpecialEventCategory.ChildcareFees,
+          statutory: toStatutoryCitation(
+            "§ 10 Abs. 1 Nr. 5 EStG & Municipal Kita Reference",
+          ),
+          taxClassLabel: rm.taxClassLabel,
+          amount: toEuroAmount(-monthChildcareFee),
+          description: `Monthly municipal daycare contribution (${daycareResult.perChildFees
+            .map((item) => `rank #${item.siblingCareRank}: ${item.netMonthlyFee} €`)
+            .join(", ")})`,
+        });
+
+        txs.push(
+          createTransaction({
+            transactionId: `TX-${rm.monthId}-CHILDCARE-FEES`,
+            monthId: rm.monthId,
+            month: rm.month,
+            year,
+            type: TransactionType.ExpenseOutflow,
+            direction: TransactionDirection.Outflow,
+            amount: monthChildcareFee,
+            statutoryCitation: "Municipal Kita Contribution / § 10 Abs. 1 Nr. 5 EStG",
+            taxClassLabel: rm.taxClassLabel,
+            description: `Daycare / Kita Fees (${rm.calendarLabel})`,
+            auditTrail: `Outflow for ${paidChildrenCount} child(ren) in qualifying daycare window`,
+          }),
+        );
+      }
+    }
+
     // Build Starting Actions for Month m (Action Milestone Rows placed before Month m)
     const startingActions: ActionRowItem[] = [];
 
@@ -1409,6 +1523,7 @@ function generateScenario(
         isMutterschutz: rm.isMutterschutz,
         isPartnerschaftsbonus: rm.isPartnerschaftsbonus,
         hasSiblingBonus: rm.hasSiblingBonus,
+        childcareFee: monthChildcareFee,
         transactions: txs,
       },
       runSalaries,
@@ -1452,6 +1567,22 @@ function generateScenario(
         birthCalendarMonth: toCalendarMonth(ordinal % 12 + 1) };
     }),
   ];
+  const resolveYearRules = (year: FullCalendarYear) =>
+    resolveEffectiveTaxRulesForYear(
+      year,
+      preexisting.taxRuleOverrides,
+      preexisting.inflationAssumptions?.annualBracketIndexRate,
+      preexisting.inflationAssumptions?.indexFutureTaxBrackets,
+    );
+  const annualChildcarePaidByYear = new Map<FullCalendarYear, readonly ChildPaidFeeEntry[]>(
+    [...childcareFeesAccumulator.entries()].map(([year, childMap]) => [
+      year,
+      [...childMap.values()].map((item) => ({
+        annualPaidFee: toEuroAmount(item.totalFee),
+        childAgeYears: Math.floor(item.maxAgeMonths / 12),
+      })),
+    ]),
+  );
   const unsupportedByYear = new Map<FullCalendarYear, readonly string[]>();
   for (const year of new Set(months.map((month) => month.calendarYearNum))) {
     const reasons: string[] = [];
@@ -1462,7 +1593,7 @@ function generateScenario(
       reasons.push("Annual church tax and its deductions require a separate supported assessment model.");
     }
     try {
-      const rules = createTaxRules(year, preexisting.taxRuleOverrides);
+      const rules = resolveYearRules(year);
       if ([preexisting.husbandPayrollOptions, preexisting.wifePayrollOptions].some((personal) =>
         personal?.ageAtYearStart !== undefined && personal.ageAtYearStart + year - startYear >= rules.parameters.ageReliefMinimumAge.value)) {
         reasons.push("Annual age-relief deductions are not supported by this employment-income model.");
@@ -1478,6 +1609,8 @@ function generateScenario(
     children,
     unsupportedByYear,
     preexisting.taxRuleOverrides,
+    annualChildcarePaidByYear.size > 0 ? annualChildcarePaidByYear : undefined,
+    resolveYearRules,
   ).map((record) => {
     const declared = preexisting.householdTaxableIncome?.find((entry) => entry.calendarYear === record.calendarYear);
     if (declared && record.taxableIncomeForNonTaxLaw !== undefined && declared.taxableIncome !== record.taxableIncomeForNonTaxLaw) {
@@ -1489,10 +1622,44 @@ function generateScenario(
     }
     return record;
   });
-  const settledMonths = applyAnnualTaxSettlements(
+  const settledNominalMonths = applyAnnualTaxSettlements(
     months,
     annualTaxRecords.flatMap((record) => record.assessment ? [record.assessment] : []),
     preexisting.taxReturnMonth,
+  );
+  const inflationRateApplied =
+    preexisting.inflationAssumptions?.annualInflationRate ?? toPercentageRate(0.02);
+  let runRealTotal = 0;
+  let runRealSalaries = 0;
+  let runRealBenefits = 0;
+  const settledMonths: readonly MonthlyLedgerEntry[] = Object.freeze(
+    settledNominalMonths.map((entry) => {
+      const elapsedMonths = entry.month - 1;
+      const totalDiscount = evaluatePurchasingPowerDiscountFormula({
+        nominalAmount: entry.monthlyTotal,
+        annualInflationRate: inflationRateApplied,
+        elapsedMonths,
+      });
+      const salaryDiscount = evaluatePurchasingPowerDiscountFormula({
+        nominalAmount: entry.earnedSalaries,
+        annualInflationRate: inflationRateApplied,
+        elapsedMonths,
+      });
+      const benefitDiscount = evaluatePurchasingPowerDiscountFormula({
+        nominalAmount: entry.stateBenefits,
+        annualInflationRate: inflationRateApplied,
+        elapsedMonths,
+      });
+      runRealTotal = Math.round((runRealTotal + totalDiscount.realAmount) * 100) / 100;
+      runRealSalaries = Math.round((runRealSalaries + salaryDiscount.realAmount) * 100) / 100;
+      runRealBenefits = Math.round((runRealBenefits + benefitDiscount.realAmount) * 100) / 100;
+      return Object.freeze({
+        ...entry,
+        purchasingPowerFactor: totalDiscount.purchasingPowerFactor,
+        realMonthlyTotal: totalDiscount.realAmount,
+        realCumulatedTotal: toEuroAmount(runRealTotal),
+      });
+    }),
   );
   const scheduledTaxRecords = annualTaxRecords.map((record) => {
     const settlementMonthId = toMonthId(preexisting.taxReturnMonth, toFullCalendarYear(record.calendarYear + 1));
@@ -1521,6 +1688,12 @@ function generateScenario(
     (sum, m) => sum + m.specialBonusTotal,
     0,
   );
+  const totalChildcareFees = toEuroAmount(
+    settledMonths.reduce((sum, m) => sum + (m.childcareFee ?? 0), 0),
+  );
+  const childcareTaxDeductionTotal = toEuroAmount(
+    annualTaxRecords.reduce((sum, r) => sum + (r.childcareDeduction ?? 0), 0),
+  );
 
   return {
     configuration: Object.freeze({ benefitRules,
@@ -1542,6 +1715,18 @@ function generateScenario(
       `Kindergeld uses the supplied ${kgRate} EUR per modeled qualifying child/month throughout the period. ${kindergeldSource}`,
       ...Object.values(benefitRules).filter((rule) => rule.overridden).map((rule) =>
         `Overridden benefit rule assumption: ${rule.label} = ${rule.value}. Official reference: ${rule.source}`),
+      ...(childcarePlan?.enabled ? [
+        `Municipal daycare (${childcarePlan.presetId}) modeled as an illustrative reference schedule for ages ${childcarePlan.startAgeMonths}–${childcarePlan.endAgeMonths} months with § 10 Abs. 1 Nr. 5 EStG Sonderausgaben deduction.`,
+        ...(preexisting.existingChildrenCount > 0 ? [
+          "Municipal daycare costs are computed for children born in the timeline; preexisting older children without modeled birth dates are excluded.",
+        ] : []),
+      ] : []),
+      ...((preexisting.inflationAssumptions?.annualWageGrowthRate ?? 0) > 0 ? [
+        `Annual nominal wage growth assumed at ${((preexisting.inflationAssumptions?.annualWageGrowthRate ?? 0) * 100).toFixed(2)}%/yr.`,
+      ] : []),
+      ...(preexisting.inflationAssumptions?.indexFutureTaxBrackets && (preexisting.inflationAssumptions?.annualBracketIndexRate ?? 0) > 0 ? [
+        `Projected future tax years (> published rules) apply ${((preexisting.inflationAssumptions?.annualBracketIndexRate ?? 0) * 100).toFixed(2)}%/yr § 32a bracket indexing (Inflationsausgleich).`,
+      ] : []),
       ...annualTaxRecords.flatMap((record) => [
         ...record.assumptions, ...record.reasons.map((reason) => `Tax year ${record.calendarYear} unavailable: ${reason}`),
       ]),
@@ -1565,6 +1750,12 @@ function generateScenario(
       totalHusbandElterngeld: toEuroAmount(totalHusbandElterngeld),
       totalKindergeld: toEuroAmount(totalKindergeld),
       total13thSalaries: toEuroAmount(total13thSalaries),
+      totalChildcareFees,
+      childcareTaxDeductionTotal,
+      realGrandTotal: toEuroAmount(runRealTotal),
+      realTotalSalaries: toEuroAmount(runRealSalaries),
+      realTotalBenefits: toEuroAmount(runRealBenefits),
+      inflationRateApplied,
     },
   };
 }

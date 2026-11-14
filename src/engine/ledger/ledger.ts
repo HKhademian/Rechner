@@ -100,6 +100,8 @@ export interface LedgerMonthInput {
   readonly isPartnerschaftsbonus: boolean;
   /** True if sibling bonus under § 2a BEEG is active. */
   readonly hasSiblingBonus: boolean;
+  /** Optional monthly municipal daycare / Kita fee outflow in EUR. */
+  readonly childcareFee?: EuroAmount;
   /** Detailed list of double-entry accounting ledger transactions for this month. */
   readonly transactions: readonly AccountingTransaction[];
 }
@@ -219,6 +221,7 @@ export function buildMonthlyLedgerEntry(
     isMutterschutz: input.isMutterschutz,
     isPartnerschaftsbonus: input.isPartnerschaftsbonus,
     hasSiblingBonus: input.hasSiblingBonus,
+    ...(input.childcareFee !== undefined ? { childcareFee: input.childcareFee } : {}),
     transactions: input.transactions,
   };
 
