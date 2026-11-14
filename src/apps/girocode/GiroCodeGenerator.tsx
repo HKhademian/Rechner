@@ -220,22 +220,22 @@ export default function GiroCodeGenerator(): JSX.Element {
     .map((line, idx) => `${String(idx + 1).padStart(2, "0")} | ${line === "" ? "<empty>" : line}`)
     .join("\n");
 
-  const ibanBadge = (): JSX.Element => {
+  const ibanBadge = (): JSX.Element | null => {
     if (build.ibanValidation.status === IbanValidationStatus.Valid) {
       return (
         <span className="badge-gain">
           <EligibilityConfirmedIcon size={13} />
-          <span>MOD-97 Valid</span>
+          <span>Valid</span>
         </span>
       );
     }
     if (build.ibanValidation.status === IbanValidationStatus.Empty) {
-      return <span className="badge-neutral">Enter IBAN</span>;
+      return null;
     }
     return (
       <span className="badge-loss">
         <StatutoryLimitationWarningIcon size={13} />
-        <span>Check IBAN</span>
+        <span>Invalid</span>
       </span>
     );
   };
@@ -253,13 +253,9 @@ export default function GiroCodeGenerator(): JSX.Element {
       <main id="main-content" className="girocode-page" tabIndex={-1}>
         <header className="girocode-header">
           <div>
-            <p className="girocode-header__eyebrow">
-              <PaymentQrCodeIcon size={14} />
-              <span>EPC069-12 V002 • Level M • UTF-8</span>
-            </p>
             <h1>SEPA GiroCode Generator</h1>
             <p className="girocode-header__subtitle">
-              Create scannable SEPA Credit Transfer QR payment slips directly in your browser.
+              Generate SEPA transfer QR codes in your browser.
             </p>
           </div>
           <div className="girocode-header__actions">
@@ -268,7 +264,7 @@ export default function GiroCodeGenerator(): JSX.Element {
               className="girocode-btn"
               onClick={() => {
                 loadSampleGiroCodeDraft();
-                notify("Loaded neutral ISO 13616 test sample");
+                notify("Loaded sample");
               }}
             >
               <SamplePresetIcon size={16} />
@@ -279,7 +275,7 @@ export default function GiroCodeGenerator(): JSX.Element {
               className="girocode-btn"
               onClick={() => {
                 clearGiroCodeDraft();
-                notify("Cleared form fields");
+                notify("Cleared");
               }}
             >
               <ClearFormIcon size={16} />
@@ -293,7 +289,7 @@ export default function GiroCodeGenerator(): JSX.Element {
             <div className="girocode-qr-card__top">
               <div className="girocode-qr-card__brand">
                 <span className="girocode-qr-badge">GiroCode</span>
-                <span className="girocode-qr-card__scheme">SEPA Credit Transfer</span>
+                <span className="girocode-qr-card__scheme">SEPA</span>
               </div>
               {ibanBadge()}
             </div>
@@ -304,7 +300,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                 : (
                   <div className="girocode-qr-placeholder" role="status">
                     <PaymentQrCodeIcon size={36} />
-                    <span>Enter a valid beneficiary name and IBAN to generate a scannable GiroCode.</span>
+                    <span>Enter recipient and valid IBAN.</span>
                   </div>
                 )}
               <div className="girocode-qr-frame__footer">
@@ -317,8 +313,7 @@ export default function GiroCodeGenerator(): JSX.Element {
 
             <div className="girocode-mode-box">
               <div>
-                <span className="girocode-mode-box__title">Character Encoding</span>
-                <span className="girocode-mode-box__hint">UTF-8 vs. ASCII umlaut fallback</span>
+                <span className="girocode-mode-box__title">Encoding</span>
               </div>
               <div className="girocode-segmented" role="group" aria-label="Character encoding mode">
                 <button
@@ -333,7 +328,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                   aria-pressed={draft.charsetMode === GiroCodeCharsetMode.AsciiTransliterated}
                   onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.AsciiTransliterated)}
                 >
-                  ASCII (ae/oe/ue)
+                  ASCII
                 </button>
               </div>
             </div>
@@ -346,12 +341,11 @@ export default function GiroCodeGenerator(): JSX.Element {
                 onClick={downloadPng}
               >
                 <DownloadFileIcon size={18} />
-                <span>Download PNG Payment Slip</span>
+                <span>Download PNG</span>
               </button>
             </div>
 
             <p className="girocode-note">
-              Compatible with German &amp; SEPA mobile banking apps supporting EPC069-12 GiroCode photo/QR transfer.
               &ldquo;QR Code&rdquo; is a registered trademark of DENSO WAVE INCORPORATED.
             </p>
           </section>
@@ -359,20 +353,19 @@ export default function GiroCodeGenerator(): JSX.Element {
           <section className="girocode-stack" aria-label="Transfer details and payload">
             <div className="girocode-card">
               <div className="girocode-card__header">
-                <h2>Transfer Details (Überweisungsdaten)</h2>
-                <span className="girocode-card__meta">Updates QR live</span>
+                <h2>Transfer Details</h2>
               </div>
 
               <div className="girocode-form">
                 <div>
                   <div className="girocode-field__top">
-                    <label htmlFor="girocode-name">Beneficiary Name (Empfänger) *</label>
+                    <label htmlFor="girocode-name">Recipient *</label>
                     <button
                       type="button"
                       className="girocode-copy-btn"
                       disabled={!draft.beneficiaryName.trim()}
                       onClick={() => {
-                        void copyText(build.previewLines[5] || draft.beneficiaryName, "Beneficiary");
+                        void copyText(build.previewLines[5] || draft.beneficiaryName, "Recipient");
                       }}
                     >
                       <ClipboardCopyIcon size={13} />
@@ -383,12 +376,12 @@ export default function GiroCodeGenerator(): JSX.Element {
                     id="girocode-name"
                     type="text"
                     maxLength={EPC_MAX_NAME_LENGTH}
-                    placeholder="e.g. Musterfirma GmbH"
+                    placeholder="Musterfirma GmbH"
                     value={draft.beneficiaryName}
                     onInput={(event) => updateGiroCodeField("beneficiaryName", event.currentTarget.value)}
                   />
                   <div className="girocode-field__hint">
-                    <span>Required (1–{EPC_MAX_NAME_LENGTH} chars)</span>
+                    <span />
                     <span className="girocode-mono">{build.previewLines[5].length} / {EPC_MAX_NAME_LENGTH}</span>
                   </div>
                 </div>
@@ -402,11 +395,11 @@ export default function GiroCodeGenerator(): JSX.Element {
                         className="girocode-copy-btn"
                         disabled={!build.ibanValidation.normalized}
                         onClick={() => {
-                          void copyText(build.ibanValidation.normalized, "Compact IBAN");
+                          void copyText(build.ibanValidation.normalized, "IBAN");
                         }}
                       >
                         <ClipboardCopyIcon size={13} />
-                        <span>Copy Compact</span>
+                        <span>Copy</span>
                       </button>
                       <button
                         type="button"
@@ -416,7 +409,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                           void copyText(build.ibanValidation.spaced, "Spaced IBAN");
                         }}
                       >
-                        <span>Copy Spaced</span>
+                        <span>Spaced</span>
                       </button>
                     </div>
                   </div>
@@ -424,28 +417,26 @@ export default function GiroCodeGenerator(): JSX.Element {
                     id="girocode-iban"
                     type="text"
                     className="girocode-mono"
-                    placeholder="e.g. DE89 3704 0044 0532 0130 00"
+                    placeholder="DE89 3704 0044 0532 0130 00"
                     value={draft.iban}
                     onInput={(event) => updateGiroCodeField("iban", event.currentTarget.value)}
                   />
-                  <div className="girocode-field__hint">
-                    {build.ibanValidation.status === IbanValidationStatus.InvalidChecksum && (
-                      <span className="girocode-field__error">Check digits fail ISO 13616 MOD-97 validation.</span>
-                    )}
-                    {build.ibanValidation.status === IbanValidationStatus.InvalidFormat && (
-                      <span className="girocode-field__error">Invalid SEPA IBAN format or country length.</span>
-                    )}
-                    {(build.ibanValidation.status === IbanValidationStatus.Empty ||
-                      build.ibanValidation.status === IbanValidationStatus.Valid) && (
-                      <span>Verified with ISO 13616 MOD-97-10 check</span>
-                    )}
-                  </div>
+                  {build.ibanValidation.status === IbanValidationStatus.InvalidChecksum && (
+                    <div className="girocode-field__hint">
+                      <span className="girocode-field__error">Invalid check digits</span>
+                    </div>
+                  )}
+                  {build.ibanValidation.status === IbanValidationStatus.InvalidFormat && (
+                    <div className="girocode-field__hint">
+                      <span className="girocode-field__error">Invalid IBAN format</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="girocode-row-2">
                   <div>
                     <div className="girocode-field__top">
-                      <label htmlFor="girocode-bic">BIC (Optional in V002)</label>
+                      <label htmlFor="girocode-bic">BIC (optional)</label>
                       <button
                         type="button"
                         className="girocode-copy-btn"
@@ -463,20 +454,20 @@ export default function GiroCodeGenerator(): JSX.Element {
                       type="text"
                       maxLength={11}
                       className="girocode-mono"
-                      placeholder="e.g. COBADEFFXXX"
+                      placeholder="COBADEFFXXX"
                       value={draft.bic}
                       onInput={(event) => updateGiroCodeField("bic", event.currentTarget.value)}
                     />
                     {build.bicValidation.status === BicValidationStatus.InvalidFormat && (
                       <div className="girocode-field__hint">
-                        <span className="girocode-field__error">Must be 8 or 11 SWIFT characters.</span>
+                        <span className="girocode-field__error">8 or 11 characters</span>
                       </div>
                     )}
                   </div>
 
                   <div>
                     <div className="girocode-field__top">
-                      <label htmlFor="girocode-amount">Amount (Optional)</label>
+                      <label htmlFor="girocode-amount">Amount (optional)</label>
                       <button
                         type="button"
                         className="girocode-copy-btn"
@@ -495,7 +486,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                         type="text"
                         inputMode="decimal"
                         className="girocode-mono"
-                        placeholder="e.g. 125.00"
+                        placeholder="125.00"
                         value={draft.amount}
                         onInput={(event) => updateGiroCodeField("amount", event.currentTarget.value)}
                       />
@@ -503,7 +494,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                     </div>
                     {build.amountValidation.status === AmountValidationStatus.Invalid && (
                       <div className="girocode-field__hint">
-                        <span className="girocode-field__error">Enter 0.01–999,999,999.99 EUR.</span>
+                        <span className="girocode-field__error">0.01–999,999,999.99 EUR</span>
                       </div>
                     )}
                   </div>
@@ -513,8 +504,8 @@ export default function GiroCodeGenerator(): JSX.Element {
                   <div className="girocode-field__top">
                     <label htmlFor="girocode-reference">
                       {draft.remittanceKind === RemittanceKind.Structured
-                        ? "Structured Reference (ISO 11649 RF)"
-                        : "Reference (Verwendungszweck)"}
+                        ? "Reference (RF)"
+                        : "Reference"}
                     </label>
                     <div className="girocode-segmented" role="group" aria-label="Remittance reference mode">
                       <button
@@ -522,14 +513,14 @@ export default function GiroCodeGenerator(): JSX.Element {
                         aria-pressed={draft.remittanceKind === RemittanceKind.Unstructured}
                         onClick={() => updateGiroCodeField("remittanceKind", RemittanceKind.Unstructured)}
                       >
-                        Unstructured
+                        Text
                       </button>
                       <button
                         type="button"
                         aria-pressed={draft.remittanceKind === RemittanceKind.Structured}
                         onClick={() => updateGiroCodeField("remittanceKind", RemittanceKind.Structured)}
                       >
-                        RF Structured
+                        RF
                       </button>
                     </div>
                   </div>
@@ -540,7 +531,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                         type="text"
                         maxLength={EPC_MAX_STRUCTURED_REF_LENGTH}
                         className="girocode-mono"
-                        placeholder="e.g. RF18539007547034"
+                        placeholder="RF18539007547034"
                         value={draft.structuredReference}
                         onInput={(event) => updateGiroCodeField("structuredReference", event.currentTarget.value)}
                       />
@@ -550,7 +541,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                         id="girocode-reference"
                         type="text"
                         maxLength={EPC_MAX_UNSTRUCTURED_REF_LENGTH}
-                        placeholder="e.g. Invoice 2026-001"
+                        placeholder="Invoice 2026-001"
                         value={draft.unstructuredReference}
                         onInput={(event) => updateGiroCodeField("unstructuredReference", event.currentTarget.value)}
                       />
@@ -558,33 +549,30 @@ export default function GiroCodeGenerator(): JSX.Element {
                   <div className="girocode-field__hint">
                     {draft.remittanceKind === RemittanceKind.Structured &&
                       build.structuredRefValidation.status === StructuredRefValidationStatus.InvalidChecksum
-                      ? <span className="girocode-field__error">ISO 11649 RF check digits are invalid.</span>
-                      : <span>EPC069-12 allows either unstructured or structured text.</span>}
+                      ? <span className="girocode-field__error">Invalid RF check digits</span>
+                      : <span />}
                     <span className="girocode-mono">{activeReferenceLength} / {activeReferenceMax}</span>
                   </div>
                 </div>
 
                 <div>
                   <div className="girocode-field__top">
-                    <label htmlFor="girocode-purpose">Purpose Code (AT-44, Optional)</label>
+                    <label htmlFor="girocode-purpose">Purpose (optional)</label>
                   </div>
                   <input
                     id="girocode-purpose"
                     type="text"
                     maxLength={EPC_MAX_PURPOSE_LENGTH}
                     className="girocode-mono"
-                    placeholder="e.g. CHAR, SALA, RENT"
+                    placeholder="CHAR, SALA, RENT"
                     value={draft.purposeCode}
                     onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
                   />
                 </div>
 
-                {build.errors.length > 0 && (draft.beneficiaryName || draft.iban || draft.bic || draft.amount) && (
+                {build.utf8ByteLength > build.maxByteLength && (
                   <div className="girocode-errors" role="alert">
-                    <strong>Checks needed before generating QR:</strong>
-                    <ul>
-                      {build.errors.map((message) => <li key={message}>{message}</li>)}
-                    </ul>
+                    Payload exceeds {build.maxByteLength} bytes.
                   </div>
                 )}
               </div>
@@ -592,10 +580,10 @@ export default function GiroCodeGenerator(): JSX.Element {
 
             <div className="girocode-card">
               <div className="girocode-card__header">
-                <h2>Raw EPC069-12 Payload (11 Lines)</h2>
+                <h2>EPC069-12 Payload</h2>
                 <div className="girocode-field__actions">
                   <span className={build.utf8ByteLength > build.maxByteLength ? "badge-loss" : "badge-neutral"}>
-                    {build.utf8ByteLength} / {build.maxByteLength} bytes
+                    {build.utf8ByteLength} / {build.maxByteLength} B
                   </span>
                   <button
                     type="button"
@@ -603,12 +591,12 @@ export default function GiroCodeGenerator(): JSX.Element {
                     disabled={!build.payload}
                     onClick={() => {
                       if (build.payload) {
-                        void copyText(build.payload, "EPC069-12 Payload");
+                        void copyText(build.payload, "Payload");
                       }
                     }}
                   >
                     <ClipboardCopyIcon size={13} />
-                    <span>Copy Raw Payload</span>
+                    <span>Copy</span>
                   </button>
                 </div>
               </div>
