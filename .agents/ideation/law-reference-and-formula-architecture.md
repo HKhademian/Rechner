@@ -33,11 +33,11 @@ Replace isolated per-calculator statutory links and scattered rule summaries wit
 2. [x] Build `<LawReferenceModal />` and `<LawRefLink />` using semantic institutional CSS tokens, supporting cross-reference navigation, back history, tag filtering, benefit/anti-benefit callouts, and external source links.
 3. [x] Integrate `<LawReferenceModal />` and `<LawRefLink />` into Net Pay Calculator (`Calculator.tsx`, `CalculatorTaxableIncome.tsx`, `AnnualIncomeBreakdown.tsx`, `PayrollPersonalInputs.tsx`, `HouseholdIncomeInputs.tsx`, `CalculatorResultSummaries.tsx`) and Parental Leave Planner (`elterngeldStore.ts`, `ElterngeldDashboard.tsx`, `AnnualTaxableIncome.tsx`, `RulesExplainer.tsx`, `FieldExplainerModal.tsx`, `RowExplainerModal.tsx`, `SandboxControls.tsx`, `TimelineTable.tsx`).
 
-### Stage 3: Unified Law-Linked Value Storage & Observer/Editor Section
-1. Define `ParameterId`, `ParameterMutability` (`StatutoryFixed`, `YearIndexed`, `Customizable`), `YearProfile`, and `ParameterDefinition` linking every rule value to `LawId[]`.
-2. Migrate `benefitRules.json`, `taxRules.json`, `ageReliefRules.json`, `benefitIncomeLimits.json`, `employmentThresholds.json`, and `timelineConventions.json` into unified adapters backed by the central parameter registry.
-3. Build a unified Parameters Observer/Editor section showing every parameter, its linked `§` badge, year profile, default vs. active value, and mutability flag (raising explicit statutory-override warnings/locks when unmodifiable statutory values are touched).
-4. Cross-link `<LawReferenceModal />` to display all parameters governed by the currently viewed law.
+### Stage 3: Unified Law-Linked Value Storage & Observer/Editor Section — Completed
+1. [x] Define `ParameterId`, `ParameterMutability` (`StatutoryFixed`, `YearIndexed`, `Customizable`), `ParameterYearEntry`, and `ParameterDefinition` linking every rule value to `LawId[]`.
+2. [x] Build central frozen `PARAMETER_REGISTRY` (`src/engine/parameters/registry.ts`) unifying `taxRules.json`, `benefitRules.json`, `benefitIncomeLimits.json`, `employmentThresholds.json`, and `timelineConventions.json` (83 typed parameters with numeric parity) alongside reactive `parameterStore.ts`.
+3. [x] Build unified `<ParameterObserverSection />` (`src/components/parameters/`) mounted across Net Pay and Parental Leave showing every parameter, its linked `§` badge, year profile, default vs. active value, and mutability protection flags whenever unmodifiable statutory constants are touched.
+4. [x] Cross-link `<LawReferenceModal />` to display, switch year profiles, edit customizable defaults, and verify statutory protection flags for all parameters governed by the currently viewed law.
 
 ### Stage 4: Three-Tier Formula Architecture (`math` → `context` → `scenario`)
 1. Extract Tier 1 context-unaware pure mathematical functions (every constant as an explicit named parameter) with comprehensive 1:1 mathematical unit tests.
