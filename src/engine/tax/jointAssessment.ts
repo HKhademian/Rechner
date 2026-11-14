@@ -15,6 +15,10 @@ import {
  */
 
 import {
+  evaluateSplittingTaxTariffFormula,
+  evaluateSwapWithholdingVarianceFormula,
+} from "#engine/formulas/pure/incomeTaxFormulas";
+import {
   type EuroAmount,
   type NetSalary,
   type CalendarMonth,
@@ -26,8 +30,8 @@ import {
   toFullCalendarYear,
 } from "#engine/types";
 import {
-  computeAnnualIncomeTax,
   computeSolidaritySurcharge,
+  extractIncomeTaxTariffConstants,
 } from "#engine/tax/wageTax";
 
 /**
@@ -47,12 +51,11 @@ export function computeJointTaxLiability(
   readonly jointSolidaritySurcharge: EuroAmount;
   readonly totalTaxLiability: EuroAmount;
 } {
-  const totalZvE = Math.max(0, husbandAnnualZvE + wifeAnnualZvE);
-  const halfZvE = totalZvE / 2;
-
-  // Splitting Tariff: 2 * Tarif(totalZvE / 2)
-  const singleTaxOnHalf = computeAnnualIncomeTax(halfZvE, rules);
-  const jointTax = toEuroAmount(singleTaxOnHalf * 2);
+  const jointTax = evaluateSplittingTaxTariffFormula({
+    primarySpouseTaxableIncome: husbandAnnualZvE,
+    secondarySpouseTaxableIncome: wifeAnnualZvE,
+    ...extractIncomeTaxTariffConstants(rules),
+  });
 
   const jointSolz = computeSolidaritySurcharge(jointTax, true, rules);
   const total = toEuroAmount(jointTax + jointSolz);
@@ -82,10 +85,12 @@ export function computeMonthlySwapWithholdingVariance(
   wifeClass3Net: NetSalary,
   wifeClass5Net: NetSalary,
 ): EuroAmount {
-  const husbandLoss = husbandClass3Net - husbandClass5Net;
-  const wifeGain = wifeClass3Net - wifeClass5Net;
-  const monthlyVariance = husbandLoss - wifeGain;
-  return toEuroAmount(Math.max(0, monthlyVariance));
+  return evaluateSwapWithholdingVarianceFormula({
+    primaryClass3MonthlyNet: husbandClass3Net,
+    primaryClass5MonthlyNet: husbandClass5Net,
+    secondaryClass3MonthlyNet: wifeClass3Net,
+    secondaryClass5MonthlyNet: wifeClass5Net,
+  });
 }
 
 /**

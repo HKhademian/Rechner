@@ -17,8 +17,8 @@ import {
   type WorkingHours,
   type GrossToNetBreakdown,
   type SpousalGrossToNetSet,
+  type WageTaxZone,
   TaxClass,
-  WageTaxZone,
   toEuroAmount,
   toGrossSalary,
   toNetSalary,
@@ -35,32 +35,47 @@ import {
 } from "#engine/tax/taxRules";
 
 import {
+  type IncomeTaxTariffConstants,
+  evaluateIncomeTaxTariffFormula,
+  evaluateIncomeTaxZoneFormula,
+  evaluateSolidaritySurchargeFormula,
+} from "#engine/formulas/pure/incomeTaxFormulas";
+import {
   type PayrollOptions,
   payrollInputs,
   calculatePayrollWithholding,
   annualWithholdingTaxBase,
 } from "#engine/tax/payroll";
 
+export function extractIncomeTaxTariffConstants(rules: TaxRules): IncomeTaxTariffConstants {
+  const parameters = rules.parameters;
+  return {
+    basicAllowance: parameters.basicAllowance.value,
+    progressionZone1Ceiling: parameters.progression1Ceiling.value,
+    progressionZone2Ceiling: parameters.progression2Ceiling.value,
+    topRateCeiling: parameters.topRateCeiling.value,
+    tariffDivisor: parameters.tariffDivisor.value,
+    progressionZone1QuadraticCoefficient: parameters.progression1Quadratic.value,
+    progressionZone1LinearCoefficient: parameters.progression1Linear.value,
+    progressionZone2QuadraticCoefficient: parameters.progression2Quadratic.value,
+    progressionZone2LinearCoefficient: parameters.progression2Linear.value,
+    progressionZone2ConstantOffset: parameters.progression2Constant.value,
+    topMarginalRate: parameters.topRate.value,
+    topMarginalOffset: parameters.topOffset.value,
+    highestMarginalRate: parameters.highestRate.value,
+    highestMarginalOffset: parameters.highestOffset.value,
+  };
+}
+
 /** Select the progression zone from the source-linked annual profile. */
 export function computeWageTaxZone(
   zve: number,
   rules: TaxRules = DEFAULT_TAX_RULES,
 ): WageTaxZone {
-  const p = rules.parameters;
-  const income = Math.floor(zve);
-  if (income <= p.basicAllowance.value) {
-    return WageTaxZone.Zone1Null;
-  }
-  if (income <= p.progression1Ceiling.value) {
-    return WageTaxZone.Zone2Progression1;
-  }
-  if (income <= p.progression2Ceiling.value) {
-    return WageTaxZone.Zone3Progression2;
-  }
-  if (income <= p.topRateCeiling.value) {
-    return WageTaxZone.Zone4Proportional42;
-  }
-  return WageTaxZone.Zone5Reichensteuer45;
+  return evaluateIncomeTaxZoneFormula({
+    annualTaxableIncome: zve,
+    ...extractIncomeTaxTariffConstants(rules),
+  });
 }
 
 /** § 32a floors both taxable income and the final annual tax to whole euros. */
@@ -68,30 +83,10 @@ export function computeAnnualIncomeTax(
   zve: number,
   rules: TaxRules = DEFAULT_TAX_RULES,
 ): EuroAmount {
-  if (!Number.isFinite(zve)) {
-    throw new TypeError("Annual taxable income must be finite.");
-  }
-  const p = rules.parameters;
-  const income = Math.max(0, Math.floor(zve));
-  let tax: number;
-  if (income <= p.basicAllowance.value) {
-    return toEuroAmount(0);
-  }
-  if (income <= p.progression1Ceiling.value) {
-    const y = (income - p.basicAllowance.value) / p.tariffDivisor.value;
-    tax = (p.progression1Quadratic.value * y + p.progression1Linear.value) * y;
-  }
-  else if (income <= p.progression2Ceiling.value) {
-    const z = (income - p.progression1Ceiling.value) / p.tariffDivisor.value;
-    tax = (p.progression2Quadratic.value * z + p.progression2Linear.value) * z + p.progression2Constant.value;
-  }
-  else if (income <= p.topRateCeiling.value) {
-    tax = p.topRate.value * income - p.topOffset.value;
-  }
-  else {
-    tax = p.highestRate.value * income - p.highestOffset.value;
-  }
-  return toEuroAmount(Math.max(0, Math.floor(tax)));
+  return evaluateIncomeTaxTariffFormula({
+    annualTaxableIncome: zve,
+    ...extractIncomeTaxTariffConstants(rules),
+  });
 }
 
 /** SolzG § 4 truncates fractional cents and applies the mitigation limit. */
@@ -100,10 +95,14 @@ export function computeSolidaritySurcharge(
   isMarriedJoint: boolean = true,
   rules: TaxRules = DEFAULT_TAX_RULES,
 ): EuroAmount {
-  const p = rules.parameters;
-  const exemption = p.solidarityExemptionSingle.value * (isMarriedJoint ? 2 : 1);
-  const amount = Math.max(0, Math.min(annualTax * p.solidarityRate.value, (annualTax - exemption) * p.solidarityMitigationRate.value));
-  return toEuroAmount(Math.floor(amount * 100 + Number.EPSILON * amount * 100) / 100);
+  const parameters = rules.parameters;
+  return evaluateSolidaritySurchargeFormula({
+    annualIncomeTax: annualTax,
+    singleAssessmentExemptionThreshold: parameters.solidarityExemptionSingle.value,
+    isJointAssessment: isMarriedJoint,
+    solidarityRate: parameters.solidarityRate.value,
+    mitigationZoneRate: parameters.solidarityMitigationRate.value,
+  });
 }
 
 /**
