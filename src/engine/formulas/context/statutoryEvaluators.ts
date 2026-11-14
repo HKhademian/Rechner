@@ -2,6 +2,14 @@ import {
   buildFormulaEvaluationAudit,
 } from "#engine/formulas/context/statutoryContext";
 import {
+  type ChildPaidFeeEntry,
+  type ChildcareTaxDeductionFormulaResult,
+  type MunicipalDaycareFeeFormulaResult,
+  type MunicipalDaycareIncomeBracket,
+  evaluateChildcareTaxDeductionFormula,
+  evaluateMunicipalDaycareFeeFormula,
+} from "#engine/formulas/pure/childcareFormulas";
+import {
   type IncomeTaxTariffConstants,
   type ProgressionRateTaxFormulaResult,
   evaluateIncomeTaxTariffFormula,
@@ -10,6 +18,12 @@ import {
   evaluateSolidaritySurchargeFormula,
   evaluateSplittingTaxTariffFormula,
 } from "#engine/formulas/pure/incomeTaxFormulas";
+import {
+  type PurchasingPowerDiscountFormulaResult,
+  evaluateCompoundedWageGrowthFormula,
+  evaluateIndexedTaxBracketsFormula,
+  evaluatePurchasingPowerDiscountFormula,
+} from "#engine/formulas/pure/inflationFormulas";
 import {
   type ChildAllowanceFavorabilityFormulaResult,
   type MaternityProtectionBenefitFormulaResult,
@@ -310,6 +324,53 @@ export const STATUTORY_FORMULA_DESCRIPTORS: Readonly<Record<FormulaId, Statutory
     description: "Splits 100% net maternity replacement into €13/day GKV share and employer supplement.",
     governingLawIds: Object.freeze([LawId.MuSchG_19, LawId.MuSchG_20]),
     consumedParameterIds: Object.freeze([]),
+  }),
+  [FormulaId.ChildcareTaxDeduction]: Object.freeze({
+    id: FormulaId.ChildcareTaxDeduction,
+    label: "Childcare Expenses Deduction (§ 10 Abs. 1 Nr. 5 EStG)",
+    domain: FormulaDomain.FamilyBenefits,
+    description: "Computes annual deductible share of verified daycare fees (2/3 through 2024 up to €4,000; 80% from 2025 up to €4,800 per child under 14).",
+    governingLawIds: Object.freeze([LawId.EStG_10_1_5, LawId.EStG_2]),
+    consumedParameterIds: Object.freeze([
+      ParameterId.Tax_ChildcareDeductibleFraction,
+      ParameterId.Tax_ChildcareMaxDeductionPerChild,
+      ParameterId.Tax_ChildcareMaxAgeYears,
+    ]),
+  }),
+  [FormulaId.MunicipalDaycareFee]: Object.freeze({
+    id: FormulaId.MunicipalDaycareFee,
+    label: "Municipal Daycare Contribution (Elternbeitrag)",
+    domain: FormulaDomain.FamilyBenefits,
+    description: "Looks up illustrative municipal Kita bracket fee with sibling care discount and age fee-exemption.",
+    governingLawIds: Object.freeze([LawId.EStG_10_1_5]),
+    consumedParameterIds: Object.freeze([]),
+  }),
+  [FormulaId.PurchasingPowerDiscount]: Object.freeze({
+    id: FormulaId.PurchasingPowerDiscount,
+    label: "Real Purchasing Power Discounting",
+    domain: FormulaDomain.IncomeTax,
+    description: "Discounts future nominal euro flows into Month-1 real EUR using annual CPI inflation.",
+    governingLawIds: Object.freeze([LawId.InflG]),
+    consumedParameterIds: Object.freeze([ParameterId.Planning_AnnualInflationRate]),
+  }),
+  [FormulaId.CompoundedWageGrowth]: Object.freeze({
+    id: FormulaId.CompoundedWageGrowth,
+    label: "Compounded Nominal Wage Growth",
+    domain: FormulaDomain.IncomeTax,
+    description: "Projects nominal monthly salary progression using customizable annual growth assumptions.",
+    governingLawIds: Object.freeze([LawId.EStG_19, LawId.InflG]),
+    consumedParameterIds: Object.freeze([ParameterId.Planning_AnnualWageGrowthRate]),
+  }),
+  [FormulaId.TaxBracketInflationIndex]: Object.freeze({
+    id: FormulaId.TaxBracketInflationIndex,
+    label: "Tax Tariff Bracket Indexing (Inflationsausgleich)",
+    domain: FormulaDomain.IncomeTax,
+    description: "Shifts § 32a EStG Grundfreibetrag and zone ceilings upward for unverified future years while preserving marginal-rate continuity.",
+    governingLawIds: Object.freeze([LawId.InflG, LawId.EStG_32a]),
+    consumedParameterIds: Object.freeze([
+      ...INCOME_TAX_TARIFF_PARAMETER_IDS,
+      ParameterId.Planning_AnnualBracketIndexRate,
+    ]),
   }),
 });
 
@@ -895,6 +956,140 @@ export function evaluateChildAllowanceFavorabilityInContext(
       context,
       STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ChildAllowanceFavorabilityCheck].consumedParameterIds,
       STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ChildAllowanceFavorabilityCheck].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Evaluates § 10 Abs. 1 Nr. 5 EStG childcare special deduction using year-resolved
+ * limits (`2/3` up to €4,000 through 2024; `80%` up to €4,800 from 2025) from `context`.
+ */
+export function evaluateChildcareTaxDeductionInContext(
+  inputs: Readonly<{ readonly paidFeesPerChild: readonly ChildPaidFeeEntry[] }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<ChildcareTaxDeductionFormulaResult> {
+  const result = evaluateChildcareTaxDeductionFormula({
+    paidFeesPerChild: inputs.paidFeesPerChild,
+    deductibleFraction: context.getParameterPercentageRate(ParameterId.Tax_ChildcareDeductibleFraction),
+    maxAnnualDeductionPerChild: context.getParameterEuroAmount(ParameterId.Tax_ChildcareMaxDeductionPerChild),
+    maxChildAgeYears: context.getParameterNumber(ParameterId.Tax_ChildcareMaxAgeYears),
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.ChildcareTaxDeduction,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ChildcareTaxDeduction].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ChildcareTaxDeduction].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Evaluates an illustrative municipal daycare fee schedule in `context`.
+ */
+export function evaluateMunicipalDaycareFeeInContext(
+  inputs: Readonly<{
+    readonly householdAnnualGrossIncome: EuroAmount;
+    readonly childAgeMonths: number;
+    readonly siblingCareRank: number;
+    readonly feeFreeFromAgeMonths: number | null;
+    readonly siblingDiscountRateSecondChild: PercentageRate;
+    readonly siblingDiscountRateThirdPlusChild: PercentageRate;
+    readonly incomeBrackets: readonly MunicipalDaycareIncomeBracket[];
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<MunicipalDaycareFeeFormulaResult> {
+  const result = evaluateMunicipalDaycareFeeFormula(inputs);
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.MunicipalDaycareFee,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.MunicipalDaycareFee].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.MunicipalDaycareFee].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Discounts a nominal cash flow into today's Month-1 real purchasing power using
+ * `ParameterId.Planning_AnnualInflationRate` from `context`.
+ */
+export function evaluatePurchasingPowerDiscountInContext(
+  inputs: Readonly<{
+    readonly nominalAmount: EuroAmount;
+    readonly elapsedMonths: number;
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<PurchasingPowerDiscountFormulaResult> {
+  const result = evaluatePurchasingPowerDiscountFormula({
+    nominalAmount: inputs.nominalAmount,
+    annualInflationRate: context.getParameterPercentageRate(ParameterId.Planning_AnnualInflationRate),
+    elapsedMonths: inputs.elapsedMonths,
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.PurchasingPowerDiscount,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.PurchasingPowerDiscount].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.PurchasingPowerDiscount].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Evaluates compounded nominal wage growth using `ParameterId.Planning_AnnualWageGrowthRate`.
+ */
+export function evaluateCompoundedWageGrowthInContext(
+  inputs: Readonly<{
+    readonly baseAmount: EuroAmount;
+    readonly yearsElapsed: number;
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<EuroAmount> {
+  const result = evaluateCompoundedWageGrowthFormula({
+    baseAmount: inputs.baseAmount,
+    annualGrowthRate: context.getParameterPercentageRate(ParameterId.Planning_AnnualWageGrowthRate),
+    yearsElapsed: inputs.yearsElapsed,
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.CompoundedWageGrowth,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.CompoundedWageGrowth].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.CompoundedWageGrowth].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Projects § 32a EStG tax tariff brackets forward using `ParameterId.Planning_AnnualBracketIndexRate`.
+ */
+export function evaluateIndexedTaxBracketsInContext(
+  inputs: Readonly<{ readonly yearsElapsed: number }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<IncomeTaxTariffConstants> {
+  const baseTariff = extractIncomeTaxTariffConstantsFromContext(context);
+  const indexed = evaluateIndexedTaxBracketsFormula({
+    baseTariff,
+    annualIndexRate: context.getParameterPercentageRate(ParameterId.Planning_AnnualBracketIndexRate),
+    yearsElapsed: inputs.yearsElapsed,
+  });
+  return Object.freeze({
+    value: indexed,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.TaxBracketInflationIndex,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.TaxBracketInflationIndex].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.TaxBracketInflationIndex].governingLawIds,
     ),
   });
 }

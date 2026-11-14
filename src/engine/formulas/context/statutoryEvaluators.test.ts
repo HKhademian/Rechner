@@ -20,13 +20,18 @@ import {
   evaluateAnnualIncomeTaxInContext,
   evaluateBenefitTransitionContributionBaseInContext,
   evaluateChildAllowanceFavorabilityInContext,
+  evaluateChildcareTaxDeductionInContext,
+  evaluateCompoundedWageGrowthInContext,
   evaluateIncomeTaxZoneInContext,
+  evaluateIndexedTaxBracketsInContext,
   evaluateJointProgressionTaxInContext,
   evaluateJointSplittingTaxInContext,
   evaluateMaternityProtectionInContext,
+  evaluateMunicipalDaycareFeeInContext,
   evaluateParentalBenefitEntitlementInContext,
   evaluateParentalReplacementRateInContext,
   evaluatePartnershipBonusHoursInContext,
+  evaluatePurchasingPowerDiscountInContext,
   evaluateSiblingBonusInContext,
   evaluateSocialContributionsInContext,
   evaluateSolidaritySurchargeInContext,
@@ -64,6 +69,7 @@ import {
   toFullCalendarYear,
   toGrossSalary,
   toNetSalary,
+  toPercentageRate,
   toSimulationMonth,
   toWorkingHours,
 } from "#engine/types";
@@ -273,5 +279,70 @@ describe("Tier 2 Context-Aware Statutory Evaluators", () => {
       assert.equal(descriptor.id, formulaId);
       assert.ok(descriptor.governingLawIds.length > 0);
     }
+  });
+
+  it("evaluates childcare deductions, daycare fees, purchasing power, wage growth, and bracket indexing in context", () => {
+    const context2024 = createStatutoryCalculationContext({
+      calendarYear: toFullCalendarYear(2024),
+    });
+    const context2025 = createStatutoryCalculationContext({
+      calendarYear: toFullCalendarYear(2025),
+      customParameterOverrides: {
+        [ParameterId.Planning_AnnualInflationRate]: 0.03,
+        [ParameterId.Planning_AnnualWageGrowthRate]: 0.04,
+        [ParameterId.Planning_AnnualBracketIndexRate]: 0.025,
+      },
+    });
+
+    const deduction2024 = evaluateChildcareTaxDeductionInContext(
+      { paidFeesPerChild: [{ annualPaidFee: toEuroAmount(6000),
+        childAgeYears: 4 }] },
+      context2024,
+    );
+    const deduction2025 = evaluateChildcareTaxDeductionInContext(
+      { paidFeesPerChild: [{ annualPaidFee: toEuroAmount(6000),
+        childAgeYears: 4 }] },
+      context2025,
+    );
+    assert.equal(deduction2024.value.deductibleAmount, 4000);
+    assert.equal(deduction2025.value.deductibleAmount, 4800);
+    assert.equal(deduction2025.audit.governingLawIds.includes(LawId.EStG_10_1_5), true);
+
+    const daycare = evaluateMunicipalDaycareFeeInContext(
+      {
+        householdAnnualGrossIncome: toEuroAmount(95000),
+        childAgeMonths: 24,
+        siblingCareRank: 2,
+        feeFreeFromAgeMonths: 48,
+        siblingDiscountRateSecondChild: toPercentageRate(0.5),
+        siblingDiscountRateThirdPlusChild: toPercentageRate(1),
+        incomeBrackets: [{ maxAnnualGrossIncome: null,
+          monthlyFee: 300 }],
+      },
+      context2025,
+    );
+    assert.equal(daycare.value.netMonthlyFee, 150);
+
+    const discounted = evaluatePurchasingPowerDiscountInContext(
+      { nominalAmount: toEuroAmount(1030),
+        elapsedMonths: 12 },
+      context2025,
+    );
+    assert.equal(discounted.value.realAmount, 1000);
+    assert.equal(discounted.audit.customOverrideApplied, true);
+
+    const grownWage = evaluateCompoundedWageGrowthInContext(
+      { baseAmount: toEuroAmount(5000),
+        yearsElapsed: 2 },
+      context2025,
+    );
+    assert.equal(grownWage.value, 5408);
+
+    const indexedBrackets = evaluateIndexedTaxBracketsInContext(
+      { yearsElapsed: 2 },
+      context2025,
+    );
+    assert.ok(indexedBrackets.value.basicAllowance > 12096);
+    assert.equal(indexedBrackets.audit.governingLawIds.includes(LawId.InflG), true);
   });
 });
