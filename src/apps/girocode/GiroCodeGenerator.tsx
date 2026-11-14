@@ -51,7 +51,7 @@ interface ToastMessage {
   readonly isError: boolean;
 }
 
-function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: number): void {
+function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: number): number {
   const matrix = createGiroCodeQrMatrix(payload);
   const quietZone = 4;
   const totalModules = matrix.moduleCount + quietZone * 2;
@@ -60,7 +60,7 @@ function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: n
   canvas.height = size;
   const ctx = canvas.getContext("2d");
   if (!ctx) {
-    return;
+    return matrix.moduleCount;
   }
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, size, size);
@@ -77,6 +77,7 @@ function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: n
       }
     }
   }
+  return matrix.moduleCount;
 }
 
 export default function GiroCodeGenerator(): JSX.Element {
@@ -86,6 +87,7 @@ export default function GiroCodeGenerator(): JSX.Element {
   const zoomCanvasRef = useRef<HTMLCanvasElement>(null);
   const qrTriggerRef = useRef<HTMLButtonElement>(null);
   const [isQrZoomOpen, setIsQrZoomOpen] = useState(false);
+  const [qrModuleCount, setQrModuleCount] = useState<number | null>(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const toastTimerRef = useRef<number | null>(null);
 
@@ -114,12 +116,15 @@ export default function GiroCodeGenerator(): JSX.Element {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !build.payload) {
+      setQrModuleCount(null);
       return;
     }
     try {
-      drawQrToCanvas(canvas, build.payload, 10);
+      const modules = drawQrToCanvas(canvas, build.payload, 10);
+      setQrModuleCount(modules);
     }
     catch (error) {
+      setQrModuleCount(null);
       const message = error instanceof Error ? error.message : "Could not render QR code.";
       notify(message, true);
     }
@@ -382,6 +387,22 @@ export default function GiroCodeGenerator(): JSX.Element {
             <div className="girocode-card">
               <div className="girocode-card__header">
                 <h2>Transfer Details</h2>
+                <div className="girocode-segmented" role="group" aria-label="Character encoding mode">
+                  <button
+                    type="button"
+                    aria-pressed={draft.charsetMode === GiroCodeCharsetMode.Utf8}
+                    onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.Utf8)}
+                  >
+                    UTF-8
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={draft.charsetMode === GiroCodeCharsetMode.AsciiTransliterated}
+                    onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.AsciiTransliterated)}
+                  >
+                    ASCII
+                  </button>
+                </div>
               </div>
 
               <div className="girocode-form">
@@ -607,44 +628,49 @@ export default function GiroCodeGenerator(): JSX.Element {
               </summary>
 
               <div className="girocode-details__body">
-                <div className="girocode-row-2">
-                  <div>
-                    <div className="girocode-field__top">
-                      <span>Encoding</span>
-                    </div>
-                    <div className="girocode-segmented" role="group" aria-label="Character encoding mode">
-                      <button
-                        type="button"
-                        aria-pressed={draft.charsetMode === GiroCodeCharsetMode.Utf8}
-                        onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.Utf8)}
-                      >
-                        UTF-8
-                      </button>
-                      <button
-                        type="button"
-                        aria-pressed={draft.charsetMode === GiroCodeCharsetMode.AsciiTransliterated}
-                        onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.AsciiTransliterated)}
-                      >
-                        ASCII
-                      </button>
-                    </div>
+                <div>
+                  <div className="girocode-field__top">
+                    <label htmlFor="girocode-purpose">Purpose (optional)</label>
                   </div>
-
-                  <div>
-                    <div className="girocode-field__top">
-                      <label htmlFor="girocode-purpose">Purpose (optional)</label>
-                    </div>
-                    <input
-                      id="girocode-purpose"
-                      type="text"
-                      maxLength={EPC_MAX_PURPOSE_LENGTH}
-                      className="girocode-mono"
-                      placeholder="CHAR, SALA, RENT"
-                      value={draft.purposeCode}
-                      onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
-                    />
-                  </div>
+                  <input
+                    id="girocode-purpose"
+                    type="text"
+                    maxLength={EPC_MAX_PURPOSE_LENGTH}
+                    className="girocode-mono"
+                    placeholder="CHAR, SALA, RENT"
+                    value={draft.purposeCode}
+                    onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
+                  />
                 </div>
+
+                <dl className="girocode-tech-specs">
+                  <div>
+                    <dt>Standard</dt>
+                    <dd className="girocode-mono">EPC069-12 V002 · SCT</dd>
+                  </div>
+                  <div>
+                    <dt>IBAN check</dt>
+                    <dd className="girocode-mono">
+                      {build.ibanValidation.status === IbanValidationStatus.Valid
+                        ? "MOD-97 valid"
+                        : build.ibanValidation.status === IbanValidationStatus.Empty
+                          ? "—"
+                          : "MOD-97 invalid"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>QR matrix</dt>
+                    <dd className="girocode-mono">
+                      {qrModuleCount !== null ? `${qrModuleCount}×${qrModuleCount} · ECC M` : "ECC M · Byte"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Charset</dt>
+                    <dd className="girocode-mono">
+                      {draft.charsetMode === GiroCodeCharsetMode.Utf8 ? "UTF-8 (1)" : "ASCII translit."}
+                    </dd>
+                  </div>
+                </dl>
 
                 <div className="girocode-payload-block">
                   <div className="girocode-field__top">

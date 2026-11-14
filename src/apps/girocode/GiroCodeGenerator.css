@@ -408,6 +408,31 @@
   border-top: 1px solid var(--border-subtle);
 }
 
+.girocode-tech-specs {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-secondary);
+}
+
+.girocode-tech-specs dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.girocode-tech-specs dd {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .girocode-payload {
   margin: 0;
   padding: 14px;
