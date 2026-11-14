@@ -82,6 +82,9 @@ export const ParameterId = {
   Tax_PensionDeductibleFraction: "tax.pensionDeductibleFraction",
   Tax_OtherInsuranceDeductionLimit: "tax.otherInsuranceDeductionLimit",
   Tax_AgeReliefMinimumAge: "tax.ageReliefMinimumAge",
+  Tax_ChildcareDeductibleFraction: "tax.childcareDeductibleFraction",
+  Tax_ChildcareMaxDeductionPerChild: "tax.childcareMaxDeductionPerChild",
+  Tax_ChildcareMaxAgeYears: "tax.childcareMaxAgeYears",
 
   // Social Security & Payroll Contribution Rules (SGB III, IV, V, VI, XI)
   Tax_HealthCapMonthly: "tax.healthCapMonthly",
@@ -143,6 +146,9 @@ export const ParameterId = {
   Convention_MaternityPostBirthMonths: "convention.maternityPostBirthMonths",
   Convention_MotherOrdinaryPlusMonths: "convention.motherOrdinaryPlusMonths",
   Convention_PartnershipBonusMonths: "convention.partnershipBonusMonths",
+  Planning_AnnualInflationRate: "planning.annualInflationRate",
+  Planning_AnnualWageGrowthRate: "planning.annualWageGrowthRate",
+  Planning_AnnualBracketIndexRate: "planning.annualBracketIndexRate",
 } as const;
 export type ParameterId = (typeof ParameterId)[keyof typeof ParameterId];
 

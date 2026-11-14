@@ -1,5 +1,6 @@
 import benefitIncomeLimitsJson from "../../data/benefitIncomeLimits.json" with { type: "json" };
 import benefitRulesJson from "../../data/benefitRules.json" with { type: "json" };
+import childcareRulesJson from "../../data/childcareRules.json" with { type: "json" };
 import employmentThresholdsJson from "../../data/employmentThresholds.json" with { type: "json" };
 import taxRulesJson from "../../data/taxRules.json" with { type: "json" };
 import timelineConventionsJson from "../../data/timelineConventions.json" with { type: "json" };
@@ -64,9 +65,19 @@ interface TimelineConventionRaw {
 }
 
 const taxProfiles = taxRulesJson as Readonly<Record<string, TaxYearRaw>>;
+const childcareProfiles = childcareRulesJson as Readonly<Record<string, TaxYearRaw>>;
 const benefitDefaults = benefitRulesJson as Readonly<Record<string, BenefitParameterRaw>>;
 const employmentProfiles = employmentThresholdsJson as Readonly<Record<string, EmploymentThresholdYearRaw>>;
 const conventionDefaults = timelineConventionsJson as Readonly<Record<string, TimelineConventionRaw>>;
+
+const SORTED_CHILDCARE_YEARS: readonly FullCalendarYear[] = Object.freeze(
+  Object.keys(childcareProfiles)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map((year) => toFullCalendarYear(year)),
+);
+
+const LATEST_CHILDCARE_YEAR: FullCalendarYear = SORTED_CHILDCARE_YEARS[SORTED_CHILDCARE_YEARS.length - 1];
 
 const SORTED_TAX_YEARS: readonly FullCalendarYear[] = Object.freeze(
   Object.keys(taxProfiles)
@@ -138,6 +149,43 @@ function buildTaxParameter(
     defaultValue: latest.value,
     source: toSourceUrl(latest.source),
     yearEntries,
+    bounds: config.bounds,
+  });
+}
+
+function buildChildcareParameter(
+  id: ParameterIdType,
+  childcareKey: string,
+  config: {
+    readonly description: string;
+    readonly domain: ParameterDomainType;
+    readonly unit: ParameterUnitType;
+    readonly mutability: ParameterMutabilityType;
+    readonly lawIds: readonly LawIdType[];
+    readonly bounds: ParameterBounds;
+  },
+): ParameterDefinition {
+  const yearEntries: Record<number, ParameterYearEntry> = {};
+  for (const year of SORTED_CHILDCARE_YEARS) {
+    const raw = childcareProfiles[String(year)].parameters[childcareKey];
+    yearEntries[year] = {
+      year,
+      value: raw.value,
+      source: toSourceUrl(raw.source),
+    };
+  }
+  const latest = childcareProfiles[String(LATEST_CHILDCARE_YEAR)].parameters[childcareKey];
+  return freezeDefinition({
+    id,
+    label: latest.label,
+    description: config.description,
+    domain: config.domain,
+    unit: config.unit,
+    mutability: config.mutability,
+    lawIds: config.lawIds,
+    defaultValue: latest.value,
+    source: toSourceUrl(latest.source),
+    ...(config.mutability === ParameterMutability.YearIndexed ? { yearEntries } : {}),
     bounds: config.bounds,
   });
 }
@@ -551,6 +599,44 @@ export const PARAMETER_REGISTRY: Readonly<Record<ParameterIdType, ParameterDefin
       max: 120,
       integerOnly: true },
   }),
+  [ParameterId.Tax_ChildcareDeductibleFraction]: buildChildcareParameter(
+    ParameterId.Tax_ChildcareDeductibleFraction,
+    "deductibleFraction",
+    {
+      description: "Share of verified childcare fees deductible as Sonderausgaben (2/3 through 2024; 80% from 2025 per JStG 2024) under § 10 Abs. 1 Nr. 5 EStG.",
+      domain: ParameterDomain.IncomeTax,
+      unit: ParameterUnit.PercentageRate,
+      mutability: ParameterMutability.YearIndexed,
+      lawIds: [LawId.EStG_10_1_5],
+      bounds: RATE_BOUNDS,
+    },
+  ),
+  [ParameterId.Tax_ChildcareMaxDeductionPerChild]: buildChildcareParameter(
+    ParameterId.Tax_ChildcareMaxDeductionPerChild,
+    "maxAnnualDeductionPerChild",
+    {
+      description: "Maximum annual childcare tax deduction per qualifying child under 14 (€4,000 through 2024; €4,800 from 2025) under § 10 Abs. 1 Nr. 5 EStG.",
+      domain: ParameterDomain.IncomeTax,
+      unit: ParameterUnit.MoneyEur,
+      mutability: ParameterMutability.YearIndexed,
+      lawIds: [LawId.EStG_10_1_5],
+      bounds: MONEY_BOUNDS,
+    },
+  ),
+  [ParameterId.Tax_ChildcareMaxAgeYears]: buildChildcareParameter(
+    ParameterId.Tax_ChildcareMaxAgeYears,
+    "maxChildAgeYears",
+    {
+      description: "Maximum child age threshold (< 14 years) qualifying for § 10 Abs. 1 Nr. 5 EStG childcare deductions.",
+      domain: ParameterDomain.IncomeTax,
+      unit: ParameterUnit.Years,
+      mutability: ParameterMutability.StatutoryFixed,
+      lawIds: [LawId.EStG_10_1_5],
+      bounds: { min: 1,
+        max: 25,
+        integerOnly: true },
+    },
+  ),
 
   // Social Security & Payroll Contribution Rules
   [ParameterId.Tax_HealthCapMonthly]: buildTaxParameter(ParameterId.Tax_HealthCapMonthly, "healthCapMonthly", {
@@ -1105,6 +1191,51 @@ export const PARAMETER_REGISTRY: Readonly<Record<ParameterIdType, ParameterDefin
     [LawId.BEEG_4b, LawId.BEEG_4],
     ParameterDomain.PlanningAssumptions,
   ),
+  [ParameterId.Planning_AnnualInflationRate]: freezeDefinition({
+    id: ParameterId.Planning_AnnualInflationRate,
+    label: "Annual Inflation Rate (Purchasing Power Discount)",
+    description: "Customizable annual CPI inflation assumption used to discount future nominal cash flows into real today's EUR purchasing power.",
+    domain: ParameterDomain.PlanningAssumptions,
+    unit: ParameterUnit.PercentageRate,
+    mutability: ParameterMutability.Customizable,
+    lawIds: [LawId.InflG, LawId.EStG_32a],
+    defaultValue: 0.02,
+    source: toSourceUrl("https://www.destatis.de/EN/Themes/Economy/Prices/Consumer-Price-Index/_node.html"),
+    bounds: {
+      min: 0,
+      max: 0.25,
+    },
+  }),
+  [ParameterId.Planning_AnnualWageGrowthRate]: freezeDefinition({
+    id: ParameterId.Planning_AnnualWageGrowthRate,
+    label: "Annual Nominal Wage Growth Rate",
+    description: "Optional customizable annual compounding salary growth rate applied across multi-year parental planning timelines (0% default).",
+    domain: ParameterDomain.PlanningAssumptions,
+    unit: ParameterUnit.PercentageRate,
+    mutability: ParameterMutability.Customizable,
+    lawIds: [LawId.EStG_19, LawId.InflG],
+    defaultValue: 0,
+    source: toSourceUrl("https://www.gesetze-im-internet.de/estg/__19.html"),
+    bounds: {
+      min: 0,
+      max: 0.25,
+    },
+  }),
+  [ParameterId.Planning_AnnualBracketIndexRate]: freezeDefinition({
+    id: ParameterId.Planning_AnnualBracketIndexRate,
+    label: "Future Tax Bracket Indexing Rate (Post-2026)",
+    description: "Optional annual upward shift applied to § 32a EStG Grundfreibetrag and tariff ceilings for unverified future years beyond published law (0% default).",
+    domain: ParameterDomain.PlanningAssumptions,
+    unit: ParameterUnit.PercentageRate,
+    mutability: ParameterMutability.Customizable,
+    lawIds: [LawId.InflG, LawId.EStG_32a],
+    defaultValue: 0,
+    source: toSourceUrl("https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3"),
+    bounds: {
+      min: 0,
+      max: 0.25,
+    },
+  }),
 });
 
 /** Looks up a typed `ParameterDefinition` by `ParameterId`. */

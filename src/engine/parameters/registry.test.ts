@@ -158,7 +158,25 @@ describe("Unified Law-Linked Parameter Value Storage", () => {
     const customizableResults = searchParameters("", {
       mutability: ParameterMutability.Customizable,
     });
-    assert.equal(customizableResults.length, 5);
+    assert.equal(customizableResults.length, 8);
+
+    const childcare2024 = resolveParameterForYear(
+      ParameterId.Tax_ChildcareMaxDeductionPerChild,
+      toFullCalendarYear(2024),
+    );
+    const childcare2025 = resolveParameterForYear(
+      ParameterId.Tax_ChildcareMaxDeductionPerChild,
+      toFullCalendarYear(2025),
+    );
+    assert.equal(childcare2024.activeValue, 4000);
+    assert.equal(childcare2025.activeValue, 4800);
+
+    const inflationDefault = resolveParameterForYear(
+      ParameterId.Planning_AnnualInflationRate,
+      toFullCalendarYear(2026),
+    );
+    assert.equal(inflationDefault.editable, true);
+    assert.equal(inflationDefault.activeValue, 0.02);
 
     assert.equal(formatParameterValue(0.67, ParameterUnit.PercentageRate), "67%");
     assert.equal(formatParameterValue(32, ParameterUnit.HoursPerWeek), "32 h/wk");
