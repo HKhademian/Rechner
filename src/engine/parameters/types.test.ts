@@ -21,7 +21,7 @@ import {
 describe("Unified parameter type system", () => {
   it("validates every ParameterId and rejects unknown identifiers", () => {
     const ids = Object.values(ParameterId);
-    assert.equal(ids.length, 83);
+    assert.equal(ids.length, 89);
     for (const id of ids) {
       assert.equal(toParameterId(id), id);
       assert.equal(isParameterId(id), true);
