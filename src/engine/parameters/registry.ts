@@ -27,6 +27,9 @@ import {
   ParameterUnit,
 } from "#engine/parameters/types";
 import {
+  type TaxParameters,
+} from "#engine/tax/taxRules";
+import {
   type FullCalendarYear,
   toFullCalendarYear,
 } from "#engine/types";
@@ -1107,6 +1110,62 @@ export const PARAMETER_REGISTRY: Readonly<Record<ParameterIdType, ParameterDefin
 /** Looks up a typed `ParameterDefinition` by `ParameterId`. */
 export function getParameterDefinition(id: ParameterIdType): ParameterDefinition {
   return PARAMETER_REGISTRY[id];
+}
+
+/** Exhaustive compile-time mapping from `TaxParameters` keys to typed `ParameterId`s. */
+export const TAX_KEY_TO_PARAMETER_ID: Readonly<Record<keyof TaxParameters, ParameterIdType>> = Object.freeze({
+  progressionRatePercentDecimalPlaces: ParameterId.Tax_ProgressionRatePercentDecimalPlaces,
+  basicAllowance: ParameterId.Tax_BasicAllowance,
+  progression1Ceiling: ParameterId.Tax_Progression1Ceiling,
+  progression2Ceiling: ParameterId.Tax_Progression2Ceiling,
+  topRateCeiling: ParameterId.Tax_TopRateCeiling,
+  progression1Quadratic: ParameterId.Tax_Progression1Quadratic,
+  progression1Linear: ParameterId.Tax_Progression1Linear,
+  progression2Quadratic: ParameterId.Tax_Progression2Quadratic,
+  progression2Linear: ParameterId.Tax_Progression2Linear,
+  progression2Constant: ParameterId.Tax_Progression2Constant,
+  topRate: ParameterId.Tax_TopRate,
+  topOffset: ParameterId.Tax_TopOffset,
+  highestRate: ParameterId.Tax_HighestRate,
+  highestOffset: ParameterId.Tax_HighestOffset,
+  tariffDivisor: ParameterId.Tax_TariffDivisor,
+  healthCapMonthly: ParameterId.Tax_HealthCapMonthly,
+  pensionCapMonthly: ParameterId.Tax_PensionCapMonthly,
+  transitionFlatRate: ParameterId.Tax_TransitionFlatRate,
+  priorYearBonusAllocationLastMonth: ParameterId.Tax_PriorYearBonusAllocationLastMonth,
+  healthEmployeeRate: ParameterId.Tax_HealthEmployeeRate,
+  healthDeductibleFraction: ParameterId.Tax_HealthDeductibleFraction,
+  ageReliefMinimumAge: ParameterId.Tax_AgeReliefMinimumAge,
+  healthSupplementTotalRate: ParameterId.Tax_HealthSupplementTotalRate,
+  pensionEmployeeRate: ParameterId.Tax_PensionEmployeeRate,
+  unemploymentEmployeeRate: ParameterId.Tax_UnemploymentEmployeeRate,
+  careEmployeeBaseRate: ParameterId.Tax_CareEmployeeBaseRate,
+  careChildlessSurcharge: ParameterId.Tax_CareChildlessSurcharge,
+  careChildDiscount: ParameterId.Tax_CareChildDiscount,
+  careMaximumDiscountChildren: ParameterId.Tax_CareMaximumDiscountChildren,
+  careChildAgeLimit: ParameterId.Tax_CareChildAgeLimit,
+  careChildlessMinimumAge: ParameterId.Tax_CareChildlessMinimumAge,
+  careSaxonyExtraEmployeeRate: ParameterId.Tax_CareSaxonyExtraEmployeeRate,
+  pensionDeductibleFraction: ParameterId.Tax_PensionDeductibleFraction,
+  otherInsuranceDeductionLimit: ParameterId.Tax_OtherInsuranceDeductionLimit,
+  workExpenseAllowance: ParameterId.Tax_WorkExpenseAllowance,
+  specialExpenseAllowance: ParameterId.Tax_SpecialExpenseAllowance,
+  singleParentRelief: ParameterId.Tax_SingleParentRelief,
+  singleParentExtraChildRelief: ParameterId.Tax_SingleParentExtraChildRelief,
+  churchRateBavariaBadenWuerttemberg: ParameterId.Tax_ChurchRateBavariaBadenWuerttemberg,
+  churchRateOther: ParameterId.Tax_ChurchRateOther,
+  solidarityRate: ParameterId.Tax_SolidarityRate,
+  solidarityMitigationRate: ParameterId.Tax_SolidarityMitigationRate,
+  solidarityExemptionSingle: ParameterId.Tax_SolidarityExemptionSingle,
+  childAllowanceAnnual: ParameterId.Tax_ChildAllowanceAnnual,
+  childBenefitMonthly: ParameterId.Tax_ChildBenefitMonthly,
+});
+
+/** Resolves the primary statutory `LawId` governing a `TaxParameters` field. */
+export function getTaxParameterPrimaryLawId(
+  taxKey: keyof TaxParameters,
+): LawIdType {
+  return PARAMETER_REGISTRY[TAX_KEY_TO_PARAMETER_ID[taxKey]].lawIds[0];
 }
 
 /** Returns all parameter definitions in deterministic registry order. */

@@ -24,6 +24,7 @@ import {
   getParameterDefinition,
   getParametersByDomain,
   getParametersByLaw,
+  getTaxParameterPrimaryLawId,
   resolveParameterForYear,
   searchParameters,
 } from "#engine/parameters/registry";
@@ -161,5 +162,11 @@ describe("Unified Law-Linked Parameter Value Storage", () => {
 
     assert.equal(formatParameterValue(0.67, ParameterUnit.PercentageRate), "67%");
     assert.equal(formatParameterValue(32, ParameterUnit.HoursPerWeek), "32 h/wk");
+
+    const taxParams = createTaxRules(toFullCalendarYear(2026)).parameters;
+    for (const key of Object.keys(taxParams) as (keyof typeof taxParams)[]) {
+      const primaryLawId = getTaxParameterPrimaryLawId(key);
+      assert.ok(Object.hasOwn(LAW_REGISTRY, primaryLawId), `Missing LawEntry for tax key ${key}`);
+    }
   });
 });

@@ -5,6 +5,9 @@ import {
   type SourceUrl,
 } from "#engine/config/benefitRules";
 import {
+  LawId,
+} from "#engine/laws/types";
+import {
   LedgerRowKind,
   projectLedgerMonth,
 } from "#engine/ledger/rows";
@@ -47,6 +50,8 @@ function formatCurrency(amount: number): string {
 export interface CalculationFactor {
   /** Official reference for the recorded parameter or deduction, when available. */
   readonly source?: SourceUrl;
+  /** Canonical statutory LawId for interactive popup / full law page linking. */
+  readonly lawId?: LawId;
   /** Name or title of the contributing factor (e.g. 'Statutory Replacement Rate'). */
   readonly name: string;
   /** Formatted display value (e.g. '65.0%', '1.975 €'). */
@@ -245,35 +250,44 @@ function recordedSalaryExplanation(
         value: formatTaxAmount(payroll.monthlyGross) },
       { name: "Actual tax class",
         value: payroll.taxClass,
-        source: profile.papPublication.source },
+        source: profile.papPublication.source,
+        lawId: LawId.EStG_38b },
       { name: "Wage tax withheld",
         value: formatTaxAmount(payroll.monthlyWageTax),
-        source: profile.papPublication.source },
+        source: profile.papPublication.source,
+        lawId: LawId.BMF_PAP },
       { name: "Solidarity surcharge",
         value: formatTaxAmount(payroll.monthlySolidaritySurcharge),
-        source: profile.parameters.solidarityRate.source },
+        source: profile.parameters.solidarityRate.source,
+        lawId: LawId.SolzG_4 },
       { name: "Church tax withheld",
         value: formatTaxAmount(payroll.monthlyChurchTax),
-        source: profile.parameters.churchRateOther.source },
+        source: profile.parameters.churchRateOther.source,
+        lawId: LawId.EStG_39b },
       { name: "Health insurance",
         value: formatTaxAmount(payroll.healthInsurance),
-        source: profile.parameters.healthEmployeeRate.source },
+        source: profile.parameters.healthEmployeeRate.source,
+        lawId: LawId.SGB5_241 },
       { name: "Pension insurance",
         value: formatTaxAmount(payroll.pensionInsurance),
-        source: profile.parameters.pensionEmployeeRate.source },
+        source: profile.parameters.pensionEmployeeRate.source,
+        lawId: LawId.SGB6_158 },
       { name: "Unemployment insurance",
         value: formatTaxAmount(payroll.unemploymentInsurance),
-        source: profile.parameters.unemploymentEmployeeRate.source },
+        source: profile.parameters.unemploymentEmployeeRate.source,
+        lawId: LawId.SGB3_341 },
       { name: "Care insurance",
         value: formatTaxAmount(payroll.careInsurance),
-        source: profile.parameters.careEmployeeBaseRate.source },
+        source: profile.parameters.careEmployeeBaseRate.source,
+        lawId: LawId.SGB11_55 },
       { name: "Total social insurance",
         value: formatTaxAmount(payroll.totalSocialSecurity) },
       { name: "Regular payroll net",
         value: formatTaxAmount(payroll.regularNetTakeHome) },
       { name: "Payroll rule profile",
         value: `${payroll.taxRules.sourceYear}${payroll.taxRules.projected ? ` projected to ${payroll.taxRules.calendarYear}` : ""}`,
-        source: profile.papPublication.source },
+        source: profile.papPublication.source,
+        lawId: LawId.BMF_PAP },
     );
   }
   return {
