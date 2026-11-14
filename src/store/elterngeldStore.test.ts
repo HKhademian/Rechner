@@ -14,16 +14,29 @@ import {
   LEGAL_RULE_LAW_MAP,
   activeLegalRuleKey,
   scrollToLegalRule,
+  statutoryOptimizedData,
+  derivedSpousalSet,
+  salaryInputMode,
+  husbandGross,
+  wifeGross,
 } from "#store/elterngeldStore";
 import {
   activeLawModalState,
   closeLawReference,
 } from "#store/lawReferenceStore";
 import {
+  modifyParameterValue,
+  resetAllParameterOverrides,
+} from "#store/parameterStore";
+import {
+  ParameterId,
+} from "#engine/parameters/types";
+import {
   getLawEntry,
   getLawGroupEntry,
 } from "#engine/laws/registry";
 import {
+  SalaryInputMode,
   toPregnancyId,
   toChildIndex,
   toCalendarMonth,
@@ -32,6 +45,7 @@ import {
   toWorkingHours,
   toNetSalary,
   toMonthDuration,
+  toGrossSalary,
 } from "#engine/types";
 
 it("keeps October 2026 selected in the pregnancy action and delivery baseline", () => {
@@ -93,5 +107,29 @@ it("maps every LegalRuleKey to valid LawRegistry entries and opens unified modal
   }
   finally {
     closeLawReference();
+  }
+});
+
+it("propagates unified parameterStore tax and planning convention overrides into Parental Leave simulations", () => {
+  resetToDefaults();
+  resetAllParameterOverrides();
+  try {
+    salaryInputMode.value = SalaryInputMode.Gross;
+    husbandGross.value = toGrossSalary(5500);
+    wifeGross.value = toGrossSalary(4000);
+    const baselineClass3 = derivedSpousalSet.peek().husbandClass3Net;
+
+    assert.equal(modifyParameterValue(ParameterId.Tax_HealthSupplementTotalRate, 0.045).ok, true);
+    assert.equal(modifyParameterValue(ParameterId.Convention_MotherOrdinaryPlusMonths, 8).ok, true);
+
+    assert.ok(derivedSpousalSet.peek().husbandClass3Net < baselineClass3);
+    const result = statutoryOptimizedData.peek();
+    assert.equal(result.configuration?.timelineConventions.motherOrdinaryPlusMonths.value, 8);
+    assert.equal(result.configuration?.taxProfiles[0].parameters.healthSupplementTotalRate.value, 0.045);
+    assert.equal(result.configuration?.taxProfiles[0].parameters.healthSupplementTotalRate.overridden, true);
+  }
+  finally {
+    resetAllParameterOverrides();
+    resetToDefaults();
   }
 });

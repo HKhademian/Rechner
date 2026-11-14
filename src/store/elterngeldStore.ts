@@ -3,8 +3,13 @@ import {
   parsePersonalPayrollOptions,
 } from "#engine/tax/payroll";
 import {
-  createTaxRules,
-} from "#engine/tax/taxRules";
+  createTaxRulesFromContext,
+  createTimelineConventionsFromContext,
+  extractTaxRuleOverridesFromContext,
+} from "#engine/parameters/contextAdapters";
+import {
+  activeStatutoryContext,
+} from "#store/parameterStore";
 import {
   signal,
   computed,
@@ -456,7 +461,7 @@ export function syncGrossToNet() {
       toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
       toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
       0,
-      createTaxRules(startCalendarYear.value),
+      createTaxRulesFromContext(activeStatutoryContext.peek(), startCalendarYear.value),
       husbandPayrollOptions.value,
       wifePayrollOptions.value,
     );
@@ -607,7 +612,7 @@ export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
     toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
     toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
     0,
-    createTaxRules(startCalendarYear.value),
+    createTaxRulesFromContext(activeStatutoryContext.value, startCalendarYear.value),
     husbandPayrollOptions.value,
     wifePayrollOptions.value,
   );
@@ -1319,9 +1324,12 @@ export function computeTimelineData(scenarioKey: ScenarioIdType) {
   const startYear = startCalendarYear.value;
   const startMonth = startCalendarMonth.value;
   const duration = simulationDurationMonths.value;
+  const statutoryContext = activeStatutoryContext.value;
 
   // Batch 0: Preexisting Baseline Conditions
   const preexisting: PreexistingConditions = {
+    timelineConventions: createTimelineConventionsFromContext(statutoryContext),
+    taxRuleOverrides: extractTaxRuleOverridesFromContext(statutoryContext),
     startCalendarYear: startYear,
     startCalendarMonth: toCalendarMonth(startMonth),
     simulationDurationMonths: duration,
