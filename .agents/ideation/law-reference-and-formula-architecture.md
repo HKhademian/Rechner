@@ -44,9 +44,9 @@ Replace isolated per-calculator statutory links and scattered rule summaries wit
 2. [x] Build Tier 2 context-aware evaluators (`statutoryContext`, `statutoryEvaluators`, `STATUTORY_FORMULA_DESCRIPTORS`) reading constants from Unified Law-Linked Parameter Value Storage via immutable `StatutoryCalculationContext` and emitting `FormulaEvaluationAudit`.
 3. [x] Build Tier 3 user & scenario calculators (`scenarioFormulaEvaluators`) composing Tier 2 evaluators with `UserHouseholdStatutoryProfile` and hypothetical `ScenarioOverrideInput` diffs, emitting consolidated `LawId[]` and `ParameterId[]` provenance.
 
-### Stage 5: Shared Storage & Form-Focused Default Projections
-1. Unify backend/storage persistence and reactive `@preact/signals` adapters for the shared law & parameter store while preserving `dependencyBoundaries.test.ts` and app-scoped personal scenario privacy.
-2. Define form projection profiles so Net Pay, Parental Leave, and new calculators stay uncluttered by projecting default values for out-of-focus domains while exposing the shared parameter inspector.
+### Stage 5: Shared Storage & Form-Focused Default Projections — Completed
+1. [x] Unify backend/storage persistence (`src/engine/parameters/storage.ts`) and reactive `@preact/signals` adapters (`activeStatutoryContext`, cross-tab storage reload) for the shared law & parameter store while preserving `dependencyBoundaries.test.ts` and app-scoped personal scenario privacy.
+2. [x] Define form projection profiles (`src/engine/parameters/projections.ts`) so Net Pay, Parental Leave, and new calculators stay uncluttered by projecting default values for out-of-focus domains while exposing the shared parameter inspector.
 
 ### Stage 6 (Future North Star — Out of Current Scope): General Life & Support Input Engine
 - Unified user profile + timeline event/support declarations driving automatic derivation of raises, bonuses, payroll, tax settlements, benefits, and future domain calculators (`visa`, `energy`, `solar`, `green`, `car`, `housing`).
