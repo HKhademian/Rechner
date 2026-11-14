@@ -26,6 +26,8 @@ it("registers unique routes and resolves exact app paths without accidental pref
 it("filters German search terms, categories and empty results and clamps paginated results", () => {
   assert.equal(catalogPage(calculatorApps, "  NETTO  ", undefined, 1).items[0].id, AppId.NetPay);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Family, 1).items[0].id, AppId.ParentalLeave);
+  assert.equal(catalogPage(calculatorApps, "girocode", undefined, 1).items[0].id, AppId.GiroCode);
+  assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Everyday, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(calculatorApps, "nothing matches", undefined, 99).total, 0);
   const many = Array.from({ length: 8 }, () => calculatorApps[0]);
   assert.equal(catalogPage(many, "", undefined, 2, 3).items.length, 3);

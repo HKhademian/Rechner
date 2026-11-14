@@ -62,15 +62,23 @@ it("catalog and app entries cannot initialize another calculator's financial sto
   const netStore = resolve("src/store/calculatorStore.ts");
   const taxStore = resolve("src/store/taxConfigStore.ts");
   const parentalStore = resolve("src/store/elterngeldStore.ts");
+  const giroCodeStore = resolve("src/apps/girocode/girocodeStore.ts");
   const catalog = runtimeDependencies("src/components/CalculatorCatalog.tsx");
-  for (const store of [netStore, taxStore, parentalStore]) {
+  for (const store of [netStore, taxStore, parentalStore, giroCodeStore]) {
     assert.equal(catalog.has(store), false, `Catalog imports ${store}`);
   }
   const net = runtimeDependencies("src/apps/net-pay/App.tsx");
   assert.equal(net.has(netStore), true);
   assert.equal(net.has(parentalStore), false);
+  assert.equal(net.has(giroCodeStore), false);
   const parental = runtimeDependencies("src/apps/parental-leave/App.tsx");
   assert.equal(parental.has(parentalStore), true);
   assert.equal(parental.has(netStore), false);
   assert.equal(parental.has(taxStore), false);
+  assert.equal(parental.has(giroCodeStore), false);
+  const girocode = runtimeDependencies("src/apps/girocode/App.tsx");
+  assert.equal(girocode.has(giroCodeStore), true);
+  assert.equal(girocode.has(netStore), false);
+  assert.equal(girocode.has(taxStore), false);
+  assert.equal(girocode.has(parentalStore), false);
 });

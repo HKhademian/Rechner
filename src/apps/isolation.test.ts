@@ -70,3 +70,30 @@ it("appearance preferences are scoped to the current app route", () => {
       stdio: "pipe" }));
   }
 });
+
+it("girocode boot stores drafts only under its own namespace without initializing other calculators", () => {
+  const script = `
+    import assert from "node:assert/strict";
+    const values = new Map([["grossIncome", "12345"], ["elterngeld_simulator_state_v1", "{}"]]);
+    globalThis.window = globalThis;
+    globalThis.location = new URL("http://example.test/calculators/girocode/");
+    globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+    const { setStorageMode, StorageMode } = await import("#engine/storage/appStorage");
+    assert.equal(setStorageMode(StorageMode.Persistent, true), true);
+    const keysBeforeBoot = new Set(values.keys());
+    const store = await import("./src/apps/girocode/girocodeStore.ts");
+    assert.equal(store.giroCodeDraft.value.iban, "");
+    store.updateGiroCodeField("iban", "DE89 3704 0044 0532 0130 00");
+    assert.equal(JSON.parse(JSON.parse(values.get("rechner:girocode:v1:draft")).value).iban, "DE89 3704 0044 0532 0130 00");
+    const theme = await import("#store/themeStore");
+    assert.equal(theme.activeThemeMode.value, "light");
+    theme.setThemeMode("dark");
+    assert.equal(JSON.parse(values.get("rechner:girocode:v1:theme")).value, "dark");
+    const keysAddedByGiroCode = [...values.keys()].filter(key => !keysBeforeBoot.has(key));
+    assert.ok(keysAddedByGiroCode.length >= 2);
+    assert.ok(keysAddedByGiroCode.every(key => key.startsWith("rechner:girocode:")));
+  `;
+  assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
+    stdio: "pipe" }));
+});
