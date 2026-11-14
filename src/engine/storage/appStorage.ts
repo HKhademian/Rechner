@@ -155,6 +155,7 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
   ].map((key) => [key, key]).concat([["theme", "german_calc_theme_mode"]])),
   [Apps.ParentalLeave]: { state: "elterngeld_simulator_state_v1",
     theme: "german_calc_theme_mode" },
+  [Apps.GiroCode]: {},
 };
 
 const memoryStores = new Map<AppId, Map<string, string>>();
