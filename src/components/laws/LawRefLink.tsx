@@ -19,6 +19,7 @@ import {
   openLawReference,
 } from "#store/lawReferenceStore";
 import type {
+  ComponentChildren,
   JSX,
 } from "preact";
 
@@ -33,10 +34,13 @@ export type LawRefLinkProps = (
   }
 ) & {
   readonly label?: string;
-  readonly variant?: "inline" | "badge";
+  readonly variant?: "inline" | "badge" | "plain";
   readonly showIcon?: boolean;
   readonly className?: string;
+  readonly style?: JSX.CSSProperties;
   readonly title?: string;
+  readonly children?: ComponentChildren;
+  readonly onOpen?: () => void;
 };
 
 /**
@@ -51,7 +55,10 @@ export default function LawRefLink({
   variant = "inline",
   showIcon = true,
   className = "",
+  style,
   title,
+  children,
+  onOpen,
 }: LawRefLinkProps): JSX.Element {
   const entry = lawId ? getLawEntry(lawId) : undefined;
   const group = groupId ? getLawGroupEntry(groupId) : undefined;
@@ -60,9 +67,14 @@ export default function LawRefLink({
   const resolvedTitle = title ??
     `${entry?.title ?? group?.title ?? resolvedLabel} — Click for quick popup · Ctrl+Click for full page`;
   const href = targetLawId ? lawDetailPath(targetLawId, groupId) : "#";
+  const variantClass = variant === "badge"
+    ? "law-ref-link--badge"
+    : variant === "plain"
+      ? "law-ref-link--plain"
+      : "";
   const classes = [
     "law-ref-link",
-    variant === "badge" ? "law-ref-link--badge" : "",
+    variantClass,
     className,
   ].filter(Boolean).join(" ");
 
@@ -71,6 +83,7 @@ export default function LawRefLink({
       return;
     }
     event.preventDefault();
+    onOpen?.();
     if (lawId) {
       openLawReference(lawId, groupId);
     }
@@ -83,12 +96,17 @@ export default function LawRefLink({
     <a
       href={href}
       className={classes}
+      style={style}
       title={resolvedTitle}
       aria-label={resolvedTitle}
       onClick={handleClick}
     >
-      {showIcon && <StatutorySectionIcon size={variant === "badge" ? 11 : 13} />}
-      <span>{resolvedLabel}</span>
+      {children ?? (
+        <>
+          {showIcon && <StatutorySectionIcon size={variant === "badge" ? 11 : 13} />}
+          <span>{resolvedLabel}</span>
+        </>
+      )}
     </a>
   );
 }

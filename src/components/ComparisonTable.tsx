@@ -1,7 +1,11 @@
 import {
   TaxAssessment,
-  TAX_ASSESSMENT_SOURCE,
 } from "#engine/tax/taxAssessment";
+import LawRefLink from "#components/laws/LawRefLink";
+import {
+  LawGroupId,
+  LawId,
+} from "#engine/laws/types";
 import CalculatorGrossInput from "#components/CalculatorGrossInput";
 import {
   CalculatorGrossField,
@@ -643,9 +647,21 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {label}
-          {fieldKey === "assessmentMode" && <small className="comparison-field-hint"><a href={TAX_ASSESSMENT_SOURCE} title="Joint assessment: eligible spouses or registered partners" target="_blank" rel="noreferrer">Rules</a></small>}
+          {fieldKey === "assessmentMode" && <small className="comparison-field-hint">
+            <LawRefLink
+              lawId={LawId.EStG_26}
+              groupId={LawGroupId.EStG_TaxSplitting}
+              label="Rules"
+              title="Joint assessment: eligible spouses or registered partners (§ 26 EStG) — Click for quick popup · Ctrl+Click for full page"
+            />
+          </small>}
           {fieldKey === "taxBracket" && <small className="comparison-field-hint">
-            <a href={CALCULATOR_PARTNER_SHORTCUT.source} title={`${CALCULATOR_PARTNER_SHORTCUT.classes.join("/")} enable partner`} target="_blank" rel="noreferrer">Class rules</a>
+            <LawRefLink
+              lawId={CALCULATOR_PARTNER_SHORTCUT.lawId}
+              groupId={LawGroupId.EStG_PayrollWithholding}
+              label="Class rules"
+              title={`${CALCULATOR_PARTNER_SHORTCUT.classes.join("/")} enable partner (§ 38b EStG) — Click for quick popup · Ctrl+Click for full page`}
+            />
           </small>}
         </td>
         {cells}
@@ -1094,7 +1110,11 @@ export function ComparisonTableContent(): JSX.Element {
 
             {renderDetailRow("Payroll settings", (data, _id, live) => live
               ? <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
-              : <a href={data.annualTaxableIncome.rules.papPublication.source} target="_blank" rel="noreferrer">{data.annualTaxableIncome.rules.calendarYear} payroll profile</a>)}
+              : <LawRefLink
+                lawId={LawId.BMF_PAP}
+                groupId={LawGroupId.EStG_PayrollWithholding}
+                label={`${data.annualTaxableIncome.rules.calendarYear} payroll profile`}
+              />)}
 
           </tbody>
           <tbody aria-label="Results and summaries">

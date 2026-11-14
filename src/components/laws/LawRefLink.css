@@ -45,3 +45,17 @@
   background: var(--bg-surface-secondary);
   border-color: var(--color-primary);
 }
+
+.law-ref-link--plain {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+  font-weight: inherit;
+}
+
+.law-ref-link--plain:hover {
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+}

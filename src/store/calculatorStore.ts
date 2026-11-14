@@ -7,6 +7,9 @@ import {
   withGrossInputForPeriod,
 } from "#engine/tax/calculatorGrossPeriod";
 import {
+  LawId,
+} from "#engine/laws/types";
+import {
   AppId,
 } from "#/apps/appDefinition.ts";
 import {
@@ -488,7 +491,7 @@ const inputTaxClasses: Readonly<Record<string, TaxClass>> = {
 
 export const CALCULATOR_PARTNER_SHORTCUT = Object.freeze({
   classes: Object.freeze([Classes.III, Classes.IV, Classes.V]),
-  source: "https://www.gesetze-im-internet.de/estg/__38b.html",
+  lawId: LawId.EStG_38b,
 });
 
 /** A class selection opens partner inputs; explicit partner switches and saved data stay authoritative. */

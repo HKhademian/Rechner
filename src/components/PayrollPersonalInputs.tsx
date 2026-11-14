@@ -7,6 +7,7 @@ import {
 import LawRefLink from "#components/laws/LawRefLink";
 import OptionalNumberInput from "#components/OptionalNumberInput";
 import {
+  LawGroupId,
   LawId,
 } from "#engine/laws/types";
 import {
@@ -64,7 +65,11 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
           <option value={DEFAULT_TAX_RULES.parameters.churchRateBavariaBadenWuerttemberg.value}>Bavaria / Baden-Württemberg</option>
           <option value={DEFAULT_TAX_RULES.parameters.churchRateOther.value}>Other federal states</option>
         </select>
-        <a href={DEFAULT_TAX_RULES.parameters.churchRateOther.source} target="_blank" rel="noreferrer">Official church tax rates</a>
+        <LawRefLink
+          lawId={LawId.EStG_39b}
+          groupId={LawGroupId.EStG_PayrollWithholding}
+          label="Official church tax rates"
+        />
       </>}
     </details>
   );
