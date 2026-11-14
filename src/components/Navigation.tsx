@@ -12,6 +12,8 @@ import {
 import {
   AppId,
   calculatorPath,
+  lawCatalogPath,
+  lawDetailPath,
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
@@ -21,6 +23,7 @@ import {
   LawId,
 } from "#engine/laws/types";
 import {
+  isPlainPrimaryClick,
   openLawReference,
 } from "#store/lawReferenceStore";
 
@@ -28,11 +31,16 @@ export interface NavigationProps {
   currentPath?: string;
 }
 
-/** A catalog link and the current app scale without adding a tab for every future calculator. */
+/** A catalog link, law reference directory link, and active calculator nav item. */
 export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.Element {
   const app = calculatorAtPath(currentPath);
   const home = currentPath === "/" || currentPath === "";
+  const lawsBasePath = lawCatalogPath().replace(/\/+$/, "");
+  const normalizedCurrent = currentPath.replace(/\/+$/, "");
+  const onLawsPage = normalizedCurrent === lawsBasePath ||
+    normalizedCurrent.startsWith(`${lawsBasePath}/`);
   const defaultLawId = app?.id === AppId.ParentalLeave ? LawId.BEEG_1 : LawId.EStG_32a;
+  const quickLawHref = lawDetailPath(defaultLawId);
 
   return <>
     <a className="calculator-skip-link" href="#main-content">Skip to content</a>
@@ -45,18 +53,27 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
         <nav aria-label="Main navigation" className="calculator-navigation__links">
           <a href={sitePath("/")} aria-current={home ? "page" : undefined}>All calculators</a>
           {app && <a href={calculatorPath(app.id)} aria-current="page">{app.title}</a>}
+          <a href={lawCatalogPath()} aria-current={onLawsPage ? "page" : undefined}>Laws &amp; Rules</a>
         </nav>
         <div className="calculator-navigation__preferences">
-          <button
-            type="button"
-            className="calculator-navigation__law-btn"
-            aria-label="Open unified statutory law reference popup"
-            title="Browse German statutes (§), trade-offs, tags, and cross-references"
-            onClick={() => openLawReference(defaultLawId)}
-          >
-            <StatutorySectionIcon size={13} />
-            <span>Law Reference</span>
-          </button>
+          {!onLawsPage && (
+            <a
+              href={quickLawHref}
+              className="calculator-navigation__law-btn"
+              aria-label="Open quick law reference popup or Ctrl+Click for full law page"
+              title="Click for quick statutory preview · Ctrl+Click to open full Law Page"
+              onClick={(event) => {
+                if (!isPlainPrimaryClick(event)) {
+                  return;
+                }
+                event.preventDefault();
+                openLawReference(defaultLawId);
+              }}
+            >
+              <StatutorySectionIcon size={13} />
+              <span>Quick § Ref</span>
+            </a>
+          )}
           <PrivacyStatus />
           <ThemeToggle />
         </div>

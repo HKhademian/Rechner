@@ -184,6 +184,7 @@
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
   transition: var(--transition);
 }
