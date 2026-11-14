@@ -158,7 +158,7 @@ describe("Unified Law-Linked Parameter Value Storage", () => {
     const customizableResults = searchParameters("", {
       mutability: ParameterMutability.Customizable,
     });
-    assert.equal(customizableResults.length, 8);
+    assert.equal(customizableResults.length, 11);
 
     const childcare2024 = resolveParameterForYear(
       ParameterId.Tax_ChildcareMaxDeductionPerChild,
@@ -178,8 +178,31 @@ describe("Unified Law-Linked Parameter Value Storage", () => {
     assert.equal(inflationDefault.editable, true);
     assert.equal(inflationDefault.activeValue, 0.02);
 
+    assert.equal(
+      resolveParameterForYear(ParameterId.Visa_BlueCardStandardSalary, toFullCalendarYear(2026)).activeValue,
+      50700,
+    );
+    assert.equal(
+      resolveParameterForYear(ParameterId.Car_EvGrossListPriceCap, toFullCalendarYear(2024)).activeValue,
+      70000,
+    );
+    assert.equal(
+      resolveParameterForYear(ParameterId.Car_EvGrossListPriceCap, toFullCalendarYear(2026)).activeValue,
+      100000,
+    );
+    assert.equal(
+      resolveParameterForYear(ParameterId.Solar_EegPartialFeedInFirst10KwpEur, toFullCalendarYear(2026)).activeValue,
+      0.0778,
+    );
+    assert.equal(
+      resolveParameterForYear(ParameterId.Housing_KfW300BaseIncomeLimit, toFullCalendarYear(2026)).activeValue,
+      90000,
+    );
+
     assert.equal(formatParameterValue(0.67, ParameterUnit.PercentageRate), "67%");
     assert.equal(formatParameterValue(32, ParameterUnit.HoursPerWeek), "32 h/wk");
+    assert.equal(formatParameterValue(30, ParameterUnit.Kilowatts), "30 kWp");
+    assert.equal(formatParameterValue(0.0778, ParameterUnit.EurPerKwh), "7.78 ct/kWh");
 
     const taxParams = createTaxRules(toFullCalendarYear(2026)).parameters;
     for (const key of Object.keys(taxParams) as (keyof typeof taxParams)[]) {

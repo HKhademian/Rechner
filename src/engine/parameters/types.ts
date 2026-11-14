@@ -18,6 +18,10 @@ export const ParameterDomain = {
   MaternityProtection: "maternity_protection",
   FamilyBenefits: "family_benefits",
   PlanningAssumptions: "planning_assumptions",
+  VisaResidence: "visa_residence",
+  CompanyCar: "company_car",
+  SolarEnergy: "solar_energy",
+  HousingProperty: "housing_property",
 } as const;
 export type ParameterDomain = (typeof ParameterDomain)[keyof typeof ParameterDomain];
 
@@ -44,6 +48,8 @@ export const ParameterUnit = {
   Years: "years",
   ChildrenCount: "children",
   DecimalPlaces: "decimal_places",
+  Kilowatts: "kwp",
+  EurPerKwh: "eur_per_kwh",
 } as const;
 export type ParameterUnit = (typeof ParameterUnit)[keyof typeof ParameterUnit];
 
@@ -149,6 +155,42 @@ export const ParameterId = {
   Planning_AnnualInflationRate: "planning.annualInflationRate",
   Planning_AnnualWageGrowthRate: "planning.annualWageGrowthRate",
   Planning_AnnualBracketIndexRate: "planning.annualBracketIndexRate",
+
+  // Visa & Residence Thresholds (AufenthG)
+  Visa_BlueCardStandardSalary: "visa.blueCardStandardSalary",
+  Visa_BlueCardShortageSalary: "visa.blueCardShortageSalary",
+  Visa_Age45MinimumSalary: "visa.age45MinimumSalary",
+  Visa_SettlementMonthsA1: "visa.settlementMonthsA1",
+  Visa_SettlementMonthsB1: "visa.settlementMonthsB1",
+  Visa_OpportunityCardMonthlyFunds: "visa.opportunityCardMonthlyFunds",
+
+  // Company Car & Electric Mobility (§ 6 Abs. 1 Nr. 4, § 8 Abs. 2 EStG)
+  Car_IceMonthlyRate: "car.iceMonthlyRate",
+  Car_PhevMonthlyRate: "car.phevMonthlyRate",
+  Car_EvMonthlyRate: "car.evMonthlyRate",
+  Car_EvGrossListPriceCap: "car.evGrossListPriceCap",
+  Car_CommuteMonthlyKmRate: "car.commuteMonthlyKmRate",
+  Car_CommuteDailyTripRate: "car.commuteDailyTripRate",
+
+  // Residential Solar PV & Energy (§ 48 EEG, § 3 Nr. 72 EStG, § 12 Abs. 3 UStG)
+  Solar_EegPartialFeedInFirst10KwpEur: "solar.eegPartialFeedInFirst10KwpEur",
+  Solar_EegFullFeedInFirst10KwpEur: "solar.eegFullFeedInFirst10KwpEur",
+  Solar_EegPartialFeedIn10To40KwpEur: "solar.eegPartialFeedIn10To40KwpEur",
+  Solar_EegFullFeedIn10To40KwpEur: "solar.eegFullFeedIn10To40KwpEur",
+  Solar_IncomeTaxExemptMaxKwp: "solar.incomeTaxExemptMaxKwp",
+  Solar_GridElectricityPriceEur: "solar.gridElectricityPriceEur",
+
+  // Housing, KfW 300 & Closing Rules
+  Housing_KfW300BaseIncomeLimit: "housing.kfw300BaseIncomeLimit",
+  Housing_KfW300ExtraChildIncomeIncrement: "housing.kfw300ExtraChildIncomeIncrement",
+  Housing_KfW300BaseLoan1To2Children: "housing.kfw300BaseLoan1To2Children",
+  Housing_KfW300BaseLoan3To4Children: "housing.kfw300BaseLoan3To4Children",
+  Housing_KfW300BaseLoan5PlusChildren: "housing.kfw300BaseLoan5PlusChildren",
+  Housing_KfW300QngLoanBonus: "housing.kfw300QngLoanBonus",
+  Housing_CraftsmanCreditRate: "housing.craftsmanCreditRate",
+  Housing_CraftsmanCreditMaxAnnualEur: "housing.craftsmanCreditMaxAnnualEur",
+  Housing_DefaultNotaryLandRegistryRate: "housing.defaultNotaryLandRegistryRate",
+  Housing_DefaultAgentCommissionRate: "housing.defaultAgentCommissionRate",
 } as const;
 export type ParameterId = (typeof ParameterId)[keyof typeof ParameterId];
 
@@ -277,6 +319,10 @@ export const PARAMETER_DOMAIN_LABELS: Readonly<Record<ParameterDomain, string>> 
   [ParameterDomain.MaternityProtection]: "Maternity Protection",
   [ParameterDomain.FamilyBenefits]: "Family Benefits",
   [ParameterDomain.PlanningAssumptions]: "Planning Assumptions",
+  [ParameterDomain.VisaResidence]: "Visa & Residence",
+  [ParameterDomain.CompanyCar]: "Company Car & Mobility",
+  [ParameterDomain.SolarEnergy]: "Solar & Green Energy",
+  [ParameterDomain.HousingProperty]: "Housing & KfW 300",
 });
 
 /** Human-readable mutability policy labels. */
