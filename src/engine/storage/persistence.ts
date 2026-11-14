@@ -12,6 +12,9 @@ import {
   parseHouseholdTaxableIncome,
 } from "#engine/benefits/taxableIncomeInput";
 import {
+  createDefaultChildcarePlanConfig,
+} from "#engine/benefits/childcare";
+import {
   type PayrollOptions,
   parsePersonalPayrollOptions,
 } from "#engine/tax/payroll";
@@ -27,6 +30,8 @@ import {
 
 import {
   type HouseholdTaxableIncomeInput,
+  type ChildcarePlanConfig,
+  type ChildrenCount,
   type GrossSalary,
   type NetSalary,
   type WorkingHours,
@@ -59,6 +64,7 @@ import {
   toTaxClass,
   toTargetPerson,
   toFinancialEventCategory,
+  toFederalStateKitaPresetId,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -74,6 +80,7 @@ import {
   toTaxFactor,
   toMonthDuration,
   toChildIndex,
+  toChildrenCount,
   toPercentageRate,
 } from "#engine/types";
 
@@ -108,6 +115,109 @@ function salaryCompensation(raw: Record<string, unknown>, percentage: number): P
 function checkedSalaryReplacement(action: SalaryRaiseAction): SalaryRaiseAction {
   validateSalaryReplacement(action);
   return action;
+}
+
+function parseChildcarePlanConfig(
+  raw: unknown,
+  fallback: ChildcarePlanConfig,
+  strict: boolean,
+): ChildcarePlanConfig {
+  if (raw === undefined || raw === null) {
+    return fallback;
+  }
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    if (strict) {
+      throw new TypeError("childcarePlan must be an object when provided.");
+    }
+    return fallback;
+  }
+  const obj = raw as Record<string, unknown>;
+  if (strict && obj.enabled !== undefined && typeof obj.enabled !== "boolean") {
+    throw new TypeError("childcarePlan.enabled must be a boolean.");
+  }
+  const enabled = typeof obj.enabled === "boolean" ? obj.enabled : fallback.enabled;
+
+  let presetId = fallback.presetId;
+  if (obj.presetId !== undefined) {
+    if (typeof obj.presetId !== "string") {
+      if (strict) {
+        throw new TypeError("childcarePlan.presetId must be a string.");
+      }
+    }
+    else if (strict) {
+      presetId = toFederalStateKitaPresetId(obj.presetId);
+    }
+    else {
+      try {
+        presetId = toFederalStateKitaPresetId(obj.presetId);
+      }
+      catch {
+        presetId = fallback.presetId;
+      }
+    }
+  }
+
+  let customMonthlyFeePerChild = fallback.customMonthlyFeePerChild;
+  if (obj.customMonthlyFeePerChild !== undefined) {
+    if (strict && typeof obj.customMonthlyFeePerChild !== "number") {
+      throw new TypeError("childcarePlan.customMonthlyFeePerChild must be a non-negative number.");
+    }
+    const rawFee = Number(obj.customMonthlyFeePerChild);
+    if (strict) {
+      if (!Number.isFinite(rawFee) || rawFee < 0) {
+        throw new TypeError("childcarePlan.customMonthlyFeePerChild must be a non-negative number.");
+      }
+      customMonthlyFeePerChild = toEuroAmount(rawFee);
+    }
+    else if (typeof obj.customMonthlyFeePerChild === "number" && Number.isFinite(rawFee)) {
+      customMonthlyFeePerChild = toEuroAmount(Math.max(0, Math.min(10000, rawFee)));
+    }
+  }
+
+  let startAgeMonths = fallback.startAgeMonths;
+  if (obj.startAgeMonths !== undefined) {
+    if (strict && typeof obj.startAgeMonths !== "number") {
+      throw new TypeError("childcarePlan.startAgeMonths must be an integer between 0 and 168.");
+    }
+    const rawStart = Number(obj.startAgeMonths);
+    if (strict) {
+      if (!Number.isInteger(rawStart) || rawStart < 0 || rawStart > 168) {
+        throw new TypeError("childcarePlan.startAgeMonths must be an integer between 0 and 168.");
+      }
+      startAgeMonths = rawStart;
+    }
+    else if (typeof obj.startAgeMonths === "number" && Number.isFinite(rawStart)) {
+      startAgeMonths = Math.max(0, Math.min(168, Math.trunc(rawStart)));
+    }
+  }
+
+  let endAgeMonths = fallback.endAgeMonths;
+  if (obj.endAgeMonths !== undefined) {
+    if (strict && typeof obj.endAgeMonths !== "number") {
+      throw new TypeError("childcarePlan.endAgeMonths must be an integer >= startAgeMonths and <= 168.");
+    }
+    const rawEnd = Number(obj.endAgeMonths);
+    if (strict) {
+      if (!Number.isInteger(rawEnd) || rawEnd < startAgeMonths || rawEnd > 168) {
+        throw new TypeError("childcarePlan.endAgeMonths must be an integer >= startAgeMonths and <= 168.");
+      }
+      endAgeMonths = rawEnd;
+    }
+    else if (typeof obj.endAgeMonths === "number" && Number.isFinite(rawEnd)) {
+      endAgeMonths = Math.max(startAgeMonths, Math.min(168, Math.trunc(rawEnd)));
+    }
+  }
+  if (endAgeMonths < startAgeMonths) {
+    endAgeMonths = startAgeMonths;
+  }
+
+  return Object.freeze({
+    enabled,
+    presetId,
+    customMonthlyFeePerChild,
+    startAgeMonths,
+    endAgeMonths,
+  });
 }
 
 /** Namespaced key for persisting the complete simulator state envelope. */
@@ -171,6 +281,12 @@ export interface ElterngeldPersistedState {
   readonly investmentReturnMonthly: EuroAmount;
 
   // Benefits & Calendar Timelines
+  /** Number of prior living children already present before simulation commencement (0..10). */
+  readonly existingChildrenCount?: ChildrenCount;
+  /** Optional municipal daycare (Kita) configuration and § 10 Abs. 1 Nr. 5 EStG modeling. */
+  readonly childcarePlan?: ChildcarePlanConfig;
+  /** Opt-in flag enabling § 32a bracket indexing (Inflationsausgleich) on projected future years. */
+  readonly indexFutureTaxBrackets?: boolean;
   /** Statutory monthly Kindergeld rate per child in EUR (§ 66 EStG). */
   readonly kindergeldPerChild: EuroAmount;
   /** Toggle enabling 13th salary bonus payments (vacation and Christmas bonuses). */
@@ -435,6 +551,22 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
     Number(obj.investmentReturnMonthly) || 0,
   );
 
+  if (obj.existingChildrenCount !== undefined && typeof obj.existingChildrenCount !== "number") {
+    throw new TypeError("existingChildrenCount must be an integer between 0 and 10.");
+  }
+  const existingChildrenCount =
+    obj.existingChildrenCount !== undefined
+      ? toChildrenCount(obj.existingChildrenCount)
+      : toChildrenCount(0);
+  const childcarePlan = parseChildcarePlanConfig(
+    obj.childcarePlan,
+    createDefaultChildcarePlanConfig(),
+    true,
+  );
+  if (obj.indexFutureTaxBrackets !== undefined && typeof obj.indexFutureTaxBrackets !== "boolean") {
+    throw new TypeError("indexFutureTaxBrackets must be a boolean.");
+  }
+  const indexFutureTaxBrackets = obj.indexFutureTaxBrackets === true;
   const kindergeldPerChild = toEuroAmount(Number(obj.kindergeldPerChild) || 0);
   const enable13thSalary = Boolean(obj.enable13thSalary);
   const bonus40Month = toCalendarMonth(Number(obj.bonus40Month) || 5);
@@ -709,6 +841,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
     annualBonusGross,
     annualBonusMonth,
     investmentReturnMonthly,
+    existingChildrenCount,
+    childcarePlan,
+    indexFutureTaxBrackets,
     kindergeldPerChild,
     enable13thSalary,
     bonus40Month,
@@ -1610,6 +1745,27 @@ export function validateAndSanitizePersistedState(
         1000000,
         "investmentReturnMonthly",
       ),
+    ),
+
+    existingChildrenCount: toChildrenCount(
+      Math.trunc(
+        num(
+          obj.existingChildrenCount,
+          defaults.existingChildrenCount ?? 0,
+          0,
+          10,
+          "existingChildrenCount",
+        ),
+      ),
+    ),
+    childcarePlan: parseChildcarePlanConfig(
+      obj.childcarePlan,
+      defaults.childcarePlan ?? createDefaultChildcarePlanConfig(),
+      false,
+    ),
+    indexFutureTaxBrackets: bool(
+      obj.indexFutureTaxBrackets,
+      defaults.indexFutureTaxBrackets ?? false,
     ),
 
     kindergeldPerChild: toEuroAmount(
