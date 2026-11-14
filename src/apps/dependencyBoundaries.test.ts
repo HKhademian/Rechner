@@ -63,22 +63,46 @@ it("catalog and app entries cannot initialize another calculator's financial sto
   const taxStore = resolve("src/store/taxConfigStore.ts");
   const parentalStore = resolve("src/store/elterngeldStore.ts");
   const giroCodeStore = resolve("src/apps/girocode/girocodeStore.ts");
+  const visaStore = resolve("src/apps/visa/visaStore.ts");
+  const companyCarStore = resolve("src/apps/company-car/companyCarStore.ts");
+  const solarEnergyStore = resolve("src/apps/solar-energy/solarEnergyStore.ts");
+  const housingStore = resolve("src/apps/housing/housingStore.ts");
+
+  const allAppStores = [
+    netStore,
+    taxStore,
+    parentalStore,
+    giroCodeStore,
+    visaStore,
+    companyCarStore,
+    solarEnergyStore,
+    housingStore,
+  ];
+
   const catalog = runtimeDependencies("src/components/CalculatorCatalog.tsx");
-  for (const store of [netStore, taxStore, parentalStore, giroCodeStore]) {
+  for (const store of allAppStores) {
     assert.equal(catalog.has(store), false, `Catalog imports ${store}`);
   }
-  const net = runtimeDependencies("src/apps/net-pay/App.tsx");
-  assert.equal(net.has(netStore), true);
-  assert.equal(net.has(parentalStore), false);
-  assert.equal(net.has(giroCodeStore), false);
-  const parental = runtimeDependencies("src/apps/parental-leave/App.tsx");
-  assert.equal(parental.has(parentalStore), true);
-  assert.equal(parental.has(netStore), false);
-  assert.equal(parental.has(taxStore), false);
-  assert.equal(parental.has(giroCodeStore), false);
-  const girocode = runtimeDependencies("src/apps/girocode/App.tsx");
-  assert.equal(girocode.has(giroCodeStore), true);
-  assert.equal(girocode.has(netStore), false);
-  assert.equal(girocode.has(taxStore), false);
-  assert.equal(girocode.has(parentalStore), false);
+
+  const entryOwnStores: readonly [string, readonly string[]][] = [
+    ["src/apps/net-pay/App.tsx", [netStore, taxStore]],
+    ["src/apps/parental-leave/App.tsx", [parentalStore]],
+    ["src/apps/girocode/App.tsx", [giroCodeStore]],
+    ["src/apps/visa/App.tsx", [visaStore]],
+    ["src/apps/company-car/App.tsx", [companyCarStore]],
+    ["src/apps/solar-energy/App.tsx", [solarEnergyStore]],
+    ["src/apps/housing/App.tsx", [housingStore]],
+  ];
+
+  for (const [entryPath, owned] of entryOwnStores) {
+    const deps = runtimeDependencies(entryPath);
+    for (const store of owned) {
+      assert.equal(deps.has(store), true, `${entryPath} must import ${store}`);
+    }
+    for (const other of allAppStores) {
+      if (!owned.includes(other)) {
+        assert.equal(deps.has(other), false, `${entryPath} leaks foreign store ${other}`);
+      }
+    }
+  }
 });

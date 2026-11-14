@@ -39,7 +39,22 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
   const normalizedCurrent = currentPath.replace(/\/+$/, "");
   const onLawsPage = normalizedCurrent === lawsBasePath ||
     normalizedCurrent.startsWith(`${lawsBasePath}/`);
-  const defaultLawId = app?.id === AppId.ParentalLeave ? LawId.BEEG_1 : LawId.EStG_32a;
+  let defaultLawId: LawId = LawId.EStG_32a;
+  if (app?.id === AppId.ParentalLeave) {
+    defaultLawId = LawId.BEEG_1;
+  }
+  else if (app?.id === AppId.Visa) {
+    defaultLawId = LawId.AufenthG_18g;
+  }
+  else if (app?.id === AppId.CompanyCar) {
+    defaultLawId = LawId.EStG_6_1_4;
+  }
+  else if (app?.id === AppId.SolarEnergy) {
+    defaultLawId = LawId.EEG_48;
+  }
+  else if (app?.id === AppId.Housing) {
+    defaultLawId = LawId.KfW_300;
+  }
   const quickLawHref = lawDetailPath(defaultLawId);
 
   return <>

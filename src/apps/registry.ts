@@ -4,18 +4,38 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  companyCarApp,
+} from "#/apps/company-car/manifest.ts";
+import {
   giroCodeApp,
 } from "#/apps/girocode/manifest.ts";
+import {
+  housingApp,
+} from "#/apps/housing/manifest.ts";
 import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
 import {
   parentalLeaveApp,
 } from "#/apps/parental-leave/manifest.ts";
+import {
+  solarEnergyApp,
+} from "#/apps/solar-energy/manifest.ts";
+import {
+  visaApp,
+} from "#/apps/visa/manifest.ts";
 
 /** Metadata only: the catalog must never initialize a calculator's financial store. */
-export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([netPayApp, parentalLeaveApp, giroCodeApp]);
-export const CATALOG_PAGE_SIZE = 6;
+export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([
+  netPayApp,
+  parentalLeaveApp,
+  giroCodeApp,
+  visaApp,
+  companyCarApp,
+  solarEnergyApp,
+  housingApp,
+]);
+export const CATALOG_PAGE_SIZE = 9;
 
 export function calculatorAtPath(pathname: string): CalculatorAppDefinition | undefined {
   const normalized = pathname.replace(/\/+$/, "");

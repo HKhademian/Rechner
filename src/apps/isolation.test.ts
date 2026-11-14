@@ -110,3 +110,42 @@ it("girocode boot stores drafts only under its own namespace without initializin
   assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
     stdio: "pipe" }));
 });
+
+it("track 3 domain calculators isolate persisted state exclusively under their own namespaces", () => {
+  const cases: readonly { app: string;
+    storeFile: string;
+    updateExpr: string }[] = [
+    { app: "visa",
+      storeFile: "./src/apps/visa/visaStore.ts",
+      updateExpr: `store.updateVisaField("applicantAgeYears", 37)` },
+    { app: "company-car",
+      storeFile: "./src/apps/company-car/companyCarStore.ts",
+      updateExpr: `store.updateCompanyCarField("commuteOneWayKm", 25)` },
+    { app: "solar-energy",
+      storeFile: "./src/apps/solar-energy/solarEnergyStore.ts",
+      updateExpr: `store.updateSolarEnergyField("capacityKwp", 14)` },
+    { app: "housing",
+      storeFile: "./src/apps/housing/housingStore.ts",
+      updateExpr: `store.updateHousingField("dependentChildrenCount", 2)` },
+  ];
+  for (const item of cases) {
+    const script = `
+      import assert from "node:assert/strict";
+      const values = new Map([["grossIncome", "12345"], ["elterngeld_simulator_state_v1", "{}"]]);
+      globalThis.window = globalThis;
+      globalThis.location = new URL("http://example.test/calculators/${item.app}/");
+      globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+      globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+      const { setStorageMode, StorageMode } = await import("#engine/storage/appStorage");
+      assert.equal(setStorageMode(StorageMode.Persistent, true), true);
+      const keysBeforeBoot = new Set(values.keys());
+      const store = await import("${item.storeFile}");
+      ${item.updateExpr};
+      const added = [...values.keys()].filter(key => !keysBeforeBoot.has(key));
+      assert.equal(added.length, 1);
+      assert.ok(added[0].startsWith("rechner:${item.app}:v1:"));
+    `;
+    assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
+      stdio: "pipe" }));
+  }
+});

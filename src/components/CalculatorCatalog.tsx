@@ -13,7 +13,7 @@ import {
 import {
   type CalculatorAppDefinition,
   type CalculatorCategory,
-  CalculatorCategory as Categories,
+  AppId,
   calculatorPath,
   toCalculatorCategory,
 } from "#/apps/appDefinition.ts";
@@ -22,17 +22,41 @@ import {
   catalogPage,
   CATALOG_PAGE_SIZE,
 } from "#/apps/registry.ts";
+import LifeProfilePanel from "#components/LifeProfilePanel";
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
 import {
   CalculatorNavigationIcon,
+  CompanyCarMobilityIcon,
+  HomeAcquisitionIcon,
   PaymentQrCodeIcon,
   SimulatorNavigationIcon,
+  SolarEnergyIcon,
+  VisaResidenceIcon,
 } from "#components/Icons";
 import {
   LawId,
 } from "#engine/laws/types";
 import LawRefLink from "#components/laws/LawRefLink";
+
+function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
+  switch (appId) {
+    case AppId.ParentalLeave:
+      return <SimulatorNavigationIcon size={24} />;
+    case AppId.GiroCode:
+      return <PaymentQrCodeIcon size={24} />;
+    case AppId.Visa:
+      return <VisaResidenceIcon size={24} />;
+    case AppId.CompanyCar:
+      return <CompanyCarMobilityIcon size={24} />;
+    case AppId.SolarEnergy:
+      return <SolarEnergyIcon size={24} />;
+    case AppId.Housing:
+      return <HomeAcquisitionIcon size={24} />;
+    case AppId.NetPay:
+      return <CalculatorNavigationIcon size={24} />;
+  }
+}
 
 /** The marketplace imports manifests, never a calculator entry or financial store. */
 export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CATALOG_PAGE_SIZE }: {
@@ -115,15 +139,17 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
       <header className="calculator-catalog__intro">
         <div>
           <p className="calculator-catalog__eyebrow">Free online calculators</p>
-          <h1>Plan your pay and family finances.</h1>
-          <p>Clear estimates for German salary, taxes and parental leave.</p>
+          <h1>Plan your pay, family, mobility and home finances.</h1>
+          <p>Clear estimates for German salary, taxes, parental leave, EU Blue Card, EV company cars, rooftop solar and KfW 300 housing.</p>
         </div>
         <aside className="calculator-catalog__privacy"><strong>Private by default</strong><p>No account. Your saved inputs stay in this browser.</p></aside>
       </header>
 
+      <LifeProfilePanel />
+
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <label for="calculator-search">Find a calculator
-          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode" value={query.value} aria-controls="calculator-results"
+          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, Blue Card, EV, Solar, KfW 300" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
         </label>
         <div className="calculator-catalog__category-filter">
@@ -143,7 +169,7 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
         </div>
         <div className="calculator-catalog__grid">
           {page.items.map((app) => <article key={app.id} className="calculator-catalog__card">
-            <div className="calculator-catalog__card-top"><span className="calculator-catalog__icon" aria-hidden="true">{app.category === Categories.Family ? <SimulatorNavigationIcon size={24} /> : app.category === Categories.Everyday ? <PaymentQrCodeIcon size={24} /> : <CalculatorNavigationIcon size={24} />}</span><span className="calculator-catalog__category">{app.category}</span></div>
+            <div className="calculator-catalog__card-top"><span className="calculator-catalog__icon" aria-hidden="true">{renderAppIcon(app.id)}</span><span className="calculator-catalog__category">{app.category}</span></div>
             <h3>{app.title}</h3>
             <p>{app.description}</p>
             <ul>{app.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
@@ -167,6 +193,10 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
         <LawRefLink lawId={LawId.EStG_32a} label="EStG" />
         {" · "}
         <LawRefLink lawId={LawId.MuSchG_3} label="MuSchG" />
+        {" · "}
+        <LawRefLink lawId={LawId.AufenthG_18g} label="AufenthG" />
+        {" · "}
+        <LawRefLink lawId={LawId.KfW_300} label="KfW 300" />
       </p>
       <SourceRevision />
     </footer>

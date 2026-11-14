@@ -62,6 +62,13 @@ const NET_PAY_LAW_CODES = new Set<string>([
   LawCode.BMF,
 ]);
 
+const NET_PAY_EXCLUDED_LAW_IDS = new Set<LawId>([
+  LawId.EStG_3_72,
+  LawId.EStG_6_1_4,
+  LawId.EStG_8_2,
+  LawId.EStG_35a,
+]);
+
 const NET_PAY_EXTRA_LAW_IDS = new Set<LawId>([
   LawId.BEEG_2c,
   LawId.BEEG_2e,
@@ -71,6 +78,33 @@ const PARENTAL_LEAVE_LAW_CODES = new Set<string>([
   LawCode.BEEG,
   LawCode.MuSchG,
   LawCode.KfW,
+]);
+
+const VISA_LAW_CODES = new Set<string>([
+  LawCode.AufenthG,
+]);
+
+const COMPANY_CAR_LAW_IDS = new Set<LawId>([
+  LawId.EStG_6_1_4,
+  LawId.EStG_8_2,
+]);
+
+const SOLAR_ENERGY_LAW_CODES = new Set<string>([
+  LawCode.EEG,
+  LawCode.UStG,
+]);
+
+const SOLAR_ENERGY_EXTRA_LAW_IDS = new Set<LawId>([
+  LawId.EStG_3_72,
+]);
+
+const HOUSING_LAW_CODES = new Set<string>([
+  LawCode.GrEStG,
+  LawCode.KfW,
+]);
+
+const HOUSING_EXTRA_LAW_IDS = new Set<LawId>([
+  LawId.EStG_35a,
 ]);
 
 /**
@@ -157,29 +191,37 @@ export function filterLawsByGroup(
 }
 
 /**
- * Resolves the calculator apps (`Net Pay Calculator`, `Parental Leave Planner`)
- * that implement or reference the given statutory `LawEntry`.
+ * Resolves the calculator apps (`Net Pay`, `Parental Leave`, `Visa`, `Company Car`,
+ * `Solar PV`, `Housing & KfW 300`) that implement or reference the given statutory `LawEntry`.
  */
 export function getCalculatorsUsingLaw(
   entry: LawEntry,
 ): readonly CalculatorAppDefinition[] {
-  const usesNetPay = NET_PAY_LAW_CODES.has(entry.code) || NET_PAY_EXTRA_LAW_IDS.has(entry.id);
+  const isTrack3SpecializedEStG = NET_PAY_EXCLUDED_LAW_IDS.has(entry.id);
+  const usesNetPay = (!isTrack3SpecializedEStG && NET_PAY_LAW_CODES.has(entry.code)) || NET_PAY_EXTRA_LAW_IDS.has(entry.id);
   const usesParentalLeave = PARENTAL_LEAVE_LAW_CODES.has(entry.code) ||
-    NET_PAY_LAW_CODES.has(entry.code);
+    (!isTrack3SpecializedEStG && NET_PAY_LAW_CODES.has(entry.code));
+  const usesVisa = VISA_LAW_CODES.has(entry.code);
+  const usesCompanyCar = COMPANY_CAR_LAW_IDS.has(entry.id);
+  const usesSolarEnergy = SOLAR_ENERGY_LAW_CODES.has(entry.code) || SOLAR_ENERGY_EXTRA_LAW_IDS.has(entry.id);
+  const usesHousing = HOUSING_LAW_CODES.has(entry.code) || HOUSING_EXTRA_LAW_IDS.has(entry.id);
 
   const appMap = new Map(calculatorApps.map((app) => [app.id, app]));
   const result: CalculatorAppDefinition[] = [];
 
-  if (usesNetPay) {
-    const netPay = appMap.get(AppId.NetPay);
-    if (netPay) {
-      result.push(netPay);
-    }
-  }
-  if (usesParentalLeave) {
-    const parentalLeave = appMap.get(AppId.ParentalLeave);
-    if (parentalLeave) {
-      result.push(parentalLeave);
+  for (const [enabled, appId] of [
+    [usesNetPay, AppId.NetPay],
+    [usesParentalLeave, AppId.ParentalLeave],
+    [usesVisa, AppId.Visa],
+    [usesCompanyCar, AppId.CompanyCar],
+    [usesSolarEnergy, AppId.SolarEnergy],
+    [usesHousing, AppId.Housing],
+  ] as const) {
+    if (enabled) {
+      const app = appMap.get(appId);
+      if (app) {
+        result.push(app);
+      }
     }
   }
   return result;

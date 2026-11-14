@@ -96,5 +96,26 @@ describe("Full Law Page Helpers", () => {
 
     const maternityCalculators = getCalculatorsUsingLaw(getLawEntry(LawId.MuSchG_19)).map((app) => app.id);
     assert.deepEqual(maternityCalculators, [AppId.ParentalLeave]);
+
+    assert.deepEqual(
+      getCalculatorsUsingLaw(getLawEntry(LawId.AufenthG_18g)).map((app) => app.id),
+      [AppId.Visa],
+    );
+    assert.deepEqual(
+      getCalculatorsUsingLaw(getLawEntry(LawId.EStG_6_1_4)).map((app) => app.id),
+      [AppId.CompanyCar],
+    );
+    assert.deepEqual(
+      getCalculatorsUsingLaw(getLawEntry(LawId.EEG_48)).map((app) => app.id),
+      [AppId.SolarEnergy],
+    );
+    assert.deepEqual(
+      getCalculatorsUsingLaw(getLawEntry(LawId.GrEStG_11)).map((app) => app.id),
+      [AppId.Housing],
+    );
+    assert.deepEqual(
+      getCalculatorsUsingLaw(getLawEntry(LawId.KfW_300)).map((app) => app.id),
+      [AppId.ParentalLeave, AppId.Housing],
+    );
   });
 });
