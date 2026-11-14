@@ -2,12 +2,17 @@ import "./LawReferenceModal.css";
 import {
   CitationReferenceIcon,
   CloseIcon,
+  EditableParameterIcon,
   ExternalLegalSourceIcon,
   LawAntiBenefitCaveatIcon,
   LawBenefitAdvantageIcon,
   LawTagClassificationIcon,
   LegalStatuteDocumentationIcon,
   NavigatePreviousLawIcon,
+  ParameterSlidersIcon,
+  ParameterValueLockedIcon,
+  ResetDefaultsIcon,
+  StatutoryLimitationWarningIcon,
   StatutorySectionIcon,
 } from "#components/Icons";
 import {
@@ -24,6 +29,18 @@ import {
   LAW_TAG_LABELS,
 } from "#engine/laws/types";
 import {
+  formatParameterValue,
+  getAvailableParameterYears,
+} from "#engine/parameters/registry";
+import {
+  type ParameterId,
+  PARAMETER_MUTABILITY_LABELS,
+  ParameterMutability,
+} from "#engine/parameters/types";
+import {
+  toFullCalendarYear,
+} from "#engine/types";
+import {
   activeLawModalState,
   activeLawSearchQuery,
   activeLawTagFilter,
@@ -33,6 +50,16 @@ import {
   setLawSearchQuery,
   setLawTagFilter,
 } from "#store/lawReferenceStore";
+import {
+  activeParameterYear,
+  dismissParameterModificationFlag,
+  flagLockedParameterAttempt,
+  getGovernedResolvedParametersForLaw,
+  lastParameterModificationFlag,
+  modifyParameterValue,
+  resetParameterOverride,
+  setParameterYear,
+} from "#store/parameterStore";
 import type {
   JSX,
 } from "preact";
@@ -42,11 +69,12 @@ import {
 import {
   useEffect,
   useRef,
+  useState,
 } from "preact/hooks";
 
 /**
  * Shared Unified Law Reference Popup Modal.
- * Renders typed law metadata, benefit/anti-benefit summaries, tags,
+ * Renders typed law metadata, benefit/anti-benefit summaries, tags, governed parameters,
  * interactive cross-reference navigation, back history, and external sources.
  */
 export default function LawReferenceModal(): JSX.Element | null {
@@ -54,6 +82,9 @@ export default function LawReferenceModal(): JSX.Element | null {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const tagFilter = activeLawTagFilter.value;
   const searchQuery = activeLawSearchQuery.value;
+  const activeYear = activeParameterYear.value;
+  const activeFlag = lastParameterModificationFlag.value;
+  const [draftInputs, setDraftInputs] = useState<Readonly<Partial<Record<ParameterId, string>>>>({});
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -81,6 +112,11 @@ export default function LawReferenceModal(): JSX.Element | null {
   const externalSources = getExternalSourceEntries(entry);
   const usedTags = getUsedLawTags();
   const filteredLaws = searchLaws(searchQuery, tagFilter);
+  const governedParameters = getGovernedResolvedParametersForLaw(entry.id);
+  const availableYears = getAvailableParameterYears();
+  const governedFlag = activeFlag && governedParameters.some((item) => item.definition.id === activeFlag.parameterId)
+    ? activeFlag
+    : null;
 
   const dialogContent = (
     <dialog
@@ -187,6 +223,155 @@ export default function LawReferenceModal(): JSX.Element | null {
                 </section>
               )}
             </div>
+          )}
+
+          {/* Governed Statutory Values & Parameters */}
+          {governedParameters.length > 0 && (
+            <section className="law-reference-dialog__parameters-box" aria-label="Governed parameter values">
+              <div className="law-reference-dialog__parameters-header">
+                <h3 className="law-reference-dialog__section-title">
+                  <ParameterSlidersIcon size={13} />
+                  <span>Governed Values &amp; Statutory Constants ({activeYear})</span>
+                </h3>
+                <label className="law-reference-dialog__year-select">
+                  <span>Year:</span>
+                  <select
+                    aria-label="Parameter reference year"
+                    value={activeYear}
+                    onChange={(event) => {
+                      setParameterYear(toFullCalendarYear(Number(event.currentTarget.value)));
+                    }}
+                  >
+                    {availableYears.map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {governedFlag && (
+                <div className="law-reference-dialog__flag-alert" role="alert">
+                  <div className="law-reference-dialog__flag-content">
+                    <StatutoryLimitationWarningIcon size={15} />
+                    <span>{governedFlag.message}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="law-reference-dialog__flag-dismiss"
+                    aria-label="Dismiss statutory flag"
+                    onClick={dismissParameterModificationFlag}
+                  >
+                    <CloseIcon size={12} />
+                  </button>
+                </div>
+              )}
+
+              <div className="law-reference-dialog__parameters-list">
+                {governedParameters.map((item) => {
+                  const def = item.definition;
+                  const isEditable = item.editable;
+                  const draftString = draftInputs[def.id] ?? String(item.activeValue);
+                  const stepValue = def.bounds.integerOnly ? "1" : "any";
+                  const mutabilityToneClass = def.mutability === ParameterMutability.Customizable
+                    ? "law-reference-dialog__mutability-pill--custom"
+                    : def.mutability === ParameterMutability.YearIndexed
+                      ? "law-reference-dialog__mutability-pill--year"
+                      : "law-reference-dialog__mutability-pill--fixed";
+
+                  return (
+                    <div key={def.id} className="law-reference-dialog__parameter-row">
+                      <div className="law-reference-dialog__parameter-main">
+                        <div className="law-reference-dialog__parameter-top">
+                          <strong>{def.label}</strong>
+                          <span className={`law-reference-dialog__mutability-pill ${mutabilityToneClass}`}>
+                            {isEditable
+                              ? <EditableParameterIcon size={11} />
+                              : <ParameterValueLockedIcon size={11} />}
+                            <span>{PARAMETER_MUTABILITY_LABELS[def.mutability]}</span>
+                          </span>
+                        </div>
+                        <p className="law-reference-dialog__relation-desc">{def.description}</p>
+                      </div>
+
+                      <div className="law-reference-dialog__parameter-controls">
+                        <div className="law-reference-dialog__parameter-value-wrap">
+                          <span className="law-reference-dialog__parameter-value tabular-nums">
+                            {formatParameterValue(item.activeValue, def.unit)}
+                          </span>
+                          {item.overridden && (
+                            <span className="law-reference-dialog__parameter-note">
+                              Default: {formatParameterValue(item.baselineValue, def.unit)}
+                            </span>
+                          )}
+                          {item.projected && item.sourceYear && (
+                            <span className="law-reference-dialog__parameter-note">
+                              Table: {item.sourceYear}
+                            </span>
+                          )}
+                        </div>
+
+                        {isEditable
+                          ? (
+                            <div className="law-reference-dialog__parameter-edit">
+                              <input
+                                type="number"
+                                className="law-reference-dialog__parameter-input"
+                                aria-label={`Edit ${def.label}`}
+                                value={draftString}
+                                min={def.bounds.min}
+                                max={def.bounds.max}
+                                step={stepValue}
+                                onInput={(event) => {
+                                  setDraftInputs({
+                                    ...draftInputs,
+                                    [def.id]: event.currentTarget.value,
+                                  });
+                                }}
+                              />
+                              <button
+                                type="button"
+                                className="law-reference-dialog__param-btn"
+                                onClick={() => {
+                                  const parsed = Number(draftString);
+                                  modifyParameterValue(def.id, parsed);
+                                }}
+                              >
+                                Apply
+                              </button>
+                              {item.overridden && (
+                                <button
+                                  type="button"
+                                  className="law-reference-dialog__param-btn"
+                                  title="Restore baseline value"
+                                  onClick={() => {
+                                    resetParameterOverride(def.id);
+                                    const nextDrafts = { ...draftInputs };
+                                    delete nextDrafts[def.id];
+                                    setDraftInputs(nextDrafts);
+                                  }}
+                                >
+                                  <ResetDefaultsIcon size={12} />
+                                </button>
+                              )}
+                            </div>
+                          )
+                          : (
+                            <button
+                              type="button"
+                              className="law-reference-dialog__param-lock-btn"
+                              title="Statutory value is protected; click to verify protection flag"
+                              onClick={() => flagLockedParameterAttempt(def.id)}
+                            >
+                              <ParameterValueLockedIcon size={11} />
+                              <span>Locked</span>
+                            </button>
+                          )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           )}
 
           {/* Thematic Group Context */}

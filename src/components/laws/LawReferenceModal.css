@@ -407,3 +407,224 @@
   max-height: 220px;
   overflow-y: auto;
 }
+
+.law-reference-dialog__parameters-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-secondary);
+}
+
+.law-reference-dialog__parameters-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.law-reference-dialog__parameters-header .law-reference-dialog__section-title {
+  margin: 0;
+}
+
+.law-reference-dialog__year-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.law-reference-dialog__year-select select {
+  padding: 3px 8px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.law-reference-dialog__flag-alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-warning-border);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.law-reference-dialog__flag-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.law-reference-dialog__flag-content svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.law-reference-dialog__flag-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-warning);
+  cursor: pointer;
+}
+
+.law-reference-dialog__flag-dismiss:hover {
+  border-color: var(--color-warning-border);
+  background: var(--bg-surface);
+}
+
+.law-reference-dialog__parameters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.law-reference-dialog__parameter-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.law-reference-dialog__parameter-main {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.law-reference-dialog__parameter-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.law-reference-dialog__parameter-top strong {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.law-reference-dialog__mutability-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border: 1px solid var(--border-subtle);
+}
+
+.law-reference-dialog__mutability-pill--custom {
+  background: var(--color-gain-bg);
+  border-color: var(--color-gain-border);
+  color: var(--color-gain);
+}
+
+.law-reference-dialog__mutability-pill--year {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.law-reference-dialog__mutability-pill--fixed {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.law-reference-dialog__parameter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.law-reference-dialog__parameter-value-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.law-reference-dialog__parameter-value {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.law-reference-dialog__parameter-note {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.law-reference-dialog__parameter-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.law-reference-dialog__parameter-input {
+  width: 78px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.law-reference-dialog__param-btn,
+.law-reference-dialog__param-lock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-medium);
+  background: var(--bg-surface-secondary);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.law-reference-dialog__param-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.law-reference-dialog__param-lock-btn:hover {
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
