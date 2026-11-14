@@ -17,9 +17,10 @@ import SandboxControls from "#components/elterngeld/SandboxControls";
 import RulesExplainer from "#components/elterngeld/RulesExplainer";
 import TimelineTable from "#components/elterngeld/TimelineTable";
 import {
-  DataExportImportModal, 
+  DataExportImportModal,
 } from "#components/elterngeld/DataExportImportModal";
 import Navigation from "#components/Navigation";
+import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
 
 export default function ElterngeldDashboard(): JSX.Element {
@@ -81,6 +82,9 @@ export default function ElterngeldDashboard(): JSX.Element {
 
         {/* Interactive 60-Month Stacked Timeline Chart */}
         <TimelineChart />
+
+        {/* Unified Law-Linked Parameter Value Storage Observer & Editor */}
+        <ParameterObserverSection embedded />
 
         {/* German Law Rules, Statutory Framework & Legal Precedents */}
         <RulesExplainer />

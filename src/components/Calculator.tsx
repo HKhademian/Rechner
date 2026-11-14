@@ -3,11 +3,12 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import CalculatorPeriodControl from "#components/CalculatorPeriodControl";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
+import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
 import "./Calculator.css";
 
@@ -21,6 +22,7 @@ export default function Calculator(): JSX.Element {
           <CalculatorPeriodControl />
         </header>
         <ComparisonTable />
+        <ParameterObserverSection />
       </main>
       <footer className="source-revision-footer">
         <SourceRevision />
