@@ -13,7 +13,7 @@
  */
 
 import {
-  formatEur,
+  formatEurCents,
 } from "#utils/currencyFormat";
 import {
   type PregnancyAction,
@@ -126,7 +126,7 @@ export function importStateFromJson(
  * Formats Euro currency for text reports.
  */
 function fmtEur(amount: number): string {
-  return formatEur(amount || 0, 2);
+  return formatEurCents(amount || 0);
 }
 
 /**
