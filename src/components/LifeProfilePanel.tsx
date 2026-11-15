@@ -237,25 +237,36 @@ export default function LifeProfilePanel({
                   checked={profile.hasPartner}
                   onChange={(event) => updateLifeProfileField("hasPartner", event.currentTarget.checked)}
                 />
-                <span>Joint Partner Income</span>
+                <span>Include Partner Income</span>
               </label>
               {profile.hasPartner && (
-                <label className="life-profile-panel__field" for="lp-gross-partner">
-                  <span>Partner Annual Gross (EUR)</span>
-                  <input
-                    id="lp-gross-partner"
-                    type="number"
-                    min={0}
-                    step={1000}
-                    value={profile.partnerAnnualGrossEur}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateLifeProfileField("partnerAnnualGrossEur", toGrossSalary(num));
-                      }
-                    }}
-                  />
-                </label>
+                <>
+                  <label className="life-profile-panel__checkbox" for="lp-married-joint">
+                    <input
+                      id="lp-married-joint"
+                      type="checkbox"
+                      checked={profile.isMarriedJointAssessment}
+                      onChange={(event) => updateLifeProfileField("isMarriedJointAssessment", event.currentTarget.checked)}
+                    />
+                    <span>Married / Registered Partners (§ 26 EStG splitting)</span>
+                  </label>
+                  <label className="life-profile-panel__field" for="lp-gross-partner">
+                    <span>Partner Annual Gross (EUR)</span>
+                    <input
+                      id="lp-gross-partner"
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={profile.partnerAnnualGrossEur}
+                      onInput={(event) => {
+                        const num = Number(event.currentTarget.value);
+                        if (Number.isFinite(num) && num >= 0) {
+                          updateLifeProfileField("partnerAnnualGrossEur", toGrossSalary(num));
+                        }
+                      }}
+                    />
+                  </label>
+                </>
               )}
               <label className="life-profile-panel__field" for="lp-children">
                 <span>Dependent Children</span>

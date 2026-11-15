@@ -144,8 +144,9 @@ export function evaluateUnifiedLifeProfile(
 
   let estimatedAnnualIncomeTaxEur: EuroAmount;
   let isKinderfreibetragFavorable = false;
+  const isJointSpousalHousehold = profile.hasPartner && profile.isMarriedJointAssessment;
 
-  if (profile.hasPartner) {
+  if (isJointSpousalHousehold) {
     const splitTax = evaluateJointSplittingTaxInContext(
       {
         primarySpouseTaxableIncome: primaryZvE,
@@ -158,6 +159,25 @@ export function evaluateUnifiedLifeProfile(
       lawIdSet.add(id);
     }
     for (const id of splitTax.audit.consumedParameterIds) {
+      parameterIdSet.add(id);
+    }
+  }
+  else if (profile.hasPartner) {
+    const primaryTax = evaluateAnnualIncomeTaxInContext(
+      { annualTaxableIncome: primaryZvE },
+      context,
+    );
+    const partnerTax = evaluateAnnualIncomeTaxInContext(
+      { annualTaxableIncome: partnerZvE },
+      context,
+    );
+    estimatedAnnualIncomeTaxEur = toEuroAmount(
+      roundToCent(primaryTax.value + partnerTax.value),
+    );
+    for (const id of [...primaryTax.audit.governingLawIds, ...partnerTax.audit.governingLawIds]) {
+      lawIdSet.add(id);
+    }
+    for (const id of [...primaryTax.audit.consumedParameterIds, ...partnerTax.audit.consumedParameterIds]) {
       parameterIdSet.add(id);
     }
   }
@@ -175,7 +195,7 @@ export function evaluateUnifiedLifeProfile(
     }
   }
 
-  if (profile.dependentChildrenCount > 0) {
+  if (isJointSpousalHousehold && profile.dependentChildrenCount > 0) {
     const favorability = evaluateChildAllowanceFavorabilityInContext(
       {
         jointAnnualTaxableIncome: estimatedTaxableIncomeZvEEur,
@@ -202,11 +222,14 @@ export function evaluateUnifiedLifeProfile(
 
   // Statutory Employee Payroll (Net Pay) projection
   const taxRules = createTaxRulesFromContext(context, profile.planningYear);
-  const primaryTaxClass = profile.hasPartner
+  const primaryTaxClass = isJointSpousalHousehold
     ? TaxClass.IV
-    : profile.dependentChildrenCount > 0
-      ? TaxClass.II
-      : TaxClass.I;
+    : profile.hasPartner
+      ? TaxClass.I
+      : profile.dependentChildrenCount > 0
+        ? TaxClass.II
+        : TaxClass.I;
+  const partnerTaxClass = isJointSpousalHousehold ? TaxClass.IV : TaxClass.I;
   const payrollOptions = {
     isParent: profile.dependentChildrenCount > 0,
     ageAtYearStart: toAgeYears(profile.applicantAgeYears),
@@ -223,7 +246,7 @@ export function evaluateUnifiedLifeProfile(
   const partnerPayroll = profile.hasPartner
     ? computeGrossToNetBreakdown(
       toGrossSalary(profile.partnerAnnualGrossEur / 12),
-      TaxClass.IV,
+      partnerTaxClass,
       profile.dependentChildrenCount,
       undefined,
       undefined,
@@ -402,11 +425,13 @@ export function evaluateUnifiedLifeProfile(
       isKinderfreibetragFavorable,
     }),
     householdPayroll: Object.freeze({
-      appliedTaxClassLabel: profile.hasPartner
+      appliedTaxClassLabel: isJointSpousalHousehold
         ? "Class IV / IV"
-        : primaryTaxClass === TaxClass.II
-          ? "Class II"
-          : "Class I",
+        : profile.hasPartner
+          ? "Class I / I (unmarried)"
+          : primaryTaxClass === TaxClass.II
+            ? "Class II"
+            : "Class I",
       primaryMonthlyNetEur,
       partnerMonthlyNetEur,
       householdMonthlyNetEur,

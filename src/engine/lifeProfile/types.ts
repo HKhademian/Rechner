@@ -53,6 +53,7 @@ export interface UnifiedLifeProfile {
   readonly federalState: GermanFederalState;
   readonly primaryAnnualGrossEur: GrossSalary;
   readonly hasPartner: boolean;
+  readonly isMarriedJointAssessment: boolean;
   readonly partnerAnnualGrossEur: GrossSalary;
   readonly dependentChildrenCount: number;
   readonly applicantAgeYears: number;
@@ -87,6 +88,7 @@ export function createDefaultUnifiedLifeProfile(): UnifiedLifeProfile {
     federalState: FederalStates.NordrheinWestfalen,
     primaryAnnualGrossEur: toGrossSalary(65000),
     hasPartner: true,
+    isMarriedJointAssessment: true,
     partnerAnnualGrossEur: toGrossSalary(42000),
     dependentChildrenCount: 1,
     applicantAgeYears: 33,
@@ -170,6 +172,10 @@ export function parseUnifiedLifeProfile(raw: unknown): UnifiedLifeProfile {
       readFiniteNonNegative(obj.primaryAnnualGrossEur, defaults.primaryAnnualGrossEur),
     ),
     hasPartner: readBoolean(obj.hasPartner, defaults.hasPartner),
+    isMarriedJointAssessment: readBoolean(
+      obj.isMarriedJointAssessment,
+      defaults.isMarriedJointAssessment,
+    ),
     partnerAnnualGrossEur: toGrossSalary(
       readFiniteNonNegative(obj.partnerAnnualGrossEur, defaults.partnerAnnualGrossEur),
     ),

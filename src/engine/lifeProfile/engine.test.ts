@@ -97,4 +97,26 @@ describe("Unified General Life & Support Input Engine", () => {
     assert.equal(capped.parentalLeave.incomeCapExceeded, true);
     assert.equal(capped.parentalLeave.primaryBasiselterngeldMonthlyEur, 0);
   });
+
+  it("evaluates unmarried cohabiting partners with Class I / I and separate individual tax bases", () => {
+    const context = createStatutoryCalculationContext({ calendarYear: toFullCalendarYear(2026) });
+    const married = parseUnifiedLifeProfile({
+      primaryAnnualGrossEur: 90000,
+      partnerAnnualGrossEur: 20000,
+      hasPartner: true,
+      isMarriedJointAssessment: true,
+      dependentChildrenCount: 1,
+    });
+    const unmarried = parseUnifiedLifeProfile({
+      ...married,
+      isMarriedJointAssessment: false,
+    });
+    const marriedResult = evaluateUnifiedLifeProfile(married, context);
+    const unmarriedResult = evaluateUnifiedLifeProfile(unmarried, context);
+
+    assert.equal(marriedResult.householdPayroll.appliedTaxClassLabel, "Class IV / IV");
+    assert.equal(unmarriedResult.householdPayroll.appliedTaxClassLabel, "Class I / I (unmarried)");
+    // Unmarried partners lose the § 26 / § 32a Abs. 5 splitting advantage on unequal incomes
+    assert.ok(unmarriedResult.householdTax.estimatedAnnualIncomeTaxEur > marriedResult.householdTax.estimatedAnnualIncomeTaxEur);
+  });
 });

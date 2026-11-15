@@ -22,6 +22,7 @@ import {
   partnerInputMode,
   partnerState,
   partnerTaxBracket,
+  relationshipStatus,
   state,
   taxBracket,
 } from "#store/calculatorStore";
@@ -35,6 +36,7 @@ import {
   SalaryPeriod,
 } from "#engine/types";
 import {
+  HouseholdRelationship,
   TaxAssessment,
 } from "#engine/tax/taxAssessment";
 import {
@@ -76,12 +78,22 @@ function syncNetPayFromLifeProfile(): void {
       partnerInputMode.value = "yearly";
       partnerGrossIncome.value = lp.partnerAnnualGrossEur;
       partnerState.value = federalStateName;
-      taxBracket.value = "4";
-      partnerTaxBracket.value = "4";
-      assessmentMode.value = TaxAssessment.Joint;
+      if (lp.isMarriedJointAssessment) {
+        relationshipStatus.value = HouseholdRelationship.MarriedOrCivilPartners;
+        taxBracket.value = "4";
+        partnerTaxBracket.value = "4";
+        assessmentMode.value = TaxAssessment.Joint;
+      }
+      else {
+        relationshipStatus.value = HouseholdRelationship.UnmarriedPartners;
+        taxBracket.value = "1";
+        partnerTaxBracket.value = "1";
+        assessmentMode.value = TaxAssessment.Individual;
+      }
     }
     else {
-      taxBracket.value = "1";
+      relationshipStatus.value = HouseholdRelationship.Single;
+      taxBracket.value = lp.dependentChildrenCount > 0 ? "2" : "1";
       assessmentMode.value = TaxAssessment.Individual;
     }
   });
