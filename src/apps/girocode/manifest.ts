@@ -6,13 +6,13 @@ import {
 
 export const giroCodeApp = {
   id: AppId.GiroCode,
-  title: "SEPA GiroCode Generator",
-  description: "Generate EPC069-12 V002 compliant SEPA QR payment codes locally in your browser.",
+  title: "GiroCode Generator",
+  description: "Create scannable SEPA transfer QR codes for invoices and payments.",
   category: CalculatorCategory.Everyday,
   features: [
-    "EPC069-12 V002 & Level M QR",
-    "IBAN MOD-97 & BIC validation",
-    "PNG payment slip & payload export",
+    "Instant IBAN and BIC check",
+    "Ready for German banking apps",
+    "Downloadable PNG payment slip",
   ],
   keywords: [
     "GiroCode",

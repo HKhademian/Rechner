@@ -223,7 +223,7 @@ export default function GiroCodeGenerator(): JSX.Element {
       ctx.fillStyle = "#0F172A";
       ctx.font = "bold 24px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("SEPA GiroCode • EPC069-12", width / 2, 50);
+      ctx.fillText("SEPA GiroCode", width / 2, 50);
 
       const qrSize = 510;
       ctx.drawImage(qrCanvas, (width - qrSize) / 2, 74, qrSize, qrSize);
@@ -297,9 +297,9 @@ export default function GiroCodeGenerator(): JSX.Element {
       <main id="main-content" className="girocode-page" tabIndex={-1}>
         <header className="girocode-header">
           <div>
-            <h1>SEPA GiroCode Generator</h1>
+            <h1>GiroCode Generator</h1>
             <p className="girocode-header__subtitle">
-              Generate SEPA transfer QR codes in your browser.
+              Create scannable SEPA transfer QR codes for invoices and payments.
             </p>
           </div>
           <div className="girocode-header__actions">
@@ -618,13 +618,11 @@ export default function GiroCodeGenerator(): JSX.Element {
                   <ExpandSectionIcon size={16} className="girocode-details__chevron" />
                   <span>Technical details</span>
                 </span>
-                {build.utf8ByteLength > build.maxByteLength
-                  ? (
-                    <span className="badge-loss">
-                      {build.utf8ByteLength} / {build.maxByteLength} B
-                    </span>
-                  )
-                  : <span className="girocode-details__meta">EPC069-12</span>}
+                {build.utf8ByteLength > build.maxByteLength && (
+                  <span className="badge-loss">
+                    {build.utf8ByteLength} / {build.maxByteLength} B
+                  </span>
+                )}
               </summary>
 
               <div className="girocode-details__body">
