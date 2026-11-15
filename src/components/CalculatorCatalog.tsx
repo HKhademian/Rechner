@@ -15,6 +15,7 @@ import {
   type CalculatorCategory,
   AppId,
   calculatorPath,
+  lifeProfilePath,
   toCalculatorCategory,
 } from "#/apps/appDefinition.ts";
 import {
@@ -142,18 +143,20 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
     <Navigation currentPath="/" />
     <main id="main-content" className="ui-page calculator-catalog" tabIndex={-1}>
       <PageHeader
-        eyebrow="Free online calculators"
-        title="Plan your pay, family and everyday finances."
-        subtitle="Clear estimates for German salary, taxes, parental leave and SEPA payment QR codes."
+        eyebrow="Rechner"
+        title="German finance and tax calculators"
+        subtitle="Simple, private estimates for take-home pay, parental leave, taxes, and everyday payments."
         actions={
-          <aside className="calculator-catalog__privacy">
-            <strong>Private by default</strong>
-            <p>No account. Your saved inputs stay in this browser.</p>
-          </aside>
+          <>
+            <span className="badge-neutral">Private · browser only</span>
+            <a href={lifeProfilePath()} className="ui-btn ui-btn--tint">
+              My Life Profile
+            </a>
+          </>
         }
       />
 
-      <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
+      <form className="ui-card calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <label for="calculator-search">Find a calculator
           <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
@@ -166,41 +169,40 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
             onChange={(selected) => update(query.value, selected === "__all__" ? undefined : toCalculatorCategory(String(selected)), 1)}
             options={[
               { value: "__all__",
-                label: "All calculators" },
+                label: "All" },
               ...categories.map((item) => ({ value: item,
                 label: item })),
             ]}
           />
         </div>
-        {(query.value || category.value) && <button type="button" onClick={clear}>Clear filters</button>}
+        {(query.value || category.value) && <button type="button" className="ui-btn" onClick={clear}>Clear filters</button>}
       </form>
 
       <section id="calculator-results" ref={results} tabIndex={-1} aria-labelledby="catalog-results-heading">
         <div className="calculator-catalog__results-heading">
-          <h2 id="catalog-results-heading">Available calculators</h2>
-          <p role="status" aria-live="polite">{page.total} {page.total === 1 ? "calculator" : "calculators"}{page.pages > 1 ? ` · Page ${page.page} of ${page.pages}` : ""}</p>
+          <h2 id="catalog-results-heading">Calculators</h2>
+          <p role="status" aria-live="polite">{page.total} {page.total === 1 ? "tool" : "tools"}{page.pages > 1 ? ` · Page ${page.page} of ${page.pages}` : ""}</p>
         </div>
         <div className="calculator-catalog__grid">
-          {page.items.map((app) => <article key={app.id} className="calculator-catalog__card">
+          {page.items.map((app) => <article key={app.id} className="ui-card calculator-catalog__card">
             <div className="calculator-catalog__card-top"><span className="calculator-catalog__icon" aria-hidden="true">{renderAppIcon(app.id)}</span><span className="calculator-catalog__category">{app.category}</span></div>
             <h3>{app.title}</h3>
             <p>{app.description}</p>
             <ul>{app.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
-            <a href={calculatorPath(app.id)} className="calculator-catalog__open" aria-label={`Open ${app.title}`}>Open calculator</a>
+            <a href={calculatorPath(app.id)} className="ui-btn ui-btn--primary calculator-catalog__open" aria-label={`Open ${app.title}`}>Open</a>
           </article>)}
         </div>
-        {page.total === 0 && <div className="calculator-catalog__empty"><h3>No matching calculators</h3><p>Try another search term or choose a different category.</p><button type="button" onClick={clear}>Show all calculators</button></div>}
+        {page.total === 0 && <div className="ui-card calculator-catalog__empty"><h3>No matching calculators</h3><p>Try another keyword or clear filters.</p><button type="button" className="ui-btn" onClick={clear}>Show all</button></div>}
         {page.pages > 1 && <nav className="calculator-catalog__pagination" aria-label="Calculator catalog pages">
-          <button type="button" disabled={page.page === 1} onClick={() => changePage(page.page - 1)}>Previous</button>
-          {Array.from({ length: page.pages }, (_, index) => <button key={index} type="button" aria-label={`Page ${index + 1}`} aria-current={page.page === index + 1 ? "page" : undefined} onClick={() => changePage(index + 1)}>{index + 1}</button>)}
-          <button type="button" disabled={page.page === page.pages} onClick={() => changePage(page.page + 1)}>Next</button>
+          <button type="button" className="ui-btn" disabled={page.page === 1} onClick={() => changePage(page.page - 1)}>Previous</button>
+          {Array.from({ length: page.pages }, (_, index) => <button key={index} type="button" className={page.page === index + 1 ? "ui-btn ui-btn--tint" : "ui-btn"} aria-label={`Page ${index + 1}`} aria-current={page.page === index + 1 ? "page" : undefined} onClick={() => changePage(index + 1)}>{index + 1}</button>)}
+          <button type="button" className="ui-btn" disabled={page.page === page.pages} onClick={() => changePage(page.page + 1)}>Next</button>
         </nav>}
       </section>
     </main>
     <footer className="calculator-catalog__footer">
-      <p>Check assumptions and sources beside each estimate.</p>
       <p>
-        Law texts:{" "}
+        Law references:{" "}
         <LawRefLink lawId={LawId.BEEG_1} label="BEEG" />
         {" · "}
         <LawRefLink lawId={LawId.EStG_32a} label="EStG" />

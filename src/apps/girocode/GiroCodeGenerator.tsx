@@ -640,36 +640,36 @@ export default function GiroCodeGenerator(): JSX.Element {
 
                 <dl className="girocode-tech-specs">
                   <div>
-                    <dt>Standard</dt>
-                    <dd className="girocode-mono">EPC069-12 V002 · SCT</dd>
+                    <dt>Format</dt>
+                    <dd className="girocode-mono">SEPA Credit Transfer (EPC)</dd>
                   </div>
                   <div>
                     <dt>IBAN check</dt>
                     <dd className="girocode-mono">
                       {build.ibanValidation.status === IbanValidationStatus.Valid
-                        ? "MOD-97 valid"
+                        ? "Valid"
                         : build.ibanValidation.status === IbanValidationStatus.Empty
                           ? "—"
-                          : "MOD-97 invalid"}
+                          : "Invalid"}
                     </dd>
                   </div>
                   <div>
-                    <dt>QR matrix</dt>
+                    <dt>QR size</dt>
                     <dd className="girocode-mono">
-                      {qrModuleCount !== null ? `${qrModuleCount}×${qrModuleCount} · ECC M` : "ECC M · Byte"}
+                      {qrModuleCount !== null ? `${qrModuleCount}×${qrModuleCount}` : "Auto"}
                     </dd>
                   </div>
                   <div>
-                    <dt>Charset</dt>
+                    <dt>Encoding</dt>
                     <dd className="girocode-mono">
-                      {draft.charsetMode === GiroCodeCharsetMode.Utf8 ? "UTF-8 (1)" : "ASCII translit."}
+                      {draft.charsetMode === GiroCodeCharsetMode.Utf8 ? "UTF-8" : "ASCII"}
                     </dd>
                   </div>
                 </dl>
 
                 <div className="girocode-payload-block">
                   <div className="girocode-field__top">
-                    <span>EPC069-12 Payload</span>
+                    <span>Transfer text preview</span>
                     <div className="girocode-field__actions">
                       <span className={build.utf8ByteLength > build.maxByteLength ? "badge-loss" : "badge-neutral"}>
                         {build.utf8ByteLength} / {build.maxByteLength} B

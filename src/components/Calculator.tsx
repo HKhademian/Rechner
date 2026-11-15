@@ -24,9 +24,9 @@ export default function Calculator(): JSX.Element {
       <Navigation currentPath={calculatorPath(AppId.NetPay)} />
       <main id="main-content" className="ui-page ui-page--wide" tabIndex={-1}>
         <PageHeader
-          eyebrow="Income & Payroll · EStG / SGB"
-          title="German Net Pay Calculator"
-          subtitle="Calculate your net take-home pay, income tax, and social contributions, then compare scenarios."
+          eyebrow="Salary & Payroll"
+          title="Net Pay Calculator"
+          subtitle="Calculate your net take-home pay and compare what-if scenarios."
           actions={<CalculatorPeriodControl />}
         />
         <NetPayWorkspace />
