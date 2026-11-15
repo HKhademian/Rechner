@@ -8,7 +8,6 @@ import type {
 import CalculatorPeriodControl from "#components/CalculatorPeriodControl";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
-import NetPayWorkspace from "#components/NetPayWorkspace";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
 import {
@@ -26,10 +25,9 @@ export default function Calculator(): JSX.Element {
         <PageHeader
           eyebrow="Salary & Payroll"
           title="Net Pay Calculator"
-          subtitle="Calculate your net take-home pay and compare what-if scenarios."
+          subtitle="Edit your live salary and household setup beside saved scenarios to compare take-home pay side by side."
           actions={<CalculatorPeriodControl />}
         />
-        <NetPayWorkspace />
         <ComparisonTable />
         <ParameterObserverSection embedded projectionProfile={FormProjectionProfileId.NetPayFocus} />
       </main>
