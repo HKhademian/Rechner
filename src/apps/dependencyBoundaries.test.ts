@@ -80,8 +80,10 @@ it("catalog and app entries cannot initialize another calculator's financial sto
   ];
 
   const catalog = runtimeDependencies("src/components/CalculatorCatalog.tsx");
+  const profileSummary = runtimeDependencies("src/components/LifeProfileSummaryPage.tsx");
   for (const store of allAppStores) {
     assert.equal(catalog.has(store), false, `Catalog imports ${store}`);
+    assert.equal(profileSummary.has(store), false, `LifeProfileSummaryPage imports ${store}`);
   }
 
   const entryOwnStores: readonly [string, readonly string[]][] = [

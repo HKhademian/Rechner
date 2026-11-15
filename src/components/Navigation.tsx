@@ -14,6 +14,7 @@ import {
   calculatorPath,
   lawCatalogPath,
   lawDetailPath,
+  lifeProfilePath,
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
@@ -31,14 +32,17 @@ export interface NavigationProps {
   currentPath?: string;
 }
 
-/** A catalog link, law reference directory link, and active calculator nav item. */
+/** A catalog link, Life Profile summary link, law reference directory link, and active calculator nav item. */
 export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.Element {
   const app = calculatorAtPath(currentPath);
   const home = currentPath === "/" || currentPath === "";
   const lawsBasePath = lawCatalogPath().replace(/\/+$/, "");
+  const profileBasePath = lifeProfilePath().replace(/\/+$/, "");
   const normalizedCurrent = currentPath.replace(/\/+$/, "");
   const onLawsPage = normalizedCurrent === lawsBasePath ||
     normalizedCurrent.startsWith(`${lawsBasePath}/`);
+  const onProfilePage = normalizedCurrent === profileBasePath ||
+    normalizedCurrent.startsWith(`${profileBasePath}/`);
   let defaultLawId: LawId = LawId.EStG_32a;
   if (app?.id === AppId.ParentalLeave) {
     defaultLawId = LawId.BEEG_1;
@@ -68,6 +72,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
         <nav aria-label="Main navigation" className="calculator-navigation__links">
           <a href={sitePath("/")} aria-current={home ? "page" : undefined}>All calculators</a>
           {app && <a href={calculatorPath(app.id)} aria-current="page">{app.title}</a>}
+          <a href={lifeProfilePath()} aria-current={onProfilePage ? "page" : undefined}>Life Profile</a>
           <a href={lawCatalogPath()} aria-current={onLawsPage ? "page" : undefined}>Laws &amp; Rules</a>
         </nav>
         <div className="calculator-navigation__preferences">

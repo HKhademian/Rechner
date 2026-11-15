@@ -8,6 +8,7 @@ import {
 import {
   AppId,
   calculatorPath,
+  lifeProfilePath,
 } from "#/apps/appDefinition.ts";
 import {
   CollapseSectionIcon,
@@ -56,12 +57,20 @@ function formatEur(value: number): string {
   }).format(value);
 }
 
+export interface LifeProfilePanelProps {
+  readonly defaultExpanded?: boolean;
+  readonly showSummaryLink?: boolean;
+}
+
 /**
- * Shared Unified General Life & Support Input Engine panel for the main catalog.
+ * Shared Unified General Life & Support Input Engine panel for the main catalog and `/profile/` hub.
  * Imports ONLY the isolated `lifeProfileStore` and never any calculator-private store.
  */
-export default function LifeProfilePanel(): JSX.Element {
-  const [expanded, setExpanded] = useState(false);
+export default function LifeProfilePanel({
+  defaultExpanded = false,
+  showSummaryLink = true,
+}: LifeProfilePanelProps = {}): JSX.Element {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const profile = unifiedLifeProfile.value;
   const overview = unifiedLifeOverview.value;
 
@@ -87,6 +96,11 @@ export default function LifeProfilePanel(): JSX.Element {
           </div>
         </div>
         <div className="life-profile-panel__controls">
+          {showSummaryLink && (
+            <a className="life-profile-panel__summary-link" href={lifeProfilePath()}>
+              <span>Full 6-Calculator Summary</span>
+            </a>
+          )}
           <button
             type="button"
             className="life-profile-panel__toggle"
@@ -111,14 +125,14 @@ export default function LifeProfilePanel(): JSX.Element {
       <div className="life-profile-panel__summary-strip">
         <div className="life-profile-panel__kpi">
           <span className="life-profile-panel__kpi-label">
-            <span>Combined Tax &amp; Kindergeld</span>
+            <span>Household Net &amp; Kindergeld</span>
             <LawRefLink lawId={LawId.EStG_32a} label="§ 32a" variant="badge" />
           </span>
           <span className="life-profile-panel__kpi-value">
-            {formatEur(overview.householdTax.estimatedAnnualIncomeTaxEur)} tax · {formatEur(overview.householdTax.annualKindergeldEur)} Kindergeld
+            {formatEur(overview.householdPayroll.householdMonthlyNetEur)}/mo net · {formatEur(overview.householdTax.annualKindergeldEur)}/yr Kindergeld
           </span>
           <span className="life-profile-panel__kpi-note">
-            Household gross {formatEur(overview.householdTax.combinedGrossAnnualEur)}/yr
+            Gross {formatEur(overview.householdTax.combinedGrossAnnualEur)}/yr · Tax {formatEur(overview.householdTax.estimatedAnnualIncomeTaxEur)}/yr
           </span>
         </div>
 

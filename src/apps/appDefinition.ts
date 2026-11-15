@@ -49,6 +49,11 @@ export function calculatorPath(id: CalculatorAppDefinition["id"]): string {
   return sitePath(`/calculators/${id}/`);
 }
 
+/** Canonical base path for the full interactive Unified Life Profile & Cross-Calculator Summary page. */
+export function lifeProfilePath(): string {
+  return sitePath("/profile/");
+}
+
 /** Canonical base path for the full interactive Law Reference Directory page. */
 export function lawCatalogPath(): string {
   return sitePath("/laws/");

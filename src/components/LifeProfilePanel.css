@@ -59,7 +59,8 @@
 }
 
 .life-profile-panel__toggle,
-.life-profile-panel__reset {
+.life-profile-panel__reset,
+.life-profile-panel__summary-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -72,7 +73,14 @@
   font: inherit;
   font-size: 0.85rem;
   font-weight: 650;
+  text-decoration: none;
   cursor: pointer;
+}
+
+.life-profile-panel__summary-link {
+  border-color: var(--color-gain);
+  background: var(--color-gain-bg);
+  color: var(--color-gain);
 }
 
 .life-profile-panel__toggle {
