@@ -1,4 +1,7 @@
 import {
+  formatEurOrUnavailable,
+} from "#utils/currencyFormat";
+import {
   DEFAULT_TIMELINE_CONVENTIONS,
 } from "#engine/config/timelineConventions";
 import {
@@ -72,8 +75,7 @@ export default function RulesExplainer(): JSX.Element {
   const current = currentScenarioData.value;
   const benefits = current.configuration?.benefitRules ?? DEFAULT_BENEFIT_RULES;
   const conventions = current.configuration?.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS;
-  const money = (value: number | undefined) => value === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", { style: "currency",
-    currency: "EUR" }).format(value);
+  const money = (value: number | undefined) => formatEurOrUnavailable(value, 2);
   const rules: readonly RuleItem[] = [
     {
       key: LegalRuleKey.BEEG_TaxSwap,

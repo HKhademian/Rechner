@@ -1,3 +1,6 @@
+import {
+  formatEur as formatSharedEur,
+} from "#utils/currencyFormat";
 import "./LifeProfilePanel.css";
 import {
   type JSX,
@@ -50,11 +53,7 @@ import {
 } from "#store/lifeProfileStore";
 
 function formatEur(value: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatSharedEur(value);
 }
 
 export interface LifeProfilePanelProps {

@@ -13,6 +13,9 @@
  */
 
 import {
+  formatEur,
+} from "#utils/currencyFormat";
+import {
   type PregnancyAction,
   type TaxClassSwitchAction,
   type WorkingHoursChangeAction,
@@ -123,11 +126,7 @@ export function importStateFromJson(
  * Formats Euro currency for text reports.
  */
 function fmtEur(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(amount || 0);
+  return formatEur(amount || 0, 2);
 }
 
 /**

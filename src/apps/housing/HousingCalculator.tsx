@@ -37,16 +37,15 @@ import {
   FormProjectionProfileId,
 } from "#engine/parameters/projections";
 import {
+  formatEur as formatSharedEur,
+} from "#utils/currencyFormat";
+import {
   toEuroAmount,
   toPercentageRate,
 } from "#engine/types";
 
 function formatEur(value: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatSharedEur(value);
 }
 
 export default function HousingCalculator(): JSX.Element {

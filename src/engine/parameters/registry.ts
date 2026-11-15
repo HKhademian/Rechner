@@ -1,3 +1,6 @@
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import benefitIncomeLimitsJson from "../../data/benefitIncomeLimits.json" with { type: "json" };
 import benefitRulesJson from "../../data/benefitRules.json" with { type: "json" };
 import childcareRulesJson from "../../data/childcareRules.json" with { type: "json" };
@@ -2000,11 +2003,7 @@ export function formatParameterValue(
 ): string {
   switch (unit) {
     case ParameterUnit.MoneyEur:
-      return new Intl.NumberFormat("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
-      }).format(value);
+      return formatEur(value, Number.isInteger(value) ? 0 : 2);
     case ParameterUnit.PercentageRate:
       return `${(value * 100).toLocaleString("en-US", {
         minimumFractionDigits: 0,

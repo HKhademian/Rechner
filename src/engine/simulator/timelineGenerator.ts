@@ -1,4 +1,7 @@
 import {
+  formatEurCents,
+} from "#utils/currencyFormat";
+import {
   assessCoupleBenefitIncome,
 } from "#engine/benefits/incomeEligibility";
 import {
@@ -1432,8 +1435,7 @@ function generateScenario(
     salaryRaises.forEach((sr) => {
       const eff = sr.effectiveSimulationMonth;
       if (m === eff) {
-        const gross = (value: GrossSalary): string => new Intl.NumberFormat("de-DE", { style: "currency",
-          currency: "EUR" }).format(value);
+        const gross = (value: GrossSalary): string => formatEurCents(value);
         const replacement = sr.newHusbandGross !== undefined || sr.newWifeGross !== undefined;
         const salaryLabel = replacement
           ? [sr.newHusbandGross === undefined ? undefined : `Husband ${gross(sr.newHusbandGross)} gross/month`,

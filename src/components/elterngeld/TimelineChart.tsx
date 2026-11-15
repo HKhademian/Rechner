@@ -1,3 +1,6 @@
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import type {
   JSX, 
 } from "preact";
@@ -29,11 +32,7 @@ import {
 } from "#engine/types";
 
 function formatCurrency(amount: number, maximumFractionDigits = 0): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits,
-  }).format(amount || 0);
+  return formatEur(amount || 0, maximumFractionDigits);
 }
 
 /**

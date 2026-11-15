@@ -1,3 +1,6 @@
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import "./SandboxControls.css";
 import SalaryChangeEditor from "./SalaryChangeEditor";
 import HouseholdIncomeInputs from "#components/HouseholdIncomeInputs";
@@ -178,11 +181,7 @@ import {
 } from "#components/Icons";
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
+  return formatEur(amount || 0);
 }
 
 function formatWorkingTime(hours: number): string {

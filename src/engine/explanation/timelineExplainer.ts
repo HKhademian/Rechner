@@ -1,4 +1,8 @@
 import {
+  formatEur,
+  formatEurCents,
+} from "#utils/currencyFormat";
+import {
   createTaxRules,
 } from "#engine/tax/taxRules";
 import {
@@ -36,11 +40,7 @@ import {
 } from "#store/elterngeldStore";
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
+  return formatEur(amount || 0);
 }
 
 /**
@@ -163,10 +163,7 @@ export interface RowExplanation {
 }
 
 function formatTaxAmount(amount: number): string {
-  return new Intl.NumberFormat("de-DE", { style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2 }).format(amount);
+  return formatEurCents(amount);
 }
 
 /** Explain stored assessment evidence; descriptive prose is never a financial data source. */

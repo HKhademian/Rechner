@@ -1,4 +1,7 @@
 import {
+  formatEur,
+} from "#utils/currencyFormat";
+import {
   useState, 
 } from "preact/hooks";
 import {
@@ -1098,11 +1101,7 @@ export function DataExportImportModal() {
                           color: "var(--text-primary)",
                         }}
                       >
-                        {new Intl.NumberFormat("de-DE", {
-                          style: "currency",
-                          currency: "EUR",
-                          maximumFractionDigits: 0,
-                        }).format(importResult.state.husbandGross)}
+                        {formatEur(importResult.state.husbandGross)}
                       </div>
                       <div
                         style={{
@@ -1138,11 +1137,7 @@ export function DataExportImportModal() {
                           color: "var(--text-primary)",
                         }}
                       >
-                        {new Intl.NumberFormat("de-DE", {
-                          style: "currency",
-                          currency: "EUR",
-                          maximumFractionDigits: 0,
-                        }).format(importResult.state.wifeGross)}
+                        {formatEur(importResult.state.wifeGross)}
                       </div>
                       <div
                         style={{

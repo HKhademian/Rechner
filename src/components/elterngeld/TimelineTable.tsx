@@ -47,6 +47,9 @@ import {
   InformationalNoticeIcon,
   StepTransitionIcon,
 } from "#components/Icons";
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import FieldExplainerModal from "./FieldExplainerModal";
 import RowExplainerModal from "./RowExplainerModal";
 import {
@@ -61,11 +64,7 @@ import {
 } from "#engine/explanation/timelineExplainer";
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
+  return formatEur(amount || 0);
 }
 
 export default function TimelineTable(): JSX.Element {

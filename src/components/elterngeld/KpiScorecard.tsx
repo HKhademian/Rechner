@@ -1,3 +1,6 @@
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import CalculationStatus from "./CalculationStatus";
 import type {
   JSX,
@@ -17,11 +20,7 @@ import {
 } from "#components/Icons";
 
 function formatCurrency(amount: number, maximumFractionDigits = 0): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits,
-  }).format(amount || 0);
+  return formatEur(amount || 0, maximumFractionDigits);
 }
 
 export default function KpiScorecard(): JSX.Element {

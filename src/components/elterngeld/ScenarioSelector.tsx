@@ -3,6 +3,9 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  formatEur,
+} from "#utils/currencyFormat";
+import {
   plannerCalculationLabels,
 } from "#utils/plannerCalculationLabels";
 import "./ScenarioSelector.css";
@@ -26,11 +29,7 @@ import {
 } from "#components/Icons";
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
+  return formatEur(amount || 0);
 }
 
 /**

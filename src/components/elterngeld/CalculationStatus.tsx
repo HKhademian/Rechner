@@ -1,4 +1,7 @@
 import {
+  formatEur,
+} from "#utils/currencyFormat";
+import {
   plannerCalculationLabels,
 } from "#utils/plannerCalculationLabels";
 import "./CalculationStatus.css";
@@ -11,11 +14,7 @@ import {
 } from "#engine/types";
 
 function formatTaxCurrency(amount: EuroAmount): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return formatEur(amount, 2);
 }
 
 

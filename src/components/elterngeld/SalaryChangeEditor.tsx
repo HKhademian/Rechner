@@ -1,3 +1,6 @@
+import {
+  formatEurCents,
+} from "#utils/currencyFormat";
 import "./SalaryChangeEditor.css";
 import {
   type JSX,
@@ -86,8 +89,7 @@ export default function SalaryChangeEditor({ action, index }: { action: SalaryRa
           }
           patch(husband ? { newHusbandGross: gross } : { newWifeGross: gross });
         }} />
-      <small>At initial {husband ? husbandHours.value : wifeInitialHours.value} h/week. Annual base (12 regular payments): {new Intl.NumberFormat("de-DE", { style: "currency",
-        currency: "EUR" }).format((value ?? 0) * 12)}.</small>
+      <small>At initial {husband ? husbandHours.value : wifeInitialHours.value} h/week. Annual base (12 regular payments): {formatEurCents((value ?? 0) * 12)}.</small>
     </div>;
   };
   return (
