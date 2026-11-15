@@ -1,4 +1,5 @@
 import {
+  batch,
   computed,
   signal,
 } from "@preact/signals";
@@ -28,6 +29,7 @@ import {
 } from "#store/lifeProfileStore";
 import {
   activeStatutoryContext,
+  setParameterYear,
 } from "#store/parameterStore";
 
 export interface HousingCalculatorState {
@@ -167,21 +169,24 @@ export function updateHousingField<K extends keyof HousingCalculatorState>(
 
 export function syncHousingFromLifeProfile(): void {
   const lp = unifiedLifeProfile.value;
-  const overview = unifiedLifeOverview.value;
-  const next = parseHousingState({
-    ...housingState.value,
-    purchasePriceEur: lp.targetPropertyPriceEur,
-    availableEquityEur: lp.availableEquityEur,
-    federalState: lp.federalState,
-    includesBrokerCommission: lp.includesBrokerCommission,
-    isOwnerOccupiedNewBuildOrKfw300Standard: lp.isKfw300NewBuild,
-    isQngPlusCertified: lp.isQngPlusCertified,
-    dependentChildrenCount: lp.dependentChildrenCount,
-    priorAverageHouseholdZvEEur: overview.householdTax.estimatedTaxableIncomeZvEEur,
-    renovationLaborCostEur: lp.annualRenovationLaborEur,
+  batch(() => {
+    setParameterYear(lp.planningYear);
+    const overview = unifiedLifeOverview.value;
+    const next = parseHousingState({
+      ...housingState.value,
+      purchasePriceEur: lp.targetPropertyPriceEur,
+      availableEquityEur: lp.availableEquityEur,
+      federalState: lp.federalState,
+      includesBrokerCommission: lp.includesBrokerCommission,
+      isOwnerOccupiedNewBuildOrKfw300Standard: lp.isKfw300NewBuild,
+      isQngPlusCertified: lp.isQngPlusCertified,
+      dependentChildrenCount: lp.dependentChildrenCount,
+      priorAverageHouseholdZvEEur: overview.householdTax.estimatedTaxableIncomeZvEEur,
+      renovationLaborCostEur: lp.annualRenovationLaborEur,
+    });
+    housingState.value = next;
+    housingAppStorage.setItem(HOUSING_STORAGE_KEY, JSON.stringify(next));
   });
-  housingState.value = next;
-  housingAppStorage.setItem(HOUSING_STORAGE_KEY, JSON.stringify(next));
 }
 
 export function resetHousingCalculator(): void {

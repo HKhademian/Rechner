@@ -13,13 +13,15 @@ import {
   syncHousingFromLifeProfile,
   updateHousingField,
 } from "#/apps/housing/housingStore.ts";
+import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
   HomeAcquisitionIcon,
-  ResetDefaultsIcon,
   StatutoryLimitationWarningIcon,
-  SyncProfileActionIcon,
 } from "#components/Icons";
+import {
+  unifiedLifeProfile,
+} from "#store/lifeProfileStore";
 import LawRefLink from "#components/laws/LawRefLink";
 import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
@@ -66,24 +68,16 @@ export default function HousingCalculator(): JSX.Element {
               Evaluate Grunderwerbsteuer across all 16 Bundesländer (§ 11 GrEStG), closing expenses, KfW 300 subsidized family credit limits, and § 35a craftsmanship tax relief.
             </p>
           </div>
-          <div className="domain-calc-header__actions">
-            <button
-              type="button"
-              className="domain-calc-btn domain-calc-btn--primary"
-              onClick={syncHousingFromLifeProfile}
-            >
-              <SyncProfileActionIcon size={15} />
-              <span>Sync from Shared Life Profile</span>
-            </button>
-            <button
-              type="button"
-              className="domain-calc-btn"
-              onClick={resetHousingCalculator}
-            >
-              <ResetDefaultsIcon size={14} />
-              <span>Reset Defaults</span>
-            </button>
-          </div>
+          <DomainCalculatorHeaderActions
+            onSyncLifeProfile={syncHousingFromLifeProfile}
+            onResetDefaults={resetHousingCalculator}
+            syncTooltip="Populate planning year, federal state, property price, equity, children, household ZvE, KfW 300 options, and craftsmanship labor from the Unified Life Profile"
+            inactiveInLifeProfileMessage={
+              unifiedLifeProfile.value.plansHomePurchase
+                ? undefined
+                : "Home acquisition is currently toggled off in Life Profile"
+            }
+          />
         </header>
 
         <div className="domain-calc-layout">
