@@ -250,8 +250,8 @@ export default function TimelineTable(): JSX.Element {
             }}
           >
             {scenario === SimulationStrategy.StatutoryOptimized && showDelta
-              ? "Showing actual cash flow with colored per-column reference diffs vs. Unoptimized Baseline (Green +, Red -, Muted 0)."
-              : "Base monthly salaries & statutory benefits cleanly separated from annual 13th salary chunks and tax refunds."}
+              ? "Actual cash flow with differences compared to the unoptimized baseline."
+              : "Monthly take-home salary, parental benefits, annual bonuses, and tax refunds."}
           </p>
         </div>
 
@@ -268,99 +268,40 @@ export default function TimelineTable(): JSX.Element {
           {scenario === SimulationStrategy.StatutoryOptimized && (
             <button
               type="button"
+              className={`ui-btn ui-btn--sm${showDelta ? " ui-btn--tint" : ""}`}
               onClick={() => setShowDelta(!showDelta)}
-              style={{
-                padding: "6px 12px",
-                borderRadius: "var(--border-radius-sm)",
-                border: showDelta
-                  ? "1px solid var(--color-primary)"
-                  : "1px solid var(--border-subtle)",
-                background: showDelta
-                  ? "var(--color-primary-bg)"
-                  : "var(--bg-surface-secondary)",
-                color: showDelta ? "var(--color-primary)" : "var(--text-muted)",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                transition: "var(--transition)",
-              }}
             >
-              <span
-                style={{
-                  width: "7px",
-                  height: "7px",
-                  borderRadius: "50%",
-                  backgroundColor: showDelta
-                    ? "var(--color-primary)"
-                    : "var(--text-muted)",
-                }}
-              ></span>
-              {showDelta
-                ? "Per-Column Diff (vs. B): ON"
-                : "Per-Column Diff (vs. B): OFF"}
+              {showDelta ? "Diff vs Baseline: ON" : "Diff vs Baseline: OFF"}
             </button>
           )}
 
           {/* Special Events Row Toggle */}
           <button
             type="button"
+            className={`ui-btn ui-btn--sm${isSpecialRowsActive ? " ui-btn--tint" : ""}`}
             onClick={() => {
               showSpecialEventRows.value = !showSpecialEventRows.value;
             }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "var(--border-radius-sm)",
-              border: isSpecialRowsActive
-                ? "1px solid var(--color-primary)"
-                : "1px solid var(--border-subtle)",
-              background: isSpecialRowsActive
-                ? "var(--color-primary-bg)"
-                : "var(--bg-surface-secondary)",
-              color: isSpecialRowsActive
-                ? "var(--color-primary)"
-                : "var(--text-muted)",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              transition: "var(--transition)",
-            }}
           >
-            <span
-              style={{
-                width: "7px",
-                height: "7px",
-                borderRadius: "50%",
-                backgroundColor: isSpecialRowsActive
-                  ? "var(--color-primary)"
-                  : "var(--text-muted)",
-              }}
-            ></span>
-
-            {isSpecialRowsActive
-              ? "Special Rows: Separate"
-              : "Special Rows: Combined"}
+            {isSpecialRowsActive ? "Special Rows: Separate" : "Special Rows: Combined"}
           </button>
 
           {/* Search box */}
           <input
             type="text"
+            aria-label="Filter phase, event, or month"
             placeholder="Filter phase, event, month..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+            className="ui-number-box__input"
             style={{
-              padding: "6px 12px",
+              height: "34px",
+              padding: "0 12px",
               borderRadius: "var(--border-radius-sm)",
               border: "1px solid var(--border-medium)",
               background: "var(--bg-surface)",
-              color: "var(--text-primary)",
-              fontSize: "0.78rem",
-              width: "180px",
+              fontSize: "0.8rem",
+              width: "190px",
             }}
           />
 
@@ -368,47 +309,28 @@ export default function TimelineTable(): JSX.Element {
           <select
             aria-label="Ledger simulation year"
             value={availableYear ?? "all"}
+            className="ui-select ui-select--compact"
             onChange={(e) => {
               const value = e.currentTarget.value;
               setSelectedYear(value === "all" ? null : toCalendarYear(Number(value)));
             }}
             style={{
-              padding: "6px 10px",
-              borderRadius: "var(--border-radius-sm)",
-              border: "1px solid var(--border-medium)",
-              background: "var(--bg-surface)",
-              color: "var(--text-primary)",
-              fontSize: "0.78rem",
-              width: "230px",
+              width: "220px",
               maxWidth: "100%",
             }}
           >
             <option value="all">All years</option>
             {years.map((year) => {
               const months = current.months.filter((month) => month.year === year);
-              return <option key={year} value={year}>Year {year} (Sim Months {months[0]?.month}–{months.at(-1)?.month})</option>;
+              return <option key={year} value={year}>Year {year} (Months {months[0]?.month}–{months.at(-1)?.month})</option>;
             })}
           </select>
 
           {/* Export CSV button */}
           <button
             type="button"
+            className="ui-btn ui-btn--sm"
             onClick={exportCSV}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "var(--border-radius-sm)",
-              border: "1px solid var(--border-subtle)",
-              background: "var(--bg-surface-secondary)",
-              color: "var(--text-primary)",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              boxShadow: "var(--shadow-sm)",
-              transition: "var(--transition)",
-            }}
           >
             <ExportDataIcon size={14} />
             <span>Export CSV</span>

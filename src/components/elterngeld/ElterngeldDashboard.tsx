@@ -95,7 +95,7 @@ export default function ElterngeldDashboard(): JSX.Element {
       {/* Main Content Area */}
       <main id="main-content" className="ui-page ui-page--wide" tabIndex={-1} style={{ flex: 1 }}>
         <PageHeader
-          eyebrow="Household planning · BEEG / MuSchG / EStG"
+          eyebrow="Parental Leave · BEEG & EStG"
           title="Parental Leave Planner"
           subtitle="Start with your household and planned leave below, then compare the calculated results."
           actions={

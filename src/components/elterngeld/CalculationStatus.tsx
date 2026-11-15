@@ -35,15 +35,15 @@ export default function CalculationStatus({ result }: { result: SimulationResult
       <dl className="calculation-status__overview">
         <div>
           <dt>Benefits</dt>
-          <dd className={missingBenefits ? "calculation-status__warning" : ""}>{missingBenefits ? "Incomplete" : "Modeled under assumptions"}</dd>
+          <dd className={missingBenefits ? "calculation-status__warning" : ""}>{missingBenefits ? "Incomplete" : "Estimated with your inputs"}</dd>
         </div>
         <div>
           <dt>Payroll</dt>
-          <dd className={provisionalPayroll ? "calculation-status__warning" : ""}>{provisionalPayroll ? "Supplied or provisional" : "Modeled"}</dd>
+          <dd className={provisionalPayroll ? "calculation-status__warning" : ""}>{provisionalPayroll ? "Provisional or custom inputs" : "Official tax table"}</dd>
         </div>
         <div>
           <dt>Annual tax</dt>
-          <dd className={missingTax ? "calculation-status__warning" : ""}>{missingTax ? "Some balances unavailable" : "Modeled"}</dd>
+          <dd className={missingTax ? "calculation-status__warning" : ""}>{missingTax ? "Some years unavailable" : "Estimated with your inputs"}</dd>
         </div>
       </dl>
       {(missingBenefits || missingTax) && (

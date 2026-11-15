@@ -1,4 +1,10 @@
 import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  TIMELINE_CHART_MODE_OPTIONS,
+} from "#utils/timelineChartControls";
+import {
   formatEur,
 } from "#utils/currencyFormat";
 import type {
@@ -26,7 +32,6 @@ import {
   type TimelineMonth,
   type ScenarioTimelineResult,
   toEuroAmount,
-  TimelineChartMode,
   TimelineTimeRangeFilter,
   toMonthSimRef,
 } from "#engine/types";
@@ -377,8 +382,7 @@ export default function TimelineChart(): JSX.Element {
               margin: "3px 0 0 0",
             }}
           >
-            Interactive timeline with visible line curves, stacked cash flow,
-            and toggleable statutory benefit series.
+            Monthly net salary, parental benefits, Kindergeld, and tax refunds.
           </p>
           {referenceMonth && referenceSalary !== undefined && (
             <div style={{ fontSize: "0.8rem",
@@ -387,7 +391,7 @@ export default function TimelineChart(): JSX.Element {
               <p style={{ margin: "0 0 6px" }}>
                 Salary reference: {formatCurrency(referenceSalary, 2)} / month · Scenario B, {referenceMonth.calendarLabel}.
                 {" "}Initial net salaries only; later pay, benefits and one-off cash may differ.
-                {referenceProvisional && " Supplied or provisional payroll."}
+                {referenceProvisional && " Provisional payroll estimate."}
               </p>
               <details>
                 <summary style={{ cursor: "pointer",
@@ -405,7 +409,7 @@ export default function TimelineChart(): JSX.Element {
                       label={`Official payroll rules · ${referenceProfile.sourceYear}`}
                     />
                     {referenceProfile.projected && ` · Projected to ${referenceProfile.calendarYear}`}
-                    {referenceProvisional && " · Amounts remain supplied or provisional; this source does not verify them."}
+                    {referenceProvisional && " · Provisional values based on your supplied inputs."}
                   </p>
                 )}
               </details>
@@ -414,130 +418,15 @@ export default function TimelineChart(): JSX.Element {
         </div>
 
         {/* View Mode Switcher */}
-        <div
-          style={{
-            display: "flex",
-            background: "var(--bg-surface-secondary)",
-            padding: "3px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-            gap: "4px",
-            flexWrap: "wrap",
+        <SegmentedControl
+          compact
+          label="Timeline chart view"
+          value={mode}
+          options={TIMELINE_CHART_MODE_OPTIONS}
+          onChange={(nextMode) => {
+            chartMode.value = nextMode;
           }}
-        >
-          <button
-            type="button"
-            onClick={() => {
-              chartMode.value = TimelineChartMode.StackedBar;
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "4px",
-              border: "none",
-              background:
-                mode === TimelineChartMode.StackedBar
-                  ? "var(--color-primary)"
-                  : "transparent",
-              color:
-                mode === TimelineChartMode.StackedBar
-                  ? "#ffffff"
-                  : "var(--text-secondary)",
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow:
-                mode === TimelineChartMode.StackedBar
-                  ? "var(--shadow-sm)"
-                  : "none",
-              transition: "var(--transition)",
-            }}
-          >
-            Stacked Bar
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              chartMode.value = TimelineChartMode.Lines;
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "4px",
-              border: "none",
-              background:
-                mode === TimelineChartMode.Lines
-                  ? "var(--color-primary)"
-                  : "transparent",
-              color:
-                mode === TimelineChartMode.Lines
-                  ? "#ffffff"
-                  : "var(--text-secondary)",
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow:
-                mode === TimelineChartMode.Lines ? "var(--shadow-sm)" : "none",
-              transition: "var(--transition)",
-            }}
-          >
-            Multi-Line Series
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              chartMode.value = TimelineChartMode.Area;
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "4px",
-              border: "none",
-              background:
-                mode === TimelineChartMode.Area
-                  ? "var(--color-primary)"
-                  : "transparent",
-              color:
-                mode === TimelineChartMode.Area
-                  ? "#ffffff"
-                  : "var(--text-secondary)",
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow:
-                mode === TimelineChartMode.Area ? "var(--shadow-sm)" : "none",
-              transition: "var(--transition)",
-            }}
-          >
-            Area Trend
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              chartMode.value = TimelineChartMode.Compare;
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "4px",
-              border: "none",
-              background:
-                mode === TimelineChartMode.Compare
-                  ? "var(--color-primary)"
-                  : "transparent",
-              color:
-                mode === TimelineChartMode.Compare
-                  ? "#ffffff"
-                  : "var(--text-secondary)",
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow:
-                mode === TimelineChartMode.Compare
-                  ? "var(--shadow-sm)"
-                  : "none",
-              transition: "var(--transition)",
-            }}
-          >
-            Scenario Compare
-          </button>
-        </div>
+        />
       </div>
 
       {/* Series Visibility Toolbar (On/Off Controls) */}
@@ -634,33 +523,15 @@ export default function TimelineChart(): JSX.Element {
           gap: "6px" }}>
           <button
             type="button"
+            className="ui-btn ui-btn--sm ui-btn--tint"
             onClick={() => setAllSeries(true)}
-            style={{
-              padding: "3px 8px",
-              borderRadius: "4px",
-              border: "1px solid var(--border-subtle)",
-              background: "var(--bg-surface)",
-              color: "var(--color-primary)",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
           >
             All On
           </button>
           <button
             type="button"
+            className="ui-btn ui-btn--sm"
             onClick={() => setAllSeries(false)}
-            style={{
-              padding: "3px 8px",
-              borderRadius: "4px",
-              border: "1px solid var(--border-subtle)",
-              background: "var(--bg-surface)",
-              color: "var(--text-muted)",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
           >
             All Off
           </button>
