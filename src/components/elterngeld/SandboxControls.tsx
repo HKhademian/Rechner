@@ -4,6 +4,15 @@ import HouseholdIncomeInputs from "#components/HouseholdIncomeInputs";
 import PayrollPersonalInputs from "#components/PayrollPersonalInputs";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  NumberField,
+} from "#components/ui/NumberField";
+import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  ToggleSwitch,
+} from "#components/ui/ToggleSwitch";
+import {
   LawId,
 } from "#engine/laws/types";
 import type {
@@ -2489,75 +2498,23 @@ export default function SandboxControls(): JSX.Element {
                       <span>Salary Cadence Mode:</span>
                     </span>
                   </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "6px",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSalaryPeriod(SalaryPeriod.Monthly)}
-                      style={{
-                        padding: "6px 8px",
-                        borderRadius: "4px",
-                        border:
-                          salaryPeriod.value === SalaryPeriod.Monthly
-                            ? "1px solid var(--color-primary)"
-                            : "1px solid var(--border-subtle)",
-                        background:
-                          salaryPeriod.value === SalaryPeriod.Monthly
-                            ? "var(--color-primary-bg)"
-                            : "var(--bg-surface)",
-                        color:
-                          salaryPeriod.value === SalaryPeriod.Monthly
-                            ? "var(--color-primary)"
-                            : "var(--text-muted)",
-                        fontSize: "0.72rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      <SimulationPeriodIcon size={11} />
-                      <span>Monthly (€/mo)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSalaryPeriod(SalaryPeriod.Yearly)}
-                      style={{
-                        padding: "6px 8px",
-                        borderRadius: "4px",
-                        border:
-                          salaryPeriod.value === SalaryPeriod.Yearly
-                            ? "1px solid var(--color-primary)"
-                            : "1px solid var(--border-subtle)",
-                        background:
-                          salaryPeriod.value === SalaryPeriod.Yearly
-                            ? "var(--color-primary-bg)"
-                            : "var(--bg-surface)",
-                        color:
-                          salaryPeriod.value === SalaryPeriod.Yearly
-                            ? "var(--color-primary)"
-                            : "var(--text-muted)",
-                        fontSize: "0.72rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      <SimulationPeriodIcon size={11} />
-                      <span>Yearly (€/yr)</span>
-                    </button>
-                  </div>
+                  <SegmentedControl
+                    compact
+                    fullWidth
+                    label="Salary cadence"
+                    value={salaryPeriod.value}
+                    onChange={(period) => setSalaryPeriod(period)}
+                    options={[
+                      {
+                        value: SalaryPeriod.Monthly,
+                        label: "Monthly (€/mo)",
+                      },
+                      {
+                        value: SalaryPeriod.Yearly,
+                        label: "Yearly (€/yr)",
+                      },
+                    ]}
+                  />
                   <div
                     style={{
                       fontSize: "0.65rem",
@@ -2595,210 +2552,90 @@ export default function SandboxControls(): JSX.Element {
                       <EmploymentCompensationIcon size={13} />
                       <span>Husband Gross Compensation</span>
                     </div>
-                    {/* Gross Amount Slider */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
+                    {/* Gross Amount */}
+                    <div style={{ marginBottom: "10px" }}>
+                      <NumberField
+                        compact
+                        id="sim-husband-gross"
+                        label="Gross Salary"
+                        unit={salaryPeriod.value === SalaryPeriod.Yearly ? "€ / yr" : "€ / mo"}
+                        asideValue={
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? `${formatCurrency(husbandGross.value)} / mo`
+                            : `${formatCurrency(husbandGrossYearly.value)} / yr`
+                        }
+                        value={
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? husbandGrossYearly.value
+                            : husbandGross.value
+                        }
+                        min={0}
+                        step={salaryPeriod.value === SalaryPeriod.Yearly ? 100 : 10}
+                        slider={{
+                          min: 0,
+                          max: salaryPeriod.value === SalaryPeriod.Yearly ? 150000 : 12000,
+                          step: salaryPeriod.value === SalaryPeriod.Yearly ? 500 : 50,
                         }}
-                      >
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          Gross Salary:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--color-primary)",
-                          }}
-                        >
-                          {salaryPeriod.value === SalaryPeriod.Yearly
-                            ? `${formatCurrency(husbandGrossYearly.value)} / yr (${formatCurrency(husbandGross.value)} / mo)`
-                            : `${formatCurrency(husbandGross.value)} / mo`}
-                        </span>
-                      </div>
-                      {salaryPeriod.value === SalaryPeriod.Yearly ? (
-                        <input
-                          type="range"
-                          min="0"
-                          max="150000"
-                          step="500"
-                          value={husbandGrossYearly.value}
-                          onInput={(e) => {
-                            setHusbandGrossYearly(
-                              Number((e.target as HTMLInputElement).value),
-                            );
-                          }}
-                        />
-                      ) : (
-                        <input
-                          type="range"
-                          min="0"
-                          max="12000"
-                          step="50"
-                          value={husbandGross.value}
-                          onInput={(e) => {
-                            setHusbandGross(
-                              Number((e.target as HTMLInputElement).value),
-                            );
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    {/* Husband Working Hours Slider */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-muted)" }}>
-                          Working Time:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--color-primary)",
-                          }}
-                        >
-                          {formatWorkingTime(husbandHours.value)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="60"
-                        step="1"
-                        value={husbandHours.value}
-                        onInput={(e) => {
-                          setHusbandHours(
-                            Number((e.target as HTMLInputElement).value),
-                          );
+                        onChange={(val) => {
+                          if (salaryPeriod.value === SalaryPeriod.Yearly) {
+                            setHusbandGrossYearly(val);
+                          }
+                          else {
+                            setHusbandGross(val);
+                          }
                         }}
                       />
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "3px",
-                          marginTop: "3px",
-                        }}
-                      >
-                        {[
+                    </div>
+
+                    {/* Husband Working Hours */}
+                    <div style={{ marginBottom: "10px" }}>
+                      <NumberField
+                        compact
+                        id="sim-husband-hours"
+                        label="Working Time"
+                        unit="h / wk"
+                        asideValue={formatWorkingTime(husbandHours.value)}
+                        value={husbandHours.value}
+                        min={0}
+                        max={60}
+                        step={0.5}
+                        slider={{ min: 0,
+                          max: 60,
+                          step: 1 }}
+                        presets={[
                           { label: "40h (5d)",
-                            val: 40 },
+                            value: 40 },
                           { label: "32h (4d)",
-                            val: 32 },
+                            value: 32 },
                           { label: "24h (3d)",
-                            val: 24 },
+                            value: 24 },
                           { label: "0h (Leave)",
-                            val: 0 },
-                        ].map((pill) => (
-                          <button
-                            key={`h-pill-${pill.val}`}
-                            type="button"
-                            onClick={() => setHusbandHours(pill.val)}
-                            style={{
-                              padding: "1px 5px",
-                              fontSize: "0.62rem",
-                              borderRadius: "3px",
-                              border:
-                                husbandHours.value === pill.val
-                                  ? "1px solid var(--color-primary)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                husbandHours.value === pill.val
-                                  ? "var(--color-primary-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                husbandHours.value === pill.val
-                                  ? "var(--color-primary)"
-                                  : "var(--text-muted)",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {pill.label}
-                          </button>
-                        ))}
-                      </div>
+                            value: 0 },
+                        ]}
+                        onChange={setHusbandHours}
+                      />
                     </div>
 
                     {/* Husband Annual Salaries Count & Bonus Distribution */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-muted)" }}>
-                          Annual Salaries:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--color-primary)",
-                          }}
-                        >
-                          {husbandSalariesCount.value}x / yr
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "3px",
-                          marginBottom: "3px",
-                        }}
-                      >
-                        {[
-                          { label: "12x",
-                            val: AnnualSalariesCount.Twelve },
-                          { label: "13x",
-                            val: AnnualSalariesCount.Thirteen },
-                          { label: "14x",
-                            val: AnnualSalariesCount.Fourteen },
-                          { label: "15x",
-                            val: AnnualSalariesCount.Fifteen },
-                        ].map((pill) => (
-                          <button
-                            key={`h-salaries-${pill.val}`}
-                            type="button"
-                            onClick={() => setHusbandSalariesCount(pill.val)}
-                            style={{
-                              flex: 1,
-                              padding: "1px 4px",
-                              fontSize: "0.62rem",
-                              borderRadius: "3px",
-                              border:
-                                husbandSalariesCount.value === pill.val
-                                  ? "1px solid var(--color-primary)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                husbandSalariesCount.value === pill.val
-                                  ? "var(--color-primary-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                husbandSalariesCount.value === pill.val
-                                  ? "var(--color-primary)"
-                                  : "var(--text-muted)",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {pill.label}
-                          </button>
-                        ))}
+                    <div style={{ marginBottom: "8px" }}>
+                      <div style={{ marginBottom: "4px" }}>
+                        <SegmentedControl
+                          compact
+                          fullWidth
+                          label="Husband annual salaries"
+                          value={husbandSalariesCount.value}
+                          onChange={(count) => setHusbandSalariesCount(count)}
+                          options={[
+                            { label: "12x",
+                              value: AnnualSalariesCount.Twelve },
+                            { label: "13x",
+                              value: AnnualSalariesCount.Thirteen },
+                            { label: "14x",
+                              value: AnnualSalariesCount.Fourteen },
+                            { label: "15x",
+                              value: AnnualSalariesCount.Fifteen },
+                          ]}
+                        />
                       </div>
 
                       {/* Husband Bonus Distribution Options if > 12 */}
@@ -3101,210 +2938,90 @@ export default function SandboxControls(): JSX.Element {
                       <EmploymentCompensationIcon size={13} />
                       <span>Wife Pre-Pregnancy Full-Time Compensation</span>
                     </div>
-                    {/* Gross Amount Slider */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
+                    {/* Full-Time Gross Amount */}
+                    <div style={{ marginBottom: "10px" }}>
+                      <NumberField
+                        compact
+                        id="sim-wife-gross"
+                        label="Full-Time Gross"
+                        unit={salaryPeriod.value === SalaryPeriod.Yearly ? "€ / yr" : "€ / mo"}
+                        asideValue={
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? `${formatCurrency(wifeGross.value)} / mo`
+                            : `${formatCurrency(wifeGrossYearly.value)} / yr`
+                        }
+                        value={
+                          salaryPeriod.value === SalaryPeriod.Yearly
+                            ? wifeGrossYearly.value
+                            : wifeGross.value
+                        }
+                        min={0}
+                        step={salaryPeriod.value === SalaryPeriod.Yearly ? 100 : 10}
+                        slider={{
+                          min: 0,
+                          max: salaryPeriod.value === SalaryPeriod.Yearly ? 100000 : 8000,
+                          step: salaryPeriod.value === SalaryPeriod.Yearly ? 500 : 50,
                         }}
-                      >
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          Full-Time Gross:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--series-indigo)",
-                          }}
-                        >
-                          {salaryPeriod.value === SalaryPeriod.Yearly
-                            ? `${formatCurrency(wifeGrossYearly.value)} / yr (${formatCurrency(wifeGross.value)} / mo)`
-                            : `${formatCurrency(wifeGross.value)} / mo`}
-                        </span>
-                      </div>
-                      {salaryPeriod.value === SalaryPeriod.Yearly ? (
-                        <input
-                          type="range"
-                          min="0"
-                          max="100000"
-                          step="500"
-                          value={wifeGrossYearly.value}
-                          onInput={(e) => {
-                            setWifeGrossYearly(
-                              Number((e.target as HTMLInputElement).value),
-                            );
-                          }}
-                        />
-                      ) : (
-                        <input
-                          type="range"
-                          min="0"
-                          max="8000"
-                          step="50"
-                          value={wifeGross.value}
-                          onInput={(e) => {
-                            setWifeGross(
-                              Number((e.target as HTMLInputElement).value),
-                            );
-                          }}
-                        />
-                      )}
+                        onChange={(val) => {
+                          if (salaryPeriod.value === SalaryPeriod.Yearly) {
+                            setWifeGrossYearly(val);
+                          }
+                          else {
+                            setWifeGross(val);
+                          }
+                        }}
+                      />
                     </div>
 
                     {/* Wife Pre-Pregnancy Hours */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-muted)" }}>
-                          Pre-Pregnancy Working Time:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--series-indigo)",
-                          }}
-                        >
-                          {formatWorkingTime(wifeInitialHours.value)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="60"
-                        step="1"
+                    <div style={{ marginBottom: "10px" }}>
+                      <NumberField
+                        compact
+                        id="sim-wife-hours"
+                        label="Pre-Pregnancy Working Time"
+                        unit="h / wk"
+                        asideValue={formatWorkingTime(wifeInitialHours.value)}
                         value={wifeInitialHours.value}
-                        onInput={(e) => {
-                          setWifeInitialHours(
-                            Number((e.target as HTMLInputElement).value),
-                          );
-                        }}
-                      />
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "3px",
-                          marginTop: "3px",
-                        }}
-                      >
-                        {[
+                        min={0}
+                        max={60}
+                        step={0.5}
+                        slider={{ min: 0,
+                          max: 60,
+                          step: 1 }}
+                        presets={[
                           { label: "40h (5d)",
-                            val: 40 },
+                            value: 40 },
                           { label: "32h (4d)",
-                            val: 32 },
+                            value: 32 },
                           { label: "24h (3d)",
-                            val: 24 },
+                            value: 24 },
                           { label: "0h (Leave)",
-                            val: 0 },
-                        ].map((pill) => (
-                          <button
-                            key={`w-pill-${pill.val}`}
-                            type="button"
-                            onClick={() => setWifeInitialHours(pill.val)}
-                            style={{
-                              padding: "1px 5px",
-                              fontSize: "0.62rem",
-                              borderRadius: "3px",
-                              border:
-                                wifeInitialHours.value === pill.val
-                                  ? "1px solid var(--series-indigo)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                wifeInitialHours.value === pill.val
-                                  ? "var(--color-primary-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                wifeInitialHours.value === pill.val
-                                  ? "var(--series-indigo)"
-                                  : "var(--text-muted)",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {pill.label}
-                          </button>
-                        ))}
-                      </div>
+                            value: 0 },
+                        ]}
+                        onChange={setWifeInitialHours}
+                      />
                     </div>
 
                     {/* Wife Annual Salaries Count & Bonus Distribution */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-muted)" }}>
-                          Annual Salaries:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--series-indigo)",
-                          }}
-                        >
-                          {wifeSalariesCount.value}x / yr
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "3px",
-                          marginBottom: "3px",
-                        }}
-                      >
-                        {[
-                          { label: "12x",
-                            val: AnnualSalariesCount.Twelve },
-                          { label: "13x",
-                            val: AnnualSalariesCount.Thirteen },
-                          { label: "14x",
-                            val: AnnualSalariesCount.Fourteen },
-                          { label: "15x",
-                            val: AnnualSalariesCount.Fifteen },
-                        ].map((pill) => (
-                          <button
-                            key={`w-salaries-${pill.val}`}
-                            type="button"
-                            onClick={() => setWifeSalariesCount(pill.val)}
-                            style={{
-                              flex: 1,
-                              padding: "1px 4px",
-                              fontSize: "0.62rem",
-                              borderRadius: "3px",
-                              border:
-                                wifeSalariesCount.value === pill.val
-                                  ? "1px solid var(--series-indigo)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                wifeSalariesCount.value === pill.val
-                                  ? "var(--color-primary-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                wifeSalariesCount.value === pill.val
-                                  ? "var(--series-indigo)"
-                                  : "var(--text-muted)",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {pill.label}
-                          </button>
-                        ))}
+                    <div style={{ marginBottom: "8px" }}>
+                      <div style={{ marginBottom: "4px" }}>
+                        <SegmentedControl
+                          compact
+                          fullWidth
+                          label="Wife annual salaries"
+                          value={wifeSalariesCount.value}
+                          onChange={(count) => setWifeSalariesCount(count)}
+                          options={[
+                            { label: "12x",
+                              value: AnnualSalariesCount.Twelve },
+                            { label: "13x",
+                              value: AnnualSalariesCount.Thirteen },
+                            { label: "14x",
+                              value: AnnualSalariesCount.Fourteen },
+                            { label: "15x",
+                              value: AnnualSalariesCount.Fifteen },
+                          ]}
+                        />
                       </div>
 
                       {/* Wife Bonus Distribution Options if > 12 */}
@@ -3796,41 +3513,34 @@ export default function SandboxControls(): JSX.Element {
                           </div>
                         </div>
 
-                        {/* Working Hours Slider & Comfort Badges */}
-                        <div style={{ marginBottom: "6px" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              fontSize: "0.72rem",
-                              marginBottom: "2px",
-                            }}
-                          >
-                            <span style={{ color: "var(--text-secondary)" }}>
-                              Working Time:
-                            </span>
-                            <span
-                              style={{
-                                fontVariantNumeric: "tabular-nums",
-                                fontWeight: 700,
-                                color: isWife
-                                  ? "var(--series-cyan)"
-                                  : "var(--color-primary)",
-                              }}
-                            >
-                              {formatWorkingTime(whc.weeklyHours)}
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="60"
-                            step="1"
+                        {/* Working Hours Exact Input & Slider */}
+                        <div style={{ marginBottom: "8px" }}>
+                          <NumberField
+                            compact
+                            id={`sim-whc-${whc.changeId}`}
+                            label="Working Time"
+                            unit="h / wk"
+                            asideValue={formatWorkingTime(whc.weeklyHours)}
                             value={whc.weeklyHours}
-                            onInput={(e) => {
-                              const newHours = Number(
-                                (e.target as HTMLInputElement).value,
-                              );
+                            min={0}
+                            max={60}
+                            step={0.5}
+                            slider={{ min: 0,
+                              max: 60,
+                              step: 1 }}
+                            presets={[
+                              { label: "40h (5d)",
+                                value: 40 },
+                              { label: "32h (4d PB)",
+                                value: 32 },
+                              { label: "24h (3d PB)",
+                                value: 24 },
+                              { label: "16h (2d)",
+                                value: 16 },
+                              { label: "0h (Leave)",
+                                value: 0 },
+                            ]}
+                            onChange={(newHours) => {
                               updateWorkingHoursChangeAction(whc.changeId, {
                                 weeklyHours: toWorkingHours(newHours),
                               });
@@ -3839,61 +3549,6 @@ export default function SandboxControls(): JSX.Element {
                               }
                             }}
                           />
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              marginTop: "3px",
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            {[
-                              { label: "40h (5d)",
-                                val: 40 },
-                              { label: "32h (4d PB)",
-                                val: 32 },
-                              { label: "24h (3d PB)",
-                                val: 24 },
-                              { label: "16h (2d)",
-                                val: 16 },
-                              { label: "0h (Leave)",
-                                val: 0 },
-                            ].map((pill) => (
-                              <button
-                                key={`whc-${whc.changeId}-pill-${pill.val}`}
-                                type="button"
-                                onClick={() => {
-                                  updateWorkingHoursChangeAction(whc.changeId, {
-                                    weeklyHours: toWorkingHours(pill.val),
-                                  });
-                                  if (isWife && idx === 0) {
-                                    setWifePostBirthHours(pill.val);
-                                  }
-                                }}
-                                style={{
-                                  padding: "1px 5px",
-                                  fontSize: "0.62rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    whc.weeklyHours === pill.val
-                                      ? "1px solid var(--series-cyan)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    whc.weeklyHours === pill.val
-                                      ? "var(--color-primary-bg)"
-                                      : "var(--bg-surface)",
-                                  color:
-                                    whc.weeklyHours === pill.val
-                                      ? "var(--series-cyan)"
-                                      : "var(--text-muted)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {pill.label}
-                              </button>
-                            ))}
-                          </div>
                         </div>
 
                         {/* Reason input */}
@@ -4357,40 +4012,20 @@ export default function SandboxControls(): JSX.Element {
                       </span>
                     </div>
 
-                    {/* Annual Performance Bonus Slider */}
-                    <div style={{ marginBottom: "6px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.70rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          Performance Bonus:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--color-warning)",
-                          }}
-                        >
-                          {formatCurrency(annualBonusGross.value)} gross/yr
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="30000"
-                        step="500"
+                    {/* Annual Performance Bonus */}
+                    <div style={{ marginBottom: "8px" }}>
+                      <NumberField
+                        compact
+                        id="sim-annual-bonus"
+                        label="Performance Bonus"
+                        unit="€ / yr"
+                        min={0}
+                        step={100}
                         value={annualBonusGross.value}
-                        onInput={(e) => {
-                          setAnnualBonusGross(
-                            Number((e.target as HTMLInputElement).value),
-                          );
-                        }}
+                        slider={{ min: 0,
+                          max: 30000,
+                          step: 500 }}
+                        onChange={setAnnualBonusGross}
                       />
                       {annualBonusGross.value > 0 && (
                         <div
@@ -4440,38 +4075,18 @@ export default function SandboxControls(): JSX.Element {
 
                     {/* Monthly Investment Returns & Capital Income */}
                     <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.70rem",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          Investment Returns:
-                        </span>
-                        <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            color: "var(--color-gain)",
-                          }}
-                        >
-                          {formatCurrency(investmentReturnMonthly.value)} / mo
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="5000"
-                        step="50"
+                      <NumberField
+                        compact
+                        id="sim-investment-return"
+                        label="Investment Returns"
+                        unit="€ / mo"
+                        min={0}
+                        step={10}
                         value={investmentReturnMonthly.value}
-                        onInput={(e) => {
-                          setInvestmentReturnMonthly(
-                            Number((e.target as HTMLInputElement).value),
-                          );
-                        }}
+                        slider={{ min: 0,
+                          max: 5000,
+                          step: 50 }}
+                        onChange={setInvestmentReturnMonthly}
                       />
                     </div>
                   </div>
@@ -4695,14 +4310,15 @@ export default function SandboxControls(): JSX.Element {
                 </span>
               </div>
 
-              <label>
-                <input type="checkbox" checked={assumeManualNetIsAssessmentNet.value}
-                  onChange={(event) => {
-                    assumeManualNetIsAssessmentNet.value = event.currentTarget.checked;
-                  }} />
-                {" "}In manual-net mode, use supplied take-home values as unverified BEEG-net estimates.
-                Payroll take-home and statutory assessment net differ; leave unchecked to report missing assessments.
-              </label>
+              <ToggleSwitch
+                id="sim-assume-manual-net"
+                label="In manual-net mode, use supplied take-home values as unverified BEEG-net estimates"
+                hint="Payroll take-home and statutory assessment net differ; leave unchecked to report missing assessments."
+                checked={assumeManualNetIsAssessmentNet.value}
+                onChange={(checked) => {
+                  assumeManualNetIsAssessmentNet.value = checked;
+                }}
+              />
               <HouseholdIncomeInputs values={householdTaxableIncome} suggestedYear={toFullCalendarYear(startCalendarYear.value - 1)} />
               <h4>Husband payroll details</h4>
               <PayrollPersonalInputs id="simulator-husband" options={husbandPayrollOptions} showLocation />
