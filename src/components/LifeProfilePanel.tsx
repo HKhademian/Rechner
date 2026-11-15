@@ -89,16 +89,16 @@ export default function LifeProfilePanel({
             <UnifiedLifeProfileIcon size={22} />
           </span>
           <div>
-            <h2 id="life-profile-heading">Unified Household Life Profile (Cross-Calculator Engine)</h2>
+            <h2 id="life-profile-heading">Shared Household Profile</h2>
             <p className="life-profile-panel__subtitle">
-              Enter your household, mobility, housing, and solar baseline once to project live statutory results across every specialist calculator.
+              Enter your household, car, solar, and housing details once to prefill the calculators below.
             </p>
           </div>
         </div>
         <div className="life-profile-panel__controls">
           {showSummaryLink && (
             <a className="life-profile-panel__summary-link" href={lifeProfilePath()}>
-              <span>Full 6-Calculator Summary</span>
+              <span>View full summary</span>
             </a>
           )}
           <button
@@ -138,7 +138,7 @@ export default function LifeProfilePanel({
 
         <div className="life-profile-panel__kpi">
           <span className="life-profile-panel__kpi-label">
-            <span>EU Blue Card &amp; PR</span>
+            <span>EU Blue Card</span>
             <LawRefLink lawId={LawId.AufenthG_18g} label="§ 18g" variant="badge" />
           </span>
           <span
@@ -157,34 +157,34 @@ export default function LifeProfilePanel({
 
         <div className="life-profile-panel__kpi">
           <span className="life-profile-panel__kpi-label">
-            <span>Company Car &amp; EV</span>
+            <span>Company Car</span>
             <LawRefLink lawId={LawId.EStG_6_1_4} label="§ 6 EStG" variant="badge" />
           </span>
           <span className="life-profile-panel__kpi-value life-profile-panel__kpi-value--gain">
             {profile.hasCompanyCar
-              ? `${formatEur(overview.companyCar.annualTaxSavingsVsIce)}/yr saved vs ICE`
+              ? `${formatEur(overview.companyCar.annualTaxSavingsVsIce)}/yr vs. fuel car`
               : "Not active"}
           </span>
           <span className="life-profile-panel__kpi-note">
             {profile.hasCompanyCar
               ? `Monthly taxable ${formatEur(overview.companyCar.totalMonthlyImputedBenefit)}`
-              : "Enable company car to evaluate"}
+              : "Turn on company car to compare"}
           </span>
         </div>
 
         <div className="life-profile-panel__kpi">
           <span className="life-profile-panel__kpi-label">
-            <span>Solar PV &amp; Housing</span>
+            <span>Solar &amp; Home</span>
             <LawRefLink lawId={LawId.KfW_300} label="KfW 300" variant="badge" />
           </span>
           <span className="life-profile-panel__kpi-value life-profile-panel__kpi-value--gain">
             {profile.plansSolarPv
-              ? `${formatEur(overview.solarEnergy.annualNetCashBenefit)}/yr PV`
-              : "PV off"}{" "}
+              ? `${formatEur(overview.solarEnergy.annualNetCashBenefit)}/yr solar`
+              : "Solar off"}{" "}
             · {overview.housing.kfw300Eligible ? `KfW ${formatEur(overview.housing.kfw300MaxSubsidizedLoanEur)}` : "No KfW 300"}
           </span>
           <span className="life-profile-panel__kpi-note">
-            Combined annual upside {formatEur(overview.combinedAnnualBonusAndSavingsEur)}/yr
+            Combined yearly savings {formatEur(overview.combinedAnnualBonusAndSavingsEur)}/yr
           </span>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function LifeProfilePanel({
                   <span>Household &amp; Residence</span>
                 </h3>
                 <a className="life-profile-panel__section-link" href={calculatorPath(AppId.Visa)}>
-                  Open Visa Calc
+                  Open planner
                 </a>
               </div>
               <label className="life-profile-panel__field" for="lp-year">
@@ -302,10 +302,10 @@ export default function LifeProfilePanel({
               <div className="life-profile-panel__section-head">
                 <h3>
                   <CompanyCarMobilityIcon size={16} />
-                  <span>Company Car &amp; Commute</span>
+                  <span>Company Car</span>
                 </h3>
                 <a className="life-profile-panel__section-link" href={calculatorPath(AppId.CompanyCar)}>
-                  Open Car Calc
+                  Open calculator
                 </a>
               </div>
               <label className="life-profile-panel__checkbox" for="lp-has-car">
@@ -315,10 +315,10 @@ export default function LifeProfilePanel({
                   checked={profile.hasCompanyCar}
                   onChange={(event) => updateLifeProfileField("hasCompanyCar", event.currentTarget.checked)}
                 />
-                <span>Company Car Included</span>
+                <span>Include company car</span>
               </label>
               <label className="life-profile-panel__field" for="lp-car-price">
-                <span>Gross List Price BLP (EUR)</span>
+                <span>List price (EUR)</span>
                 <input
                   id="lp-car-price"
                   type="number"
@@ -334,15 +334,15 @@ export default function LifeProfilePanel({
                 />
               </label>
               <label className="life-profile-panel__field" for="lp-powertrain">
-                <span>Powertrain Valuation Tier</span>
+                <span>Car type</span>
                 <select
                   id="lp-powertrain"
                   value={profile.companyCarPowertrain}
                   onChange={(event) => updateLifeProfileField("companyCarPowertrain", toVehiclePowertrain(event.currentTarget.value))}
                 >
-                  <option value={VehiclePowertrain.PureElectricEv}>0.25% Pure EV (under BLP cap)</option>
-                  <option value={VehiclePowertrain.PlugInHybrid}>0.50% Plug-in Hybrid</option>
-                  <option value={VehiclePowertrain.CombustionIce}>1.00% Combustion ICE</option>
+                  <option value={VehiclePowertrain.PureElectricEv}>Electric (0.25% under cap)</option>
+                  <option value={VehiclePowertrain.PlugInHybrid}>Plug-in hybrid (0.50%)</option>
+                  <option value={VehiclePowertrain.CombustionIce}>Petrol / diesel (1.00%)</option>
                 </select>
               </label>
               <label className="life-profile-panel__field" for="lp-commute-km">
@@ -368,10 +368,10 @@ export default function LifeProfilePanel({
               <div className="life-profile-panel__section-head">
                 <h3>
                   <SolarEnergyIcon size={16} />
-                  <span>Rooftop Solar PV</span>
+                  <span>Solar</span>
                 </h3>
                 <a className="life-profile-panel__section-link" href={calculatorPath(AppId.SolarEnergy)}>
-                  Open Solar Calc
+                  Open calculator
                 </a>
               </div>
               <label className="life-profile-panel__checkbox" for="lp-plans-solar">
@@ -381,10 +381,10 @@ export default function LifeProfilePanel({
                   checked={profile.plansSolarPv}
                   onChange={(event) => updateLifeProfileField("plansSolarPv", event.currentTarget.checked)}
                 />
-                <span>Include Solar PV Yield</span>
+                <span>Include solar</span>
               </label>
               <label className="life-profile-panel__field" for="lp-solar-kwp">
-                <span>PV Array Capacity (kWp)</span>
+                <span>System size (kWp)</span>
                 <input
                   id="lp-solar-kwp"
                   type="number"
@@ -438,10 +438,10 @@ export default function LifeProfilePanel({
               <div className="life-profile-panel__section-head">
                 <h3>
                   <HomeAcquisitionIcon size={16} />
-                  <span>Housing &amp; KfW 300</span>
+                  <span>Home Purchase</span>
                 </h3>
                 <a className="life-profile-panel__section-link" href={calculatorPath(AppId.Housing)}>
-                  Open Housing Calc
+                  Open planner
                 </a>
               </div>
               <label className="life-profile-panel__checkbox" for="lp-plans-home">
@@ -451,10 +451,10 @@ export default function LifeProfilePanel({
                   checked={profile.plansHomePurchase}
                   onChange={(event) => updateLifeProfileField("plansHomePurchase", event.currentTarget.checked)}
                 />
-                <span>Include Home Acquisition</span>
+                <span>Include home purchase</span>
               </label>
               <label className="life-profile-panel__field" for="lp-state">
-                <span>Federal State (§ 11 GrEStG)</span>
+                <span>Federal State</span>
                 <select
                   id="lp-state"
                   value={profile.federalState}
@@ -502,8 +502,8 @@ export default function LifeProfilePanel({
 
           <div className="life-profile-panel__legal-bar">
             <span>
-              Derived Statutory Provenance: {overview.governingLawIds.length} laws &amp;{" "}
-              {overview.consumedParameterIds.length} parameters active
+              Laws &amp; rules used: {overview.governingLawIds.length} laws ·{" "}
+              {overview.consumedParameterIds.length} parameters
             </span>
             <div className="life-profile-panel__law-pills">
               <LawRefLink lawId={LawId.AufenthG_18g} label="AufenthG § 18g" />
