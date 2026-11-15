@@ -41,6 +41,16 @@ import {
   ParameterId as Params,
 } from "#engine/parameters/types";
 import {
+  computeAnnualEmploymentTaxBase,
+  computeIndividualEmploymentTaxBase,
+} from "#engine/tax/annualEmploymentIncome";
+import {
+  computeEmploymentPayroll,
+} from "#engine/tax/employmentPayroll";
+import {
+  toSalaryPaymentCount,
+} from "#engine/tax/employmentPeriod";
+import {
   toAgeYears,
 } from "#engine/tax/taxRules";
 import {
@@ -49,9 +59,12 @@ import {
 import {
   type EuroAmount,
   type NetSalary,
+  SalaryPeriod,
   TaxClass,
+  toChildrenCount,
   toEuroAmount,
   toGrossSalary,
+  toMonthDuration,
   toNetSalary,
   toPercentageRate,
 } from "#engine/types";
@@ -112,29 +125,86 @@ export function evaluateUnifiedLifeProfile(
   profile: UnifiedLifeProfile,
   context: StatutoryCalculationContext,
 ): UnifiedLifeEvaluationResult {
-  const workExpenseAllowance = context.getParameterEuroAmount(Params.Tax_WorkExpenseAllowance);
-  const specialExpenseAllowance = context.getParameterEuroAmount(Params.Tax_SpecialExpenseAllowance);
   const monthlyChildBenefit = context.getParameterEuroAmount(Params.Tax_ChildBenefitMonthly);
 
-  const primaryZvE = Math.max(
-    0,
-    profile.primaryAnnualGrossEur * 0.85 - workExpenseAllowance - specialExpenseAllowance,
+  const isJointSpousalHousehold = profile.hasPartner && profile.isMarriedJointAssessment;
+  const taxRules = createTaxRulesFromContext(context, profile.planningYear);
+  const primaryTaxClass = isJointSpousalHousehold
+    ? TaxClass.IV
+    : profile.hasPartner
+      ? TaxClass.I
+      : profile.dependentChildrenCount > 0
+        ? TaxClass.II
+        : TaxClass.I;
+  const partnerTaxClass = isJointSpousalHousehold ? TaxClass.IV : TaxClass.I;
+  const payrollOptions = {
+    isParent: profile.dependentChildrenCount > 0,
+    ageAtYearStart: toAgeYears(profile.applicantAgeYears),
+  };
+
+  const toEmploymentInput = (annualGross: number) => ({
+    gross: toGrossSalary(annualGross),
+    period: SalaryPeriod.Yearly,
+    monthsWorked: toMonthDuration(12),
+    annualSalaryPayments: toSalaryPaymentCount(12),
+  });
+  const toAnnualIncome = (payroll: ReturnType<typeof computeEmploymentPayroll>) => ({
+    gross: payroll.annualGross,
+    health: payroll.healthCare,
+    care: payroll.care,
+    pension: payroll.pension,
+    unemployment: payroll.unemployment,
+    ageRelief: payroll.ageRelief,
+  });
+
+  const childrenCount = toChildrenCount(profile.dependentChildrenCount);
+  const primaryAnnualPayroll = computeEmploymentPayroll(
+    toEmploymentInput(profile.primaryAnnualGrossEur),
+    primaryTaxClass,
+    childrenCount,
+    taxRules,
+    payrollOptions,
   );
-  const partnerZvE = profile.hasPartner
-    ? Math.max(
-      0,
-      profile.partnerAnnualGrossEur * 0.85 - workExpenseAllowance - specialExpenseAllowance,
+  const partnerAnnualPayroll = profile.hasPartner
+    ? computeEmploymentPayroll(
+      toEmploymentInput(profile.partnerAnnualGrossEur),
+      partnerTaxClass,
+      childrenCount,
+      taxRules,
+      payrollOptions,
     )
-    : 0;
+    : undefined;
+
   const combinedGrossAnnualEur = toEuroAmount(
     roundToCent(
       profile.primaryAnnualGrossEur +
       (profile.hasPartner ? profile.partnerAnnualGrossEur : 0),
     ),
   );
-  const estimatedTaxableIncomeZvEEur = toEuroAmount(roundToCent(primaryZvE + partnerZvE));
 
-  const lawIdSet = new Set<LawId>();
+  const primaryTaxBase = computeIndividualEmploymentTaxBase(toAnnualIncome(primaryAnnualPayroll), taxRules);
+  const partnerTaxBase = partnerAnnualPayroll
+    ? computeIndividualEmploymentTaxBase(toAnnualIncome(partnerAnnualPayroll), taxRules)
+    : undefined;
+  const jointTaxBase = isJointSpousalHousehold && partnerAnnualPayroll
+    ? computeAnnualEmploymentTaxBase(
+      toAnnualIncome(primaryAnnualPayroll),
+      toAnnualIncome(partnerAnnualPayroll),
+      taxRules,
+    )
+    : undefined;
+
+  const primaryZvE = primaryTaxBase.taxableIncome;
+  const partnerZvE = partnerTaxBase?.taxableIncome ?? 0;
+  const estimatedTaxableIncomeZvEEur = jointTaxBase
+    ? jointTaxBase.taxableIncome
+    : toEuroAmount(roundToCent(primaryZvE + partnerZvE));
+
+  const lawIdSet = new Set<LawId>([
+    Laws.EStG_9a,
+    Laws.EStG_10,
+    Laws.EStG_10c,
+  ]);
   const parameterIdSet = new Set<ParameterId>([
     Params.Tax_WorkExpenseAllowance,
     Params.Tax_SpecialExpenseAllowance,
@@ -144,7 +214,6 @@ export function evaluateUnifiedLifeProfile(
 
   let estimatedAnnualIncomeTaxEur: EuroAmount;
   let isKinderfreibetragFavorable = false;
-  const isJointSpousalHousehold = profile.hasPartner && profile.isMarriedJointAssessment;
 
   if (isJointSpousalHousehold) {
     const splitTax = evaluateJointSplittingTaxInContext(
@@ -221,19 +290,6 @@ export function evaluateUnifiedLifeProfile(
   );
 
   // Statutory Employee Payroll (Net Pay) projection
-  const taxRules = createTaxRulesFromContext(context, profile.planningYear);
-  const primaryTaxClass = isJointSpousalHousehold
-    ? TaxClass.IV
-    : profile.hasPartner
-      ? TaxClass.I
-      : profile.dependentChildrenCount > 0
-        ? TaxClass.II
-        : TaxClass.I;
-  const partnerTaxClass = isJointSpousalHousehold ? TaxClass.IV : TaxClass.I;
-  const payrollOptions = {
-    isParent: profile.dependentChildrenCount > 0,
-    ageAtYearStart: toAgeYears(profile.applicantAgeYears),
-  };
   const primaryPayroll = computeGrossToNetBreakdown(
     toGrossSalary(profile.primaryAnnualGrossEur / 12),
     primaryTaxClass,

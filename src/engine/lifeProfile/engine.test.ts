@@ -13,6 +13,24 @@ import {
   evaluateUnifiedLifeProfile,
 } from "#engine/lifeProfile/engine";
 import {
+  computeEmploymentPayroll,
+} from "#engine/tax/employmentPayroll";
+import {
+  computePayrollTaxBase,
+} from "#engine/tax/payrollTaxBase";
+import {
+  createTaxRulesFromContext,
+} from "#engine/parameters/contextAdapters";
+import {
+  toSalaryPaymentCount,
+} from "#engine/tax/employmentPeriod";
+import {
+  TaxAssessment,
+} from "#engine/tax/taxAssessment";
+import {
+  toAgeYears,
+} from "#engine/tax/taxRules";
+import {
   createDefaultUnifiedLifeProfile,
   parseUnifiedLifeProfile,
 } from "#engine/lifeProfile/types";
@@ -20,8 +38,12 @@ import {
   LawId,
 } from "#engine/laws/types";
 import {
+  SalaryPeriod,
+  TaxClass,
+  toChildrenCount,
   toFullCalendarYear,
   toGrossSalary,
+  toMonthDuration,
 } from "#engine/types";
 
 describe("Unified General Life & Support Input Engine", () => {
@@ -120,5 +142,33 @@ describe("Unified General Life & Support Input Engine", () => {
     assert.equal(unmarriedResult.householdPayroll.appliedTaxClassLabel, "Class I / I (unmarried)");
     // Unmarried partners lose the § 26 / § 32a Abs. 5 splitting advantage on unequal incomes
     assert.ok(unmarriedResult.householdTax.estimatedAnnualIncomeTaxEur > marriedResult.householdTax.estimatedAnnualIncomeTaxEur);
+  });
+
+  it("matches Net Pay payroll and statutory ZvE math exactly without heuristic discounts", () => {
+    const context = createStatutoryCalculationContext({ calendarYear: toFullCalendarYear(2026) });
+    const profile = parseUnifiedLifeProfile({
+      primaryAnnualGrossEur: 60000,
+      hasPartner: false,
+      dependentChildrenCount: 0,
+      applicantAgeYears: 32,
+    });
+    const lifeResult = evaluateUnifiedLifeProfile(profile, context);
+
+    const rules = createTaxRulesFromContext(context, profile.planningYear);
+    const payroll = computeEmploymentPayroll(
+      {
+        gross: toGrossSalary(60000),
+        period: SalaryPeriod.Yearly,
+        monthsWorked: toMonthDuration(12),
+        annualSalaryPayments: toSalaryPaymentCount(12),
+      },
+      TaxClass.I,
+      toChildrenCount(profile.dependentChildrenCount),
+      rules,
+      { isParent: false,
+        ageAtYearStart: toAgeYears(profile.applicantAgeYears) },
+    );
+    const payrollTaxBase = computePayrollTaxBase([payroll], rules, TaxAssessment.Individual);
+    assert.equal(lifeResult.householdTax.estimatedTaxableIncomeZvEEur, payrollTaxBase.taxBase?.taxableIncome);
   });
 });
