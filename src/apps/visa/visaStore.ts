@@ -1,4 +1,5 @@
 import {
+  batch,
   computed,
   signal,
 } from "@preact/signals";
@@ -29,6 +30,7 @@ import {
 } from "#store/lifeProfileStore";
 import {
   activeStatutoryContext,
+  setParameterYear,
 } from "#store/parameterStore";
 
 export interface VisaCalculatorState {
@@ -193,15 +195,18 @@ export function updateVisaField<K extends keyof VisaCalculatorState>(
 
 export function syncVisaFromLifeProfile(): void {
   const lp = unifiedLifeProfile.value;
-  const next = parseVisaCalculatorState({
-    ...visaState.value,
-    annualGrossSalary: lp.primaryAnnualGrossEur,
-    applicantAgeYears: lp.applicantAgeYears,
-    occupationRoute: lp.occupationRoute,
-    germanLevel: lp.germanLevel,
+  batch(() => {
+    setParameterYear(lp.planningYear);
+    const next = parseVisaCalculatorState({
+      ...visaState.value,
+      annualGrossSalary: lp.primaryAnnualGrossEur,
+      applicantAgeYears: lp.applicantAgeYears,
+      occupationRoute: lp.occupationRoute,
+      germanLevel: lp.germanLevel,
+    });
+    visaState.value = next;
+    visaAppStorage.setItem(VISA_STORAGE_KEY, JSON.stringify(next));
   });
-  visaState.value = next;
-  visaAppStorage.setItem(VISA_STORAGE_KEY, JSON.stringify(next));
 }
 
 export function resetVisaCalculator(): void {

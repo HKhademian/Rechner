@@ -14,11 +14,10 @@ import {
   updateVisaField,
   visaState,
 } from "#/apps/visa/visaStore.ts";
+import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
-  ResetDefaultsIcon,
   StatutoryLimitationWarningIcon,
-  SyncProfileActionIcon,
   VisaResidenceIcon,
 } from "#components/Icons";
 import LawRefLink from "#components/laws/LawRefLink";
@@ -84,24 +83,11 @@ export default function VisaCalculator(): JSX.Element {
               Evaluate AufenthG salary thresholds, permanent residency acceleration (§ 18c), age-45 gates, and Chancenkarte points (§ 20a).
             </p>
           </div>
-          <div className="domain-calc-header__actions">
-            <button
-              type="button"
-              className="domain-calc-btn domain-calc-btn--primary"
-              onClick={syncVisaFromLifeProfile}
-            >
-              <SyncProfileActionIcon size={15} />
-              <span>Sync from Shared Life Profile</span>
-            </button>
-            <button
-              type="button"
-              className="domain-calc-btn"
-              onClick={resetVisaCalculator}
-            >
-              <ResetDefaultsIcon size={14} />
-              <span>Reset Defaults</span>
-            </button>
-          </div>
+          <DomainCalculatorHeaderActions
+            onSyncLifeProfile={syncVisaFromLifeProfile}
+            onResetDefaults={resetVisaCalculator}
+            syncTooltip="Populate planning year, annual gross salary offer, applicant age, Blue Card track, and German level from the Unified Life Profile"
+          />
         </header>
 
         <div className="domain-calc-layout">
