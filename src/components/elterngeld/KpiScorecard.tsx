@@ -53,7 +53,7 @@ export default function KpiScorecard(): JSX.Element {
       <CalculationStatus result={current} />
       {/* KPI Card 1: Total Earned Salaries */}
       <div
-        className="glass-panel"
+        className="ui-card"
         style={{
           padding: "20px 24px",
           position: "relative",
@@ -128,7 +128,7 @@ export default function KpiScorecard(): JSX.Element {
 
       {/* KPI Card 2: Total State Benefits */}
       <div
-        className="glass-panel"
+        className="ui-card"
         style={{
           padding: "20px 24px",
           position: "relative",
@@ -207,7 +207,7 @@ export default function KpiScorecard(): JSX.Element {
 
       {/* KPI Card 3: Cash Flow Over the Configured Period */}
       <div
-        className="glass-panel"
+        className="ui-card"
         style={{
           padding: "20px 24px",
           position: "relative",
@@ -328,7 +328,7 @@ export default function KpiScorecard(): JSX.Element {
 
       {/* Compare the same birth and leave plan with changed versus original tax classes. */}
       <div
-        className="glass-panel"
+        className="ui-card"
         style={{
           padding: "20px 24px",
           position: "relative",

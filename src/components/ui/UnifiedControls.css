@@ -193,6 +193,25 @@
   color: var(--text-inverse);
 }
 
+.ui-btn--danger {
+  border-color: var(--color-loss-border);
+  background: var(--color-loss-bg);
+  color: var(--color-loss);
+}
+
+.ui-btn--danger:hover:not(:disabled) {
+  border-color: var(--color-loss);
+  background: var(--color-loss);
+  color: var(--text-inverse);
+}
+
+.ui-btn--sm {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  gap: 5px;
+}
+
 /* Canonical Segmented Control */
 .ui-field {
   display: flex;

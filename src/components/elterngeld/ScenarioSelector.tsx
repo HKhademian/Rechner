@@ -1,4 +1,8 @@
 import {
+  AppId,
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
+import {
   plannerCalculationLabels,
 } from "#utils/plannerCalculationLabels";
 import "./ScenarioSelector.css";
@@ -95,18 +99,23 @@ export default function ScenarioSelector(): JSX.Element {
     <section className="scenario-selector" aria-labelledby="scenario-heading">
       <div className="scenario-selector__header">
         <div>
-          <h2 id="scenario-heading">Compare versions of your plan</h2>
-          <p>These are different calculations using your inputs above. Choose which results to view; your inputs stay the same.</p>
+          <h2 id="scenario-heading" className="ui-card__title">Compare versions of your plan</h2>
+          <p className="ui-card__subtitle">These are different calculations using your inputs above. Choose which results to view; your inputs stay the same.</p>
         </div>
-        <button
-          type="button"
-          className="scenario-selector__export"
-          onClick={() => openExportImportModal("export")}
-          id="scenario-export-btn"
-        >
-          <DownloadFileIcon size={16} />
-          Export / Import
-        </button>
+        <div className="scenario-selector__actions">
+          <a href={calculatorPath(AppId.NetPay)} className="ui-btn">
+            Compare single-year Net Pay
+          </a>
+          <button
+            type="button"
+            className="ui-btn ui-btn--tint"
+            onClick={() => openExportImportModal("export")}
+            id="scenario-export-btn"
+          >
+            <DownloadFileIcon size={16} />
+            <span>Export / Import</span>
+          </button>
+        </div>
       </div>
       <div className="scenario-selector__grid" role="group" aria-labelledby="scenario-heading">
         {scenarios.map((sc) => (

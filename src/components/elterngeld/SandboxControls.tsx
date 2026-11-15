@@ -301,9 +301,8 @@ export default function SandboxControls(): JSX.Element {
 
   return (
     <div
-      className="glass-panel"
-      style={{ padding: "22px",
-        marginBottom: "28px" }}
+      className="ui-card"
+      style={{ marginBottom: "28px" }}
     >
       <div className="planner-input-header">
         <div>
@@ -371,26 +370,8 @@ export default function SandboxControls(): JSX.Element {
                 <button
                   key={preset.id}
                   type="button"
+                  className={preset.id === "empty" ? "ui-btn ui-btn--sm ui-btn--tint" : "ui-btn ui-btn--sm"}
                   onClick={() => applyPreset(preset.id)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "4px",
-                    border:
-                      preset.id === "empty"
-                        ? "1px solid var(--color-primary-border)"
-                        : "1px solid var(--border-subtle)",
-                    background:
-                      preset.id === "empty"
-                        ? "var(--color-primary-bg)"
-                        : "var(--bg-surface)",
-                    color:
-                      preset.id === "empty"
-                        ? "var(--color-primary)"
-                        : "var(--text-primary)",
-                    fontSize: "0.72rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
                   title={preset.description}
                 >
                   {preset.id === "empty" ? "Empty plan" : preset.name}
@@ -404,21 +385,9 @@ export default function SandboxControls(): JSX.Element {
               gap: "8px" }}>
               <button
                 type="button"
+                className="ui-btn ui-btn--sm ui-btn--tint"
                 onClick={() => openExportImportModal("export")}
                 id="export-data-btn"
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--color-primary-border)",
-                  background: "var(--color-primary-bg)",
-                  color: "var(--color-primary)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}
               >
                 <DownloadFileIcon size={13} />
                 Export Data
@@ -426,21 +395,9 @@ export default function SandboxControls(): JSX.Element {
 
               <button
                 type="button"
+                className="ui-btn ui-btn--sm"
                 onClick={() => openExportImportModal("import")}
                 id="import-data-btn"
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--border-subtle)",
-                  background: "var(--bg-surface)",
-                  color: "var(--text-primary)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}
               >
                 <ImportDataIcon size={13} />
                 Import Data
@@ -448,20 +405,8 @@ export default function SandboxControls(): JSX.Element {
 
               <button
                 type="button"
+                className="ui-btn ui-btn--sm"
                 onClick={resetToDefaults}
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--border-subtle)",
-                  background: "var(--bg-surface)",
-                  color: "var(--text-secondary)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
               >
                 <ResetDefaultsIcon size={13} />
                 Reset to Defaults
@@ -469,20 +414,8 @@ export default function SandboxControls(): JSX.Element {
 
               <button
                 type="button"
+                className="ui-btn ui-btn--sm ui-btn--danger"
                 onClick={removeAllCustomActions}
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: "4px",
-                  border: "1px solid var(--color-loss-border)",
-                  background: "var(--color-loss-bg)",
-                  color: "var(--color-loss)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
                 title="Remove all custom actions across all batches"
               >
                 <DeleteActionIcon size={13} />
