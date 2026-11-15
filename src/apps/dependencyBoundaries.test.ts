@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   existsSync,
   readFileSync,
+  readdirSync,
 } from "node:fs";
 import {
   createRequire,
@@ -58,42 +59,42 @@ function runtimeDependencies(entry: string): Set<string> {
   return visited;
 }
 
+const NET_PAY_STORE = resolve("src/store/calculatorStore.ts");
+const TAX_STORE = resolve("src/store/taxConfigStore.ts");
+const PARENTAL_STORE = resolve("src/store/elterngeldStore.ts");
+const GIROCODE_STORE = resolve("src/apps/girocode/girocodeStore.ts");
+const VISA_STORE = resolve("src/apps/visa/visaStore.ts");
+const COMPANY_CAR_STORE = resolve("src/apps/company-car/companyCarStore.ts");
+const SOLAR_ENERGY_STORE = resolve("src/apps/solar-energy/solarEnergyStore.ts");
+const HOUSING_STORE = resolve("src/apps/housing/housingStore.ts");
+
+const ALL_CALCULATOR_STORES = [
+  NET_PAY_STORE,
+  TAX_STORE,
+  PARENTAL_STORE,
+  GIROCODE_STORE,
+  VISA_STORE,
+  COMPANY_CAR_STORE,
+  SOLAR_ENERGY_STORE,
+  HOUSING_STORE,
+] as const;
+
 it("catalog and app entries cannot initialize another calculator's financial stores", () => {
-  const netStore = resolve("src/store/calculatorStore.ts");
-  const taxStore = resolve("src/store/taxConfigStore.ts");
-  const parentalStore = resolve("src/store/elterngeldStore.ts");
-  const giroCodeStore = resolve("src/apps/girocode/girocodeStore.ts");
-  const visaStore = resolve("src/apps/visa/visaStore.ts");
-  const companyCarStore = resolve("src/apps/company-car/companyCarStore.ts");
-  const solarEnergyStore = resolve("src/apps/solar-energy/solarEnergyStore.ts");
-  const housingStore = resolve("src/apps/housing/housingStore.ts");
-
-  const allAppStores = [
-    netStore,
-    taxStore,
-    parentalStore,
-    giroCodeStore,
-    visaStore,
-    companyCarStore,
-    solarEnergyStore,
-    housingStore,
-  ];
-
   const catalog = runtimeDependencies("src/components/CalculatorCatalog.tsx");
   const profileSummary = runtimeDependencies("src/components/LifeProfileSummaryPage.tsx");
-  for (const store of allAppStores) {
+  for (const store of ALL_CALCULATOR_STORES) {
     assert.equal(catalog.has(store), false, `Catalog imports ${store}`);
     assert.equal(profileSummary.has(store), false, `LifeProfileSummaryPage imports ${store}`);
   }
 
   const entryOwnStores: readonly [string, readonly string[]][] = [
-    ["src/apps/net-pay/App.tsx", [netStore, taxStore]],
-    ["src/apps/parental-leave/App.tsx", [parentalStore]],
-    ["src/apps/girocode/App.tsx", [giroCodeStore]],
-    ["src/apps/visa/App.tsx", [visaStore]],
-    ["src/apps/company-car/App.tsx", [companyCarStore]],
-    ["src/apps/solar-energy/App.tsx", [solarEnergyStore]],
-    ["src/apps/housing/App.tsx", [housingStore]],
+    ["src/apps/net-pay/App.tsx", [NET_PAY_STORE, TAX_STORE]],
+    ["src/apps/parental-leave/App.tsx", [PARENTAL_STORE]],
+    ["src/apps/girocode/App.tsx", [GIROCODE_STORE]],
+    ["src/apps/visa/App.tsx", [VISA_STORE]],
+    ["src/apps/company-car/App.tsx", [COMPANY_CAR_STORE]],
+    ["src/apps/solar-energy/App.tsx", [SOLAR_ENERGY_STORE]],
+    ["src/apps/housing/App.tsx", [HOUSING_STORE]],
   ];
 
   for (const [entryPath, owned] of entryOwnStores) {
@@ -101,10 +102,23 @@ it("catalog and app entries cannot initialize another calculator's financial sto
     for (const store of owned) {
       assert.equal(deps.has(store), true, `${entryPath} must import ${store}`);
     }
-    for (const other of allAppStores) {
+    for (const other of ALL_CALCULATOR_STORES) {
       if (!owned.includes(other)) {
         assert.equal(deps.has(other), false, `${entryPath} leaks foreign store ${other}`);
       }
+    }
+  }
+});
+
+it("shared UI primitives and LawReferencePage never import calculator-specific financial stores", () => {
+  const uiEntries = readdirSync("src/components/ui")
+    .filter((name) => /\.tsx?$/.test(name) && !name.endsWith(".test.ts"))
+    .map((name) => `src/components/ui/${name}`);
+
+  for (const sharedFile of [...uiEntries, "src/components/laws/LawReferencePage.tsx"]) {
+    const deps = runtimeDependencies(sharedFile);
+    for (const store of ALL_CALCULATOR_STORES) {
+      assert.equal(deps.has(store), false, `${sharedFile} must not import ${store}`);
     }
   }
 });
