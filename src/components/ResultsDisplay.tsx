@@ -5,6 +5,9 @@ import {
   SalaryPeriod,
 } from "#engine/types";
 import {
+  formatEurCents,
+} from "#utils/currencyFormat";
+import {
   type HouseholdScenarioData,
   type PersonDeductions,
   deductions,
@@ -15,12 +18,7 @@ import {
 export default function ResultsDisplay({ data = deductions.value }: { data?: HouseholdScenarioData }): JSX.Element {
 
 
-  const format = (num: number): string => {
-    return new Intl.NumberFormat("de-DE", {
-      style: "currency",
-      currency: "EUR",
-    }).format(num);
-  };
+  const format = (num: number): string => formatEurCents(num);
 
   const d = data;
   const isMonthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;

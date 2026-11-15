@@ -37,6 +37,9 @@ import {
   ToggleSwitch,
 } from "#components/ui/ToggleSwitch";
 import {
+  formatEur,
+} from "#utils/currencyFormat";
+import {
   LawGroupId,
   LawId,
 } from "#engine/laws/types";
@@ -157,14 +160,6 @@ const SALARIES_PER_YEAR_PRESETS = [
     label: "14",
   },
 ];
-
-function formatEur(value: number, maximumFractionDigits = 0): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits,
-  }).format(value);
-}
 
 /**
  * Primary single-input workspace and sticky live summary for German Net Pay.

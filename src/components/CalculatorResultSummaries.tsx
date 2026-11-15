@@ -15,6 +15,9 @@ import {
 import {
   SalaryPeriod,
 } from "#engine/types";
+import {
+  formatEurOrUnavailable,
+} from "#utils/currencyFormat";
 import CalculatorResultDetails from "#components/CalculatorResultDetails";
 import CalculatorTaxableIncome from "#components/CalculatorTaxableIncome";
 import ResultsDisplay from "#components/ResultsDisplay";
@@ -25,8 +28,7 @@ interface ResultSummaryProps {
   context: string;
 }
 
-const money = (value: number | undefined): string => value === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", { style: "currency",
-  currency: "EUR" }).format(value);
+const money = (value: number | undefined): string => formatEurOrUnavailable(value, 2);
 
 /** Keep annual values explicit even when the comparison's main result rows use monthly averages. */
 export function TaxableIncomeSummary({ data, id, context }: ResultSummaryProps): JSX.Element {

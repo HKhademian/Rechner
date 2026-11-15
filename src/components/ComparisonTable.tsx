@@ -1,4 +1,9 @@
 import {
+  formatEur,
+  formatEurCents,
+  formatSignedEurDelta,
+} from "#utils/currencyFormat";
+import {
   AppId,
   calculatorPath,
 } from "#/apps/appDefinition.ts";
@@ -115,13 +120,7 @@ export function ComparisonTableContent(): JSX.Element {
   const hasInvalidSaved = (id: string): boolean => Object.keys(invalidInputs.value).some((key) => key.startsWith(`scenario-${id}-`));
   const viewMode = inputModeForPeriod(calculatorViewPeriod.value);
 
-  const format = (num: number): string => {
-    return new Intl.NumberFormat("de-DE", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(num);
-  };
+  const format = (num: number): string => formatEur(num);
 
   const isMonthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;
   const liveInputs = getCurrentInputs();
@@ -658,10 +657,9 @@ export function ComparisonTableContent(): JSX.Element {
       const grossField = fieldKey === CalculatorGrossField.Primary ? CalculatorGrossField.Primary : fieldKey === CalculatorGrossField.Partner ? CalculatorGrossField.Partner : undefined;
       const included = !optionalField || inputsToUse.hasPartner;
       const grossValue = grossField && included ? grossInputForPeriod(inputsToUse, grossField, calculatorViewPeriod.value) : undefined;
-      const savedVal = grossField ? !included ? "Not included" : grossValue === undefined ? "Unset" : new Intl.NumberFormat("de-DE", {
-        style: "currency",
-        currency: "EUR",
-      }).format(grossValue) : formatFn(inputsToUse);
+      const savedVal = grossField
+        ? !included ? "Not included" : grossValue === undefined ? "Unset" : formatEurCents(grossValue)
+        : formatFn(inputsToUse);
       const grossData = fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome"
         ? isActive && scenarioDraft.value ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs)
         : undefined;
@@ -796,13 +794,11 @@ export function ComparisonTableContent(): JSX.Element {
       const savedNet = getHouseholdMetric(dataToUse, "netIncome");
       const diff = savedNet - liveNet;
       const roundedDiff = Math.round(diff);
-      const pct = liveNet > 0 ? ((diff / liveNet) * 100).toFixed(1) : undefined;
       const deltaClass = roundedDiff > 0
         ? "comparison-delta--gain"
         : roundedDiff < 0
           ? "comparison-delta--loss"
           : "comparison-delta--neutral";
-      const prefix = roundedDiff > 0 ? "+" : "";
 
       cells.push(
         <td
@@ -816,9 +812,7 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           <span className={deltaClass}>
-            {roundedDiff === 0
-              ? "No difference"
-              : `${prefix}${format(diff)}${pct === undefined ? "" : ` (${prefix}${pct}%)`}`}
+            {formatSignedEurDelta(diff, liveNet > 0 ? liveNet : undefined)}
           </span>
         </td>,
       );

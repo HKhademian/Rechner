@@ -1,3 +1,6 @@
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import "./GrossPeriodPreview.css";
 import {
   type JSX,
@@ -15,11 +18,7 @@ export default function GrossPeriodPreview({ id, inputMode, annualGross, lastVal
 }): JSX.Element {
   const monthlyInput = inputMode === "monthly";
   const amount = annualGross === undefined ? undefined : monthlyInput ? annualGross : annualGross / 12;
-  const formatted = amount === undefined ? undefined : new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(amount);
+  const formatted = amount === undefined ? undefined : formatEur(amount, 2);
   return (
     <small id={id} className="gross-period-preview" title={monthlyInput
       ? "Annual gross for the configured working months and salary payments."

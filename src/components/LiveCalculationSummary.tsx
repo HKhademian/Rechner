@@ -1,3 +1,6 @@
+import {
+  formatEur,
+} from "#utils/currencyFormat";
 import "./LiveCalculationSummary.css";
 import {
   type JSX,
@@ -31,11 +34,7 @@ export default function LiveCalculationSummary({ data, hasInvalidInputs }: {
     observer.observe(navigation);
     return () => observer.disconnect();
   }, []);
-  const money = (value: number): string => new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(value);
+  const money = (value: number): string => formatEur(value, 2);
   const taxable = data.annualTaxableIncome.taxBase?.taxableIncome;
   return (
     <aside className="live-calculation-summary" aria-label="Live calculation summary" style={{ top: `${navigationHeight.value}px` }}>

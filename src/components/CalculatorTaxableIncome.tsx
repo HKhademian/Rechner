@@ -4,6 +4,9 @@ import {
 import {
   LawId,
 } from "#engine/laws/types";
+import {
+  formatEurOrUnavailable,
+} from "#utils/currencyFormat";
 import AnnualIncomeBreakdown from "#components/AnnualIncomeBreakdown";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
@@ -31,8 +34,7 @@ export default function CalculatorTaxableIncome({ data, id = "annual-taxable-inc
   ];
   const hasTwoSpousesModeled = Boolean(data.partner) || data.includesZeroWageSpouse;
 
-  const money = (value: number | undefined): string => value === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", { style: "currency",
-    currency: "EUR" }).format(value);
+  const money = (value: number | undefined): string => formatEurOrUnavailable(value, 2);
   return (
     <section id={id} className="annual-income glass-panel" aria-labelledby={`${id}-heading`}>
       <div className="annual-income__header">

@@ -1,3 +1,6 @@
+import {
+  formatEurOrUnavailable,
+} from "#utils/currencyFormat";
 import "./AnnualIncomeBreakdown.css";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
@@ -29,11 +32,7 @@ export interface AnnualIncomeBreakdownProps {
 }
 
 function money(amount: EuroAmount | undefined): string {
-  return amount === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return formatEurOrUnavailable(amount, 2);
 }
 
 /** Use the same contribution and deduction presentation for annual records and salary inputs. */

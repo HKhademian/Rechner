@@ -1,5 +1,8 @@
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  formatEurCents,
+} from "#utils/currencyFormat";
+import {
   LawId,
 } from "#engine/laws/types";
 import {
@@ -56,8 +59,7 @@ export default function HouseholdIncomeInputs({ values, suggestedYear }: {
       <button type="button" disabled={year === "" || income === ""} onClick={save}>Save supplied income for this year</button>
       <ul>{[...values.value].sort((a, b) => a.calendarYear - b.calendarYear).map((entry) => (
         <li key={entry.calendarYear}>
-          {entry.calendarYear}: {new Intl.NumberFormat("de-DE", { style: "currency",
-            currency: "EUR" }).format(entry.taxableIncome)}{" "}
+          {entry.calendarYear}: {formatEurCents(entry.taxableIncome)}{" "}
           <button type="button" onClick={() => {
             values.value = values.value.filter((value) => value.calendarYear !== entry.calendarYear);
           }}>Remove {entry.calendarYear} income</button>
