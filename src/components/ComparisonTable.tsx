@@ -1,4 +1,11 @@
 import {
+  AppId,
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
+import {
+  getAvailableWhatIfScenarios,
+} from "#engine/tax/whatIfScenarios";
+import {
   HouseholdRelationship,
   TaxAssessment,
 } from "#engine/tax/taxAssessment";
@@ -53,6 +60,7 @@ import {
   scenarioDraft,
   hasUnsavedScenarioChanges,
   saveScenario,
+  saveWhatIfScenario,
   deleteScenario,
   pendingScenarioDeletion,
   undoScenarioDeletion,
@@ -116,10 +124,47 @@ export function ComparisonTableContent(): JSX.Element {
   };
 
   const isMonthly = calculatorViewPeriod.value === SalaryPeriod.Monthly;
+  const liveInputs = getCurrentInputs();
+  const whatIfScenarios = getAvailableWhatIfScenarios(liveInputs);
   const handleAddScenario = (): void => {
     const count = savedScenarios.peek().length + 1;
     saveScenario(`Scenario ${count}`, "", deductions.peek());
   };
+
+  const renderWhatIfActions = (showSnapshotButton = true): JSX.Element => (
+    <div className="comparison-whatif-bar" role="group" aria-label="Quick what-if scenario comparators">
+      <span className="comparison-whatif-bar__label">What if:</span>
+      {whatIfScenarios.map((spec) => (
+        <button
+          key={spec.kind}
+          type="button"
+          className="ui-btn"
+          disabled={hasInvalidLive}
+          title={hasInvalidLive ? "Check inputs before adding a comparison" : spec.description}
+          onClick={() => {
+            saveWhatIfScenario(spec.kind);
+          }}
+        >
+          {spec.buttonLabel}
+        </button>
+      ))}
+      {showSnapshotButton && (
+        <button
+          type="button"
+          className="ui-btn ui-btn--tint"
+          disabled={hasInvalidLive}
+          onClick={handleAddScenario}
+        >
+          <SaveConfigurationIcon size={16} />
+          <span>Save snapshot</span>
+        </button>
+      )}
+      <span className="comparison-whatif-bar__spacer" aria-hidden="true" />
+      <a href={calculatorPath(AppId.ParentalLeave)} className="ui-btn">
+        Plan parental leave forecast
+      </a>
+    </div>
+  );
 
   if (savedScenarios.value.length === 0) {
     return (
@@ -134,20 +179,12 @@ export function ComparisonTableContent(): JSX.Element {
         )}
         <div className="ui-card comparison-empty-card">
           <div>
-            <h2 className="ui-card__title">Saved Scenario Comparison</h2>
+            <h2 className="ui-card__title">What-If &amp; Saved Scenario Comparison</h2>
             <p className="ui-card__subtitle">
-              Save the current calculation to compare salaries, tax classes, or partner splits side by side.
+              Test a raise, partner tax splitting, or an additional child using the same payroll &amp; tax math, or save a snapshot to edit side by side.
             </p>
           </div>
-          <button
-            type="button"
-            className="ui-btn ui-btn--tint"
-            disabled={hasInvalidLive}
-            onClick={handleAddScenario}
-          >
-            <SaveConfigurationIcon size={16} />
-            <span>Save live snapshot</span>
-          </button>
+          {renderWhatIfActions(true)}
         </div>
       </section>
     );
@@ -171,7 +208,6 @@ export function ComparisonTableContent(): JSX.Element {
     </tr>
   );
 
-  const liveInputs = getCurrentInputs();
   const hasAnyPartner = hasPartner.value || savedScenarios.value.some((scenario) =>
     (activeScenarioId.value === scenario.id && scenarioDraft.value ? scenarioDraft.value.inputs : scenario.inputs).hasPartner);
   const canSelectAssessment = (inputs: Partial<CalculatorInputs>): boolean =>
@@ -736,20 +772,98 @@ export function ComparisonTableContent(): JSX.Element {
       label: "Class VI" },
   ];
 
+  const renderHouseholdNetDeltaRow = (): JSX.Element => {
+    const liveNet = getHouseholdMetric(deductions.value, "netIncome");
+    const cells: JSX.Element[] = [
+      <td
+        key="current"
+        style={{
+          padding: "8px 12px",
+          borderBottom: "1px solid var(--border-subtle)",
+          background: "var(--color-gain-bg)",
+          minWidth: "220px",
+        }}
+      >
+        <span className="badge-neutral">Live baseline</span>
+      </td>,
+    ];
+
+    savedScenarios.value.forEach((scenario) => {
+      const isActive = activeScenarioId.value === scenario.id;
+      const dataToUse = isActive && scenarioDraft.value
+        ? scenarioDraft.value.data
+        : calculateScenarioData(scenario.inputs);
+      const savedNet = getHouseholdMetric(dataToUse, "netIncome");
+      const diff = savedNet - liveNet;
+      const roundedDiff = Math.round(diff);
+      const pct = liveNet > 0 ? ((diff / liveNet) * 100).toFixed(1) : undefined;
+      const deltaClass = roundedDiff > 0
+        ? "comparison-delta--gain"
+        : roundedDiff < 0
+          ? "comparison-delta--loss"
+          : "comparison-delta--neutral";
+      const prefix = roundedDiff > 0 ? "+" : "";
+
+      cells.push(
+        <td
+          key={scenario.id}
+          class="tabular-nums"
+          style={{
+            padding: "8px 12px",
+            borderBottom: "1px solid var(--border-subtle)",
+            minWidth: "220px",
+            background: isActive ? "var(--color-primary-bg)" : "transparent",
+          }}
+        >
+          <span className={deltaClass}>
+            {roundedDiff === 0
+              ? "No difference"
+              : `${prefix}${format(diff)}${pct === undefined ? "" : ` (${prefix}${pct}%)`}`}
+          </span>
+        </td>,
+      );
+    });
+
+    return (
+      <tr class="comparison-row">
+        <td
+          style={{
+            padding: "8px 12px",
+            fontWeight: 600,
+            borderBottom: "1px solid var(--border-subtle)",
+            color: "var(--text-secondary)",
+            position: "sticky",
+            left: 0,
+            background: "var(--bg-surface)",
+            zIndex: 10,
+            borderRight: "2px solid var(--border-subtle)",
+          }}
+        >
+          Net Difference vs Live
+        </td>
+        {cells}
+      </tr>
+    );
+  };
+
   return (
     <section className="comparison-shell" aria-label="Saved scenario comparison">
       <div className="comparison-section-bar">
         <div>
-          <h2 className="ui-card__title">Saved Scenario Comparison</h2>
-          <p className="ui-card__subtitle">Compare your active estimate on the left against saved snapshots.</p>
+          <h2 className="ui-card__title">What-If &amp; Saved Scenario Comparison</h2>
+          <p className="ui-card__subtitle">Compare your active estimate on the left against quick life-event scenarios or custom snapshots.</p>
         </div>
         <span className="badge-neutral">{savedScenarios.value.length} saved</span>
+      </div>
+
+      <div style={{ marginBottom: "14px" }}>
+        {renderWhatIfActions(true)}
       </div>
 
       {pendingScenarioDeletion.value && (
         <div className="comparison-empty" role="status">
           <p>Deleted “{pendingScenarioDeletion.value.scenario.title}”.</p>
-          <button type="button" onClick={undoScenarioDeletion}>Undo deletion</button>
+          <button type="button" className="ui-btn" onClick={undoScenarioDeletion}>Undo deletion</button>
         </div>
       )}
 
@@ -1034,6 +1148,7 @@ export function ComparisonTableContent(): JSX.Element {
               {renderSectionRow("Household")}
               {renderRow(isMonthly ? "Household Avg Gross" : "Household Gross", null, "grossYearly", true, true)}
               {renderRow(isMonthly ? "Household Avg Net" : "Household Net Pay", null, "netIncome", true, true)}
+              {renderHouseholdNetDeltaRow()}
               {renderAverageMonthlyNetRow(null, true)}
               {renderPerPaycheckRow(null, true)}
               {renderRow(isMonthly ? "Household Avg Deductions" : "Total Deductions", null, "totalDeductions", true)}
