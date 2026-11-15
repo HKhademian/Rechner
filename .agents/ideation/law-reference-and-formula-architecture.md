@@ -1,6 +1,6 @@
 ---
 name: Unified Law Reference, Value Storage, and Three-Tier Formula Architecture
-status: active
+status: complete
 created: 2026-11-14
 ---
 
@@ -48,5 +48,6 @@ Replace isolated per-calculator statutory links and scattered rule summaries wit
 1. [x] Unify backend/storage persistence (`src/engine/parameters/storage.ts`) and reactive `@preact/signals` adapters (`activeStatutoryContext`, cross-tab storage reload) for the shared law & parameter store while preserving `dependencyBoundaries.test.ts` and app-scoped personal scenario privacy.
 2. [x] Define form projection profiles (`src/engine/parameters/projections.ts`) so Net Pay, Parental Leave, and new calculators stay uncluttered by projecting default values for out-of-focus domains while exposing the shared parameter inspector.
 
-### Stage 6 (Future North Star — Out of Current Scope): General Life & Support Input Engine
-- Unified user profile + timeline event/support declarations driving automatic derivation of raises, bonuses, payroll, tax settlements, benefits, and future domain calculators (`visa`, `energy`, `solar`, `green`, `car`, `housing`).
+### Stage 6: General Life & Support Input Engine — Completed
+1. [x] Unified user household/career/mobility/energy/housing profile (`src/engine/lifeProfile/`, `src/store/lifeProfileStore.ts`, `<LifeProfilePanel />`) driving cross-domain projections across Net Pay, Parental Leave, and all standalone calculators.
+2. [x] New statutory domain calculators (`visa`, `company-car`, `solar-energy`, `housing`) with pure Tier 1 formulas, law references, and synchronized Life Profile controls.
