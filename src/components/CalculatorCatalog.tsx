@@ -140,7 +140,7 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
         <div>
           <p className="calculator-catalog__eyebrow">Free online calculators</p>
           <h1>Plan your pay, family, mobility and home finances.</h1>
-          <p>Clear estimates for German salary, taxes, parental leave, EU Blue Card, EV company cars, rooftop solar and KfW 300 housing.</p>
+          <p>Clear estimates for German salary, taxes, parental leave, visas, company cars, solar, and home buying.</p>
         </div>
         <aside className="calculator-catalog__privacy"><strong>Private by default</strong><p>No account. Your saved inputs stay in this browser.</p></aside>
       </header>
@@ -149,7 +149,7 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
 
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <label for="calculator-search">Find a calculator
-          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, Blue Card, EV, Solar, KfW 300" value={query.value} aria-controls="calculator-results"
+          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode, Blue Card, Solar, Housing" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
         </label>
         <div className="calculator-catalog__category-filter">
