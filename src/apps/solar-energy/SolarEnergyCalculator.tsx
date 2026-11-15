@@ -16,9 +16,24 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
-  SolarEnergyIcon,
   StatutoryLimitationWarningIcon,
 } from "#components/Icons";
+import {
+  MetricCard,
+  MetricTone,
+} from "#components/ui/MetricCard";
+import {
+  NumberField,
+} from "#components/ui/NumberField";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  ToggleSwitch,
+} from "#components/ui/ToggleSwitch";
 import {
   unifiedLifeProfile,
 } from "#store/lifeProfileStore";
@@ -28,7 +43,6 @@ import ParameterObserverSection from "#components/parameters/ParameterObserverSe
 import SourceRevision from "#components/SourceRevision";
 import {
   SolarFeedInMode,
-  toSolarFeedInMode,
 } from "#engine/formulas/pure/solarEnergyFormulas";
 import {
   LawId,
@@ -48,6 +62,13 @@ function formatEur(value: number): string {
   return formatSharedEur(value, 2);
 }
 
+const FEED_IN_MODE_OPTIONS = [
+  { value: SolarFeedInMode.PartialSelfConsumption,
+    label: "Self-use + export" },
+  { value: SolarFeedInMode.FullFeedIn,
+    label: "Full grid export" },
+] as const;
+
 export default function SolarEnergyCalculator(): JSX.Element {
   const s = solarEnergyState.value;
   const evalResult = solarEnergyEvaluation.value.value;
@@ -55,175 +76,126 @@ export default function SolarEnergyCalculator(): JSX.Element {
   return (
     <>
       <Navigation currentPath={calculatorPath(AppId.SolarEnergy)} />
-      <main id="main-content" className="domain-calc-page" tabIndex={-1}>
-        <header className="domain-calc-header">
-          <div>
-            <span className="domain-calc-header__eyebrow">
-              <SolarEnergyIcon size={15} />
-              <span>Rooftop Solar &amp; Clean Energy</span>
-            </span>
-            <h1>Solar Savings Calculator</h1>
-            <p className="domain-calc-header__subtitle">
-              Estimate rooftop solar electricity savings, feed-in income, tax relief, and payback time.
-            </p>
-          </div>
-          <DomainCalculatorHeaderActions
-            onSyncLifeProfile={syncSolarEnergyFromLifeProfile}
-            onResetDefaults={resetSolarEnergyCalculator}
-            syncTooltip="Populate planning year, PV capacity (kWp), net system cost, household demand, and feed-in mode from the Unified Life Profile"
-            inactiveInLifeProfileMessage={
-              unifiedLifeProfile.value.plansSolarPv
-                ? undefined
-                : "Solar PV is currently toggled off in Life Profile"
-            }
-          />
-        </header>
+      <main id="main-content" className="ui-page" tabIndex={-1}>
+        <PageHeader
+          eyebrow="Rooftop Solar"
+          title="Solar Savings Calculator"
+          subtitle="Estimate electricity savings, feed-in income, tax relief, and payback time for rooftop solar."
+          actions={(
+            <DomainCalculatorHeaderActions
+              onSyncLifeProfile={syncSolarEnergyFromLifeProfile}
+              onResetDefaults={resetSolarEnergyCalculator}
+              syncTooltip="Load planning year, system size, cost, electricity use, and feed-in mode from your Life Profile"
+              inactiveInLifeProfileMessage={
+                unifiedLifeProfile.value.plansSolarPv
+                  ? undefined
+                  : "Solar system is currently off in your Life Profile"
+              }
+            />
+          )}
+        />
 
         <div className="domain-calc-layout">
-          <section className="domain-calc-card" aria-labelledby="solar-inputs-heading">
-            <h2 id="solar-inputs-heading">PV Array &amp; Consumption Profile</h2>
+          <section className="ui-card" aria-labelledby="solar-inputs-heading">
+            <div className="ui-card__header">
+              <div>
+                <h2 id="solar-inputs-heading" className="ui-card__title">System &amp; Consumption</h2>
+                <p className="ui-card__subtitle">Panel size, upfront cost, and how much power you use at home.</p>
+              </div>
+            </div>
             <div className="domain-calc-fields">
               <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="solar-kwp">
-                  <span className="domain-calc-field__label-line">
-                    <span>Installed Capacity (kWp)</span>
-                    <LawRefLink lawId={LawId.EEG_48} label="§ 48 EEG" variant="badge" />
-                  </span>
-                  <input
-                    id="solar-kwp"
-                    type="number"
-                    min={0.4}
-                    max={100}
-                    step={0.5}
-                    value={s.capacityKwp}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0.4) {
-                        updateSolarEnergyField("capacityKwp", num);
-                      }
-                    }}
-                  />
-                </label>
-
-                <label className="domain-calc-field" for="solar-yield">
-                  <span>Specific Yield (kWh/kWp)</span>
-                  <input
-                    id="solar-yield"
-                    type="number"
-                    min={400}
-                    max={1400}
-                    step={25}
-                    value={s.specificYieldKwhPerKwp}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 400) {
-                        updateSolarEnergyField("specificYieldKwhPerKwp", num);
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-
-              <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="solar-cost">
-                  <span className="domain-calc-field__label-line">
-                    <span>Net System Cost (EUR)</span>
-                    <LawRefLink lawId={LawId.UStG_12_3} label="0% USt" variant="badge" />
-                  </span>
-                  <input
-                    id="solar-cost"
-                    type="number"
-                    min={200}
-                    max={250000}
-                    step={250}
-                    value={s.systemCostNetEur}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 200) {
-                        updateSolarEnergyField("systemCostNetEur", toEuroAmount(num));
-                      }
-                    }}
-                  />
-                </label>
-
-                <label className="domain-calc-field" for="solar-maint">
-                  <span>Annual Maintenance (EUR)</span>
-                  <input
-                    id="solar-maint"
-                    type="number"
-                    min={0}
-                    max={10000}
-                    step={25}
-                    value={s.annualMaintenanceEur}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateSolarEnergyField("annualMaintenanceEur", toEuroAmount(num));
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-
-              <label className="domain-calc-field" for="solar-mode">
-                <span>Feed-in setup</span>
-                <select
-                  id="solar-mode"
-                  value={s.feedInMode}
-                  onChange={(event) => updateSolarEnergyField("feedInMode", toSolarFeedInMode(event.currentTarget.value))}
-                >
-                  <option value={SolarFeedInMode.PartialSelfConsumption}>Self-consumption + grid feed-in</option>
-                  <option value={SolarFeedInMode.FullFeedIn}>Full grid feed-in (100% exported)</option>
-                </select>
-              </label>
-
-              <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="solar-consumption">
-                  <span>Household Demand (kWh/yr)</span>
-                  <input
-                    id="solar-consumption"
-                    type="number"
-                    min={0}
-                    max={50000}
-                    step={250}
-                    value={s.annualHouseholdConsumptionKwh}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateSolarEnergyField("annualHouseholdConsumptionKwh", num);
-                      }
-                    }}
-                  />
-                </label>
-
-                <label className="domain-calc-field" for="solar-self-share">
-                  <span>Self-Consumption Share (%)</span>
-                  <input
-                    id="solar-self-share"
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={Math.round(s.selfConsumptionShareRate * 100)}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0 && num <= 100) {
-                        updateSolarEnergyField("selfConsumptionShareRate", toPercentageRate(num / 100));
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-
-              <label className="domain-calc-checkbox" for="solar-vat-zero">
-                <input
-                  id="solar-vat-zero"
-                  type="checkbox"
-                  checked={s.vatExemptEligible}
-                  onChange={(event) => updateSolarEnergyField("vatExemptEligible", event.currentTarget.checked)}
+                <NumberField
+                  id="solar-kwp"
+                  label="System Size"
+                  unit="kWp"
+                  min={0.4}
+                  max={100}
+                  step={0.5}
+                  value={s.capacityKwp}
+                  onChange={(num) => updateSolarEnergyField("capacityKwp", num)}
                 />
-                <span>Eligible for 0% VAT zero-rating (§ 12 Abs. 3 UStG)</span>
-              </label>
+
+                <NumberField
+                  id="solar-yield"
+                  label="Specific Yield"
+                  unit="kWh/kWp"
+                  min={400}
+                  max={1400}
+                  step={25}
+                  value={s.specificYieldKwhPerKwp}
+                  onChange={(num) => updateSolarEnergyField("specificYieldKwhPerKwp", num)}
+                />
+              </div>
+
+              <div className="domain-calc-field-row">
+                <NumberField
+                  id="solar-cost"
+                  label="Net System Cost"
+                  unit="€"
+                  min={200}
+                  max={250000}
+                  step={250}
+                  value={s.systemCostNetEur}
+                  onChange={(num) => updateSolarEnergyField("systemCostNetEur", toEuroAmount(num))}
+                />
+
+                <NumberField
+                  id="solar-maint"
+                  label="Annual Maintenance"
+                  unit="€"
+                  min={0}
+                  max={10000}
+                  step={25}
+                  value={s.annualMaintenanceEur}
+                  onChange={(num) => updateSolarEnergyField("annualMaintenanceEur", toEuroAmount(num))}
+                />
+              </div>
+
+              <div className="ui-field">
+                <div className="ui-field__top">
+                  <span className="ui-field__label">Feed-in Setup</span>
+                </div>
+                <SegmentedControl
+                  label="Solar feed-in setup"
+                  value={s.feedInMode}
+                  options={FEED_IN_MODE_OPTIONS}
+                  fullWidth
+                  onChange={(value) => updateSolarEnergyField("feedInMode", value)}
+                />
+              </div>
+
+              <div className="domain-calc-field-row">
+                <NumberField
+                  id="solar-consumption"
+                  label="Household Demand"
+                  unit="kWh/yr"
+                  min={0}
+                  max={50000}
+                  step={250}
+                  value={s.annualHouseholdConsumptionKwh}
+                  onChange={(num) => updateSolarEnergyField("annualHouseholdConsumptionKwh", num)}
+                />
+
+                <NumberField
+                  id="solar-self-share"
+                  label="Self-Consumption Share"
+                  unit="%"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={Math.round(s.selfConsumptionShareRate * 100)}
+                  onChange={(num) => updateSolarEnergyField("selfConsumptionShareRate", toPercentageRate(num / 100))}
+                />
+              </div>
+
+              <ToggleSwitch
+                id="solar-vat-zero"
+                label="0% VAT zero-rating (§ 12 Abs. 3 UStG)"
+                hint="Applies to qualifying residential rooftop installations"
+                checked={s.vatExemptEligible}
+                onChange={(checked) => updateSolarEnergyField("vatExemptEligible", checked)}
+              />
             </div>
           </section>
 
@@ -243,7 +215,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
                 </strong>
                 <p>
                   {evalResult.isZeroVatEligible
-                    ? `0% VAT (§ 12 Abs. 3 UStG) saves ${formatEur(evalResult.vatSavedAt19Percent)} upfront vs standard 19% VAT.`
+                    ? `0% VAT saves ${formatEur(evalResult.vatSavedAt19Percent)} upfront vs standard 19% VAT.`
                     : "Standard 19% VAT regime selected."}
                 </p>
               </div>
@@ -251,76 +223,59 @@ export default function SolarEnergyCalculator(): JSX.Element {
             </div>
 
             <div className="domain-calc-kpis">
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Annual Net Cash Benefit</span>
-                </span>
-                <span className="domain-calc-kpi__value domain-calc-kpi__value--gain">
-                  +{formatEur(evalResult.annualNetCashBenefit)}
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  Generates {Math.round(evalResult.annualGenerationKwh).toLocaleString("de-DE")} kWh / year
-                </span>
-              </div>
-
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Simple Payback Period</span>
-                </span>
-                <span className="domain-calc-kpi__value">
-                  {evalResult.simplePaybackYears !== null ? `${evalResult.simplePaybackYears.toFixed(1)} yrs` : "N/A"}
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  20-year EEG net gain {formatEur(evalResult.twentyYearNetGain)}
-                </span>
-              </div>
-
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Blended EEG Tariff</span>
-                  <LawRefLink lawId={LawId.EEG_48} label="§ 48" variant="badge" />
-                </span>
-                <span className="domain-calc-kpi__value">
-                  {(evalResult.blendedFeedInTariffEurPerKwh * 100).toFixed(2)} ct/kWh
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  0% VAT savings: {formatEur(evalResult.vatSavedAt19Percent)}
-                </span>
-              </div>
+              <MetricCard
+                label="Annual Net Cash Benefit"
+                value={`+${formatEur(evalResult.annualNetCashBenefit)}`}
+                subtitle={`Generates ${Math.round(evalResult.annualGenerationKwh).toLocaleString("de-DE")} kWh / year`}
+                tone={MetricTone.Gain}
+              />
+              <MetricCard
+                label="Simple Payback Period"
+                value={evalResult.simplePaybackYears !== null ? `${evalResult.simplePaybackYears.toFixed(1)} yrs` : "N/A"}
+                subtitle={`20-year EEG net gain ${formatEur(evalResult.twentyYearNetGain)}`}
+                tone={MetricTone.Primary}
+              />
+              <MetricCard
+                label="Blended Feed-In Tariff"
+                value={`${(evalResult.blendedFeedInTariffEurPerKwh * 100).toFixed(2)} ct/kWh`}
+                subtitle={`0% VAT savings: ${formatEur(evalResult.vatSavedAt19Percent)}`}
+              />
             </div>
 
-            <section className="domain-calc-card" aria-labelledby="solar-breakdown-heading">
-              <h2 id="solar-breakdown-heading">Annual Energy &amp; Cash-Flow Breakdown</h2>
+            <section className="ui-card" aria-labelledby="solar-breakdown-heading">
+              <div className="ui-card__header">
+                <h2 id="solar-breakdown-heading" className="ui-card__title">Annual Energy &amp; Cash-Flow Breakdown</h2>
+              </div>
               <table className="domain-calc-table">
                 <thead>
                   <tr>
-                    <th>Yield &amp; Financial Metric</th>
+                    <th>Yield &amp; Cash-Flow Item</th>
                     <th className="num">Annual Figure</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Solar Electricity Generated</td>
+                    <td>Solar electricity generated</td>
                     <td className="num">{Math.round(evalResult.annualGenerationKwh).toLocaleString("de-DE")} kWh</td>
                   </tr>
                   <tr>
-                    <td>Self-Consumed Electricity ({Math.round(s.selfConsumptionShareRate * 100)}% capped at demand)</td>
+                    <td>Self-consumed electricity ({Math.round(s.selfConsumptionShareRate * 100)}% capped at demand)</td>
                     <td className="num">{Math.round(evalResult.selfConsumedKwh).toLocaleString("de-DE")} kWh</td>
                   </tr>
                   <tr>
-                    <td>Grid-Fed Surplus Electricity</td>
+                    <td>Grid-fed surplus electricity</td>
                     <td className="num">{Math.round(evalResult.fedInKwh).toLocaleString("de-DE")} kWh</td>
                   </tr>
                   <tr>
-                    <td>Avoided Grid Purchase Savings</td>
+                    <td>Avoided grid purchase savings</td>
                     <td className="num">+{formatEur(evalResult.annualSelfConsumptionSavings)}</td>
                   </tr>
                   <tr>
-                    <td>§ 48 EEG Feed-In Remuneration</td>
+                    <td>§ 48 EEG feed-in revenue</td>
                     <td className="num">+{formatEur(evalResult.annualFeedInRevenue)}</td>
                   </tr>
                   <tr>
-                    <td>Annual Maintenance Deduction</td>
+                    <td>Annual maintenance cost</td>
                     <td className="num">-{formatEur(s.annualMaintenanceEur)}</td>
                   </tr>
                   <tr className="is-total">
@@ -331,7 +286,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
               </table>
 
               <div className="domain-calc-law-bar">
-                <span>Statutory Bases:</span>
+                <span>Legal basis:</span>
                 <LawRefLink lawId={LawId.EEG_48} label="EEG § 48" />
                 <LawRefLink lawId={LawId.UStG_12_3} label="UStG § 12 Abs. 3" />
                 <LawRefLink lawId={LawId.EStG_3_72} label="EStG § 3 Nr. 72" />
@@ -343,7 +298,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>Customize the assumed household grid electricity tariff (EUR/kWh) inside Statutory Assumptions below.</span>
+          <span>Adjust your assumed grid electricity price in Statutory Assumptions below.</span>
           <SourceRevision />
         </footer>
       </main>

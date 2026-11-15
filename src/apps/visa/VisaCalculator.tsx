@@ -18,8 +18,26 @@ import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderAct
 import {
   EligibilityConfirmedIcon,
   StatutoryLimitationWarningIcon,
-  VisaResidenceIcon,
 } from "#components/Icons";
+import {
+  ChoiceSelect,
+} from "#components/ui/ChoiceSelect";
+import {
+  MetricCard,
+  MetricTone,
+} from "#components/ui/MetricCard";
+import {
+  NumberField,
+} from "#components/ui/NumberField";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  ToggleSwitch,
+} from "#components/ui/ToggleSwitch";
 import LawRefLink from "#components/laws/LawRefLink";
 import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
@@ -29,7 +47,6 @@ import {
   GermanLanguageLevel,
   VisaOccupationRoute,
   toGermanLanguageLevel,
-  toVisaOccupationRoute,
 } from "#engine/formulas/pure/visaFormulas";
 import {
   LawId,
@@ -47,6 +64,24 @@ import {
 function formatEur(value: number): string {
   return formatSharedEur(value);
 }
+
+const OCCUPATION_ROUTE_OPTIONS = [
+  { value: VisaOccupationRoute.Standard,
+    label: "Standard" },
+  { value: VisaOccupationRoute.ShortageOrGraduate,
+    label: "Shortage / IT / Grad" },
+] as const;
+
+const GERMAN_LEVEL_OPTIONS = [
+  { value: GermanLanguageLevel.NoneOrBasic,
+    label: "Below A1 / Basic" },
+  { value: GermanLanguageLevel.A1,
+    label: "A1 Elementary" },
+  { value: GermanLanguageLevel.A2,
+    label: "A2 Pre-Intermediate" },
+  { value: GermanLanguageLevel.B1Plus,
+    label: "B1 or higher" },
+] as const;
 
 export default function VisaCalculator(): JSX.Element {
   const s = visaState.value;
@@ -70,201 +105,139 @@ export default function VisaCalculator(): JSX.Element {
   return (
     <>
       <Navigation currentPath={calculatorPath(AppId.Visa)} />
-      <main id="main-content" className="domain-calc-page" tabIndex={-1}>
-        <header className="domain-calc-header">
-          <div>
-            <span className="domain-calc-header__eyebrow">
-              <VisaResidenceIcon size={15} />
-              <span>Residence &amp; Skilled Immigration</span>
-            </span>
-            <h1>EU Blue Card &amp; Visa Planner</h1>
-            <p className="domain-calc-header__subtitle">
-              Check Blue Card salary limits, permanent residency timelines, and Opportunity Card points.
-            </p>
-          </div>
-          <DomainCalculatorHeaderActions
-            onSyncLifeProfile={syncVisaFromLifeProfile}
-            onResetDefaults={resetVisaCalculator}
-            syncTooltip="Populate planning year, annual gross salary offer, applicant age, Blue Card track, and German level from the Unified Life Profile"
-          />
-        </header>
+      <main id="main-content" className="ui-page" tabIndex={-1}>
+        <PageHeader
+          eyebrow="Visa & Residence"
+          title="EU Blue Card & Visa Planner"
+          subtitle="Check Blue Card salary limits, permanent residency timelines, and Opportunity Card points."
+          actions={(
+            <DomainCalculatorHeaderActions
+              onSyncLifeProfile={syncVisaFromLifeProfile}
+              onResetDefaults={resetVisaCalculator}
+              syncTooltip="Load planning year, gross salary offer, age, Blue Card track, and German level from your Life Profile"
+            />
+          )}
+        />
 
         <div className="domain-calc-layout">
-          <section className="domain-calc-card" aria-labelledby="visa-inputs-heading">
-            <h2 id="visa-inputs-heading">Applicant &amp; Job Offer Profile</h2>
+          <section className="ui-card" aria-labelledby="visa-inputs-heading">
+            <div className="ui-card__header">
+              <div>
+                <h2 id="visa-inputs-heading" className="ui-card__title">Applicant &amp; Job Offer</h2>
+                <p className="ui-card__subtitle">Salary threshold and language rules adjust by year.</p>
+              </div>
+            </div>
             <div className="domain-calc-fields">
-              <label className="domain-calc-field" for="visa-gross-salary">
-                <span className="domain-calc-field__label-line">
-                  <span>Annual Gross Salary Offer (EUR)</span>
-                  <LawRefLink lawId={LawId.AufenthG_18g} label="§ 18g" variant="badge" />
-                </span>
-                <input
-                  id="visa-gross-salary"
-                  type="number"
-                  min={0}
-                  step={500}
-                  value={s.annualGrossSalary}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateVisaField("annualGrossSalary", toGrossSalary(num));
-                    }
-                  }}
-                />
-              </label>
+              <NumberField
+                id="visa-gross-salary"
+                label="Annual Gross Salary Offer"
+                unit="€"
+                min={0}
+                step={500}
+                value={s.annualGrossSalary}
+                onChange={(num) => updateVisaField("annualGrossSalary", toGrossSalary(num))}
+              />
 
               <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="visa-age">
-                  <span className="domain-calc-field__label-line">
-                    <span>Applicant Age</span>
-                    <LawRefLink lawId={LawId.AufenthG_18_2_5} label="§ 18" variant="badge" />
-                  </span>
-                  <input
-                    id="visa-age"
-                    type="number"
-                    min={18}
-                    max={80}
-                    step={1}
-                    value={s.applicantAgeYears}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 18) {
-                        updateVisaField("applicantAgeYears", Math.round(num));
-                      }
-                    }}
-                  />
-                </label>
+                <NumberField
+                  id="visa-age"
+                  label="Applicant Age"
+                  unit="yrs"
+                  min={18}
+                  max={80}
+                  step={1}
+                  value={s.applicantAgeYears}
+                  onChange={(num) => updateVisaField("applicantAgeYears", Math.round(num))}
+                />
 
-                <label className="domain-calc-field" for="visa-experience">
-                  <span>Skilled Experience (yrs)</span>
-                  <input
-                    id="visa-experience"
-                    type="number"
-                    min={0}
-                    max={40}
-                    step={1}
-                    value={s.qualifiedExperienceYears}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateVisaField("qualifiedExperienceYears", Math.round(num));
-                      }
-                    }}
-                  />
-                </label>
+                <NumberField
+                  id="visa-experience"
+                  label="Skilled Experience"
+                  unit="yrs"
+                  min={0}
+                  max={40}
+                  step={1}
+                  value={s.qualifiedExperienceYears}
+                  onChange={(num) => updateVisaField("qualifiedExperienceYears", Math.round(num))}
+                />
               </div>
 
-              <label className="domain-calc-field" for="visa-route">
-                <span>Blue Card Occupation Track</span>
-                <select
-                  id="visa-route"
+              <div className="ui-field">
+                <div className="ui-field__top">
+                  <span className="ui-field__label">Blue Card Track</span>
+                </div>
+                <SegmentedControl
+                  label="Blue Card occupation track"
                   value={s.occupationRoute}
-                  onChange={(event) => updateVisaField("occupationRoute", toVisaOccupationRoute(event.currentTarget.value))}
-                >
-                  <option value={VisaOccupationRoute.Standard}>Standard Profession</option>
-                  <option value={VisaOccupationRoute.ShortageOrGraduate}>Shortage Occupation / IT / Recent Graduate</option>
-                </select>
-              </label>
-
-              <label className="domain-calc-field" for="visa-german">
-                <span className="domain-calc-field__label-line">
-                  <span>German Language Level</span>
-                  <LawRefLink lawId={LawId.AufenthG_18c} label="§ 18c" variant="badge" />
-                </span>
-                <select
-                  id="visa-german"
-                  value={s.germanLevel}
-                  onChange={(event) => updateVisaField("germanLevel", toGermanLanguageLevel(event.currentTarget.value))}
-                >
-                  <option value={GermanLanguageLevel.NoneOrBasic}>Below A1 / Basic</option>
-                  <option value={GermanLanguageLevel.A1}>A1 Elementary</option>
-                  <option value={GermanLanguageLevel.A2}>A2 Pre-Intermediate</option>
-                  <option value={GermanLanguageLevel.B1Plus}>B1 or higher</option>
-                </select>
-              </label>
-
-              <h3>Chancenkarte (§ 20a AufenthG) Factors</h3>
-
-              <label className="domain-calc-checkbox" for="visa-full-degree">
-                <input
-                  id="visa-full-degree"
-                  type="checkbox"
-                  checked={s.hasRecognizedGermanOrEquivalentDegree}
-                  onChange={(event) => updateVisaField("hasRecognizedGermanOrEquivalentDegree", event.currentTarget.checked)}
+                  options={OCCUPATION_ROUTE_OPTIONS}
+                  fullWidth
+                  onChange={(value) => updateVisaField("occupationRoute", value)}
                 />
-                <span>Fully recognized university degree or German qualification</span>
-              </label>
+              </div>
 
-              <label className="domain-calc-checkbox" for="visa-partial">
-                <input
-                  id="visa-partial"
-                  type="checkbox"
-                  checked={s.hasVocationalOrPartialRecognition}
-                  onChange={(event) => updateVisaField("hasVocationalOrPartialRecognition", event.currentTarget.checked)}
-                />
-                <span>Partial recognition deficit notice (+4 pts)</span>
-              </label>
+              <ChoiceSelect
+                id="visa-german"
+                label="German Language Level"
+                value={s.germanLevel}
+                options={GERMAN_LEVEL_OPTIONS}
+                onChange={(value) => updateVisaField("germanLevel", toGermanLanguageLevel(value))}
+              />
 
-              <label className="domain-calc-checkbox" for="visa-english">
-                <input
-                  id="visa-english"
-                  type="checkbox"
-                  checked={s.hasEnglishC1OrNative}
-                  onChange={(event) => updateVisaField("hasEnglishC1OrNative", event.currentTarget.checked)}
-                />
-                <span>English C1 or native proficiency (+1 pt)</span>
-              </label>
+              <h3 className="domain-calc-group-title">Opportunity Card Factors</h3>
 
-              <label className="domain-calc-checkbox" for="visa-shortage-flag">
-                <input
-                  id="visa-shortage-flag"
-                  type="checkbox"
-                  checked={s.isShortageOccupation}
-                  onChange={(event) => updateVisaField("isShortageOccupation", event.currentTarget.checked)}
-                />
-                <span>Bottleneck occupation under EU shortage list (+1 pt)</span>
-              </label>
+              <ToggleSwitch
+                id="visa-full-degree"
+                label="Fully recognized university degree"
+                hint="Direct skilled-worker track (no point threshold needed)"
+                checked={s.hasRecognizedGermanOrEquivalentDegree}
+                onChange={(checked) => updateVisaField("hasRecognizedGermanOrEquivalentDegree", checked)}
+              />
 
-              <label className="domain-calc-checkbox" for="visa-prior-stay">
-                <input
-                  id="visa-prior-stay"
-                  type="checkbox"
-                  checked={s.hasPriorSixMonthLegalStayInGermany}
-                  onChange={(event) => updateVisaField("hasPriorSixMonthLegalStayInGermany", event.currentTarget.checked)}
-                />
-                <span>6+ months legal stay in Germany during past 5 years (+1 pt)</span>
-              </label>
+              <ToggleSwitch
+                id="visa-partial"
+                label="Partial recognition deficit notice (+4 pts)"
+                checked={s.hasVocationalOrPartialRecognition}
+                onChange={(checked) => updateVisaField("hasVocationalOrPartialRecognition", checked)}
+              />
 
-              <label className="domain-calc-checkbox" for="visa-partner-applies">
-                <input
-                  id="visa-partner-applies"
-                  type="checkbox"
-                  checked={s.partnerAlsoAppliesSkilled}
-                  onChange={(event) => updateVisaField("partnerAlsoAppliesSkilled", event.currentTarget.checked)}
-                />
-                <span>Spouse/partner also fulfills Chancenkarte criteria (+1 pt)</span>
-              </label>
+              <ToggleSwitch
+                id="visa-english"
+                label="English C1 or native proficiency (+1 pt)"
+                checked={s.hasEnglishC1OrNative}
+                onChange={(checked) => updateVisaField("hasEnglishC1OrNative", checked)}
+              />
 
-              <label className="domain-calc-field" for="visa-stay-months">
-                <span className="domain-calc-field__label-line">
-                  <span>Opportunity Card Stay Duration (months)</span>
-                  <LawRefLink lawId={LawId.AufenthG_20a} label="§ 20a" variant="badge" />
-                </span>
-                <input
-                  id="visa-stay-months"
-                  type="number"
-                  min={1}
-                  max={12}
-                  step={1}
-                  value={s.stayDurationMonths}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 1) {
-                      updateVisaField("stayDurationMonths", Math.min(12, Math.round(num)));
-                    }
-                  }}
-                />
-              </label>
+              <ToggleSwitch
+                id="visa-shortage-flag"
+                label="EU shortage / bottleneck occupation (+1 pt)"
+                checked={s.isShortageOccupation}
+                onChange={(checked) => updateVisaField("isShortageOccupation", checked)}
+              />
+
+              <ToggleSwitch
+                id="visa-prior-stay"
+                label="6+ months legal stay in Germany (+1 pt)"
+                checked={s.hasPriorSixMonthLegalStayInGermany}
+                onChange={(checked) => updateVisaField("hasPriorSixMonthLegalStayInGermany", checked)}
+              />
+
+              <ToggleSwitch
+                id="visa-partner-applies"
+                label="Partner also qualifies for Opportunity Card (+1 pt)"
+                checked={s.partnerAlsoAppliesSkilled}
+                onChange={(checked) => updateVisaField("partnerAlsoAppliesSkilled", checked)}
+              />
+
+              <NumberField
+                id="visa-stay-months"
+                label="Opportunity Card Stay Duration"
+                unit="mo"
+                min={1}
+                max={12}
+                step={1}
+                value={s.stayDurationMonths}
+                onChange={(num) => updateVisaField("stayDurationMonths", Math.min(12, Math.round(num)))}
+              />
             </div>
           </section>
 
@@ -285,92 +258,81 @@ export default function VisaCalculator(): JSX.Element {
             </div>
 
             <div className="domain-calc-kpis">
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Applicable Threshold</span>
-                  <LawRefLink lawId={LawId.AufenthG_18g} label="§ 18g" variant="badge" />
-                </span>
-                <span className="domain-calc-kpi__value">{formatEur(blueCard.applicableSalaryThreshold)}</span>
-                <span className="domain-calc-kpi__sub">
-                  Margin {blueCard.salarySurplusOrShortfall >= 0 ? "+" : ""}
-                  {formatEur(blueCard.salarySurplusOrShortfall)}
-                </span>
-              </div>
-
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Settlement Permit (PR)</span>
-                  <LawRefLink lawId={LawId.AufenthG_18c} label="§ 18c" variant="badge" />
-                </span>
-                <span className="domain-calc-kpi__value domain-calc-kpi__value--gain">
-                  {blueCard.requiredSettlementMonths} months
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  {blueCard.settlementMonthsSavedByB1 > 0
+              <MetricCard
+                label="Applicable Threshold"
+                value={formatEur(blueCard.applicableSalaryThreshold)}
+                subtitle={`Margin ${blueCard.salarySurplusOrShortfall >= 0 ? "+" : ""}${formatEur(blueCard.salarySurplusOrShortfall)}`}
+                tone={MetricTone.Primary}
+              />
+              <MetricCard
+                label="Settlement Permit (PR)"
+                value={`${blueCard.requiredSettlementMonths} months`}
+                subtitle={
+                  blueCard.settlementMonthsSavedByB1 > 0
                     ? `B1 accelerates by ${blueCard.settlementMonthsSavedByB1} months`
-                    : "B1 German cuts timeline to 21 months"}
-                </span>
-              </div>
-
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Chancenkarte Points</span>
-                  <LawRefLink lawId={LawId.AufenthG_20a} label="§ 20a" variant="badge" />
-                </span>
-                <span className={`domain-calc-kpi__value ${chancenkarte.eligibleOverall ? "domain-calc-kpi__value--gain" : ""}`}>
-                  {chancenkarte.directSkilledWorkerTrack ? "Direct Track" : `${chancenkarte.totalPoints} / ${chancenkarte.pointsRequired} pts`}
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  Blocked account {formatEur(chancenkarte.requiredBlockedAccountTotal)}
-                </span>
-              </div>
+                    : "B1 German cuts timeline to 21 months"
+                }
+                tone={MetricTone.Gain}
+              />
+              <MetricCard
+                label="Chancenkarte Points"
+                value={
+                  chancenkarte.directSkilledWorkerTrack
+                    ? "Direct Track"
+                    : `${chancenkarte.totalPoints} / ${chancenkarte.pointsRequired} pts`
+                }
+                subtitle={`Blocked account ${formatEur(chancenkarte.requiredBlockedAccountTotal)}`}
+                tone={chancenkarte.eligibleOverall ? MetricTone.Gain : MetricTone.Neutral}
+              />
             </div>
 
-            <section className="domain-calc-card" aria-labelledby="chancenkarte-breakdown-heading">
-              <h2 id="chancenkarte-breakdown-heading">Opportunity Card Points &amp; Savings</h2>
+            <section className="ui-card" aria-labelledby="chancenkarte-breakdown-heading">
+              <div className="ui-card__header">
+                <h2 id="chancenkarte-breakdown-heading" className="ui-card__title">Opportunity Card Points &amp; Savings</h2>
+              </div>
               <table className="domain-calc-table">
                 <thead>
                   <tr>
-                    <th>Statutory Criterion</th>
+                    <th>Criterion</th>
                     <th className="num">Points / Value</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Partial Recognition Deficit Notice</td>
+                    <td>Partial recognition deficit notice</td>
                     <td className="num">{chancenkarte.breakdown.partialRecognition} pts</td>
                   </tr>
                   <tr>
-                    <td>Skilled Professional Experience ({s.qualifiedExperienceYears} yrs)</td>
+                    <td>Skilled professional experience ({s.qualifiedExperienceYears} yrs)</td>
                     <td className="num">{chancenkarte.breakdown.experience} pts</td>
                   </tr>
                   <tr>
-                    <td>German Language Level</td>
+                    <td>German language level</td>
                     <td className="num">{chancenkarte.breakdown.germanLanguage} pts</td>
                   </tr>
                   <tr>
-                    <td>English C1 / Native Bonus</td>
+                    <td>English C1 / native bonus</td>
                     <td className="num">{chancenkarte.breakdown.englishLanguage} pts</td>
                   </tr>
                   <tr>
-                    <td>Age Bracket Bonus (Under 35 / Under 40)</td>
+                    <td>Age bracket bonus (under 35 / under 40)</td>
                     <td className="num">{chancenkarte.breakdown.age} pts</td>
                   </tr>
                   <tr>
-                    <td>Shortage Occupation / Prior Stay / Partner</td>
+                    <td>Shortage occupation / prior stay / partner</td>
                     <td className="num">
                       {chancenkarte.breakdown.shortageBonus + chancenkarte.breakdown.priorStayInGermany + chancenkarte.breakdown.partnerBonus} pts
                     </td>
                   </tr>
                   <tr className="is-total">
-                    <th>Total Chancenkarte Score (Threshold: 6 pts or Direct Recognized Degree)</th>
+                    <th>Total Opportunity Card Score (Threshold: 6 pts or Recognized Degree)</th>
                     <td className="num">{chancenkarte.totalPoints} pts</td>
                   </tr>
                 </tbody>
               </table>
 
               <div className="domain-calc-law-bar">
-                <span>Statutory Bases:</span>
+                <span>Legal basis:</span>
                 <LawRefLink lawId={LawId.AufenthG_18g} label="AufenthG § 18g" />
                 <LawRefLink lawId={LawId.AufenthG_18c} label="AufenthG § 18c" />
                 <LawRefLink lawId={LawId.AufenthG_20a} label="AufenthG § 20a" />
@@ -383,7 +345,7 @@ export default function VisaCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>Statutory Blue Card and Opportunity Card figures automatically adjust by planning year.</span>
+          <span>Blue Card and Opportunity Card thresholds automatically adjust by planning year.</span>
           <SourceRevision />
         </footer>
       </main>

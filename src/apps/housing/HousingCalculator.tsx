@@ -16,9 +16,24 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
-  HomeAcquisitionIcon,
   StatutoryLimitationWarningIcon,
 } from "#components/Icons";
+import {
+  ChoiceSelect,
+} from "#components/ui/ChoiceSelect";
+import {
+  MetricCard,
+  MetricTone,
+} from "#components/ui/MetricCard";
+import {
+  NumberField,
+} from "#components/ui/NumberField";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
+  ToggleSwitch,
+} from "#components/ui/ToggleSwitch";
 import {
   unifiedLifeProfile,
 } from "#store/lifeProfileStore";
@@ -48,6 +63,11 @@ function formatEur(value: number): string {
   return formatSharedEur(value);
 }
 
+const FEDERAL_STATE_OPTIONS = Object.entries(GERMAN_FEDERAL_STATE_LABELS).map(([code, label]) => ({
+  value: code,
+  label,
+}));
+
 export default function HousingCalculator(): JSX.Element {
   const s = housingState.value;
   const evalResult = housingEvaluation.value.value;
@@ -55,214 +75,144 @@ export default function HousingCalculator(): JSX.Element {
   return (
     <>
       <Navigation currentPath={calculatorPath(AppId.Housing)} />
-      <main id="main-content" className="domain-calc-page" tabIndex={-1}>
-        <header className="domain-calc-header">
-          <div>
-            <span className="domain-calc-header__eyebrow">
-              <HomeAcquisitionIcon size={15} />
-              <span>Real Estate, Closing Costs &amp; Family Subsidies</span>
-            </span>
-            <h1>Home Purchase Planner</h1>
-            <p className="domain-calc-header__subtitle">
-              Estimate buying costs across all 16 states, KfW 300 family loans, and renovation tax credits.
-            </p>
-          </div>
-          <DomainCalculatorHeaderActions
-            onSyncLifeProfile={syncHousingFromLifeProfile}
-            onResetDefaults={resetHousingCalculator}
-            syncTooltip="Populate planning year, federal state, property price, equity, children, household ZvE, KfW 300 options, and craftsmanship labor from the Unified Life Profile"
-            inactiveInLifeProfileMessage={
-              unifiedLifeProfile.value.plansHomePurchase
-                ? undefined
-                : "Home acquisition is currently toggled off in Life Profile"
-            }
-          />
-        </header>
+      <main id="main-content" className="ui-page" tabIndex={-1}>
+        <PageHeader
+          eyebrow="Home Buying"
+          title="Home Purchase Planner"
+          subtitle="Estimate buying costs across all 16 federal states, KfW 300 family loans, and renovation tax credits."
+          actions={(
+            <DomainCalculatorHeaderActions
+              onSyncLifeProfile={syncHousingFromLifeProfile}
+              onResetDefaults={resetHousingCalculator}
+              syncTooltip="Load planning year, federal state, price, equity, children, and household income from your Life Profile"
+              inactiveInLifeProfileMessage={
+                unifiedLifeProfile.value.plansHomePurchase
+                  ? undefined
+                  : "Home purchase is currently off in your Life Profile"
+              }
+            />
+          )}
+        />
 
         <div className="domain-calc-layout">
-          <section className="domain-calc-card" aria-labelledby="housing-inputs-heading">
-            <h2 id="housing-inputs-heading">Property &amp; Family Financing Details</h2>
+          <section className="ui-card" aria-labelledby="housing-inputs-heading">
+            <div className="ui-card__header">
+              <div>
+                <h2 id="housing-inputs-heading" className="ui-card__title">Property &amp; Financing</h2>
+                <p className="ui-card__subtitle">Purchase price, equity, and state transfer tax rate.</p>
+              </div>
+            </div>
             <div className="domain-calc-fields">
-              <label className="domain-calc-field" for="housing-state">
-                <span className="domain-calc-field__label-line">
-                  <span>Federal State</span>
-                  <LawRefLink lawId={LawId.GrEStG_11} label="§ 11 GrEStG" variant="badge" />
-                </span>
-                <select
-                  id="housing-state"
-                  value={s.federalState}
-                  onChange={(event) => updateHousingField("federalState", toGermanFederalState(event.currentTarget.value))}
-                >
-                  {Object.entries(GERMAN_FEDERAL_STATE_LABELS).map(([code, label]) => (
-                    <option key={code} value={code}>{label}</option>
-                  ))}
-                </select>
-              </label>
+              <ChoiceSelect
+                id="housing-state"
+                label="Federal State"
+                value={s.federalState}
+                options={FEDERAL_STATE_OPTIONS}
+                onChange={(value) => updateHousingField("federalState", toGermanFederalState(value))}
+              />
 
               <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="housing-price">
-                  <span>Purchase Price (EUR)</span>
-                  <input
-                    id="housing-price"
-                    type="number"
-                    min={10000}
-                    step={10000}
-                    value={s.purchasePriceEur}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 10000) {
-                        updateHousingField("purchasePriceEur", toEuroAmount(num));
-                      }
-                    }}
-                  />
-                </label>
-
-                <label className="domain-calc-field" for="housing-equity">
-                  <span>Available Equity (EUR)</span>
-                  <input
-                    id="housing-equity"
-                    type="number"
-                    min={0}
-                    step={5000}
-                    value={s.availableEquityEur}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateHousingField("availableEquityEur", toEuroAmount(num));
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-
-              <label className="domain-calc-checkbox" for="housing-broker">
-                <input
-                  id="housing-broker"
-                  type="checkbox"
-                  checked={s.includesBrokerCommission}
-                  onChange={(event) => updateHousingField("includesBrokerCommission", event.currentTarget.checked)}
+                <NumberField
+                  id="housing-price"
+                  label="Purchase Price"
+                  unit="€"
+                  min={10000}
+                  step={10000}
+                  value={s.purchasePriceEur}
+                  onChange={(num) => updateHousingField("purchasePriceEur", toEuroAmount(num))}
                 />
-                <span>Include statutory buyer broker commission (Maklerprovision)</span>
-              </label>
 
-              <h3>KfW 300 &amp; § 35a Tax Relief</h3>
-
-              <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="housing-children">
-                  <span className="domain-calc-field__label-line">
-                    <span>Dependent Children</span>
-                    <LawRefLink lawId={LawId.KfW_300} label="KfW 300" variant="badge" />
-                  </span>
-                  <input
-                    id="housing-children"
-                    type="number"
-                    min={0}
-                    max={15}
-                    step={1}
-                    value={s.dependentChildrenCount}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateHousingField("dependentChildrenCount", Math.round(num));
-                      }
-                    }}
-                  />
-                </label>
-
-                <label className="domain-calc-field" for="housing-zve">
-                  <span>Avg. Household zvE (EUR)</span>
-                  <input
-                    id="housing-zve"
-                    type="number"
-                    min={0}
-                    step={2000}
-                    value={s.priorAverageHouseholdZvEEur}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0) {
-                        updateHousingField("priorAverageHouseholdZvEEur", toEuroAmount(num));
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-
-              <label className="domain-calc-checkbox" for="housing-newbuild">
-                <input
-                  id="housing-newbuild"
-                  type="checkbox"
-                  checked={s.isOwnerOccupiedNewBuildOrKfw300Standard}
-                  onChange={(event) => updateHousingField("isOwnerOccupiedNewBuildOrKfw300Standard", event.currentTarget.checked)}
-                />
-                <span>Owner-occupied EH 40 new build (KfW 300 qualifying standard)</span>
-              </label>
-
-              <label className="domain-calc-checkbox" for="housing-qng">
-                <input
-                  id="housing-qng"
-                  type="checkbox"
-                  checked={s.isQngPlusCertified}
-                  onChange={(event) => updateHousingField("isQngPlusCertified", event.currentTarget.checked)}
-                />
-                <span>QNG-Plus Sustainability Seal (+€50,000 subsidized loan boost)</span>
-              </label>
-
-              <label className="domain-calc-field" for="housing-craftsman">
-                <span className="domain-calc-field__label-line">
-                  <span>Annual Craftsmanship Labor Cost (EUR)</span>
-                  <LawRefLink lawId={LawId.EStG_35a} label="§ 35a" variant="badge" />
-                </span>
-                <input
-                  id="housing-craftsman"
-                  type="number"
+                <NumberField
+                  id="housing-equity"
+                  label="Available Equity"
+                  unit="€"
                   min={0}
-                  step={250}
-                  value={s.renovationLaborCostEur}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateHousingField("renovationLaborCostEur", toEuroAmount(num));
-                    }
-                  }}
+                  step={5000}
+                  value={s.availableEquityEur}
+                  onChange={(num) => updateHousingField("availableEquityEur", toEuroAmount(num))}
                 />
-              </label>
+              </div>
+
+              <ToggleSwitch
+                id="housing-broker"
+                label="Include buyer agent commission"
+                hint="Typical statutory split when buying through a broker"
+                checked={s.includesBrokerCommission}
+                onChange={(checked) => updateHousingField("includesBrokerCommission", checked)}
+              />
+
+              <h3 className="domain-calc-group-title">KfW 300 &amp; Renovation Relief</h3>
 
               <div className="domain-calc-field-row">
-                <label className="domain-calc-field" for="housing-rate">
-                  <span>Market Interest Rate (% p.a.)</span>
-                  <input
-                    id="housing-rate"
-                    type="number"
-                    min={0.5}
-                    max={12}
-                    step={0.1}
-                    value={Number((s.marketMortgageAnnualInterestRate * 100).toFixed(2))}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num > 0 && num <= 15) {
-                        updateHousingField("marketMortgageAnnualInterestRate", toPercentageRate(num / 100));
-                      }
-                    }}
-                  />
-                </label>
+                <NumberField
+                  id="housing-children"
+                  label="Minor Children"
+                  min={0}
+                  max={15}
+                  step={1}
+                  value={s.dependentChildrenCount}
+                  onChange={(num) => updateHousingField("dependentChildrenCount", Math.round(num))}
+                />
 
-                <label className="domain-calc-field" for="housing-repay">
-                  <span>Initial Repayment / Tilgung (% p.a.)</span>
-                  <input
-                    id="housing-repay"
-                    type="number"
-                    min={0.5}
-                    max={15}
-                    step={0.25}
-                    value={Number((s.initialAnnualRepaymentRate * 100).toFixed(2))}
-                    onInput={(event) => {
-                      const num = Number(event.currentTarget.value);
-                      if (Number.isFinite(num) && num >= 0.5 && num <= 20) {
-                        updateHousingField("initialAnnualRepaymentRate", toPercentageRate(num / 100));
-                      }
-                    }}
-                  />
-                </label>
+                <NumberField
+                  id="housing-zve"
+                  label="Avg. Household Taxable Income"
+                  unit="€"
+                  min={0}
+                  step={2000}
+                  value={s.priorAverageHouseholdZvEEur}
+                  onChange={(num) => updateHousingField("priorAverageHouseholdZvEEur", toEuroAmount(num))}
+                />
+              </div>
+
+              <ToggleSwitch
+                id="housing-newbuild"
+                label="Owner-occupied EH 40 new build"
+                hint="Required energy standard for KfW 300"
+                checked={s.isOwnerOccupiedNewBuildOrKfw300Standard}
+                onChange={(checked) => updateHousingField("isOwnerOccupiedNewBuildOrKfw300Standard", checked)}
+              />
+
+              <ToggleSwitch
+                id="housing-qng"
+                label="QNG-Plus sustainability seal"
+                hint="+€50,000 extra KfW 300 loan ceiling"
+                checked={s.isQngPlusCertified}
+                onChange={(checked) => updateHousingField("isQngPlusCertified", checked)}
+              />
+
+              <NumberField
+                id="housing-craftsman"
+                label="Annual Craftsmanship Labor Cost"
+                unit="€"
+                min={0}
+                step={250}
+                value={s.renovationLaborCostEur}
+                onChange={(num) => updateHousingField("renovationLaborCostEur", toEuroAmount(num))}
+              />
+
+              <div className="domain-calc-field-row">
+                <NumberField
+                  id="housing-rate"
+                  label="Mortgage Interest Rate"
+                  unit="%"
+                  min={0.5}
+                  max={15}
+                  step={0.1}
+                  value={Number((s.marketMortgageAnnualInterestRate * 100).toFixed(2))}
+                  onChange={(num) => updateHousingField("marketMortgageAnnualInterestRate", toPercentageRate(num / 100))}
+                />
+
+                <NumberField
+                  id="housing-repay"
+                  label="Initial Repayment (Tilgung)"
+                  unit="%"
+                  min={0.5}
+                  max={20}
+                  step={0.25}
+                  value={Number((s.initialAnnualRepaymentRate * 100).toFixed(2))}
+                  onChange={(num) => updateHousingField("initialAnnualRepaymentRate", toPercentageRate(num / 100))}
+                />
               </div>
             </div>
           </section>
@@ -277,106 +227,89 @@ export default function HousingCalculator(): JSX.Element {
                   {evalResult.kfw300Eligible ? <EligibilityConfirmedIcon size={18} /> : <StatutoryLimitationWarningIcon size={18} />}
                   <span>
                     {evalResult.kfw300Eligible
-                      ? `Eligible for up to ${formatEur(evalResult.kfw300MaxSubsidizedLoanEur)} KfW 300 subsidized family loan`
-                      : `Not eligible for KfW 300 (${s.dependentChildrenCount === 0 ? "requires 1+ minor children" : !s.isOwnerOccupiedNewBuildOrKfw300Standard ? "requires EH 40 new build" : `household zvE exceeds ${formatEur(evalResult.kfw300IncomeCeilingEur)} limit`})`}
+                      ? `Eligible for up to ${formatEur(evalResult.kfw300MaxSubsidizedLoanEur)} KfW 300 family loan`
+                      : `Not eligible for KfW 300 (${s.dependentChildrenCount === 0 ? "requires 1+ minor children" : !s.isOwnerOccupiedNewBuildOrKfw300Standard ? "requires EH 40 new build" : `household income exceeds ${formatEur(evalResult.kfw300IncomeCeilingEur)} limit`})`}
                   </span>
                 </strong>
                 <p>
                   {evalResult.kfw300IncomeCeilingEur > 0
-                    ? `Applicable KfW 300 household income limit with ${s.dependentChildrenCount} child(ren): ${formatEur(evalResult.kfw300IncomeCeilingEur)} zvE.`
-                    : "KfW 300 Wohneigentum für Familien requires at least 1 minor child in the household."}
+                    ? `KfW 300 household income ceiling for ${s.dependentChildrenCount} child(ren): ${formatEur(evalResult.kfw300IncomeCeilingEur)}.`
+                    : "KfW 300 family loans require at least 1 minor child in the household."}
                 </p>
               </div>
               <LawRefLink lawId={LawId.KfW_300} label="Read KfW 300 Program" />
             </div>
 
             <div className="domain-calc-kpis">
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Total Closing Costs</span>
-                  <LawRefLink lawId={LawId.GrEStG_11} label="§ 11" variant="badge" />
-                </span>
-                <span className="domain-calc-kpi__value domain-calc-kpi__value--loss">
-                  {formatEur(evalResult.totalClosingCostsEur)}
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  {(evalResult.totalClosingCostPercent * 100).toFixed(2)}% of purchase price
-                </span>
-              </div>
-
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>Remaining Bank Loan</span>
-                </span>
-                <span className="domain-calc-kpi__value">
-                  {formatEur(evalResult.remainingBankLoanEur)}
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  Est. {formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/mo bank annuity
-                </span>
-              </div>
-
-              <div className="domain-calc-kpi">
-                <span className="domain-calc-kpi__label">
-                  <span>§ 35a Craftsmanship Credit</span>
-                  <LawRefLink lawId={LawId.EStG_35a} label="§ 35a" variant="badge" />
-                </span>
-                <span className="domain-calc-kpi__value domain-calc-kpi__value--gain">
-                  +{formatEur(evalResult.craftsmanTaxCreditEur)}
-                </span>
-                <span className="domain-calc-kpi__sub">
-                  Direct annual EStG tax deduction (max €1,200/yr)
-                </span>
-              </div>
+              <MetricCard
+                label="Total Buying Costs"
+                value={formatEur(evalResult.totalClosingCostsEur)}
+                subtitle={`${(evalResult.totalClosingCostPercent * 100).toFixed(2)}% of purchase price`}
+                tone={MetricTone.Loss}
+              />
+              <MetricCard
+                label="Remaining Bank Loan"
+                value={formatEur(evalResult.remainingBankLoanEur)}
+                subtitle={`Est. ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/mo bank annuity`}
+                tone={MetricTone.Primary}
+              />
+              <MetricCard
+                label="§ 35a Craftsmanship Credit"
+                value={`+${formatEur(evalResult.craftsmanTaxCreditEur)}`}
+                subtitle="Direct annual tax deduction (max €1,200/yr)"
+                tone={MetricTone.Gain}
+              />
             </div>
 
-            <section className="domain-calc-card" aria-labelledby="housing-breakdown-heading">
-              <h2 id="housing-breakdown-heading">Acquisition Capital &amp; Closing Cost Breakdown</h2>
+            <section className="ui-card" aria-labelledby="housing-breakdown-heading">
+              <div className="ui-card__header">
+                <h2 id="housing-breakdown-heading" className="ui-card__title">Financing &amp; Buying Costs Breakdown</h2>
+              </div>
               <table className="domain-calc-table">
                 <thead>
                   <tr>
-                    <th>Cost / Financing Component</th>
+                    <th>Cost / Financing Item</th>
                     <th className="num">Amount (EUR)</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Property Purchase Price</td>
+                    <td>Property purchase price</td>
                     <td className="num">{formatEur(s.purchasePriceEur)}</td>
                   </tr>
                   <tr>
-                    <td>Real Estate Transfer Tax — Grunderwerbsteuer ({(evalResult.transferTaxRate * 100).toFixed(1)}%)</td>
+                    <td>Property transfer tax — Grunderwerbsteuer ({(evalResult.transferTaxRate * 100).toFixed(1)}%)</td>
                     <td className="num">{formatEur(evalResult.transferTaxEur)}</td>
                   </tr>
                   <tr>
-                    <td>Notary &amp; Grundbuch Land Registry</td>
+                    <td>Notary &amp; land registry</td>
                     <td className="num">{formatEur(evalResult.notaryAndRegistryEur)}</td>
                   </tr>
                   <tr>
-                    <td>Buyer Broker Commission (Maklercourtage)</td>
+                    <td>Buyer agent commission</td>
                     <td className="num">{formatEur(evalResult.buyerBrokerFeeEur)}</td>
                   </tr>
                   <tr>
-                    <td>Total Acquisition Capital Needed</td>
+                    <td>Total capital required</td>
                     <td className="num">{formatEur(evalResult.totalCapitalRequirementEur)}</td>
                   </tr>
                   <tr>
-                    <td>Less: Available Household Equity</td>
+                    <td>Less: available equity</td>
                     <td className="num">-{formatEur(s.availableEquityEur)}</td>
                   </tr>
                   <tr>
-                    <td>Less: Eligible KfW 300 Subsidized Loan</td>
+                    <td>Less: KfW 300 subsidized loan</td>
                     <td className="num">-{formatEur(evalResult.kfw300MaxSubsidizedLoanEur)}</td>
                   </tr>
                   <tr className="is-total">
-                    <th>Remaining Commercial Mortgage Financing Needed</th>
+                    <th>Remaining Bank Mortgage Needed</th>
                     <td className="num">{formatEur(evalResult.remainingBankLoanEur)}</td>
                   </tr>
                 </tbody>
               </table>
 
               <div className="domain-calc-law-bar">
-                <span>Statutory Bases:</span>
+                <span>Legal basis:</span>
                 <LawRefLink lawId={LawId.GrEStG_11} label="GrEStG § 11" />
                 <LawRefLink lawId={LawId.KfW_300} label="KfW 300" />
                 <LawRefLink lawId={LawId.EStG_35a} label="EStG § 35a" />
@@ -388,7 +321,7 @@ export default function HousingCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>Default notary/Grundbuch and buyer agent percentages can be adjusted in Statutory Assumptions below.</span>
+          <span>Default notary and agent percentages can be adjusted in Statutory Assumptions below.</span>
           <SourceRevision />
         </footer>
       </main>

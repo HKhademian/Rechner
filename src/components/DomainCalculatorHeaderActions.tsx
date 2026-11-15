@@ -69,7 +69,7 @@ export default function DomainCalculatorHeaderActions({
       <div className="domain-calc-header__actions">
         <button
           type="button"
-          className="domain-calc-btn domain-calc-btn--primary"
+          className="ui-btn ui-btn--tint"
           disabled={!hydrated}
           onClick={handleSync}
           title={syncTooltip}
@@ -79,12 +79,12 @@ export default function DomainCalculatorHeaderActions({
         </button>
         <button
           type="button"
-          className="domain-calc-btn"
+          className="ui-btn"
           disabled={!hydrated}
           onClick={handleReset}
         >
           <ResetDefaultsIcon size={14} />
-          <span>Reset Defaults</span>
+          <span>Reset</span>
         </button>
       </div>
       {syncNotice && (
