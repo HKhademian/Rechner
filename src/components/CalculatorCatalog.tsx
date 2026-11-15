@@ -22,7 +22,6 @@ import {
   catalogPage,
   CATALOG_PAGE_SIZE,
 } from "#/apps/registry.ts";
-import LifeProfilePanel from "#components/LifeProfilePanel";
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
 import {
@@ -139,17 +138,15 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
       <header className="calculator-catalog__intro">
         <div>
           <p className="calculator-catalog__eyebrow">Free online calculators</p>
-          <h1>Plan your pay, family, mobility and home finances.</h1>
-          <p>Clear estimates for German salary, taxes, parental leave, visas, company cars, solar, and home buying.</p>
+          <h1>Plan your pay, family and everyday finances.</h1>
+          <p>Clear estimates for German salary, taxes, parental leave and SEPA payment QR codes.</p>
         </div>
         <aside className="calculator-catalog__privacy"><strong>Private by default</strong><p>No account. Your saved inputs stay in this browser.</p></aside>
       </header>
 
-      <LifeProfilePanel />
-
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <label for="calculator-search">Find a calculator
-          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode, Blue Card, Solar, Housing" value={query.value} aria-controls="calculator-results"
+          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode" value={query.value} aria-controls="calculator-results"
             onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
         </label>
         <div className="calculator-catalog__category-filter">
@@ -193,10 +190,6 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
         <LawRefLink lawId={LawId.EStG_32a} label="EStG" />
         {" · "}
         <LawRefLink lawId={LawId.MuSchG_3} label="MuSchG" />
-        {" · "}
-        <LawRefLink lawId={LawId.AufenthG_18g} label="AufenthG" />
-        {" · "}
-        <LawRefLink lawId={LawId.KfW_300} label="KfW 300" />
       </p>
       <SourceRevision />
     </footer>
