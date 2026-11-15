@@ -250,7 +250,7 @@ export default function RulesExplainer(): JSX.Element {
   return (
     <div
       id="statutory-legal-framework"
-      className="glass-panel"
+      className="ui-card"
       style={{
         padding: "26px",
         marginTop: "36px",

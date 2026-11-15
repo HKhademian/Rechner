@@ -27,7 +27,7 @@ export default function CalculationStatus({ result }: { result: SimulationResult
   const reasons = result.unavailableReasons ?? [];
 
   return (
-    <section className="calculation-status glass-panel" aria-labelledby="calculation-status-heading">
+    <section className="calculation-status ui-card" aria-labelledby="calculation-status-heading">
       <div className="calculation-status__heading">
         <h2 id="calculation-status-heading">Calculation status</h2>
         <span>Summary · {plannerCalculationLabels[result.scenarioKey]}</span>

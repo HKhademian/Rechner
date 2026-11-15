@@ -88,13 +88,13 @@
   padding: 16px;
 }
 
-.calculator-result-dialog__body > .glass-panel {
+.calculator-result-dialog__body > .ui-card {
   margin: 0;
   padding: 16px;
   box-shadow: none;
 }
 
-.calculator-result-dialog__body > .glass-panel > div:first-child {
+.calculator-result-dialog__body > .ui-card > div:first-child {
   flex-wrap: wrap;
   gap: 12px;
 }

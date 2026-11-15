@@ -216,7 +216,7 @@ export default function TimelineTable(): JSX.Element {
 
   return (
     <div
-      className="glass-panel"
+      className="ui-card"
       style={{ padding: "24px",
         marginBottom: "32px" }}
     >

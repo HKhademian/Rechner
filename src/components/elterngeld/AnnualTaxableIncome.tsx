@@ -31,7 +31,7 @@ export default function AnnualTaxableIncome({ result }: { result: SimulationResu
   const profile = record?.assessment?.taxRules ?? result.configuration?.taxProfiles.find((item) => item.calendarYear === record?.calendarYear);
 
   return (
-    <details id="annual-taxable-income" className="annual-income glass-panel annual-income--disclosure" aria-labelledby="annual-income-heading">
+    <details id="annual-taxable-income" className="annual-income ui-card annual-income--disclosure" aria-labelledby="annual-income-heading">
       <summary>
         <h2 id="annual-income-heading">Yearly income and deductions</h2>
         <span>Optional detail · calculated from your salary inputs</span>

@@ -36,7 +36,7 @@ export default function CalculatorTaxableIncome({ data, id = "annual-taxable-inc
 
   const money = (value: number | undefined): string => formatEurOrUnavailable(value, 2);
   return (
-    <section id={id} className="annual-income glass-panel" aria-labelledby={`${id}-heading`}>
+    <section id={id} className="annual-income ui-card" aria-labelledby={`${id}-heading`}>
       <div className="annual-income__header">
         <div>
           <h2 id={`${id}-heading`}>Annual taxable income</h2>

@@ -7,6 +7,11 @@ import type {
 } from "preact";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  type MetricBreakdownItem,
+  MetricCard,
+  MetricTone,
+} from "#components/ui/MetricCard";
+import {
   currentScenarioData,
   comparisonMetrics,
   scenarioBData,
@@ -14,31 +19,56 @@ import {
   LegalRuleKey,
   activeLegalRuleKey,
 } from "#store/elterngeldStore";
-
 import {
   StatutorySectionIcon,
 } from "#components/Icons";
 
-function formatCurrency(amount: number, maximumFractionDigits = 0): string {
-  return formatEur(amount || 0, maximumFractionDigits);
-}
-
+/**
+ * High-level KPI overview for Parental Leave net salaries, benefits, cash flow, and tax-switch impact.
+ */
 export default function KpiScorecard(): JSX.Element {
   const current = currentScenarioData.value;
   const metrics = comparisonMetrics.value;
   const bSummary = scenarioBData.value.summary;
 
+  const totalHusbandSalary = current.months.reduce((acc, m) => acc + m.husbandSalary, 0);
+  const totalWifeSalary = current.months.reduce((acc, m) => acc + m.wifeSalary, 0);
+  const isGainNegative = metrics.gainCvsB < 0;
+  const gainTone = isGainNegative ? MetricTone.Loss : MetricTone.Gain;
+  const gainColor = isGainNegative ? "var(--color-loss)" : "var(--color-gain)";
+  const percentGainCvsB = bSummary.grandTotal === 0
+    ? undefined
+    : ((metrics.gainCvsB / Math.abs(bSummary.grandTotal)) * 100).toFixed(1);
 
-  const totalHusbandSalary = current.months.reduce(
-    (acc, m) => acc + m.husbandSalary,
-    0,
-  );
-  const totalWifeSalary = current.months.reduce(
-    (acc, m) => acc + m.wifeSalary,
-    0,
-  );
-  const gainColor = metrics.gainCvsB < 0 ? "var(--color-loss)" : "var(--color-gain)";
-  const percentGainCvsB = bSummary.grandTotal === 0 ? undefined : ((metrics.gainCvsB / Math.abs(bSummary.grandTotal)) * 100).toFixed(1);
+  const cashflowBreakdown: MetricBreakdownItem[] = [
+    {
+      label: "Average / Month",
+      value: current.months.length > 0
+        ? formatEur(current.summary.grandTotal / current.months.length)
+        : "Unavailable",
+    },
+    ...(current.summary.realGrandTotal !== undefined &&
+    current.summary.inflationRateApplied !== undefined &&
+    current.summary.inflationRateApplied > 0
+      ? [{
+        label: `Real Value (M1 @ ${(current.summary.inflationRateApplied * 100).toFixed(1)}%)`,
+        value: formatEur(current.summary.realGrandTotal),
+      }]
+      : []),
+    ...(current.summary.totalChildcareFees !== undefined && current.summary.totalChildcareFees > 0
+      ? [{
+        label: "Kita Fees",
+        value: `-${formatEur(current.summary.totalChildcareFees)}`,
+        tone: MetricTone.Loss,
+      }]
+      : []),
+    ...(current.summary.childcareTaxDeductionTotal !== undefined && current.summary.childcareTaxDeductionTotal > 0
+      ? [{
+        label: "Tax Deductible (§ 10(1)5 EStG)",
+        value: formatEur(current.summary.childcareTaxDeductionTotal),
+      }]
+      : []),
+  ];
 
   return (
     <div
@@ -50,382 +80,102 @@ export default function KpiScorecard(): JSX.Element {
       }}
     >
       <CalculationStatus result={current} />
-      {/* KPI Card 1: Total Earned Salaries */}
-      <div
-        className="ui-card"
-        style={{
-          padding: "20px 24px",
-          position: "relative",
-          overflow: "hidden",
-          borderLeft: "4px solid var(--series-salary-husband)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Total Net Working Salaries
-            </div>
-            <div
-              style={{
-                fontSize: "1.9rem",
-                fontWeight: 800,
-                color: "var(--text-primary)",
-                margin: "6px 0 4px 0",
-              }}
-              className="tabular-nums"
-            >
-              {formatCurrency(current.summary.totalSalaries)}
-            </div>
-            <div
-              style={{
-                fontSize: "0.82rem",
-                color: "var(--text-secondary)",
-                display: "flex",
-                gap: "12px",
-                flexWrap: "wrap",
-              }}
-            >
-              <span>
-                Husband:{" "}
-                <strong className="tabular-nums">
-                  {formatCurrency(totalHusbandSalary)}
-                </strong>
-              </span>
-              <span>
-                Wife:{" "}
-                <strong className="tabular-nums">
-                  {formatCurrency(totalWifeSalary)}
-                </strong>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div
-          style={{
-            marginTop: "12px",
-            fontSize: "0.75rem",
-            color: "var(--text-muted)",
-          }}
-        >
-          Salaries reflect the modeled working hours and actual tax classes.
-        </div>
-      </div>
 
-      {/* KPI Card 2: Total State Benefits */}
-      <div
-        className="ui-card"
-        style={{
-          padding: "20px 24px",
-          position: "relative",
-          overflow: "hidden",
-          borderLeft: "4px solid var(--color-gain)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Total State Benefits &amp; Subsidies
-            </div>
-            <div
-              style={{
-                fontSize: "1.9rem",
-                fontWeight: 800,
-                color: "var(--color-gain)",
-                margin: "6px 0 4px 0",
-              }}
-              className="tabular-nums"
-            >
-              {formatCurrency(current.summary.totalBenefits)}
-            </div>
-            <div
-              style={{
-                fontSize: "0.82rem",
-                color: "var(--text-secondary)",
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
-              }}
-            >
-              <span>
-                EG+:{" "}
-                <strong className="tabular-nums">
-                  {formatCurrency(
-                    current.summary.totalWifeElterngeld +
-                      current.summary.totalHusbandElterngeld,
-                  )}
-                </strong>
-              </span>
-              <span>•</span>
-              <span>
-                KG:{" "}
-                <strong className="tabular-nums">
-                  {formatCurrency(current.summary.totalKindergeld)}
-                </strong>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div
-          style={{
-            marginTop: "12px",
-            fontSize: "0.75rem",
-            color: "var(--text-muted)",
-          }}
-        >
-          Benefits follow each parent's assessment history and income/hour eligibility. Review the calculation audit above.
-        </div>
-      </div>
+      <MetricCard
+        label="Total Net Working Salaries"
+        value={formatEur(current.summary.totalSalaries)}
+        accentColor="var(--series-salary-husband)"
+        breakdown={[
+          {
+            label: "Husband",
+            value: formatEur(totalHusbandSalary),
+          },
+          {
+            label: "Wife",
+            value: formatEur(totalWifeSalary),
+          },
+        ]}
+        footer="Salaries reflect modeled working hours and active tax classes."
+      />
 
-      {/* KPI Card 3: Cash Flow Over the Configured Period */}
-      <div
-        className="ui-card"
-        style={{
-          padding: "20px 24px",
-          position: "relative",
-          overflow: "hidden",
-          borderLeft: "4px solid var(--color-primary)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {current.months.length}-Month Net Cash Flow
-            </div>
-            <div
-              style={{
-                fontSize: "1.9rem",
-                fontWeight: 800,
-                color: "var(--color-primary)",
-                margin: "6px 0 4px 0",
-              }}
-              className="tabular-nums"
-            >
-              {formatCurrency(current.summary.grandTotal)}
-            </div>
-            <div
-              style={{
-                fontSize: "0.82rem",
-                color: "var(--text-secondary)",
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
-              }}
-            >
-              <span>
-                Average / Month:{" "}
-                <strong className="tabular-nums">
-                  {current.months.length > 0 ? formatCurrency(current.summary.grandTotal / current.months.length) : "Unavailable"}
-                </strong>
-              </span>
-              {current.summary.realGrandTotal !== undefined &&
-                current.summary.inflationRateApplied !== undefined &&
-                current.summary.inflationRateApplied > 0 && (
-                <>
-                  <span>•</span>
-                  <span>
-                    Real Value (M1 @{" "}
-                    {(current.summary.inflationRateApplied * 100).toFixed(1)}
-                    %):{" "}
-                    <strong className="tabular-nums">
-                      {formatCurrency(current.summary.realGrandTotal)}
-                    </strong>
-                  </span>
-                </>
-              )}
-            </div>
-            {current.summary.totalChildcareFees !== undefined &&
-              current.summary.totalChildcareFees > 0 && (
-              <div
-                style={{
-                  fontSize: "0.78rem",
-                  color: "var(--text-secondary)",
-                  display: "flex",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                  marginTop: "4px",
-                }}
-              >
-                <span>
-                  Kita Fees:{" "}
-                  <strong
-                    className="tabular-nums"
-                    style={{ color: "var(--color-loss)" }}
-                  >
-                    -{formatCurrency(current.summary.totalChildcareFees)}
-                  </strong>
-                </span>
-                {current.summary.childcareTaxDeductionTotal !== undefined &&
-                    current.summary.childcareTaxDeductionTotal > 0 && (
-                  <>
-                    <span>•</span>
-                    <span>
-                      Tax Deductible (§ 10(1)5 EStG):{" "}
-                      <strong className="tabular-nums">
-                        {formatCurrency(
-                          current.summary.childcareTaxDeductionTotal,
-                        )}
-                      </strong>
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        <div
-          style={{
-            marginTop: "12px",
-            fontSize: "0.75rem",
-            color: "var(--text-muted)",
-          }}
-        >
-          Combined household cash flow from {current.months[0]?.calendarLabel} to {current.months.at(-1)?.calendarLabel}.
-        </div>
-      </div>
+      <MetricCard
+        label="Total State Benefits & Subsidies"
+        value={formatEur(current.summary.totalBenefits)}
+        tone={MetricTone.Gain}
+        breakdown={[
+          {
+            label: "EG+",
+            value: formatEur(current.summary.totalWifeElterngeld + current.summary.totalHusbandElterngeld),
+          },
+          {
+            label: "KG",
+            value: formatEur(current.summary.totalKindergeld),
+          },
+        ]}
+        footer="Benefits follow each parent's assessment history and eligibility limits."
+      />
 
-      {/* Compare the same birth and leave plan with changed versus original tax classes. */}
-      <div
-        className="ui-card"
-        style={{
-          padding: "20px 24px",
-          position: "relative",
-          overflow: "hidden",
-          borderLeft: `4px solid ${gainColor}`,
-          background: metrics.gainCvsB < 0 ? "var(--color-loss-bg)" : "var(--color-gain-bg)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                color: gainColor,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Effect of your tax-class changes
-            </div>
-            <p>Compared with keeping your original tax classes for the same plan.</p>
-            <div
-              style={{
-                fontSize: "1.9rem",
-                fontWeight: 800,
-                color: gainColor,
-                margin: "6px 0 4px 0",
-              }}
-              className="tabular-nums"
-            >
-              {metrics.gainCvsB > 0 ? "+" : ""}{formatCurrency(metrics.gainCvsB)}
-            </div>
-            <div
-              style={{
-                fontSize: "0.82rem",
-                color: "var(--text-secondary)",
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
-              }}
-            >
-              <span>
-                Mother Elterngeld difference:{" "}
-                <strong
-                  style={{ color: metrics.wifeEgGainCvsB < 0 ? "var(--color-loss)" : "var(--color-gain)" }}
-                  className="tabular-nums"
-                >
-                  {metrics.wifeEgGainCvsB > 0 ? "+" : ""}{formatCurrency(metrics.wifeEgGainCvsB)}
-                </strong>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div
-          style={{
-            marginTop: "10px",
-            fontSize: "0.75rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "6px",
-          }}
-        >
-          <span style={{ color: gainColor,
-            fontWeight: 700 }}>
-            {percentGainCvsB === undefined ? "Percentage unavailable for a zero baseline" : `${Number(percentGainCvsB) > 0 ? "+" : ""}${percentGainCvsB}% cash-flow difference`}
-          </span>
-          <LawRefLink
-            lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].lawId}
-            groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].groupId}
-            variant="plain"
-            onOpen={() => {
-              activeLegalRuleKey.value = LegalRuleKey.BEEG_TaxSwap;
-            }}
+      <MetricCard
+        label={`${current.months.length}-Month Net Cash Flow`}
+        value={formatEur(current.summary.grandTotal)}
+        tone={MetricTone.Primary}
+        breakdown={cashflowBreakdown}
+        footer={`Combined household cash flow from ${current.months[0]?.calendarLabel ?? "—"} to ${current.months.at(-1)?.calendarLabel ?? "—"}.`}
+      />
+
+      <MetricCard
+        label="Effect of your tax-class changes"
+        subtitle="Compared with keeping your original tax classes for the same plan."
+        value={`${metrics.gainCvsB > 0 ? "+" : ""}${formatEur(metrics.gainCvsB)}`}
+        tone={gainTone}
+        highlight
+        breakdown={[
+          {
+            label: "Mother Elterngeld difference",
+            value: `${metrics.wifeEgGainCvsB > 0 ? "+" : ""}${formatEur(metrics.wifeEgGainCvsB)}`,
+            tone: metrics.wifeEgGainCvsB < 0 ? MetricTone.Loss : MetricTone.Gain,
+          },
+        ]}
+        footer={
+          <div
             style={{
-              color: "var(--color-primary)",
-              textDecoration: "underline",
-              fontSize: "0.72rem",
-              fontWeight: 600,
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
-              gap: "4px",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "6px",
             }}
-            title="View § 2b BEEG legal basis and strategy — Click for quick popup · Ctrl+Click for full page"
           >
-            <span>How is this calculated? (§ 2b BEEG)</span>
-            <StatutorySectionIcon size={11} />
-          </LawRefLink>
-        </div>
-      </div>
+            <span style={{ color: gainColor,
+              fontWeight: 700 }}>
+              {percentGainCvsB === undefined
+                ? "Percentage unavailable for a zero baseline"
+                : `${Number(percentGainCvsB) > 0 ? "+" : ""}${percentGainCvsB}% cash-flow difference`}
+            </span>
+            <LawRefLink
+              lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].lawId}
+              groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].groupId}
+              variant="plain"
+              onOpen={() => {
+                activeLegalRuleKey.value = LegalRuleKey.BEEG_TaxSwap;
+              }}
+              style={{
+                color: "var(--color-primary)",
+                textDecoration: "underline",
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+              title="View § 2b BEEG legal basis and strategy — Click for quick popup · Ctrl+Click for full page"
+            >
+              <span>How is this calculated? (§ 2b BEEG)</span>
+              <StatutorySectionIcon size={11} />
+            </LawRefLink>
+          </div>
+        }
+      />
     </div>
   );
 }

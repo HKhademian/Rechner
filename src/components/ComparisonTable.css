@@ -127,7 +127,7 @@
   line-height: 1.5;
 }
 
-.comparison-detail-cell .glass-panel {
+.comparison-detail-cell .ui-card {
   padding: 12px;
   margin: 12px 0 0;
   min-width: 0;
@@ -142,7 +142,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-.comparison-detail-cell .glass-panel > div:first-child {
+.comparison-detail-cell .ui-card > div:first-child {
   flex-wrap: wrap;
   gap: 12px;
 }

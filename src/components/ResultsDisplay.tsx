@@ -222,7 +222,7 @@ export default function ResultsDisplay({ data = deductions.value }: { data?: Hou
   };
 
   return (
-    <div class="glass-panel fade-in" style={{ animationDelay: "0.1s" }}>
+    <div class="ui-card fade-in" style={{ animationDelay: "0.1s" }}>
       <div style={{ display: "flex",
         flexDirection: "column",
         gap: "10px" }}>

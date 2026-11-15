@@ -342,7 +342,7 @@ export default function TimelineChart(): JSX.Element {
 
   return (
     <div
-      className="glass-panel"
+      className="ui-card"
       style={{ padding: "24px",
         marginBottom: "28px",
         position: "relative" }}

@@ -576,3 +576,89 @@ select.ui-select:focus-visible {
     padding: 16px;
   }
 }
+
+/* Unified Metric / KPI Card */
+.ui-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 4px solid var(--border-strong);
+}
+
+.ui-metric-card--primary {
+  border-left-color: var(--color-primary);
+}
+
+.ui-metric-card--gain {
+  border-left-color: var(--color-gain);
+}
+
+.ui-metric-card--loss {
+  border-left-color: var(--color-loss);
+}
+
+.ui-metric-card--gain.ui-metric-card--highlight {
+  background: var(--color-gain-bg);
+}
+
+.ui-metric-card--loss.ui-metric-card--highlight {
+  background: var(--color-loss-bg);
+}
+
+.ui-metric-card__label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ui-metric-card--primary .ui-metric-card__value {
+  color: var(--color-primary);
+}
+
+.ui-metric-card--gain .ui-metric-card__value,
+.ui-metric-card--gain.ui-metric-card--highlight .ui-metric-card__label {
+  color: var(--color-gain);
+}
+
+.ui-metric-card--loss .ui-metric-card__value,
+.ui-metric-card--loss.ui-metric-card--highlight .ui-metric-card__label {
+  color: var(--color-loss);
+}
+
+.ui-metric-card__subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.ui-metric-card__value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.ui-metric-card__breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.ui-metric-card__item-value--gain {
+  color: var(--color-gain);
+}
+
+.ui-metric-card__item-value--loss {
+  color: var(--color-loss);
+}
+
+.ui-metric-card__footer {
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
