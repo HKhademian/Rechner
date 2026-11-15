@@ -25,6 +25,9 @@ import {
   toVisaOccupationRoute,
 } from "#engine/formulas/pure/visaFormulas";
 import {
+  VERIFIED_TAX_YEARS,
+} from "#engine/tax/taxRules";
+import {
   type EuroAmount,
   type FullCalendarYear,
   type GrossSalary,
@@ -154,8 +157,9 @@ export function parseUnifiedLifeProfile(raw: unknown): UnifiedLifeProfile {
   }
   const obj = raw as Record<string, unknown>;
 
+  const minVerifiedTaxYear = Math.min(...VERIFIED_TAX_YEARS);
   let planningYear = defaults.planningYear;
-  if (typeof obj.planningYear === "number" && Number.isInteger(obj.planningYear)) {
+  if (typeof obj.planningYear === "number" && Number.isInteger(obj.planningYear) && obj.planningYear >= minVerifiedTaxYear) {
     try {
       planningYear = toFullCalendarYear(obj.planningYear);
     }

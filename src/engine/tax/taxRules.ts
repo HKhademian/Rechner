@@ -119,7 +119,11 @@ export interface TaxRules {
   readonly parameters: TaxParameters;
 }
 
-export const DEFAULT_TAX_YEAR = toFullCalendarYear(Math.max(...Object.keys(profiles).map(Number)));
+export const VERIFIED_TAX_YEARS: readonly FullCalendarYear[] = Object.freeze(
+  Object.keys(profiles).map(Number).sort((a, b) => a - b).map(toFullCalendarYear),
+);
+
+export const DEFAULT_TAX_YEAR = toFullCalendarYear(Math.max(...VERIFIED_TAX_YEARS));
 
 /** Explicit latest-known-rules projection, never an invented future statutory profile. */
 export function createTaxRules(

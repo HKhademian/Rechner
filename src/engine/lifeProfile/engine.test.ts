@@ -54,6 +54,7 @@ describe("Unified General Life & Support Input Engine", () => {
 
   it("sanitizes corrupted input payloads, disables optional perks cleanly, and enforces BEEG income cap", () => {
     const fallback = parseUnifiedLifeProfile({
+      planningYear: 2024,
       primaryAnnualGrossEur: -5000,
       federalState: "NOT_A_STATE",
       hasCompanyCar: false,
@@ -62,6 +63,7 @@ describe("Unified General Life & Support Input Engine", () => {
       hasPartner: false,
       dependentChildrenCount: 0,
     });
+    assert.equal(fallback.planningYear, 2026);
     assert.equal(fallback.primaryAnnualGrossEur, 65000);
     assert.equal(fallback.hasCompanyCar, false);
     assert.equal(fallback.dependentChildrenCount, 0);
