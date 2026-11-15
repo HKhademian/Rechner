@@ -32,6 +32,12 @@ import {
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
 import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
   type EpcPayload,
   AmountValidationStatus,
   BicValidationStatus,
@@ -294,42 +300,41 @@ export default function GiroCodeGenerator(): JSX.Element {
   return (
     <>
       <Navigation currentPath={calculatorPath(AppId.GiroCode)} />
-      <main id="main-content" className="girocode-page" tabIndex={-1}>
-        <header className="girocode-header">
-          <div>
-            <h1>GiroCode Generator</h1>
-            <p className="girocode-header__subtitle">
-              Create scannable SEPA transfer QR codes for invoices and payments.
-            </p>
-          </div>
-          <div className="girocode-header__actions">
-            <button
-              type="button"
-              className="girocode-btn"
-              onClick={() => {
-                loadSampleGiroCodeDraft();
-                notify("Loaded sample");
-              }}
-            >
-              <SamplePresetIcon size={16} />
-              <span>Load sample</span>
-            </button>
-            <button
-              type="button"
-              className="girocode-btn"
-              onClick={() => {
-                clearGiroCodeDraft();
-                notify("Cleared");
-              }}
-            >
-              <ClearFormIcon size={16} />
-              <span>Clear</span>
-            </button>
-          </div>
-        </header>
+      <main id="main-content" className="ui-page girocode-page" tabIndex={-1}>
+        <PageHeader
+          eyebrow="SEPA Payment QR"
+          title="GiroCode Generator"
+          subtitle="Create scannable SEPA transfer QR codes for invoices and payments."
+          actions={
+            <>
+              <button
+                type="button"
+                className="ui-btn"
+                onClick={() => {
+                  loadSampleGiroCodeDraft();
+                  notify("Loaded sample");
+                }}
+              >
+                <SamplePresetIcon size={16} />
+                <span>Load sample</span>
+              </button>
+              <button
+                type="button"
+                className="ui-btn"
+                onClick={() => {
+                  clearGiroCodeDraft();
+                  notify("Cleared");
+                }}
+              >
+                <ClearFormIcon size={16} />
+                <span>Clear</span>
+              </button>
+            </>
+          }
+        />
 
         <div className="girocode-grid">
-          <section className="girocode-card girocode-qr-card" aria-label="Generated GiroCode QR">
+          <section className="ui-card girocode-qr-card" aria-label="Generated GiroCode QR">
             <div className="girocode-qr-card__top">
               <div className="girocode-qr-card__brand">
                 <span className="girocode-qr-badge">GiroCode</span>
@@ -369,7 +374,7 @@ export default function GiroCodeGenerator(): JSX.Element {
             <div className="girocode-qr-actions">
               <button
                 type="button"
-                className="girocode-btn girocode-btn--primary"
+                className="ui-btn ui-btn--primary"
                 disabled={!build.isReady}
                 onClick={downloadPng}
               >
@@ -384,25 +389,21 @@ export default function GiroCodeGenerator(): JSX.Element {
           </section>
 
           <section className="girocode-stack" aria-label="Transfer details and payload">
-            <div className="girocode-card">
+            <div className="ui-card">
               <div className="girocode-card__header">
                 <h2>Transfer Details</h2>
-                <div className="girocode-segmented" role="group" aria-label="Character encoding mode">
-                  <button
-                    type="button"
-                    aria-pressed={draft.charsetMode === GiroCodeCharsetMode.Utf8}
-                    onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.Utf8)}
-                  >
-                    UTF-8
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={draft.charsetMode === GiroCodeCharsetMode.AsciiTransliterated}
-                    onClick={() => updateGiroCodeField("charsetMode", GiroCodeCharsetMode.AsciiTransliterated)}
-                  >
-                    ASCII
-                  </button>
-                </div>
+                <SegmentedControl
+                  compact
+                  label="Character encoding mode"
+                  value={draft.charsetMode}
+                  onChange={(mode) => updateGiroCodeField("charsetMode", mode)}
+                  options={[
+                    { value: GiroCodeCharsetMode.Utf8,
+                      label: "UTF-8" },
+                    { value: GiroCodeCharsetMode.AsciiTransliterated,
+                      label: "ASCII" },
+                  ]}
+                />
               </div>
 
               <div className="girocode-form">
@@ -556,22 +557,18 @@ export default function GiroCodeGenerator(): JSX.Element {
                         ? "Reference (RF)"
                         : "Reference"}
                     </label>
-                    <div className="girocode-segmented" role="group" aria-label="Remittance reference mode">
-                      <button
-                        type="button"
-                        aria-pressed={draft.remittanceKind === RemittanceKind.Unstructured}
-                        onClick={() => updateGiroCodeField("remittanceKind", RemittanceKind.Unstructured)}
-                      >
-                        Text
-                      </button>
-                      <button
-                        type="button"
-                        aria-pressed={draft.remittanceKind === RemittanceKind.Structured}
-                        onClick={() => updateGiroCodeField("remittanceKind", RemittanceKind.Structured)}
-                      >
-                        RF
-                      </button>
-                    </div>
+                    <SegmentedControl
+                      compact
+                      label="Remittance reference mode"
+                      value={draft.remittanceKind}
+                      onChange={(kind) => updateGiroCodeField("remittanceKind", kind)}
+                      options={[
+                        { value: RemittanceKind.Unstructured,
+                          label: "Text" },
+                        { value: RemittanceKind.Structured,
+                          label: "RF" },
+                      ]}
+                    />
                   </div>
                   {draft.remittanceKind === RemittanceKind.Structured
                     ? (
@@ -612,7 +609,7 @@ export default function GiroCodeGenerator(): JSX.Element {
               </div>
             </div>
 
-            <details className="girocode-card girocode-details">
+            <details className="ui-card girocode-details">
               <summary className="girocode-details__summary">
                 <span className="girocode-details__title">
                   <ExpandSectionIcon size={16} className="girocode-details__chevron" />

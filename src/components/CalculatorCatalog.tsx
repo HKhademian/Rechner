@@ -37,6 +37,12 @@ import {
   LawId,
 } from "#engine/laws/types";
 import LawRefLink from "#components/laws/LawRefLink";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
 
 function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
   switch (appId) {
@@ -134,15 +140,18 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
   };
   return <>
     <Navigation currentPath="/" />
-    <main id="main-content" className="calculator-catalog" tabIndex={-1}>
-      <header className="calculator-catalog__intro">
-        <div>
-          <p className="calculator-catalog__eyebrow">Free online calculators</p>
-          <h1>Plan your pay, family and everyday finances.</h1>
-          <p>Clear estimates for German salary, taxes, parental leave and SEPA payment QR codes.</p>
-        </div>
-        <aside className="calculator-catalog__privacy"><strong>Private by default</strong><p>No account. Your saved inputs stay in this browser.</p></aside>
-      </header>
+    <main id="main-content" className="ui-page calculator-catalog" tabIndex={-1}>
+      <PageHeader
+        eyebrow="Free online calculators"
+        title="Plan your pay, family and everyday finances."
+        subtitle="Clear estimates for German salary, taxes, parental leave and SEPA payment QR codes."
+        actions={
+          <aside className="calculator-catalog__privacy">
+            <strong>Private by default</strong>
+            <p>No account. Your saved inputs stay in this browser.</p>
+          </aside>
+        }
+      />
 
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <label for="calculator-search">Find a calculator
@@ -151,10 +160,17 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
         </label>
         <div className="calculator-catalog__category-filter">
           <span>Category</span>
-          <div className="calculator-catalog__category-options" role="group" aria-label="Filter by category">
-            <button type="button" aria-pressed={category.value === undefined} aria-controls="calculator-results" onClick={() => update(query.value, undefined, 1)}>All calculators</button>
-            {categories.map((item) => <button key={item} type="button" aria-pressed={category.value === item} aria-controls="calculator-results" onClick={() => update(query.value, item, 1)}>{item}</button>)}
-          </div>
+          <SegmentedControl
+            label="Filter by category"
+            value={category.value ?? "__all__"}
+            onChange={(selected) => update(query.value, selected === "__all__" ? undefined : toCalculatorCategory(String(selected)), 1)}
+            options={[
+              { value: "__all__",
+                label: "All calculators" },
+              ...categories.map((item) => ({ value: item,
+                label: item })),
+            ]}
+          />
         </div>
         {(query.value || category.value) && <button type="button" onClick={clear}>Clear filters</button>}
       </form>

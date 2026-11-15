@@ -8,6 +8,9 @@ import {
   SyncProfileActionIcon,
 } from "#components/Icons";
 import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
   GermanFederalState,
 } from "#engine/formulas/pure/housingFormulas";
 import {
@@ -110,7 +113,7 @@ export default function CalculatorPeriodControl(): JSX.Element {
     <div className="calculator-period__actions">
       <button
         type="button"
-        className="calculator-period__sync"
+        className="ui-btn ui-btn--tint"
         disabled={!hydrated}
         onClick={syncNetPayFromLifeProfile}
         title="Populate primary gross, partner gross, children, planning year, and Bundesland from the Unified Life Profile"
@@ -118,15 +121,25 @@ export default function CalculatorPeriodControl(): JSX.Element {
         <SyncProfileActionIcon size={14} />
         <span>Sync Life Profile</span>
       </button>
-      <div role="group" aria-label="Calculator amount period" aria-describedby="calculator-period-hint" title="Monthly results: annual / 12. Gross input: regular salary. Taxable income: annual.">
-        {Object.values(SalaryPeriod).map((period) => <button key={period} type="button"
-          aria-pressed={currentPeriod === period} disabled={!hydrated || invalid}
-          onClick={() => {
-            calculatorViewPeriod.value = period;
-          }}>
-          {period === SalaryPeriod.Monthly ? "Monthly" : "Yearly"}
-        </button>)}
-      </div>
+      <SegmentedControl
+        label="Calculator amount period"
+        value={currentPeriod}
+        onChange={(period) => {
+          calculatorViewPeriod.value = period;
+        }}
+        options={[
+          {
+            value: SalaryPeriod.Monthly,
+            label: "Monthly",
+            disabled: !hydrated || invalid,
+          },
+          {
+            value: SalaryPeriod.Yearly,
+            label: "Yearly",
+            disabled: !hydrated || invalid,
+          },
+        ]}
+      />
     </div>
     <p id="calculator-period-hint" className={invalid ? "calculator-period__error" : "calculator-period__description"} role={invalid ? "status" : undefined}>{invalid ? "Check highlighted inputs." : "All columns. Monthly results: annual / 12. Monthly gross: regular salary. Taxable income: annual."}</p>
   </div>;

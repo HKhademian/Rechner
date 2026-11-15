@@ -9,9 +9,6 @@
   grid-template-columns: 320px minmax(0, 1fr);
   align-items: start;
   gap: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
 }
 
 .law-page-sidebar {
@@ -693,7 +690,6 @@
 @media (max-width: 920px) {
   .law-page-layout {
     grid-template-columns: 1fr;
-    padding: 16px;
   }
 
   .law-page-sidebar {

@@ -43,6 +43,9 @@ import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
 import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
   FormProjectionProfileId,
 } from "#engine/parameters/projections";
 
@@ -91,41 +94,34 @@ export default function ElterngeldDashboard(): JSX.Element {
       <Navigation currentPath={calculatorPath(AppId.ParentalLeave)} />
 
       {/* Main Content Area */}
-      <main id="main-content" tabIndex={-1}
-        style={{
-          flex: 1,
-          maxWidth: "1400px",
-          margin: "0 auto",
-          padding: "24px 20px",
-          width: "100%",
-        }}
-      >
-        <header className="simulator-header">
-          <div className="simulator-header__intro">
-            <p className="simulator-header__eyebrow">Household planning · BEEG / MuSchG / EStG</p>
-            <h1>Parental leave planner</h1>
-            <p className="simulator-header__description">Start with your household and planned leave below, then compare the calculated results.</p>
+      <main id="main-content" className="ui-page ui-page--wide" tabIndex={-1} style={{ flex: 1 }}>
+        <PageHeader
+          eyebrow="Household planning · BEEG / MuSchG / EStG"
+          title="Parental Leave Planner"
+          subtitle="Start with your household and planned leave below, then compare the calculated results."
+          actions={
             <button
               type="button"
-              className="simulator-header__sync"
+              className="ui-btn ui-btn--tint"
               onClick={syncParentalLeaveFromLifeProfile}
               title="Populate annual gross salaries, partner income, existing children, start year, and regional Kita preset from the Unified Life Profile"
             >
               <SyncProfileActionIcon size={14} />
               <span>Sync Life Profile</span>
             </button>
-          </div>
-          <dl className="simulator-header__period" aria-label="Planning period">
-            <div>
-              <dt>Forecast period</dt>
-              <dd>{months[0]?.calendarLabel} – {months.at(-1)?.calendarLabel}</dd>
-            </div>
-            <div>
-              <dt>Duration</dt>
-              <dd>{months.length} months</dd>
-            </div>
-          </dl>
-        </header>
+          }
+          metaLabel="Planning period"
+          meta={[
+            {
+              label: "Forecast period",
+              value: `${months[0]?.calendarLabel ?? ""} – ${months.at(-1)?.calendarLabel ?? ""}`,
+            },
+            {
+              label: "Duration",
+              value: `${months.length} months`,
+            },
+          ]}
+        />
 
         {/* Set up the plan before choosing which calculated results to review. */}
         <SandboxControls />

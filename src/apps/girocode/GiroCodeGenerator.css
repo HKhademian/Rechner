@@ -1,52 +1,8 @@
-.girocode-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 24px 48px;
-  width: 100%;
-}
-
-.girocode-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.girocode-header h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
-  color: var(--text-primary);
-}
-
-.girocode-header__subtitle {
-  margin: 6px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-}
-
-.girocode-header__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .girocode-grid {
   display: grid;
   grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
-}
-
-.girocode-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--border-radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
 }
 
 .girocode-qr-card {
@@ -167,75 +123,11 @@
   color: #0f172a;
 }
 
-.girocode-segmented {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: var(--border-radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  gap: 2px;
-}
-
-.girocode-segmented button {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.girocode-segmented button[aria-pressed="true"] {
-  background: var(--color-primary);
-  color: var(--text-inverse);
-}
-
 .girocode-qr-actions {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-}
-
-.girocode-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 14px;
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-medium);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.girocode-btn:hover:not(:disabled) {
-  background: var(--bg-surface-secondary);
-}
-
-.girocode-btn--primary {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--text-inverse);
-}
-
-.girocode-btn--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-.girocode-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .girocode-copy-btn {
@@ -592,14 +484,6 @@
 }
 
 @media (max-width: 640px) {
-  .girocode-page {
-    padding: 16px 14px 32px;
-  }
-
-  .girocode-card {
-    padding: 16px;
-  }
-
   .girocode-row-2 {
     grid-template-columns: 1fr;
   }
