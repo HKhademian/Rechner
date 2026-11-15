@@ -1,7 +1,8 @@
 import "./UnifiedControls.css";
 import {
-  useEffect,
   useId,
+  useLayoutEffect,
+  useRef,
 } from "preact/hooks";
 import type {
   ComponentChildren,
@@ -12,6 +13,7 @@ import {
 } from "#components/Icons";
 import {
   ModalDialogSize,
+  lockBodyScroll,
   modalDialogCardClassName,
 } from "#utils/uiHelpers";
 
@@ -48,27 +50,33 @@ export function ModalDialog({
   className = "",
 }: ModalDialogProps): JSX.Element | null {
   const headingId = useId();
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open || typeof document === "undefined") {
       return undefined;
     }
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll(
+      document,
+      typeof window !== "undefined" && typeof window.getComputedStyle === "function"
+        ? (body) => window.getComputedStyle(body).paddingRight
+        : undefined,
+    );
 
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) {
     return null;

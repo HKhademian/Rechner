@@ -775,9 +775,10 @@ input.ui-text-box__input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 16px calc(16px + var(--scrollbar-compensation)) 16px 16px;
   background: var(--bg-backdrop);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .ui-modal__card {

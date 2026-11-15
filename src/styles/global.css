@@ -125,6 +125,7 @@
   --border-radius: 8px;
   --border-radius-lg: 12px;
   --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --scrollbar-compensation: 0px;
 }
 
 /* =========================================================================
@@ -330,6 +331,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
 
 body {

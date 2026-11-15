@@ -145,3 +145,74 @@ export function calculatorNavigationItems(
     };
   });
 }
+
+export interface ScrollLockRootElement {
+  readonly clientWidth: number;
+  readonly style?: {
+    getPropertyValue: (property: string) => string;
+    setProperty: (property: string, value: string) => void;
+    removeProperty: (property: string) => string;
+  };
+}
+
+export interface ScrollLockBody {
+  readonly style: {
+    overflow: string;
+    paddingRight: string;
+  };
+}
+
+export interface ScrollLockDocument<TBody extends ScrollLockBody = ScrollLockBody> {
+  readonly documentElement?: ScrollLockRootElement | null;
+  readonly body: TBody;
+}
+
+/**
+ * Locks `document.body` scroll while compensating `padding-right` and `--scrollbar-compensation`
+ * for any collapsed vertical scrollbar width so modals open and close without layout shift.
+ */
+export function lockBodyScroll<TBody extends ScrollLockBody>(
+  doc: ScrollLockDocument<TBody>,
+  getComputedPaddingRight?: (body: TBody) => string,
+): () => void {
+  const previousOverflow = doc.body.style.overflow;
+  const previousPaddingRight = doc.body.style.paddingRight;
+  const rootStyle = doc.documentElement?.style;
+  const previousRootCompensation = rootStyle
+    ? rootStyle.getPropertyValue("--scrollbar-compensation")
+    : "";
+  const clientWidthBefore = doc.documentElement?.clientWidth ?? 0;
+
+  doc.body.style.overflow = "hidden";
+
+  const clientWidthAfter = doc.documentElement?.clientWidth ?? clientWidthBefore;
+  const scrollbarDeltaPx = clientWidthAfter - clientWidthBefore;
+  if (scrollbarDeltaPx > 0) {
+    const rawBasePadding = getComputedPaddingRight
+      ? getComputedPaddingRight(doc.body)
+      : previousPaddingRight;
+    const basePaddingPx = Number.parseFloat(rawBasePadding) || 0;
+    doc.body.style.paddingRight = `${basePaddingPx + scrollbarDeltaPx}px`;
+    if (rootStyle) {
+      rootStyle.setProperty("--scrollbar-compensation", `${scrollbarDeltaPx}px`);
+    }
+  }
+
+  let restored = false;
+  return () => {
+    if (restored) {
+      return;
+    }
+    restored = true;
+    doc.body.style.overflow = previousOverflow;
+    doc.body.style.paddingRight = previousPaddingRight;
+    if (rootStyle) {
+      if (previousRootCompensation) {
+        rootStyle.setProperty("--scrollbar-compensation", previousRootCompensation);
+      }
+      else {
+        rootStyle.removeProperty("--scrollbar-compensation");
+      }
+    }
+  };
+}

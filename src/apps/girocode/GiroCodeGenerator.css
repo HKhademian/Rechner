@@ -460,7 +460,7 @@
 
 .girocode-toast {
   position: fixed;
-  right: 20px;
+  right: calc(20px + var(--scrollbar-compensation));
   bottom: 20px;
   z-index: 60;
   padding: 10px 14px;

@@ -17,6 +17,7 @@ import {
   bannerRoleForTone,
   calculatorNavigationItems,
   isActiveRoute,
+  lockBodyScroll,
   modalDialogCardClassName,
   normalizeRoutePath,
   statusBannerClassName,
@@ -94,5 +95,89 @@ describe("uiHelpers", () => {
     assert.ok(visaItem);
     assert.equal(visaItem.isCurrent, false);
     assert.equal(visaItem.isDraft, true);
+  });
+
+  const createMockRootElement = (
+    cssVars: Map<string, string>,
+    resolveWidth: () => number,
+  ): {
+    readonly clientWidth: number;
+    readonly style: {
+      getPropertyValue: (property: string) => string;
+      setProperty: (property: string, value: string) => void;
+      removeProperty: (property: string) => string;
+    };
+  } => ({
+    get clientWidth(): number {
+      return resolveWidth();
+    },
+    style: {
+      getPropertyValue: (property: string): string => cssVars.get(property) ?? "",
+      setProperty: (property: string, value: string): void => {
+        cssVars.set(property, value);
+      },
+      removeProperty: (property: string): string => {
+        const prev = cssVars.get(property) ?? "";
+        cssVars.delete(property);
+        return prev;
+      },
+    },
+  });
+
+  it("compensates scrollbar collapse in lockBodyScroll and restores previous styles idempotently", () => {
+    const cssVars = new Map<string, string>();
+    const bodyStyle = {
+      overflow: "auto",
+      paddingRight: "",
+    };
+
+    const unlock = lockBodyScroll(
+      {
+        documentElement: createMockRootElement(
+          cssVars,
+          () => (bodyStyle.overflow === "hidden" ? 1200 : 1192),
+        ),
+        body: { style: bodyStyle },
+      },
+      () => "12px",
+    );
+
+    assert.equal(bodyStyle.overflow, "hidden");
+    assert.equal(bodyStyle.paddingRight, "20px");
+    assert.equal(cssVars.get("--scrollbar-compensation"), "8px");
+
+    unlock();
+    assert.equal(bodyStyle.overflow, "auto");
+    assert.equal(bodyStyle.paddingRight, "");
+    assert.equal(cssVars.has("--scrollbar-compensation"), false);
+
+    // Second cleanup call is a safe no-op and does not clobber newer styles.
+    bodyStyle.overflow = "scroll";
+    unlock();
+    assert.equal(bodyStyle.overflow, "scroll");
+  });
+
+  it("leaves paddingRight and --scrollbar-compensation untouched when clientWidth delta is zero", () => {
+    const cssVars = new Map<string, string>();
+    const bodyStyle = {
+      overflow: "",
+      paddingRight: "4px",
+    };
+
+    const unlock = lockBodyScroll(
+      {
+        documentElement: createMockRootElement(cssVars, () => 1200),
+        body: { style: bodyStyle },
+      },
+      () => "4px",
+    );
+
+    assert.equal(bodyStyle.overflow, "hidden");
+    assert.equal(bodyStyle.paddingRight, "4px");
+    assert.equal(cssVars.has("--scrollbar-compensation"), false);
+
+    unlock();
+    assert.equal(bodyStyle.overflow, "");
+    assert.equal(bodyStyle.paddingRight, "4px");
   });
 });

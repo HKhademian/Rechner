@@ -242,4 +242,74 @@ describe("design system and layout architecture compliance", () => {
       assert.equal(callsUseHydrated, true, `${filePath} must call useHydrated()`);
     }
   });
+
+  it("stabilizes root scrollbar gutter and locks modal scroll via lockBodyScroll with [open] dependency only", () => {
+    const globalCss = readFileSync("src/styles/global.css", "utf8");
+    assert.equal(globalCss.includes("scrollbar-gutter: stable;"), true);
+    assert.equal(globalCss.includes("--scrollbar-compensation: 0px;"), true);
+
+    const modalPath = "src/components/ui/ModalDialog.tsx";
+    const modalSourceText = readFileSync(modalPath, "utf8");
+    const modalSource = ts.createSourceFile(
+      modalPath,
+      modalSourceText,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+
+    let importsLockBodyScroll = false;
+    let callsLockBodyScrollInLayoutEffect = false;
+    let hasOnlyOpenDep = false;
+
+    const visit = (node: ts.Node): void => {
+      if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+        if (node.moduleSpecifier.text === "#utils/uiHelpers") {
+          const named = node.importClause?.namedBindings;
+          if (named && ts.isNamedImports(named)) {
+            importsLockBodyScroll = named.elements.some((el) => el.name.text === "lockBodyScroll");
+          }
+        }
+      }
+      if (
+        ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "useLayoutEffect" &&
+        node.arguments.length === 2
+      ) {
+        const [effectCallback, depsArg] = node.arguments;
+        if (ts.isArrayLiteralExpression(depsArg) && depsArg.elements.length === 1) {
+          const onlyDep = depsArg.elements[0];
+          if (ts.isIdentifier(onlyDep) && onlyDep.text === "open") {
+            hasOnlyOpenDep = true;
+          }
+        }
+        const inspectEffect = (child: ts.Node): void => {
+          if (
+            ts.isCallExpression(child) &&
+            ts.isIdentifier(child.expression) &&
+            child.expression.text === "lockBodyScroll"
+          ) {
+            callsLockBodyScrollInLayoutEffect = true;
+          }
+          ts.forEachChild(child, inspectEffect);
+        };
+        inspectEffect(effectCallback);
+      }
+      ts.forEachChild(node, visit);
+    };
+
+    visit(modalSource);
+    assert.equal(importsLockBodyScroll, true, "ModalDialog must import lockBodyScroll");
+    assert.equal(
+      callsLockBodyScrollInLayoutEffect,
+      true,
+      "ModalDialog must call lockBodyScroll inside useLayoutEffect",
+    );
+    assert.equal(
+      hasOnlyOpenDep,
+      true,
+      "ModalDialog scroll-lock useLayoutEffect must depend only on [open]",
+    );
+  });
 });

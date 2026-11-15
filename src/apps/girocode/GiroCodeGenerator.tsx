@@ -4,6 +4,7 @@ import {
 } from "preact";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "preact/hooks";
@@ -134,7 +135,7 @@ export default function GiroCodeGenerator(): JSX.Element {
     }
   }, [hydrated, build.payload]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!hydrated || !isQrZoomOpen) {
       return;
     }
@@ -294,7 +295,7 @@ export default function GiroCodeGenerator(): JSX.Element {
 
   const closeZoomModal = (): void => {
     setIsQrZoomOpen(false);
-    qrTriggerRef.current?.focus();
+    qrTriggerRef.current?.focus({ preventScroll: true });
   };
 
   return (
