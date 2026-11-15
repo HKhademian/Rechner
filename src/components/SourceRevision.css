@@ -1,9 +1,30 @@
 .source-revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  width: 100%;
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+}
+
+.source-revision__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.source-revision__note {
+  color: var(--text-secondary);
+}
+
+.source-revision__sep {
+  opacity: 0.55;
 }
 
 .source-revision a {
@@ -12,20 +33,31 @@
   text-underline-offset: 0.18em;
 }
 
+.source-revision__hash {
+  margin-left: auto;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+
+.source-revision__hash:hover {
+  color: var(--text-primary);
+}
+
 .source-revision code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-variant-numeric: tabular-nums;
-}
-
-.source-revision strong {
-  color: var(--text-primary);
-  font-weight: 700;
+  font-size: 0.75rem;
 }
 
 .source-revision-footer {
   margin-top: auto;
   border-top: 1px solid var(--border-subtle);
   padding: 16px 24px;
-  text-align: right;
   background: var(--bg-surface);
+}
+
+.source-revision-footer > .source-revision {
+  max-width: 1400px;
+  margin: 0 auto;
 }

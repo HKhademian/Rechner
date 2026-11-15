@@ -321,8 +321,7 @@ export default function HousingCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>Default notary and agent percentages can be adjusted in Statutory Assumptions below.</span>
-          <SourceRevision />
+          <SourceRevision note="Default notary and agent percentages can be adjusted in Statutory Assumptions below." />
         </footer>
       </main>
     </>

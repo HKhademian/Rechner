@@ -35,10 +35,6 @@ import {
   VisaResidenceIcon,
 } from "#components/Icons";
 import {
-  LawId,
-} from "#engine/laws/types";
-import LawRefLink from "#components/laws/LawRefLink";
-import {
   PageHeader,
 } from "#components/ui/PageHeader";
 import {
@@ -201,14 +197,6 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
       </section>
     </main>
     <footer className="calculator-catalog__footer">
-      <p>
-        Law references:{" "}
-        <LawRefLink lawId={LawId.BEEG_1} label="BEEG" />
-        {" · "}
-        <LawRefLink lawId={LawId.EStG_32a} label="EStG" />
-        {" · "}
-        <LawRefLink lawId={LawId.MuSchG_3} label="MuSchG" />
-      </p>
       <SourceRevision />
     </footer>
   </>;

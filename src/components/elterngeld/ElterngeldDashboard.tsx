@@ -152,36 +152,8 @@ export default function ElterngeldDashboard(): JSX.Element {
       </main>
 
       {/* Footer */}
-      <footer
-        style={{
-          borderTop: "1px solid var(--border-subtle)",
-          padding: "20px 24px",
-          color: "var(--text-muted)",
-          fontSize: "0.8rem",
-          background: "var(--bg-surface)",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1400px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "12px",
-          }}
-        >
-          <div>
-            <strong>German Salary &amp; Parental Allowance Engine</strong> •
-            Statutory Reference: BEEG, MuSchG &amp; EStG
-          </div>
-          <div>
-            Local Client-Side Computation • No data transmitted or stored on
-            external servers
-          </div>
-        </div>
-        <SourceRevision />
+      <footer className="source-revision-footer">
+        <SourceRevision note="Calculated locally in your browser · No data transmitted" />
       </footer>
     </div>
   );

@@ -467,8 +467,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
         </section>
       </main>
       <footer className="life-summary__footer">
-        <p>Shared profile estimates stay strictly in your browser under your selected storage mode.</p>
-        <SourceRevision />
+        <SourceRevision note="Shared profile estimates stay strictly in your browser under your selected storage mode." />
       </footer>
     </>
   );

@@ -165,13 +165,6 @@
   margin-top: 28px;
   padding-top: 20px;
   border-top: 1px solid var(--border-subtle);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  color: var(--text-muted);
-  font-size: 0.85rem;
 }
 
 @media (max-width: 880px) {

@@ -298,8 +298,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>Adjust your assumed grid electricity price in Statutory Assumptions below.</span>
-          <SourceRevision />
+          <SourceRevision note="Adjust your assumed grid electricity price in Statutory Assumptions below." />
         </footer>
       </main>
     </>

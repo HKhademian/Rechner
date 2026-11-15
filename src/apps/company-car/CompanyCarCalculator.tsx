@@ -291,8 +291,7 @@ export default function CompanyCarCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>EV list price cap adjusts automatically between 2024 (€70,000) and 2025/2026 (€100,000).</span>
-          <SourceRevision />
+          <SourceRevision note="EV list price cap adjusts automatically between 2024 (€70,000) and 2025/2026 (€100,000)." />
         </footer>
       </main>
     </>

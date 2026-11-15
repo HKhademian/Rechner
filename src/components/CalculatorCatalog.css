@@ -165,13 +165,6 @@
   margin: auto auto 0;
   padding: 20px 24px 24px;
   border-top: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.calculator-catalog__footer a {
-  color: var(--color-primary);
-  text-underline-offset: 3px;
 }
 
 @media (max-width: 720px) {

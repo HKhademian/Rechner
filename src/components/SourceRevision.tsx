@@ -13,10 +13,37 @@ const sourceCommitUrl = `https://github.com/${buildInfo.repository}/commit/${bui
 const licenseUrl = `https://github.com/${buildInfo.repository}/blob/${buildInfo.commit}/LICENSE`;
 const termsUrl = `https://github.com/${buildInfo.repository}/blob/${buildInfo.commit}/TERMS_OF_USE.md`;
 
-export default function SourceRevision(): JSX.Element {
-  return <p className="source-revision">
-    Source code: <a href={sourceCommitUrl} title={buildInfo.commit} target="_blank" rel="noopener noreferrer">
-      <code><strong>{buildInfo.shortCommit}</strong>{buildInfo.commit.slice(12)}</code>
-    </a> · <a href={licenseUrl} target="_blank" rel="noopener noreferrer">Personal Use License</a> · <a href={termsUrl} target="_blank" rel="noopener noreferrer">Use Terms</a> · <a href={sitePath("/THIRD_PARTY_NOTICES.txt")} target="_blank" rel="noopener noreferrer">Third-party notices</a>
-  </p>;
+export interface SourceRevisionProps {
+  readonly note?: string;
+}
+
+/** Shared single-row footer bar with optional contextual note, legal links, and rightmost commit hash. */
+export default function SourceRevision({ note }: SourceRevisionProps): JSX.Element {
+  return (
+    <div className="source-revision">
+      <div className="source-revision__meta">
+        {note && (
+          <>
+            <span className="source-revision__note">{note}</span>
+            <span className="source-revision__sep" aria-hidden="true">·</span>
+          </>
+        )}
+        <a href={licenseUrl} target="_blank" rel="noopener noreferrer">Personal Use License</a>
+        <span className="source-revision__sep" aria-hidden="true">·</span>
+        <a href={termsUrl} target="_blank" rel="noopener noreferrer">Use Terms</a>
+        <span className="source-revision__sep" aria-hidden="true">·</span>
+        <a href={sitePath("/THIRD_PARTY_NOTICES.txt")} target="_blank" rel="noopener noreferrer">Third-party notices</a>
+      </div>
+      <a
+        href={sourceCommitUrl}
+        className="source-revision__hash"
+        title={`Commit ${buildInfo.commit}`}
+        aria-label={`Source commit ${buildInfo.shortCommit}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <code>{buildInfo.shortCommit}</code>
+      </a>
+    </div>
+  );
 }

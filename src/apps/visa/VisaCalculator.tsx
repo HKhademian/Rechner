@@ -345,8 +345,7 @@ export default function VisaCalculator(): JSX.Element {
         </div>
 
         <footer className="domain-calc-footer">
-          <span>Blue Card and Opportunity Card thresholds automatically adjust by planning year.</span>
-          <SourceRevision />
+          <SourceRevision note="Blue Card and Opportunity Card thresholds automatically adjust by planning year." />
         </footer>
       </main>
     </>
