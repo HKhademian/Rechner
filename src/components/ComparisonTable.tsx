@@ -1,4 +1,5 @@
 import {
+  HouseholdRelationship,
   TaxAssessment,
 } from "#engine/tax/taxAssessment";
 import LawRefLink from "#components/laws/LawRefLink";
@@ -55,9 +56,11 @@ import {
   type CalculatorInputs,
   type PersonDeductions,
   getCurrentInputs,
+  setLiveRelationshipStatus,
   setLiveTaxBracket,
   CALCULATOR_PARTNER_SHORTCUT,
   calculatorViewPeriod,
+  relationshipStatus,
   assessmentMode,
   calculatorInvalidInputs,
   updateLiveGrossInput,
@@ -164,6 +167,15 @@ export function ComparisonTableContent(): JSX.Element {
 
   const hasAnyPartner = hasPartner.value || savedScenarios.value.some((scenario) =>
     (activeScenarioId.value === scenario.id && scenarioDraft.value ? scenarioDraft.value.inputs : scenario.inputs).hasPartner);
+  const canSelectAssessment = (inputs: Partial<CalculatorInputs>): boolean =>
+    inputs.relationshipStatus === HouseholdRelationship.MarriedOrCivilPartners ||
+    (Boolean(inputs.hasPartner) &&
+      (!inputs.relationshipStatus || inputs.relationshipStatus === HouseholdRelationship.Unspecified)) ||
+    inputs.assessmentMode === TaxAssessment.Joint;
+  const showsAssessmentRowFor = (inputs: Partial<CalculatorInputs>): boolean =>
+    Boolean(inputs.hasPartner) || canSelectAssessment(inputs);
+  const showAssessmentRow = showsAssessmentRowFor(getCurrentInputs()) || savedScenarios.value.some((scenario) =>
+    showsAssessmentRowFor(activeScenarioId.value === scenario.id && scenarioDraft.value ? scenarioDraft.value.inputs : scenario.inputs));
 
   // Keep section labels in their own sticky cell instead of scrolling a spanning label away.
   const renderSectionRow = (label: string, major = false): JSX.Element => (
@@ -181,6 +193,18 @@ export function ComparisonTableContent(): JSX.Element {
     label: value }));
   const liveClassOptions = Object.values(TaxClass).map((value, index) => ({ value: String(index + 1),
     label: `Class ${value}` }));
+  const relationshipOptions = [
+    { value: HouseholdRelationship.Unspecified,
+      label: "Select…" },
+    { value: HouseholdRelationship.Single,
+      label: "Single" },
+    { value: HouseholdRelationship.UnmarriedPartners,
+      label: "Unmarried partners" },
+    { value: HouseholdRelationship.MarriedOrCivilPartners,
+      label: "Married / registered partners" },
+    { value: HouseholdRelationship.QualifyingWidowed,
+      label: "Qualifying widowed (§ 32a Abs. 6)" },
+  ];
   const assessmentOptions = [
     { value: TaxAssessment.Unspecified,
       label: "Choose…" },
@@ -191,8 +215,9 @@ export function ComparisonTableContent(): JSX.Element {
   ];
   const salaryUnit = (mode: CalculatorInputs["inputMode"]): string => mode === "monthly" ? "€ / month" : "€ / year";
   const liveControls = {
+    relationshipStatus: <LiveChoiceInput onValidityChange={trackValidity("live-relationshipStatus")} label="Relationship" value={relationshipStatus} options={relationshipOptions} beforeChange={setLiveRelationshipStatus} />,
     assessmentMode: <LiveChoiceInput label="Assessment" value={assessmentMode} options={assessmentOptions} beforeChange={validateLive("assessmentMode")} onValidityChange={trackValidity("live-assessmentMode")} />,
-    hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Include partner" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
+    hasPartner: <LiveToggleInput onValidityChange={trackValidity("live-hasPartner")} label="Partner 2 payroll" value={hasPartner} beforeChange={validateLive("hasPartner")} />,
     grossIncome: <CalculatorGrossInput inputs={getCurrentInputs()} field={CalculatorGrossField.Primary} id="live-gross" descriptionId="live-gross-preview" label="Live Calculation: Gross income" onChange={(amount) => updateLiveGrossInput(CalculatorGrossField.Primary, amount)} onValidityChange={trackValidity("live-grossIncome")} />,
     state: <LiveChoiceInput onValidityChange={trackValidity("live-state")} label="Federal state" value={state} options={liveStateOptions} beforeChange={validateLive("state")} />,
     taxBracket: <LiveChoiceInput onValidityChange={trackValidity("live-taxBracket")} label="Tax class" value={taxBracket} options={liveClassOptions} beforeChange={setLiveTaxBracket} />,
@@ -1069,8 +1094,15 @@ export function ComparisonTableContent(): JSX.Element {
               );
             })()}
 
-            {renderInputRow("Partner 2", "hasPartner", "checkbox", null, (inputs) => inputs.hasPartner ? "Yes" : "No")}
-            {hasAnyPartner && renderInputRow(
+            {renderInputRow(
+              "Relationship",
+              "relationshipStatus",
+              "select",
+              relationshipOptions,
+              (inputs) => relationshipOptions.find((option) => option.value === (inputs.relationshipStatus ?? HouseholdRelationship.Unspecified))?.label ?? "Select…",
+            )}
+            {renderInputRow("Partner 2 payroll", "hasPartner", "checkbox", null, (inputs) => inputs.hasPartner ? "Yes" : "No")}
+            {showAssessmentRow && renderInputRow(
               "Assessment",
               "assessmentMode",
               "select",

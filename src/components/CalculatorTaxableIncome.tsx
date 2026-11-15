@@ -21,9 +21,15 @@ export default function CalculatorTaxableIncome({ data, id = "annual-taxable-inc
   const people = [
     { label: "You",
       income: annual.incomeByPerson[0] },
-    ...(data.partner ? [{ label: "Partner",
-      income: annual.incomeByPerson[1] }] : []),
+    ...(data.partner
+      ? [{ label: "Partner",
+        income: annual.incomeByPerson[1] }]
+      : data.includesZeroWageSpouse
+        ? [{ label: "Partner (non-employed spouse)",
+          income: annual.incomeByPerson[1] }]
+        : []),
   ];
+  const hasTwoSpousesModeled = Boolean(data.partner) || data.includesZeroWageSpouse;
 
   const money = (value: number | undefined): string => value === undefined ? "Unavailable" : new Intl.NumberFormat("de-DE", { style: "currency",
     currency: "EUR" }).format(value);
@@ -45,12 +51,20 @@ export default function CalculatorTaxableIncome({ data, id = "annual-taxable-inc
       </> : <AnnualIncomeBreakdown people={people} base={annual.taxBase} profile={annual.rules} />}
       {!annual.taxBase && <p className="annual-income__notice">Taxable income unavailable. See limitations below.</p>}
       {annual.reasons.length > 0 && <ul className="annual-income__reasons">{annual.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+      {data.statutoryWarnings.length > 0 && <ul className="annual-income__warnings" role="status">
+        {data.statutoryWarnings.map((warning) => (
+          <li key={`${warning.lawId}-${warning.message}`}>
+            <LawRefLink lawId={warning.lawId} variant="badge" />
+            <span>{warning.message}</span>
+          </li>
+        ))}
+      </ul>}
       <details className="annual-income__evidence">
         <summary>Scope and sources</summary>
         <p>This calculation uses ordinary employment receipts and employee contributions for the configured payment schedule. It assumes no other income and uses the published standard deductions; additional personal deductions are outside this model. It does not calculate an annual refund or payment due.</p>
-        {annual.assessment === TaxAssessment.Joint && <p>Joint assessment assumes eligible spouses or registered partners.</p>}
-        {data.partner && annual.assessment === TaxAssessment.Individual && <p>Each person uses separate deduction limits.</p>}
-        <p><LawRefLink lawId={LawId.BMF_PAP} label={`Published payroll profile · ${annual.rules.sourceYear}`} />{" · "}<LawRefLink lawId={LawId.EStG_2} label="Income and taxable income (§ 2 EStG)" />{data.partner && <>{" · "}<LawRefLink lawId={LawId.EStG_26b} label="Joint assessment (§ 26b EStG)" /></>}</p>
+        {annual.assessment === TaxAssessment.Joint && <p>Joint assessment assumes eligible spouses or registered partners{data.includesZeroWageSpouse ? ", including a non-employed spouse (€0 wages) sharing annual allowances and the splitting tariff" : ""}.</p>}
+        {data.partner && annual.assessment === TaxAssessment.Individual && <p>Each person uses separate deduction limits (individual assessment, summed cleanly across both partners).</p>}
+        <p><LawRefLink lawId={LawId.BMF_PAP} label={`Published payroll profile · ${annual.rules.sourceYear}`} />{" · "}<LawRefLink lawId={LawId.EStG_2} label="Income and taxable income (§ 2 EStG)" />{hasTwoSpousesModeled && <>{" · "}<LawRefLink lawId={LawId.EStG_26b} label="Joint assessment (§ 26b EStG)" /></>}</p>
       </details>
     </section>
   );

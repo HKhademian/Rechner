@@ -31,12 +31,30 @@ const money = (value: number | undefined): string => value === undefined ? "Unav
 /** Keep annual values explicit even when the comparison's main result rows use monthly averages. */
 export function TaxableIncomeSummary({ data, id, context }: ResultSummaryProps): JSX.Element {
   const annual = data.annualTaxableIncome;
+  const assessmentLabel =
+    annual.assessment === TaxAssessment.Unspecified
+      ? "Choose…"
+      : annual.assessment === TaxAssessment.Joint
+        ? data.includesZeroWageSpouse ? "Joint (+€0 spouse)" : "Joint"
+        : "Individual";
   return <CalculatorResultDetails id={`${id}-income-dialog`} title="Annual taxable income" context={context} summary={
-    <dl>
-      <div><dt>Taxable income</dt><dd>{money(annual.taxBase?.taxableIncome)}</dd></div>
-      <div><dt>Tax year</dt><dd>{annual.rules.calendarYear}</dd></div>
-      <div><dt>Assessment</dt><dd>{annual.assessment === TaxAssessment.Unspecified ? "Choose…" : annual.assessment === TaxAssessment.Joint ? "Joint" : "Individual"}</dd></div>
-    </dl>
+    <>
+      <dl>
+        <div><dt>Taxable income</dt><dd>{money(annual.taxBase?.taxableIncome)}</dd></div>
+        <div><dt>Tax year</dt><dd>{annual.rules.calendarYear}</dd></div>
+        <div><dt>Assessment</dt><dd>{assessmentLabel}</dd></div>
+      </dl>
+      {data.statutoryWarnings.length > 0 && (
+        <ul className="annual-income__warnings" role="status">
+          {data.statutoryWarnings.map((warning) => (
+            <li key={`${warning.lawId}-${warning.message}`}>
+              <LawRefLink lawId={warning.lawId} variant="badge" />
+              <span>{warning.message}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   }>
     <CalculatorTaxableIncome data={data} id={`${id}-annual-income-detail`} editable={false} />
   </CalculatorResultDetails>;
