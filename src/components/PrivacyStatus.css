@@ -39,18 +39,18 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #a16207;
-  box-shadow: 0 0 0 2px rgb(161 98 7 / 14%);
+  background: var(--color-warning);
+  box-shadow: 0 0 0 2px var(--color-warning-bg);
 }
 
 .privacy-status__dot--prepared {
-  background: #15803d;
-  box-shadow: 0 0 0 2px rgb(21 128 61 / 14%);
+  background: var(--color-gain);
+  box-shadow: 0 0 0 2px var(--color-gain-bg);
 }
 
 .privacy-status__dot--offline {
-  background: #1d4ed8;
-  box-shadow: 0 0 0 2px rgb(29 78 216 / 14%);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-bg);
 }
 
 .privacy-status__panel {

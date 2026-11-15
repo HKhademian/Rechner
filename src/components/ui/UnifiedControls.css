@@ -34,8 +34,8 @@
 .ui-page-header__eyebrow {
   margin: 0 0 6px;
   color: var(--color-primary);
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -43,9 +43,9 @@
 .ui-page-header__title {
   margin: 0;
   color: var(--text-primary);
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
-  font-weight: 750;
-  line-height: 1.15;
+  font-size: var(--font-size-hero);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
   letter-spacing: -0.025em;
 }
 
@@ -53,8 +53,8 @@
   max-width: 64ch;
   margin: 8px 0 0;
   color: var(--text-secondary);
-  font-size: 0.92rem;
-  line-height: 1.55;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
 }
 
 .ui-page-header__aside {
@@ -123,15 +123,15 @@
 .ui-card__title {
   margin: 0;
   color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
   letter-spacing: -0.01em;
 }
 
 .ui-card__subtitle {
   margin: 2px 0 0;
   color: var(--text-secondary);
-  font-size: 0.82rem;
+  font-size: var(--font-size-sm);
 }
 
 /* Shared Action Buttons */
@@ -147,9 +147,9 @@
   background: var(--bg-surface);
   color: var(--text-primary);
   font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
   text-decoration: none;
   cursor: pointer;
   transition: var(--transition);
@@ -606,8 +606,8 @@ select.ui-select:focus-visible {
 }
 
 .ui-metric-card__label {
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -629,14 +629,14 @@ select.ui-select:focus-visible {
 
 .ui-metric-card__subtitle {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .ui-metric-card__value {
-  font-size: 1.85rem;
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
   color: var(--text-primary);
 }
 
@@ -644,7 +644,7 @@ select.ui-select:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 12px;
-  font-size: 0.82rem;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -659,6 +659,6 @@ select.ui-select:focus-visible {
 .ui-metric-card__footer {
   margin-top: auto;
   padding-top: 8px;
-  font-size: 0.76rem;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
 }

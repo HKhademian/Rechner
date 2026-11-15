@@ -46,13 +46,13 @@
   font-weight: 600;
 }
 
-/* Pure white quiet-zone container guarantees camera scanning across light and dark themes */
+/* Optical light quiet-zone container guarantees camera scanning across light and dark themes */
 .girocode-qr-frame {
   width: 100%;
   max-width: 296px;
   padding: 18px;
   border-radius: var(--border-radius-lg);
-  background: #ffffff;
+  background: var(--qr-paper);
   border: 1px solid var(--border-medium);
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -89,10 +89,10 @@
   width: 100%;
   max-width: 256px;
   aspect-ratio: 1 / 1;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--qr-paper-border);
   border-radius: var(--border-radius);
-  background: #f8fafc;
-  color: #475569;
+  background: var(--qr-paper-soft);
+  color: var(--qr-ink-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -100,27 +100,27 @@
   gap: 10px;
   padding: 20px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: var(--font-size-base);
 }
 
 .girocode-qr-frame__footer {
   width: 100%;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--qr-paper-divider);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 0.75rem;
-  color: #475569;
+  font-size: var(--font-size-xs);
+  color: var(--qr-ink-muted);
 }
 
 .girocode-qr-frame__amount {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: var(--font-weight-bold);
+  color: var(--qr-ink);
 }
 
 .girocode-qr-actions {
@@ -222,7 +222,7 @@
 }
 
 .girocode-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -332,19 +332,19 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface-secondary);
   color: var(--text-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.78rem;
-  line-height: 1.6;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
   overflow-x: auto;
   white-space: pre;
 }
 
 .girocode-note {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
   text-align: center;
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 }
 
 .girocode-modal-backdrop {
@@ -355,7 +355,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(15, 23, 42, 0.72);
+  background: var(--bg-backdrop);
   backdrop-filter: blur(4px);
 }
 
@@ -363,8 +363,8 @@
   width: min(100%, 480px);
   padding: 20px;
   border-radius: var(--border-radius-lg);
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--qr-paper);
+  color: var(--qr-ink);
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
@@ -387,9 +387,9 @@
 }
 
 .girocode-modal__title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--qr-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -402,24 +402,26 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--qr-paper-divider);
   border-radius: var(--border-radius-sm);
-  background: #f8fafc;
-  color: #334155;
+  background: var(--qr-paper-soft);
+  color: var(--qr-ink-muted);
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .girocode-modal__close:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--qr-paper-border);
+  color: var(--qr-ink);
 }
 
 .girocode-modal__qr-wrap {
   display: flex;
   justify-content: center;
-  padding: 8px;
-  background: #ffffff;
+  padding: 12px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--qr-paper-divider);
+  background: var(--qr-paper);
 }
 
 .girocode-modal__canvas {
@@ -433,21 +435,21 @@
 
 .girocode-modal__footer {
   padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 0.82rem;
-  color: #475569;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
 }
 
 .girocode-modal__amount {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
 }
 
 .girocode-toast {

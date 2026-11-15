@@ -7,8 +7,8 @@
   width: 100%;
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.78rem;
-  line-height: 1.5;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
 }
 
 .source-revision__meta {
@@ -45,9 +45,9 @@
 }
 
 .source-revision code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
 }
 
 .source-revision-footer {

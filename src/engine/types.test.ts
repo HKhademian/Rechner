@@ -61,6 +61,8 @@ import {
   toActiveScenarioView,
   toTimelineChartMode,
   toTimelineTimeRangeFilter,
+  toThemeMode,
+  toThemePalette,
   toActionCategory,
   toActionType,
   toTargetPerson,
@@ -95,6 +97,8 @@ import {
   ActiveScenarioView,
   TimelineChartMode,
   TimelineTimeRangeFilter,
+  ThemeMode,
+  ThemePalette,
   TransactionType,
   TransactionDirection,
   SpecialEventType,
@@ -1098,6 +1102,19 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
         () => toBonusDistributionPreset("unknown_preset"),
         TypeError,
       );
+    });
+
+    it("ThemeMode and ThemePalette: validates color modes and curated palettes", () => {
+      assert.equal(toThemeMode("light"), ThemeMode.Light);
+      assert.equal(toThemeMode("dark"), ThemeMode.Dark);
+      assert.equal(toThemeMode("system"), ThemeMode.System);
+      assert.throws(() => toThemeMode("sepia"), TypeError);
+
+      assert.equal(toThemePalette("cobalt"), ThemePalette.Cobalt);
+      assert.equal(toThemePalette("forest"), ThemePalette.Forest);
+      assert.equal(toThemePalette("indigo"), ThemePalette.Indigo);
+      assert.equal(toThemePalette("stone"), ThemePalette.Stone);
+      assert.throws(() => toThemePalette("neon"), TypeError);
     });
   });
 });

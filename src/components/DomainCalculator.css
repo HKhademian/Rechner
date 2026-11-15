@@ -51,8 +51,8 @@
 
 .domain-calc-group-title {
   margin: 6px 0 0;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
 }
 
@@ -119,7 +119,7 @@
 .domain-calc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: var(--font-size-base);
 }
 
 .domain-calc-table th,
@@ -131,14 +131,14 @@
 
 .domain-calc-table th {
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .domain-calc-table td.num,
 .domain-calc-table th.num {
   text-align: right;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
 }
 
 .domain-calc-table tr.is-total td,
@@ -146,7 +146,7 @@
   border-top: 2px solid var(--border-medium);
   border-bottom: none;
   color: var(--text-primary);
-  font-weight: 750;
+  font-weight: var(--font-weight-bold);
 }
 
 .domain-calc-law-bar {
@@ -157,7 +157,7 @@
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
-  font-size: 0.82rem;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 

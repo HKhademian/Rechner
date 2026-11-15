@@ -434,6 +434,29 @@ export function toThemeMode(val: string): ThemeMode {
   return val as ThemeMode;
 }
 
+/** Curated institutional color palette presets applied site-wide alongside Light/Dark mode. */
+export const ThemePalette = {
+  Cobalt: "cobalt",
+  Forest: "forest",
+  Indigo: "indigo",
+  Stone: "stone",
+} as const;
+export type ThemePalette = (typeof ThemePalette)[keyof typeof ThemePalette];
+
+/**
+ * Validates and casts an arbitrary string into a strongly-typed `ThemePalette`.
+ * @throws {TypeError} if input does not match a valid `ThemePalette` member.
+ */
+export function toThemePalette(val: string): ThemePalette {
+  const values: string[] = Object.values(ThemePalette);
+  if (!values.includes(val)) {
+    throw new TypeError(
+      `Invalid ThemePalette: ${val}. Expected one of: ${values.join(", ")}.`,
+    );
+  }
+  return val as ThemePalette;
+}
+
 /** User input mode for salary specifications (Gross pre-tax vs Net take-home). */
 export const SalaryInputMode = {
   Gross: "GROSS",
