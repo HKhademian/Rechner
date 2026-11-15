@@ -3,6 +3,7 @@ import {
   it,
 } from "node:test";
 import {
+  allCalculatorApps,
   calculatorApps,
   calculatorAtPath,
   catalogPage,
@@ -10,12 +11,28 @@ import {
 import {
   AppId,
   CalculatorCategory,
+  CalculatorReleaseStatus,
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 
+it("limits default release catalog to published calculators while retaining draft definitions", () => {
+  assert.deepEqual(
+    calculatorApps.map((app) => app.id),
+    [AppId.NetPay, AppId.ParentalLeave, AppId.GiroCode],
+  );
+  assert.equal(
+    calculatorApps.every((app) => app.releaseStatus === CalculatorReleaseStatus.Published),
+    true,
+  );
+  assert.deepEqual(
+    allCalculatorApps.filter((app) => app.releaseStatus === CalculatorReleaseStatus.Draft).map((app) => app.id),
+    [AppId.Visa, AppId.CompanyCar, AppId.SolarEnergy, AppId.Housing],
+  );
+});
+
 it("registers unique routes and resolves exact app paths without accidental prefix matches", () => {
-  assert.equal(new Set(calculatorApps.map((app) => app.id)).size, calculatorApps.length);
-  for (const app of calculatorApps) {
+  assert.equal(new Set(allCalculatorApps.map((app) => app.id)).size, allCalculatorApps.length);
+  for (const app of allCalculatorApps) {
     assert.equal(calculatorAtPath(calculatorPath(app.id))?.id, app.id);
     assert.equal(calculatorAtPath(calculatorPath(app.id).slice(0, -1))?.id, app.id);
     assert.equal(calculatorAtPath(`${calculatorPath(app.id)}other`), undefined);
@@ -27,10 +44,10 @@ it("filters German search terms, categories and empty results and clamps paginat
   assert.equal(catalogPage(calculatorApps, "  NETTO  ", undefined, 1).items[0].id, AppId.NetPay);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Family, 1).items[0].id, AppId.ParentalLeave);
   assert.equal(catalogPage(calculatorApps, "girocode", undefined, 1).items[0].id, AppId.GiroCode);
-  assert.equal(catalogPage(calculatorApps, "blue card", undefined, 1).items[0].id, AppId.Visa);
-  assert.equal(catalogPage(calculatorApps, "dienstwagen", undefined, 1).items[0].id, AppId.CompanyCar);
-  assert.equal(catalogPage(calculatorApps, "photovoltaik", undefined, 1).items[0].id, AppId.SolarEnergy);
-  assert.equal(catalogPage(calculatorApps, "kfw 300", undefined, 1).items[0].id, AppId.Housing);
+  assert.equal(catalogPage(allCalculatorApps, "blue card", undefined, 1).items[0].id, AppId.Visa);
+  assert.equal(catalogPage(allCalculatorApps, "dienstwagen", undefined, 1).items[0].id, AppId.CompanyCar);
+  assert.equal(catalogPage(allCalculatorApps, "photovoltaik", undefined, 1).items[0].id, AppId.SolarEnergy);
+  assert.equal(catalogPage(allCalculatorApps, "kfw 300", undefined, 1).items[0].id, AppId.Housing);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Everyday, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(calculatorApps, "nothing matches", undefined, 99).total, 0);
   const many = Array.from({ length: 8 }, () => calculatorApps[0]);
