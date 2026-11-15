@@ -1,0 +1,146 @@
+---
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
+import {
+  APPEARANCE_STORAGE_KEY,
+  LEGACY_APPEARANCE_KEYS,
+  THEME_PALETTE_OPTIONS,
+} from "#utils/themeConfig";
+import "#styles/global.css";
+
+interface Props {
+  readonly title: string;
+  readonly description: string;
+}
+
+const {
+  title,
+  description,
+} = Astro.props;
+
+const paletteIds = THEME_PALETTE_OPTIONS.map((option) => option.value);
+const storageModeKey = "rechner:privacy:storage-mode:v1";
+const csp =
+  "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'";
+---
+<html lang="en" data-theme="light" data-palette="cobalt">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href={sitePath("/favicon.svg")} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="tdm-reservation" content="1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta http-equiv="Content-Security-Policy" content={csp} />
+    <script
+      is:inline
+      define:vars={{
+        appearanceKey: APPEARANCE_STORAGE_KEY,
+        legacyKeys: LEGACY_APPEARANCE_KEYS,
+        paletteIds,
+        storageModeKey,
+      }}
+    >
+(() => {
+  try {
+    const resolveStorage = () => {
+      try {
+        const persistentMode = window.localStorage.getItem(storageModeKey);
+        if (persistentMode === "persistent") {
+          return window.localStorage;
+        }
+        if (persistentMode === "session") {
+          return window.sessionStorage;
+        }
+        if (persistentMode === "memory") {
+          return null;
+        }
+      }
+      catch {
+        // Ignore storage access failures before hydration.
+      }
+      try {
+        const sessionMode = window.sessionStorage.getItem(storageModeKey);
+        if (sessionMode === "session") {
+          return window.sessionStorage;
+        }
+        if (sessionMode === "persistent") {
+          return window.localStorage;
+        }
+      }
+      catch {
+        // Ignore sessionStorage access failures before hydration.
+      }
+      return null;
+    };
+
+    const parseRaw = (raw) => {
+      if (!raw || typeof raw !== "string") {
+        return null;
+      }
+      const trimmed = raw.trim();
+      if (trimmed === "light" || trimmed === "dark" || trimmed === "system") {
+        return { mode: trimmed,
+          palette: null };
+      }
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          return null;
+        }
+        if (parsed.format === "rechner-storage-value" && typeof parsed.value === "string") {
+          return parseRaw(parsed.value);
+        }
+        return {
+          mode: typeof parsed.mode === "string" ? parsed.mode : null,
+          palette: typeof parsed.palette === "string" ? parsed.palette : null,
+        };
+      }
+      catch {
+        return null;
+      }
+    };
+
+    const storage = resolveStorage();
+    let resolved = null;
+    if (storage) {
+      resolved = parseRaw(storage.getItem(appearanceKey));
+      if (!resolved) {
+        for (const key of legacyKeys) {
+          resolved = parseRaw(storage.getItem(key));
+          if (resolved) {
+            break;
+          }
+        }
+      }
+    }
+
+    const mode =
+      resolved &&
+            (resolved.mode === "light" || resolved.mode === "dark" || resolved.mode === "system")
+        ? resolved.mode
+        : "light";
+    const palette =
+      resolved && resolved.palette && paletteIds.includes(resolved.palette)
+        ? resolved.palette
+        : "cobalt";
+    const prefersDark =
+      typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const effectiveTheme =
+      mode === "dark" || (mode === "system" && prefersDark) ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", effectiveTheme);
+    document.documentElement.setAttribute("data-palette", palette);
+  }
+  catch {
+    // Ignore pre-paint appearance bootstrap failures.
+  }
+})();
+    
+</script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

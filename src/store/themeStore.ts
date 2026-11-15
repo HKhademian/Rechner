@@ -1,109 +1,159 @@
 import {
-  AppId,
-} from "#/apps/appDefinition.ts";
-import {
-  calculatorAtPath,
-} from "#/apps/registry.ts";
-import {
-  browserAppStorage,
-} from "#engine/storage/appStorage";
-import {
-  signal,
   effect,
+  signal,
 } from "@preact/signals";
 import {
+  browserWebStorageForCurrentMode,
+  clearSharedBrowserKey,
+} from "#engine/storage/appStorage";
+import {
+  type ThemePalette,
   ThemeMode,
-  toThemeMode,
 } from "#engine/types";
+import {
+  type AppearanceSettings,
+  APPEARANCE_STORAGE_KEY,
+  DEFAULT_APPEARANCE_SETTINGS,
+  LEGACY_APPEARANCE_KEYS,
+  parseAppearanceSettings,
+  resolveEffectiveTheme,
+  serializeAppearanceSettings,
+} from "#utils/themeConfig";
 
-const scope = typeof window === "undefined" ? AppId.Catalog : calculatorAtPath(window.location.pathname)?.id ?? AppId.Catalog;
-const appearanceStorage = browserAppStorage(scope);
-
-/**
- * Initializes the default theme mode from storage or defaults to institutional Light
- */
-function getInitialThemeMode(): ThemeMode {
+function readInitialAppearanceSettings(): AppearanceSettings {
   if (typeof window === "undefined") {
-    return ThemeMode.Light;
+    return DEFAULT_APPEARANCE_SETTINGS;
+  }
+  const storage = browserWebStorageForCurrentMode();
+  if (!storage) {
+    return DEFAULT_APPEARANCE_SETTINGS;
   }
   try {
-    const stored = appearanceStorage.getItem("theme");
-    if (stored) {
-      return toThemeMode(stored);
+    const shared = parseAppearanceSettings(storage.getItem(APPEARANCE_STORAGE_KEY));
+    if (shared) {
+      return shared;
+    }
+    for (const legacyKey of LEGACY_APPEARANCE_KEYS) {
+      const legacyParsed = parseAppearanceSettings(storage.getItem(legacyKey));
+      if (legacyParsed) {
+        return legacyParsed;
+      }
     }
   }
   catch {
     // Ignore storage read exceptions (e.g. private browsing)
   }
-  return ThemeMode.Light;
+  return DEFAULT_APPEARANCE_SETTINGS;
 }
 
+const initialAppearance = readInitialAppearanceSettings();
+
 /** Reactive signal tracking the active theme mode preference (light, dark, or system). */
-export const activeThemeMode = signal<ThemeMode>(getInitialThemeMode());
+export const activeThemeMode = signal<ThemeMode>(initialAppearance.mode);
+
+/** Reactive signal tracking the active institutional color palette site-wide. */
+export const activeThemePalette = signal<ThemePalette>(initialAppearance.palette);
+
+function persistCurrentAppearance(settings: AppearanceSettings): void {
+  const storage = browserWebStorageForCurrentMode();
+  if (!storage) {
+    return;
+  }
+  try {
+    storage.setItem(APPEARANCE_STORAGE_KEY, serializeAppearanceSettings(settings));
+  }
+  catch {
+    // Ignore storage write exceptions
+  }
+}
 
 /**
- * Applies the effective theme (light / dark) to the root document element.
- *
- * @param mode - Theme mode to activate.
+ * Applies the effective theme ("light" | "dark") and selected palette to the root document element.
  */
-export function applyThemeToDocument(mode: ThemeMode): void {
+export function applyThemeToDocument(
+  mode: ThemeMode,
+  palette: ThemePalette = activeThemePalette.value,
+): void {
   if (typeof document === "undefined") {
     return;
   }
+  const systemPrefersDark =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-  let effectiveDark = false;
-  if (mode === ThemeMode.Dark) {
-    effectiveDark = true;
-  }
-  else if (mode === ThemeMode.System) {
-    if (typeof window !== "undefined" && window.matchMedia) {
-      effectiveDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    }
-  }
-
+  const effectiveTheme = resolveEffectiveTheme(mode, systemPrefersDark);
   const root = document.documentElement;
-  if (effectiveDark) {
-    root.setAttribute("data-theme", "dark");
-  }
-  else {
-    root.setAttribute("data-theme", "light");
-  }
+  root.setAttribute("data-theme", effectiveTheme);
+  root.setAttribute("data-palette", palette);
 }
 
 /**
- * Updates the active theme mode, saves it through the selected storage adapter, and updates the document theme.
- *
- * @param newMode - Selected `ThemeMode` (Light, Dark, or System).
+ * Updates the active theme mode site-wide, persists it under the active Privacy `StorageMode`,
+ * and updates the document attributes.
  */
 export function setThemeMode(newMode: ThemeMode): void {
   activeThemeMode.value = newMode;
-  if (typeof window !== "undefined") {
-    try {
-      appearanceStorage.setItem("theme", newMode);
-    }
-    catch {
-      // Ignore storage write exceptions
-    }
-  }
-  applyThemeToDocument(newMode);
+  persistCurrentAppearance({
+    mode: newMode,
+    palette: activeThemePalette.value,
+  });
+  applyThemeToDocument(newMode, activeThemePalette.value);
 }
 
-// Client-side initialization and system change listener
-if (typeof window !== "undefined") {
-  // Apply immediately on load
-  applyThemeToDocument(activeThemeMode.value);
+/**
+ * Updates the active institutional color palette site-wide, persists it under the active
+ * Privacy `StorageMode`, and updates the document attributes.
+ */
+export function setThemePalette(newPalette: ThemePalette): void {
+  activeThemePalette.value = newPalette;
+  persistCurrentAppearance({
+    mode: activeThemeMode.value,
+    palette: newPalette,
+  });
+  applyThemeToDocument(activeThemeMode.value, newPalette);
+}
 
-  // Sync on reactive signal changes
+/** Resets shared theme mode and palette to defaults and clears shared appearance keys. */
+export function resetAppearance(): void {
+  activeThemeMode.value = DEFAULT_APPEARANCE_SETTINGS.mode;
+  activeThemePalette.value = DEFAULT_APPEARANCE_SETTINGS.palette;
+  clearSharedBrowserKey(APPEARANCE_STORAGE_KEY);
+  applyThemeToDocument(
+    DEFAULT_APPEARANCE_SETTINGS.mode,
+    DEFAULT_APPEARANCE_SETTINGS.palette,
+  );
+}
+
+/** Reloads site-wide appearance settings from storage (used for cross-tab storage events). */
+export function reloadAppearanceFromStorage(): void {
+  const reloaded = readInitialAppearanceSettings();
+  activeThemeMode.value = reloaded.mode;
+  activeThemePalette.value = reloaded.palette;
+  applyThemeToDocument(reloaded.mode, reloaded.palette);
+}
+
+// Client-side initialization, system change listener, and cross-tab synchronization
+if (typeof window !== "undefined") {
+  applyThemeToDocument(activeThemeMode.value, activeThemePalette.value);
+
   effect(() => {
-    applyThemeToDocument(activeThemeMode.value);
+    applyThemeToDocument(activeThemeMode.value, activeThemePalette.value);
   });
 
-  // Listen for OS color scheme adjustments when in System mode
-  if (window.matchMedia) {
+  if (typeof window.matchMedia === "function") {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     mediaQuery.addEventListener("change", () => {
       if (activeThemeMode.value === ThemeMode.System) {
-        applyThemeToDocument(ThemeMode.System);
+        applyThemeToDocument(ThemeMode.System, activeThemePalette.value);
+      }
+    });
+  }
+
+  if (typeof window.addEventListener === "function") {
+    window.addEventListener("storage", (event: StorageEvent) => {
+      if (event.key === APPEARANCE_STORAGE_KEY || event.key === null) {
+        reloadAppearanceFromStorage();
       }
     });
   }

@@ -1,138 +1,165 @@
+import "./Navigation.css";
 import {
   useEffect,
-  useState,
+  useRef,
 } from "preact/hooks";
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
-  activeThemeMode,
-  setThemeMode,
-} from "#store/themeStore";
+  DarkThemeIcon,
+  LightThemeIcon,
+  SystemThemeIcon,
+  ThemePaletteIcon,
+} from "#components/Icons";
 import {
-  ThemeMode, 
+  type SegmentedOption,
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  type ThemePalette,
+  ThemeMode,
 } from "#engine/types";
 import {
-  LightThemeIcon,
-  DarkThemeIcon,
-  SystemThemeIcon,
-} from "#components/Icons";
+  activeThemeMode,
+  activeThemePalette,
+  setThemeMode,
+  setThemePalette,
+} from "#store/themeStore";
+import {
+  THEME_PALETTE_OPTIONS,
+} from "#utils/themeConfig";
 
+const MODE_OPTIONS: readonly SegmentedOption<ThemeMode>[] = [
+  {
+    value: ThemeMode.Light,
+    label: "Light",
+    title: "Light mode",
+  },
+  {
+    value: ThemeMode.Dark,
+    label: "Dark",
+    title: "Dark mode",
+  },
+  {
+    value: ThemeMode.System,
+    label: "Auto",
+    title: "Follow system color scheme",
+  },
+];
+
+function renderModeIcon(mode: ThemeMode): JSX.Element {
+  if (mode === ThemeMode.Dark) {
+    return <DarkThemeIcon size={14} />;
+  }
+  if (mode === ThemeMode.System) {
+    return <SystemThemeIcon size={14} />;
+  }
+  return <LightThemeIcon size={14} />;
+}
+
+/**
+ * Global appearance switcher combining Light/Dark/Auto mode with curated
+ * institutional color palettes synced across all Rechner routes.
+ */
 export default function ThemeToggle(): JSX.Element {
-  // Match server markup first, then show this app's saved preference after hydration.
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => setHydrated(true), []);
-  const currentMode = hydrated ? activeThemeMode.value : ThemeMode.Light;
+  const mode = activeThemeMode.value;
+  const palette = activeThemePalette.value;
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closeWhenOutside = (event: Event): void => {
+      if (!(event.target instanceof Node)) {
+        return;
+      }
+      const details = detailsRef.current;
+      if (details?.open && !details.contains(event.target)) {
+        details.open = false;
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      const details = detailsRef.current;
+      if (details?.open) {
+        details.open = false;
+        details.querySelector("summary")?.focus();
+      }
+    };
+
+    document.addEventListener("pointerdown", closeWhenOutside);
+    document.addEventListener("focusin", closeWhenOutside);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeWhenOutside);
+      document.removeEventListener("focusin", closeWhenOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
+
+  const handlePaletteSelect = (nextPalette: ThemePalette): void => {
+    setThemePalette(nextPalette);
+  };
 
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        background: "var(--bg-surface-secondary)",
-        border: "1px solid var(--border-subtle)",
-        borderRadius: "var(--border-radius-sm)",
-        padding: "2px",
-      }}
-    >
-      {/* Light Mode Button */}
-      <button
-        type="button"
-        onClick={() => setThemeMode(ThemeMode.Light)}
-        aria-pressed={currentMode === ThemeMode.Light}
-        title="Institutional Light Theme (Default)"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          padding: "4px 8px",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "0.75rem",
-          fontWeight: currentMode === ThemeMode.Light ? 700 : 500,
-          color:
-            currentMode === ThemeMode.Light
-              ? "var(--text-primary)"
-              : "var(--text-muted)",
-          backgroundColor:
-            currentMode === ThemeMode.Light
-              ? "var(--bg-surface)"
-              : "transparent",
-          boxShadow:
-            currentMode === ThemeMode.Light ? "var(--shadow-sm)" : "none",
-          transition: "var(--transition)",
-        }}
-      >
-        <LightThemeIcon size={13} />
-        <span>Light</span>
-      </button>
+    <details ref={detailsRef} className="theme-switcher">
+      <summary aria-label="Appearance and color theme">
+        <span
+          className={`theme-switcher__swatch theme-switcher__swatch--${palette}`}
+          aria-hidden="true"
+        />
+        {renderModeIcon(mode)}
+        <span className="theme-switcher__summary-label">Theme</span>
+      </summary>
 
-      {/* Dark Mode Button */}
-      <button
-        type="button"
-        onClick={() => setThemeMode(ThemeMode.Dark)}
-        aria-pressed={currentMode === ThemeMode.Dark}
-        title="Dark Theme"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          padding: "4px 8px",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "0.75rem",
-          fontWeight: currentMode === ThemeMode.Dark ? 700 : 500,
-          color:
-            currentMode === ThemeMode.Dark
-              ? "var(--text-primary)"
-              : "var(--text-muted)",
-          backgroundColor:
-            currentMode === ThemeMode.Dark
-              ? "var(--bg-surface)"
-              : "transparent",
-          boxShadow:
-            currentMode === ThemeMode.Dark ? "var(--shadow-sm)" : "none",
-          transition: "var(--transition)",
-        }}
+      <div
+        className="theme-switcher__panel"
+        role="region"
+        aria-label="Theme and color palette settings"
       >
-        <DarkThemeIcon size={13} />
-        <span>Dark</span>
-      </button>
+        <div className="theme-switcher__section">
+          <div className="theme-switcher__section-title">
+            <ThemePaletteIcon size={14} />
+            <span>Color Mode</span>
+          </div>
+          <SegmentedControl
+            label="Color mode"
+            value={mode}
+            options={MODE_OPTIONS}
+            onChange={setThemeMode}
+            compact
+            fullWidth
+          />
+        </div>
 
-      {/* System Preference Button */}
-      <button
-        type="button"
-        onClick={() => setThemeMode(ThemeMode.System)}
-        aria-pressed={currentMode === ThemeMode.System}
-        title="Follow System OS Preference"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          padding: "4px 8px",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "0.75rem",
-          fontWeight: currentMode === ThemeMode.System ? 700 : 500,
-          color:
-            currentMode === ThemeMode.System
-              ? "var(--text-primary)"
-              : "var(--text-muted)",
-          backgroundColor:
-            currentMode === ThemeMode.System
-              ? "var(--bg-surface)"
-              : "transparent",
-          boxShadow:
-            currentMode === ThemeMode.System ? "var(--shadow-sm)" : "none",
-          transition: "var(--transition)",
-        }}
-      >
-        <SystemThemeIcon size={13} />
-        <span>Auto</span>
-      </button>
-    </div>
+        <div className="theme-switcher__section">
+          <div className="theme-switcher__section-title">
+            <span>Palette</span>
+          </div>
+          <div className="theme-switcher__palettes" role="group" aria-label="Color palette">
+            {THEME_PALETTE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className="theme-switcher__palette-btn"
+                aria-pressed={option.value === palette}
+                onClick={() => handlePaletteSelect(option.value)}
+              >
+                <span
+                  className={`theme-switcher__swatch theme-switcher__swatch--${option.value}`}
+                  aria-hidden="true"
+                />
+                <span className="theme-switcher__palette-text">
+                  <span className="theme-switcher__palette-name">{option.label}</span>
+                  <span className="theme-switcher__palette-desc">{option.description}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </details>
   );
 }

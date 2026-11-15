@@ -1,19 +1,10 @@
 ---
 import CalculatorCatalog from "#components/CalculatorCatalog";
-import {
-  sitePath,
-} from "#/apps/appDefinition.ts";
-import "#styles/global.css";
+import BaseDocument from "#/layouts/BaseDocument.astro";
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href={sitePath("/favicon.svg")} />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="tdm-reservation" content="1" />
-    <title>Rechner | Life in Germany, calculated</title>
-    <meta name="description" content="Practical tools to plan life in Germany, with clear assumptions and source links." />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" />
-  </head>
-  <body><CalculatorCatalog client:load /></body>
-</html>
+<BaseDocument
+  title="Rechner | Life in Germany, calculated"
+  description="Practical tools to plan life in Germany, with clear assumptions and source links."
+>
+  <CalculatorCatalog client:load />
+</BaseDocument>

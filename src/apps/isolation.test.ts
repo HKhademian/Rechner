@@ -58,7 +58,7 @@ it("parental-leave boot migrates its plan without initializing net-pay storage",
     stdio: "pipe" }));
 });
 
-it("appearance preferences are scoped to the current app route", () => {
+it("appearance preferences are shared across app routes while calculator state stays scoped", () => {
   for (const app of ["net-pay", "parental-leave", "catalog"]) {
     const script = `
       import assert from "node:assert/strict";
@@ -74,17 +74,26 @@ it("appearance preferences are scoped to the current app route", () => {
       assert.equal(getStorageMode(), StorageMode.Persistent);
       const theme = await import("#store/themeStore");
       assert.equal(theme.activeThemeMode.value, "dark");
+      assert.equal(theme.activeThemePalette.value, "cobalt");
       theme.setThemeMode("light");
-      assert.equal(JSON.parse(values.get("rechner:${app}:v1:theme")).value, "light");
+      theme.setThemePalette("forest");
+      assert.deepEqual(JSON.parse(values.get("rechner:shared:appearance:v1")), {
+        mode: "light",
+        palette: "forest",
+      });
       assert.equal(values.get("german_calc_theme_mode"), "dark");
-      assert.ok([...values.keys()].filter(key => key.startsWith("rechner:") && !key.startsWith("rechner:privacy:")).every(key => key.startsWith("rechner:${app}:")));
+      assert.ok(
+        [...values.keys()]
+          .filter(key => key.startsWith("rechner:") && !key.startsWith("rechner:privacy:"))
+          .every(key => key.startsWith("rechner:shared:")),
+      );
     `;
     assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
       stdio: "pipe" }));
   }
 });
 
-it("girocode boot stores drafts only under its own namespace without initializing other calculators", () => {
+it("girocode boot stores drafts only under its own namespace and updates shared appearance", () => {
   const script = `
     import assert from "node:assert/strict";
     const values = new Map([["grossIncome", "12345"], ["elterngeld_simulator_state_v1", "{}"]]);
@@ -102,10 +111,17 @@ it("girocode boot stores drafts only under its own namespace without initializin
     const theme = await import("#store/themeStore");
     assert.equal(theme.activeThemeMode.value, "light");
     theme.setThemeMode("dark");
-    assert.equal(JSON.parse(values.get("rechner:girocode:v1:theme")).value, "dark");
+    assert.deepEqual(JSON.parse(values.get("rechner:shared:appearance:v1")), {
+      mode: "dark",
+      palette: "cobalt",
+    });
     const keysAddedByGiroCode = [...values.keys()].filter(key => !keysBeforeBoot.has(key));
     assert.ok(keysAddedByGiroCode.length >= 2);
-    assert.ok(keysAddedByGiroCode.every(key => key.startsWith("rechner:girocode:")));
+    assert.ok(
+      keysAddedByGiroCode.every(
+        key => key.startsWith("rechner:girocode:") || key === "rechner:shared:appearance:v1",
+      ),
+    );
   `;
   assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
     stdio: "pipe" }));
