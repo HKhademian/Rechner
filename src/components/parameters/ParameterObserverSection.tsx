@@ -128,7 +128,7 @@ export default function ParameterObserverSection({
           <span className="parameter-observer__toggle-title">
             <ParameterSlidersIcon size={17} />
             <strong id="parameter-observer-heading">
-              Unified Statutory Values &amp; Parameters
+              Rates, Thresholds &amp; Assumptions
             </strong>
           </span>
           <span className="parameter-observer__toggle-meta">
@@ -165,8 +165,7 @@ export default function ParameterObserverSection({
       {isExpanded && (
         <div id="parameter-observer-panel" className="parameter-observer__panel">
           <p className="parameter-observer__intro">
-            All calculators read statutory rates, annual thresholds, and planning assumptions from this single law-linked registry.
-            Customizable planning defaults can be edited freely; statutory or year-indexed legal constants raise a protection flag if modification is attempted.
+            Shared rates, thresholds, and assumptions used across calculators. Fixed legal rules are locked; planning assumptions can be edited.
           </p>
 
           {hasProjectedOut && (
@@ -175,8 +174,8 @@ export default function ParameterObserverSection({
                 <strong>{projectionView.profile.label}</strong>
                 <span>
                   {showingAllDomains
-                    ? `Showing all ${totalCount} statutory parameters across every domain.`
-                    : `${projectionView.profile.description} (${projectionView.projectedOutParameters.length} out-of-focus values projected at ${activeYear} defaults.)`}
+                    ? `Showing all ${totalCount} rules across all calculators.`
+                    : `${projectionView.profile.description} (${projectionView.projectedOutParameters.length} other rules use ${activeYear} defaults.)`}
                 </span>
               </div>
               <button
@@ -185,8 +184,8 @@ export default function ParameterObserverSection({
                 onClick={() => setShowProjectedOutDomains(!showingAllDomains)}
               >
                 {showingAllDomains
-                  ? `Return to focused (${projectionView.focusedParameters.length})`
-                  : `Inspect all ${totalCount} parameters`}
+                  ? `Show relevant only (${projectionView.focusedParameters.length})`
+                  : `Show all ${totalCount}`}
               </button>
             </div>
           )}
