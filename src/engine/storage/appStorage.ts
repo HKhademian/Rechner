@@ -643,3 +643,32 @@ export function setStorageMode(
     return false;
   }
 }
+
+/** Resolve active browser Web Storage for shared non-app settings without falling back to Persistent when Memory mode is selected. */
+export function browserWebStorageForCurrentMode(): Pick<Storage, "getItem" | "setItem" | "removeItem"> | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  const mode = getStorageMode();
+  try {
+    if (mode === StorageMode.Persistent) {
+      return window.localStorage;
+    }
+    if (mode === StorageMode.Session) {
+      return window.sessionStorage;
+    }
+    return null;
+  }
+  catch {
+    return null;
+  }
+}
+
+/** Clear a shared record key from both persistent and session browser Web Storage backends. */
+export function clearSharedBrowserKey(key: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  safeRemove(window.localStorage, key);
+  safeRemove(window.sessionStorage, key);
+}

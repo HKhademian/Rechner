@@ -5,28 +5,9 @@ import {
   parseUnifiedLifeProfile,
 } from "#engine/lifeProfile/types";
 import {
-  StorageMode,
-  getStorageMode,
+  browserWebStorageForCurrentMode,
+  clearSharedBrowserKey,
 } from "#engine/storage/appStorage";
-
-function getBrowserStorageForMode(): Pick<Storage, "getItem" | "setItem" | "removeItem"> | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  const mode = getStorageMode();
-  try {
-    if (mode === StorageMode.Persistent) {
-      return window.localStorage;
-    }
-    if (mode === StorageMode.Session) {
-      return window.sessionStorage;
-    }
-    return null;
-  }
-  catch {
-    return null;
-  }
-}
 
 /** Serializes a `UnifiedLifeProfile` deterministically. */
 export function serializeUnifiedLifeProfile(profile: UnifiedLifeProfile): string {
@@ -52,7 +33,7 @@ export function deserializeUnifiedLifeProfile(serialized: string | null): Unifie
 
 /** Reads the saved `UnifiedLifeProfile` under `rechner:life-profile:v1:profile` without writing on boot. */
 export function readUnifiedLifeProfile(): UnifiedLifeProfile {
-  const storage = getBrowserStorageForMode();
+  const storage = browserWebStorageForCurrentMode();
   if (!storage) {
     return createDefaultUnifiedLifeProfile();
   }
@@ -67,7 +48,7 @@ export function readUnifiedLifeProfile(): UnifiedLifeProfile {
 
 /** Persists a `UnifiedLifeProfile` according to the active global `StorageMode`. */
 export function writeUnifiedLifeProfile(profile: UnifiedLifeProfile): boolean {
-  const storage = getBrowserStorageForMode();
+  const storage = browserWebStorageForCurrentMode();
   if (!storage) {
     return false;
   }
@@ -82,19 +63,5 @@ export function writeUnifiedLifeProfile(profile: UnifiedLifeProfile): boolean {
 
 /** Clears the saved `UnifiedLifeProfile` from session and local storage. */
 export function clearUnifiedLifeProfile(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    window.localStorage.removeItem(LIFE_PROFILE_STORAGE_KEY);
-  }
-  catch {
-    // Ignore blocked storage removal
-  }
-  try {
-    window.sessionStorage.removeItem(LIFE_PROFILE_STORAGE_KEY);
-  }
-  catch {
-    // Ignore blocked storage removal
-  }
+  clearSharedBrowserKey(LIFE_PROFILE_STORAGE_KEY);
 }

@@ -7,8 +7,8 @@ import {
   isParameterId,
 } from "#engine/parameters/types";
 import {
-  StorageMode,
-  getStorageMode,
+  browserWebStorageForCurrentMode,
+  clearSharedBrowserKey,
 } from "#engine/storage/appStorage";
 import {
   DEFAULT_TAX_YEAR,
@@ -31,25 +31,6 @@ export interface SharedParameterSnapshot {
   readonly version: 1;
   readonly year: FullCalendarYear;
   readonly overrides: Readonly<Partial<Record<ParameterId, number>>>;
-}
-
-function getBrowserStorageForCurrentMode(): Pick<Storage, "getItem" | "setItem" | "removeItem"> | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  const mode = getStorageMode();
-  try {
-    if (mode === StorageMode.Persistent) {
-      return window.localStorage;
-    }
-    if (mode === StorageMode.Session) {
-      return window.sessionStorage;
-    }
-    return null;
-  }
-  catch {
-    return null;
-  }
 }
 
 /**
@@ -148,7 +129,7 @@ export function deserializeSharedParameterSnapshot(
  * Never writes during read/boot.
  */
 export function readSharedParameterSnapshot(): SharedParameterSnapshot | null {
-  const storage = getBrowserStorageForCurrentMode();
+  const storage = browserWebStorageForCurrentMode();
   if (!storage) {
     return null;
   }
@@ -168,7 +149,7 @@ export function writeSharedParameterSnapshot(
   year: FullCalendarYear,
   overrides: Readonly<Partial<Record<ParameterId, number>>>,
 ): boolean {
-  const storage = getBrowserStorageForCurrentMode();
+  const storage = browserWebStorageForCurrentMode();
   if (!storage) {
     return false;
   }
@@ -197,19 +178,5 @@ export function writeSharedParameterSnapshot(
  * Clears the shared parameter snapshot from session and local storage when available.
  */
 export function clearSharedParameterSnapshot(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    window.localStorage.removeItem(SHARED_PARAMETERS_STORAGE_KEY);
-  }
-  catch {
-    // Ignore storage removal errors
-  }
-  try {
-    window.sessionStorage.removeItem(SHARED_PARAMETERS_STORAGE_KEY);
-  }
-  catch {
-    // Ignore storage removal errors
-  }
+  clearSharedBrowserKey(SHARED_PARAMETERS_STORAGE_KEY);
 }

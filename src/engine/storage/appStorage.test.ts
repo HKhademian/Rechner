@@ -9,8 +9,10 @@ import {
   appStorageKey,
   APPLICATION_VERSION,
   APPLICATION_RELEASE_HASH,
-  createAppStorage,
   browserAppStorage,
+  browserWebStorageForCurrentMode,
+  clearSharedBrowserKey,
+  createAppStorage,
   getStorageMode,
   setStorageMode,
   StorageMode,
@@ -195,4 +197,44 @@ it("keeps new calculator data in memory until the user selects a storage mode", 
 it("validates storage mode values", () => {
   assert.equal(toStorageMode("session"), StorageMode.Session);
   assert.throws(() => toStorageMode("cookie"), TypeError);
+});
+
+it("resolves and clears centralized shared Web Storage by active StorageMode", () => {
+  const local = browserStorage(new Map<string, string>());
+  const session = browserStorage(new Map<string, string>());
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window")?.value;
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      localStorage: local,
+      sessionStorage: session,
+    },
+  });
+  try {
+    setStorageMode(StorageMode.Memory);
+    assert.equal(browserWebStorageForCurrentMode(), null);
+
+    setStorageMode(StorageMode.Session);
+    assert.equal(browserWebStorageForCurrentMode(), session);
+    session.setItem("rechner:test:shared", "session-val");
+
+    setStorageMode(StorageMode.Persistent, true);
+    assert.equal(browserWebStorageForCurrentMode(), local);
+    local.setItem("rechner:test:shared", "local-val");
+
+    clearSharedBrowserKey("rechner:test:shared");
+    assert.equal(local.getItem("rechner:test:shared"), null);
+    assert.equal(session.getItem("rechner:test:shared"), null);
+  }
+  finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+    else {
+      Object.defineProperty(globalThis, "window", {
+        configurable: true,
+        value: previousWindow,
+      });
+    }
+  }
 });
