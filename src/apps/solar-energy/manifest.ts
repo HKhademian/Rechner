@@ -6,13 +6,13 @@ import {
 
 export const solarEnergyApp = {
   id: AppId.SolarEnergy,
-  title: "Solar PV & EEG Feed-In Calculator",
-  description: "Model rooftop solar PV electricity savings, capacity-tiered § 48 EEG feed-in revenue, 0% VAT relief, and 20-year payback.",
+  title: "Solar Savings Calculator",
+  description: "Estimate rooftop solar electricity savings, feed-in income, tax relief, and payback time.",
   category: CalculatorCategory.Everyday,
   features: [
-    "Capacity-tiered § 48 EEG feed-in rates",
-    "0% VAT purchase relief (§ 12 Abs. 3 UStG)",
-    "Income tax exemption ≤ 30 kWp (§ 3 Nr. 72)",
+    "Self-use savings and feed-in income",
+    "Zero-VAT and tax-exemption checks",
+    "20-year payback estimate",
   ],
   keywords: [
     "Solar",

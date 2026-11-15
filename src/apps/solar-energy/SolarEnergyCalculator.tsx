@@ -63,9 +63,9 @@ export default function SolarEnergyCalculator(): JSX.Element {
               <SolarEnergyIcon size={15} />
               <span>Rooftop Solar &amp; Clean Energy</span>
             </span>
-            <h1>Solar PV, § 48 EEG Feed-In &amp; 0% VAT Calculator</h1>
+            <h1>Solar Savings Calculator</h1>
             <p className="domain-calc-header__subtitle">
-              Evaluate capacity-tiered EEG feed-in compensation, avoided grid electricity purchases, 0% UStG VAT savings, and 20-year payback.
+              Estimate rooftop solar electricity savings, feed-in income, tax relief, and payback time.
             </p>
           </div>
           <DomainCalculatorHeaderActions
@@ -167,14 +167,14 @@ export default function SolarEnergyCalculator(): JSX.Element {
               </div>
 
               <label className="domain-calc-field" for="solar-mode">
-                <span>EEG Feed-In Compensation Regime</span>
+                <span>Feed-in setup</span>
                 <select
                   id="solar-mode"
                   value={s.feedInMode}
                   onChange={(event) => updateSolarEnergyField("feedInMode", toSolarFeedInMode(event.currentTarget.value))}
                 >
-                  <option value={SolarFeedInMode.PartialSelfConsumption}>Teileinspeisung (Partial Feed-In + Self-Consumption)</option>
-                  <option value={SolarFeedInMode.FullFeedIn}>Volleinspeisung (100% Grid Feed-In at Higher Tariff)</option>
+                  <option value={SolarFeedInMode.PartialSelfConsumption}>Self-consumption + grid feed-in</option>
+                  <option value={SolarFeedInMode.FullFeedIn}>Full grid feed-in (100% exported)</option>
                 </select>
               </label>
 
@@ -238,8 +238,8 @@ export default function SolarEnergyCalculator(): JSX.Element {
                   {evalResult.isIncomeTaxExempt ? <EligibilityConfirmedIcon size={18} /> : <StatutoryLimitationWarningIcon size={18} />}
                   <span>
                     {evalResult.isIncomeTaxExempt
-                      ? "Income-Tax Exempt under § 3 Nr. 72 EStG (PV system ≤ 30 kWp on qualifying building)"
-                      : "Above 30 kWp threshold — feed-in revenue may be subject to income tax (§ 3 Nr. 72 EStG)"}
+                      ? "Income-tax exempt (system ≤ 30 kWp on qualifying building)"
+                      : "Above 30 kWp threshold — feed-in income may be subject to income tax"}
                   </span>
                 </strong>
                 <p>
