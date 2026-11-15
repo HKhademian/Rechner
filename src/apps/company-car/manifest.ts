@@ -2,6 +2,7 @@ import {
   type CalculatorAppDefinition,
   AppId,
   CalculatorCategory,
+  CalculatorReleaseStatus,
 } from "#/apps/appDefinition.ts";
 
 export const companyCarApp = {
@@ -9,6 +10,7 @@ export const companyCarApp = {
   title: "Company Car Calculator",
   description: "Compare tax on electric, hybrid, and fuel company cars, including your commute.",
   category: CalculatorCategory.Money,
+  releaseStatus: CalculatorReleaseStatus.Draft,
   features: [
     "Electric, hybrid, and fuel car tax",
     "Electric vehicle price-cap check",

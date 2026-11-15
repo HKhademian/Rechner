@@ -2,6 +2,7 @@ import {
   type CalculatorAppDefinition,
   AppId,
   CalculatorCategory,
+  CalculatorReleaseStatus,
 } from "#/apps/appDefinition.ts";
 
 export const housingApp = {
@@ -9,6 +10,7 @@ export const housingApp = {
   title: "Home Purchase Planner",
   description: "Estimate buying costs by state, KfW 300 family loans, and renovation tax credits.",
   category: CalculatorCategory.Money,
+  releaseStatus: CalculatorReleaseStatus.Draft,
   features: [
     "Transfer tax for all 16 states",
     "KfW 300 family loan eligibility",

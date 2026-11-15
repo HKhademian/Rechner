@@ -2,6 +2,7 @@ import {
   type CalculatorAppDefinition,
   AppId,
   CalculatorCategory,
+  CalculatorReleaseStatus,
 } from "#/apps/appDefinition.ts";
 
 export const giroCodeApp = {
@@ -9,6 +10,7 @@ export const giroCodeApp = {
   title: "GiroCode Generator",
   description: "Create scannable SEPA transfer QR codes for invoices and payments.",
   category: CalculatorCategory.Everyday,
+  releaseStatus: CalculatorReleaseStatus.Published,
   features: [
     "Instant IBAN and BIC check",
     "Ready for German banking apps",

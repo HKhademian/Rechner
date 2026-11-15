@@ -30,11 +30,24 @@ export function toCalculatorCategory(value: string): CalculatorCategory {
   return value as CalculatorCategory;
 }
 
+export const CalculatorReleaseStatus = {
+  Published: "published",
+  Draft: "draft",
+} as const;
+export type CalculatorReleaseStatus = (typeof CalculatorReleaseStatus)[keyof typeof CalculatorReleaseStatus];
+export function toCalculatorReleaseStatus(value: string): CalculatorReleaseStatus {
+  if (!Object.values(CalculatorReleaseStatus).includes(value as CalculatorReleaseStatus)) {
+    throw new TypeError(`Unknown calculator release status: ${value}`);
+  }
+  return value as CalculatorReleaseStatus;
+}
+
 export interface CalculatorAppDefinition {
   readonly id: Exclude<AppId, typeof AppId.Catalog>;
   readonly title: string;
   readonly description: string;
   readonly category: CalculatorCategory;
+  readonly releaseStatus: CalculatorReleaseStatus;
   readonly features: readonly string[];
   readonly keywords: readonly string[];
 }
