@@ -1468,3 +1468,26 @@ export const SyncProfileActionIcon = ({
     <path d="M16 16h5v5" />
   </svg>
 );
+
+/** Intention: Represent local browser privacy and offline shield status */
+export const PrivacyShieldIcon = ({
+  size = 16,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 3 19 6v5c0 4.7-2.8 8.2-7 10-4.2-1.8-7-5.3-7-10V6l7-3Z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);

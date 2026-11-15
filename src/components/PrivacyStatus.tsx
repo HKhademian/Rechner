@@ -10,6 +10,9 @@ import type {
 import {
   sitePath,
 } from "#/apps/appDefinition.ts";
+import {
+  PrivacyShieldIcon,
+} from "#components/Icons";
 import StorageModeControl from "#components/StorageModeControl";
 
 export const OfflineState = {
@@ -123,10 +126,7 @@ export default function PrivacyStatus(): JSX.Element {
 
   return <details className="privacy-status" ref={detailsRef}>
     <summary aria-label="Privacy and offline settings">
-      <svg className="privacy-status__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M12 3 19 6v5c0 4.7-2.8 8.2-7 10-4.2-1.8-7-5.3-7-10V6l7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-        <path d="m9 12 2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <PrivacyShieldIcon className="privacy-status__icon" size={16} />
       <span>Offline</span>
     </summary>
     <div className="privacy-status__panel">
