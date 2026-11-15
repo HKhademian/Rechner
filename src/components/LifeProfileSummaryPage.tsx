@@ -77,10 +77,10 @@ export default function LifeProfileSummaryPage(): JSX.Element {
       <main id="main-content" className="life-summary" tabIndex={-1}>
         <header className="life-summary__hero">
           <div>
-            <p className="life-summary__eyebrow">Stage 6 · Unified Household &amp; Support Engine</p>
-            <h1>Unified Life Profile &amp; Cross-Calculator Summary</h1>
+            <p className="life-summary__eyebrow">Shared Household Profile</p>
+            <h1>Life Profile Summary</h1>
             <p className="life-summary__lead">
-              Adjust your household, residence, mobility, solar, and housing baseline once below to compare live statutory results side by side across all six domain calculators ({profile.planningYear}, {stateLabel}).
+              Adjust your household, visa, car, solar, and home details once below to compare estimates across all six calculators ({profile.planningYear}, {stateLabel}).
             </p>
           </div>
           <div className="life-summary__hero-badge">
@@ -118,9 +118,9 @@ export default function LifeProfileSummaryPage(): JSX.Element {
             </small>
           </div>
           <div className="life-summary__headline-card">
-            <span>Active Statutory Engine Graph</span>
-            <strong>{overview.governingLawIds.length} Laws · {overview.consumedParameterIds.length} Params</strong>
-            <small>Deterministic Tier 1 → Tier 2 → Tier 3 projection</small>
+            <span>Referenced Laws &amp; Rules</span>
+            <strong>{overview.governingLawIds.length} Laws · {overview.consumedParameterIds.length} Parameters</strong>
+            <small>Applied across all six calculator estimates</small>
           </div>
         </section>
 
@@ -445,10 +445,10 @@ export default function LifeProfileSummaryPage(): JSX.Element {
           </article>
         </section>
 
-        <section className="life-summary__provenance" aria-label="Governing statutory provenance">
-          <h2>Active Governing Statutes ({overview.governingLawIds.length})</h2>
+        <section className="life-summary__provenance" aria-label="Laws referenced">
+          <h2>Laws Used ({overview.governingLawIds.length})</h2>
           <p>
-            Click any statute chip for a quick inline rule popup, or Ctrl+Click / middle-click to open its dedicated full statutory reference page.
+            Click any law for a quick summary, or Ctrl+Click to open its full page.
           </p>
           <div className="life-summary__law-chips">
             {overview.governingLawIds.map((lawId) => {
