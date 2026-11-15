@@ -78,9 +78,9 @@ export default function VisaCalculator(): JSX.Element {
               <VisaResidenceIcon size={15} />
               <span>Residence &amp; Skilled Immigration</span>
             </span>
-            <h1>EU Blue Card, Settlement &amp; Opportunity Card</h1>
+            <h1>EU Blue Card &amp; Visa Planner</h1>
             <p className="domain-calc-header__subtitle">
-              Evaluate AufenthG salary thresholds, permanent residency acceleration (§ 18c), age-45 gates, and Chancenkarte points (§ 20a).
+              Check Blue Card salary limits, permanent residency timelines, and Opportunity Card points.
             </p>
           </div>
           <DomainCalculatorHeaderActions
@@ -162,8 +162,8 @@ export default function VisaCalculator(): JSX.Element {
                   value={s.occupationRoute}
                   onChange={(event) => updateVisaField("occupationRoute", toVisaOccupationRoute(event.currentTarget.value))}
                 >
-                  <option value={VisaOccupationRoute.Standard}>Standard Academic Profession (50% BBG)</option>
-                  <option value={VisaOccupationRoute.ShortageOrGraduate}>Bottleneck / IT Specialist / Recent Graduate (45.3% BBG)</option>
+                  <option value={VisaOccupationRoute.Standard}>Standard Profession</option>
+                  <option value={VisaOccupationRoute.ShortageOrGraduate}>Shortage Occupation / IT / Recent Graduate</option>
                 </select>
               </label>
 
@@ -178,9 +178,9 @@ export default function VisaCalculator(): JSX.Element {
                   onChange={(event) => updateVisaField("germanLevel", toGermanLanguageLevel(event.currentTarget.value))}
                 >
                   <option value={GermanLanguageLevel.NoneOrBasic}>Below A1 / Basic</option>
-                  <option value={GermanLanguageLevel.A1}>A1 Elementary (27 mo PR / +1 Chancenkarte pt)</option>
-                  <option value={GermanLanguageLevel.A2}>A2 Pre-Intermediate (+2 Chancenkarte pts)</option>
-                  <option value={GermanLanguageLevel.B1Plus}>B1 or higher (21 mo PR / +3 Chancenkarte pts)</option>
+                  <option value={GermanLanguageLevel.A1}>A1 Elementary</option>
+                  <option value={GermanLanguageLevel.A2}>A2 Pre-Intermediate</option>
+                  <option value={GermanLanguageLevel.B1Plus}>B1 or higher</option>
                 </select>
               </label>
 
@@ -278,8 +278,8 @@ export default function VisaCalculator(): JSX.Element {
                 </strong>
                 <p>
                   {blueCard.age45PensionProofRequired && !blueCard.age45SalarySatisfied
-                    ? "Age 45+ rule triggered (§ 18 Abs. 2 Nr. 5): provide adequate pension asset proof alongside salary offer."
-                    : `Fast-track settlement permit available after ${blueCard.requiredSettlementMonths} months of qualified employment (§ 18c AufenthG).`}
+                    ? "Age 45+ rule: adequate pension proof is required unless your salary meets the threshold."
+                    : `Permanent residency available after ${blueCard.requiredSettlementMonths} months of qualified employment.`}
                 </p>
               </div>
               <LawRefLink lawId={LawId.AufenthG_18g} label="Read § 18g AufenthG" />
@@ -328,7 +328,7 @@ export default function VisaCalculator(): JSX.Element {
             </div>
 
             <section className="domain-calc-card" aria-labelledby="chancenkarte-breakdown-heading">
-              <h2 id="chancenkarte-breakdown-heading">Opportunity Card (§ 20a AufenthG) Point &amp; Blocked-Account Breakdown</h2>
+              <h2 id="chancenkarte-breakdown-heading">Opportunity Card Points &amp; Savings</h2>
               <table className="domain-calc-table">
                 <thead>
                   <tr>
