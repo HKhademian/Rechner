@@ -197,4 +197,49 @@ describe("design system and layout architecture compliance", () => {
 
     assert.deepEqual(violations, [], `Unauthorized color literals: ${violations.join("\n")}`);
   });
+
+  it("guards persisted island signals with useHydrated in ThemeToggle, ParameterObserverSection, and GiroCodeGenerator", () => {
+    const guardedComponents: readonly string[] = [
+      "src/components/ThemeToggle.tsx",
+      "src/components/parameters/ParameterObserverSection.tsx",
+      "src/apps/girocode/GiroCodeGenerator.tsx",
+    ];
+
+    for (const filePath of guardedComponents) {
+      const sourceText = readFileSync(filePath, "utf8");
+      const sourceFile = ts.createSourceFile(
+        filePath,
+        sourceText,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+
+      let importsUseHydrated = false;
+      let callsUseHydrated = false;
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+          if (node.moduleSpecifier.text === "#/components/ui/useHydrated.ts") {
+            const named = node.importClause?.namedBindings;
+            if (named && ts.isNamedImports(named)) {
+              importsUseHydrated = named.elements.some((el) => el.name.text === "useHydrated");
+            }
+          }
+        }
+        if (
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          node.expression.text === "useHydrated"
+        ) {
+          callsUseHydrated = true;
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      assert.equal(importsUseHydrated, true, `${filePath} must import useHydrated`);
+      assert.equal(callsUseHydrated, true, `${filePath} must call useHydrated()`);
+    }
+  });
 });

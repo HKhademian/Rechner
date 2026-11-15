@@ -27,6 +27,10 @@ import {
   setThemePalette,
 } from "#store/themeStore";
 import {
+  useHydrated,
+} from "#/components/ui/useHydrated.ts";
+import {
+  DEFAULT_APPEARANCE_SETTINGS,
   THEME_PALETTE_OPTIONS,
 } from "#utils/themeConfig";
 
@@ -63,8 +67,9 @@ function renderModeIcon(mode: ThemeMode): JSX.Element {
  * institutional color palettes synced across all Rechner routes.
  */
 export default function ThemeToggle(): JSX.Element {
-  const mode = activeThemeMode.value;
-  const palette = activeThemePalette.value;
+  const hydrated = useHydrated();
+  const mode = hydrated ? activeThemeMode.value : DEFAULT_APPEARANCE_SETTINGS.mode;
+  const palette = hydrated ? activeThemePalette.value : DEFAULT_APPEARANCE_SETTINGS.palette;
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {

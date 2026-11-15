@@ -29,6 +29,12 @@ import {
   ParameterMutability,
 } from "#engine/parameters/types";
 import {
+  useHydrated,
+} from "#/components/ui/useHydrated.ts";
+import {
+  DEFAULT_TAX_YEAR,
+} from "#engine/tax/taxRules";
+import {
   toFullCalendarYear,
 } from "#engine/types";
 import {
@@ -91,16 +97,17 @@ export default function ParameterObserverSection({
     setParameterProjectionProfile(projectionProfile);
   }, [projectionProfile]);
 
-  const activeYear = activeParameterYear.value;
+  const hydrated = useHydrated();
+  const activeYear = hydrated ? activeParameterYear.value : DEFAULT_TAX_YEAR;
   const availableYears = getAvailableParameterYears();
   const totalCount = allResolvedParameters.value.length;
   const filteredParams = filteredResolvedParameters.value;
-  const overrideCount = activeParameterOverrideCount.value;
+  const overrideCount = hydrated ? activeParameterOverrideCount.value : 0;
   const activeDomain = activeParameterDomainFilter.value;
   const activeMutability = activeParameterMutabilityFilter.value;
   const searchQuery = activeParameterSearchQuery.value;
-  const activeFlag = lastParameterModificationFlag.value;
-  const flagHistory = parameterModificationFlagHistory.value;
+  const activeFlag = hydrated ? lastParameterModificationFlag.value : null;
+  const flagHistory = hydrated ? parameterModificationFlagHistory.value : [];
   const currentProfileId = activeProjectionProfileId.value;
   const projectionView = projectedParameterView.value;
   const showingAllDomains = showProjectedOutDomains.value;
