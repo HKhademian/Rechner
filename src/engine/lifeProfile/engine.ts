@@ -8,6 +8,8 @@ import {
   evaluateAnnualIncomeTaxInContext,
   evaluateChildAllowanceFavorabilityInContext,
   evaluateJointSplittingTaxInContext,
+  evaluateParentalBenefitEntitlementInContext,
+  evaluateSiblingBonusInContext,
 } from "#engine/formulas/context/statutoryEvaluators";
 import {
   type CompanyCarBenefitFormulaResult,
@@ -26,17 +28,31 @@ import {
 } from "#engine/formulas/types";
 import {
   type LawId,
+  LawId as Laws,
 } from "#engine/laws/types";
 import {
   type UnifiedLifeProfile,
 } from "#engine/lifeProfile/types";
 import {
+  createTaxRulesFromContext,
+} from "#engine/parameters/contextAdapters";
+import {
   type ParameterId,
   ParameterId as Params,
 } from "#engine/parameters/types";
 import {
+  toAgeYears,
+} from "#engine/tax/taxRules";
+import {
+  computeGrossToNetBreakdown,
+} from "#engine/tax/wageTax";
+import {
   type EuroAmount,
+  type NetSalary,
+  TaxClass,
   toEuroAmount,
+  toGrossSalary,
+  toNetSalary,
   toPercentageRate,
 } from "#engine/types";
 
@@ -48,9 +64,32 @@ export interface UnifiedHouseholdTaxSummary {
   readonly isKinderfreibetragFavorable: boolean;
 }
 
+export interface UnifiedHouseholdPayrollSummary {
+  readonly appliedTaxClassLabel: string;
+  readonly primaryMonthlyNetEur: NetSalary;
+  readonly partnerMonthlyNetEur: NetSalary;
+  readonly householdMonthlyNetEur: NetSalary;
+  readonly householdAnnualNetEur: EuroAmount;
+  readonly householdMonthlyWageTaxEur: EuroAmount;
+  readonly householdMonthlySocialSecurityEur: EuroAmount;
+  readonly householdMonthlyCashWithKindergeldEur: EuroAmount;
+}
+
+export interface UnifiedParentalLeaveSummary {
+  readonly primaryBasiselterngeldMonthlyEur: EuroAmount;
+  readonly primaryElterngeldPlusMonthlyEur: EuroAmount;
+  readonly partnerBasiselterngeldMonthlyEur: EuroAmount;
+  readonly partnerElterngeldPlusMonthlyEur: EuroAmount;
+  readonly siblingBonusBasisMonthlyEur: EuroAmount;
+  readonly coupleIncomeCapEur: EuroAmount;
+  readonly incomeCapExceeded: boolean;
+}
+
 export interface UnifiedLifeEvaluationResult {
   readonly profile: UnifiedLifeProfile;
   readonly householdTax: UnifiedHouseholdTaxSummary;
+  readonly householdPayroll: UnifiedHouseholdPayrollSummary;
+  readonly parentalLeave: UnifiedParentalLeaveSummary;
   readonly visa: BlueCardEligibilityFormulaResult;
   readonly companyCar: CompanyCarBenefitFormulaResult;
   readonly solarEnergy: SolarEnergyYieldFormulaResult;
@@ -100,6 +139,7 @@ export function evaluateUnifiedLifeProfile(
     Params.Tax_WorkExpenseAllowance,
     Params.Tax_SpecialExpenseAllowance,
     Params.Tax_ChildBenefitMonthly,
+    Params.Benefit_CoupleTaxableIncomeMaximum,
   ]);
 
   let estimatedAnnualIncomeTaxEur: EuroAmount;
@@ -159,6 +199,112 @@ export function evaluateUnifiedLifeProfile(
   const annualKindergeldEur = toEuroAmount(
     roundToCent(profile.dependentChildrenCount * monthlyChildBenefit * 12),
   );
+
+  // Statutory Employee Payroll (Net Pay) projection
+  const taxRules = createTaxRulesFromContext(context, profile.planningYear);
+  const primaryTaxClass = profile.hasPartner
+    ? TaxClass.IV
+    : profile.dependentChildrenCount > 0
+      ? TaxClass.II
+      : TaxClass.I;
+  const payrollOptions = {
+    isParent: profile.dependentChildrenCount > 0,
+    ageAtYearStart: toAgeYears(profile.applicantAgeYears),
+  };
+  const primaryPayroll = computeGrossToNetBreakdown(
+    toGrossSalary(profile.primaryAnnualGrossEur / 12),
+    primaryTaxClass,
+    profile.dependentChildrenCount,
+    undefined,
+    undefined,
+    taxRules,
+    payrollOptions,
+  );
+  const partnerPayroll = profile.hasPartner
+    ? computeGrossToNetBreakdown(
+      toGrossSalary(profile.partnerAnnualGrossEur / 12),
+      TaxClass.IV,
+      profile.dependentChildrenCount,
+      undefined,
+      undefined,
+      taxRules,
+      payrollOptions,
+    )
+    : undefined;
+
+  const primaryMonthlyNetEur = primaryPayroll.monthlyNetTakeHome;
+  const partnerMonthlyNetEur = partnerPayroll
+    ? partnerPayroll.monthlyNetTakeHome
+    : toNetSalary(0);
+  const householdMonthlyNetEur = toNetSalary(
+    roundToCent(primaryMonthlyNetEur + partnerMonthlyNetEur),
+  );
+  const householdAnnualNetEur = toEuroAmount(roundToCent(householdMonthlyNetEur * 12));
+  const householdMonthlyWageTaxEur = toEuroAmount(
+    roundToCent(
+      primaryPayroll.totalTaxWithholding +
+      (partnerPayroll?.totalTaxWithholding ?? 0),
+    ),
+  );
+  const householdMonthlySocialSecurityEur = toEuroAmount(
+    roundToCent(
+      primaryPayroll.totalSocialSecurity +
+      (partnerPayroll?.totalSocialSecurity ?? 0),
+    ),
+  );
+  const householdMonthlyCashWithKindergeldEur = toEuroAmount(
+    roundToCent(householdMonthlyNetEur + annualKindergeldEur / 12),
+  );
+  lawIdSet.add(Laws.EStG_38b);
+  lawIdSet.add(Laws.EStG_66);
+
+  // Statutory Parental Leave (Elterngeld) projection from Net Pay baseline
+  const coupleIncomeCapEur = context.getParameterEuroAmount(
+    Params.Benefit_CoupleTaxableIncomeMaximum,
+  );
+  const incomeCapExceeded = estimatedTaxableIncomeZvEEur > coupleIncomeCapEur;
+  const primaryElterngeldEval = evaluateParentalBenefitEntitlementInContext(
+    {
+      preBirthMonthlyNet: primaryMonthlyNetEur,
+      partTimeMonthlyNet: toNetSalary(0),
+    },
+    context,
+  );
+  for (const id of primaryElterngeldEval.audit.governingLawIds) {
+    lawIdSet.add(id);
+  }
+  for (const id of primaryElterngeldEval.audit.consumedParameterIds) {
+    parameterIdSet.add(id);
+  }
+  const partnerElterngeldEval = profile.hasPartner
+    ? evaluateParentalBenefitEntitlementInContext(
+      {
+        preBirthMonthlyNet: partnerMonthlyNetEur,
+        partTimeMonthlyNet: toNetSalary(0),
+      },
+      context,
+    )
+    : undefined;
+
+  let siblingBonusBasisMonthlyEur = toEuroAmount(0);
+  if (profile.dependentChildrenCount >= 1) {
+    const siblingEval = evaluateSiblingBonusInContext(
+      {
+        baseElterngeldPlus: primaryElterngeldEval.value.elterngeldPlus,
+        siblingAgesInMonths: [24],
+      },
+      context,
+    );
+    siblingBonusBasisMonthlyEur = toEuroAmount(
+      roundToCent(siblingEval.value.siblingBonusAmount * 2),
+    );
+    for (const id of siblingEval.audit.governingLawIds) {
+      lawIdSet.add(id);
+    }
+    for (const id of siblingEval.audit.consumedParameterIds) {
+      parameterIdSet.add(id);
+    }
+  }
 
   const visaEval = evaluateBlueCardEligibilityInContext(
     {
@@ -254,6 +400,37 @@ export function evaluateUnifiedLifeProfile(
       estimatedAnnualIncomeTaxEur,
       annualKindergeldEur,
       isKinderfreibetragFavorable,
+    }),
+    householdPayroll: Object.freeze({
+      appliedTaxClassLabel: profile.hasPartner
+        ? "Class IV / IV"
+        : primaryTaxClass === TaxClass.II
+          ? "Class II"
+          : "Class I",
+      primaryMonthlyNetEur,
+      partnerMonthlyNetEur,
+      householdMonthlyNetEur,
+      householdAnnualNetEur,
+      householdMonthlyWageTaxEur,
+      householdMonthlySocialSecurityEur,
+      householdMonthlyCashWithKindergeldEur,
+    }),
+    parentalLeave: Object.freeze({
+      primaryBasiselterngeldMonthlyEur: incomeCapExceeded
+        ? toEuroAmount(0)
+        : toEuroAmount(roundToCent(primaryElterngeldEval.value.basiselterngeld)),
+      primaryElterngeldPlusMonthlyEur: incomeCapExceeded
+        ? toEuroAmount(0)
+        : toEuroAmount(roundToCent(primaryElterngeldEval.value.elterngeldPlus)),
+      partnerBasiselterngeldMonthlyEur: incomeCapExceeded || !partnerElterngeldEval
+        ? toEuroAmount(0)
+        : toEuroAmount(roundToCent(partnerElterngeldEval.value.basiselterngeld)),
+      partnerElterngeldPlusMonthlyEur: incomeCapExceeded || !partnerElterngeldEval
+        ? toEuroAmount(0)
+        : toEuroAmount(roundToCent(partnerElterngeldEval.value.elterngeldPlus)),
+      siblingBonusBasisMonthlyEur: incomeCapExceeded ? toEuroAmount(0) : siblingBonusBasisMonthlyEur,
+      coupleIncomeCapEur,
+      incomeCapExceeded,
     }),
     visa: visaEval.value,
     companyCar: carEval.value,
