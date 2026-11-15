@@ -60,6 +60,12 @@
   align-items: center;
 }
 
+.girocode-qr-frame__stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .girocode-qr-trigger {
   display: block;
   width: 100%;

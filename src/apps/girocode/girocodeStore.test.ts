@@ -3,12 +3,17 @@ import {
   execFileSync,
 } from "node:child_process";
 import {
+  readFileSync,
+} from "node:fs";
+import {
   afterEach,
   beforeEach,
   describe,
   it,
 } from "node:test";
+import ts from "typescript";
 import {
+  EMPTY_GIROCODE_BUILD,
   EMPTY_GIROCODE_DRAFT,
   SAMPLE_GIROCODE_DRAFT,
   clearGiroCodeDraft,
@@ -33,6 +38,8 @@ describe("girocodeStore", () => {
 
   it("initializes empty draft, updates fields reactively, and builds valid EPC QR payloads", () => {
     assert.deepEqual(giroCodeDraft.value, EMPTY_GIROCODE_DRAFT);
+    assert.equal(EMPTY_GIROCODE_BUILD.isReady, false);
+    assert.equal(EMPTY_GIROCODE_BUILD.payload, null);
     assert.equal(giroCodeBuild.value.isReady, false);
 
     updateGiroCodeField("beneficiaryName", "Musterfirma GmbH");
@@ -104,5 +111,111 @@ describe("girocodeStore", () => {
         cwd: process.cwd(),
         stdio: "pipe",
       }));
+  });
+
+  it("gates persisted draft hydration with useHydrated and isolates QR stage from frame footer", () => {
+    const filePath = "src/apps/girocode/GiroCodeGenerator.tsx";
+    const sourceText = readFileSync(filePath, "utf8");
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      sourceText,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+
+    let importsUseHydrated = false;
+    let callsUseHydrated = false;
+    let gatesDraftWithHydrated = false;
+    let gatesBuildWithHydrated = false;
+    let hasCanvasEffectWithHydratedDep = false;
+    let frameElement: ts.JsxElement | undefined;
+
+    const getClassName = (attrs: ts.JsxAttributes): string | undefined => {
+      for (const prop of attrs.properties) {
+        if (
+          ts.isJsxAttribute(prop) &&
+          ts.isIdentifier(prop.name) &&
+          prop.name.text === "className" &&
+          prop.initializer &&
+          ts.isStringLiteral(prop.initializer)
+        ) {
+          return prop.initializer.text;
+        }
+      }
+      return undefined;
+    };
+
+    const visit = (node: ts.Node): void => {
+      if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+        if (node.moduleSpecifier.text === "#/components/ui/useHydrated.ts") {
+          const named = node.importClause?.namedBindings;
+          if (named && ts.isNamedImports(named)) {
+            importsUseHydrated = named.elements.some((el) => el.name.text === "useHydrated");
+          }
+        }
+      }
+
+      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+        if (node.expression.text === "useHydrated") {
+          callsUseHydrated = true;
+        }
+        if (node.expression.text === "useEffect" && node.arguments.length === 2) {
+          const callbackText = node.arguments[0].getText(sourceFile);
+          const depsArg = node.arguments[1];
+          if (
+            callbackText.includes("drawQrToCanvas(canvas") &&
+            ts.isArrayLiteralExpression(depsArg) &&
+            depsArg.elements.some((el) => ts.isIdentifier(el) && el.text === "hydrated")
+          ) {
+            hasCanvasEffectWithHydratedDep = true;
+          }
+        }
+      }
+
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+        if (
+          node.name.text === "draft" &&
+          ts.isConditionalExpression(node.initializer) &&
+          node.initializer.condition.getText(sourceFile) === "hydrated" &&
+          node.initializer.whenTrue.getText(sourceFile) === "giroCodeDraft.value" &&
+          node.initializer.whenFalse.getText(sourceFile) === "EMPTY_GIROCODE_DRAFT"
+        ) {
+          gatesDraftWithHydrated = true;
+        }
+        if (
+          node.name.text === "build" &&
+          ts.isConditionalExpression(node.initializer) &&
+          node.initializer.condition.getText(sourceFile) === "hydrated" &&
+          node.initializer.whenTrue.getText(sourceFile) === "giroCodeBuild.value" &&
+          node.initializer.whenFalse.getText(sourceFile) === "EMPTY_GIROCODE_BUILD"
+        ) {
+          gatesBuildWithHydrated = true;
+        }
+      }
+
+      if (ts.isJsxElement(node) && getClassName(node.openingElement.attributes) === "girocode-qr-frame") {
+        frameElement = node;
+      }
+
+      ts.forEachChild(node, visit);
+    };
+
+    visit(sourceFile);
+
+    assert.equal(importsUseHydrated, true, "GiroCodeGenerator.tsx must import useHydrated");
+    assert.equal(callsUseHydrated, true, "GiroCodeGenerator.tsx must call useHydrated()");
+    assert.equal(gatesDraftWithHydrated, true, "draft must gate giroCodeDraft.value with hydrated ? ... : EMPTY_GIROCODE_DRAFT");
+    assert.equal(gatesBuildWithHydrated, true, "build must gate giroCodeBuild.value with hydrated ? ... : EMPTY_GIROCODE_BUILD");
+    assert.equal(hasCanvasEffectWithHydratedDep, true, "QR canvas useEffect must include hydrated dependency");
+
+    assert.ok(frameElement, "GiroCodeGenerator.tsx must render .girocode-qr-frame");
+    const frameChildren = frameElement.children
+      .filter((child): child is ts.JsxElement => ts.isJsxElement(child))
+      .map((child) => getClassName(child.openingElement.attributes));
+    assert.deepEqual(frameChildren, [
+      "girocode-qr-frame__stage",
+      "girocode-qr-frame__footer",
+    ]);
   });
 });

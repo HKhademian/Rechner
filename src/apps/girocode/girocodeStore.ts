@@ -35,6 +35,8 @@ export const EMPTY_GIROCODE_DRAFT: GiroCodeDraft = {
   charsetMode: CharsetModes.Utf8,
 };
 
+export const EMPTY_GIROCODE_BUILD: GiroCodeBuildResult = buildEpcPayload(EMPTY_GIROCODE_DRAFT);
+
 export const SAMPLE_GIROCODE_DRAFT: GiroCodeDraft = {
   beneficiaryName: "Musterfirma GmbH",
   iban: "DE89 3704 0044 0532 0130 00",

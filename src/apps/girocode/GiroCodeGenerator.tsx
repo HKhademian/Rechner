@@ -12,12 +12,17 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  EMPTY_GIROCODE_BUILD,
+  EMPTY_GIROCODE_DRAFT,
   clearGiroCodeDraft,
   giroCodeBuild,
   giroCodeDraft,
   loadSampleGiroCodeDraft,
   updateGiroCodeField,
 } from "#/apps/girocode/girocodeStore.ts";
+import {
+  useHydrated,
+} from "#/components/ui/useHydrated.ts";
 import {
   ClearFormIcon,
   ClipboardCopyIcon,
@@ -95,8 +100,9 @@ function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: n
 }
 
 export default function GiroCodeGenerator(): JSX.Element {
-  const draft = giroCodeDraft.value;
-  const build = giroCodeBuild.value;
+  const hydrated = useHydrated();
+  const draft = hydrated ? giroCodeDraft.value : EMPTY_GIROCODE_DRAFT;
+  const build = hydrated ? giroCodeBuild.value : EMPTY_GIROCODE_BUILD;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const zoomCanvasRef = useRef<HTMLCanvasElement>(null);
   const qrTriggerRef = useRef<HTMLButtonElement>(null);
@@ -128,6 +134,9 @@ export default function GiroCodeGenerator(): JSX.Element {
   }, []);
 
   useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
     const canvas = canvasRef.current;
     if (!canvas || !build.payload) {
       setQrModuleCount(null);
@@ -142,10 +151,10 @@ export default function GiroCodeGenerator(): JSX.Element {
       const message = error instanceof Error ? error.message : "Could not render QR code.";
       notify(message, true);
     }
-  }, [build.payload]);
+  }, [hydrated, build.payload]);
 
   useEffect(() => {
-    if (!isQrZoomOpen) {
+    if (!hydrated || !isQrZoomOpen) {
       return;
     }
     if (!build.isReady || !build.payload) {
@@ -162,7 +171,7 @@ export default function GiroCodeGenerator(): JSX.Element {
         notify(message, true);
       }
     }
-  }, [isQrZoomOpen, build.isReady, build.payload]);
+  }, [hydrated, isQrZoomOpen, build.isReady, build.payload]);
 
   const copyText = async (text: string, label: string): Promise<void> => {
     const trimmed = text.trim();
@@ -316,6 +325,7 @@ export default function GiroCodeGenerator(): JSX.Element {
             <button
               type="button"
               className="ui-btn"
+              disabled={!hydrated}
               onClick={() => {
                 loadSampleGiroCodeDraft();
                 notify("Loaded sample");
@@ -327,6 +337,7 @@ export default function GiroCodeGenerator(): JSX.Element {
             <button
               type="button"
               className="ui-btn"
+              disabled={!hydrated}
               onClick={() => {
                 clearGiroCodeDraft();
                 notify("Cleared");
@@ -350,25 +361,27 @@ export default function GiroCodeGenerator(): JSX.Element {
           </div>
 
           <div className="girocode-qr-frame">
-            {build.isReady && build.payload
-              ? (
-                <button
-                  ref={qrTriggerRef}
-                  type="button"
-                  className="girocode-qr-trigger"
-                  onClick={() => setIsQrZoomOpen(true)}
-                  aria-label="Enlarge QR code for scanning"
-                  title="Click to enlarge"
-                >
-                  <canvas ref={canvasRef} className="girocode-qr-canvas" />
-                </button>
-              )
-              : (
-                <div className="girocode-qr-placeholder" role="status">
-                  <PaymentQrCodeIcon size={36} />
-                  <span>Enter recipient and valid IBAN.</span>
-                </div>
-              )}
+            <div className="girocode-qr-frame__stage">
+              {build.isReady && build.payload
+                ? (
+                  <button
+                    ref={qrTriggerRef}
+                    type="button"
+                    className="girocode-qr-trigger"
+                    onClick={() => setIsQrZoomOpen(true)}
+                    aria-label="Enlarge QR code for scanning"
+                    title="Click to enlarge"
+                  >
+                    <canvas ref={canvasRef} className="girocode-qr-canvas" />
+                  </button>
+                )
+                : (
+                  <div className="girocode-qr-placeholder" role="status">
+                    <PaymentQrCodeIcon size={36} />
+                    <span>Enter recipient and valid IBAN.</span>
+                  </div>
+                )}
+            </div>
             <div className="girocode-qr-frame__footer">
               <span>Scan in banking app</span>
               <span className="girocode-qr-frame__amount">
