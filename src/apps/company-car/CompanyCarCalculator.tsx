@@ -66,9 +66,9 @@ export default function CompanyCarCalculator(): JSX.Element {
               <CompanyCarMobilityIcon size={15} />
               <span>Dienstwagen &amp; Electric Mobility</span>
             </span>
-            <h1>Company Car &amp; EV Benefit-in-Kind Calculator</h1>
+            <h1>Company Car Calculator</h1>
             <p className="domain-calc-header__subtitle">
-              Evaluate taxable benefit-in-kind (geldwerter Vorteil) across 1.0% ICE, 0.5% PHEV, and 0.25% EV tiers plus 0.03% flat vs 0.002% per-trip commuting rules.
+              Compare tax on electric, hybrid, and fuel company cars, including your commute.
             </p>
           </div>
           <DomainCalculatorHeaderActions
@@ -115,9 +115,9 @@ export default function CompanyCarCalculator(): JSX.Element {
                   value={s.powertrain}
                   onChange={(event) => updateCompanyCarField("powertrain", toVehiclePowertrain(event.currentTarget.value))}
                 >
-                  <option value={VehiclePowertrain.PureElectricEv}>Pure Battery Electric (0.25% under EV cap / 0.50% above)</option>
+                  <option value={VehiclePowertrain.PureElectricEv}>Electric (0.25% under cap, 0.50% above)</option>
                   <option value={VehiclePowertrain.PlugInHybrid}>Plug-in Hybrid (0.50%)</option>
-                  <option value={VehiclePowertrain.CombustionIce}>Combustion ICE (1.00%)</option>
+                  <option value={VehiclePowertrain.CombustionIce}>Petrol / Diesel (1.00%)</option>
                 </select>
               </label>
 
@@ -163,14 +163,14 @@ export default function CompanyCarCalculator(): JSX.Element {
               </div>
 
               <label className="domain-calc-field" for="car-commute-method">
-                <span>Commute Valuation Method (Tätigkeitsstätte)</span>
+                <span>Commute tax method</span>
                 <select
                   id="car-commute-method"
                   value={s.commuteValuationMethod}
                   onChange={(event) => updateCompanyCarField("commuteValuationMethod", toCommuteValuationMethod(event.currentTarget.value))}
                 >
-                  <option value={CommuteValuationMethod.MonthlyFlat003}>0.03% per km Monthly Flat-Rate (Standard)</option>
-                  <option value={CommuteValuationMethod.PerTrip0002}>0.002% per km × Actual Office Trips (Hybrid/Home-Office)</option>
+                  <option value={CommuteValuationMethod.MonthlyFlat003}>Monthly flat rate (0.03% per km)</option>
+                  <option value={CommuteValuationMethod.PerTrip0002}>Per office trip (0.002% per km)</option>
                 </select>
               </label>
 
@@ -201,14 +201,14 @@ export default function CompanyCarCalculator(): JSX.Element {
                   {evCapExceeded ? <StatutoryLimitationWarningIcon size={18} /> : <EligibilityConfirmedIcon size={18} />}
                   <span>
                     {evCapExceeded
-                      ? "EV Gross List Price exceeds quarter-basis cap — valued at 0.50% half-basis (§ 6 Abs. 1 Nr. 4 Nr. 3)"
-                      : `Effective Assessment Basis: ${Math.round(evalResult.effectiveBasisMultiplier * 100)}% (${formatEur(evalResult.effectiveAssessmentBasis)} BLP basis)`}
+                      ? "List price exceeds EV cap — taxed at 0.50% instead of 0.25%"
+                      : `Taxable basis: ${Math.round(evalResult.effectiveBasisMultiplier * 100)}% of list price (${formatEur(evalResult.effectiveAssessmentBasis)})`}
                   </span>
                 </strong>
                 <p>
                   {evalResult.perTripCommuteSavesMoney
-                    ? `With ${s.commuteOfficeDaysPerMonth} office days/mo (< 15), 0.002% actual-trip tracking saves ${formatEur(evalResult.monthlyCommuteFlat003Alternative - evalResult.monthlyCommutePerTripAlternative)}/mo taxable benefit.`
-                    : "Standard 0.03% flat commute method is optimal or equal at this office attendance frequency."}
+                    ? `With ${s.commuteOfficeDaysPerMonth} office days/mo (< 15), per-trip tracking saves ${formatEur(evalResult.monthlyCommuteFlat003Alternative - evalResult.monthlyCommutePerTripAlternative)}/mo taxable benefit.`
+                    : "The monthly flat commute rate is equal or lower at this office attendance."}
                 </p>
               </div>
               <LawRefLink lawId={LawId.EStG_6_1_4} label="Read § 6 Abs. 1 Nr. 4" />
@@ -252,7 +252,7 @@ export default function CompanyCarCalculator(): JSX.Element {
             </div>
 
             <section className="domain-calc-card" aria-labelledby="car-breakdown-heading">
-              <h2 id="car-breakdown-heading">Monthly Benefit-in-Kind &amp; Commute Comparison</h2>
+              <h2 id="car-breakdown-heading">Monthly Tax &amp; Commute Comparison</h2>
               <table className="domain-calc-table">
                 <thead>
                   <tr>

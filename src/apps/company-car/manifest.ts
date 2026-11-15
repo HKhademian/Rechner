@@ -6,13 +6,13 @@ import {
 
 export const companyCarApp = {
   id: AppId.CompanyCar,
-  title: "Company Car & EV Benefit Calculator",
-  description: "Compare 1.0% ICE, 0.5% PHEV, and 0.25% EV benefit-in-kind valuations alongside 0.03% flat vs 0.002% per-trip commuting rules.",
+  title: "Company Car Calculator",
+  description: "Compare tax on electric, hybrid, and fuel company cars, including your commute.",
   category: CalculatorCategory.Money,
   features: [
-    "0.25% EV vs 0.5% PHEV vs 1% ICE (§ 6 EStG)",
-    "BLP €100k / €70k EV cap check",
-    "0.03% flat vs 0.002% commute comparison",
+    "Electric, hybrid, and fuel car tax",
+    "Electric vehicle price-cap check",
+    "Monthly vs. per-trip commute tax",
   ],
   keywords: [
     "Company Car",
