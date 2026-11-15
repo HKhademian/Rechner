@@ -1,4 +1,5 @@
 import {
+  batch,
   computed,
   signal,
 } from "@preact/signals";
@@ -30,6 +31,7 @@ import {
 } from "#store/lifeProfileStore";
 import {
   activeStatutoryContext,
+  setParameterYear,
 } from "#store/parameterStore";
 
 export interface CompanyCarCalculatorState {
@@ -145,17 +147,20 @@ export function updateCompanyCarField<K extends keyof CompanyCarCalculatorState>
 
 export function syncCompanyCarFromLifeProfile(): void {
   const lp = unifiedLifeProfile.value;
-  const next = parseCompanyCarState({
-    ...companyCarState.value,
-    grossListPriceEur: lp.companyCarListPriceEur,
-    powertrain: lp.companyCarPowertrain,
-    commuteOneWayKm: lp.commuteOneWayKm,
-    commuteOfficeDaysPerMonth: lp.commuteOfficeDaysPerMonth,
-    commuteValuationMethod: lp.commuteValuationMethod,
-    combinedMarginalTaxAndSocialRate: lp.assumedMarginalTaxAndSocialRate,
+  batch(() => {
+    setParameterYear(lp.planningYear);
+    const next = parseCompanyCarState({
+      ...companyCarState.value,
+      grossListPriceEur: lp.companyCarListPriceEur,
+      powertrain: lp.companyCarPowertrain,
+      commuteOneWayKm: lp.commuteOneWayKm,
+      commuteOfficeDaysPerMonth: lp.commuteOfficeDaysPerMonth,
+      commuteValuationMethod: lp.commuteValuationMethod,
+      combinedMarginalTaxAndSocialRate: lp.assumedMarginalTaxAndSocialRate,
+    });
+    companyCarState.value = next;
+    companyCarStorage.setItem(COMPANY_CAR_STORAGE_KEY, JSON.stringify(next));
   });
-  companyCarState.value = next;
-  companyCarStorage.setItem(COMPANY_CAR_STORAGE_KEY, JSON.stringify(next));
 }
 
 export function resetCompanyCarCalculator(): void {

@@ -13,13 +13,15 @@ import {
   syncCompanyCarFromLifeProfile,
   updateCompanyCarField,
 } from "#/apps/company-car/companyCarStore.ts";
+import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   CompanyCarMobilityIcon,
   EligibilityConfirmedIcon,
-  ResetDefaultsIcon,
   StatutoryLimitationWarningIcon,
-  SyncProfileActionIcon,
 } from "#components/Icons";
+import {
+  unifiedLifeProfile,
+} from "#store/lifeProfileStore";
 import LawRefLink from "#components/laws/LawRefLink";
 import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
@@ -69,24 +71,16 @@ export default function CompanyCarCalculator(): JSX.Element {
               Evaluate taxable benefit-in-kind (geldwerter Vorteil) across 1.0% ICE, 0.5% PHEV, and 0.25% EV tiers plus 0.03% flat vs 0.002% per-trip commuting rules.
             </p>
           </div>
-          <div className="domain-calc-header__actions">
-            <button
-              type="button"
-              className="domain-calc-btn domain-calc-btn--primary"
-              onClick={syncCompanyCarFromLifeProfile}
-            >
-              <SyncProfileActionIcon size={15} />
-              <span>Sync from Shared Life Profile</span>
-            </button>
-            <button
-              type="button"
-              className="domain-calc-btn"
-              onClick={resetCompanyCarCalculator}
-            >
-              <ResetDefaultsIcon size={14} />
-              <span>Reset Defaults</span>
-            </button>
-          </div>
+          <DomainCalculatorHeaderActions
+            onSyncLifeProfile={syncCompanyCarFromLifeProfile}
+            onResetDefaults={resetCompanyCarCalculator}
+            syncTooltip="Populate planning year, vehicle gross list price, powertrain, commute distance, office days, and marginal rate from the Unified Life Profile"
+            inactiveInLifeProfileMessage={
+              unifiedLifeProfile.value.hasCompanyCar
+                ? undefined
+                : "Company car is currently toggled off in Life Profile"
+            }
+          />
         </header>
 
         <div className="domain-calc-layout">
