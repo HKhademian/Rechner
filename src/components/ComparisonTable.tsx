@@ -26,61 +26,100 @@ import {
   inputModeForPeriod,
 } from "#engine/tax/calculatorGrossPeriod";
 import {
+  LiveColumnImport,
   SavedColumnTools,
 } from "#components/CalculatorColumnTools";
 import "./ComparisonTable.css";
 import ScenarioParameterInput from "#components/ScenarioParameterInput";
 import {
-  TaxableIncomeSummary,
   CalculationSummary,
   PayrollEvidenceSummary,
+  TaxableIncomeSummary,
 } from "#components/CalculatorResultSummaries";
 import GrossPeriodPreview from "#components/GrossPeriodPreview";
+import {
+  LiveChoiceInput,
+  LiveNumberInput,
+  LiveToggleInput,
+} from "#components/LiveCalculatorInputs";
+import LiveCalculatorSettings from "#components/LiveCalculatorSettings";
 import germanStates from "../data/germanStates.json" with { type: "json" };
 import {
-  TaxClass,
+  DEFAULT_TAX_YEAR,
+} from "#engine/tax/taxRules";
+import {
+  toSalaryPaymentCount,
+} from "#engine/tax/employmentPeriod";
+import {
   SalaryPeriod,
+  TaxClass,
+  toChildrenCount,
+  toMonthDuration,
 } from "#engine/types";
 import type {
   JSX,
 } from "preact";
 import {
-  useState,
   useEffect,
+  useState,
 } from "preact/hooks";
 import {
-  type HouseholdScenarioData,
+  useSignal,
+} from "@preact/signals";
+import {
+  parseVerifiedTaxYear,
+  selectedTaxYear,
+  verifiedTaxYears,
+} from "#store/taxConfigStore";
+import {
   type CalculatorInputs,
+  type HouseholdScenarioData,
   type PersonDeductions,
-  getCurrentInputs,
   CALCULATOR_PARTNER_SHORTCUT,
-  calculatorViewPeriod,
-  calculatorInvalidInputs,
-  updateDraftGrossInput,
-  hasPartner,
-  deductions,
-  savedScenarios,
-  calculateScenarioData,
   activeScenarioId,
-  scenarioDraft,
+  assessmentMode,
+  calculateScenarioData,
+  calculatorInvalidInputs,
+  calculatorViewPeriod,
+  cancelEdit,
+  children,
+  deductions,
+  deleteScenario,
+  editScenario,
+  getCurrentInputs,
+  hasChurchTax,
+  hasPartner,
   hasUnsavedScenarioChanges,
+  loadScenario,
+  partnerHasChurchTax,
+  partnerSalariesPerYear,
+  partnerState,
+  partnerTaxBracket,
+  partnerWorkingMonths,
+  pendingScenarioDeletion,
+  relationshipStatus,
+  salariesPerYear,
+  saveDraft,
   saveScenario,
   saveWhatIfScenario,
-  deleteScenario,
-  pendingScenarioDeletion,
+  savedScenarios,
+  scenarioDraft,
+  setLiveRelationshipStatus,
+  setLiveTaxBracket,
+  state,
+  taxBracket,
   undoScenarioDeletion,
-  loadScenario,
-  editScenario,
-  saveDraft,
+  updateDraftGrossInput,
+  updateLiveGrossInput,
   updateScenarioMetaData,
-  cancelEdit,
+  workingMonths,
 } from "#store/calculatorStore";
 import {
+  DismissIcon,
+  EditSettingsIcon,
   ExportDataIcon,
   RemoveItemIcon,
   SaveConfigurationIcon,
-  EditSettingsIcon,
-  DismissIcon,
 } from "#components/Icons";
 
 export default function ComparisonTable(): JSX.Element | null {
@@ -97,10 +136,13 @@ export default function ComparisonTable(): JSX.Element | null {
 }
 
 /**
- * Side-by-side comparison of saved scenarios against the live calculation above.
- * Keeps live input entry isolated in `NetPayWorkspace` while retaining full saved-draft editing.
+ * Single unified Net Pay workspace and side-by-side scenario comparison.
+ * Column 1 keeps Live inputs directly editable beside saved scenarios, with
+ * headline net pay and delta on top, inputs immediately below, and detailed breakdowns last.
  */
 export function ComparisonTableContent(): JSX.Element {
+  const showSavedComparison = useSignal(false);
+  const liveImportRevision = useSignal(0);
   const invalidInputs = calculatorInvalidInputs;
   const trackValidity = (id: string) => (valid: boolean): void => {
     const previous = invalidInputs.peek();
@@ -130,79 +172,44 @@ export function ComparisonTableContent(): JSX.Element {
     saveScenario(`Scenario ${count}`, "", deductions.peek());
   };
 
-  const renderWhatIfActions = (showSnapshotButton = true): JSX.Element => (
-    <div className="comparison-whatif-bar" role="group" aria-label="Quick what-if scenario comparators">
-      <span className="comparison-whatif-bar__label">What if:</span>
-      {whatIfScenarios.map((spec) => (
-        <button
-          key={spec.kind}
-          type="button"
-          className="ui-btn"
-          disabled={hasInvalidLive}
-          title={hasInvalidLive ? "Check inputs before adding a comparison" : spec.description}
-          onClick={() => {
-            saveWhatIfScenario(spec.kind);
-          }}
-        >
-          {spec.buttonLabel}
-        </button>
-      ))}
-      {showSnapshotButton && (
-        <button
-          type="button"
-          className="ui-btn ui-btn--tint"
-          disabled={hasInvalidLive}
-          onClick={handleAddScenario}
-        >
-          <SaveConfigurationIcon size={16} />
-          <span>Save snapshot</span>
-        </button>
-      )}
-      <span className="comparison-whatif-bar__spacer" aria-hidden="true" />
-      <a href={calculatorPath(AppId.ParentalLeave)} className="ui-btn">
-        Plan parental leave forecast
-      </a>
-    </div>
-  );
-
-  if (savedScenarios.value.length === 0) {
-    return (
-      <section className="comparison-shell" aria-label="Saved scenario comparison">
-        {pendingScenarioDeletion.value && (
-          <div className="comparison-empty" role="status">
-            <p>Deleted “{pendingScenarioDeletion.value.scenario.title}”.</p>
-            <button type="button" className="ui-btn" onClick={undoScenarioDeletion}>
-              Undo deletion
-            </button>
-          </div>
-        )}
-        <div className="ui-card comparison-empty-card">
-          <div>
-            <h2 className="ui-card__title">What-If &amp; Saved Scenario Comparison</h2>
-            <p className="ui-card__subtitle">
-              Test a raise, partner tax splitting, or an additional child using the same payroll &amp; tax math, or save a snapshot to edit side by side.
-            </p>
-          </div>
-          {renderWhatIfActions(true)}
-        </div>
-      </section>
-    );
-  }
-
-  const renderDetailRow = (label: string, render: (data: HouseholdScenarioData, id: string, live: boolean, context: string) => JSX.Element): JSX.Element => (
+  const renderDetailRow = (
+    label: string,
+    render: (
+      data: HouseholdScenarioData,
+      id: string,
+      live: boolean,
+      context: string,
+    ) => JSX.Element,
+  ): JSX.Element => (
     <tr className="comparison-detail-row">
       <th scope="row">{label}</th>
-      <td className="comparison-detail-cell" aria-label={`Live calculation: ${label}`}>
+      <td
+        key={`live-details-${liveImportRevision.value}`}
+        className="comparison-detail-cell"
+        aria-label={`Live calculation: ${label}`}
+      >
         {hasInvalidLive && <p role="status">Last valid inputs</p>}
-        {render(deductions.value, "live-comparison", true, "Live Calculation")}
+        {render(deductions.value, "live", true, "Live Calculation")}
       </td>
       {savedScenarios.value.map((scenario) => {
         const data = activeScenarioId.value === scenario.id && scenarioDraft.value
-          ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs);
-        return <td key={scenario.id} className="comparison-detail-cell" aria-label={`${scenario.title}: ${label}`}>
-          {hasInvalidSaved(scenario.id) && <p role="status">Last valid inputs</p>}
-          {render(data, `scenario-${scenario.id}`, false, `${scenario.title}${activeScenarioId.value === scenario.id ? " (draft)" : ""}`)}
-        </td>;
+          ? scenarioDraft.value.data
+          : calculateScenarioData(scenario.inputs);
+        return (
+          <td
+            key={scenario.id}
+            className="comparison-detail-cell"
+            aria-label={`${scenario.title}: ${label}`}
+          >
+            {hasInvalidSaved(scenario.id) && <p role="status">Last valid inputs</p>}
+            {render(
+              data,
+              `scenario-${scenario.id}`,
+              false,
+              `${scenario.title}${activeScenarioId.value === scenario.id ? " (draft)" : ""}`,
+            )}
+          </td>
+        );
       })}
     </tr>
   );
@@ -219,6 +226,7 @@ export function ComparisonTableContent(): JSX.Element {
   const showAssessmentRow = showsAssessmentRowFor(liveInputs) || savedScenarios.value.some((scenario) =>
     showsAssessmentRowFor(activeScenarioId.value === scenario.id && scenarioDraft.value ? scenarioDraft.value.inputs : scenario.inputs));
 
+  // Keep section labels in their own sticky cell instead of scrolling a spanning label away.
   const renderSectionRow = (label: string, major = false): JSX.Element => (
     <tr className="comparison-section-row">
       <th scope="row" className={major ? "comparison-section-heading" : "comparison-subsection-heading"}>{label}</th>
@@ -226,6 +234,23 @@ export function ComparisonTableContent(): JSX.Element {
     </tr>
   );
 
+  const validateLive = <K extends keyof CalculatorInputs>(field: K) => (value: CalculatorInputs[K]): void => {
+    calculateScenarioData({
+      ...getCurrentInputs(),
+      [field]: value,
+    });
+  };
+  const verifiedTaxYearOptions = verifiedTaxYears.map((year) => {
+    const parsed = parseVerifiedTaxYear(year);
+    return {
+      value: parsed,
+      label: String(parsed),
+    };
+  });
+  const savedTaxYearOptions = verifiedTaxYearOptions.map((option) => ({
+    value: String(option.value),
+    label: option.label,
+  }));
   const liveStateOptions = germanStates.map((value) => ({
     value,
     label: value,
@@ -272,6 +297,170 @@ export function ComparisonTableContent(): JSX.Element {
   ];
   const salaryUnit = (mode: CalculatorInputs["inputMode"]): string => mode === "monthly" ? "€ / month" : "€ / year";
 
+  const liveControls = {
+    taxYear: (
+      <LiveChoiceInput
+        label="Tax year"
+        value={selectedTaxYear}
+        options={verifiedTaxYearOptions}
+        beforeChange={validateLive("taxYear")}
+        onValidityChange={trackValidity("live-taxYear")}
+      />
+    ),
+    grossIncome: (
+      <CalculatorGrossInput
+        inputs={liveInputs}
+        field={CalculatorGrossField.Primary}
+        id="live-gross"
+        descriptionId="live-gross-preview"
+        label="Live Calculation: Gross income"
+        onChange={(amount) => updateLiveGrossInput(CalculatorGrossField.Primary, amount)}
+        onValidityChange={trackValidity("live-grossIncome")}
+      />
+    ),
+    taxBracket: (
+      <LiveChoiceInput
+        onValidityChange={trackValidity("live-taxBracket")}
+        label="Tax class"
+        value={taxBracket}
+        options={liveClassOptions}
+        beforeChange={setLiveTaxBracket}
+      />
+    ),
+    state: (
+      <LiveChoiceInput
+        onValidityChange={trackValidity("live-state")}
+        label="Federal state"
+        value={state}
+        options={liveStateOptions}
+        beforeChange={validateLive("state")}
+      />
+    ),
+    hasChurchTax: (
+      <LiveToggleInput
+        onValidityChange={trackValidity("live-hasChurchTax")}
+        label="Church tax"
+        value={hasChurchTax}
+        beforeChange={validateLive("hasChurchTax")}
+      />
+    ),
+    children: (
+      <LiveNumberInput
+        onValidityChange={trackValidity("live-children")}
+        id="live-children"
+        label="Children"
+        value={children}
+        construct={toChildrenCount}
+        beforeChange={validateLive("children")}
+      />
+    ),
+    workingMonths: (
+      <LiveNumberInput
+        onValidityChange={trackValidity("live-workingMonths")}
+        id="live-months"
+        label="Working months"
+        value={workingMonths}
+        construct={toMonthDuration}
+        beforeChange={validateLive("workingMonths")}
+      />
+    ),
+    salariesPerYear: (
+      <LiveNumberInput
+        onValidityChange={trackValidity("live-salariesPerYear")}
+        id="live-salaries"
+        label="Salaries per year"
+        value={salariesPerYear}
+        construct={toSalaryPaymentCount}
+        beforeChange={validateLive("salariesPerYear")}
+        step={0.5}
+      />
+    ),
+    relationshipStatus: (
+      <LiveChoiceInput
+        onValidityChange={trackValidity("live-relationshipStatus")}
+        label="Relationship"
+        value={relationshipStatus}
+        options={relationshipOptions}
+        beforeChange={setLiveRelationshipStatus}
+      />
+    ),
+    hasPartner: (
+      <LiveToggleInput
+        onValidityChange={trackValidity("live-hasPartner")}
+        label="Partner 2 payroll"
+        value={hasPartner}
+        beforeChange={validateLive("hasPartner")}
+      />
+    ),
+    assessmentMode: (
+      <LiveChoiceInput
+        label="Assessment"
+        value={assessmentMode}
+        options={assessmentOptions}
+        beforeChange={validateLive("assessmentMode")}
+        onValidityChange={trackValidity("live-assessmentMode")}
+      />
+    ),
+    partnerGrossIncome: (
+      <CalculatorGrossInput
+        inputs={liveInputs}
+        field={CalculatorGrossField.Partner}
+        id="live-partner-gross"
+        descriptionId="live-partner-gross-preview"
+        label="Live Calculation: Partner gross income"
+        onChange={(amount) => updateLiveGrossInput(CalculatorGrossField.Partner, amount)}
+        onValidityChange={trackValidity("live-partnerGrossIncome")}
+      />
+    ),
+    partnerTaxBracket: (
+      <LiveChoiceInput
+        onValidityChange={trackValidity("live-partnerTaxBracket")}
+        label="Partner tax class"
+        value={partnerTaxBracket}
+        options={liveClassOptions}
+        beforeChange={validateLive("partnerTaxBracket")}
+      />
+    ),
+    partnerState: (
+      <LiveChoiceInput
+        onValidityChange={trackValidity("live-partnerState")}
+        label="Partner federal state"
+        value={partnerState}
+        options={liveStateOptions}
+        beforeChange={validateLive("partnerState")}
+      />
+    ),
+    partnerHasChurchTax: (
+      <LiveToggleInput
+        onValidityChange={trackValidity("live-partnerHasChurchTax")}
+        label="Partner church tax"
+        value={partnerHasChurchTax}
+        beforeChange={validateLive("partnerHasChurchTax")}
+      />
+    ),
+    partnerWorkingMonths: (
+      <LiveNumberInput
+        onValidityChange={trackValidity("live-partnerWorkingMonths")}
+        id="live-partner-months"
+        label="Partner working months"
+        value={partnerWorkingMonths}
+        construct={toMonthDuration}
+        beforeChange={validateLive("partnerWorkingMonths")}
+      />
+    ),
+    partnerSalariesPerYear: (
+      <LiveNumberInput
+        onValidityChange={trackValidity("live-partnerSalariesPerYear")}
+        id="live-partner-salaries"
+        label="Partner salaries per year"
+        value={partnerSalariesPerYear}
+        construct={toSalaryPaymentCount}
+        beforeChange={validateLive("partnerSalariesPerYear")}
+        step={0.5}
+      />
+    ),
+  };
+
   const getMetric = (
     snapshot: HouseholdScenarioData,
     personKey: "person1" | "partner",
@@ -298,6 +487,160 @@ export function ComparisonTableContent(): JSX.Element {
       ? getMetric(snapshot, "partner", metricKey)
       : 0;
     return p1Monthly + p2Monthly;
+  };
+
+  const getHouseholdPaycheck = (snapshot: HouseholdScenarioData): number => {
+    const p1Net = snapshot.person1.netIncome / (snapshot.person1.salariesReceived || 12);
+    const p2Net = snapshot.partner ? snapshot.partner.netIncome / (snapshot.partner.salariesReceived || 12) : 0;
+    return p1Net + p2Net;
+  };
+
+  const renderHeadlineNetRow = (): JSX.Element => {
+    const rowLabel = hasAnyPartner
+      ? (isMonthly ? "Household Net / mo" : "Household Net / yr")
+      : (isMonthly ? "Net Take-Home / mo" : "Net Take-Home / yr");
+    const liveSnapshot = deductions.value;
+    const liveNet = getHouseholdMetric(liveSnapshot, "netIncome");
+    const cells: JSX.Element[] = [
+      <td
+        key="current"
+        class="tabular-nums"
+        style={{
+          padding: "12px",
+          borderBottom: "1px solid var(--border-subtle)",
+          background: "var(--color-gain-bg)",
+          color: "var(--color-gain)",
+          minWidth: "220px",
+        }}
+      >
+        <strong className="comparison-hero-value">{format(liveNet)}</strong>
+        <span className="comparison-hero-sub">
+          {isMonthly
+            ? `Per paycheck: ${format(getHouseholdPaycheck(liveSnapshot))} · Annual: ${format(liveSnapshot.household.netIncome)}`
+            : `Avg monthly: ${format(liveSnapshot.household.netIncome / 12)} / mo`}
+        </span>
+      </td>,
+    ];
+
+    savedScenarios.value.forEach((scenario) => {
+      const isActive = activeScenarioId.value === scenario.id;
+      const dataToUse = isActive && scenarioDraft.value
+        ? scenarioDraft.value.data
+        : calculateScenarioData(scenario.inputs);
+      const savedNet = getHouseholdMetric(dataToUse, "netIncome");
+
+      cells.push(
+        <td
+          key={scenario.id}
+          class="tabular-nums"
+          style={{
+            padding: "12px",
+            borderBottom: "1px solid var(--border-subtle)",
+            minWidth: "220px",
+            color: isActive ? "var(--color-primary)" : "var(--text-primary)",
+            background: isActive ? "var(--color-primary-bg)" : "transparent",
+          }}
+        >
+          <strong className="comparison-hero-value">{format(savedNet)}</strong>
+          <span className="comparison-hero-sub">
+            {isMonthly
+              ? `Per paycheck: ${format(getHouseholdPaycheck(dataToUse))} · Annual: ${format(dataToUse.household.netIncome)}`
+              : `Avg monthly: ${format(dataToUse.household.netIncome / 12)} / mo`}
+          </span>
+        </td>,
+      );
+    });
+
+    return (
+      <tr class="comparison-row">
+        <td
+          style={{
+            padding: "12px",
+            fontWeight: 700,
+            borderBottom: "1px solid var(--border-subtle)",
+            color: "var(--text-primary)",
+            position: "sticky",
+            left: 0,
+            background: "var(--bg-surface)",
+            zIndex: 10,
+            borderRight: "2px solid var(--border-subtle)",
+          }}
+        >
+          {rowLabel}
+        </td>
+        {cells}
+      </tr>
+    );
+  };
+
+  const renderHouseholdNetDeltaRow = (): JSX.Element => {
+    const liveNet = getHouseholdMetric(deductions.value, "netIncome");
+    const cells: JSX.Element[] = [
+      <td
+        key="current"
+        style={{
+          padding: "8px 12px",
+          borderBottom: "1px solid var(--border-subtle)",
+          background: "var(--color-gain-bg)",
+          minWidth: "220px",
+        }}
+      >
+        <span className="badge-neutral">Live baseline</span>
+      </td>,
+    ];
+
+    savedScenarios.value.forEach((scenario) => {
+      const isActive = activeScenarioId.value === scenario.id;
+      const dataToUse = isActive && scenarioDraft.value
+        ? scenarioDraft.value.data
+        : calculateScenarioData(scenario.inputs);
+      const savedNet = getHouseholdMetric(dataToUse, "netIncome");
+      const diff = savedNet - liveNet;
+      const roundedDiff = Math.round(diff);
+      const deltaClass = roundedDiff > 0
+        ? "comparison-delta--gain"
+        : roundedDiff < 0
+          ? "comparison-delta--loss"
+          : "comparison-delta--neutral";
+
+      cells.push(
+        <td
+          key={scenario.id}
+          class="tabular-nums"
+          style={{
+            padding: "8px 12px",
+            borderBottom: "1px solid var(--border-subtle)",
+            minWidth: "220px",
+            background: isActive ? "var(--color-primary-bg)" : "transparent",
+          }}
+        >
+          <span className={deltaClass}>
+            {formatSignedEurDelta(diff, liveNet > 0 ? liveNet : undefined)}
+          </span>
+        </td>,
+      );
+    });
+
+    return (
+      <tr class="comparison-row">
+        <td
+          style={{
+            padding: "8px 12px",
+            fontWeight: 600,
+            borderBottom: "1px solid var(--border-subtle)",
+            color: "var(--text-secondary)",
+            position: "sticky",
+            left: 0,
+            background: "var(--bg-surface)",
+            zIndex: 10,
+            borderRight: "2px solid var(--border-subtle)",
+          }}
+        >
+          Net Difference vs Live
+        </td>
+        {cells}
+      </tr>
+    );
   };
 
   const renderPerPaycheckRow = (
@@ -605,36 +948,30 @@ export function ComparisonTableContent(): JSX.Element {
     );
   };
 
-  const renderScenarioComparisonRow = (
+  const renderInputRow = <K extends keyof typeof liveControls>(
     label: string,
-    fieldKey: keyof CalculatorInputs,
+    fieldKey: K,
     options: { value: string;
       label: string }[] | null,
     formatFn: (inputs: Partial<CalculatorInputs>) => string | number,
   ): JSX.Element => {
     const partnerField = fieldKey.startsWith("partner");
-    const optionalField = partnerField || fieldKey === "assessmentMode";
     const accessibleLabel = partnerField ? `Partner ${label.toLowerCase()}` : label;
+    const isIncludedFor = (candidate: Partial<CalculatorInputs>): boolean => {
+      if (fieldKey === "assessmentMode") {
+        return showsAssessmentRowFor(candidate);
+      }
+      if (partnerField) {
+        return Boolean(candidate.hasPartner);
+      }
+      return true;
+    };
 
-    const liveGrossField = fieldKey === CalculatorGrossField.Primary
-      ? CalculatorGrossField.Primary
-      : fieldKey === CalculatorGrossField.Partner
-        ? CalculatorGrossField.Partner
-        : undefined;
-    const liveIncluded = !optionalField || liveInputs.hasPartner;
-    const liveGrossValue = liveGrossField && liveIncluded
-      ? grossInputForPeriod(liveInputs, liveGrossField, calculatorViewPeriod.value)
-      : undefined;
-    const liveDisplay = !liveIncluded
-      ? "—"
-      : liveGrossField
-        ? liveGrossValue === undefined ? "Unset" : format(liveGrossValue)
-        : formatFn(liveInputs);
-
+    const liveIncluded = isIncludedFor(liveInputs);
+    const liveIsGross = fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome";
     const cells: JSX.Element[] = [
       <td
-        key="current"
-        class="tabular-nums"
+        key={`current-${liveImportRevision.value}`}
         style={{
           padding: "8px 12px",
           borderBottom: "1px solid var(--border-subtle)",
@@ -643,7 +980,20 @@ export function ComparisonTableContent(): JSX.Element {
           fontSize: "0.9rem",
         }}
       >
-        {liveDisplay}
+        {liveIncluded ? (
+          <>
+            {liveControls[fieldKey]}
+            {liveIsGross && <div><small>{salaryUnit(viewMode)}</small></div>}
+            {liveIsGross && (
+              <GrossPeriodPreview
+                id={fieldKey === "grossIncome" ? "live-gross-preview" : "live-partner-gross-preview"}
+                inputMode={viewMode}
+                annualGross={fieldKey === "grossIncome" ? deductions.value.person1.grossYearly : deductions.value.partner?.grossYearly}
+                lastValid={hasInvalidLive}
+              />
+            )}
+          </>
+        ) : "—"}
       </td>,
     ];
 
@@ -653,38 +1003,52 @@ export function ComparisonTableContent(): JSX.Element {
         isActive && scenarioDraft.value
           ? scenarioDraft.value.inputs
           : scenario.inputs || {};
-      const rawVal = fieldKey === "assessmentMode" ? inputsToUse.assessmentMode ?? TaxAssessment.Unspecified : inputsToUse[fieldKey];
-      const grossField = fieldKey === CalculatorGrossField.Primary ? CalculatorGrossField.Primary : fieldKey === CalculatorGrossField.Partner ? CalculatorGrossField.Partner : undefined;
-      const included = !optionalField || inputsToUse.hasPartner;
-      const grossValue = grossField && included ? grossInputForPeriod(inputsToUse, grossField, calculatorViewPeriod.value) : undefined;
+      const rawVal = fieldKey === "assessmentMode"
+        ? inputsToUse.assessmentMode ?? TaxAssessment.Unspecified
+        : fieldKey === "taxYear"
+          ? inputsToUse.taxYear ?? DEFAULT_TAX_YEAR
+          : inputsToUse[fieldKey];
+      const grossField = fieldKey === CalculatorGrossField.Primary
+        ? CalculatorGrossField.Primary
+        : fieldKey === CalculatorGrossField.Partner
+          ? CalculatorGrossField.Partner
+          : undefined;
+      const included = isIncludedFor(inputsToUse);
+      const grossValue = grossField && included
+        ? grossInputForPeriod(inputsToUse, grossField, calculatorViewPeriod.value)
+        : undefined;
       const savedVal = grossField
         ? !included ? "Not included" : grossValue === undefined ? "Unset" : formatEurCents(grossValue)
         : formatFn(inputsToUse);
-      const grossData = fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome"
+      const grossData = liveIsGross
         ? isActive && scenarioDraft.value ? scenarioDraft.value.data : calculateScenarioData(scenario.inputs)
         : undefined;
 
       let content: JSX.Element | string | number = included ? savedVal : "—";
       if (isActive && included) {
         content = grossField
-          ? <CalculatorGrossInput
-            inputs={inputsToUse}
-            field={grossField}
-            id={`scenario-${scenario.id}-${fieldKey}`}
-            descriptionId={`scenario-${scenario.id}-${fieldKey}-preview`}
-            label={`${scenario.title}: ${accessibleLabel}`}
-            onChange={(amount) => updateDraftGrossInput(grossField, amount)}
-            onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)}
-          />
-          : <ScenarioParameterInput
-            id={`scenario-${scenario.id}-${fieldKey}`}
-            label={accessibleLabel}
-            scope={`Saved scenario ${scenario.title}`}
-            field={fieldKey}
-            onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)}
-            value={rawVal}
-            options={options}
-          />;
+          ? (
+            <CalculatorGrossInput
+              inputs={inputsToUse}
+              field={grossField}
+              id={`scenario-${scenario.id}-${fieldKey}`}
+              descriptionId={`scenario-${scenario.id}-${fieldKey}-preview`}
+              label={`${scenario.title}: ${accessibleLabel}`}
+              onChange={(amount) => updateDraftGrossInput(grossField, amount)}
+              onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)}
+            />
+          )
+          : (
+            <ScenarioParameterInput
+              id={`scenario-${scenario.id}-${fieldKey}`}
+              label={accessibleLabel}
+              scope={`Saved scenario ${scenario.title}`}
+              field={fieldKey}
+              onValidityChange={trackValidity(`scenario-${scenario.id}-${fieldKey}`)}
+              value={rawVal}
+              options={options}
+            />
+          );
       }
 
       cells.push(
@@ -699,7 +1063,7 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {content}
-          {included && (fieldKey === "grossIncome" || fieldKey === "partnerGrossIncome") && <div><small>{salaryUnit(viewMode)}</small></div>}
+          {included && liveIsGross && <div><small>{salaryUnit(viewMode)}</small></div>}
           {included && grossData && (
             <GrossPeriodPreview
               id={`scenario-${scenario.id}-${fieldKey}-preview`}
@@ -755,104 +1119,62 @@ export function ComparisonTableContent(): JSX.Element {
     );
   };
 
-  const taxBracketOptions = [
-    { value: "1",
-      label: "Class I" },
-    { value: "2",
-      label: "Class II" },
-    { value: "3",
-      label: "Class III" },
-    { value: "4",
-      label: "Class IV" },
-    { value: "5",
-      label: "Class V" },
-    { value: "6",
-      label: "Class VI" },
-  ];
-
-  const renderHouseholdNetDeltaRow = (): JSX.Element => {
-    const liveNet = getHouseholdMetric(deductions.value, "netIncome");
-    const cells: JSX.Element[] = [
-      <td
-        key="current"
-        style={{
-          padding: "8px 12px",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          minWidth: "220px",
-        }}
-      >
-        <span className="badge-neutral">Live baseline</span>
-      </td>,
-    ];
-
-    savedScenarios.value.forEach((scenario) => {
-      const isActive = activeScenarioId.value === scenario.id;
-      const dataToUse = isActive && scenarioDraft.value
-        ? scenarioDraft.value.data
-        : calculateScenarioData(scenario.inputs);
-      const savedNet = getHouseholdMetric(dataToUse, "netIncome");
-      const diff = savedNet - liveNet;
-      const roundedDiff = Math.round(diff);
-      const deltaClass = roundedDiff > 0
-        ? "comparison-delta--gain"
-        : roundedDiff < 0
-          ? "comparison-delta--loss"
-          : "comparison-delta--neutral";
-
-      cells.push(
-        <td
-          key={scenario.id}
-          class="tabular-nums"
-          style={{
-            padding: "8px 12px",
-            borderBottom: "1px solid var(--border-subtle)",
-            minWidth: "220px",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
-        >
-          <span className={deltaClass}>
-            {formatSignedEurDelta(diff, liveNet > 0 ? liveNet : undefined)}
-          </span>
-        </td>,
-      );
-    });
-
-    return (
-      <tr class="comparison-row">
-        <td
-          style={{
-            padding: "8px 12px",
-            fontWeight: 600,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-secondary)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-          }}
-        >
-          Net Difference vs Live
-        </td>
-        {cells}
-      </tr>
-    );
-  };
-
   return (
-    <section className="comparison-shell" aria-label="Saved scenario comparison">
-      <div className="comparison-section-bar">
-        <div>
-          <h2 className="ui-card__title">What-If &amp; Saved Scenario Comparison</h2>
-          <p className="ui-card__subtitle">Compare your active estimate on the left against quick life-event scenarios or custom snapshots.</p>
+    <section
+      className={`comparison-shell${showSavedComparison.value ? " comparison-show-saved" : ""}`}
+      aria-label="Net pay workspace and scenario comparison"
+    >
+      <div className="comparison-toolbar">
+        <div className="comparison-whatif-bar" role="group" aria-label="Quick what-if scenario comparators">
+          <span className="comparison-whatif-bar__label">What if:</span>
+          {whatIfScenarios.map((spec) => (
+            <button
+              key={spec.kind}
+              type="button"
+              className="ui-btn ui-btn--sm"
+              disabled={hasInvalidLive}
+              title={hasInvalidLive ? "Check inputs before adding a comparison" : spec.description}
+              onClick={() => {
+                saveWhatIfScenario(spec.kind);
+              }}
+            >
+              {spec.buttonLabel}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="ui-btn ui-btn--sm ui-btn--tint"
+            disabled={hasInvalidLive}
+            onClick={handleAddScenario}
+          >
+            <SaveConfigurationIcon size={15} />
+            <span>+ Save snapshot</span>
+          </button>
+          <span className="comparison-whatif-bar__spacer" aria-hidden="true" />
+          {savedScenarios.value.length > 0 && (
+            <span className="badge-neutral">{savedScenarios.value.length} saved</span>
+          )}
+          <a href={calculatorPath(AppId.ParentalLeave)} className="ui-btn ui-btn--sm">
+            Parental leave forecast
+          </a>
         </div>
-        <span className="badge-neutral">{savedScenarios.value.length} saved</span>
       </div>
 
-      <div style={{ marginBottom: "14px" }}>
-        {renderWhatIfActions(true)}
-      </div>
+      {savedScenarios.value.length > 0 && (
+        <button
+          type="button"
+          className="comparison-mobile-toggle"
+          aria-expanded={showSavedComparison.value}
+          aria-controls="household-comparison-table"
+          onClick={() => {
+            showSavedComparison.value = !showSavedComparison.value;
+          }}
+        >
+          {showSavedComparison.value
+            ? "Show live inputs only"
+            : `Compare saved scenarios (${savedScenarios.value.length})`}
+        </button>
+      )}
 
       {pendingScenarioDeletion.value && (
         <div className="comparison-empty" role="status">
@@ -894,7 +1216,7 @@ export function ComparisonTableContent(): JSX.Element {
                     borderRight: "2px solid var(--border-subtle)",
                   }}
                 >
-                  Metric
+                  Field
                 </th>
 
                 <th
@@ -910,16 +1232,31 @@ export function ComparisonTableContent(): JSX.Element {
                 >
                   <div className="comparison-live-header">
                     <span>Live</span>
-                    <button
-                      type="button"
-                      onClick={handleAddScenario}
-                      disabled={hasInvalidLive}
-                      aria-label="Save scenario"
-                      className="comparison-save-scenario"
-                      title={hasInvalidLive ? "Check inputs before saving" : "Save current estimate"}
-                    >
-                      <SaveConfigurationIcon />
-                    </button>
+                    <div className="comparison-live-header__actions">
+                      <button
+                        type="button"
+                        onClick={handleAddScenario}
+                        disabled={hasInvalidLive}
+                        aria-label="Save scenario"
+                        className="comparison-save-scenario"
+                        title={hasInvalidLive ? "Check inputs before saving" : "Save current estimate"}
+                      >
+                        <SaveConfigurationIcon />
+                      </button>
+                      <LiveColumnImport
+                        onImported={() => {
+                          liveImportRevision.value += 1;
+                          invalidInputs.value = Object.fromEntries(
+                            Object.entries(invalidInputs.peek()).filter(([id]) => !id.startsWith("live-")),
+                          );
+                        }}
+                      />
+                    </div>
+                    {hasInvalidLive && (
+                      <small className="comparison-live-header__status" role="status">
+                        Showing last valid inputs
+                      </small>
+                    )}
                   </div>
                 </th>
 
@@ -1137,12 +1474,104 @@ export function ComparisonTableContent(): JSX.Element {
               </tr>
             </thead>
 
-            <tbody aria-label="Results and summaries">
-              {renderSectionRow("Results", true)}
+            <tbody aria-label="Headline net pay summary">
+              {renderHeadlineNetRow()}
+              {renderHouseholdNetDeltaRow()}
+            </tbody>
+
+            <tbody aria-label="Inputs">
+              {renderSectionRow("Inputs", true)}
+              {renderInputRow(
+                "Tax Year",
+                "taxYear",
+                savedTaxYearOptions,
+                (s) => String(s.taxYear ?? DEFAULT_TAX_YEAR),
+              )}
+
+              {renderSectionRow("Person 1")}
+              {renderInputRow("Gross Income", "grossIncome", null, (s) => format(s.grossIncome || 0))}
+              {renderInputRow(
+                "Tax Class",
+                "taxBracket",
+                liveClassOptions,
+                (s) => liveClassOptions.find((option) => option.value === String(s.taxBracket))?.label ?? "-",
+              )}
+              {renderInputRow("Federal State", "state", liveStateOptions, (s) => s.state || "-")}
+              {renderInputRow("Church Tax", "hasChurchTax", null, (s) => (s.hasChurchTax ? "Yes" : "No"))}
+              {renderInputRow("Children", "children", null, (s) => s.children ?? "-")}
+              {renderInputRow("Working Months", "workingMonths", null, (s) => (s.workingMonths ? `${s.workingMonths} Months` : "-"))}
+              {renderInputRow("Salaries / Year", "salariesPerYear", null, (s) => (s.salariesPerYear ? `${s.salariesPerYear} Salaries` : "-"))}
+
+              {renderSectionRow("Household & Partner")}
+              {renderInputRow(
+                "Relationship",
+                "relationshipStatus",
+                relationshipOptions,
+                (inputs) => relationshipOptions.find((option) => option.value === (inputs.relationshipStatus ?? HouseholdRelationship.Unspecified))?.label ?? "Select…",
+              )}
+              {renderInputRow("Partner 2 payroll", "hasPartner", null, (inputs) => (inputs.hasPartner ? "Yes" : "No"))}
+              {showAssessmentRow && renderInputRow(
+                "Assessment",
+                "assessmentMode",
+                assessmentOptions,
+                (inputs) => assessmentOptions.find((option) => option.value === (inputs.assessmentMode ?? TaxAssessment.Unspecified))?.label ?? "Auto",
+              )}
+              {hasAnyPartner && ([
+                {
+                  field: "partnerGrossIncome",
+                  label: "Partner Gross Income",
+                  options: null,
+                },
+                {
+                  field: "partnerTaxBracket",
+                  label: "Partner Tax Class",
+                  options: liveClassOptions,
+                },
+                {
+                  field: "partnerState",
+                  label: "Partner Federal State",
+                  options: liveStateOptions,
+                },
+                {
+                  field: "partnerHasChurchTax",
+                  label: "Partner Church Tax",
+                  options: null,
+                },
+                {
+                  field: "partnerWorkingMonths",
+                  label: "Partner Working Months",
+                  options: null,
+                },
+                {
+                  field: "partnerSalariesPerYear",
+                  label: "Partner Salaries / Year",
+                  options: null,
+                },
+              ] as const).map(({ field, label, options }) => renderInputRow(label, field, options, (inputs) => {
+                const value = inputs[field];
+                return value === undefined
+                  ? "—"
+                  : typeof value === "boolean"
+                    ? value ? "Yes" : "No"
+                    : options?.find((option) => option.value === String(value))?.label ?? value;
+              }))}
+
+              {renderDetailRow("Payroll settings", (data, _id, live) => live
+                ? <LiveCalculatorSettings onValidityChange={(id, valid) => trackValidity(`live-${id}`)(valid)} />
+                : (
+                  <LawRefLink
+                    lawId={LawId.BMF_PAP}
+                    groupId={LawGroupId.EStG_PayrollWithholding}
+                    label={`${data.annualTaxableIncome.rules.calendarYear} payroll profile`}
+                  />
+                ))}
+            </tbody>
+
+            <tbody aria-label="Detailed deduction breakdown">
+              {renderSectionRow("Detailed Breakdown", true)}
               {renderSectionRow("Household")}
               {renderRow(isMonthly ? "Household Avg Gross" : "Household Gross", null, "grossYearly", true, true)}
               {renderRow(isMonthly ? "Household Avg Net" : "Household Net Pay", null, "netIncome", true, true)}
-              {renderHouseholdNetDeltaRow()}
               {renderAverageMonthlyNetRow(null, true)}
               {renderPerPaycheckRow(null, true)}
               {renderRow(isMonthly ? "Household Avg Deductions" : "Total Deductions", null, "totalDeductions", true)}
@@ -1169,70 +1598,6 @@ export function ComparisonTableContent(): JSX.Element {
               {renderDetailRow("Annual taxable income", (data, id, _live, context) => <TaxableIncomeSummary data={data} id={id} context={context} />)}
               {renderDetailRow("Breakdown", (data, id, _live, context) => <CalculationSummary data={data} id={id} context={context} />)}
               {renderDetailRow("Payroll sources", (data, id, _live, context) => <PayrollEvidenceSummary data={data} id={id} context={context} />)}
-            </tbody>
-
-            <tbody aria-label="Inputs summary and saved scenario editing">
-              {renderSectionRow("Assumptions & Inputs", true)}
-              {renderSectionRow("Person 1")}
-              {renderScenarioComparisonRow("Gross Income", "grossIncome", null, (s) => format(s.grossIncome || 0))}
-              {renderScenarioComparisonRow("Federal State", "state", liveStateOptions, (s) => s.state || "-")}
-              {renderScenarioComparisonRow("Tax Class", "taxBracket", taxBracketOptions, (s) => (s.taxBracket ? `Class ${s.taxBracket}` : "-"))}
-              {renderScenarioComparisonRow("Church Tax", "hasChurchTax", null, (s) => (s.hasChurchTax ? "Yes" : "No"))}
-              {renderScenarioComparisonRow("Children", "children", null, (s) => s.children ?? "-")}
-              {renderScenarioComparisonRow("Working Months", "workingMonths", null, (s) => (s.workingMonths ? `${s.workingMonths} Months` : "-"))}
-              {renderScenarioComparisonRow("Salaries / Year", "salariesPerYear", null, (s) => (s.salariesPerYear ? `${s.salariesPerYear} Salaries` : "-"))}
-              {renderScenarioComparisonRow(
-                "Relationship",
-                "relationshipStatus",
-                relationshipOptions,
-                (inputs) => relationshipOptions.find((option) => option.value === (inputs.relationshipStatus ?? HouseholdRelationship.Unspecified))?.label ?? "Select…",
-              )}
-              {renderScenarioComparisonRow("Partner 2 payroll", "hasPartner", null, (inputs) => (inputs.hasPartner ? "Yes" : "No"))}
-              {showAssessmentRow && renderScenarioComparisonRow(
-                "Assessment",
-                "assessmentMode",
-                assessmentOptions,
-                (inputs) => assessmentOptions.find((option) => option.value === (inputs.assessmentMode ?? TaxAssessment.Unspecified))?.label ?? "Auto",
-              )}
-              {hasAnyPartner && ([
-                {
-                  field: "partnerGrossIncome",
-                  label: "Partner Gross Income",
-                  options: null,
-                },
-                {
-                  field: "partnerState",
-                  label: "Partner Federal State",
-                  options: liveStateOptions,
-                },
-                {
-                  field: "partnerTaxBracket",
-                  label: "Partner Tax Class",
-                  options: liveClassOptions,
-                },
-                {
-                  field: "partnerHasChurchTax",
-                  label: "Partner Church Tax",
-                  options: null,
-                },
-                {
-                  field: "partnerWorkingMonths",
-                  label: "Partner Working Months",
-                  options: null,
-                },
-                {
-                  field: "partnerSalariesPerYear",
-                  label: "Partner Salaries / Year",
-                  options: null,
-                },
-              ] as const).map(({ field, label, options }) => renderScenarioComparisonRow(label, field, options, (inputs) => {
-                const value = inputs[field];
-                return value === undefined
-                  ? "—"
-                  : typeof value === "boolean"
-                    ? value ? "Yes" : "No"
-                    : options?.find((option) => option.value === String(value))?.label ?? value;
-              }))}
             </tbody>
           </table>
         </div>
