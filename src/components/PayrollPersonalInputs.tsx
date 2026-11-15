@@ -44,7 +44,9 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
         gap: "12px",
         marginTop: "10px" }}>
         <p className="ui-field__hint">Blank fields use the published average insurer rate and defaults.</p>
-        <div className="netpay-row-2">
+        <div style={{ display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+          gap: "12px" }}>
           <OptionalNumberInput
             id={`${id}-insurer`}
             label="Insurer total Zusatzbeitrag"

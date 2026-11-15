@@ -38,7 +38,7 @@ export default function TaxSettings({ onValidityChange }: { onValidityChange?: (
         alignItems: "center",
         justifyContent: "space-between",
         gap: "8px" }}>
-        <div className="ui-field">
+        <div id="payrollYear" className="ui-field">
           <span className="ui-field__label">Tax year</span>
           <SegmentedControl
             compact
