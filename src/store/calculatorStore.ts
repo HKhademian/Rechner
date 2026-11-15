@@ -26,6 +26,10 @@ import {
   computePayrollTaxBase,
 } from "#engine/tax/payrollTaxBase";
 import {
+  type WhatIfScenarioKind,
+  buildWhatIfScenario,
+} from "#engine/tax/whatIfScenarios";
+import {
   type Signal,
   signal,
   computed,
@@ -374,21 +378,45 @@ export function getCurrentInputs(): CalculatorInputs {
   };
 }
 
+let nextScenarioSequence = 0;
+
+function createScenarioId(): string {
+  nextScenarioSequence += 1;
+  return `${Date.now()}-${nextScenarioSequence}`;
+}
+
+export function saveScenarioInputs(
+  title: string,
+  description: string,
+  inputs: CalculatorInputs,
+  options: { readonly edit?: boolean } = {},
+): SavedScenarioItem {
+  const newScenario: SavedScenarioItem = {
+    id: createScenarioId(),
+    title: title || "Untitled Scenario",
+    description,
+    timestamp: new Date().toISOString(),
+    inputs,
+    data: calculateScenarioData(inputs),
+  };
+  savedScenarios.value = [...savedScenarios.value, newScenario];
+  if (options.edit !== false) {
+    editScenario(newScenario.id);
+  }
+  return newScenario;
+}
+
+export function saveWhatIfScenario(kind: WhatIfScenarioKind): SavedScenarioItem {
+  const spec = buildWhatIfScenario(getCurrentInputs(), kind);
+  return saveScenarioInputs(spec.title, spec.description, spec.inputs, { edit: false });
+}
+
 export function saveScenario(
   title?: string,
   description?: string,
   _currentDeductions?: HouseholdScenarioData,
 ): void {
-  const newScenario: SavedScenarioItem = {
-    id: Date.now().toString(),
-    title: title || "Untitled Scenario",
-    description: description || "",
-    timestamp: new Date().toISOString(),
-    inputs: getCurrentInputs(),
-    data: calculateScenarioData(getCurrentInputs()),
-  };
-  savedScenarios.value = [...savedScenarios.value, newScenario];
-  editScenario(newScenario.id);
+  saveScenarioInputs(title || "Untitled Scenario", description || "", getCurrentInputs(), { edit: true });
 }
 
 /** Column order changes only the persisted list; IDs and active draft objects stay intact. */

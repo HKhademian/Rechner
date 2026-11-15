@@ -28,7 +28,11 @@ import {
   grossIncome,
   personalPayroll,
   deductions,
+  saveWhatIfScenario,
 } from "#store/calculatorStore";
+import {
+  WhatIfScenarioKind,
+} from "#engine/tax/whatIfScenarios";
 import {
   DEFAULT_TAX_YEAR,
 } from "#engine/tax/taxRules";
@@ -429,4 +433,30 @@ it("models a non-employed (€0-wage) married spouse separately from unmarried o
   assert.equal(unmarriedTwoEarners.annualTaxableIncome.assessment, TaxAssessment.Individual);
   assert.ok(unmarriedTwoEarners.statutoryWarnings.some((w) => w.lawId === LawId.EStG_24b));
   assert.ok(unmarriedTwoEarners.statutoryWarnings.some((w) => w.lawId === LawId.EStG_26));
+});
+
+it("saves non-destructive what-if comparison scenarios using the shared payroll engine", () => {
+  const before = getCurrentInputs();
+  const savedBefore = savedScenarios.peek();
+  savedScenarios.value = [];
+  cancelEdit();
+  try {
+    const raised = saveWhatIfScenario(WhatIfScenarioKind.Raise10);
+    const partnered = saveWhatIfScenario(WhatIfScenarioKind.PartnerSplit);
+    const childAdded = saveWhatIfScenario(WhatIfScenarioKind.AddChild);
+
+    assert.equal(savedScenarios.value.length, 3);
+    assert.notEqual(raised.id, partnered.id);
+    assert.notEqual(partnered.id, childAdded.id);
+    assert.equal(scenarioDraft.value, null);
+    assert.deepEqual(getCurrentInputs(), before);
+    assert.deepEqual(raised.data, calculateScenarioData(raised.inputs));
+    assert.deepEqual(partnered.data, calculateScenarioData(partnered.inputs));
+    assert.deepEqual(childAdded.data, calculateScenarioData(childAdded.inputs));
+    assert.ok(raised.data.household.netIncome > deductions.value.household.netIncome);
+  }
+  finally {
+    cancelEdit();
+    savedScenarios.value = savedBefore;
+  }
 });
