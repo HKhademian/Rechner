@@ -13,13 +13,15 @@ import {
   syncSolarEnergyFromLifeProfile,
   updateSolarEnergyField,
 } from "#/apps/solar-energy/solarEnergyStore.ts";
+import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
-  ResetDefaultsIcon,
   SolarEnergyIcon,
   StatutoryLimitationWarningIcon,
-  SyncProfileActionIcon,
 } from "#components/Icons";
+import {
+  unifiedLifeProfile,
+} from "#store/lifeProfileStore";
 import LawRefLink from "#components/laws/LawRefLink";
 import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
@@ -66,24 +68,16 @@ export default function SolarEnergyCalculator(): JSX.Element {
               Evaluate capacity-tiered EEG feed-in compensation, avoided grid electricity purchases, 0% UStG VAT savings, and 20-year payback.
             </p>
           </div>
-          <div className="domain-calc-header__actions">
-            <button
-              type="button"
-              className="domain-calc-btn domain-calc-btn--primary"
-              onClick={syncSolarEnergyFromLifeProfile}
-            >
-              <SyncProfileActionIcon size={15} />
-              <span>Sync from Shared Life Profile</span>
-            </button>
-            <button
-              type="button"
-              className="domain-calc-btn"
-              onClick={resetSolarEnergyCalculator}
-            >
-              <ResetDefaultsIcon size={14} />
-              <span>Reset Defaults</span>
-            </button>
-          </div>
+          <DomainCalculatorHeaderActions
+            onSyncLifeProfile={syncSolarEnergyFromLifeProfile}
+            onResetDefaults={resetSolarEnergyCalculator}
+            syncTooltip="Populate planning year, PV capacity (kWp), net system cost, household demand, and feed-in mode from the Unified Life Profile"
+            inactiveInLifeProfileMessage={
+              unifiedLifeProfile.value.plansSolarPv
+                ? undefined
+                : "Solar PV is currently toggled off in Life Profile"
+            }
+          />
         </header>
 
         <div className="domain-calc-layout">

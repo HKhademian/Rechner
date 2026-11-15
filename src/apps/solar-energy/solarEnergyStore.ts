@@ -1,4 +1,5 @@
 import {
+  batch,
   computed,
   signal,
 } from "@preact/signals";
@@ -27,6 +28,7 @@ import {
 } from "#store/lifeProfileStore";
 import {
   activeStatutoryContext,
+  setParameterYear,
 } from "#store/parameterStore";
 
 export interface SolarEnergyCalculatorState {
@@ -146,15 +148,18 @@ export function updateSolarEnergyField<K extends keyof SolarEnergyCalculatorStat
 
 export function syncSolarEnergyFromLifeProfile(): void {
   const lp = unifiedLifeProfile.value;
-  const next = parseSolarEnergyState({
-    ...solarEnergyState.value,
-    capacityKwp: lp.solarCapacityKwp,
-    systemCostNetEur: lp.solarSystemCostNetEur,
-    annualHouseholdConsumptionKwh: lp.annualHouseholdElectricityKwh,
-    feedInMode: lp.solarFeedInMode,
+  batch(() => {
+    setParameterYear(lp.planningYear);
+    const next = parseSolarEnergyState({
+      ...solarEnergyState.value,
+      capacityKwp: lp.solarCapacityKwp,
+      systemCostNetEur: lp.solarSystemCostNetEur,
+      annualHouseholdConsumptionKwh: lp.annualHouseholdElectricityKwh,
+      feedInMode: lp.solarFeedInMode,
+    });
+    solarEnergyState.value = next;
+    solarAppStorage.setItem(SOLAR_STORAGE_KEY, JSON.stringify(next));
   });
-  solarEnergyState.value = next;
-  solarAppStorage.setItem(SOLAR_STORAGE_KEY, JSON.stringify(next));
 }
 
 export function resetSolarEnergyCalculator(): void {
