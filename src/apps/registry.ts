@@ -1,6 +1,7 @@
 import {
   type CalculatorAppDefinition,
   type CalculatorCategory,
+  CalculatorReleaseStatus,
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
@@ -26,7 +27,7 @@ import {
 } from "#/apps/visa/manifest.ts";
 
 /** Metadata only: the catalog must never initialize a calculator's financial store. */
-export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([
+export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([
   netPayApp,
   parentalLeaveApp,
   giroCodeApp,
@@ -35,11 +36,16 @@ export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze(
   solarEnergyApp,
   housingApp,
 ]);
+
+/** Default release catalog shown on the home page. */
+export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze(
+  allCalculatorApps.filter((app) => app.releaseStatus === CalculatorReleaseStatus.Published),
+);
 export const CATALOG_PAGE_SIZE = 9;
 
 export function calculatorAtPath(pathname: string): CalculatorAppDefinition | undefined {
   const normalized = pathname.replace(/\/+$/, "");
-  return calculatorApps.find((app) => calculatorPath(app.id).replace(/\/$/, "") === normalized);
+  return allCalculatorApps.find((app) => calculatorPath(app.id).replace(/\/$/, "") === normalized);
 }
 
 /** Clamp after filtering so category/search changes cannot leave an empty out-of-range page. */

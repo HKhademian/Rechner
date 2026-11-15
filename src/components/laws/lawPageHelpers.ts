@@ -4,7 +4,7 @@ import {
   lawCatalogPath,
 } from "#/apps/appDefinition.ts";
 import {
-  calculatorApps,
+  allCalculatorApps,
 } from "#/apps/registry.ts";
 import {
   type FormulaDomain as FormulaDomainType,
@@ -206,7 +206,7 @@ export function getCalculatorsUsingLaw(
   const usesSolarEnergy = SOLAR_ENERGY_LAW_CODES.has(entry.code) || SOLAR_ENERGY_EXTRA_LAW_IDS.has(entry.id);
   const usesHousing = HOUSING_LAW_CODES.has(entry.code) || HOUSING_EXTRA_LAW_IDS.has(entry.id);
 
-  const appMap = new Map(calculatorApps.map((app) => [app.id, app]));
+  const appMap = new Map(allCalculatorApps.map((app) => [app.id, app]));
   const result: CalculatorAppDefinition[] = [];
 
   for (const [enabled, appId] of [
