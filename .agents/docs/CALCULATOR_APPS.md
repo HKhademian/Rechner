@@ -4,41 +4,39 @@ The home page is a metadata-only marketplace. Each calculator has its own manife
 
 ## Current entry points
 
-- `/`: `CalculatorCatalog`, search/category filters and pagination. The catalog page size is configured in `src/apps/registry.ts`; controls appear only for multiple pages. Search, category and page are URL parameters and work with browser history.
-- `/calculators/net-pay/`: `src/apps/net-pay/App.tsx`, backed by `calculatorStore.ts` and its own payroll-year settings.
-- `/calculators/parental-leave/`: `src/apps/parental-leave/App.tsx`, backed by `elterngeldStore.ts` and calendar-year payroll profiles from its plan.
+- `/`: `CalculatorCatalog`, search/category filters and pagination (`src/apps/registry.ts`).
+- `/profile/`: `LifeProfileSummaryPage`, unified household profile overview (`src/store/lifeProfileStore.ts`).
+- `/laws/` & `/laws/<lawId>/`: `LawReferencePage`, searchable German statutory rules directory.
+- `/calculators/net-pay/`: `src/apps/net-pay/App.tsx`, backed by `calculatorStore.ts` and `taxConfigStore.ts`.
+- `/calculators/parental-leave/`: `src/apps/parental-leave/App.tsx`, backed by `elterngeldStore.ts`.
+- `/calculators/girocode/`: `src/apps/girocode/App.tsx`, backed by `girocodeStore.ts`.
+- `/calculators/visa/`, `/calculators/company-car/`, `/calculators/solar-energy/`, `/calculators/housing/`: standalone domain planners (`App.tsx` + domain store per folder).
 - `/elterngeld`: compatibility redirect to the parental-leave route.
 
-`Navigation` links to the catalog and identifies the current calculator. The catalog has no dependency on either financial store. The app entry dependency tests guard that boundary and prevent either app from importing the other calculator's financial store.
+Every HTML page wraps in `src/layouts/BaseDocument.astro`, and every interactive root renders inside `<AppShell>` (`src/components/ui/AppShell.tsx`). `Navigation` links to Home, provides a direct **Tools** dropdown switcher across `allCalculatorApps`, links to `Life Profile` and `Laws & Rules`, and renders `Quick § Ref`, `<PrivacyStatus />`, and `<ThemeToggle />`. The catalog, `LifeProfileSummaryPage`, `LawReferencePage`, and shared `src/components/ui/` primitives must never import any calculator-private financial store (`src/apps/dependencyBoundaries.test.ts`).
 
 ## State ownership and migration
 
-`src/engine/storage/appStorage.ts` owns app-scoped persistence. Keys follow `rechner:<app-id>:v1:<field>`:
+`src/engine/storage/appStorage.ts` owns privacy mode (`rechner:privacy:storage-mode:v1`) and app-scoped persistence. Calculator keys follow `rechner:<app-id>:v1:<field>`, initialized only on routes that use that calculator. Global site-wide appearance (Light/Dark/Auto mode and `cobalt`/`forest`/`indigo`/`stone` palette) is stored under `rechner:shared:appearance:v1` (`src/store/themeStore.ts` + `src/utils/themeConfig.ts`), with read-only fallback from legacy `rechner:<app-id>:v1:theme` / `german_calc_theme_mode` keys.
 
-- Catalog: appearance only.
-- Net pay: salary/partner inputs, saved scenarios, verified payroll year, personal payroll options, factor and appearance.
-- Parental leave: complete plan state and appearance.
+Legacy calculator data is copied once from owned older keys. Existing new keys win, including zero amounts and empty saved collections. Legacy keys are retained. A migration marker remains after an app-owned value is cleared so it cannot be revived from legacy storage. Partial/quota-limited copies can retry; read/write failures leave calculators usable in memory. Namespace separation applies to workspaces within this site's browser origin.
 
-A full page visit initializes only that calculator's stores. Saved data persists across visits; unsaved scenario drafts remain session-local. The existing entry modules reuse UI implementations under `src/components`; new calculators may keep their UI/store beside their app entry.
-
-Legacy data is copied once from owned older keys. Existing new keys win, including zero amounts and empty saved collections. Legacy keys are retained. A migration marker remains after an app-owned value is cleared so it cannot be revived from legacy storage. Partial/quota-limited copies can retry; read/write failures leave calculators usable in memory. Namespace separation applies to workspaces within this site's browser origin.
-
-Use `browserAppStorage(AppId.YourCalculator)` instead of raw global keys. Clear only owned fields through that adapter; keep the migration marker. Each new app must explicitly declare any legacy key mapping, or an empty mapping for a new calculator. Appearance is owned by the route's app, including an independent catalog preference.
+Use `browserAppStorage(AppId.YourCalculator)` instead of raw global keys. Clear only owned fields through that adapter; keep the migration marker. Each new app must explicitly declare any legacy key mapping, or an empty mapping for a new calculator.
 
 ## Add another calculator
 
 1. Add a stable slug to `AppId` and a legacy mapping in app storage. Runtime enum guards derive from the const definitions.
-2. Create `src/apps/<slug>/manifest.ts` implementing `CalculatorAppDefinition`: identity, title, description, category, keywords and user-facing features. Manifests contain metadata only.
-3. Build the app's own entry/UI/store under `src/apps/<slug>/`. Import shared pure engine libraries as needed; never import another calculator's store. Keep financial values branded and source/version statutory parameters according to repository rules.
-4. Add `src/pages/calculators/<slug>.astro` importing only that entry and manifest. Use its manifest metadata for the page title and description. Include the common navigation and a focusable `main-content` target.
-5. Register the manifest in `src/apps/registry.ts`. Register only working calculator routes. Catalog categories and pagination update from that list; no new navigation tab is required.
-6. Add engine reference cases and app isolation, persistence, import/export and route verification appropriate to the calculator. Extend dependency boundary checks when adding another financial store. Give exported files an app-specific, versioned format and validate before replacing state.
+2. Create `src/apps/<slug>/manifest.ts` implementing `CalculatorAppDefinition`: identity, title, description, category, releaseStatus, keywords and user-facing features. Manifests contain metadata only.
+3. Build the app's own entry/UI/store under `src/apps/<slug>/`, wrapping the root view in `<AppShell currentPath={calculatorPath(AppId.<YourCalculator>)}>` and composing UI from `src/components/ui/` (`PageHeader`, `NumberField`, `TextField`, `ChoiceSelect`, `SegmentedControl`, `ToggleSwitch`, `MetricCard`, `ModalDialog`, `StatusBanner`). Import shared pure engine libraries as needed; never import another calculator's store.
+4. Add `src/pages/calculators/<slug>.astro` wrapping the client entry in `BaseDocument.astro` with manifest metadata (`title`, `description`).
+5. Register the manifest in `src/apps/registry.ts`. Catalog categories, pagination, and the header **Tools** switcher update automatically.
+6. Add unit tests alongside new stores/helpers, extend `src/apps/dependencyBoundaries.test.ts`, and verify `src/components/ui/designSystemCompliance.test.ts` passes cleanly. Give exported files an app-specific, versioned format and validate before replacing state.
 
 Future common-calculation ideas are tracked as proposals in the marketplace ideation record, not advertised as working calculators.
 
 ## Verification contract
 
-Run `npm run fix`, `npm run check` and `npm run check:build`. Check catalog search/category/empty states, pagination bounds, history restoration, exact route matching, independent stored values and per-app appearance. Verify narrow layout and keyboard access. Test storage migration with existing destination values, empty/zero values, legacy-key retention, blocked storage and reset without resurrection. Use an isolated browser origin for interaction tests instead of changing user saved scenarios.
+Run `npm run fix`, `npm run check` and `npm run check:build`. Check catalog search/category/empty states, pagination bounds, history restoration, exact route matching, independent stored calculator values, shared site-wide appearance across routes/reloads, and full dark/light palette compliance (`designSystemCompliance.test.ts`). Test storage migration with existing destination values, empty/zero values, legacy-key retention, blocked storage and reset without resurrection.
 
 ## Net-pay amount period
 
