@@ -4,6 +4,7 @@ import {
   it,
 } from "node:test";
 import {
+  type EpcPayload,
   AmountValidationStatus,
   BicValidationStatus,
   buildEpcPayload,
@@ -188,13 +189,13 @@ describe("EPC069-12 GiroCode domain engine", () => {
     assert.deepEqual(encodeUtf8Bytes("ü"), [0xc3, 0xbc]);
 
     const result = buildEpcPayload({
-      beneficiaryName: "Musterfirma GmbH",
+      beneficiaryName: "Bäcker Müller & Söhne GmbH",
       iban: "DE89 3704 0044 0532 0130 00",
       bic: "COBADEFFXXX",
       amount: "125.00",
       purposeCode: "",
       remittanceKind: RemittanceKind.Unstructured,
-      unstructuredReference: "Sample invoice 2026-001",
+      unstructuredReference: "Rechnung 2026-001 — Straße",
       structuredReference: "",
       charsetMode: GiroCodeCharsetMode.Utf8,
     });
@@ -206,5 +207,43 @@ describe("EPC069-12 GiroCode domain engine", () => {
     assert.equal(matrix.isDark(0, 0), true);
     assert.equal(matrix.isDark(0, matrix.moduleCount - 1), true);
     assert.equal(matrix.isDark(matrix.moduleCount - 1, 0), true);
+    assert.equal(matrix.isDark(matrix.moduleCount - 8, 8), true);
+
+    const maxPayload = buildEpcPayload({
+      beneficiaryName: "A".repeat(70),
+      iban: "DE89370400440532013000",
+      bic: "COBADEFFXXX",
+      amount: "999999999.99",
+      purposeCode: "CHAR",
+      remittanceKind: RemittanceKind.Unstructured,
+      unstructuredReference: "X".repeat(140),
+      structuredReference: "",
+      charsetMode: GiroCodeCharsetMode.Utf8,
+    });
+    assert.equal(maxPayload.isReady, true);
+    assert.ok(maxPayload.payload !== null);
+    assert.ok(maxPayload.utf8ByteLength <= EPC_MAX_PAYLOAD_BYTES);
+    const largeMatrix = createGiroCodeQrMatrix(maxPayload.payload);
+    assert.ok(largeMatrix.moduleCount <= 69);
+
+    const exactCeilingPayload = buildEpcPayload({
+      beneficiaryName: "B".repeat(70),
+      iban: "DE89370400440532013000",
+      bic: "COBADEFFXXX",
+      amount: "999999999.99",
+      purposeCode: "CHAR",
+      remittanceKind: RemittanceKind.Unstructured,
+      unstructuredReference: "Z".repeat(140),
+      structuredReference: "",
+      charsetMode: GiroCodeCharsetMode.Utf8,
+    });
+    assert.equal(exactCeilingPayload.isReady, true);
+    assert.ok(exactCeilingPayload.payload !== null);
+    const padded331 = `${exactCeilingPayload.payload}${"Y".repeat(
+      EPC_MAX_PAYLOAD_BYTES - exactCeilingPayload.utf8ByteLength,
+    )}`;
+    const maxMatrix = createGiroCodeQrMatrix(padded331 as EpcPayload);
+    assert.equal(maxMatrix.moduleCount, 69);
+    assert.equal(maxMatrix.isDark(maxMatrix.moduleCount - 8, 8), true);
   });
 });

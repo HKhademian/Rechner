@@ -1,7 +1,10 @@
 import {
   type Brand,
 } from "#engine/types";
-import qrcode from "qrcode-generator";
+import {
+  QrErrorCorrection,
+  encodeQrUtf8,
+} from "#utils/qrcode";
 
 export const EPC_SERVICE_TAG = "BCD";
 export const EPC_VERSION = "002";
@@ -533,13 +536,7 @@ export function encodeUtf8Bytes(text: string): number[] {
 }
 
 export function createGiroCodeQrMatrix(payload: EpcPayload): GiroCodeQrMatrix {
-  // Override qrcode-generator's default Latin-1 byte mapper with strict UTF-8 per EPC069-12 Charset '1'.
-  qrcode.stringToBytes = encodeUtf8Bytes;
-  const qr = qrcode(0, "M");
-  qr.addData(payload, "Byte");
-  qr.make();
-  return {
-    moduleCount: qr.getModuleCount(),
-    isDark: (row: number, col: number): boolean => qr.isDark(row, col),
-  };
+  return encodeQrUtf8(payload, {
+    errorCorrection: QrErrorCorrection.M,
+  });
 }
