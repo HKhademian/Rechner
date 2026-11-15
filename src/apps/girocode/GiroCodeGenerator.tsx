@@ -47,7 +47,6 @@ import {
   SegmentedControl,
 } from "#components/ui/SegmentedControl";
 import {
-  type EpcPayload,
   AmountValidationStatus,
   BicValidationStatus,
   createGiroCodeQrMatrix,
@@ -60,6 +59,10 @@ import {
   RemittanceKind,
   StructuredRefValidationStatus,
 } from "#engine/payments/girocode";
+import {
+  paintQrSymbolToCanvas,
+  toQrModuleScale,
+} from "#utils/qrcode/canvasSurface";
 
 // Fixed optical paper/ink contrast required for scannable EPC QR codes and printable PNG slips.
 const QR_PAPER_LIGHT_HEX = "#ffffff";
@@ -68,35 +71,6 @@ const QR_INK_DARK_HEX = "#0f172a";
 interface ToastMessage {
   readonly text: string;
   readonly isError: boolean;
-}
-
-function drawQrToCanvas(canvas: HTMLCanvasElement, payload: EpcPayload, scale: number): number {
-  const matrix = createGiroCodeQrMatrix(payload);
-  const quietZone = 4;
-  const totalModules = matrix.moduleCount + quietZone * 2;
-  const size = totalModules * scale;
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    return matrix.moduleCount;
-  }
-  ctx.fillStyle = QR_PAPER_LIGHT_HEX;
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = QR_INK_DARK_HEX;
-  for (let row = 0; row < matrix.moduleCount; row += 1) {
-    for (let col = 0; col < matrix.moduleCount; col += 1) {
-      if (matrix.isDark(row, col)) {
-        ctx.fillRect(
-          (col + quietZone) * scale,
-          (row + quietZone) * scale,
-          scale,
-          scale,
-        );
-      }
-    }
-  }
-  return matrix.moduleCount;
 }
 
 export default function GiroCodeGenerator(): JSX.Element {
@@ -143,8 +117,15 @@ export default function GiroCodeGenerator(): JSX.Element {
       return;
     }
     try {
-      const modules = drawQrToCanvas(canvas, build.payload, 10);
-      setQrModuleCount(modules);
+      const matrix = createGiroCodeQrMatrix(build.payload);
+      const {
+        moduleCount,
+      } = paintQrSymbolToCanvas(canvas, matrix, {
+        scale: toQrModuleScale(10),
+        lightColor: QR_PAPER_LIGHT_HEX,
+        darkColor: QR_INK_DARK_HEX,
+      });
+      setQrModuleCount(moduleCount);
     }
     catch (error) {
       setQrModuleCount(null);
@@ -164,7 +145,12 @@ export default function GiroCodeGenerator(): JSX.Element {
     const zoomCanvas = zoomCanvasRef.current;
     if (zoomCanvas) {
       try {
-        drawQrToCanvas(zoomCanvas, build.payload, 16);
+        const matrix = createGiroCodeQrMatrix(build.payload);
+        paintQrSymbolToCanvas(zoomCanvas, matrix, {
+          scale: toQrModuleScale(16),
+          lightColor: QR_PAPER_LIGHT_HEX,
+          darkColor: QR_INK_DARK_HEX,
+        });
       }
       catch (error) {
         const message = error instanceof Error ? error.message : "Could not render QR code.";

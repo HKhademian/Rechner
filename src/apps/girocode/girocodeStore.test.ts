@@ -164,7 +164,7 @@ describe("girocodeStore", () => {
           const callbackText = node.arguments[0].getText(sourceFile);
           const depsArg = node.arguments[1];
           if (
-            callbackText.includes("drawQrToCanvas(canvas") &&
+            callbackText.includes("paintQrSymbolToCanvas(canvas") &&
             ts.isArrayLiteralExpression(depsArg) &&
             depsArg.elements.some((el) => ts.isIdentifier(el) && el.text === "hydrated")
           ) {
