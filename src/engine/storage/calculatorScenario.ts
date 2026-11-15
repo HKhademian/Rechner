@@ -1,5 +1,7 @@
 import {
+  HouseholdRelationship,
   TaxAssessment,
+  toHouseholdRelationship,
   toTaxAssessment,
 } from "#engine/tax/taxAssessment";
 import {
@@ -88,6 +90,11 @@ export function parseCalculatorScenario(value: unknown): CalculatorInputs {
   return {
     inputMode: mode,
     partnerInputMode: partnerMode,
+    relationshipStatus: inputs.relationshipStatus === undefined
+      ? HouseholdRelationship.Unspecified
+      : typeof inputs.relationshipStatus === "string"
+        ? toHouseholdRelationship(inputs.relationshipStatus)
+        : toHouseholdRelationship(""),
     assessmentMode: inputs.assessmentMode === undefined ? TaxAssessment.Unspecified : typeof inputs.assessmentMode === "string" ? toTaxAssessment(inputs.assessmentMode) : toTaxAssessment(""),
     grossIncome: toGrossSalary(numeric("grossIncome")),
     taxBracket: bracket("taxBracket"),

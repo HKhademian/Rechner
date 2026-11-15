@@ -1,6 +1,10 @@
 import {
+  type StatutoryAssessmentWarning,
+  HouseholdRelationship,
   TaxAssessment,
+  toHouseholdRelationship,
   toTaxAssessment,
+  validateTaxClassAndAssessmentRules,
 } from "#engine/tax/taxAssessment";
 import {
   type CalculatorGrossField,
@@ -124,8 +128,10 @@ export interface CalculatorInputs {
   workingMonths: number;
   /** Number of salary disbursements per year (e.g. 12, 13). */
   salariesPerYear: number;
-  /** True if household includes a spouse / partner. */
+  /** True if household includes a second person's payroll in the comparison table. */
   hasPartner: boolean;
+  /** Declared legal marital / cohabitation household status (§§ 24b, 26, 32a Abs. 6, 38b EStG). */
+  relationshipStatus?: HouseholdRelationship;
   /** Required explicitly before combining two annual tax assessments. */
   assessmentMode?: TaxAssessment;
   /** Partner's gross income amount in EUR. */
@@ -181,14 +187,18 @@ export interface PersonDeductions {
 }
 
 /**
- * Combined Spousal Household Financial Assessment Data.
+ * Combined Spousal or Household Financial Assessment Data.
  */
 export interface HouseholdScenarioData {
   /** Annual taxable-income audit from this calculator's normalized payment schedules. */
   readonly annualTaxableIncome: ReturnType<typeof computePayrollTaxBase>;
+  /** Non-blocking statutory consistency warnings for declared relationship, classes, and assessment. */
+  readonly statutoryWarnings: readonly StatutoryAssessmentWarning[];
+  /** True when joint spousal assessment includes a non-employed (€0-wage) spouse without a second payroll column. */
+  readonly includesZeroWageSpouse: boolean;
   /** Primary earner itemized deductions and net income. */
   person1: PersonDeductions;
-  /** Partner itemized deductions and net income, or null if single household. */
+  /** Partner itemized deductions and net income, or null if second payroll is not included. */
   partner: PersonDeductions | null;
   /** Aggregated household financial summary. */
   household: {
@@ -242,6 +252,11 @@ export const partnerInputMode = persistedSignal<CalculatorInputs["inputMode"] | 
   throw new TypeError("Invalid partner salary input basis.");
 });
 
+export const relationshipStatus = persistedSignal<HouseholdRelationship>(
+  "relationshipStatus",
+  HouseholdRelationship.Unspecified,
+  (value) => toHouseholdRelationship(String(value)),
+);
 export const assessmentMode = persistedSignal<TaxAssessment>("assessmentMode", TaxAssessment.Unspecified, (value) => toTaxAssessment(String(value)));
 
 // Person 1 Settings
@@ -348,6 +363,7 @@ export function getCurrentInputs(): CalculatorInputs {
     workingMonths: workingMonths.value,
     salariesPerYear: salariesPerYear.value,
     hasPartner: hasPartner.value,
+    relationshipStatus: relationshipStatus.value,
     assessmentMode: assessmentMode.value,
     partnerGrossIncome: partnerGrossIncome.value,
     partnerTaxBracket: partnerTaxBracket.value,
@@ -438,6 +454,9 @@ function applyLiveInputs(inputs: CalculatorInputs): void {
     inputMode.value =
       inputs.inputMode ?? DEFAULT_CALCULATOR_INPUTS.inputMode;
     partnerInputMode.value = inputs.partnerInputMode;
+    relationshipStatus.value = inputs.relationshipStatus === undefined
+      ? HouseholdRelationship.Unspecified
+      : toHouseholdRelationship(inputs.relationshipStatus);
     assessmentMode.value = inputs.assessmentMode === undefined ? TaxAssessment.Unspecified : toTaxAssessment(inputs.assessmentMode);
     grossIncome.value =
       inputs.grossIncome ?? DEFAULT_CALCULATOR_INPUTS.grossIncome;
@@ -502,7 +521,7 @@ export const CALCULATOR_PARTNER_SHORTCUT = Object.freeze({
   lawId: LawId.EStG_38b,
 });
 
-/** A class selection opens partner inputs; explicit partner switches and saved data stay authoritative. */
+/** A class selection opens partner inputs; explicit partner switches, relationship status, and saved data stay authoritative. */
 function withCalculatorInputChange<K extends keyof CalculatorInputs>(
   inputs: CalculatorInputs,
   field: K,
@@ -514,6 +533,15 @@ function withCalculatorInputChange<K extends keyof CalculatorInputs>(
     return { ...candidate,
       hasPartner: true };
   }
+  if (
+    field === "relationshipStatus" &&
+    (value === HouseholdRelationship.Single ||
+      value === HouseholdRelationship.UnmarriedPartners ||
+      value === HouseholdRelationship.QualifyingWidowed)
+  ) {
+    return { ...candidate,
+      assessmentMode: TaxAssessment.Individual };
+  }
   return candidate;
 }
 
@@ -524,6 +552,16 @@ export function setLiveTaxBracket(value: string): void {
   batch(() => {
     taxBracket.value = candidate.taxBracket;
     hasPartner.value = candidate.hasPartner;
+  });
+}
+
+/** Update live household relationship status and clear any ineligible Joint election cleanly. */
+export function setLiveRelationshipStatus(value: HouseholdRelationship): void {
+  const candidate = withCalculatorInputChange(getCurrentInputs(), "relationshipStatus", value);
+  calculateScenarioData(candidate);
+  batch(() => {
+    relationshipStatus.value = candidate.relationshipStatus ?? HouseholdRelationship.Unspecified;
+    assessmentMode.value = candidate.assessmentMode ?? TaxAssessment.Unspecified;
   });
 }
 
@@ -604,6 +642,65 @@ export function calculateScenarioData(
     inputs.partnerInputMode ?? inputs.inputMode,
   ) : null;
 
+  const relationship = inputs.relationshipStatus === undefined
+    ? HouseholdRelationship.Unspecified
+    : toHouseholdRelationship(inputs.relationshipStatus);
+  const rawAssessment = inputs.assessmentMode === undefined
+    ? TaxAssessment.Unspecified
+    : toTaxAssessment(inputs.assessmentMode);
+
+  let effectiveAssessment: TaxAssessment;
+  if (
+    relationship === HouseholdRelationship.Single ||
+    relationship === HouseholdRelationship.UnmarriedPartners ||
+    relationship === HouseholdRelationship.QualifyingWidowed
+  ) {
+    effectiveAssessment = TaxAssessment.Individual;
+  }
+  else if (partner || relationship === HouseholdRelationship.MarriedOrCivilPartners) {
+    effectiveAssessment = rawAssessment;
+  }
+  else {
+    effectiveAssessment = TaxAssessment.Individual;
+  }
+
+  const includesZeroWageSpouse =
+    partner === null &&
+    relationship === HouseholdRelationship.MarriedOrCivilPartners &&
+    effectiveAssessment === TaxAssessment.Joint;
+
+  const taxPayrolls:
+    | readonly [ReturnType<typeof computeEmploymentPayroll>]
+    | readonly [ReturnType<typeof computeEmploymentPayroll>, ReturnType<typeof computeEmploymentPayroll>] = partner
+      ? [annualPayrolls[0], annualPayrolls[1]]
+      : includesZeroWageSpouse
+        ? [
+          annualPayrolls[0],
+          computeEmploymentPayroll(
+            {
+              gross: toGrossSalary(0),
+              period: SalaryPeriod.Yearly,
+              monthsWorked: toMonthDuration(0),
+              annualSalaryPayments: toSalaryPaymentCount(12),
+            },
+            Classes.IV,
+            toChildrenCount(inputs.children),
+            rules,
+          ),
+        ]
+        : [annualPayrolls[0]];
+
+  const primaryTaxClass = inputTaxClasses[inputs.taxBracket];
+  const partnerTaxClass = inputs.hasPartner ? inputTaxClasses[inputs.partnerTaxBracket] : undefined;
+  const statutoryWarnings = validateTaxClassAndAssessmentRules({
+    relationship,
+    assessment: rawAssessment,
+    hasPartnerPayroll: inputs.hasPartner,
+    primaryTaxClass,
+    partnerTaxClass,
+    childrenCount: inputs.children,
+  });
+
   const householdGross =
     person1.grossYearly + (partner ? partner.grossYearly : 0);
   const householdNet = person1.netIncome + (partner ? partner.netIncome : 0);
@@ -611,7 +708,9 @@ export function calculateScenarioData(
     person1.totalDeductions + (partner ? partner.totalDeductions : 0);
 
   return {
-    annualTaxableIncome: computePayrollTaxBase(partner ? [annualPayrolls[0], annualPayrolls[1]] : [annualPayrolls[0]], rules, partner ? inputs.assessmentMode === undefined ? TaxAssessment.Unspecified : toTaxAssessment(inputs.assessmentMode) : TaxAssessment.Individual),
+    annualTaxableIncome: computePayrollTaxBase(taxPayrolls, rules, effectiveAssessment),
+    statutoryWarnings,
+    includesZeroWageSpouse,
     person1,
     partner,
     household: {

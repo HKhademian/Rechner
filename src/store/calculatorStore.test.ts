@@ -367,3 +367,66 @@ it("updates live Net Pay deductions and selectedTaxRules when unified parameter 
     personalPayroll.value = previousPersonal;
   }
 });
+
+it("models a non-employed (€0-wage) married spouse separately from unmarried or single payrolls", async () => {
+  const { HouseholdRelationship } = await import("#engine/tax/taxAssessment");
+  const { LawId } = await import("#engine/laws/types");
+  const base = {
+    ...getCurrentInputs(),
+    inputMode: "monthly" as const,
+    grossIncome: 5000,
+    workingMonths: 12,
+    salariesPerYear: 12,
+    taxBracket: "3",
+    hasChurchTax: false,
+    state: "Berlin",
+    children: 0,
+    hasPartner: false,
+    taxYear: toFullCalendarYear(2026),
+  };
+
+  // Married sole earner opting into Joint assessment gets 2x Sonderausgaben-Pauschbetrag (€72 vs €36)
+  const marriedZeroWage = calculateScenarioData({
+    ...base,
+    relationshipStatus: HouseholdRelationship.MarriedOrCivilPartners,
+    assessmentMode: TaxAssessment.Joint,
+  });
+  assert.equal(marriedZeroWage.partner, null);
+  assert.equal(marriedZeroWage.includesZeroWageSpouse, true);
+  assert.equal(marriedZeroWage.annualTaxableIncome.incomeByPerson.length, 2);
+  assert.equal(marriedZeroWage.annualTaxableIncome.incomeByPerson[1].gross, 0);
+  assert.equal(marriedZeroWage.annualTaxableIncome.taxBase?.taxableIncome, 46638);
+  assert.deepEqual(marriedZeroWage.statutoryWarnings, []);
+
+  // Same 1 payroll as Single (or married Individual) gets 1x Sonderausgaben-Pauschbetrag (€36)
+  const marriedIndividual = calculateScenarioData({
+    ...base,
+    relationshipStatus: HouseholdRelationship.MarriedOrCivilPartners,
+    assessmentMode: TaxAssessment.Individual,
+  });
+  assert.equal(marriedIndividual.includesZeroWageSpouse, false);
+  assert.equal(marriedIndividual.annualTaxableIncome.taxBase?.taxableIncome, 46674);
+
+  // Qualifying widowhood allows Class III without a partner payroll warning
+  const widowed = calculateScenarioData({
+    ...base,
+    relationshipStatus: HouseholdRelationship.QualifyingWidowed,
+    assessmentMode: TaxAssessment.Individual,
+  });
+  assert.deepEqual(widowed.statutoryWarnings, []);
+  assert.equal(widowed.annualTaxableIncome.assessment, TaxAssessment.Individual);
+
+  // Unmarried cohabiting partners always use separate individual bases even if Joint is passed
+  const unmarriedTwoEarners = calculateScenarioData({
+    ...base,
+    hasPartner: true,
+    taxBracket: "2",
+    partnerTaxBracket: "1",
+    children: 1,
+    relationshipStatus: HouseholdRelationship.UnmarriedPartners,
+    assessmentMode: TaxAssessment.Joint,
+  });
+  assert.equal(unmarriedTwoEarners.annualTaxableIncome.assessment, TaxAssessment.Individual);
+  assert.ok(unmarriedTwoEarners.statutoryWarnings.some((w) => w.lawId === LawId.EStG_24b));
+  assert.ok(unmarriedTwoEarners.statutoryWarnings.some((w) => w.lawId === LawId.EStG_26));
+});
