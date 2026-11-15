@@ -23,10 +23,21 @@ import {
   UnifiedLifeProfileIcon,
   VisaResidenceIcon,
 } from "#components/Icons";
+import {
+  ChoiceSelect,
+} from "#components/ui/ChoiceSelect";
+import {
+  NumberField,
+} from "#components/ui/NumberField";
+import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  ToggleSwitch,
+} from "#components/ui/ToggleSwitch";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
   VehiclePowertrain,
-  toVehiclePowertrain,
 } from "#engine/formulas/pure/companyCarFormulas";
 import {
   GERMAN_FEDERAL_STATE_LABELS,
@@ -56,6 +67,52 @@ function formatEur(value: number): string {
   return formatSharedEur(value);
 }
 
+const PLANNING_YEAR_OPTIONS = [
+  {
+    value: toFullCalendarYear(2026),
+    label: "2026",
+  },
+  {
+    value: toFullCalendarYear(2025),
+    label: "2025",
+  },
+] as const;
+
+const GERMAN_LEVEL_OPTIONS = [
+  {
+    value: GermanLanguageLevel.NoneOrBasic,
+    label: "Below A1",
+  },
+  {
+    value: GermanLanguageLevel.A1,
+    label: "A1 Basic (27 mo PR)",
+  },
+  {
+    value: GermanLanguageLevel.B1Plus,
+    label: "B1+ Intermediate (21 mo PR)",
+  },
+] as const;
+
+const CAR_POWERTRAIN_OPTIONS = [
+  {
+    value: VehiclePowertrain.PureElectricEv,
+    label: "Electric",
+  },
+  {
+    value: VehiclePowertrain.PlugInHybrid,
+    label: "Hybrid",
+  },
+  {
+    value: VehiclePowertrain.CombustionIce,
+    label: "Fuel",
+  },
+] as const;
+
+const FEDERAL_STATE_OPTIONS = Object.entries(GERMAN_FEDERAL_STATE_LABELS).map(([code, label]) => ({
+  value: code,
+  label,
+}));
+
 export interface LifeProfilePanelProps {
   readonly defaultExpanded?: boolean;
   readonly showSummaryLink?: boolean;
@@ -81,7 +138,7 @@ export default function LifeProfilePanel({
         : "Below threshold";
 
   return (
-    <section className="life-profile-panel" aria-labelledby="life-profile-heading">
+    <section className="ui-card life-profile-panel" aria-labelledby="life-profile-heading">
       <div className="life-profile-panel__header">
         <div className="life-profile-panel__title-group">
           <span className="life-profile-panel__badge-icon" aria-hidden="true">
@@ -96,13 +153,13 @@ export default function LifeProfilePanel({
         </div>
         <div className="life-profile-panel__controls">
           {showSummaryLink && (
-            <a className="life-profile-panel__summary-link" href={lifeProfilePath()}>
+            <a className="ui-btn ui-btn--tint" href={lifeProfilePath()}>
               <span>View full summary</span>
             </a>
           )}
           <button
             type="button"
-            className="life-profile-panel__toggle"
+            className="ui-btn ui-btn--primary"
             aria-expanded={expanded}
             aria-controls="life-profile-editor"
             onClick={() => setExpanded((prev) => !prev)}
@@ -112,7 +169,7 @@ export default function LifeProfilePanel({
           </button>
           <button
             type="button"
-            className="life-profile-panel__reset"
+            className="ui-btn"
             onClick={resetUnifiedLifeProfile}
           >
             <ResetDefaultsIcon size={14} />
@@ -191,311 +248,235 @@ export default function LifeProfilePanel({
       {expanded && (
         <div id="life-profile-editor" className="life-profile-panel__body">
           <div className="life-profile-panel__sections">
-            <div className="life-profile-panel__section">
+            <div className="ui-card life-profile-panel__section">
               <div className="life-profile-panel__section-head">
                 <h3>
                   <VisaResidenceIcon size={16} />
                   <span>Household &amp; Residence</span>
                 </h3>
-                <a className="life-profile-panel__section-link" href={calculatorPath(AppId.Visa)}>
-                  Open planner
+                <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.Visa)}>
+                  Open
                 </a>
               </div>
-              <label className="life-profile-panel__field" for="lp-year">
-                <span>Planning Year</span>
-                <select
-                  id="lp-year"
+              <div className="ui-field">
+                <div className="ui-field__top">
+                  <span className="ui-field__label">Planning Year</span>
+                </div>
+                <SegmentedControl
+                  label="Planning year"
+                  compact
+                  fullWidth
                   value={profile.planningYear}
-                  onChange={(event) => updateLifeProfileField("planningYear", toFullCalendarYear(Number(event.currentTarget.value)))}
-                >
-                  <option value={2026}>2026</option>
-                  <option value={2025}>2025</option>
-                </select>
-              </label>
-              <label className="life-profile-panel__field" for="lp-gross-primary">
-                <span>Primary Annual Gross (EUR)</span>
-                <input
-                  id="lp-gross-primary"
-                  type="number"
-                  min={0}
-                  step={1000}
-                  value={profile.primaryAnnualGrossEur}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateLifeProfileField("primaryAnnualGrossEur", toGrossSalary(num));
-                    }
-                  }}
+                  options={PLANNING_YEAR_OPTIONS}
+                  onChange={(year) => updateLifeProfileField("planningYear", toFullCalendarYear(year))}
                 />
-              </label>
-              <label className="life-profile-panel__checkbox" for="lp-has-partner">
-                <input
-                  id="lp-has-partner"
-                  type="checkbox"
-                  checked={profile.hasPartner}
-                  onChange={(event) => updateLifeProfileField("hasPartner", event.currentTarget.checked)}
-                />
-                <span>Include Partner Income</span>
-              </label>
+              </div>
+              <NumberField
+                id="lp-gross-primary"
+                label="Your Annual Gross"
+                unit="€"
+                compact
+                min={0}
+                step={1000}
+                value={profile.primaryAnnualGrossEur}
+                onChange={(num) => updateLifeProfileField("primaryAnnualGrossEur", toGrossSalary(num))}
+              />
+              <ToggleSwitch
+                id="lp-has-partner"
+                label="Include partner income"
+                checked={profile.hasPartner}
+                plain
+                onChange={(checked) => updateLifeProfileField("hasPartner", checked)}
+              />
               {profile.hasPartner && (
                 <>
-                  <label className="life-profile-panel__checkbox" for="lp-married-joint">
-                    <input
-                      id="lp-married-joint"
-                      type="checkbox"
-                      checked={profile.isMarriedJointAssessment}
-                      onChange={(event) => updateLifeProfileField("isMarriedJointAssessment", event.currentTarget.checked)}
-                    />
-                    <span>Married / Registered Partners (§ 26 EStG splitting)</span>
-                  </label>
-                  <label className="life-profile-panel__field" for="lp-gross-partner">
-                    <span>Partner Annual Gross (EUR)</span>
-                    <input
-                      id="lp-gross-partner"
-                      type="number"
-                      min={0}
-                      step={1000}
-                      value={profile.partnerAnnualGrossEur}
-                      onInput={(event) => {
-                        const num = Number(event.currentTarget.value);
-                        if (Number.isFinite(num) && num >= 0) {
-                          updateLifeProfileField("partnerAnnualGrossEur", toGrossSalary(num));
-                        }
-                      }}
-                    />
-                  </label>
+                  <ToggleSwitch
+                    id="lp-married-joint"
+                    label="Married joint assessment (§ 26 EStG)"
+                    checked={profile.isMarriedJointAssessment}
+                    plain
+                    onChange={(checked) => updateLifeProfileField("isMarriedJointAssessment", checked)}
+                  />
+                  <NumberField
+                    id="lp-gross-partner"
+                    label="Partner Annual Gross"
+                    unit="€"
+                    compact
+                    min={0}
+                    step={1000}
+                    value={profile.partnerAnnualGrossEur}
+                    onChange={(num) => updateLifeProfileField("partnerAnnualGrossEur", toGrossSalary(num))}
+                  />
                 </>
               )}
-              <label className="life-profile-panel__field" for="lp-children">
-                <span>Dependent Children</span>
-                <input
-                  id="lp-children"
-                  type="number"
-                  min={0}
-                  max={10}
-                  step={1}
-                  value={profile.dependentChildrenCount}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateLifeProfileField("dependentChildrenCount", Math.floor(num));
-                    }
-                  }}
-                />
-              </label>
-              <label className="life-profile-panel__field" for="lp-german">
-                <span>German Language Level (§ 18c PR)</span>
-                <select
-                  id="lp-german"
-                  value={profile.germanLevel}
-                  onChange={(event) => updateLifeProfileField("germanLevel", toGermanLanguageLevel(event.currentTarget.value))}
-                >
-                  <option value={GermanLanguageLevel.NoneOrBasic}>Below A1</option>
-                  <option value={GermanLanguageLevel.A1}>A1 Basic (27 mo PR)</option>
-                  <option value={GermanLanguageLevel.B1Plus}>B1+ Intermediate (21 mo PR)</option>
-                </select>
-              </label>
+              <NumberField
+                id="lp-children"
+                label="Minor Children"
+                compact
+                min={0}
+                max={10}
+                step={1}
+                value={profile.dependentChildrenCount}
+                onChange={(num) => updateLifeProfileField("dependentChildrenCount", Math.floor(num))}
+              />
+              <ChoiceSelect
+                id="lp-german"
+                label="German Language Level"
+                compact
+                value={profile.germanLevel}
+                options={GERMAN_LEVEL_OPTIONS}
+                onChange={(value) => updateLifeProfileField("germanLevel", toGermanLanguageLevel(value))}
+              />
             </div>
 
-            <div className="life-profile-panel__section">
+            <div className="ui-card life-profile-panel__section">
               <div className="life-profile-panel__section-head">
                 <h3>
                   <CompanyCarMobilityIcon size={16} />
                   <span>Company Car</span>
                 </h3>
-                <a className="life-profile-panel__section-link" href={calculatorPath(AppId.CompanyCar)}>
-                  Open calculator
+                <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.CompanyCar)}>
+                  Open
                 </a>
               </div>
-              <label className="life-profile-panel__checkbox" for="lp-has-car">
-                <input
-                  id="lp-has-car"
-                  type="checkbox"
-                  checked={profile.hasCompanyCar}
-                  onChange={(event) => updateLifeProfileField("hasCompanyCar", event.currentTarget.checked)}
-                />
-                <span>Include company car</span>
-              </label>
-              <label className="life-profile-panel__field" for="lp-car-price">
-                <span>List price (EUR)</span>
-                <input
-                  id="lp-car-price"
-                  type="number"
-                  min={5000}
-                  step={1000}
-                  value={profile.companyCarListPriceEur}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 5000) {
-                      updateLifeProfileField("companyCarListPriceEur", toEuroAmount(num));
-                    }
-                  }}
-                />
-              </label>
-              <label className="life-profile-panel__field" for="lp-powertrain">
-                <span>Car type</span>
-                <select
-                  id="lp-powertrain"
+              <ToggleSwitch
+                id="lp-has-car"
+                label="Include company car"
+                checked={profile.hasCompanyCar}
+                plain
+                onChange={(checked) => updateLifeProfileField("hasCompanyCar", checked)}
+              />
+              <NumberField
+                id="lp-car-price"
+                label="List Price"
+                unit="€"
+                compact
+                min={5000}
+                step={1000}
+                value={profile.companyCarListPriceEur}
+                onChange={(num) => updateLifeProfileField("companyCarListPriceEur", toEuroAmount(num))}
+              />
+              <div className="ui-field">
+                <div className="ui-field__top">
+                  <span className="ui-field__label">Car Type</span>
+                </div>
+                <SegmentedControl
+                  label="Company car type"
+                  compact
+                  fullWidth
                   value={profile.companyCarPowertrain}
-                  onChange={(event) => updateLifeProfileField("companyCarPowertrain", toVehiclePowertrain(event.currentTarget.value))}
-                >
-                  <option value={VehiclePowertrain.PureElectricEv}>Electric (0.25% under cap)</option>
-                  <option value={VehiclePowertrain.PlugInHybrid}>Plug-in hybrid (0.50%)</option>
-                  <option value={VehiclePowertrain.CombustionIce}>Petrol / diesel (1.00%)</option>
-                </select>
-              </label>
-              <label className="life-profile-panel__field" for="lp-commute-km">
-                <span>One-Way Commute (km)</span>
-                <input
-                  id="lp-commute-km"
-                  type="number"
-                  min={0}
-                  max={250}
-                  step={1}
-                  value={profile.commuteOneWayKm}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateLifeProfileField("commuteOneWayKm", num);
-                    }
-                  }}
+                  options={CAR_POWERTRAIN_OPTIONS}
+                  onChange={(value) => updateLifeProfileField("companyCarPowertrain", value)}
                 />
-              </label>
+              </div>
+              <NumberField
+                id="lp-commute-km"
+                label="One-Way Commute"
+                unit="km"
+                compact
+                min={0}
+                max={250}
+                step={1}
+                value={profile.commuteOneWayKm}
+                onChange={(num) => updateLifeProfileField("commuteOneWayKm", num)}
+              />
             </div>
 
-            <div className="life-profile-panel__section">
+            <div className="ui-card life-profile-panel__section">
               <div className="life-profile-panel__section-head">
                 <h3>
                   <SolarEnergyIcon size={16} />
                   <span>Solar</span>
                 </h3>
-                <a className="life-profile-panel__section-link" href={calculatorPath(AppId.SolarEnergy)}>
-                  Open calculator
+                <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.SolarEnergy)}>
+                  Open
                 </a>
               </div>
-              <label className="life-profile-panel__checkbox" for="lp-plans-solar">
-                <input
-                  id="lp-plans-solar"
-                  type="checkbox"
-                  checked={profile.plansSolarPv}
-                  onChange={(event) => updateLifeProfileField("plansSolarPv", event.currentTarget.checked)}
-                />
-                <span>Include solar</span>
-              </label>
-              <label className="life-profile-panel__field" for="lp-solar-kwp">
-                <span>System size (kWp)</span>
-                <input
-                  id="lp-solar-kwp"
-                  type="number"
-                  min={0.4}
-                  max={100}
-                  step={0.5}
-                  value={profile.solarCapacityKwp}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0.4) {
-                      updateLifeProfileField("solarCapacityKwp", num);
-                    }
-                  }}
-                />
-              </label>
-              <label className="life-profile-panel__field" for="lp-solar-cost">
-                <span>System Purchase Cost (EUR)</span>
-                <input
-                  id="lp-solar-cost"
-                  type="number"
-                  min={500}
-                  step={500}
-                  value={profile.solarSystemCostNetEur}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateLifeProfileField("solarSystemCostNetEur", toEuroAmount(num));
-                    }
-                  }}
-                />
-              </label>
-              <label className="life-profile-panel__field" for="lp-solar-kwh">
-                <span>Annual Electricity Use (kWh)</span>
-                <input
-                  id="lp-solar-kwh"
-                  type="number"
-                  min={500}
-                  step={250}
-                  value={profile.annualHouseholdElectricityKwh}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateLifeProfileField("annualHouseholdElectricityKwh", num);
-                    }
-                  }}
-                />
-              </label>
+              <ToggleSwitch
+                id="lp-plans-solar"
+                label="Include solar"
+                checked={profile.plansSolarPv}
+                plain
+                onChange={(checked) => updateLifeProfileField("plansSolarPv", checked)}
+              />
+              <NumberField
+                id="lp-solar-kwp"
+                label="System Size"
+                unit="kWp"
+                compact
+                min={0.4}
+                max={100}
+                step={0.5}
+                value={profile.solarCapacityKwp}
+                onChange={(num) => updateLifeProfileField("solarCapacityKwp", num)}
+              />
+              <NumberField
+                id="lp-solar-cost"
+                label="System Cost"
+                unit="€"
+                compact
+                min={500}
+                step={500}
+                value={profile.solarSystemCostNetEur}
+                onChange={(num) => updateLifeProfileField("solarSystemCostNetEur", toEuroAmount(num))}
+              />
+              <NumberField
+                id="lp-solar-kwh"
+                label="Annual Electricity Use"
+                unit="kWh"
+                compact
+                min={500}
+                step={250}
+                value={profile.annualHouseholdElectricityKwh}
+                onChange={(num) => updateLifeProfileField("annualHouseholdElectricityKwh", num)}
+              />
             </div>
 
-            <div className="life-profile-panel__section">
+            <div className="ui-card life-profile-panel__section">
               <div className="life-profile-panel__section-head">
                 <h3>
                   <HomeAcquisitionIcon size={16} />
                   <span>Home Purchase</span>
                 </h3>
-                <a className="life-profile-panel__section-link" href={calculatorPath(AppId.Housing)}>
-                  Open planner
+                <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.Housing)}>
+                  Open
                 </a>
               </div>
-              <label className="life-profile-panel__checkbox" for="lp-plans-home">
-                <input
-                  id="lp-plans-home"
-                  type="checkbox"
-                  checked={profile.plansHomePurchase}
-                  onChange={(event) => updateLifeProfileField("plansHomePurchase", event.currentTarget.checked)}
-                />
-                <span>Include home purchase</span>
-              </label>
-              <label className="life-profile-panel__field" for="lp-state">
-                <span>Federal State</span>
-                <select
-                  id="lp-state"
-                  value={profile.federalState}
-                  onChange={(event) => updateLifeProfileField("federalState", toGermanFederalState(event.currentTarget.value))}
-                >
-                  {Object.entries(GERMAN_FEDERAL_STATE_LABELS).map(([code, label]) => (
-                    <option key={code} value={code}>{label}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="life-profile-panel__field" for="lp-home-price">
-                <span>Target Purchase Price (EUR)</span>
-                <input
-                  id="lp-home-price"
-                  type="number"
-                  min={50000}
-                  step={10000}
-                  value={profile.targetPropertyPriceEur}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 10000) {
-                      updateLifeProfileField("targetPropertyPriceEur", toEuroAmount(num));
-                    }
-                  }}
-                />
-              </label>
-              <label className="life-profile-panel__field" for="lp-equity">
-                <span>Available Equity (EUR)</span>
-                <input
-                  id="lp-equity"
-                  type="number"
-                  min={0}
-                  step={5000}
-                  value={profile.availableEquityEur}
-                  onInput={(event) => {
-                    const num = Number(event.currentTarget.value);
-                    if (Number.isFinite(num) && num >= 0) {
-                      updateLifeProfileField("availableEquityEur", toEuroAmount(num));
-                    }
-                  }}
-                />
-              </label>
+              <ToggleSwitch
+                id="lp-plans-home"
+                label="Include home purchase"
+                checked={profile.plansHomePurchase}
+                plain
+                onChange={(checked) => updateLifeProfileField("plansHomePurchase", checked)}
+              />
+              <ChoiceSelect
+                id="lp-state"
+                label="Federal State"
+                compact
+                value={profile.federalState}
+                options={FEDERAL_STATE_OPTIONS}
+                onChange={(value) => updateLifeProfileField("federalState", toGermanFederalState(value))}
+              />
+              <NumberField
+                id="lp-home-price"
+                label="Target Purchase Price"
+                unit="€"
+                compact
+                min={10000}
+                step={10000}
+                value={profile.targetPropertyPriceEur}
+                onChange={(num) => updateLifeProfileField("targetPropertyPriceEur", toEuroAmount(num))}
+              />
+              <NumberField
+                id="lp-equity"
+                label="Available Equity"
+                unit="€"
+                compact
+                min={0}
+                step={5000}
+                value={profile.availableEquityEur}
+                onChange={(num) => updateLifeProfileField("availableEquityEur", toEuroAmount(num))}
+              />
             </div>
           </div>
 

@@ -21,6 +21,13 @@ import {
 import LifeProfilePanel from "#components/LifeProfilePanel";
 import Navigation from "#components/Navigation";
 import SourceRevision from "#components/SourceRevision";
+import {
+  MetricCard,
+  MetricTone,
+} from "#components/ui/MetricCard";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
   GERMAN_FEDERAL_STATE_LABELS,
@@ -73,67 +80,67 @@ export default function LifeProfileSummaryPage(): JSX.Element {
   return (
     <>
       <Navigation currentPath={lifeProfilePath()} />
-      <main id="main-content" className="life-summary" tabIndex={-1}>
-        <header className="life-summary__hero">
-          <div>
-            <p className="life-summary__eyebrow">Shared Household Profile</p>
-            <h1>Life Profile Summary</h1>
-            <p className="life-summary__lead">
-              Adjust your household, visa, car, solar, and home details once below to compare estimates across all six calculators ({profile.planningYear}, {stateLabel}).
-            </p>
-          </div>
-          <div className="life-summary__hero-badge">
-            <span>Combined Annual Incentives &amp; Tax Upside</span>
-            <strong>{formatEur(overview.combinedAnnualBonusAndSavingsEur)} / yr</strong>
-          </div>
-        </header>
+      <main id="main-content" className="ui-page" tabIndex={-1}>
+        <PageHeader
+          eyebrow="My Life Profile"
+          title="Household Life Overview"
+          subtitle={`Enter your household, car, solar, and housing details once to compare estimates across all six calculators (${profile.planningYear}, ${stateLabel}).`}
+          meta={[
+            {
+              label: "Yearly Incentives & Relief",
+              value: `${formatEur(overview.combinedAnnualBonusAndSavingsEur)} / yr`,
+            },
+            {
+              label: "Applied Scope",
+              value: `${profile.planningYear} · ${stateLabel}`,
+            },
+          ]}
+        />
 
         <section className="life-summary__headline-grid" aria-label="Cross-calculator headline totals">
-          <div className="life-summary__headline-card">
-            <span>Household Monthly Cash Flow</span>
-            <strong>{formatEur(totalMonthlyHouseholdInflow)} / mo</strong>
-            <small>
-              {formatEur(householdPayroll.householdMonthlyNetEur)} net salary + {formatEur(householdTax.annualKindergeldEur / 12)} Kindergeld
-            </small>
-          </div>
-          <div className="life-summary__headline-card">
-            <span>Est. Annual Income Tax (§ 32a)</span>
-            <strong>{formatEur(householdTax.estimatedAnnualIncomeTaxEur)} / yr</strong>
-            <small>
-              ZvE {formatEur(householdTax.estimatedTaxableIncomeZvEEur)} · {householdTax.isKinderfreibetragFavorable ? "Kinderfreibetrag favored" : "Kindergeld favored"}
-            </small>
-          </div>
-          <div className="life-summary__headline-card">
-            <span>Peak Basiselterngeld Rate</span>
-            <strong>
-              {parentalLeave.incomeCapExceeded
-                ? "Capped (€0)"
-                : `${formatEur(parentalLeave.primaryBasiselterngeldMonthlyEur)} / mo`}
-            </strong>
-            <small>
-              {profile.dependentChildrenCount >= 1 && !parentalLeave.incomeCapExceeded
-                ? `+${formatEur(parentalLeave.siblingBonusBasisMonthlyEur)}/mo § 2a sibling bonus if next child`
-                : `§ 1 Abs. 8 BEEG threshold ${formatEur(parentalLeave.coupleIncomeCapEur)}`}
-            </small>
-          </div>
-          <div className="life-summary__headline-card">
-            <span>Referenced Laws &amp; Rules</span>
-            <strong>{overview.governingLawIds.length} Laws · {overview.consumedParameterIds.length} Parameters</strong>
-            <small>Applied across all six calculator estimates</small>
-          </div>
+          <MetricCard
+            label="Monthly Household Cash"
+            value={`${formatEur(totalMonthlyHouseholdInflow)} / mo`}
+            subtitle={`${formatEur(householdPayroll.householdMonthlyNetEur)} net salary + ${formatEur(householdTax.annualKindergeldEur / 12)} Kindergeld`}
+            tone={MetricTone.Primary}
+          />
+          <MetricCard
+            label="Est. Annual Income Tax"
+            value={`${formatEur(householdTax.estimatedAnnualIncomeTaxEur)} / yr`}
+            subtitle={`Taxable base ${formatEur(householdTax.estimatedTaxableIncomeZvEEur)} · ${householdTax.isKinderfreibetragFavorable ? "Tax allowance favored" : "Kindergeld favored"}`}
+          />
+          <MetricCard
+            label="Basiselterngeld Rate"
+            value={
+              parentalLeave.incomeCapExceeded
+                ? "Over cap (€0)"
+                : `${formatEur(parentalLeave.primaryBasiselterngeldMonthlyEur)} / mo`
+            }
+            subtitle={
+              profile.dependentChildrenCount >= 1 && !parentalLeave.incomeCapExceeded
+                ? `+${formatEur(parentalLeave.siblingBonusBasisMonthlyEur)}/mo sibling bonus`
+                : `BEEG income limit ${formatEur(parentalLeave.coupleIncomeCapEur)}`
+            }
+            tone={parentalLeave.incomeCapExceeded ? MetricTone.Loss : MetricTone.Gain}
+          />
+          <MetricCard
+            label="Shared Legal Scope"
+            value={`${overview.governingLawIds.length} Laws · ${overview.consumedParameterIds.length} Rules`}
+            subtitle="Used across all six calculators"
+          />
         </section>
 
         <LifeProfilePanel defaultExpanded showSummaryLink={false} />
 
         <div className="life-summary__section-heading">
-          <h2>Side-by-Side Calculator Projections ({profile.planningYear})</h2>
+          <h2>Side-by-Side Calculator Estimates ({profile.planningYear})</h2>
           <p>
-            Every card reads exclusively from your Unified Life Profile. Open any calculator and click <strong>Sync Life Profile</strong> to refine scenario details.
+            Every card uses your shared profile. Open any calculator and click <strong>Sync Life Profile</strong> to refine scenario details.
           </p>
         </div>
 
         <section className="life-summary__grid" aria-label="Six domain calculator summaries">
-          <article className="life-summary__card">
+          <article className="ui-card life-summary__card">
             <div className="life-summary__card-top">
               <div className="life-summary__card-title">
                 <span className="life-summary__card-icon" aria-hidden="true">
@@ -141,7 +148,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 </span>
                 <div>
                   <h3>Net Pay &amp; Household Tax</h3>
-                  <p className="life-summary__card-subtitle">{householdPayroll.appliedTaxClassLabel} · {profile.planningYear} PAP</p>
+                  <p className="life-summary__card-subtitle">{householdPayroll.appliedTaxClassLabel} · {profile.planningYear} Rules</p>
                 </div>
               </div>
               <span className="life-summary__status life-summary__status--gain">Active</span>
@@ -170,13 +177,13 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <LawRefLink lawId={LawId.EStG_38b} label="§ 38b" variant="badge" />
                 <LawRefLink lawId={LawId.EStG_66} label="§ 66" variant="badge" />
               </div>
-              <a className="life-summary__open" href={calculatorPath(AppId.NetPay)}>
+              <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.NetPay)}>
                 Open Net Pay
               </a>
             </div>
           </article>
 
-          <article className="life-summary__card">
+          <article className="ui-card life-summary__card">
             <div className="life-summary__card-top">
               <div className="life-summary__card-title">
                 <span className="life-summary__card-icon" aria-hidden="true">
@@ -229,13 +236,13 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <LawRefLink lawId={LawId.BEEG_2} label="§ 2 BEEG" variant="badge" />
                 <LawRefLink lawId={LawId.BEEG_2a} label="§ 2a" variant="badge" />
               </div>
-              <a className="life-summary__open" href={calculatorPath(AppId.ParentalLeave)}>
+              <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.ParentalLeave)}>
                 Open Planner
               </a>
             </div>
           </article>
 
-          <article className="life-summary__card">
+          <article className="ui-card life-summary__card">
             <div className="life-summary__card-top">
               <div className="life-summary__card-title">
                 <span className="life-summary__card-icon" aria-hidden="true">
@@ -280,20 +287,20 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <LawRefLink lawId={LawId.AufenthG_18g} label="§ 18g" variant="badge" />
                 <LawRefLink lawId={LawId.AufenthG_18c} label="§ 18c" variant="badge" />
               </div>
-              <a className="life-summary__open" href={calculatorPath(AppId.Visa)}>
+              <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.Visa)}>
                 Open Blue Card
               </a>
             </div>
           </article>
 
-          <article className="life-summary__card">
+          <article className="ui-card life-summary__card">
             <div className="life-summary__card-top">
               <div className="life-summary__card-title">
                 <span className="life-summary__card-icon" aria-hidden="true">
                   <CompanyCarMobilityIcon size={20} />
                 </span>
                 <div>
-                  <h3>Company Car &amp; EV Benefit</h3>
+                  <h3>Company Car Benefit</h3>
                   <p className="life-summary__card-subtitle">§ 6 Abs. 1 Nr. 4 EStG ({profile.commuteOneWayKm} km commute)</p>
                 </div>
               </div>
@@ -307,7 +314,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
             </div>
             <dl className="life-summary__metrics">
               <div>
-                <dt>Monthly Private Use Imputed</dt>
+                <dt>Monthly Private Use</dt>
                 <dd>{profile.hasCompanyCar ? formatEur(companyCar.monthlyPrivateUseBenefit) : "—"}</dd>
               </div>
               <div>
@@ -319,7 +326,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <dd>{profile.hasCompanyCar ? formatEur(companyCar.estimatedAnnualNetCost) : "—"}</dd>
               </div>
               <div>
-                <dt>Annual Tax Savings vs. ICE</dt>
+                <dt>Annual Savings vs. Fuel Car</dt>
                 <dd>{profile.hasCompanyCar ? formatEur(companyCar.annualTaxSavingsVsIce) : "€0"}</dd>
               </div>
             </dl>
@@ -328,20 +335,20 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <LawRefLink lawId={LawId.EStG_6_1_4} label="§ 6 EStG" variant="badge" />
                 <LawRefLink lawId={LawId.EStG_8_2} label="§ 8 Abs. 2" variant="badge" />
               </div>
-              <a className="life-summary__open" href={calculatorPath(AppId.CompanyCar)}>
+              <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.CompanyCar)}>
                 Open Car Calc
               </a>
             </div>
           </article>
 
-          <article className="life-summary__card">
+          <article className="ui-card life-summary__card">
             <div className="life-summary__card-top">
               <div className="life-summary__card-title">
                 <span className="life-summary__card-icon" aria-hidden="true">
                   <SolarEnergyIcon size={20} />
                 </span>
                 <div>
-                  <h3>Rooftop Solar PV Yield</h3>
+                  <h3>Rooftop Solar Savings</h3>
                   <p className="life-summary__card-subtitle">{profile.solarCapacityKwp} kWp · 0% VAT &amp; tax-free</p>
                 </div>
               </div>
@@ -359,15 +366,15 @@ export default function LifeProfileSummaryPage(): JSX.Element {
             </div>
             <dl className="life-summary__metrics">
               <div>
-                <dt>Annual Generation Yield</dt>
+                <dt>Annual Generation</dt>
                 <dd>{profile.plansSolarPv ? `${Math.round(solarEnergy.annualGenerationKwh).toLocaleString("de-DE")} kWh` : "—"}</dd>
               </div>
               <div>
-                <dt>Self-Consumption Savings</dt>
+                <dt>Self-Use Savings</dt>
                 <dd>{profile.plansSolarPv ? `${formatEur(solarEnergy.annualSelfConsumptionSavings)} / yr` : "—"}</dd>
               </div>
               <div>
-                <dt>EEG Feed-In Revenue</dt>
+                <dt>Feed-In Revenue</dt>
                 <dd>{profile.plansSolarPv ? `${formatEur(solarEnergy.annualFeedInRevenue)} / yr` : "—"}</dd>
               </div>
               <div>
@@ -380,21 +387,21 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <LawRefLink lawId={LawId.EEG_48} label="§ 48 EEG" variant="badge" />
                 <LawRefLink lawId={LawId.UStG_12_3} label="0% VAT" variant="badge" />
               </div>
-              <a className="life-summary__open" href={calculatorPath(AppId.SolarEnergy)}>
+              <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.SolarEnergy)}>
                 Open Solar Calc
               </a>
             </div>
           </article>
 
-          <article className="life-summary__card">
+          <article className="ui-card life-summary__card">
             <div className="life-summary__card-top">
               <div className="life-summary__card-title">
                 <span className="life-summary__card-icon" aria-hidden="true">
                   <HomeAcquisitionIcon size={20} />
                 </span>
                 <div>
-                  <h3>Housing &amp; KfW 300</h3>
-                  <p className="life-summary__card-subtitle">{stateLabel} · {formatPercent(housing.transferTaxRate)} GrESt</p>
+                  <h3>Home Purchase &amp; KfW 300</h3>
+                  <p className="life-summary__card-subtitle">{stateLabel} · {formatPercent(housing.transferTaxRate)} transfer tax</p>
                 </div>
               </div>
               <span
@@ -415,7 +422,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
             </div>
             <dl className="life-summary__metrics">
               <div>
-                <dt>Closing Acquisition Costs</dt>
+                <dt>Total Buying Costs</dt>
                 <dd>{profile.plansHomePurchase ? formatEur(housing.totalClosingCostsEur) : "—"}</dd>
               </div>
               <div>
@@ -427,7 +434,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <dd>{profile.plansHomePurchase ? formatEur(housing.kfw300MaxSubsidizedLoanEur) : "—"}</dd>
               </div>
               <div>
-                <dt>§ 35a Craft Tax Credit</dt>
+                <dt>§ 35a Craft Credit</dt>
                 <dd>{profile.plansHomePurchase ? `${formatEur(housing.craftsmanTaxCreditEur)} / yr` : "€0"}</dd>
               </div>
             </dl>
@@ -437,14 +444,14 @@ export default function LifeProfileSummaryPage(): JSX.Element {
                 <LawRefLink lawId={LawId.GrEStG_11} label="GrEStG" variant="badge" />
                 <LawRefLink lawId={LawId.EStG_35a} label="§ 35a" variant="badge" />
               </div>
-              <a className="life-summary__open" href={calculatorPath(AppId.Housing)}>
+              <a className="ui-btn ui-btn--sm ui-btn--tint" href={calculatorPath(AppId.Housing)}>
                 Open Housing Calc
               </a>
             </div>
           </article>
         </section>
 
-        <section className="life-summary__provenance" aria-label="Laws referenced">
+        <section className="ui-card life-summary__provenance" aria-label="Laws referenced">
           <h2>Laws Used ({overview.governingLawIds.length})</h2>
           <p>
             Click any law for a quick summary, or Ctrl+Click to open its full page.
@@ -460,7 +467,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
         </section>
       </main>
       <footer className="life-summary__footer">
-        <p>Unified Life Profile calculations stay strictly in your browser under your selected storage mode.</p>
+        <p>Shared profile estimates stay strictly in your browser under your selected storage mode.</p>
         <SourceRevision />
       </footer>
     </>
