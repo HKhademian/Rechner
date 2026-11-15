@@ -1,14 +1,34 @@
 import {
+  batch,
+} from "@preact/signals";
+import {
   AppId,
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import "./ElterngeldDashboard.css";
 import {
   currentScenarioData,
+  setExistingChildrenCount,
+  setHusbandGrossYearly,
+  setWifeGrossYearly,
+  startCalendarYear,
+  updateChildcarePlan,
 } from "#store/elterngeldStore";
+import {
+  unifiedLifeProfile,
+} from "#store/lifeProfileStore";
+import {
+  FederalStateKitaPresetId,
+} from "#engine/types";
+import {
+  GermanFederalState,
+} from "#engine/formulas/pure/housingFormulas";
 import type {
-  JSX, 
+  JSX,
 } from "preact";
+import {
+  SyncProfileActionIcon,
+} from "#components/Icons";
 import AnnualTaxableIncome from "#components/elterngeld/AnnualTaxableIncome";
 import KpiScorecard from "#components/elterngeld/KpiScorecard";
 import ScenarioSelector from "#components/elterngeld/ScenarioSelector";
@@ -25,6 +45,34 @@ import SourceRevision from "#components/SourceRevision";
 import {
   FormProjectionProfileId,
 } from "#engine/parameters/projections";
+
+function mapStateToKitaPreset(federalState: GermanFederalState): FederalStateKitaPresetId {
+  switch (federalState) {
+    case GermanFederalState.Berlin:
+      return FederalStateKitaPresetId.Berlin;
+    case GermanFederalState.NordrheinWestfalen:
+      return FederalStateKitaPresetId.NrwDuesseldorf;
+    case GermanFederalState.Bayern:
+      return FederalStateKitaPresetId.BavariaMunich;
+    case GermanFederalState.BadenWuerttemberg:
+      return FederalStateKitaPresetId.BwStuttgart;
+    case GermanFederalState.Hamburg:
+      return FederalStateKitaPresetId.Hamburg;
+    default:
+      return FederalStateKitaPresetId.Custom;
+  }
+}
+
+function syncParentalLeaveFromLifeProfile(): void {
+  const lp = unifiedLifeProfile.value;
+  batch(() => {
+    startCalendarYear.value = lp.planningYear;
+    setHusbandGrossYearly(lp.primaryAnnualGrossEur);
+    setWifeGrossYearly(lp.hasPartner ? lp.partnerAnnualGrossEur : 0);
+    setExistingChildrenCount(lp.dependentChildrenCount);
+    updateChildcarePlan({ presetId: mapStateToKitaPreset(lp.federalState) });
+  });
+}
 
 export default function ElterngeldDashboard(): JSX.Element {
   const months = currentScenarioData.value.months;
@@ -57,6 +105,15 @@ export default function ElterngeldDashboard(): JSX.Element {
             <p className="simulator-header__eyebrow">Household planning · BEEG / MuSchG / EStG</p>
             <h1>Parental leave planner</h1>
             <p className="simulator-header__description">Start with your household and planned leave below, then compare the calculated results.</p>
+            <button
+              type="button"
+              className="simulator-header__sync"
+              onClick={syncParentalLeaveFromLifeProfile}
+              title="Populate annual gross salaries, partner income, existing children, start year, and regional Kita preset from the Unified Life Profile"
+            >
+              <SyncProfileActionIcon size={14} />
+              <span>Sync Life Profile</span>
+            </button>
           </div>
           <dl className="simulator-header__period" aria-label="Planning period">
             <div>
