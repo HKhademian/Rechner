@@ -5,14 +5,17 @@ import {
 import type {
   ComponentChildren,
   JSX,
+  RefObject,
 } from "preact";
 
 export type TextFieldType = "text" | "search" | "email" | "url";
 
 export interface TextFieldProps {
   readonly id?: string;
+  readonly inputRef?: RefObject<HTMLInputElement>;
   readonly label?: string;
   readonly ariaLabel?: string;
+  readonly ariaControls?: string;
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly type?: TextFieldType;
@@ -35,8 +38,10 @@ export interface TextFieldProps {
 /** Canonical text and search input wrapper matching NumberField sizing, validation states, and tokens. */
 export function TextField({
   id,
+  inputRef,
   label,
   ariaLabel,
+  ariaControls,
   value,
   onChange,
   type = "text",
@@ -97,6 +102,7 @@ export function TextField({
           </span>
         )}
         <input
+          ref={inputRef}
           id={inputId}
           type={type}
           className="ui-text-box__input"
@@ -108,6 +114,7 @@ export function TextField({
           autoComplete={autoComplete}
           inputMode={inputMode}
           aria-label={ariaLabel ?? label}
+          aria-controls={ariaControls}
           aria-invalid={error ? "true" : undefined}
           aria-describedby={describedBy}
           onInput={(event) => onChange(event.currentTarget.value)}

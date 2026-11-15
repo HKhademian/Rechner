@@ -396,7 +396,7 @@ export default function RulesExplainer(): JSX.Element {
                       background: isSelected
                         ? "var(--color-primary)"
                         : "var(--bg-surface-secondary)",
-                      color: isSelected ? "#ffffff" : "var(--text-muted)",
+                      color: isSelected ? "var(--text-inverse)" : "var(--text-muted)",
                       border: "1px solid var(--border-subtle)",
                       fontFamily: "monospace",
                       whiteSpace: "nowrap",

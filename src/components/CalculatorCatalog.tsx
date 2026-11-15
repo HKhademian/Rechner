@@ -23,8 +23,6 @@ import {
   catalogPage,
   CATALOG_PAGE_SIZE,
 } from "#/apps/registry.ts";
-import Navigation from "#components/Navigation";
-import SourceRevision from "#components/SourceRevision";
 import {
   CalculatorNavigationIcon,
   CompanyCarMobilityIcon,
@@ -35,8 +33,14 @@ import {
   VisaResidenceIcon,
 } from "#components/Icons";
 import {
+  AppShell,
+} from "#components/ui/AppShell";
+import {
   PageHeader,
 } from "#components/ui/PageHeader";
+import {
+  TextField,
+} from "#components/ui/TextField";
 import {
   SegmentedControl,
 } from "#components/ui/SegmentedControl";
@@ -135,9 +139,8 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
     update("", undefined, 1);
     search.current?.focus();
   };
-  return <>
-    <Navigation currentPath="/" />
-    <main id="main-content" className="ui-page calculator-catalog" tabIndex={-1}>
+  return (
+    <AppShell currentPath="/" mainClassName="calculator-catalog">
       <PageHeader
         eyebrow="Rechner"
         title="German finance and tax calculators"
@@ -153,10 +156,17 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
       />
 
       <form className="ui-card calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
-        <label for="calculator-search">Find a calculator
-          <input ref={search} id="calculator-search" type="search" placeholder="Salary, Netto, Elterngeld, GiroCode" value={query.value} aria-controls="calculator-results"
-            onInput={(event) => update(event.currentTarget.value, category.value, 1, true)} />
-        </label>
+        <TextField
+          id="calculator-search"
+          inputRef={search}
+          type="search"
+          label="Find a calculator"
+          placeholder="Salary, Netto, Elterngeld, GiroCode"
+          ariaControls="calculator-results"
+          className="calculator-catalog__search-field"
+          value={query.value}
+          onChange={(nextValue) => update(nextValue, category.value, 1, true)}
+        />
         <div className="calculator-catalog__category-filter">
           <span>Category</span>
           <SegmentedControl
@@ -195,9 +205,6 @@ export default function CalculatorCatalog({ apps = calculatorApps, pageSize = CA
           <button type="button" className="ui-btn" disabled={page.page === page.pages} onClick={() => changePage(page.page + 1)}>Next</button>
         </nav>}
       </section>
-    </main>
-    <footer className="calculator-catalog__footer">
-      <SourceRevision />
-    </footer>
-  </>;
+    </AppShell>
+  );
 }

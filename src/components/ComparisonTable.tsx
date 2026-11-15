@@ -1421,7 +1421,7 @@ export function ComparisonTableContent(): JSX.Element {
                               disabled={hasInvalidSaved(scenario.id) || !hasUnsavedScenarioChanges.value}
                               style={{
                                 background: "var(--color-primary)",
-                                color: "white",
+                                color: "var(--text-inverse)",
                                 border: "none",
                                 padding: "6px 8px",
                                 borderRadius: "4px",

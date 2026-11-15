@@ -198,15 +198,15 @@ export default function TimelineChart(): JSX.Element {
   const scaleY = (val: number): number =>
     plotHeight - (val / yMax) * plotHeight;
 
-  // Colors (Institutional Professional Palette)
+  // Colors bound to institutional CSS tokens for full light/dark and palette support
   const colors = {
-    husbandSalary: "#1e3a8a", // Deep Navy Blue
-    wifeSalary: "#4338ca", // Indigo
-    mutterschutz: "#0284c7", // Sky Blue
-    wifeElterngeld: "#059669", // Forest Green
-    husbandElterngeld: "#0d9488", // Teal
-    kindergeld: "#d97706", // Amber
-    taxRefund: "#0891b2", // Cyan
+    husbandSalary: "var(--series-salary-husband)",
+    wifeSalary: "var(--series-salary-wife)",
+    mutterschutz: "var(--series-mutterschutz)",
+    wifeElterngeld: "var(--series-elterngeld-mother)",
+    husbandElterngeld: "var(--series-elterngeld-father)",
+    kindergeld: "var(--series-kindergeld)",
+    taxRefund: "var(--series-tax-refund)",
   };
 
   const seriesMeta: {
@@ -507,7 +507,7 @@ export default function TimelineChart(): JSX.Element {
                     padding: "0 4px",
                     borderRadius: "2px",
                     background: isVisible ? s.color : "var(--border-medium)",
-                    color: "#ffffff",
+                    color: "var(--text-inverse)",
                     fontWeight: 700,
                   }}
                 >
@@ -569,7 +569,7 @@ export default function TimelineChart(): JSX.Element {
                   y1={y}
                   x2={svgWidth - margin.right}
                   y2={y}
-                  stroke="rgba(148, 163, 184, 0.25)"
+                  stroke="var(--chart-grid-stroke)"
                   strokeDasharray="4 4"
                 />
                 <text
@@ -672,7 +672,7 @@ export default function TimelineChart(): JSX.Element {
                       y={margin.top}
                       width={barSlotWidth}
                       height={plotHeight}
-                      fill="rgba(59, 130, 246, 0.08)"
+                      fill="var(--chart-hover-fill)"
                       rx="2"
                     />
                   )}

@@ -2003,7 +2003,7 @@ export default function SandboxControls(): JSX.Element {
                     <div
                       style={{
                         background: "var(--bg-surface)",
-                        border: "1px solid rgba(16, 185, 129, 0.25)",
+                        border: "1px solid var(--color-gain-border)",
                         borderRadius: "5px",
                         padding: "6px 8px",
                         marginBottom: "6px",
@@ -2079,7 +2079,7 @@ export default function SandboxControls(): JSX.Element {
                     <div
                       style={{
                         background: "var(--bg-surface)",
-                        border: "1px solid rgba(245, 158, 11, 0.25)",
+                        border: "1px solid var(--color-warning-border)",
                         borderRadius: "5px",
                         padding: "6px 8px",
                         marginBottom: "6px",
@@ -2860,7 +2860,7 @@ export default function SandboxControls(): JSX.Element {
                       style={{
                         fontSize: "0.76rem",
                         fontWeight: 800,
-                        color: "var(--series-indigo)",
+                        color: "var(--series-salary-wife)",
                         marginBottom: "6px",
                         display: "flex",
                         alignItems: "center",
@@ -3015,7 +3015,7 @@ export default function SandboxControls(): JSX.Element {
                                   borderRadius: "3px",
                                   border:
                                     wifeBonusPreset.value === preset.val
-                                      ? "1px solid var(--series-indigo)"
+                                      ? "1px solid var(--series-salary-wife)"
                                       : "1px solid var(--border-subtle)",
                                   background:
                                     wifeBonusPreset.value === preset.val
@@ -3023,7 +3023,7 @@ export default function SandboxControls(): JSX.Element {
                                       : "transparent",
                                   color:
                                     wifeBonusPreset.value === preset.val
-                                      ? "var(--series-indigo)"
+                                      ? "var(--series-salary-wife)"
                                       : "var(--text-secondary)",
                                   cursor: "pointer",
                                   fontWeight: 600,
@@ -3086,7 +3086,7 @@ export default function SandboxControls(): JSX.Element {
                                   borderRadius: "3px",
                                   border:
                                     wifeBonusPreset.value === preset.val
-                                      ? "1px solid var(--series-indigo)"
+                                      ? "1px solid var(--series-salary-wife)"
                                       : "1px solid var(--border-subtle)",
                                   background:
                                     wifeBonusPreset.value === preset.val
@@ -3094,7 +3094,7 @@ export default function SandboxControls(): JSX.Element {
                                       : "transparent",
                                   color:
                                     wifeBonusPreset.value === preset.val
-                                      ? "var(--series-indigo)"
+                                      ? "var(--series-salary-wife)"
                                       : "var(--text-secondary)",
                                   cursor: "pointer",
                                   fontWeight: 600,
@@ -3157,7 +3157,7 @@ export default function SandboxControls(): JSX.Element {
                                   borderRadius: "3px",
                                   border:
                                     wifeBonusPreset.value === preset.val
-                                      ? "1px solid var(--series-indigo)"
+                                      ? "1px solid var(--series-salary-wife)"
                                       : "1px solid var(--border-subtle)",
                                   background:
                                     wifeBonusPreset.value === preset.val
@@ -3165,7 +3165,7 @@ export default function SandboxControls(): JSX.Element {
                                       : "transparent",
                                   color:
                                     wifeBonusPreset.value === preset.val
-                                      ? "var(--series-indigo)"
+                                      ? "var(--series-salary-wife)"
                                       : "var(--text-secondary)",
                                   cursor: "pointer",
                                   fontWeight: 600,
@@ -3272,9 +3272,9 @@ export default function SandboxControls(): JSX.Element {
                         padding: "12px 14px",
                         borderRadius: "var(--border-radius-sm)",
                         border: isWife
-                          ? "1px solid rgba(6, 182, 212, 0.4)"
+                          ? "1px solid var(--series-mutterschutz)"
                           : isHusband
-                            ? "1px solid rgba(59, 130, 246, 0.4)"
+                            ? "1px solid var(--color-primary-border)"
                             : "1px solid var(--border-subtle)",
                         display: "flex",
                         flexDirection: "column",
@@ -3297,10 +3297,10 @@ export default function SandboxControls(): JSX.Element {
                               fontSize: "0.78rem",
                               fontWeight: 800,
                               color: isWife
-                                ? "var(--series-cyan)"
+                                ? "var(--series-mutterschutz)"
                                 : isHusband
                                   ? "var(--color-primary)"
-                                  : "var(--series-indigo)",
+                                  : "var(--series-salary-wife)",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "5px",
@@ -3899,7 +3899,7 @@ export default function SandboxControls(): JSX.Element {
                       style={{
                         fontSize: "0.76rem",
                         fontWeight: 800,
-                        color: "var(--series-emerald)",
+                        color: "var(--series-elterngeld-mother)",
                         marginBottom: "6px",
                         display: "flex",
                         alignItems: "center",
@@ -4397,7 +4397,7 @@ export default function SandboxControls(): JSX.Element {
                                 : "var(--bg-surface)",
                             color:
                               simulationDurationMonths.value === dur
-                                ? "#ffffff"
+                                ? "var(--text-inverse)"
                                 : "var(--text-secondary)",
                             fontSize: "0.68rem",
                             fontWeight: 700,
@@ -4708,7 +4708,7 @@ export default function SandboxControls(): JSX.Element {
                         <div
                           style={{
                             fontWeight: 700,
-                            color: "var(--series-indigo)",
+                            color: "var(--series-salary-wife)",
                             marginBottom: "2px",
                           }}
                         >

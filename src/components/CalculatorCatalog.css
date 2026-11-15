@@ -5,29 +5,8 @@
   gap: 16px;
 }
 
-.calculator-catalog__filters label {
-  display: grid;
-  gap: 8px;
-  flex: 1 1 200px;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-
-.calculator-catalog__filters label:first-child {
-  flex: 2 1 420px;
-}
-
-.calculator-catalog input {
-  box-sizing: border-box;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-medium);
-  border-radius: var(--border-radius-sm);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font: inherit;
-  width: 100%;
+.calculator-catalog__search-field {
+  flex: 2 1 360px;
   min-width: 0;
 }
 

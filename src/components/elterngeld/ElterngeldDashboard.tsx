@@ -38,9 +38,10 @@ import TimelineTable from "#components/elterngeld/TimelineTable";
 import {
   DataExportImportModal,
 } from "#components/elterngeld/DataExportImportModal";
-import Navigation from "#components/Navigation";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import SourceRevision from "#components/SourceRevision";
+import {
+  AppShell,
+} from "#components/ui/AppShell";
 import {
   PageHeader,
 } from "#components/ui/PageHeader";
@@ -79,82 +80,66 @@ function syncParentalLeaveFromLifeProfile(): void {
 export default function ElterngeldDashboard(): JSX.Element {
   const months = currentScenarioData.value.months;
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "var(--bg-app)",
-        color: "var(--text-primary)",
-        transition: "var(--transition)",
-      }}
+    <AppShell
+      currentPath={calculatorPath(AppId.ParentalLeave)}
+      wide
+      footerNote="Calculated locally in your browser · No data transmitted"
     >
-      {/* Global Top Navigation */}
-      <Navigation currentPath={calculatorPath(AppId.ParentalLeave)} />
+      <PageHeader
+        eyebrow="Parental Leave · BEEG & EStG"
+        title="Parental Leave Planner"
+        subtitle="Start with your household and planned leave below, then compare the calculated results."
+        actions={
+          <button
+            type="button"
+            className="ui-btn ui-btn--tint"
+            onClick={syncParentalLeaveFromLifeProfile}
+            title="Populate annual gross salaries, partner income, existing children, start year, and regional Kita preset from the Unified Life Profile"
+          >
+            <SyncProfileActionIcon size={14} />
+            <span>Sync Life Profile</span>
+          </button>
+        }
+        metaLabel="Planning period"
+        meta={[
+          {
+            label: "Forecast period",
+            value: `${months[0]?.calendarLabel ?? ""} – ${months.at(-1)?.calendarLabel ?? ""}`,
+          },
+          {
+            label: "Duration",
+            value: `${months.length} months`,
+          },
+        ]}
+      />
 
-      {/* Main Content Area */}
-      <main id="main-content" className="ui-page ui-page--wide" tabIndex={-1} style={{ flex: 1 }}>
-        <PageHeader
-          eyebrow="Parental Leave · BEEG & EStG"
-          title="Parental Leave Planner"
-          subtitle="Start with your household and planned leave below, then compare the calculated results."
-          actions={
-            <button
-              type="button"
-              className="ui-btn ui-btn--tint"
-              onClick={syncParentalLeaveFromLifeProfile}
-              title="Populate annual gross salaries, partner income, existing children, start year, and regional Kita preset from the Unified Life Profile"
-            >
-              <SyncProfileActionIcon size={14} />
-              <span>Sync Life Profile</span>
-            </button>
-          }
-          metaLabel="Planning period"
-          meta={[
-            {
-              label: "Forecast period",
-              value: `${months[0]?.calendarLabel ?? ""} – ${months.at(-1)?.calendarLabel ?? ""}`,
-            },
-            {
-              label: "Duration",
-              value: `${months.length} months`,
-            },
-          ]}
-        />
+      {/* Set up the plan before choosing which calculated results to review. */}
+      <SandboxControls />
 
-        {/* Set up the plan before choosing which calculated results to review. */}
-        <SandboxControls />
+      <ScenarioSelector />
 
-        <ScenarioSelector />
+      {/* Dynamic KPI Scorecard */}
+      <KpiScorecard />
 
-        {/* Dynamic KPI Scorecard */}
-        <KpiScorecard />
+      <AnnualTaxableIncome result={currentScenarioData.value} />
 
-        <AnnualTaxableIncome result={currentScenarioData.value} />
+      {/* Full 60-Month Cash Flow Table & Audit */}
+      <TimelineTable />
 
-        {/* Full 60-Month Cash Flow Table & Audit */}
-        <TimelineTable />
+      {/* Interactive 60-Month Stacked Timeline Chart */}
+      <TimelineChart />
 
-        {/* Interactive 60-Month Stacked Timeline Chart */}
-        <TimelineChart />
+      {/* Unified Law-Linked Parameter Value Storage Observer & Editor */}
+      <ParameterObserverSection
+        embedded
+        projectionProfile={FormProjectionProfileId.ParentalLeaveFocus}
+      />
 
-        {/* Unified Law-Linked Parameter Value Storage Observer & Editor */}
-        <ParameterObserverSection
-          embedded
-          projectionProfile={FormProjectionProfileId.ParentalLeaveFocus}
-        />
+      {/* German Law Rules, Statutory Framework & Legal Precedents */}
+      <RulesExplainer />
 
-        {/* German Law Rules, Statutory Framework & Legal Precedents */}
-        <RulesExplainer />
-
-        {/* Data Export / Import Modal Dialog */}
-        <DataExportImportModal />
-      </main>
-
-      {/* Footer */}
-      <footer className="source-revision-footer">
-        <SourceRevision note="Calculated locally in your browser · No data transmitted" />
-      </footer>
-    </div>
+      {/* Data Export / Import Modal Dialog */}
+      <DataExportImportModal />
+    </AppShell>
   );
 }

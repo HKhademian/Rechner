@@ -154,7 +154,7 @@ export function DataExportImportModal() {
         left: 0,
         right: 0,
         bottom: 0,
-        background: "rgba(15, 23, 42, 0.75)",
+        background: "var(--bg-backdrop)",
         backdropFilter: "blur(6px)",
         WebkitBackdropFilter: "blur(6px)",
         zIndex: 9999,
@@ -431,7 +431,7 @@ export function DataExportImportModal() {
                       borderRadius: "6px",
                       border: "none",
                       background: "var(--color-primary)",
-                      color: "#ffffff",
+                      color: "var(--text-inverse)",
                       fontSize: "0.78rem",
                       fontWeight: 700,
                       cursor: "pointer",
@@ -476,7 +476,7 @@ export function DataExportImportModal() {
                           gap: "8px",
                         }}
                       >
-                        <div style={{ color: "var(--color-success)" }}>
+                        <div style={{ color: "var(--color-gain)" }}>
                           <JsonExportIcon size={20} />
                         </div>
                         <strong
@@ -525,8 +525,8 @@ export function DataExportImportModal() {
                         padding: "8px 12px",
                         borderRadius: "6px",
                         border: "none",
-                        background: "var(--color-success)",
-                        color: "#ffffff",
+                        background: "var(--color-gain)",
+                        color: "var(--text-inverse)",
                         fontSize: "0.78rem",
                         fontWeight: 700,
                         cursor: "pointer",
@@ -597,7 +597,7 @@ export function DataExportImportModal() {
                           gap: "8px",
                         }}
                       >
-                        <div style={{ color: "var(--series-sky)" }}>
+                        <div style={{ color: "var(--series-mutterschutz)" }}>
                           <TextReportIcon size={20} />
                         </div>
                         <strong
@@ -1249,7 +1249,7 @@ export function DataExportImportModal() {
                       borderRadius: "6px",
                       border: "none",
                       background: "var(--color-gain)",
-                      color: "#ffffff",
+                      color: "var(--text-inverse)",
                       fontSize: "0.82rem",
                       fontWeight: 800,
                       cursor: "pointer",

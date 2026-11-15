@@ -16,9 +16,12 @@ import {
   SimulationPeriodIcon,
   SpecialEventTriggerIcon,
   FinancialInflowIcon,
-  DismissIcon,
   StepTransitionIcon,
 } from "#components/Icons";
+import {
+  ModalDialog,
+  ModalDialogSize,
+} from "#components/ui/ModalDialog";
 
 /**
  * Row Explanation Modal Component Properties.
@@ -42,140 +45,72 @@ export default function RowExplainerModal({
   const isAction = explanation.rowType === ExplainerRowType.Action;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(15, 23, 42, 0.65)",
-        backdropFilter: "blur(4px)",
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-      onClick={onClose}
+    <ModalDialog
+      open
+      onClose={onClose}
+      eyebrow={(
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <span
+            className={
+              isMonth
+                ? "badge-brand"
+                : isAction
+                  ? "badge-warning"
+                  : "badge-gain"
+            }
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+            }}
+          >
+            {isMonth ? (
+              <>
+                <SimulationPeriodIcon size={12} />
+                <span>Monthly Audit</span>
+              </>
+            ) : isAction ? (
+              <>
+                <SpecialEventTriggerIcon size={12} />
+                <span>Lifecycle Action</span>
+              </>
+            ) : (
+              <>
+                <FinancialInflowIcon size={12} />
+                <span>Fiscal Event</span>
+              </>
+            )}
+          </span>
+          <span
+            style={{
+              fontSize: "0.74rem",
+              color: "var(--text-muted)",
+              fontWeight: 600,
+              textTransform: "none",
+              letterSpacing: "normal",
+            }}
+          >
+            {explanation.phaseOrCategory}
+          </span>
+        </span>
+      )}
+      title={explanation.title}
+      subtitle={explanation.subtitle}
+      size={ModalDialogSize.Medium}
     >
       <div
         style={{
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--border-radius-lg)",
-          padding: "24px",
-          maxWidth: "680px",
-          width: "100%",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "var(--shadow-lg)",
           display: "flex",
           flexDirection: "column",
           gap: "16px",
-          animation: "fadeIn 0.15s ease-out",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            borderBottom: "1px solid var(--border-subtle)",
-            paddingBottom: "12px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <span
-                className={
-                  isMonth
-                    ? "badge-brand"
-                    : isAction
-                      ? "badge-warning"
-                      : "badge-gain"
-                }
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}
-              >
-                {isMonth ? (
-                  <>
-                    <SimulationPeriodIcon size={12} />
-                    <span>Monthly Audit</span>
-                  </>
-                ) : isAction ? (
-                  <>
-                    <SpecialEventTriggerIcon size={12} />
-                    <span>Lifecycle Action</span>
-                  </>
-                ) : (
-                  <>
-                    <FinancialInflowIcon size={12} />
-                    <span>Fiscal Event</span>
-                  </>
-                )}
-              </span>
-              <span
-                style={{
-                  fontSize: "0.74rem",
-                  color: "var(--text-muted)",
-                  fontWeight: 600,
-                }}
-              >
-                {explanation.phaseOrCategory}
-              </span>
-            </div>
-            <h3
-              style={{
-                margin: "6px 0 2px 0",
-                fontSize: "1.25rem",
-                color: "var(--text-primary)",
-                fontWeight: 800,
-              }}
-            >
-              {explanation.title}
-            </h3>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                color: "var(--text-secondary)",
-              }}
-            >
-              {explanation.subtitle}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: "var(--bg-surface-secondary)",
-              border: "1px solid var(--border-subtle)",
-              color: "var(--text-muted)",
-              borderRadius: "var(--border-radius-sm)",
-              width: "28px",
-              height: "28px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-              fontWeight: 700,
-            }}
-          >
-            <DismissIcon size={14} />
-          </button>
-        </div>
 
         {/* Summary Description */}
         <div
@@ -339,6 +274,6 @@ export default function RowExplainerModal({
           </div>
         )}
       </div>
-    </div>
+    </ModalDialog>
   );
 }

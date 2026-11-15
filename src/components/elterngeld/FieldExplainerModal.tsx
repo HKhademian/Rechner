@@ -10,9 +10,12 @@ import {
   activeLegalRuleKey,
 } from "#store/elterngeldStore";
 import {
-  DismissIcon,
   StepTransitionIcon,
 } from "#components/Icons";
+import {
+  ModalDialog,
+  ModalDialogSize,
+} from "#components/ui/ModalDialog";
 
 /**
  * Field-Level Drill-Down Explanation Modal Component Properties.
@@ -33,95 +36,20 @@ export default function FieldExplainerModal({
   }
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(15, 23, 42, 0.65)",
-        backdropFilter: "blur(4px)",
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-      onClick={onClose}
+    <ModalDialog
+      open
+      onClose={onClose}
+      eyebrow="Field Calculation & Statutory Audit"
+      title={explanation.fieldTitle}
+      size={ModalDialogSize.Medium}
     >
       <div
         style={{
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--border-radius-lg)",
-          padding: "24px",
-          maxWidth: "620px",
-          width: "100%",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "var(--shadow-lg)",
           display: "flex",
           flexDirection: "column",
           gap: "16px",
-          animation: "fadeIn 0.15s ease-out",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            borderBottom: "1px solid var(--border-subtle)",
-            paddingBottom: "12px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "0.74rem",
-                fontWeight: 700,
-                color: "var(--color-primary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Field Calculation &amp; Statutory Audit
-            </div>
-            <h3
-              style={{
-                margin: "4px 0 0 0",
-                fontSize: "1.2rem",
-                color: "var(--text-primary)",
-                fontWeight: 800,
-              }}
-            >
-              {explanation.fieldTitle}
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: "var(--bg-surface-secondary)",
-              border: "1px solid var(--border-subtle)",
-              color: "var(--text-muted)",
-              borderRadius: "var(--border-radius-sm)",
-              width: "28px",
-              height: "28px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-              fontWeight: 700,
-            }}
-          >
-            <DismissIcon size={14} />
-          </button>
-        </div>
 
         {/* Formatted Value & Variance */}
         <div
@@ -397,6 +325,6 @@ export default function FieldExplainerModal({
           </div>
         )}
       </div>
-    </div>
+    </ModalDialog>
   );
 }

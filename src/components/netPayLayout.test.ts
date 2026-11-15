@@ -61,21 +61,21 @@ describe("Unified Net Pay Comparison Layout", () => {
     const { sourceText, sourceFile } = parseTsx("src/components/Calculator.tsx");
     assert.equal(sourceText.includes("NetPayWorkspace"), false);
 
-    let mainElement: ts.JsxElement | undefined;
-    const findMain = (node: ts.Node): void => {
+    let appShellElement: ts.JsxElement | undefined;
+    const findAppShell = (node: ts.Node): void => {
       if (
         ts.isJsxElement(node) &&
-        getJsxTagName(node.openingElement) === "main"
+        getJsxTagName(node.openingElement) === "AppShell"
       ) {
-        mainElement = node;
+        appShellElement = node;
         return;
       }
-      ts.forEachChild(node, findMain);
+      ts.forEachChild(node, findAppShell);
     };
-    findMain(sourceFile);
+    findAppShell(sourceFile);
 
-    assert.ok(mainElement, "Calculator.tsx must render a <main> container");
-    const mainChildTags = mainElement.children
+    assert.ok(appShellElement, "Calculator.tsx must render an <AppShell> container");
+    const mainChildTags = appShellElement.children
       .map((child) => {
         if (ts.isJsxElement(child)) {
           return getJsxTagName(child.openingElement);
@@ -89,7 +89,7 @@ describe("Unified Net Pay Comparison Layout", () => {
 
     const headerIndex = mainChildTags.indexOf("PageHeader");
     const comparisonIndex = mainChildTags.indexOf("ComparisonTable");
-    assert.notEqual(headerIndex, -1, "Calculator.tsx must render PageHeader inside <main>");
+    assert.notEqual(headerIndex, -1, "Calculator.tsx must render PageHeader inside <AppShell>");
     assert.equal(
       comparisonIndex,
       headerIndex + 1,

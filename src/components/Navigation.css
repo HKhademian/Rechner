@@ -199,7 +199,7 @@
 }
 
 .calculator-navigation__tools summary:hover {
-  background: var(--bg-hover);
+  background: var(--bg-surface-secondary);
   color: var(--text-primary);
 }
 
@@ -251,7 +251,7 @@ a.calculator-navigation__tool-item {
 }
 
 a.calculator-navigation__tool-item:hover {
-  background: var(--bg-hover);
+  background: var(--bg-surface-secondary);
 }
 
 a.calculator-navigation__tool-item[aria-current="page"] {
@@ -361,7 +361,7 @@ a.calculator-navigation__tool-item[aria-current="page"] {
 .theme-switcher summary:hover {
   border-color: var(--color-primary);
   color: var(--text-primary);
-  background: var(--bg-hover);
+  background: var(--bg-surface-secondary);
 }
 
 .theme-switcher summary:focus-visible,
@@ -451,7 +451,7 @@ a.calculator-navigation__tool-item[aria-current="page"] {
 }
 
 .theme-switcher__palette-btn:hover {
-  background: var(--bg-hover);
+  background: var(--bg-surface-secondary);
 }
 
 .theme-switcher__palette-btn[aria-pressed="true"] {
