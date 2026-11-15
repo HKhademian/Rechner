@@ -17,7 +17,6 @@ import {
 import {
   FormProjectionProfileId,
 } from "#engine/parameters/projections";
-import "./Calculator.css";
 
 export default function Calculator(): JSX.Element {
   return (

@@ -5,7 +5,6 @@ import {
   AppId,
   calculatorPath,
 } from "#/apps/appDefinition.ts";
-import "./ElterngeldDashboard.css";
 import {
   currentScenarioData,
   setExistingChildrenCount,

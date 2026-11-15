@@ -328,13 +328,15 @@
   border-color: var(--color-loss);
 }
 
-.ui-number-box__input {
+input.ui-number-box__input {
   flex: 1 1 0;
   width: 100%;
   min-width: 0;
   padding: 8px 0;
   border: 0;
+  border-radius: 0;
   background: transparent;
+  box-shadow: none;
   color: var(--text-primary);
   font: inherit;
   font-size: 0.94rem;
@@ -343,7 +345,14 @@
   outline: none;
 }
 
-.ui-number-box--compact .ui-number-box__input {
+input.ui-number-box__input:focus,
+input.ui-number-box__input:focus-visible {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.ui-number-box--compact input.ui-number-box__input {
   padding: 5px 0;
   font-size: 0.85rem;
 }
@@ -400,7 +409,7 @@
 }
 
 /* Unified Select */
-.ui-select {
+select.ui-select {
   box-sizing: border-box;
   width: 100%;
   min-height: 42px;
@@ -415,16 +424,18 @@
   transition: var(--transition);
 }
 
-.ui-select--compact {
+select.ui-select--compact {
   min-height: 36px;
   padding: 5px 10px;
   font-size: 0.84rem;
 }
 
-.ui-select:focus-visible {
+select.ui-select:focus,
+select.ui-select:focus-visible {
   border-color: var(--color-primary);
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+  outline: 2px solid var(--color-primary-bg);
+  outline-offset: 0;
+  box-shadow: none;
 }
 
 /* Unified Toggle Switch */
