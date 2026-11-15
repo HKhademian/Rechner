@@ -460,3 +460,52 @@ it("saves non-destructive what-if comparison scenarios using the shared payroll 
     savedScenarios.value = savedBefore;
   }
 });
+
+it("updates saved scenario draft taxYear independently of live inputs and committed scenarios", () => {
+  const savedBefore = savedScenarios.peek();
+  const baseInputs = {
+    ...getCurrentInputs(),
+    inputMode: "yearly" as const,
+    grossIncome: 60000,
+    taxBracket: "1",
+    hasChurchTax: false,
+    state: "Berlin",
+    children: 0,
+    hasPartner: false,
+    workingMonths: 12,
+    salariesPerYear: 12,
+    taxYear: toFullCalendarYear(2026),
+  };
+  const liveBefore = getCurrentInputs();
+  const saved2026Data = calculateScenarioData(baseInputs);
+  const expected2025Data = calculateScenarioData({
+    ...baseInputs,
+    taxYear: toFullCalendarYear(2025),
+  });
+  try {
+    savedScenarios.value = [{
+      id: "tax-year-draft",
+      title: "Year Check",
+      description: "",
+      timestamp: "2026-11-15",
+      inputs: baseInputs,
+      data: saved2026Data,
+    }];
+    editScenario("tax-year-draft");
+    updateScenarioInput("taxYear", toFullCalendarYear(2025));
+
+    assert.equal(scenarioDraft.value?.inputs.taxYear, toFullCalendarYear(2025));
+    assert.deepEqual(scenarioDraft.value?.data, expected2025Data);
+    assert.notEqual(scenarioDraft.value?.data.person1.tax, saved2026Data.person1.tax);
+    assert.equal(savedScenarios.value[0].inputs.taxYear, toFullCalendarYear(2026));
+    assert.equal(getCurrentInputs().taxYear, liveBefore.taxYear);
+
+    saveDraft();
+    assert.equal(savedScenarios.value[0].inputs.taxYear, toFullCalendarYear(2025));
+    assert.equal(getCurrentInputs().taxYear, liveBefore.taxYear);
+  }
+  finally {
+    cancelEdit();
+    savedScenarios.value = savedBefore;
+  }
+});

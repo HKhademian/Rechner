@@ -20,6 +20,13 @@ import {
   toSalaryPaymentCount,
 } from "#engine/tax/employmentPeriod";
 import {
+  DEFAULT_TAX_YEAR,
+} from "#engine/tax/taxRules";
+import {
+  parseVerifiedTaxYear,
+  verifiedTaxYears,
+} from "#store/taxConfigStore";
+import {
   LiveNumberInput,
   LiveChoiceInput,
   LiveToggleInput,
@@ -36,15 +43,40 @@ export default function ScenarioParameterInput({ id, label, scope, field, value,
   options: readonly { value: string;
     label: string }[] | null;
 }): JSX.Element {
+  const resolveYear = (
+    candidate: CalculatorInputs[keyof CalculatorInputs] | undefined,
+  ): ReturnType<typeof parseVerifiedTaxYear> => (
+    field === "taxYear" && typeof candidate === "number"
+      ? parseVerifiedTaxYear(candidate)
+      : DEFAULT_TAX_YEAR
+  );
   const numberValue = useSignal(typeof value === "number" ? value : 0);
   const choiceValue = useSignal(typeof value === "string" ? value : "");
   const toggleValue = useSignal(Boolean(value));
+  const yearValue = useSignal(resolveYear(value));
   useEffect(() => {
     numberValue.value = typeof value === "number" ? value : 0;
     choiceValue.value = typeof value === "string" ? value : "";
     toggleValue.value = Boolean(value);
-  }, [value]);
+    yearValue.value = resolveYear(value);
+  }, [field, value]);
   const update = (next: CalculatorInputs[keyof CalculatorInputs]): void => updateScenarioInput(field, next);
+  if (field === "taxYear") {
+    const yearOptions = verifiedTaxYears.map((year) => ({
+      value: parseVerifiedTaxYear(year),
+      label: String(year),
+    }));
+    return (
+      <LiveChoiceInput
+        label={label}
+        scope={scope}
+        onValidityChange={onValidityChange}
+        value={yearValue}
+        options={yearOptions}
+        beforeChange={(next) => updateScenarioInput("taxYear", next)}
+      />
+    );
+  }
   const numeric = [
     { field: "grossIncome",
       construct: toGrossSalary,
