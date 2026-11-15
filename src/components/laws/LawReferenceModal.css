@@ -108,8 +108,7 @@
 }
 
 .law-reference-dialog__icon-btn:focus-visible,
-.law-reference-dialog__chip:focus-visible,
-.law-reference-dialog__fullpage-cta:focus-visible {
+.law-reference-dialog__chip:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -258,21 +257,4 @@
 .law-reference-dialog__footer-source-link:hover {
   color: var(--color-primary);
   text-decoration: underline;
-}
-
-.law-reference-dialog__fullpage-cta {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 11px;
-  border-radius: var(--border-radius-sm);
-  background: var(--color-primary);
-  color: var(--text-inverse);
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: var(--transition);
-}
-
-.law-reference-dialog__fullpage-cta:hover {
-  opacity: 0.92;
 }

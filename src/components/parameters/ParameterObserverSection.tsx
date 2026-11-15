@@ -128,7 +128,7 @@ export default function ParameterObserverSection({
           <span className="parameter-observer__toggle-title">
             <ParameterSlidersIcon size={17} />
             <strong id="parameter-observer-heading">
-              Rates, Thresholds &amp; Assumptions
+              Rates &amp; Assumptions
             </strong>
           </span>
           <span className="parameter-observer__toggle-meta">
@@ -139,7 +139,7 @@ export default function ParameterObserverSection({
             )}
             {!hasProjectedOut && (
               <span className="parameter-observer__badge">
-                {totalCount} parameters
+                {totalCount} rules
               </span>
             )}
             <span className="parameter-observer__badge">
@@ -165,7 +165,7 @@ export default function ParameterObserverSection({
       {isExpanded && (
         <div id="parameter-observer-panel" className="parameter-observer__panel">
           <p className="parameter-observer__intro">
-            Shared rates, thresholds, and assumptions used across calculators. Fixed legal rules are locked; planning assumptions can be edited.
+            Shared rates, thresholds, and assumptions used across calculators. Fixed legal limits stay locked; planning assumptions can be adjusted.
           </p>
 
           {hasProjectedOut && (
@@ -308,9 +308,9 @@ export default function ParameterObserverSection({
           </div>
 
           <div className="parameter-observer__count-row">
-            Showing {filteredParams.length} of {totalCount} parameters
+            Showing {filteredParams.length} of {totalCount} rules
             {hasProjectedOut && !showingAllDomains && !searchQuery.trim() && !activeDomain
-              ? ` (${projectionView.projectedOutParameters.length} default-projected)`
+              ? ` (${projectionView.projectedOutParameters.length} other rules use ${activeYear} defaults)`
               : ""}
           </div>
 
@@ -331,7 +331,6 @@ export default function ParameterObserverSection({
                   <div className="parameter-observer__row-info">
                     <div className="parameter-observer__row-header">
                       <strong>{def.label}</strong>
-                      <code className="parameter-observer__id-tag">{def.id}</code>
                       <span className="parameter-observer__domain-pill">
                         {PARAMETER_DOMAIN_LABELS[def.domain]}
                       </span>

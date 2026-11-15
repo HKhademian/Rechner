@@ -59,10 +59,10 @@ export default function StorageModeControl(): JSX.Element {
   };
 
   const pendingNotice = pendingMode === StorageMode.Persistent
-    ? "Save on this device · clear manually?"
+    ? "Save on this device until you clear it?"
     : pendingMode === StorageMode.Session
-      ? "Keep until browser closes · clear device copy?"
-      : "Keep on this page · clear saved copies?";
+      ? "Keep until tab closes and clear device copy?"
+      : "Keep in memory only and clear saved data?";
 
   return <section className="storage-mode-control" aria-label="Calculator data storage">
     <p className="storage-mode-control__heading">Storage · all calculators</p>
@@ -86,10 +86,10 @@ export default function StorageModeControl(): JSX.Element {
     {pendingMode && <div className="storage-mode-control__notice" role="status">
       <span>{pendingNotice}</span>
       <div>
-        <button type="button" onClick={applyMode}>
+        <button type="button" className="ui-btn ui-btn--sm ui-btn--primary" onClick={applyMode}>
           {pendingMode === StorageMode.Persistent ? "Accept & save" : "Apply"}
         </button>
-        <button type="button" onClick={() => setPendingMode(null)}>Cancel</button>
+        <button type="button" className="ui-btn ui-btn--sm" onClick={() => setPendingMode(null)}>Cancel</button>
       </div>
     </div>}
     {notice && <small className="storage-mode-control__error" role="status">{notice}</small>}

@@ -209,9 +209,9 @@ export default function LawReferencePage({
 
       <main id="main-content" className="ui-page ui-page--wide" tabIndex={-1}>
         <PageHeader
-          eyebrow="Statutory Reference"
+          eyebrow="Laws & Rules"
           title="Laws & Rules Directory"
-          subtitle="Searchable German statutory rules linking tax, parental leave, maternity, and social security laws to formulas."
+          subtitle="German tax, parental leave, housing, solar, and visa laws linked to the calculators."
         />
         <div className="law-page-layout">
           <aside className="law-page-sidebar" aria-label="Law directory and filters">

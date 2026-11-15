@@ -259,7 +259,7 @@ export default function LawReferenceModal(): JSX.Element | null {
           </div>
           <a
             href={fullPageHref}
-            className="law-reference-dialog__fullpage-cta"
+            className="ui-btn ui-btn--sm ui-btn--primary"
             onClick={(event) => {
               if (isPlainPrimaryClick(event)) {
                 closeLawReference();
