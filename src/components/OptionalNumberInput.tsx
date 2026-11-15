@@ -1,4 +1,4 @@
-import "./LiveCalculatorInputs.css";
+import "./ui/UnifiedControls.css";
 import {
   type JSX,
 } from "preact";
@@ -8,9 +8,10 @@ import {
 } from "preact/hooks";
 
 /** Blank means use the model's default; invalid text never replaces its last valid value. */
-export default function OptionalNumberInput({ id, label, value, onChange, onValidityChange, min = 0, max, step = 1 }: {
+export default function OptionalNumberInput({ id, label, unit, value, onChange, onValidityChange, min = 0, max, step = 1 }: {
   id: string;
   label: string;
+  unit?: string;
   value: number | undefined;
   onChange: (value: number | undefined) => void;
   onValidityChange?: (valid: boolean) => void;
@@ -30,29 +31,45 @@ export default function OptionalNumberInput({ id, label, value, onChange, onVali
   }, [value]);
   useEffect(() => () => onValidityChange?.(true), []);
   return (
-    <div className="live-control">
-      <label for={id}>{label}</label>
-      <input id={id} className="live-input" type="number" min={min} max={max} step={step} value={draft}
-        aria-invalid={error !== ""} aria-describedby={error ? `${id}-error` : undefined}
-        onInput={(event) => {
-          const raw = event.currentTarget.value;
-          setDraft(raw);
-          try {
-            if (event.currentTarget.validity.badInput) {
-              throw new TypeError("Finish entering a number or clear this optional field.");
+    <div className="ui-field">
+      <div className="ui-field__top">
+        <label className="ui-field__label" for={id}>{label}</label>
+      </div>
+      <div className="ui-number-box ui-number-box--compact" data-invalid={error !== "" ? "true" : undefined}>
+        <input
+          id={id}
+          className="ui-number-box__input"
+          type="number"
+          inputMode={step < 1 ? "decimal" : "numeric"}
+          min={min}
+          max={max}
+          step={step}
+          placeholder="Auto"
+          value={draft}
+          aria-invalid={error !== ""}
+          aria-describedby={error ? `${id}-error` : undefined}
+          onInput={(event) => {
+            const raw = event.currentTarget.value;
+            setDraft(raw);
+            try {
+              if (event.currentTarget.validity.badInput) {
+                throw new TypeError("Finish entering a number or clear this optional field.");
+              }
+              const parsed = raw === "" ? undefined : Number(raw);
+              if (parsed !== undefined && !Number.isFinite(parsed)) {
+                throw new TypeError("Enter a finite number or leave this optional field blank.");
+              }
+              onChange(parsed);
+              reportError("");
             }
-            const parsed = raw === "" ? undefined : Number(raw);
-            if (parsed !== undefined && !Number.isFinite(parsed)) {
-              throw new TypeError("Enter a finite number or leave this optional field blank.");
+            catch (problem) {
+              reportError(problem instanceof Error ? problem.message : "Invalid input.");
             }
-            onChange(parsed);
-            reportError("");
-          }
-          catch (problem) {
-            reportError(problem instanceof Error ? problem.message : "Invalid input.");
-          }
-        }} />
-      {error && <p id={`${id}-error`} className="live-input__error" role="alert">{error}</p>}
+          }}
+        />
+        {unit && <span className="ui-number-box__unit">{unit}</span>}
+      </div>
+      {error && <p id={`${id}-error`} className="ui-field__error" role="alert">{error}</p>}
     </div>
   );
 }

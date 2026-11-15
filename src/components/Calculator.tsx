@@ -8,6 +8,7 @@ import type {
 import CalculatorPeriodControl from "#components/CalculatorPeriodControl";
 import ComparisonTable from "#components/ComparisonTable";
 import Navigation from "#components/Navigation";
+import NetPayWorkspace from "#components/NetPayWorkspace";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import SourceRevision from "#components/SourceRevision";
 import {
@@ -29,6 +30,7 @@ export default function Calculator(): JSX.Element {
           subtitle="Calculate your net take-home pay, income tax, and social contributions, then compare scenarios."
           actions={<CalculatorPeriodControl />}
         />
+        <NetPayWorkspace />
         <ComparisonTable />
         <ParameterObserverSection embedded projectionProfile={FormProjectionProfileId.NetPayFocus} />
       </main>

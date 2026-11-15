@@ -7,6 +7,12 @@ import {
 import LawRefLink from "#components/laws/LawRefLink";
 import OptionalNumberInput from "#components/OptionalNumberInput";
 import {
+  ChoiceSelect,
+} from "#components/ui/ChoiceSelect";
+import {
+  ToggleSwitch,
+} from "#components/ui/ToggleSwitch";
+import {
   LawGroupId,
   LawId,
 } from "#engine/laws/types";
@@ -26,51 +32,111 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
   onValidityChange?: (id: string, valid: boolean) => void;
 }): JSX.Element {
   const update = (field: string, value: number | undefined, divisor = 1): void => {
-    options.value = parsePersonalPayrollOptions({ ...options.value,
-      [field]: value === undefined ? undefined : value / divisor });
+    options.value = parsePersonalPayrollOptions({
+      ...options.value,
+      [field]: value === undefined ? undefined : value / divisor,
+    });
   };
   return (
     <details>
       <summary>{summaryLabel}</summary>
-      <p>Blank fields use the published average insurer rate and the assumptions shown with the result.</p>
-      <OptionalNumberInput id={`${id}-insurer`} label="Insurer total Zusatzbeitrag (%)" max={100} step={0.01}
-        value={options.value.healthSupplementTotalRate === undefined ? undefined : options.value.healthSupplementTotalRate * 100}
-        onChange={(value) => update("healthSupplementTotalRate", value, 100)} onValidityChange={(valid) => onValidityChange?.(`${id}-insurer`, valid)} />
-      <OptionalNumberInput id={`${id}-age`} label="Age on 1 January" value={options.value.ageAtYearStart}
-        onChange={(value) => update("ageAtYearStart", value)} onValidityChange={(valid) => onValidityChange?.(`${id}-age`, valid)} />
-      <OptionalNumberInput id={`${id}-children`} label="Children under 25 for care insurance" value={options.value.childrenUnder25}
-        onChange={(value) => update("childrenUnder25", value)} onValidityChange={(valid) => onValidityChange?.(`${id}-children`, valid)} />
-      <OptionalNumberInput id={`${id}-allowance`} label="ELStAM child allowance factor (ZKF)" step={0.1} value={options.value.childAllowanceFactor}
-        onChange={(value) => update("childAllowanceFactor", value)} onValidityChange={(valid) => onValidityChange?.(`${id}-allowance`, valid)} />
-      <label>
-        <input type="checkbox" checked={options.value.isParent ?? false}
-          onChange={(event) => {
-            options.value = parsePersonalPayrollOptions({ ...options.value,
-              isParent: event.currentTarget.checked ? true : undefined });
-          }} />
-        Parent status continues even if no child is currently counted above
-      </label>
-      <p><LawRefLink lawId={LawId.SGB11_55} label="Care contribution rules (§ 55 SGB XI)" /></p>
-      {showLocation && <>
-        <label><input type="checkbox" checked={options.value.saxony ?? false}
-          onChange={(event) => {
-            options.value = parsePersonalPayrollOptions({ ...options.value,
-              saxony: event.currentTarget.checked });
-          }} />
-          Employment in Saxony</label>
-        <label for={`${id}-church`}>Church tax</label>
-        <select id={`${id}-church`} value={options.value.churchTaxRate ?? 0}
-          onChange={(event) => update("churchTaxRate", Number(event.currentTarget.value))}>
-          <option value="0">None</option>
-          <option value={DEFAULT_TAX_RULES.parameters.churchRateBavariaBadenWuerttemberg.value}>Bavaria / Baden-Württemberg</option>
-          <option value={DEFAULT_TAX_RULES.parameters.churchRateOther.value}>Other federal states</option>
-        </select>
-        <LawRefLink
-          lawId={LawId.EStG_39b}
-          groupId={LawGroupId.EStG_PayrollWithholding}
-          label="Official church tax rates"
+      <div style={{ display: "grid",
+        gap: "12px",
+        marginTop: "10px" }}>
+        <p className="ui-field__hint">Blank fields use the published average insurer rate and defaults.</p>
+        <div className="netpay-row-2">
+          <OptionalNumberInput
+            id={`${id}-insurer`}
+            label="Insurer total Zusatzbeitrag"
+            unit="%"
+            max={100}
+            step={0.01}
+            value={options.value.healthSupplementTotalRate === undefined ? undefined : options.value.healthSupplementTotalRate * 100}
+            onChange={(value) => update("healthSupplementTotalRate", value, 100)}
+            onValidityChange={(valid) => onValidityChange?.(`${id}-insurer`, valid)}
+          />
+          <OptionalNumberInput
+            id={`${id}-age`}
+            label="Age on 1 January"
+            unit="yrs"
+            value={options.value.ageAtYearStart}
+            onChange={(value) => update("ageAtYearStart", value)}
+            onValidityChange={(valid) => onValidityChange?.(`${id}-age`, valid)}
+          />
+          <OptionalNumberInput
+            id={`${id}-children`}
+            label="Children under 25 (care ins.)"
+            value={options.value.childrenUnder25}
+            onChange={(value) => update("childrenUnder25", value)}
+            onValidityChange={(valid) => onValidityChange?.(`${id}-children`, valid)}
+          />
+          <OptionalNumberInput
+            id={`${id}-allowance`}
+            label="ELStAM child allowance (ZKF)"
+            step={0.1}
+            value={options.value.childAllowanceFactor}
+            onChange={(value) => update("childAllowanceFactor", value)}
+            onValidityChange={(valid) => onValidityChange?.(`${id}-allowance`, valid)}
+          />
+        </div>
+        <ToggleSwitch
+          id={`${id}-is-parent`}
+          label="Parent status active"
+          hint="Keeps parent care-insurance rate even if no child under 25 is counted above"
+          checked={options.value.isParent ?? false}
+          onChange={(checked) => {
+            options.value = parsePersonalPayrollOptions({
+              ...options.value,
+              isParent: checked ? true : undefined,
+            });
+          }}
         />
-      </>}
+        <p className="ui-field__hint">
+          <LawRefLink lawId={LawId.SGB11_55} label="Care contribution rules (§ 55 SGB XI)" />
+        </p>
+        {showLocation && (
+          <div style={{ display: "grid",
+            gap: "12px" }}>
+            <ToggleSwitch
+              id={`${id}-saxony`}
+              label="Employment in Saxony"
+              checked={options.value.saxony ?? false}
+              onChange={(checked) => {
+                options.value = parsePersonalPayrollOptions({
+                  ...options.value,
+                  saxony: checked,
+                });
+              }}
+            />
+            <ChoiceSelect
+              id={`${id}-church`}
+              compact
+              label="Church tax rate"
+              value={options.value.churchTaxRate ?? 0}
+              options={[
+                {
+                  value: 0,
+                  label: "None",
+                },
+                {
+                  value: DEFAULT_TAX_RULES.parameters.churchRateBavariaBadenWuerttemberg.value,
+                  label: "Bavaria / Baden-Württemberg (8%)",
+                },
+                {
+                  value: DEFAULT_TAX_RULES.parameters.churchRateOther.value,
+                  label: "Other federal states (9%)",
+                },
+              ]}
+              onChange={(val) => update("churchTaxRate", val)}
+            />
+            <LawRefLink
+              lawId={LawId.EStG_39b}
+              groupId={LawGroupId.EStG_PayrollWithholding}
+              label="Official church tax rates"
+            />
+          </div>
+        )}
+      </div>
     </details>
   );
 }

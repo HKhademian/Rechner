@@ -1,6 +1,9 @@
 import OptionalNumberInput from "#components/OptionalNumberInput";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
   TAX_KEY_TO_PARAMETER_ID,
   getTaxParameterPrimaryLawId,
 } from "#engine/parameters/registry";
@@ -11,13 +14,12 @@ import {
   type JSX,
 } from "preact";
 import {
+  parseVerifiedTaxYear,
   selectedTaxYear,
   selectedTaxRules,
   verifiedTaxYears,
-  parseVerifiedTaxYear,
   resetConfig,
 } from "#store/taxConfigStore";
-
 import {
   personalTaxFactor,
 } from "#store/calculatorStore";
@@ -28,20 +30,44 @@ import {
 export default function TaxSettings({ onValidityChange }: { onValidityChange?: (valid: boolean) => void }): JSX.Element {
   const taxKeys = Object.keys(TAX_KEY_TO_PARAMETER_ID) as readonly (keyof TaxParameters)[];
   return (
-    <section style={{ marginTop: "15px" }}>
-      <h3>Tax profile</h3>
-      <label for="payrollYear">Tax year</label>
-      <select id="payrollYear" value={selectedTaxYear.value}
-        onChange={(event) => {
-          selectedTaxYear.value = parseVerifiedTaxYear(Number(event.currentTarget.value));
-        }}>
-        {verifiedTaxYears.map((year) => <option key={year} value={year}>{year}</option>)}
-      </select>
-      <OptionalNumberInput id="payrollFactor" label="Approved class IV factor (optional, 0–1)" max={1} step={0.001} value={personalTaxFactor.value}
+    <section style={{ marginTop: "12px",
+      display: "grid",
+      gap: "12px" }}>
+      <div style={{ display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px" }}>
+        <div className="ui-field">
+          <span className="ui-field__label">Tax year</span>
+          <SegmentedControl
+            compact
+            label="Tax year"
+            value={selectedTaxYear.value}
+            onChange={(year) => {
+              selectedTaxYear.value = parseVerifiedTaxYear(year);
+            }}
+            options={verifiedTaxYears.map((year) => ({
+              value: parseVerifiedTaxYear(year),
+              label: String(year),
+            }))}
+          />
+        </div>
+        <button type="button" className="ui-btn" onClick={resetConfig}>
+          Latest year
+        </button>
+      </div>
+      <OptionalNumberInput
+        id="payrollFactor"
+        label="Approved class IV factor (optional, 0–1)"
+        max={1}
+        step={0.001}
+        value={personalTaxFactor.value}
         onChange={(value) => {
           personalTaxFactor.value = value === undefined ? undefined : toTaxFactor(value);
-        }} onValidityChange={onValidityChange} />
-      <button onClick={resetConfig}>Latest year</button>
+        }}
+        onValidityChange={onValidityChange}
+      />
       <details>
         <summary>Rates and sources</summary>
         <dl>
