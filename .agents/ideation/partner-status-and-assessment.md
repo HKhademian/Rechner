@@ -1,7 +1,8 @@
 ---
 name: Separate partner presence, payroll inclusion and tax assessment
-status: proposed
+status: complete
 created: 2026-10-31
+completed: 2026-11-14
 ---
 
 # Separate partner presence, payroll inclusion and tax assessment
@@ -22,12 +23,9 @@ Official sources verified on 2026-10-31:
 - https://www.gesetze-im-internet.de/estg/__26.html
 - https://www.finanzamt-wuerzburg.de/steuerinfos/haeufig-gestellte-fragen/lohnsteuerabzug-und-lohnsteuerermaessigung (class II and cohabiting relationships)
 
-## Current code finding
+## Implemented resolution
 
-`calculatorStore.calculateScenarioData` uses `hasPartner` to include the second payroll. `computePayrollTaxBase` then chooses individual or joint employment-income deductions solely from the number of payroll records. `CalculatorTaxableIncome` discloses the eligible-spouse assumption, but does not request or validate it. Therefore enabling an unmarried second person currently selects the joint-deduction model as well. This is a modeling limitation, independent of whether the III/IV/V input-opening shortcut works correctly.
-
-## Proposed correction, not implemented
-
-Separate declared relationship/household status, including a second person's payroll, and annual assessment type/eligibility. Support a spouse with zero wages and a one-person payroll view independently. Unmarried two-person totals should use separate individual annual bases and a clearly labeled sum, rather than shared joint deductions. Check class II against declared shared-household facts, and retain explicit handling for widowhood and other supported exceptions.
-
-Keep the class shortcut an input convenience. It must not be treated as proof of relationship status, second income or joint-assessment eligibility. Do not silently migrate saved cases into inferred legal facts. Any implementation needs its own small ordered scopes, source-backed eligibility rules and meaningful regressions.
+- **Tax Engine (`src/engine/tax/taxAssessment.ts`)**: Added `HouseholdRelationship` (`Unspecified`, `Single`, `UnmarriedPartners`, `MarriedOrCivilPartners`, `QualifyingWidowed`), `StatutoryAssessmentWarning`, and `validateTaxClassAndAssessmentRules` checking `§§ 24b, 26, 26b, 32a Abs. 6, and 38b EStG`.
+- **Net Pay Store & Serialization (`src/store/calculatorStore.ts`, `src/engine/storage/calculatorScenario.ts`)**: Added optional persisted `relationshipStatus` (preserving legacy saves as `Unspecified`), separated 2nd-person payroll toggle (`hasPartner`) from marital eligibility and annual assessment mode, modeled a non-employed (€0-wage) spouse explicitly when married couples select Joint Assessment with one payroll column, enforced individual assessment (`§ 25 EStG`) for `Single` / `UnmarriedPartners` / `QualifyingWidowed`, and preserved the `III/IV/V` partner-column shortcut strictly as an input convenience.
+- **Net Pay UI (`ComparisonTable.tsx`, `CalculatorTaxableIncome.tsx`, `CalculatorResultSummaries.tsx`)**: Added the `Relationship` selector, labeled `Partner 2 payroll`, surfaced statutory warnings with interactive `<LawRefLink>` badges, and clearly labeled `"Partner (non-employed spouse)"` when modeling €0-wage joint splitting.
+- **Unified Life Profile & Sync (`src/engine/lifeProfile/*`, `LifeProfilePanel.tsx`, `CalculatorPeriodControl.tsx`)**: Added `isMarriedJointAssessment` (`true` for Class IV/IV splitting, `false` for Class I/I separate individual returns) and synced Net Pay `relationshipStatus`, tax classes, and assessment mode accordingly.
