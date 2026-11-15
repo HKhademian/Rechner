@@ -353,6 +353,27 @@ export const SimulatorNavigationIcon = ({
   </svg>
 );
 
+/** Intention: Expand or indicate a dropdown navigation menu trigger */
+export const ChevronDownIcon = ({
+  size = 14,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 // ============================================================================
 // 4. Domain Life-Cycle, Fiscal & Milestone Icons (Intention: Domain Semantics)
 // ============================================================================

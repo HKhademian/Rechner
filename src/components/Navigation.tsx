@@ -1,23 +1,28 @@
 import "./Navigation.css";
 import {
-  type JSX,
+  useEffect,
+  useRef,
+} from "preact/hooks";
+import type {
+  JSX,
 } from "preact";
 import ThemeToggle from "#components/ThemeToggle";
 import PrivacyStatus from "#components/PrivacyStatus";
 import LawReferenceModal from "#components/laws/LawReferenceModal";
 import {
   CalculatorNavigationIcon,
+  ChevronDownIcon,
   StatutorySectionIcon,
 } from "#components/Icons";
 import {
   AppId,
-  calculatorPath,
   lawCatalogPath,
   lawDetailPath,
   lifeProfilePath,
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
+  allCalculatorApps,
   calculatorAtPath,
 } from "#/apps/registry.ts";
 import {
@@ -27,22 +32,57 @@ import {
   isPlainPrimaryClick,
   openLawReference,
 } from "#store/lawReferenceStore";
+import {
+  calculatorNavigationItems,
+  isActiveRoute,
+  normalizeRoutePath,
+} from "#utils/uiHelpers";
 
 export interface NavigationProps {
-  currentPath?: string;
+  readonly currentPath?: string;
 }
 
-/** A catalog link, Life Profile summary link, law reference directory link, and active calculator nav item. */
+/** Shared sticky top header with Home, Tools dropdown switcher, Life Profile, Laws, Quick § Ref, Privacy, and Theme controls. */
 export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.Element {
+  const toolsDetailsRef = useRef<HTMLDetailsElement>(null);
   const app = calculatorAtPath(currentPath);
-  const home = currentPath === "/" || currentPath === "";
-  const lawsBasePath = lawCatalogPath().replace(/\/+$/, "");
-  const profileBasePath = lifeProfilePath().replace(/\/+$/, "");
-  const normalizedCurrent = currentPath.replace(/\/+$/, "");
-  const onLawsPage = normalizedCurrent === lawsBasePath ||
-    normalizedCurrent.startsWith(`${lawsBasePath}/`);
-  const onProfilePage = normalizedCurrent === profileBasePath ||
-    normalizedCurrent.startsWith(`${profileBasePath}/`);
+  const home = normalizeRoutePath(currentPath) === normalizeRoutePath(sitePath("/"));
+  const onLawsPage = isActiveRoute(currentPath, lawCatalogPath());
+  const onProfilePage = isActiveRoute(currentPath, lifeProfilePath());
+  const toolItems = calculatorNavigationItems(allCalculatorApps, currentPath);
+
+  useEffect(() => {
+    const closeWhenOutside = (event: Event): void => {
+      if (!(event.target instanceof Node)) {
+        return;
+      }
+      const details = toolsDetailsRef.current;
+      if (details?.open && !details.contains(event.target)) {
+        details.open = false;
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      const details = toolsDetailsRef.current;
+      if (details?.open) {
+        details.open = false;
+        details.querySelector("summary")?.focus();
+      }
+    };
+
+    document.addEventListener("pointerdown", closeWhenOutside);
+    document.addEventListener("focusin", closeWhenOutside);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeWhenOutside);
+      document.removeEventListener("focusin", closeWhenOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
+
   let defaultLawId: LawId = LawId.EStG_32a;
   if (app?.id === AppId.ParentalLeave) {
     defaultLawId = LawId.BEEG_1;
@@ -71,7 +111,37 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
         </a>
         <nav aria-label="Main navigation" className="calculator-navigation__links">
           <a href={sitePath("/")} aria-current={home ? "page" : undefined}>All calculators</a>
-          {app && <a href={calculatorPath(app.id)} aria-current="page">{app.title}</a>}
+          <details ref={toolsDetailsRef} className="calculator-navigation__tools">
+            <summary
+              className={app ? "is-active" : undefined}
+              aria-label="Switch calculator tool"
+            >
+              <span>{app ? app.title : "Tools"}</span>
+              <ChevronDownIcon size={13} className="calculator-navigation__tools-chevron" />
+            </summary>
+            <div
+              className="calculator-navigation__tools-panel"
+              role="region"
+              aria-label="Calculators and planning tools"
+            >
+              {toolItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className="calculator-navigation__tool-item"
+                  aria-current={item.isCurrent ? "page" : undefined}
+                >
+                  <span className="calculator-navigation__tool-header">
+                    <span className="calculator-navigation__tool-title">{item.title}</span>
+                    {item.isDraft && (
+                      <span className="calculator-navigation__tool-badge">Preview</span>
+                    )}
+                  </span>
+                  <span className="calculator-navigation__tool-meta">{item.category}</span>
+                </a>
+              ))}
+            </div>
+          </details>
           <a href={lifeProfilePath()} aria-current={onProfilePage ? "page" : undefined}>Life Profile</a>
           <a href={lawCatalogPath()} aria-current={onLawsPage ? "page" : undefined}>Laws &amp; Rules</a>
         </nav>
