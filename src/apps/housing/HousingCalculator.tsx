@@ -63,9 +63,9 @@ export default function HousingCalculator(): JSX.Element {
               <HomeAcquisitionIcon size={15} />
               <span>Real Estate, Closing Costs &amp; Family Subsidies</span>
             </span>
-            <h1>German Home Purchase &amp; KfW 300 Planner</h1>
+            <h1>Home Purchase Planner</h1>
             <p className="domain-calc-header__subtitle">
-              Evaluate Grunderwerbsteuer across all 16 Bundesländer (§ 11 GrEStG), closing expenses, KfW 300 subsidized family credit limits, and § 35a craftsmanship tax relief.
+              Estimate buying costs across all 16 states, KfW 300 family loans, and renovation tax credits.
             </p>
           </div>
           <DomainCalculatorHeaderActions
@@ -86,7 +86,7 @@ export default function HousingCalculator(): JSX.Element {
             <div className="domain-calc-fields">
               <label className="domain-calc-field" for="housing-state">
                 <span className="domain-calc-field__label-line">
-                  <span>Federal State (§ 11 GrEStG Transfer Tax)</span>
+                  <span>Federal State</span>
                   <LawRefLink lawId={LawId.GrEStG_11} label="§ 11 GrEStG" variant="badge" />
                 </span>
                 <select
