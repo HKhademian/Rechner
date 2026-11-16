@@ -260,9 +260,10 @@ export default function HousingCalculator(): JSX.Element {
               tone={MetricTone.Primary}
             />
             <MetricCard
-              label="§ 35a Craftsmanship Credit"
+              label="Potential tax reduction for home repairs"
               value={`+${formatEur(evalResult.craftsmanTaxCreditEur)}`}
-              subtitle="Direct annual tax deduction (max €1,200/yr)"
+              subtitle="Estimated income-tax reduction, subject to eligibility and tax owed"
+              footer={<><LawRefLink lawId={LawId.EStG_35a} label="How the tax reduction works" /> <a href="https://www.gesetze-im-internet.de/estg/__35a.html">Official law: § 35a EStG</a></>}
               tone={MetricTone.Gain}
             />
           </div>
