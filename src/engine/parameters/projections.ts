@@ -27,6 +27,9 @@ export const FormProjectionProfileId = {
   CompanyCarFocus: "company_car_focus",
   SolarEnergyFocus: "solar_energy_focus",
   HousingFocus: "housing_focus",
+  KitaFocus: "kita_focus",
+  MinijobMidijobFocus: "minijob_midijob_focus",
+  CommuterAllowanceFocus: "commuter_allowance_focus",
 } as const;
 export type FormProjectionProfileId = (typeof FormProjectionProfileId)[keyof typeof FormProjectionProfileId];
 
@@ -174,6 +177,35 @@ export const FORM_PROJECTION_PROFILES: Readonly<Record<FormProjectionProfileId, 
       ParameterDomain.FamilyBenefits,
     ],
   }),
+  [FormProjectionProfileId.KitaFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.KitaFocus,
+    appId: AppId.Kita,
+    label: "Kita & Childcare",
+    description: "Shows § 10 EStG childcare deduction limits and income tax tariff rules.",
+    focusedDomains: [
+      ParameterDomain.FamilyBenefits,
+      ParameterDomain.IncomeTax,
+    ],
+  }),
+  [FormProjectionProfileId.MinijobMidijobFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.MinijobMidijobFocus,
+    appId: AppId.MinijobMidijob,
+    label: "Minijob & Midijob",
+    description: "Shows SGB IV employment thresholds, transition-zone factor inputs, and social security rates.",
+    focusedDomains: [
+      ParameterDomain.SocialSecurity,
+      ParameterDomain.IncomeTax,
+    ],
+  }),
+  [FormProjectionProfileId.CommuterAllowanceFocus]: createProjectionProfile({
+    id: FormProjectionProfileId.CommuterAllowanceFocus,
+    appId: AppId.CommuterAllowance,
+    label: "Commuter & JobTicket",
+    description: "Shows employee work-expense allowance and income tax tariff rules.",
+    focusedDomains: [
+      ParameterDomain.IncomeTax,
+    ],
+  }),
 });
 
 /** Looks up a `FormProjectionProfile` by `FormProjectionProfileId`. */
@@ -202,6 +234,12 @@ export function getProjectionProfileForApp(
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.SolarEnergyFocus];
     case AppId.Housing:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.HousingFocus];
+    case AppId.Kita:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.KitaFocus];
+    case AppId.MinijobMidijob:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.MinijobMidijobFocus];
+    case AppId.CommuterAllowance:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.CommuterAllowanceFocus];
     case AppId.Catalog:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.FullCatalog];
   }

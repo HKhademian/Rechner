@@ -10,7 +10,10 @@ export const AppId = { Catalog: "catalog",
   Visa: "visa",
   CompanyCar: "company-car",
   SolarEnergy: "solar-energy",
-  Housing: "housing" } as const;
+  Housing: "housing",
+  Kita: "kita",
+  MinijobMidijob: "minijob-midijob",
+  CommuterAllowance: "commuter-allowance" } as const;
 export type AppId = (typeof AppId)[keyof typeof AppId];
 export function toAppId(value: string): AppId {
   if (!Object.values(AppId).includes(value as AppId)) {

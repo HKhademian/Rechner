@@ -160,6 +160,9 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
   [Apps.CompanyCar]: {},
   [Apps.SolarEnergy]: {},
   [Apps.Housing]: {},
+  [Apps.Kita]: {},
+  [Apps.MinijobMidijob]: {},
+  [Apps.CommuterAllowance]: {},
 };
 
 const memoryStores = new Map<AppId, Map<string, string>>();

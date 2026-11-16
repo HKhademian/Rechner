@@ -20,6 +20,30 @@
   font-weight: 650;
 }
 
+.calculator-catalog__demo-toggle {
+  flex: 0 1 250px;
+  min-width: 0;
+}
+
+.calculator-catalog__card-badges {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.calculator-catalog__demo-badge {
+  font-size: var(--font-size-2xs);
+}
+
+.calculator-catalog__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .calculator-catalog a:focus-visible,
 .calculator-catalog input:focus-visible,
 #calculator-results:focus-visible {

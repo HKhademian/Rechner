@@ -1537,3 +1537,79 @@ export const PrivacyShieldIcon = ({
     <path d="m9 12 2 2 4-4" />
   </svg>
 );
+
+/** Intention: Represent childcare facility (Kita) fees and § 10 EStG tax offset calculator */
+export const ChildcareKitaIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="9" cy="8" r="3" />
+    <circle cx="16.5" cy="10" r="2.5" />
+    <path d="M3 20v-1a5 5 0 0 1 10 0v1" />
+    <path d="M14 20v-1a3.5 3.5 0 0 1 7 0v1" />
+  </svg>
+);
+
+/** Intention: Represent Minijob, Midijob sliding scale & part-time earnings transition calculator */
+export const EmploymentTransitionIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M15 7h6v6" />
+    <path d="M3 21h18" />
+  </svg>
+);
+
+/** Intention: Represent commuter distance deduction (§ 9 EStG) and JobTicket comparator */
+export const CommuterAllowanceIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="4" y="3" width="16" height="14" rx="3" />
+    <path d="M4 11h16" />
+    <path d="M8 17l-2 4" />
+    <path d="M16 17l2 4" />
+    <circle cx="8" cy="14" r="1" />
+    <circle cx="16" cy="14" r="1" />
+  </svg>
+);

@@ -16,6 +16,7 @@ import {
 } from "#components/Icons";
 import {
   AppId,
+  CalculatorReleaseStatus,
   lawCatalogPath,
   lawDetailPath,
   lifeProfilePath,
@@ -99,6 +100,15 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
   else if (app?.id === AppId.Housing) {
     defaultLawId = LawId.KfW_300;
   }
+  else if (app?.id === AppId.Kita) {
+    defaultLawId = LawId.EStG_10_1_5;
+  }
+  else if (app?.id === AppId.MinijobMidijob) {
+    defaultLawId = LawId.SGB4_20;
+  }
+  else if (app?.id === AppId.CommuterAllowance) {
+    defaultLawId = LawId.EStG_9_1_4;
+  }
   const quickLawHref = lawDetailPath(defaultLawId);
 
   return <>
@@ -117,6 +127,9 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
               aria-label="Switch calculator tool"
             >
               <span>{app ? app.title : "Tools"}</span>
+              {app?.releaseStatus === CalculatorReleaseStatus.Draft && (
+                <span className="calculator-navigation__tool-badge">Demo</span>
+              )}
               <ChevronDownIcon size={13} className="calculator-navigation__tools-chevron" />
             </summary>
             <div
@@ -134,7 +147,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
                   <span className="calculator-navigation__tool-header">
                     <span className="calculator-navigation__tool-title">{item.title}</span>
                     {item.isDraft && (
-                      <span className="calculator-navigation__tool-badge">Preview</span>
+                      <span className="calculator-navigation__tool-badge">Demo</span>
                     )}
                   </span>
                   <span className="calculator-navigation__tool-meta">{item.category}</span>

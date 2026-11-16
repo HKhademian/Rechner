@@ -7,6 +7,7 @@ import {
   calculatorApps,
   calculatorAtPath,
   catalogPage,
+  visibleCatalogApps,
 } from "#/apps/registry.ts";
 import {
   AppId,
@@ -27,6 +28,14 @@ it("limits default release catalog to published calculators while retaining draf
   assert.deepEqual(
     allCalculatorApps.filter((app) => app.releaseStatus === CalculatorReleaseStatus.Draft).map((app) => app.id),
     [AppId.Visa, AppId.CompanyCar, AppId.SolarEnergy, AppId.Housing],
+  );
+  assert.deepEqual(
+    visibleCatalogApps(allCalculatorApps, false).map((app) => app.id),
+    calculatorApps.map((app) => app.id),
+  );
+  assert.deepEqual(
+    visibleCatalogApps(allCalculatorApps, true).map((app) => app.id),
+    allCalculatorApps.map((app) => app.id),
   );
 });
 

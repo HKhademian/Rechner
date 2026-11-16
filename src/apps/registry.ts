@@ -41,6 +41,17 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
 export const calculatorApps: readonly CalculatorAppDefinition[] = Object.freeze(
   allCalculatorApps.filter((app) => app.releaseStatus === CalculatorReleaseStatus.Published),
 );
+
+/** Returns catalog apps filtered by optional opt-in demo visibility. */
+export function visibleCatalogApps(
+  apps: readonly CalculatorAppDefinition[],
+  includeDemos = false,
+): readonly CalculatorAppDefinition[] {
+  return includeDemos
+    ? apps
+    : apps.filter((app) => app.releaseStatus === CalculatorReleaseStatus.Published);
+}
+
 export const CATALOG_PAGE_SIZE = 9;
 
 export function calculatorAtPath(pathname: string): CalculatorAppDefinition | undefined {
