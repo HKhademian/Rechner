@@ -1634,9 +1634,9 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
     code: LawCode.KfW,
     section: "300",
     title: "KfW 300 Home Ownership for Families (Wohneigentum für Familien)",
-    summary: "Low-interest housing loan program for families with children whose prior-year taxable household income falls under program thresholds.",
+    summary: "KfW 300 offers a subsidized loan to eligible families for a self-occupied, climate-friendly new build or qualifying first purchase in Germany. Income, household, ownership and technical conditions apply.",
     benefit: "Provides subsidized housing loans for energy-efficient homes when zvE stays below the family threshold.",
-    antiBenefit: "Uses exact final taxable income from official tax notices; modeled employment estimates exclude non-salary deductions.",
+    antiBenefit: "KfW checks additional conditions that this calculator does not verify. Income is based on the applicable tax assessments; the building must meet technical requirements confirmed by experts.",
     tags: [LawTag.Housing, LawTag.Child, LawTag.Parent, LawTag.Energy, LawTag.Green],
     groupId: LawGroupId.Housing_HomeAcquisition,
     relatedLaws: {
@@ -1651,9 +1651,9 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
     },
     externalSources: {
       [ExternalSourceId.KfwPortal]: {
-        url: toSourceUrl("https://www.kfw.de/PDF/Download-Center/F%C3%B6rderprogramme-(Inlandsf%C3%B6rderung)/PDF-Dokumente/6000005060_M_300_WEF.pdf"),
-        label: "KfW 300 Program Information Sheet",
-        description: "Official income-evidence rules for KfW 300 family housing loans.",
+        url: toSourceUrl("https://www.kfw.de/inlandsfoerderung/Privatpersonen/Neubau/F%C3%B6rderprodukte/Wohneigentum-f%C3%BCr-Familien-(300)/"),
+        label: "KfW 300 official program details",
+        description: "Official eligibility, building requirements, and loan terms.",
       },
     },
   }),
