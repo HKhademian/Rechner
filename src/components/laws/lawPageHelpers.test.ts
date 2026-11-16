@@ -121,5 +121,9 @@ describe("Full Law Page Helpers", () => {
       getCalculatorsUsingLaw(getLawEntry(LawId.EStG_10_1_5)).map((app) => app.id),
       [AppId.NetPay, AppId.ParentalLeave, AppId.Kita],
     );
+    assert.deepEqual(
+      getCalculatorsUsingLaw(getLawEntry(LawId.SGB4_20)).map((app) => app.id),
+      [AppId.NetPay, AppId.ParentalLeave, AppId.MinijobMidijob],
+    );
   });
 });

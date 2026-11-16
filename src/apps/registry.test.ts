@@ -27,7 +27,7 @@ it("limits default release catalog to published calculators while retaining draf
   );
   assert.deepEqual(
     allCalculatorApps.filter((app) => app.releaseStatus === CalculatorReleaseStatus.Draft).map((app) => app.id),
-    [AppId.Visa, AppId.CompanyCar, AppId.SolarEnergy, AppId.Housing, AppId.Kita],
+    [AppId.Visa, AppId.CompanyCar, AppId.SolarEnergy, AppId.Housing, AppId.Kita, AppId.MinijobMidijob],
   );
   assert.deepEqual(
     visibleCatalogApps(allCalculatorApps, false).map((app) => app.id),
@@ -58,6 +58,7 @@ it("filters German search terms, categories and empty results and clamps paginat
   assert.equal(catalogPage(allCalculatorApps, "photovoltaik", undefined, 1).items[0].id, AppId.SolarEnergy);
   assert.equal(catalogPage(allCalculatorApps, "kfw 300", undefined, 1).items[0].id, AppId.Housing);
   assert.equal(catalogPage(allCalculatorApps, "kinderbetreuung", undefined, 1).items[0].id, AppId.Kita);
+  assert.equal(catalogPage(allCalculatorApps, "übergangsbereich", undefined, 1).items[0].id, AppId.MinijobMidijob);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Everyday, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(calculatorApps, "nothing matches", undefined, 99).total, 0);
   const many = Array.from({ length: 8 }, () => calculatorApps[0]);

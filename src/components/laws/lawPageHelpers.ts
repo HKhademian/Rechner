@@ -111,6 +111,10 @@ const KITA_LAW_IDS = new Set<LawId>([
   LawId.EStG_10_1_5,
 ]);
 
+const MINIJOB_MIDIJOB_LAW_IDS = new Set<LawId>([
+  LawId.SGB4_20,
+]);
+
 /**
  * Parses a Law Page pathname + query string (accounting for Astro base path like `/Rechner`)
  * into typed `LawId`, `LawGroupId`, `LawTag`, and search query state.
@@ -210,6 +214,7 @@ export function getCalculatorsUsingLaw(
   const usesSolarEnergy = SOLAR_ENERGY_LAW_CODES.has(entry.code) || SOLAR_ENERGY_EXTRA_LAW_IDS.has(entry.id);
   const usesHousing = HOUSING_LAW_CODES.has(entry.code) || HOUSING_EXTRA_LAW_IDS.has(entry.id);
   const usesKita = KITA_LAW_IDS.has(entry.id);
+  const usesMinijobMidijob = MINIJOB_MIDIJOB_LAW_IDS.has(entry.id);
 
   const appMap = new Map(allCalculatorApps.map((app) => [app.id, app]));
   const result: CalculatorAppDefinition[] = [];
@@ -222,6 +227,7 @@ export function getCalculatorsUsingLaw(
     [usesSolarEnergy, AppId.SolarEnergy],
     [usesHousing, AppId.Housing],
     [usesKita, AppId.Kita],
+    [usesMinijobMidijob, AppId.MinijobMidijob],
   ] as const) {
     if (enabled) {
       const app = appMap.get(appId);

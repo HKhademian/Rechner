@@ -1,0 +1,13 @@
+---
+import MinijobMidijobApp from "#/apps/minijob-midijob/App.tsx";
+import {
+  minijobMidijobApp,
+} from "#/apps/minijob-midijob/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${minijobMidijobApp.title} | Rechner`}
+  description={minijobMidijobApp.description}
+>
+  <MinijobMidijobApp client:load />
+</BaseDocument>

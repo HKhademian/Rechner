@@ -17,6 +17,9 @@ import {
   kitaApp,
 } from "#/apps/kita/manifest.ts";
 import {
+  minijobMidijobApp,
+} from "#/apps/minijob-midijob/manifest.ts";
+import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
 import {
@@ -39,6 +42,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   solarEnergyApp,
   housingApp,
   kitaApp,
+  minijobMidijobApp,
 ]);
 
 /** Default release catalog shown on the home page. */
