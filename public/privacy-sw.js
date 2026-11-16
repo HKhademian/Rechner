@@ -1,4 +1,4 @@
-const CACHE_NAME = "rechner-offline-v2";
+const CACHE_NAME = "rechner-offline-v3";
 
 async function cachePageAndAssets(pageUrl, cache, visited) {
   const url = new URL(pageUrl);

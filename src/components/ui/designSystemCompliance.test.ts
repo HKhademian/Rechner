@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  existsSync,
   readFileSync,
   readdirSync,
 } from "node:fs";
@@ -314,5 +315,43 @@ describe("design system and layout architecture compliance", () => {
       true,
       "ModalDialog scroll-lock useLayoutEffect must depend only on [open]",
     );
+  });
+
+  it("keeps THIRD_PARTY_NOTICES aligned with installed dependencies without removed libraries", () => {
+    const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
+      readonly dependencies: Readonly<Record<string, string>>;
+    };
+    const noticesTxt = readFileSync("public/THIRD_PARTY_NOTICES.txt", "utf8");
+    const noticesMd = readFileSync("THIRD_PARTY_NOTICES.md", "utf8");
+
+    for (const noticeContent of [noticesTxt, noticesMd]) {
+      for (const forbidden of ["qrcode-generator", "kazuhikoarase", "denso-wave"]) {
+        assert.equal(
+          noticeContent.toLowerCase().includes(forbidden),
+          false,
+          `Third-party notices must not reference removed package or URL: ${forbidden}`,
+        );
+      }
+
+      for (const dep of Object.keys(pkg.dependencies)) {
+        assert.equal(
+          noticeContent.includes(dep),
+          true,
+          `Third-party notices must document runtime dependency: ${dep}`,
+        );
+      }
+
+      const listedPackages = [...noticeContent.matchAll(/(@?[a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?)\s*`?\s*\(\d+\.\d+\.\d+/g)]
+        .map((match) => match[1].replace(/`/g, ""));
+      assert.ok(listedPackages.length >= 5, "Expected third-party notices to list installed packages");
+
+      for (const listedPkg of listedPackages) {
+        assert.equal(
+          existsSync(join("node_modules", listedPkg, "package.json")),
+          true,
+          `Notice package ${listedPkg} must be installed in node_modules`,
+        );
+      }
+    }
   });
 });
