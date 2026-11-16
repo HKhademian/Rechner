@@ -149,6 +149,9 @@ it("track 3 domain calculators isolate persisted state exclusively under their o
     { app: "minijob-midijob",
       storeFile: "./src/apps/minijob-midijob/minijobMidijobStore.ts",
       updateExpr: `store.updateMinijobMidijobField("childrenCount", 2)` },
+    { app: "commuter-allowance",
+      storeFile: "./src/apps/commuter-allowance/commuterAllowanceStore.ts",
+      updateExpr: `store.updateCommuterAllowanceField("oneWayCommuteKm", 42)` },
   ];
   for (const item of cases) {
     const script = `
@@ -194,6 +197,9 @@ it("track 3 Sync Life Profile only persists under the target app and shared para
     { app: "minijob-midijob",
       storeFile: "./src/apps/minijob-midijob/minijobMidijobStore.ts",
       syncCall: "store.syncMinijobMidijobFromLifeProfile()" },
+    { app: "commuter-allowance",
+      storeFile: "./src/apps/commuter-allowance/commuterAllowanceStore.ts",
+      syncCall: "store.syncCommuterAllowanceFromLifeProfile()" },
   ];
   for (const item of cases) {
     const script = `

@@ -1,0 +1,13 @@
+---
+import CommuterAllowanceApp from "#/apps/commuter-allowance/App.tsx";
+import {
+  commuterAllowanceApp,
+} from "#/apps/commuter-allowance/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${commuterAllowanceApp.title} | Rechner`}
+  description={commuterAllowanceApp.description}
+>
+  <CommuterAllowanceApp client:load />
+</BaseDocument>

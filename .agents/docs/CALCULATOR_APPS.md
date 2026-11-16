@@ -4,16 +4,17 @@ The home page is a metadata-only marketplace. Each calculator has its own manife
 
 ## Current entry points
 
-- `/`: `CalculatorCatalog`, search/category filters and pagination (`src/apps/registry.ts`).
+- `/`: `CalculatorCatalog`, search/category filters, opt-in `Show demo tools` toggle (hides `Demo` / `Draft` tools by default while tagging all prerelease cards when shown), and pagination (`src/apps/registry.ts`).
 - `/profile/`: `LifeProfileSummaryPage`, unified household profile overview (`src/store/lifeProfileStore.ts`).
 - `/laws/` & `/laws/<lawId>/`: `LawReferencePage`, searchable German statutory rules directory.
 - `/calculators/net-pay/`: `src/apps/net-pay/App.tsx`, backed by `calculatorStore.ts` and `taxConfigStore.ts`.
 - `/calculators/parental-leave/`: `src/apps/parental-leave/App.tsx`, backed by `elterngeldStore.ts`.
 - `/calculators/girocode/`: `src/apps/girocode/App.tsx`, backed by `girocodeStore.ts`.
-- `/calculators/visa/`, `/calculators/company-car/`, `/calculators/solar-energy/`, `/calculators/housing/`: standalone domain planners (`App.tsx` + domain store per folder).
+- `/calculators/visa/`, `/calculators/company-car/`, `/calculators/solar-energy/`, `/calculators/housing/`: standalone domain planners (`App.tsx` + domain store per folder, tagged `Demo`).
+- `/calculators/kita/`, `/calculators/minijob-midijob/`, `/calculators/commuter-allowance/`: Wave 1 Germany Life Toolbox calculators (`App.tsx` + domain store per folder, tagged `Demo`), powered by the shared `childcare.ts`, `transitionContributions.ts`, `commuterRules.json`, and § 32a EStG tariff engines.
 - `/elterngeld`: compatibility redirect to the parental-leave route.
 
-Every HTML page wraps in `src/layouts/BaseDocument.astro`, and every interactive root renders inside `<AppShell>` (`src/components/ui/AppShell.tsx`). `Navigation` links to Home, provides a direct **Tools** dropdown switcher across `allCalculatorApps`, links to `Life Profile` and `Laws & Rules`, and renders `Quick § Ref`, `<PrivacyStatus />`, and `<ThemeToggle />`. The catalog, `LifeProfileSummaryPage`, `LawReferencePage`, and shared `src/components/ui/` primitives must never import any calculator-private financial store (`src/apps/dependencyBoundaries.test.ts`).
+Every HTML page wraps in `src/layouts/BaseDocument.astro`, and every interactive root renders inside `<AppShell>` (`src/components/ui/AppShell.tsx`). `Navigation` links to Home, provides a direct **Tools** dropdown switcher across `allCalculatorApps` (tagging `CalculatorReleaseStatus.Draft` tools as `Demo`), links to `Life Profile` and `Laws & Rules`, and renders `Quick § Ref`, `<PrivacyStatus />`, and `<ThemeToggle />`. The catalog, `LifeProfileSummaryPage`, `LawReferencePage`, and shared `src/components/ui/` primitives must never import any calculator-private financial store (`src/apps/dependencyBoundaries.test.ts`).
 
 ## State ownership and migration
 

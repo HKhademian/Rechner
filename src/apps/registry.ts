@@ -8,6 +8,9 @@ import {
   companyCarApp,
 } from "#/apps/company-car/manifest.ts";
 import {
+  commuterAllowanceApp,
+} from "#/apps/commuter-allowance/manifest.ts";
+import {
   giroCodeApp,
 } from "#/apps/girocode/manifest.ts";
 import {
@@ -43,6 +46,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   housingApp,
   kitaApp,
   minijobMidijobApp,
+  commuterAllowanceApp,
 ]);
 
 /** Default release catalog shown on the home page. */

@@ -63,9 +63,11 @@ const NET_PAY_LAW_CODES = new Set<string>([
 ]);
 
 const NET_PAY_EXCLUDED_LAW_IDS = new Set<LawId>([
+  LawId.EStG_3_15,
   LawId.EStG_3_72,
   LawId.EStG_6_1_4,
   LawId.EStG_8_2,
+  LawId.EStG_9_1_4,
   LawId.EStG_35a,
 ]);
 
@@ -113,6 +115,12 @@ const KITA_LAW_IDS = new Set<LawId>([
 
 const MINIJOB_MIDIJOB_LAW_IDS = new Set<LawId>([
   LawId.SGB4_20,
+]);
+
+const COMMUTER_ALLOWANCE_LAW_IDS = new Set<LawId>([
+  LawId.EStG_9_1_4,
+  LawId.EStG_3_15,
+  LawId.EStG_9a,
 ]);
 
 /**
@@ -215,6 +223,7 @@ export function getCalculatorsUsingLaw(
   const usesHousing = HOUSING_LAW_CODES.has(entry.code) || HOUSING_EXTRA_LAW_IDS.has(entry.id);
   const usesKita = KITA_LAW_IDS.has(entry.id);
   const usesMinijobMidijob = MINIJOB_MIDIJOB_LAW_IDS.has(entry.id);
+  const usesCommuterAllowance = COMMUTER_ALLOWANCE_LAW_IDS.has(entry.id);
 
   const appMap = new Map(allCalculatorApps.map((app) => [app.id, app]));
   const result: CalculatorAppDefinition[] = [];
@@ -228,6 +237,7 @@ export function getCalculatorsUsingLaw(
     [usesHousing, AppId.Housing],
     [usesKita, AppId.Kita],
     [usesMinijobMidijob, AppId.MinijobMidijob],
+    [usesCommuterAllowance, AppId.CommuterAllowance],
   ] as const) {
     if (enabled) {
       const app = appMap.get(appId);

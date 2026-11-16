@@ -28,6 +28,7 @@ const ROUTE_COMPONENTS: readonly string[] = [
   "src/apps/girocode/GiroCodeGenerator.tsx",
   "src/apps/kita/KitaCalculator.tsx",
   "src/apps/minijob-midijob/MinijobMidijobCalculator.tsx",
+  "src/apps/commuter-allowance/CommuterAllowanceCalculator.tsx",
 ];
 
 function walkFiles(
