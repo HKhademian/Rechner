@@ -292,6 +292,7 @@ export default function LifeProfilePanel({
                 <>
                   <ToggleSwitch
                     id="lp-married-joint"
+                    topicId="joint-assessment"
                     label="Married joint assessment (§ 26 EStG)"
                     checked={profile.isMarriedJointAssessment}
                     plain
@@ -341,6 +342,7 @@ export default function LifeProfilePanel({
               </div>
               <ToggleSwitch
                 id="lp-has-car"
+                topicId="company-car"
                 label="Include company car"
                 checked={profile.hasCompanyCar}
                 plain
@@ -348,6 +350,7 @@ export default function LifeProfilePanel({
               />
               <NumberField
                 id="lp-car-price"
+                topicId="car-list-price"
                 label="List Price"
                 unit="€"
                 compact
@@ -394,6 +397,7 @@ export default function LifeProfilePanel({
               </div>
               <ToggleSwitch
                 id="lp-plans-solar"
+                topicId="solar"
                 label="Include solar"
                 checked={profile.plansSolarPv}
                 plain
@@ -401,6 +405,7 @@ export default function LifeProfilePanel({
               />
               <NumberField
                 id="lp-solar-kwp"
+                topicId="solar-yield"
                 label="System Size"
                 unit="kWp"
                 compact
@@ -444,6 +449,7 @@ export default function LifeProfilePanel({
               </div>
               <ToggleSwitch
                 id="lp-plans-home"
+                topicId="kfw-300"
                 label="Include home purchase"
                 checked={profile.plansHomePurchase}
                 plain
