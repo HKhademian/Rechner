@@ -109,6 +109,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
             <div className="domain-calc-field-row">
               <NumberField
                 id="solar-kwp"
+                topicId="solar-yield"
                 label="System Size"
                 unit="kWp"
                 min={0.4}
@@ -120,6 +121,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
 
               <NumberField
                 id="solar-yield"
+                topicId="solar-yield"
                 label="Specific Yield"
                 unit="kWh/kWp"
                 min={400}
@@ -160,6 +162,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
               </div>
               <SegmentedControl
                 label="Solar feed-in setup"
+                topicId="solar"
                 value={s.feedInMode}
                 options={FEED_IN_MODE_OPTIONS}
                 fullWidth
@@ -181,6 +184,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
 
               <NumberField
                 id="solar-self-share"
+                topicId="solar-self-consumption"
                 label="Self-Consumption Share"
                 unit="%"
                 min={0}
@@ -193,6 +197,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="solar-vat-zero"
+              topicId="solar-vat"
               label="0% VAT zero-rating (§ 12 Abs. 3 UStG)"
               hint="Applies to qualifying residential rooftop installations"
               checked={s.vatExemptEligible}
