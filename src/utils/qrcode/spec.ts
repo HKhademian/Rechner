@@ -25,7 +25,7 @@ export type QrErrorCorrection = (typeof QrErrorCorrection)[keyof typeof QrErrorC
 /** Validates and narrows an error correction string to {@link QrErrorCorrection}. */
 export function toQrErrorCorrection(value: string): QrErrorCorrection {
   if (!Object.values(QrErrorCorrection).includes(value as QrErrorCorrection)) {
-    throw new TypeError(`Unsupported QR error correction level: ${value}`);
+    throw new TypeError(`Unsupported matrix error correction level: ${value}`);
   }
   return value as QrErrorCorrection;
 }
@@ -58,7 +58,7 @@ export const ALL_QR_MASK_IDS: readonly QrMaskId[] = [
 /** Validates and narrows a mask pattern integer (0..7) to {@link QrMaskId}. */
 export function toQrMaskId(value: number): QrMaskId {
   if (!Number.isInteger(value) || value < 0 || value > 7) {
-    throw new TypeError(`QR mask ID must be an integer 0..7, got ${value}`);
+    throw new TypeError(`Matrix mask ID must be an integer 0..7, got ${value}`);
   }
   return value as QrMaskId;
 }
@@ -71,7 +71,7 @@ export type QrQuietZone = QrBrand<number, "QrQuietZone">;
 /** Validates and constructs a branded {@link QrVersion} within 1..13. */
 export function toQrVersion(value: number): QrVersion {
   if (!Number.isInteger(value) || value < QR_MIN_VERSION || value > QR_MAX_VERSION) {
-    throw new TypeError(`QR version must be an integer ${QR_MIN_VERSION}..${QR_MAX_VERSION}, got ${value}`);
+    throw new TypeError(`Matrix version must be an integer ${QR_MIN_VERSION}..${QR_MAX_VERSION}, got ${value}`);
   }
   return value as QrVersion;
 }
@@ -79,7 +79,7 @@ export function toQrVersion(value: number): QrVersion {
 /** Validates and constructs a branded {@link QrGridSize} matching 4V + 17 for V in 1..13. */
 export function toQrGridSize(value: number): QrGridSize {
   if (!Number.isInteger(value) || value < 21 || value > 69 || (value - 17) % 4 !== 0) {
-    throw new TypeError(`QR grid size must equal 4V + 17 for V in 1..13, got ${value}`);
+    throw new TypeError(`Matrix grid size must equal 4V + 17 for V in 1..13, got ${value}`);
   }
   return value as QrGridSize;
 }
@@ -87,7 +87,7 @@ export function toQrGridSize(value: number): QrGridSize {
 /** Validates and constructs a branded raster module scale (1..64 pixels per module). */
 export function toQrModuleScale(value: number): QrModuleScale {
   if (!Number.isInteger(value) || value < 1 || value > 64) {
-    throw new TypeError(`QR module scale must be an integer 1..64, got ${value}`);
+    throw new TypeError(`Matrix module scale must be an integer 1..64, got ${value}`);
   }
   return value as QrModuleScale;
 }
@@ -95,7 +95,7 @@ export function toQrModuleScale(value: number): QrModuleScale {
 /** Validates and constructs a branded quiet-zone width (0..16 modules per side). */
 export function toQrQuietZone(value: number): QrQuietZone {
   if (!Number.isInteger(value) || value < 0 || value > 16) {
-    throw new TypeError(`QR quiet zone must be an integer 0..16, got ${value}`);
+    throw new TypeError(`Matrix quiet zone must be an integer 0..16, got ${value}`);
   }
   return value as QrQuietZone;
 }
@@ -181,7 +181,7 @@ export function blockPlanForVersion(version: QrVersion): QrVersionBlockPlan {
 /** Selects the smallest QR version in 1..13 capable of encoding {@link byteLength} bytes at Level M. */
 export function selectVersionForByteLength(byteLength: number): QrVersion {
   if (!Number.isInteger(byteLength) || byteLength < 0) {
-    throw new TypeError(`QR payload byte length must be a non-negative integer, got ${byteLength}`);
+    throw new TypeError(`Matrix payload byte length must be a non-negative integer, got ${byteLength}`);
   }
   for (let candidate = QR_MIN_VERSION; candidate <= QR_MAX_VERSION; candidate += 1) {
     const version = toQrVersion(candidate);
@@ -190,7 +190,7 @@ export function selectVersionForByteLength(byteLength: number): QrVersion {
     }
   }
   throw new RangeError(
-    `QR byte payload (${byteLength} bytes) exceeds Version ${QR_MAX_VERSION} Level M limit (${QR_MAX_BYTE_PAYLOAD_M} bytes).`,
+    `Matrix byte payload (${byteLength} bytes) exceeds Version ${QR_MAX_VERSION} Level M limit (${QR_MAX_BYTE_PAYLOAD_M} bytes).`,
   );
 }
 
@@ -230,7 +230,7 @@ export function encodeFormatBits(
 /** Computes the 18-bit BCH(18,6) version word (generator 0x1F25) for Versions 7..13. */
 export function encodeVersionBits(version: QrVersion): number {
   if (version < 7) {
-    throw new TypeError(`Version info bits only apply to QR versions >= 7, got ${version}`);
+    throw new TypeError(`Version info bits only apply to matrix versions >= 7, got ${version}`);
   }
   const shifted = version << 12;
   return shifted | computeBchRemainder(shifted, BCH_VERSION_GENERATOR, 12);

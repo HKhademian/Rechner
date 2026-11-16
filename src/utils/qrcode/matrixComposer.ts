@@ -380,7 +380,7 @@ export function composeQrSymbolMatrix(
     mask: finalMask,
     isDark(row: number, col: number): boolean {
       if (!Number.isInteger(row) || !Number.isInteger(col) || row < 0 || row >= size || col < 0 || col >= size) {
-        throw new RangeError(`QR matrix coordinate (${row}, ${col}) out of bounds for ${size}x${size}.`);
+        throw new RangeError(`Matrix coordinate (${row}, ${col}) out of bounds for ${size}x${size}.`);
       }
       return finalModules[row * size + col] === 1;
     },
