@@ -1,4 +1,5 @@
 import "#/components/DomainCalculator.css";
+import "./MortgageCalculator.css";
 import {
   useEffect,
   useState,
@@ -11,12 +12,22 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  type LoanRepaymentMethod,
+  calculatePurchaseLtv,
+  estimateAffordability,
+  LoanRepaymentMethod as LoanMethod,
+  projectKfwLoan,
+  toGraceYears,
+} from "#/apps/mortgage/financingProjection.ts";
+import {
   projectMortgage,
   toMortgageYears,
 } from "#/apps/mortgage/mortgageCalculation.ts";
 import {
   takeMortgageHandoff,
 } from "#/apps/mortgage/mortgageHandoff.ts";
+import OptionalNumberInput from "#components/OptionalNumberInput";
+import LawRefLink from "#components/laws/LawRefLink";
 import {
   AppShell,
 } from "#components/ui/AppShell";
@@ -31,6 +42,12 @@ import {
   PageHeader,
 } from "#components/ui/PageHeader";
 import {
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  LawId,
+} from "#engine/laws/types";
+import {
   toEuroAmount,
   toPercentageRate,
 } from "#engine/types";
@@ -38,12 +55,39 @@ import {
   formatEur,
 } from "#utils/currencyFormat";
 
+const METHODS = [
+  { value: LoanMethod.Annuity,
+    label: "Monthly repayment" },
+  { value: LoanMethod.Balloon,
+    label: "Lump sum at end" },
+] as const;
+
 export default function MortgageCalculator(): JSX.Element {
   const [principal, setPrincipal] = useState(200000);
   const [interest, setInterest] = useState(3.6);
   const [repayment, setRepayment] = useState(2);
+  const [propertyPrice, setPropertyPrice] = useState<number | undefined>();
+  const [kfwPrincipal, setKfwPrincipal] = useState(0);
+  const [kfwInterest, setKfwInterest] = useState<number | undefined>();
+  const [kfwTerm, setKfwTerm] = useState<number | undefined>();
+  const [kfwGrace, setKfwGrace] = useState(0);
+  const [method, setMethod] = useState<LoanRepaymentMethod>(LoanMethod.Annuity);
   const [years, setYears] = useState(10);
+  const [income, setIncome] = useState<number | undefined>();
+  const [expenses, setExpenses] = useState<number | undefined>();
+  const [housingCosts, setHousingCosts] = useState<number | undefined>();
   const [transferred, setTransferred] = useState(false);
+  const [invalidFields, setInvalidFields] = useState<Readonly<Record<string, boolean>>>({});
+  const trackValidity = (key: string) => (valid: boolean): void => {
+    setInvalidFields((previous) => {
+      if (Boolean(previous[key]) === !valid) {
+        return previous;
+      }
+      return { ...previous,
+        [key]: !valid };
+    });
+  };
+  const hasInvalidFields = Object.values(invalidFields).some(Boolean);
 
   useEffect(() => {
     try {
@@ -52,42 +96,133 @@ export default function MortgageCalculator(): JSX.Element {
         setPrincipal(input.principal);
         setInterest(input.annualInterest * 100);
         setRepayment(input.initialRepayment * 100);
+        setKfwPrincipal(input.kfwPrincipal);
+        setPropertyPrice(input.propertyPrice);
         setTransferred(true);
       }
     }
     catch {
-      // The calculator remains usable if tab storage is unavailable.
+      // Inputs remain editable if tab storage is unavailable.
     }
   }, []);
 
-  const result = projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), toMortgageYears(years));
+  const horizon = toMortgageYears(years);
+  const bank = projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), horizon);
+  const totalDebt = toEuroAmount(principal + kfwPrincipal);
+  const ltv = propertyPrice === undefined ? null : calculatePurchaseLtv(totalDebt, toEuroAmount(propertyPrice));
+  const validTerm = kfwTerm !== undefined && Number.isInteger(kfwTerm) && kfwTerm >= 1 && kfwTerm <= 50;
+  const validGrace = method === LoanMethod.Balloon || (validTerm && kfwGrace < kfwTerm);
+  const kfwTerms = kfwPrincipal > 0 && kfwInterest !== undefined && validTerm && validGrace ? {
+    principal: toEuroAmount(kfwPrincipal),
+    annualInterest: toPercentageRate(kfwInterest / 100),
+    term: toMortgageYears(kfwTerm),
+    grace: toGraceYears(method === LoanMethod.Balloon ? 0 : kfwGrace),
+    method,
+  } : null;
+  const kfw = kfwTerms ? projectKfwLoan(kfwTerms, horizon) : null;
+  const complete = kfwPrincipal === 0 || kfw !== null;
+  const monthly = complete ? bank.monthlyPayment + (kfw?.initialMonthlyPayment ?? 0) : null;
+  const affordability = monthly !== null && income !== undefined && expenses !== undefined && housingCosts !== undefined
+    ? estimateAffordability(toEuroAmount(income), toEuroAmount(expenses), toEuroAmount(housingCosts), toEuroAmount(monthly)) : null;
+  const alternative = kfwTerms ? projectKfwLoan({ ...kfwTerms,
+    annualInterest: toPercentageRate(interest / 100) }, horizon) : null;
+  const kfwInterestDifference = alternative && kfw ? alternative.interestPaid - kfw.interestPaid : null;
+  const bankAtGraceEnd = kfwGrace > 0 ? projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), toMortgageYears(kfwGrace)) : bank;
+  const afterGrace = kfw && method === LoanMethod.Annuity && kfwGrace > 0
+    ? (bankAtGraceEnd.paidOff ? 0 : bank.monthlyPayment) + kfw.laterMonthlyPayment : null;
+  const laterAffordability = afterGrace !== null && income !== undefined && expenses !== undefined && housingCosts !== undefined
+    ? estimateAffordability(toEuroAmount(income), toEuroAmount(expenses), toEuroAmount(housingCosts), toEuroAmount(afterGrace)) : null;
+
   return <AppShell currentPath={calculatorPath(AppId.Mortgage)}>
-    <PageHeader eyebrow="Home financing" title="Mortgage Calculator" subtitle="Explore the payment and balance of a single bank loan." />
-    {transferred && <p role="status">Loan amount and rates loaded from the Home Purchase Planner. You can change them here.</p>}
+    <PageHeader eyebrow="Home financing" title="Mortgage Simulator & Affordability" subtitle="Explore your bank loan and KfW loan together, then compare the payments with your budget." />
+    {transferred && <p role="status">Purchase price and estimated loan amounts loaded from the Home Purchase Planner. KfW is a loan you must repay; enter its terms below.</p>}
     <div className="domain-calc-layout">
-      <section className="ui-card" aria-labelledby="mortgage-inputs">
-        <h2 id="mortgage-inputs">Your bank loan</h2>
-        <div className="domain-calc-fields">
-          <NumberField id="mortgage-principal" label="Amount borrowed" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
-          <NumberField id="mortgage-interest" label="Annual interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
-          <NumberField id="mortgage-repayment" label="Initial annual repayment rate" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} />
-          <NumberField id="mortgage-years" label="Show balance after" unit="years" min={1} max={50} step={1} value={years} construct={toMortgageYears} onChange={setYears} />
-        </div>
-      </section>
-      <div className="domain-calc-results">
-        <div className="domain-calc-kpis">
-          <MetricCard label="Estimated monthly payment" value={formatEur(result.monthlyPayment)} subtitle="Interest and principal together" tone={MetricTone.Primary} />
-          <MetricCard label={result.paidOff ? "Loan paid off" : `Balance after ${years} years`} value={formatEur(result.balance)} subtitle={result.paidOff ? `After ${result.elapsedMonths} months; the final payment may be smaller` : "Amount still owed on this loan"} />
-          <MetricCard label="Estimated interest paid" value={formatEur(result.interestPaid)} subtitle={result.paidOff ? "Until the loan is paid off" : `Over ${years} years`} />
-        </div>
-        <section className="ui-card">
-          <h2>How this estimate works</h2>
-          <p>The monthly payment starts at the loan amount multiplied by the combined annual interest and repayment rates, divided by 12. Interest is calculated monthly on the outstanding balance. The rate and regular payment stay fixed for the period shown.</p>
-          <p>This covers the bank loan only. Any KfW loan needs its own terms and payments. Fees, special repayments, changes in rates and refinancing are not included.</p>
-          {result.balanceIncreasing && <p role="status">The estimated payment does not cover the interest, so the balance grows.</p>}
-          {!result.paidOff && !result.balanceIncreasing && repayment === 0 && <p role="status">With no principal repayment, the loan may not be paid off during this period.</p>}
-          <a href={calculatorPath(AppId.Housing)}>Back to Home Purchase Planner</a>
+      <div className="mortgage-inputs">
+        <section className="ui-card" aria-labelledby="mortgage-property">
+          <h2 id="mortgage-property">Property &amp; bank loan</h2>
+          <div className="domain-calc-fields">
+            <OptionalNumberInput id="mortgage-value" onValidityChange={trackValidity("mortgage-value")} label="Property purchase price / value" unit="€" min={0} max={20000000} placeholder="Enter value" value={propertyPrice} onChange={setPropertyPrice} />
+            <NumberField id="mortgage-principal" onValidityChange={trackValidity("mortgage-principal")} label="Bank loan amount" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
+            <NumberField id="mortgage-interest" onValidityChange={trackValidity("mortgage-interest")} label="Bank annual interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
+            <NumberField id="mortgage-repayment" onValidityChange={trackValidity("mortgage-repayment")} label="Bank initial annual repayment" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} />
+            <NumberField id="mortgage-years" onValidityChange={trackValidity("mortgage-years")} label="Show projection for" unit="years" min={1} max={50} step={1} value={years} construct={toMortgageYears} onChange={setYears} />
+          </div>
         </section>
+        <section className="ui-card" aria-labelledby="mortgage-kfw">
+          <h2 id="mortgage-kfw">KfW loan</h2>
+          <p>KfW financing is borrowed money. Enter the nominal interest rate and term from your offer; no rate is assumed.</p>
+          <LawRefLink lawId={LawId.KfW_300} label="KfW 300 program and official terms" />
+          <div className="domain-calc-fields">
+            <NumberField id="mortgage-kfw-amount" onValidityChange={trackValidity("mortgage-kfw-amount")} label="KfW loan amount" unit="€" min={0} max={20000000} step={5000} value={kfwPrincipal} onChange={setKfwPrincipal} />
+            {kfwPrincipal > 0 && <>
+              <OptionalNumberInput id="mortgage-kfw-rate" onValidityChange={trackValidity("mortgage-kfw-rate")} label="KfW nominal annual interest rate" unit="%" min={0} max={15} step={0.01} placeholder="Enter offer rate" value={kfwInterest} onChange={setKfwInterest} />
+              <OptionalNumberInput id="mortgage-kfw-term" onValidityChange={trackValidity("mortgage-kfw-term")} label="KfW total loan term" unit="years" min={1} max={50} step={1} placeholder="Enter term" value={kfwTerm} onChange={(value) => {
+                if (value !== undefined) {
+                  toMortgageYears(value);
+                }
+                setKfwTerm(value);
+              }} />
+              <div><p>Repayment type</p><SegmentedControl label="KfW repayment type" value={method} options={METHODS} onChange={setMethod} /></div>
+              {method === LoanMethod.Annuity && <NumberField id="mortgage-kfw-grace" onValidityChange={trackValidity("mortgage-kfw-grace")} label="Interest-only period" unit="years" min={0} max={49} step={1} value={kfwGrace} construct={toGraceYears} onChange={setKfwGrace} />}
+              {!validGrace && validTerm && <p role="alert">The interest-only period must be shorter than the KfW term.</p>}
+            </>}
+          </div>
+        </section>
+        <section className="ui-card" aria-labelledby="mortgage-budget">
+          <h2 id="mortgage-budget">Monthly affordability</h2>
+          <p>Enter your own monthly amounts. Exclude the loans modeled here from expenses to avoid counting them twice.</p>
+          <div className="domain-calc-fields">
+            <OptionalNumberInput id="mortgage-income" onValidityChange={trackValidity("mortgage-income")} label="Household income after tax" unit="€/month" min={0} placeholder="Enter income" value={income} onChange={setIncome} />
+            <OptionalNumberInput id="mortgage-expenses" onValidityChange={trackValidity("mortgage-expenses")} label="Other spending and existing debts" unit="€/month" min={0} placeholder="Enter spending" value={expenses} onChange={setExpenses} />
+            <OptionalNumberInput id="mortgage-running-costs" onValidityChange={trackValidity("mortgage-running-costs")} label="Home running costs and maintenance reserve" unit="€/month" min={0} placeholder="Enter costs" value={housingCosts} onChange={setHousingCosts} />
+          </div>
+        </section>
+      </div>
+      <div className="domain-calc-results">
+        {hasInvalidFields && <p role="alert">Correct the highlighted inputs. Results below use the last valid values.</p>}
+        <div className="domain-calc-kpis">
+          <MetricCard label="Total borrowed" value={formatEur(totalDebt)} subtitle={`Bank ${formatEur(principal)} + KfW ${formatEur(kfwPrincipal)}`} tone={MetricTone.Primary} />
+          <MetricCard label="Loan-to-value" value={ltv === null ? "Enter property value" : `${(ltv * 100).toFixed(1)}%`} subtitle="Both loans ÷ entered purchase price / value" />
+          <MetricCard label="Starting monthly loan payments" value={monthly === null ? "Enter KfW terms" : formatEur(monthly)} subtitle={monthly === null ? "Bank and KfW together require the KfW rate and term" : `Bank ${formatEur(bank.monthlyPayment)} + KfW ${formatEur(kfw?.initialMonthlyPayment ?? 0)}`} />
+        </div>
+        <section className="ui-card mortgage-results">
+          <h2>What you repay</h2>
+          <p>Your total debt includes both loans. Loan-to-value uses the entered purchase price, not the bank's valuation; buying costs can make it exceed 100%.</p>
+          {kfwPrincipal > 0 && !complete && <p role="status">Enter the KfW interest rate and term to see combined payments, interest, balance and affordability.</p>}
+          {kfw && <>
+            <p>KfW starts at <strong>{formatEur(kfw.initialMonthlyPayment)}/month</strong>{afterGrace !== null && <>; after {kfwGrace} interest-only {kfwGrace === 1 ? "year" : "years"}, its regular payment becomes <strong>{formatEur(kfw.laterMonthlyPayment)}/month</strong> and both loans together are estimated at <strong>{formatEur(afterGrace)}/month</strong></>}.</p>
+            {method === LoanMethod.Balloon && <p role="status">The KfW payment above covers interest only. The entire <strong>{formatEur(kfwPrincipal)}</strong> principal is due as a lump sum at the end of year {kfwTerm}.</p>}
+            <p>Over the selected {years} years: estimated combined interest <strong>{formatEur(bank.interestPaid + kfw.interestPaid)}</strong>; combined payments <strong>{formatEur(principal - bank.balance + bank.interestPaid + kfw.totalPaid)}</strong>; remaining debt <strong>{formatEur(bank.balance + kfw.balance)}</strong>.</p>
+            {kfwInterestDifference !== null && <p>Compared with borrowing the same KfW amount at your bank rate, with the <em>same term and repayment structure</em>, estimated KfW interest is {kfwInterestDifference >= 0 ? `${formatEur(kfwInterestDifference)} lower` : `${formatEur(-kfwInterestDifference)} higher`} over this period. This is an interest comparison, not a grant or a complete offer comparison.</p>}
+          </>}
+          {kfwPrincipal === 0 && <p>Over {years} years: estimated bank interest <strong>{formatEur(bank.interestPaid)}</strong>; remaining bank debt <strong>{formatEur(bank.balance)}</strong>.</p>}
+          {bank.balanceIncreasing && <p role="status">The bank payment does not cover interest, so its balance grows.</p>}
+          <p>Figures assume both loans are fully paid out at the start and use fixed nominal rates for the entire projection. Fees, special repayments, disbursement timing, rate changes and refinancing are excluded. KfW terms vary by offer; the last payment may differ due to rounding. A fixed-rate period may end before the loan does.</p>
+        </section>
+        <section className="ui-card mortgage-results" aria-labelledby="affordability-results">
+          <h2 id="affordability-results">Affordability estimate</h2>
+          {affordability ? <>
+            <p>Available after your spending and home costs, before these loans: <strong>{formatEur(affordability.availableBeforeLoans)}/month</strong>.</p>
+            <p>Left after starting loan payments: <strong>{formatEur(affordability.remainingAfterLoans)}/month</strong>{affordability.loanPaymentShare !== null && <> · loan payments are {(affordability.loanPaymentShare * 100).toFixed(1)}% of your net income</>}.</p>
+            {laterAffordability && <p>After the KfW interest-only period, estimated amount left: <strong>{formatEur(laterAffordability.remainingAfterLoans)}/month</strong>.</p>}
+            {affordability.remainingAfterLoans < 0 && <p role="status">The entered budget has a monthly shortfall at the starting payment.</p>}
+            {method === LoanMethod.Balloon && kfwPrincipal > 0 && <p>The monthly budget does not include saving for the KfW lump sum.</p>}
+            <p>This is your cash-flow estimate, not a bank affordability or lending decision. Include all recurring costs and reserves that matter to your household.</p>
+          </> : <p>Enter net income, other spending and home running costs{!complete ? ", plus the KfW terms," : ""} to calculate the amount left each month.</p>}
+        </section>
+        {complete && <section className="ui-card mortgage-results">
+          <h2>Year-by-year loan balance</h2>
+          <div className="mortgage-table-wrap"><table className="domain-calc-table">
+            <thead><tr><th>Year</th><th className="num">Bank balance</th><th className="num">KfW balance</th><th className="num">Total debt</th><th className="num">Interest paid to date</th></tr></thead>
+            <tbody>{Array.from({ length: years }, (_, index) => {
+              const year = index + 1;
+              const bankYear = projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), toMortgageYears(year));
+              const kfwYear = kfw?.yearly[index];
+              return <tr key={year}><th scope="row">{year}</th><td className="num">{formatEur(bankYear.balance)}</td><td className="num">{formatEur(kfwYear?.balance ?? 0)}</td><td className="num">{formatEur(bankYear.balance + (kfwYear?.balance ?? 0))}</td><td className="num">{formatEur(bankYear.interestPaid + (kfwYear?.interestPaid ?? 0))}</td></tr>;
+            })}</tbody>
+          </table></div>
+        </section>}
+        <a href={calculatorPath(AppId.Housing)}>Back to Home Purchase Planner</a>
       </div>
     </div>
   </AppShell>;

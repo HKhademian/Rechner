@@ -1,0 +1,21 @@
+.mortgage-inputs {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.mortgage-inputs h2,
+.mortgage-results h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.mortgage-inputs p,
+.mortgage-results p {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.mortgage-table-wrap {
+  overflow-x: auto;
+}
