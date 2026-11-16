@@ -125,6 +125,7 @@ export default function CompanyCarCalculator(): JSX.Element {
           <div className="domain-calc-fields">
             <NumberField
               id="car-blp"
+              topicId="car-list-price"
               label="Gross List Price (Bruttolistenpreis)"
               unit="€"
               min={5000}
@@ -141,6 +142,7 @@ export default function CompanyCarCalculator(): JSX.Element {
               </div>
               <SegmentedControl
                 label="Vehicle powertrain"
+                topicId="company-car"
                 value={s.powertrain}
                 options={POWERTRAIN_OPTIONS}
                 fullWidth
@@ -151,6 +153,7 @@ export default function CompanyCarCalculator(): JSX.Element {
             <div className="domain-calc-field-row">
               <NumberField
                 id="car-commute-km"
+                topicId="car-commute"
                 label="One-Way Commute"
                 unit="km"
                 min={0}
@@ -162,6 +165,7 @@ export default function CompanyCarCalculator(): JSX.Element {
 
               <NumberField
                 id="car-office-days"
+                topicId="car-commute"
                 label="Office Days / Month"
                 unit="days"
                 min={0}
@@ -178,6 +182,7 @@ export default function CompanyCarCalculator(): JSX.Element {
               </div>
               <SegmentedControl
                 label="Commute tax method"
+                topicId="car-commute"
                 value={s.commuteValuationMethod}
                 options={COMMUTE_OPTIONS}
                 fullWidth
@@ -187,6 +192,7 @@ export default function CompanyCarCalculator(): JSX.Element {
 
             <NumberField
               id="car-tax-rate"
+              topicId="company-car"
               label="Your Marginal Tax + Social Rate"
               unit="%"
               min={0}
