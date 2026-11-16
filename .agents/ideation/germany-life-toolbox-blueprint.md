@@ -1,7 +1,24 @@
 # Top 10 Germany Life Handy Toolbox — Product & Engineering Blueprint
 
-> **Status**: Ideation & Rollout Specification (Wave 1 implemented; Waves 2–3 specified)  
+> **Status**: Ideation & Rollout Tracker (Wave 1 implemented as `Demo`; Waves 2–3 planned)  
 > **Architectural Contract**: Every calculator operates 100% client-side with zero telemetry, isolates persisted user state under `browserAppStorage(AppId.<Tool>)` (`rechner:<slug>:v1:*`), shares the pure statutory engine (`#engine/*`), wraps its root island in `<AppShell>` inside `BaseDocument.astro`, composes UI from `src/components/ui/`, links citations exclusively via `<LawRefLink>`, and stays tagged as `Demo` (`CalculatorReleaseStatus.Draft`) on the catalog until graduation.
+
+---
+
+## Implementation Status Tracker (All 10 Tools)
+
+| # | Tool | Wave | Slug (`AppId`) | Category | Primary Statutes | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Kita Fee & Tax Offset Estimator | Wave 1 | `kita` | `Family & leave` | `§ 10 Abs. 1 Nr. 5`, `§ 32a`, `§ 26b EStG` | **Implemented (`Demo`)** (`/calculators/kita/`) |
+| 2 | Minijob & Midijob Transition Calculator | Wave 1 | `minijob-midijob` | `Money & taxes` | `§ 8`, `§ 20 Abs. 2 SGB IV`, `§ 38b EStG` | **Implemented (`Demo`)** (`/calculators/minijob-midijob/`) |
+| 3 | Commuter & JobTicket Calculator | Wave 1 | `commuter-allowance` | `Money & taxes` | `§ 9 Abs. 1 Nr. 4`, `§ 9a`, `§ 3 Nr. 15 EStG` | **Implemented (`Demo`)** (`/calculators/commuter-allowance/`) |
+| 4 | German Sick Pay & Transition Estimator | Wave 2 | `sick-pay` | `Money & taxes` | `§ 3 EFZG`, `§ 47 SGB V`, `§ 32b EStG` | **Planned** |
+| 5 | Unemployment Benefit Estimator (ALG I) | Wave 2 | `unemployment-benefit` | `Money & taxes` | `§§ 149–159 SGB III`, `§ 32b EStG` | **Planned** |
+| 6 | Public vs. Private Health Insurance Check | Wave 2 | `health-insurance-check` | `Money & taxes` | `§ 6`, `§ 10`, `§ 257 SGB V`, `§ 10 EStG` | **Planned** |
+| 7 | Notice Period & Severance Tax Optimizer | Wave 2 | `severance-notice` | `Money & taxes` | `§ 622 BGB`, `§ 34 Abs. 1 EStG`, `§ 14 SGB IV` | **Planned** |
+| 8 | Rental Deposit & Notice Deadline Calculator | Wave 3 | `rental-notice` | `Everyday` | `§ 551`, `§ 558`, `§ 573c BGB` | **Planned** |
+| 9 | Working-Day, Vacation & Public Holiday Optimizer | Wave 3 | `holiday-bridge-optimizer` | `Everyday` | `§ 3 BUrlG`, state *Feiertagsgesetze* | **Planned** |
+| 10 | Rundfunkbeitrag Household Split & Exemption Checker | Wave 3 | `rundfunkbeitrag` | `Everyday` | `§ 2`, `§ 4`, `§ 4a RBStV` | **Planned** |
 
 ---
 
