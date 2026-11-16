@@ -11,10 +11,11 @@ import {
 } from "preact/hooks";
 
 /** Blank means use the model's default; invalid text never replaces its last valid value. */
-export default function OptionalNumberInput({ id, label, topicId, unit, value, onChange, onValidityChange, min = 0, max, step = 1 }: {
+export default function OptionalNumberInput({ id, label, topicId, placeholder = "Auto", unit, value, onChange, onValidityChange, min = 0, max, step = 1 }: {
   id: string;
   label: string;
   topicId?: string;
+  placeholder?: string;
   unit?: string;
   value: number | undefined;
   onChange: (value: number | undefined) => void;
@@ -49,7 +50,7 @@ export default function OptionalNumberInput({ id, label, topicId, unit, value, o
           min={min}
           max={max}
           step={step}
-          placeholder="Auto"
+          placeholder={placeholder}
           value={draft}
           aria-invalid={error !== ""}
           aria-describedby={error ? `${id}-error` : undefined}
