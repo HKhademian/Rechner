@@ -26,3 +26,26 @@
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: 12px;
 }
+
+.topic-search {
+  display: grid;
+  gap: 6px;
+  max-width: 440px;
+  font-weight: 600;
+}
+
+.topic-search input {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 400;
+}
+
+.topic-search input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

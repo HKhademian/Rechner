@@ -17,6 +17,9 @@ import LawRefLink from "#components/laws/LawRefLink";
 import {
   AppShell,
 } from "#components/ui/AppShell";
+import {
+  useState,
+} from "preact/hooks";
 import type {
   JSX,
 } from "preact";
@@ -26,12 +29,19 @@ export function topicPath(id?: string): string {
 }
 
 export function TopicDirectory(): JSX.Element {
+  const [query, setQuery] = useState("");
+  const search = query.trim().toLowerCase();
+  const matching = topics.filter((topic) => `${topic.title} ${topic.description}`.toLowerCase().includes(search));
   return <AppShell currentPath={topicPath()}>
     <div className="topic-page">
       <h1>Benefits, programs &amp; concepts</h1>
       <p>Understand the terms used in the calculators, their potential benefits and limitations, and the rules behind them.</p>
+      <label className="topic-search">Search topics
+        <input type="search" value={query} placeholder="Search benefits, programs and concepts" onInput={(event) => setQuery(event.currentTarget.value)} />
+      </label>
+      <p role="status">{matching.length} {matching.length === 1 ? "topic" : "topics"}</p>
       <div className="topic-directory">
-        {topics.map((topic) => <article className="ui-card" key={topic.id}>
+        {matching.map((topic) => <article className="ui-card" key={topic.id}>
           <h2><a href={topicPath(topic.id)}>{topic.title}</a></h2>
           <p>{topic.description}</p>
         </article>)}
