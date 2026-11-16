@@ -72,6 +72,7 @@ const FEDERAL_STATE_OPTIONS = Object.entries(GERMAN_FEDERAL_STATE_LABELS).map(([
 export default function HousingCalculator(): JSX.Element {
   const s = housingState.value;
   const evalResult = housingEvaluation.value.value;
+  const savingsUsed = Math.min(s.availableEquityEur, evalResult.totalCapitalRequirementEur);
 
   return (
     <AppShell
@@ -126,7 +127,7 @@ export default function HousingCalculator(): JSX.Element {
 
               <NumberField
                 id="housing-equity"
-                label="Available Equity"
+                label="Your savings for this purchase"
                 unit="€"
                 min={0}
                 step={5000}
@@ -253,9 +254,9 @@ export default function HousingCalculator(): JSX.Element {
               tone={MetricTone.Loss}
             />
             <MetricCard
-              label="Remaining Bank Loan"
+              label="Bank loan still needed"
               value={formatEur(evalResult.remainingBankLoanEur)}
-              subtitle={`Est. ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/mo bank annuity`}
+              subtitle={`Estimated starting payment: ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/month`}
               tone={MetricTone.Primary}
             />
             <MetricCard
@@ -299,20 +300,22 @@ export default function HousingCalculator(): JSX.Element {
                   <td className="num">{formatEur(evalResult.totalCapitalRequirementEur)}</td>
                 </tr>
                 <tr>
-                  <td>Less: available equity</td>
-                  <td className="num">-{formatEur(s.availableEquityEur)}</td>
+                  <td>Your savings used toward the purchase</td>
+                  <td className="num">− {formatEur(savingsUsed)}</td>
                 </tr>
                 <tr>
-                  <td>Less: KfW 300 subsidized loan</td>
-                  <td className="num">-{formatEur(evalResult.kfw300MaxSubsidizedLoanEur)}</td>
+                  <td>Estimated KfW 300 loan used toward the purchase</td>
+                  <td className="num">− {formatEur(evalResult.kfw300MaxSubsidizedLoanEur)}</td>
                 </tr>
                 <tr className="is-total">
-                  <th>Remaining Bank Mortgage Needed</th>
+                  <th>Bank loan still needed</th>
                   <td className="num">{formatEur(evalResult.remainingBankLoanEur)}</td>
                 </tr>
               </tbody>
             </table>
 
+            <p>Your savings and the estimated KfW loan reduce the amount you need to borrow from a bank. The KfW loan is borrowed money and has its own repayment terms.</p>
+            {s.availableEquityEur > savingsUsed && <p>Not all of your available savings are needed for the purchase.</p>}
             <div className="domain-calc-law-bar">
               <span>Legal basis:</span>
               <LawRefLink lawId={LawId.GrEStG_11} label="GrEStG § 11" />
