@@ -1,5 +1,8 @@
 import "#/components/DomainCalculator.css";
 import {
+  useState, 
+} from "preact/hooks";
+import {
   type JSX,
 } from "preact";
 import {
@@ -13,6 +16,12 @@ import {
   syncHousingFromLifeProfile,
   updateHousingField,
 } from "#/apps/housing/housingStore.ts";
+import {
+  writeMortgageHandoff, 
+} from "#/apps/mortgage/mortgageHandoff.ts";
+import {
+  isPlainPrimaryClick, 
+} from "#store/lawReferenceStore";
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
@@ -70,6 +79,7 @@ const FEDERAL_STATE_OPTIONS = Object.entries(GERMAN_FEDERAL_STATE_LABELS).map(([
 }));
 
 export default function HousingCalculator(): JSX.Element {
+  const [transferNotice, setTransferNotice] = useState("");
   const s = housingState.value;
   const evalResult = housingEvaluation.value.value;
   const savingsUsed = Math.min(s.availableEquityEur, evalResult.totalCapitalRequirementEur);
@@ -257,6 +267,26 @@ export default function HousingCalculator(): JSX.Element {
               label="Bank loan still needed"
               value={formatEur(evalResult.remainingBankLoanEur)}
               subtitle={`Estimated starting payment: ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/month`}
+              footer={<><a className="ui-btn ui-btn--sm ui-btn--primary" href={calculatorPath(AppId.Mortgage)} onClick={(event) => {
+                if (!isPlainPrimaryClick(event)) {
+                  return;
+                }
+                try {
+                  if (writeMortgageHandoff(window.sessionStorage, {
+                    principal: evalResult.remainingBankLoanEur,
+                    annualInterest: s.marketMortgageAnnualInterestRate,
+                    initialRepayment: s.initialAnnualRepaymentRate,
+                  })) {
+                    return;
+                  }
+                }
+                catch {
+                  // Let the user open the calculator without transferring private inputs.
+                }
+                event.preventDefault();
+                setTransferNotice("Could not transfer the amounts. Open the mortgage calculator and enter them there.");
+              }}>Explore mortgage payments</a>
+              {transferNotice && <p role="status">{transferNotice} <a href={calculatorPath(AppId.Mortgage)}>Open calculator</a></p>}</>}
               tone={MetricTone.Primary}
             />
             <MetricCard
