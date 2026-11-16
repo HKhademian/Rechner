@@ -163,6 +163,11 @@ export default function LawReferenceModal(): JSX.Element | null {
         </header>
 
         <div className="law-reference-dialog__body">
+          {modalState.context && <section className="law-reference-dialog__context" aria-label={modalState.context.title}>
+            <h3>{modalState.context.title}</h3>
+            <p>{modalState.context.description}</p>
+            <p><strong>In this calculator:</strong> {modalState.context.calculatorEffect}</p>
+          </section>}
           <p className="law-reference-dialog__summary">{entry.summary}</p>
 
           {(entry.benefit || entry.antiBenefit) && (

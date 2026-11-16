@@ -14,8 +14,15 @@ import {
 /**
  * Navigation state for the unified Law Reference Popup modal.
  */
+export interface LawReferenceContext {
+  readonly title: string;
+  readonly description: string;
+  readonly calculatorEffect: string;
+}
+
 export interface LawReferenceModalState {
   readonly currentLawId: LawId;
+  readonly context?: LawReferenceContext;
   readonly activeGroupId?: LawGroupId;
   readonly history: readonly LawId[];
 }
@@ -33,10 +40,12 @@ export const activeLawSearchQuery = signal<string>("");
 export function openLawReference(
   lawId: LawId,
   groupId?: LawGroupId,
+  context?: LawReferenceContext,
 ): void {
   const entry = getLawEntry(lawId);
   activeLawModalState.value = {
     currentLawId: lawId,
+    context,
     activeGroupId: groupId ?? entry.groupId,
     history: [],
   };

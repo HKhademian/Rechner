@@ -14,6 +14,7 @@ import {
   type LawId,
 } from "#engine/laws/types";
 import {
+  type LawReferenceContext,
   isPlainPrimaryClick,
   openLawGroupReference,
   openLawReference,
@@ -33,6 +34,7 @@ export type LawRefLinkProps = (
     readonly groupId: LawGroupId;
   }
 ) & {
+  readonly context?: LawReferenceContext;
   readonly label?: string;
   readonly variant?: "inline" | "badge" | "plain";
   readonly showIcon?: boolean;
@@ -51,6 +53,7 @@ export type LawRefLinkProps = (
 export default function LawRefLink({
   lawId,
   groupId,
+  context,
   label,
   variant = "inline",
   showIcon = true,
@@ -85,7 +88,7 @@ export default function LawRefLink({
     event.preventDefault();
     onOpen?.();
     if (lawId) {
-      openLawReference(lawId, groupId);
+      openLawReference(lawId, groupId, context);
     }
     else if (groupId) {
       openLawGroupReference(groupId);
