@@ -197,6 +197,7 @@ export default function HousingCalculator(): JSX.Element {
             <div className="domain-calc-field-row">
               <NumberField
                 id="housing-rate"
+                topicId="mortgage-repayment"
                 label="Mortgage Interest Rate"
                 unit="%"
                 min={0.5}
@@ -208,6 +209,7 @@ export default function HousingCalculator(): JSX.Element {
 
               <NumberField
                 id="housing-repay"
+                topicId="mortgage-repayment"
                 label="Initial Repayment (Tilgung)"
                 unit="%"
                 min={0.5}
