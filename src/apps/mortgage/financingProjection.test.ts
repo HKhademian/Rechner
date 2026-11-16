@@ -5,6 +5,7 @@ import {
 import {
   calculatePurchaseLtv,
   estimateAffordability,
+  estimateAffordableBankLoan,
   LoanRepaymentMethod,
   projectKfwLoan,
   toGraceYears,
@@ -60,4 +61,11 @@ it("calculates LTV and household cash flow without hiding a deficit", () => {
     term: toMortgageYears(1),
     grace: toGraceYears(1),
     method: LoanRepaymentMethod.Annuity }, toMortgageYears(1)));
+});
+
+
+it("estimates a bank loan from the available payment without assuming a lending rule", () => {
+  assert.equal(estimateAffordableBankLoan(toEuroAmount(1000), toPercentageRate(0.04), toPercentageRate(0.02)), 200000);
+  assert.equal(estimateAffordableBankLoan(toEuroAmount(-1), toPercentageRate(0.04), toPercentageRate(0.02)), null);
+  assert.equal(estimateAffordableBankLoan(toEuroAmount(1000), toPercentageRate(0), toPercentageRate(0)), null);
 });

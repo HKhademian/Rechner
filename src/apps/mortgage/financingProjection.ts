@@ -126,3 +126,15 @@ export function estimateAffordability(income: EuroAmount, expenses: EuroAmount, 
     loanPaymentShare: income === 0 ? null : payments / income,
   };
 }
+
+/** Maximum bank principal under the selected initial-payment formula and monthly budget. */
+export function estimateAffordableBankLoan(monthlyBudget: EuroAmount, annualInterest: PercentageRate, initialRepayment: PercentageRate): EuroAmount | null {
+  if (!Number.isFinite(monthlyBudget) || !Number.isFinite(annualInterest) || !Number.isFinite(initialRepayment) || annualInterest < 0 || initialRepayment < 0) {
+    throw new TypeError("Budget and rates must be finite, with non-negative rates.");
+  }
+  const annualRate = annualInterest + initialRepayment;
+  if (monthlyBudget < 0 || annualRate === 0) {
+    return null;
+  }
+  return toEuroAmount(Math.floor((monthlyBudget * 12 / annualRate) * 100) / 100);
+}
