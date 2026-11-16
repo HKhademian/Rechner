@@ -54,7 +54,7 @@ export function TopicPage({ topic }: { readonly topic: Topic }): JSX.Element {
       </section>
       {(topic.laws.length > 0 || topic.source) && <section className="ui-card"><h2>Related rules and sources</h2>
         <ul>{topic.laws.map((law) => <li key={law}><LawRefLink lawId={law} label={`${getLawEntry(law).citation} · ${getLawEntry(law).title}`} /></li>)}</ul>
-        {topic.source && <p><a href={topic.source.url} target="_blank" rel="noopener noreferrer">{topic.source.label} ↗</a></p>}
+        {topic.source && <p><a href={topic.source.url}>{topic.source.label} ↗</a></p>}
       </section>}
       {related.length > 0 && <section className="ui-card"><h2>Related topics</h2>
         <ul>{related.map((other) => <li key={other.id}><a href={topicPath(other.id)}>{other.title}</a></li>)}</ul>
