@@ -15,6 +15,7 @@ import {
   type LoanRepaymentMethod,
   calculatePurchaseLtv,
   estimateAffordability,
+  estimateAffordableBankLoan,
   LoanRepaymentMethod as LoanMethod,
   projectKfwLoan,
   toGraceYears,
@@ -67,6 +68,8 @@ export default function MortgageCalculator(): JSX.Element {
   const [interest, setInterest] = useState(3.6);
   const [repayment, setRepayment] = useState(2);
   const [propertyPrice, setPropertyPrice] = useState<number | undefined>();
+  const [savings, setSavings] = useState<number | undefined>();
+  const [closingCosts, setClosingCosts] = useState<number | undefined>();
   const [kfwPrincipal, setKfwPrincipal] = useState(0);
   const [kfwInterest, setKfwInterest] = useState<number | undefined>();
   const [kfwTerm, setKfwTerm] = useState<number | undefined>();
@@ -77,6 +80,7 @@ export default function MortgageCalculator(): JSX.Element {
   const [expenses, setExpenses] = useState<number | undefined>();
   const [housingCosts, setHousingCosts] = useState<number | undefined>();
   const [transferred, setTransferred] = useState(false);
+  const [ready, setReady] = useState(false);
   const [invalidFields, setInvalidFields] = useState<Readonly<Record<string, boolean>>>({});
   const trackValidity = (key: string) => (valid: boolean): void => {
     setInvalidFields((previous) => {
@@ -98,13 +102,22 @@ export default function MortgageCalculator(): JSX.Element {
         setRepayment(input.initialRepayment * 100);
         setKfwPrincipal(input.kfwPrincipal);
         setPropertyPrice(input.propertyPrice);
+        setSavings(input.savings);
+        setClosingCosts(input.closingCosts);
         setTransferred(true);
       }
     }
     catch {
       // Inputs remain editable if tab storage is unavailable.
     }
+    finally {
+      setReady(true);
+    }
   }, []);
+
+  if (!ready) {
+    return <AppShell currentPath={calculatorPath(AppId.Mortgage)}><PageHeader eyebrow="Home financing" title="Mortgage Simulator & Affordability" /><p role="status">Loading financing details…</p></AppShell>;
+  }
 
   const horizon = toMortgageYears(years);
   const bank = projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), horizon);
@@ -128,6 +141,11 @@ export default function MortgageCalculator(): JSX.Element {
     annualInterest: toPercentageRate(interest / 100) }, horizon) : null;
   const kfwInterestDifference = alternative && kfw ? alternative.interestPaid - kfw.interestPaid : null;
   const bankAtGraceEnd = kfwGrace > 0 ? projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), toMortgageYears(kfwGrace)) : bank;
+  const kfwBudgetPayment = kfw ? Math.max(kfw.initialMonthlyPayment, kfw.laterMonthlyPayment) : 0;
+  const availableForBank = affordability ? affordability.availableBeforeLoans - kfwBudgetPayment : null;
+  const affordableBank = availableForBank === null ? null : estimateAffordableBankLoan(toEuroAmount(availableForBank), toPercentageRate(interest / 100), toPercentageRate(repayment / 100));
+  const affordablePrice = affordableBank !== null && savings !== undefined && closingCosts !== undefined
+    ? Math.max(0, affordableBank + kfwPrincipal + savings - closingCosts) : null;
   const afterGrace = kfw && method === LoanMethod.Annuity && kfwGrace > 0
     ? (bankAtGraceEnd.paidOff ? 0 : bank.monthlyPayment) + kfw.laterMonthlyPayment : null;
   const laterAffordability = afterGrace !== null && income !== undefined && expenses !== undefined && housingCosts !== undefined
@@ -142,6 +160,8 @@ export default function MortgageCalculator(): JSX.Element {
           <h2 id="mortgage-property">Property &amp; bank loan</h2>
           <div className="domain-calc-fields">
             <OptionalNumberInput id="mortgage-value" onValidityChange={trackValidity("mortgage-value")} label="Property purchase price / value" unit="€" min={0} max={20000000} placeholder="Enter value" value={propertyPrice} onChange={setPropertyPrice} />
+            <OptionalNumberInput id="mortgage-savings" onValidityChange={trackValidity("mortgage-savings")} label="Savings available for purchase" unit="€" min={0} max={20000000} placeholder="Enter savings" value={savings} onChange={setSavings} />
+            <OptionalNumberInput id="mortgage-closing-costs" onValidityChange={trackValidity("mortgage-closing-costs")} label="Estimated purchase costs" unit="€" min={0} max={20000000} placeholder="Enter costs" value={closingCosts} onChange={setClosingCosts} />
             <NumberField id="mortgage-principal" onValidityChange={trackValidity("mortgage-principal")} label="Bank loan amount" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
             <NumberField id="mortgage-interest" onValidityChange={trackValidity("mortgage-interest")} label="Bank annual interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
             <NumberField id="mortgage-repayment" onValidityChange={trackValidity("mortgage-repayment")} label="Bank initial annual repayment" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} />
@@ -197,7 +217,7 @@ export default function MortgageCalculator(): JSX.Element {
           </>}
           {kfwPrincipal === 0 && <p>Over {years} years: estimated bank interest <strong>{formatEur(bank.interestPaid)}</strong>; remaining bank debt <strong>{formatEur(bank.balance)}</strong>.</p>}
           {bank.balanceIncreasing && <p role="status">The bank payment does not cover interest, so its balance grows.</p>}
-          <p>Figures assume both loans are fully paid out at the start and use fixed nominal rates for the entire projection. Fees, special repayments, disbursement timing, rate changes and refinancing are excluded. KfW terms vary by offer; the last payment may differ due to rounding. A fixed-rate period may end before the loan does.</p>
+          <p>This scenario does not verify which term, grace period or repayment type KfW currently offers. Figures assume both loans are fully paid out at the start and use fixed nominal rates for the entire projection. Fees, special repayments, disbursement timing, rate changes and refinancing are excluded. KfW terms vary by offer; the last payment may differ due to rounding. A fixed-rate period may end before the loan does.</p>
         </section>
         <section className="ui-card mortgage-results" aria-labelledby="affordability-results">
           <h2 id="affordability-results">Affordability estimate</h2>
@@ -206,7 +226,10 @@ export default function MortgageCalculator(): JSX.Element {
             <p>Left after starting loan payments: <strong>{formatEur(affordability.remainingAfterLoans)}/month</strong>{affordability.loanPaymentShare !== null && <> · loan payments are {(affordability.loanPaymentShare * 100).toFixed(1)}% of your net income</>}.</p>
             {laterAffordability && <p>After the KfW interest-only period, estimated amount left: <strong>{formatEur(laterAffordability.remainingAfterLoans)}/month</strong>.</p>}
             {affordability.remainingAfterLoans < 0 && <p role="status">The entered budget has a monthly shortfall at the starting payment.</p>}
-            {method === LoanMethod.Balloon && kfwPrincipal > 0 && <p>The monthly budget does not include saving for the KfW lump sum.</p>}
+            {affordableBank !== null && <p>Using all income remaining after your entered expenses, home costs and the larger regular KfW payment, the estimated bank loan supported by that payment budget is <strong>{formatEur(affordableBank)}</strong>. {affordablePrice !== null ? <>With the entered savings, fixed purchase costs and KfW loan, that gives an estimated purchase budget of <strong>{formatEur(affordablePrice)}</strong>.</> : "Enter savings and purchase costs to estimate a purchase budget."}</p>}
+            {affordableBank === null && availableForBank !== null && <p>{availableForBank < 0 ? "The KfW payment alone exceeds the available monthly budget." : "Enter a positive bank interest or repayment rate to estimate a maximum loan."}</p>}
+            <p>The purchase budget assumes the entered KfW loan stays available and purchase costs stay fixed. It uses all remaining monthly cash unless you include a buffer in your expenses; it does not check program eligibility, lender approval or future rate changes.</p>
+            {method === LoanMethod.Balloon && kfwPrincipal > 0 && <p>The monthly budget and maximum loan do not include saving for the KfW lump sum.</p>}
             <p>This is your cash-flow estimate, not a bank affordability or lending decision. Include all recurring costs and reserves that matter to your household.</p>
           </> : <p>Enter net income, other spending and home running costs{!complete ? ", plus the KfW terms," : ""} to calculate the amount left each month.</p>}
         </section>

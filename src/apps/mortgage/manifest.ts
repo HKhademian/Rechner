@@ -7,10 +7,10 @@ import {
 
 export const mortgageApp = {
   id: AppId.Mortgage,
-  title: "Mortgage Calculator",
-  description: "Estimate monthly payments, interest and the remaining balance on a fixed-rate mortgage.",
+  title: "Mortgage Simulator",
+  description: "Explore bank and KfW repayments, loan-to-value and household affordability.",
   category: CalculatorCategory.Money,
   releaseStatus: CalculatorReleaseStatus.Draft,
-  features: ["Monthly bank payment", "Remaining balance", "Interest paid"],
+  features: ["Bank and KfW payments", "Loan-to-value and balances", "Affordability estimate"],
   keywords: ["Mortgage", "Darlehen", "Baufinanzierung", "Tilgung"],
 } satisfies CalculatorAppDefinition;
