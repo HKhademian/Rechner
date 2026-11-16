@@ -132,6 +132,7 @@ export default function VisaCalculator(): JSX.Element {
           <div className="domain-calc-fields">
             <NumberField
               id="visa-gross-salary"
+              topicId="blue-card"
               label="Annual Gross Salary Offer"
               unit="€"
               min={0}
@@ -154,6 +155,7 @@ export default function VisaCalculator(): JSX.Element {
 
               <NumberField
                 id="visa-experience"
+                topicId="opportunity-points"
                 label="Skilled Experience"
                 unit="yrs"
                 min={0}
@@ -170,6 +172,7 @@ export default function VisaCalculator(): JSX.Element {
               </div>
               <SegmentedControl
                 label="Blue Card occupation track"
+                topicId="blue-card"
                 value={s.occupationRoute}
                 options={OCCUPATION_ROUTE_OPTIONS}
                 fullWidth
@@ -179,6 +182,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ChoiceSelect
               id="visa-german"
+              topicId="opportunity-points"
               label="German Language Level"
               value={s.germanLevel}
               options={GERMAN_LEVEL_OPTIONS}
@@ -189,6 +193,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="visa-full-degree"
+              topicId="qualification-recognition"
               label="Fully recognized university degree"
               hint="Direct skilled-worker track (no point threshold needed)"
               checked={s.hasRecognizedGermanOrEquivalentDegree}
@@ -197,6 +202,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="visa-partial"
+              topicId="qualification-recognition"
               label="Partial recognition deficit notice (+4 pts)"
               checked={s.hasVocationalOrPartialRecognition}
               onChange={(checked) => updateVisaField("hasVocationalOrPartialRecognition", checked)}
@@ -204,6 +210,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="visa-english"
+              topicId="opportunity-points"
               label="English C1 or native proficiency (+1 pt)"
               checked={s.hasEnglishC1OrNative}
               onChange={(checked) => updateVisaField("hasEnglishC1OrNative", checked)}
@@ -211,6 +218,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="visa-shortage-flag"
+              topicId="opportunity-points"
               label="EU shortage / bottleneck occupation (+1 pt)"
               checked={s.isShortageOccupation}
               onChange={(checked) => updateVisaField("isShortageOccupation", checked)}
@@ -218,6 +226,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="visa-prior-stay"
+              topicId="opportunity-points"
               label="6+ months legal stay in Germany (+1 pt)"
               checked={s.hasPriorSixMonthLegalStayInGermany}
               onChange={(checked) => updateVisaField("hasPriorSixMonthLegalStayInGermany", checked)}
@@ -225,6 +234,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="visa-partner-applies"
+              topicId="opportunity-points"
               label="Partner also qualifies for Opportunity Card (+1 pt)"
               checked={s.partnerAlsoAppliesSkilled}
               onChange={(checked) => updateVisaField("partnerAlsoAppliesSkilled", checked)}
@@ -232,6 +242,7 @@ export default function VisaCalculator(): JSX.Element {
 
             <NumberField
               id="visa-stay-months"
+              topicId="opportunity-card"
               label="Opportunity Card Stay Duration"
               unit="mo"
               min={1}
