@@ -1,0 +1,107 @@
+{
+  "2024": {
+    "effectiveFrom": "2024-01-01",
+    "parameters": {
+      "first20KmRateEur": {
+        "value": 0.30,
+        "label": "Commuter distance allowance first 20 km (EUR/km)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "from21KmRateEur": {
+        "value": 0.38,
+        "label": "Commuter distance allowance from km 21 (EUR/km)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "nonCarAnnualCapEur": {
+        "value": 4500,
+        "label": "Annual non-car commuter allowance cap (§ 9 Abs. 1 Nr. 4 S. 2 EStG)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "homeOfficeDailyEur": {
+        "value": 6,
+        "label": "Daily Homeoffice-Pauschale deduction (EUR/day)",
+        "source": "https://www.gesetze-im-internet.de/estg/__4.html"
+      },
+      "homeOfficeAnnualMaxEur": {
+        "value": 1260,
+        "label": "Maximum annual Homeoffice-Pauschale (EUR, max 210 days)",
+        "source": "https://www.gesetze-im-internet.de/estg/__4.html"
+      },
+      "deutschlandticketMonthlyEur": {
+        "value": 49,
+        "label": "Reference standard Deutschlandticket monthly fare (EUR/mo)",
+        "source": "https://www.bundesregierung.de"
+      }
+    }
+  },
+  "2025": {
+    "effectiveFrom": "2025-01-01",
+    "parameters": {
+      "first20KmRateEur": {
+        "value": 0.30,
+        "label": "Commuter distance allowance first 20 km (EUR/km)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "from21KmRateEur": {
+        "value": 0.38,
+        "label": "Commuter distance allowance from km 21 (EUR/km)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "nonCarAnnualCapEur": {
+        "value": 4500,
+        "label": "Annual non-car commuter allowance cap (§ 9 Abs. 1 Nr. 4 S. 2 EStG)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "homeOfficeDailyEur": {
+        "value": 6,
+        "label": "Daily Homeoffice-Pauschale deduction (EUR/day)",
+        "source": "https://www.gesetze-im-internet.de/estg/__4.html"
+      },
+      "homeOfficeAnnualMaxEur": {
+        "value": 1260,
+        "label": "Maximum annual Homeoffice-Pauschale (EUR, max 210 days)",
+        "source": "https://www.gesetze-im-internet.de/estg/__4.html"
+      },
+      "deutschlandticketMonthlyEur": {
+        "value": 58,
+        "label": "Reference standard Deutschlandticket monthly fare (EUR/mo)",
+        "source": "https://www.bundesregierung.de"
+      }
+    }
+  },
+  "2026": {
+    "effectiveFrom": "2026-01-01",
+    "parameters": {
+      "first20KmRateEur": {
+        "value": 0.38,
+        "label": "Uniform commuter distance allowance from km 1 (Steueränderungsgesetz 2025, EUR/km)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "from21KmRateEur": {
+        "value": 0.38,
+        "label": "Commuter distance allowance from km 21 (EUR/km)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "nonCarAnnualCapEur": {
+        "value": 4500,
+        "label": "Annual non-car commuter allowance cap (§ 9 Abs. 1 Nr. 4 S. 2 EStG)",
+        "source": "https://www.gesetze-im-internet.de/estg/__9.html"
+      },
+      "homeOfficeDailyEur": {
+        "value": 6,
+        "label": "Daily Homeoffice-Pauschale deduction (EUR/day)",
+        "source": "https://www.gesetze-im-internet.de/estg/__4.html"
+      },
+      "homeOfficeAnnualMaxEur": {
+        "value": 1260,
+        "label": "Maximum annual Homeoffice-Pauschale (EUR, max 210 days)",
+        "source": "https://www.gesetze-im-internet.de/estg/__4.html"
+      },
+      "deutschlandticketMonthlyEur": {
+        "value": 63,
+        "label": "Reference standard Deutschlandticket monthly fare (EUR/mo)",
+        "source": "https://www.bundesregierung.de"
+      }
+    }
+  }
+}
