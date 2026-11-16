@@ -11,7 +11,10 @@ import {
   APPLICATION_RELEASE_HASH,
   browserAppStorage,
   browserWebStorageForCurrentMode,
+  clearAllData,
   clearSharedBrowserKey,
+  exportAllData,
+  importAllData,
   createAppStorage,
   getStorageMode,
   setStorageMode,
@@ -212,7 +215,7 @@ it("resolves and clears centralized shared Web Storage by active StorageMode", (
   });
   try {
     setStorageMode(StorageMode.Memory);
-    assert.equal(browserWebStorageForCurrentMode(), null);
+    assert.ok(browserWebStorageForCurrentMode());
 
     setStorageMode(StorageMode.Session);
     assert.equal(browserWebStorageForCurrentMode(), session);
@@ -235,6 +238,45 @@ it("resolves and clears centralized shared Web Storage by active StorageMode", (
         configurable: true,
         value: previousWindow,
       });
+    }
+  }
+});
+
+
+it("backs up and restores all active calculator data and rejects invalid backups", () => {
+  const local = browserStorage(new Map<string, string>());
+  const session = browserStorage(new Map<string, string>());
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window")?.value;
+  Object.defineProperty(globalThis, "window", { configurable: true,
+    value: { localStorage: local,
+      sessionStorage: session } });
+  try {
+    setStorageMode(StorageMode.Session);
+    const netPay = browserAppStorage(AppId.NetPay);
+    const giro = browserAppStorage(AppId.GiroCode);
+    netPay.setItem("grossIncome", "42000");
+    giro.setItem("draft", "example");
+    session.setItem("rechner:shared:parameters:v1", "settings");
+    const backup = exportAllData();
+    netPay.setItem("grossIncome", "1");
+    assert.throws(() => importAllData('{"format":"rechner-backup","version":1,"entries":{"other":"bad"}}'));
+    assert.equal(netPay.getItem("grossIncome"), "1");
+    importAllData(backup);
+    assert.equal(netPay.getItem("grossIncome"), "42000");
+    assert.equal(giro.getItem("draft"), "example");
+    assert.equal(session.getItem("rechner:shared:parameters:v1"), "settings");
+    clearAllData();
+    assert.equal(netPay.getItem("grossIncome"), null);
+    assert.equal(giro.getItem("draft"), null);
+    assert.equal(session.getItem("rechner:shared:parameters:v1"), null);
+  }
+  finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+    else {
+      Object.defineProperty(globalThis, "window", { configurable: true,
+        value: previousWindow });
     }
   }
 });

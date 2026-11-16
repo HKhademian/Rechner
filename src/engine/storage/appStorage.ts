@@ -166,6 +166,7 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
 };
 
 const memoryStores = new Map<AppId, Map<string, string>>();
+const sharedMemory = new Map<string, string>();
 const storageModeKey = (): string => "rechner:privacy:storage-mode:v1";
 const legacyStorageModeKey = (app: AppId): string => `rechner:privacy:${app}:storage-mode:v1`;
 
@@ -527,6 +528,20 @@ export function setStorageMode(
 
   try {
     const apps = Object.values(Apps);
+    const sharedSource = browserWebStorageForCurrentMode();
+    const sharedDestination = nextMode === StorageMode.Memory
+      ? {
+        getItem: (key: string) => sharedMemory.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          sharedMemory.set(key, value); 
+        },
+        removeItem: (key: string) => {
+          sharedMemory.delete(key); 
+        },
+      }
+      : nextMode === StorageMode.Session ? window.sessionStorage : window.localStorage;
+    const sharedPrevious = new Map(sharedBackupKeys.map((key) => [key, sharedDestination.getItem(key)]));
+    const sharedValues = new Map(sharedBackupKeys.map((key) => [key, sharedSource?.getItem(key) ?? null]));
     for (const app of apps) {
       if (nextMode === StorageMode.Persistent) {
         migrateLegacyData(app);
@@ -573,6 +588,14 @@ export function setStorageMode(
     }
 
     const rollbackDestinations = (): void => {
+      for (const [key, value] of sharedPrevious) {
+        if (value === null) {
+          safeRemove(sharedDestination, key);
+        }
+        else {
+          safeSet(sharedDestination, key, value);
+        }
+      }
       for (const app of apps) {
         const destination = destinations.get(app);
         const previous = destinationBeforeByApp.get(app);
@@ -605,6 +628,16 @@ export function setStorageMode(
       }
     }
 
+    for (const [key, value] of sharedValues) {
+      if (value === null) {
+        safeRemove(sharedDestination, key);
+      }
+      else if (!safeSet(sharedDestination, key, value)) {
+        rollbackDestinations();
+        return false;
+      }
+    }
+
     if (nextMode === StorageMode.Persistent) {
       window.localStorage.setItem(storageModeKey(), nextMode);
       safeRemove(window.sessionStorage, storageModeKey());
@@ -621,6 +654,11 @@ export function setStorageMode(
       safeRemove(window.localStorage, storageModeKey());
     }
 
+    if (sharedSource && currentMode !== nextMode) {
+      for (const key of sharedBackupKeys) {
+        safeRemove(sharedSource, key);
+      }
+    }
     for (const app of apps) {
       const destination = destinations.get(app);
       const sourceKeys = new Set((sourceEntriesByApp.get(app) ?? []).map(([key]) => key));
@@ -660,7 +698,15 @@ export function browserWebStorageForCurrentMode(): Pick<Storage, "getItem" | "se
     if (mode === StorageMode.Session) {
       return window.sessionStorage;
     }
-    return null;
+    return {
+      getItem: (key) => sharedMemory.get(key) ?? null,
+      setItem: (key, value) => {
+        sharedMemory.set(key, value); 
+      },
+      removeItem: (key) => {
+        sharedMemory.delete(key); 
+      },
+    };
   }
   catch {
     return null;
@@ -674,4 +720,163 @@ export function clearSharedBrowserKey(key: string): void {
   }
   safeRemove(window.localStorage, key);
   safeRemove(window.sessionStorage, key);
+  sharedMemory.delete(key);
+}
+
+const backupFormat = "rechner-backup";
+const memoryRestoreKey = "rechner:privacy:memory-restore:v1";
+const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile"];
+
+type BackupEntries = Record<string, string>;
+
+/** Collects the active calculator data and shared settings in a portable format. */
+export function exportAllData(): string {
+  const mode = getStorageMode();
+  const entries: BackupEntries = {};
+  for (const app of Object.values(Apps)) {
+    const storage = rawStorageForMode(app, mode);
+    if (!storage) {
+      throw new Error("Storage is unavailable.");
+    }
+    for (const key of appDataKeys(storage, app)) {
+      const value = storage.getItem(key);
+      if (value !== null) {
+        entries[key] = value;
+      }
+    }
+  }
+  const shared = browserWebStorageForCurrentMode();
+  for (const key of sharedBackupKeys) {
+    const value = shared?.getItem(key);
+    if (value !== null && value !== undefined) {
+      entries[key] = value;
+    }
+  }
+  return JSON.stringify({ format: backupFormat,
+    version: 1,
+    entries }, null, 2);
+}
+
+function parseBackup(serialized: string): BackupEntries {
+  const parsed: unknown = JSON.parse(serialized);
+  if (typeof parsed !== "object" || parsed === null || !("format" in parsed) || parsed.format !== backupFormat
+    || !("version" in parsed) || parsed.version !== 1 || !("entries" in parsed)
+    || typeof parsed.entries !== "object" || parsed.entries === null || Array.isArray(parsed.entries)) {
+    throw new Error("This is not a supported Rechner backup.");
+  }
+  const entries: BackupEntries = {};
+  for (const [key, value] of Object.entries(parsed.entries)) {
+    const app = Object.values(Apps).find((id) => key.startsWith(`rechner:${id}:v1:`));
+    if (typeof value !== "string" || (!app && !sharedBackupKeys.includes(key))
+      || (app && (key.endsWith(":legacy-migrated") || key.endsWith(":envelopes-v1-migrated")
+        || deserializeStorageValue(value).status === DecodedStorageStatus.Invalid))) {
+      throw new Error("The backup contains invalid data.");
+    }
+    entries[key] = value;
+  }
+  return entries;
+}
+
+/** Replaces all active data only after the complete backup has been validated. */
+export function importAllData(serialized: string): void {
+  const entries = parseBackup(serialized);
+  const mode = getStorageMode();
+  const targets = Object.values(Apps).map((app) => {
+    const storage = rawStorageForMode(app, mode);
+    if (!storage) {
+      throw new Error("Storage is unavailable.");
+    }
+    return { app,
+      storage };
+  });
+  const shared = browserWebStorageForCurrentMode();
+  const previous = exportAllData();
+  const apply = (values: BackupEntries): void => {
+    for (const { app, storage } of targets) {
+      for (const key of appDataKeys(storage, app)) {
+        storage.removeItem(key);
+      }
+      // Prevent legacy values from reappearing after clearing or importing.
+      storage.setItem(appStorageKey(app, "legacy-migrated"), serializeStorageValue("1"));
+      storage.setItem(appStorageKey(app, "envelopes-v1-migrated"), serializeStorageValue("1"));
+      for (const [key, value] of Object.entries(values)) {
+        if (key.startsWith(`rechner:${app}:v1:`)) {
+          storage.setItem(key, value);
+        }
+      }
+    }
+    if (shared) {
+      for (const key of sharedBackupKeys) {
+        shared.removeItem(key);
+        if (Object.hasOwn(values, key)) {
+          shared.setItem(key, values[key]);
+        }
+      }
+    }
+  };
+  try {
+    apply(entries);
+    if (mode === StorageMode.Memory) {
+      // Carry page-only data across the one reload needed to reinitialize stores.
+      window.sessionStorage.setItem(memoryRestoreKey, serialized);
+    }
+  }
+  catch {
+    try {
+      apply(parseBackup(previous));
+    }
+    catch {
+      // Storage may remain unavailable even for rollback.
+    }
+    throw new Error("Could not replace data in browser storage.");
+  }
+}
+
+/** Clears all calculator data while retaining the selected storage mode. */
+export function clearAllData(): void {
+  importAllData(JSON.stringify({ format: backupFormat,
+    version: 1,
+    entries: {} }));
+  const activeMode = getStorageMode();
+  for (const app of Object.values(Apps)) {
+    for (const mode of Object.values(StorageMode)) {
+      if (mode !== activeMode) {
+        const storage = rawStorageForMode(app, mode);
+        if (storage) {
+          clearOwnedBrowserData(storage, app);
+        }
+      }
+    }
+  }
+  for (const key of sharedBackupKeys) {
+    clearSharedBrowserKey(key);
+  }
+}
+
+if (typeof window !== "undefined") {
+  try {
+    const restore = window.sessionStorage.getItem(memoryRestoreKey);
+    if (restore !== null) {
+      window.sessionStorage.removeItem(memoryRestoreKey);
+      if (getStorageMode() === StorageMode.Memory) {
+        const entries = parseBackup(restore);
+        for (const key of sharedBackupKeys) {
+          if (Object.hasOwn(entries, key)) {
+            sharedMemory.set(key, entries[key]);
+          }
+        }
+        for (const app of Object.values(Apps)) {
+          const storage = memoryStorage(app);
+          for (const [key, value] of Object.entries(entries)) {
+            if (key.startsWith(`rechner:${app}:v1:`)) {
+              storage.setItem(key, value);
+            }
+          }
+        }
+      }
+    }
+  }
+  catch {
+    // Ignore an unavailable or invalid one-time restore record.
+  }
 }

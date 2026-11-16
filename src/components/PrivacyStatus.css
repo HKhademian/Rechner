@@ -119,3 +119,25 @@
     transform: translate(-50%, -50%);
   }
 }
+
+.privacy-status__data-actions {
+  display: flex;
+  gap: 6px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.privacy-status__data-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  font: inherit;
+  cursor: pointer;
+}

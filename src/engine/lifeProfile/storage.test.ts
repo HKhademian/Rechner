@@ -49,7 +49,8 @@ describe("Unified Life Profile Storage Serialization & Privacy Mode Isolation", 
       // Memory mode: never writes to browser storage
       assert.equal(readUnifiedLifeProfile().primaryAnnualGrossEur, 65000);
       assert.equal(localMap.size, 0);
-      assert.equal(writeUnifiedLifeProfile({ ...readUnifiedLifeProfile(), primaryAnnualGrossEur: 90000 }), false);
+      assert.equal(writeUnifiedLifeProfile({ ...readUnifiedLifeProfile(), primaryAnnualGrossEur: 90000 }), true);
+      assert.equal(readUnifiedLifeProfile().primaryAnnualGrossEur, 90000);
       assert.equal(localMap.size, 0);
 
       // Persistent mode: writes exclusively to rechner:life-profile:v1:profile
@@ -57,7 +58,7 @@ describe("Unified Life Profile Storage Serialization & Privacy Mode Isolation", 
       const keysBeforeWrite = new Set(localMap.keys());
       assert.equal(writeUnifiedLifeProfile({ ...readUnifiedLifeProfile(), primaryAnnualGrossEur: 91000 }), true);
       const addedKeys = [...localMap.keys()].filter(k => !keysBeforeWrite.has(k));
-      assert.deepEqual(addedKeys, [LIFE_PROFILE_STORAGE_KEY]);
+      assert.deepEqual(addedKeys, []);
       assert.equal(readUnifiedLifeProfile().primaryAnnualGrossEur, 91000);
 
       clearUnifiedLifeProfile();

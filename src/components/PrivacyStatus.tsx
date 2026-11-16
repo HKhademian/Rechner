@@ -11,8 +11,16 @@ import {
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
+  DeleteActionIcon,
+  ExportDataIcon,
+  ImportDataIcon,
   PrivacyShieldIcon,
 } from "#components/Icons";
+import {
+  clearAllData,
+  exportAllData,
+  importAllData,
+} from "#engine/storage/appStorage";
 import StorageModeControl from "#components/StorageModeControl";
 
 export const OfflineState = {
@@ -29,6 +37,8 @@ const showOfflineSection = false;
 /** Compact privacy and offline controls in one popup. */
 export default function PrivacyStatus(): JSX.Element {
   const [offlineState, setOfflineState] = useState<OfflineState>(OfflineState.Checking);
+  const [dataNotice, setDataNotice] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -112,6 +122,55 @@ export default function PrivacyStatus(): JSX.Element {
     }
   };
 
+  const exportData = (): void => {
+    try {
+      const blob = new Blob([exportAllData()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "rechner-backup.json";
+      link.click();
+      URL.revokeObjectURL(url);
+      setDataNotice("Backup downloaded.");
+    }
+    catch {
+      setDataNotice("Could not export data.");
+    }
+  };
+
+  const importData = async (event: Event): Promise<void> => {
+    const input = event.currentTarget;
+    if (!(input instanceof HTMLInputElement) || !input.files?.[0]) {
+      return;
+    }
+    const file = input.files[0];
+    input.value = "";
+    try {
+      const contents = await file.text();
+      if (!window.confirm("Replace all calculator data with this backup?")) {
+        return;
+      }
+      importAllData(contents);
+      window.location.reload();
+    }
+    catch {
+      setDataNotice("Could not import this backup. Check the file and browser storage.");
+    }
+  };
+
+  const clearData = (): void => {
+    if (!window.confirm("Clear data for all calculators and shared settings? This cannot be undone.")) {
+      return;
+    }
+    try {
+      clearAllData();
+      window.location.reload();
+    }
+    catch {
+      setDataNotice("Could not clear data.");
+    }
+  };
+
   const offlineLabel = offlineState === OfflineState.Prepared
     ? "ready"
     : offlineState === OfflineState.Offline
@@ -133,6 +192,13 @@ export default function PrivacyStatus(): JSX.Element {
       <p className="privacy-status__assurance">No tracking · No cookies · No profiling</p>
       <p>Calculations stay in your browser · no data server</p>
       <StorageModeControl />
+      <div className="privacy-status__data-actions" role="group" aria-label="Manage all calculator data">
+        <button type="button" onClick={clearData} aria-label="Clear all data" title="Clear all data"><DeleteActionIcon size={16} /><span>Clear</span></button>
+        <button type="button" onClick={exportData} title="Export all data"><ExportDataIcon size={16} /><span>Export all</span></button>
+        <button type="button" onClick={() => fileRef.current?.click()} title="Import a backup"><ImportDataIcon size={16} /><span>Import</span></button>
+        <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importData} />
+      </div>
+      {dataNotice && <p role="status">{dataNotice}</p>}
       {showOfflineSection && <div className="privacy-status__offline">
         <p className="privacy-status__offline-status">
           <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
