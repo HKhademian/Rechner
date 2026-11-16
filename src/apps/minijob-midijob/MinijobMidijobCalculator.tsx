@@ -160,6 +160,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
           <div className="domain-calc-fields">
             <NumberField
               id="minijob-gross"
+              topicId="minijob"
               label="Monthly Gross Salary"
               unit="€/mo"
               min={0}
@@ -176,6 +177,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
             <div className="domain-calc-field-row">
               <ChoiceSelect
                 id="minijob-tax-class"
+                topicId="tax-class"
                 label="Tax Class (ELStAM)"
                 value={s.taxClass}
                 options={TAX_CLASS_OPTIONS}
@@ -184,6 +186,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
 
               <NumberField
                 id="minijob-children"
+                topicId="care-insurance"
                 label="Children (< 25 yrs)"
                 min={0}
                 max={10}
@@ -199,6 +202,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
               </div>
               <SegmentedControl
                 label="Minijob income tax mode"
+                topicId="minijob"
                 value={s.minijobTaxMode}
                 options={MINIJOB_TAX_OPTIONS}
                 fullWidth
@@ -208,6 +212,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="minijob-rv-optout"
+              topicId="pension-exemption"
               label="Exempt from Minijob pension top-up (3.6%)"
               hint="Saves 3.6% cash now, forfeits compulsory RV qualifying months"
               checked={s.minijobPensionOptOut}
@@ -216,6 +221,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="minijob-saxony"
+              topicId="care-insurance"
               label="Workplace in Saxony (PVS)"
               hint="Higher employee nursing-care share in Sachsen"
               checked={s.inSaxony}
