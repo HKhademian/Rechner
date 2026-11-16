@@ -133,6 +133,7 @@ export default function KitaCalculator(): JSX.Element {
           <div className="domain-calc-fields">
             <ChoiceSelect
               id="kita-preset"
+              topicId="childcare"
               label="Daycare Fee Schedule"
               value={s.presetId}
               options={FEE_SCHEDULE_OPTIONS}
@@ -142,6 +143,7 @@ export default function KitaCalculator(): JSX.Element {
             {s.presetId === FederalStateKitaPresetId.Custom && (
               <NumberField
                 id="kita-custom-fee"
+                topicId="childcare"
                 label="Monthly Care Fee per Child"
                 unit="€"
                 min={0}
@@ -155,6 +157,7 @@ export default function KitaCalculator(): JSX.Element {
             <div className="domain-calc-field-row">
               <NumberField
                 id="kita-meal-fee"
+                topicId="childcare"
                 label="Meals / Verpflegungsgeld"
                 unit="€/mo"
                 min={0}
@@ -219,6 +222,7 @@ export default function KitaCalculator(): JSX.Element {
 
             <NumberField
               id="kita-zve"
+              topicId="taxable-income"
               label="Household Taxable Income (zvE)"
               unit="€"
               min={0}
@@ -230,6 +234,7 @@ export default function KitaCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="kita-joint-assessment"
+              topicId="joint-assessment"
               label="Joint spousal splitting (§ 26b EStG)"
               hint="Doubles progressive brackets before tax refund delta"
               checked={s.isMarriedJointAssessment}
