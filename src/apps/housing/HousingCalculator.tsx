@@ -271,7 +271,7 @@ export default function HousingCalculator(): JSX.Element {
             <MetricCard
               label="Bank loan still needed"
               value={formatEur(evalResult.remainingBankLoanEur)}
-              subtitle={`Estimated starting payment: ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/month`}
+              subtitle={`Estimated bank payment: ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/month${evalResult.kfw300MaxSubsidizedLoanEur > 0 ? " · KfW payments are additional" : ""}`}
               footer={<><a className="ui-btn ui-btn--sm ui-btn--primary" href={calculatorPath(AppId.Mortgage)} onClick={(event) => {
                 if (!isPlainPrimaryClick(event)) {
                   return;
