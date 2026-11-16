@@ -1,0 +1,21 @@
+---
+import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  TopicPage,
+} from "#components/topics/TopicPages";
+import {
+  getTopic,
+  topics,
+} from "#engine/topics/registry";
+
+export function getStaticPaths() {
+  return topics.map((topic) => ({ params: { topicId: topic.id } }));
+}
+const topic = getTopic(Astro.params.topicId ?? "");
+if (!topic) {
+  throw new Error("Unknown topic");
+}
+---
+<BaseDocument title={`${topic.title} | Rechner`} description={topic.description}>
+  <TopicPage topic={topic} client:load />
+</BaseDocument>

@@ -1,7 +1,13 @@
+import {
+  topicsForLaw, 
+} from "#engine/topics/registry";
+
+
 import "./LawReferencePage.css";
 import {
   calculatorPath,
   lawCatalogPath,
+  sitePath,
   lawDetailPath,
 } from "#/apps/appDefinition.ts";
 import {
@@ -354,7 +360,7 @@ export default function LawReferencePage({
             <h1 id="law-page-title" className="law-page-article__title">
               {entry.title}
             </h1>
-            <p className="law-page-article__summary">{entry.summary}</p>
+            <p className="law-page-article__summary">{entry.summary} {topicsForLaw(entry.id).length > 0 && <span> Related topics: {topicsForLaw(entry.id).map((topic) => <a key={topic.id} href={sitePath(`/topics/${topic.id}/`)}>{topic.title} </a>)}</span>}</p>
             <div className="law-page-article__submeta">
               <div className="law-page-article__tags" aria-label="Law tags">
                 {entry.tags.map((tag) => {

@@ -1,6 +1,7 @@
 import "./LawReferenceModal.css";
 import {
   lawDetailPath,
+  sitePath,
 } from "#/apps/appDefinition.ts";
 import {
   CloseIcon,
@@ -18,6 +19,9 @@ import {
   getLawsReferencing,
   getRelatedLaws,
 } from "#engine/laws/registry";
+import {
+  topicsForLaw,
+} from "#engine/topics/registry";
 import {
   LAW_TAG_LABELS,
 } from "#engine/laws/types";
@@ -193,6 +197,12 @@ export default function LawReferenceModal(): JSX.Element | null {
             </div>
           )}
 
+          {topicsForLaw(entry.id).length > 0 && <div className="law-reference-dialog__crossrefs">
+            <span className="law-reference-dialog__micro-label">Understand topics:</span>
+            <div className="law-reference-dialog__chips">
+              {topicsForLaw(entry.id).map((topic) => <a className="law-reference-dialog__chip" href={sitePath(`/topics/${topic.id}/`)} key={topic.id}>{topic.title}</a>)}
+            </div>
+          </div>}
           {entry.tags.length > 0 && (
             <div className="law-reference-dialog__tags" aria-label="Law tags">
               {entry.tags.map((tag) => (

@@ -1,0 +1,9 @@
+---
+import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  TopicDirectory,
+} from "#components/topics/TopicPages";
+---
+<BaseDocument title="Benefits, Programs & Concepts | Rechner" description="Plain-language explanations of benefits, programs and calculator concepts.">
+  <TopicDirectory client:load />
+</BaseDocument>

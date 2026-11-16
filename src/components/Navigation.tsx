@@ -157,6 +157,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
           </details>
           <a href={lifeProfilePath()} aria-current={onProfilePage ? "page" : undefined}>Life Profile</a>
           <a href={lawCatalogPath()} aria-current={onLawsPage ? "page" : undefined}>Laws &amp; Rules</a>
+          <a href={sitePath("/topics/")} aria-current={isActiveRoute(currentPath, sitePath("/topics/")) ? "page" : undefined}>Topics</a>
         </nav>
         <div className="calculator-navigation__preferences">
           {!onLawsPage && (
