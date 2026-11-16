@@ -279,6 +279,8 @@ export default function HousingCalculator(): JSX.Element {
                 try {
                   if (writeMortgageHandoff(window.sessionStorage, {
                     principal: evalResult.remainingBankLoanEur,
+                    kfwPrincipal: evalResult.kfw300MaxSubsidizedLoanEur,
+                    propertyPrice: s.purchasePriceEur,
                     annualInterest: s.marketMortgageAnnualInterestRate,
                     initialRepayment: s.initialAnnualRepaymentRate,
                   })) {
@@ -290,7 +292,7 @@ export default function HousingCalculator(): JSX.Element {
                 }
                 event.preventDefault();
                 setTransferNotice("Could not transfer the amounts. Open the mortgage calculator and enter them there.");
-              }}>Explore mortgage payments</a>
+              }}>Simulate all loan payments</a>
               {transferNotice && <p role="status">{transferNotice} <a href={calculatorPath(AppId.Mortgage)}>Open calculator</a></p>}</>}
               tone={MetricTone.Primary}
             />
