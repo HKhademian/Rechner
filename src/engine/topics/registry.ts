@@ -1,0 +1,143 @@
+import {
+  type AppId,
+  AppId as Apps,
+} from "#/apps/appDefinition.ts";
+import {
+  type LawId,
+  LawId as Laws,
+} from "#engine/laws/types";
+
+/** A practical explanation linked to its underlying legal references and calculators. */
+export interface Topic {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly benefit: string;
+  readonly limitation: string;
+  readonly calculatorEffect: string;
+  readonly laws: readonly LawId[];
+  readonly apps: readonly AppId[];
+}
+
+export const topics: readonly Topic[] = [
+  { id: "kfw-300",
+    title: "KfW 300: family home loan",
+    description: "A subsidized loan program for eligible families building or buying a qualifying climate-friendly home to live in.",
+    benefit: "A qualifying household can finance part of the project with a KfW loan; this is borrowing, not a grant.",
+    limitation: "Income, family, ownership and building requirements apply. An energy-efficiency expert must confirm the technical requirements.",
+    calculatorEffect: "The home planner models a subset of eligibility conditions and caps the loan at the estimated financing need.",
+    laws: [Laws.KfW_300, Laws.EStG_2],
+    apps: [Apps.Housing] },
+  { id: "eh40",
+    title: "Owner-occupied EH 40 new build",
+    description: "Owner-occupied means you live in the home yourself. Efficiency House 40 (EH 40) is an energy-efficiency standard for a building.",
+    benefit: "The standard is one building requirement for the KfW 300 climate-friendly housing tiers.",
+    limitation: "KfW also requires lifecycle emissions limits, prohibits oil, gas or biomass heating, and requires expert confirmation. The first-purchase and household conditions also apply.",
+    calculatorEffect: "The switch is an assumption that the self-occupied home meets the program's building requirements; the calculator does not verify them.",
+    laws: [Laws.KfW_300],
+    apps: [Apps.Housing] },
+  { id: "qng",
+    title: "QNG sustainability certification",
+    description: "The Quality Seal for Sustainable Buildings (Qualitätssiegel Nachhaltiges Gebäude, QNG) certifies sustainability. KfW 300 accepts the PLUS or PREMIUM tier for its higher funding level.",
+    benefit: "The QNG funding tier can allow a higher KfW loan ceiling.",
+    limitation: "A sustainability certificate, expert confirmation and the program's other building and household conditions are required.",
+    calculatorEffect: "The switch adds the configured QNG top-up to the potential loan ceiling, subject to modeled eligibility and financing need.",
+    laws: [Laws.KfW_300],
+    apps: [Apps.Housing] },
+  { id: "taxable-income",
+    title: "Taxable income (zvE)",
+    description: "Zu versteuerndes Einkommen (zvE) is the taxable income used as the basis for income tax after applicable adjustments and deductions; it is not the same as gross salary.",
+    benefit: "It provides the tax base for estimates and some income-dependent eligibility tests.",
+    limitation: "An estimate from salary inputs can differ from the amount on an official tax assessment. Programs may specify particular assessment years.",
+    calculatorEffect: "Enter the relevant taxable income for the modeled household or program rather than gross pay.",
+    laws: [Laws.EStG_2, Laws.KfW_300],
+    apps: [Apps.NetPay, Apps.Housing, Apps.Kita, Apps.CommuterAllowance, Apps.ParentalLeave] },
+  { id: "joint-assessment",
+    title: "Joint assessment and splitting",
+    description: "Eligible spouses or registered partners can be assessed jointly. The splitting method calculates income tax using a shared tax base.",
+    benefit: "It can lower combined income tax compared with individual assessment, depending on each partner's income.",
+    limitation: "Eligibility and individual circumstances matter; payroll withholding classes do not themselves determine the final annual tax.",
+    calculatorEffect: "The joint setting applies the modeled splitting calculation to the estimate.",
+    laws: [Laws.EStG_26, Laws.EStG_26b, Laws.EStG_32a],
+    apps: [Apps.NetPay, Apps.Kita, Apps.CommuterAllowance, Apps.ParentalLeave] },
+  { id: "tax-class",
+    title: "Payroll tax classes and ELStAM",
+    description: "A tax class is part of the electronic payroll tax information (ELStAM) used by an employer to withhold wage tax.",
+    benefit: "The class tailors withholding to the employee's registered circumstances.",
+    limitation: "Withholding is an advance, not necessarily the final annual income tax; changing class may also affect certain benefits.",
+    calculatorEffect: "The selected class changes modeled payroll withholding and, where relevant, the parental allowance estimate.",
+    laws: [Laws.EStG_38b, Laws.EStG_39f, Laws.BEEG_2b],
+    apps: [Apps.NetPay, Apps.MinijobMidijob, Apps.ParentalLeave] },
+  { id: "parental-allowance",
+    title: "Parental allowance and parental leave",
+    description: "Elterngeld is an income-related family benefit; Elternzeit is leave from employment. They are related but separate arrangements.",
+    benefit: "Eligible parents can receive financial support while caring for a child; different allowance options can be combined under their rules.",
+    limitation: "Income, working hours, timing and other conditions affect eligibility and amounts. A simulation is not an official determination.",
+    calculatorEffect: "The planner estimates payments and cash flow from the entered household and leave timeline.",
+    laws: [Laws.BEEG_1, Laws.BEEG_2, Laws.BEEG_4, Laws.BEEG_4b],
+    apps: [Apps.ParentalLeave] },
+  { id: "blue-card",
+    title: "EU Blue Card",
+    description: "The EU Blue Card is a residence permit for qualifying skilled employment, with requirements that depend on the applicant and job.",
+    benefit: "It provides a route to work and residence in Germany and may offer a route to settlement subject to additional conditions.",
+    limitation: "Recognition, occupation, salary and other requirements must be checked with the responsible authority; different thresholds can apply.",
+    calculatorEffect: "The visa tool compares the supplied salary and occupation track with modeled thresholds; it does not decide permit eligibility.",
+    laws: [Laws.AufenthG_18g, Laws.AufenthG_18c],
+    apps: [Apps.Visa] },
+  { id: "opportunity-card",
+    title: "Opportunity Card (Chancenkarte)",
+    description: "The Opportunity Card is a residence route for job seeking. Depending on qualifications, applicants may use a recognized qualification route or a points-based route.",
+    benefit: "It can provide time in Germany to seek qualifying employment when the requirements are met.",
+    limitation: "The points total is only part of the assessment; qualification, language, financial support and other requirements may apply.",
+    calculatorEffect: "The visa tool scores the entered factors and estimates stay costs; it does not verify documents or grant a permit.",
+    laws: [Laws.AufenthG_20a],
+    apps: [Apps.Visa] },
+  { id: "company-car",
+    title: "Company car taxable benefit",
+    description: "Private use of an employer-provided car can be treated as a taxable non-cash benefit. Valuation can depend on the car and commuting method.",
+    benefit: "Eligible electric vehicles may use reduced valuation rates under applicable rules.",
+    limitation: "Actual payroll treatment depends on vehicle eligibility, use and the chosen valuation method; a taxable benefit is not the same as cash received.",
+    calculatorEffect: "The tool estimates the taxable amount and applies the entered marginal rate to approximate net cost.",
+    laws: [Laws.EStG_6_1_4, Laws.EStG_8_2],
+    apps: [Apps.CompanyCar] },
+  { id: "solar",
+    title: "Solar feed-in and tax treatment",
+    description: "A solar installation can supply household electricity and export surplus electricity to the grid. Feed-in compensation and tax treatment follow separate rules.",
+    benefit: "Self-consumption can reduce purchased electricity and eligible exported electricity can earn compensation.",
+    limitation: "Actual yield, tariffs, technical eligibility and tax treatment depend on the installation and commissioning details.",
+    calculatorEffect: "The tool uses entered yield, consumption and costs with modeled tariffs and assumptions; it is not a tax assessment.",
+    laws: [Laws.EEG_48, Laws.UStG_12_3, Laws.EStG_3_72],
+    apps: [Apps.SolarEnergy] },
+  { id: "childcare",
+    title: "Childcare costs and tax deduction",
+    description: "Qualifying childcare expenses can be considered as special expenses for income tax under the applicable conditions.",
+    benefit: "An eligible deduction can reduce taxable income and therefore the family's tax bill.",
+    limitation: "Not every expense qualifies: meals and the particular payment and documentation requirements must be considered. The deduction is not a euro-for-euro refund.",
+    calculatorEffect: "The Kita tool estimates eligible costs and their tax effect using the entered assumptions.",
+    laws: [Laws.EStG_10_1_5, Laws.EStG_32a],
+    apps: [Apps.Kita] },
+  { id: "minijob",
+    title: "Minijob and Midijob",
+    description: "Minijob and Midijob are employment categories with different earnings limits and social-insurance treatment.",
+    benefit: "The transition-area rules can reduce an eligible employee's contribution burden; Minijobs have separate contribution and tax rules.",
+    limitation: "Classification, multiple jobs, pension-insurance choices and tax arrangements can change the result.",
+    calculatorEffect: "The tool estimates employee deductions using the selected pay, tax and insurance assumptions.",
+    laws: [Laws.SGB4_20, Laws.SGB6_158, Laws.SGB11_55],
+    apps: [Apps.MinijobMidijob] },
+  { id: "commuting",
+    title: "Commuting allowance and JobTicket",
+    description: "The distance allowance is a work-expense deduction for commuting. An employer-supported JobTicket has separate tax treatment that can affect the deduction.",
+    benefit: "Eligible work expenses may reduce taxable income; an eligible employer ticket can reduce the employee's travel cost.",
+    limitation: "The tax saving depends on the overall deduction and tax position. An employer subsidy must be taken into account; a deduction is not a refund of its full amount.",
+    calculatorEffect: "The tool compares modeled self-paid and employer-ticket scenarios using the entered costs and tax assumptions.",
+    laws: [Laws.EStG_9_1_4, Laws.EStG_3_15, Laws.EStG_9a],
+    apps: [Apps.CommuterAllowance] },
+];
+
+export function getTopic(id: string): Topic | undefined {
+  return topics.find((topic) => topic.id === id);
+}
+
+export function topicsForLaw(lawId: LawId): readonly Topic[] {
+  return topics.filter((topic) => topic.laws.includes(lawId));
+}
