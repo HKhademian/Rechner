@@ -28,6 +28,10 @@ it("transfers mortgage inputs only once and rejects invalid data", () => {
   assert.equal(writeMortgageHandoff(storage, input), true);
   assert.deepEqual(takeMortgageHandoff(storage), input);
   assert.equal(takeMortgageHandoff(storage), null);
+  const largeLoan = { ...input,
+    principal: toEuroAmount(12000000) };
+  assert.equal(writeMortgageHandoff(storage, largeLoan), true);
+  assert.deepEqual(takeMortgageHandoff(storage), largeLoan);
   storage.setItem("rechner:mortgage:handoff:v1", "{broken");
   assert.equal(takeMortgageHandoff(storage), null);
   assert.equal(values.size, 0);

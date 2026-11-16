@@ -68,7 +68,7 @@ export default function MortgageCalculator(): JSX.Element {
       <section className="ui-card" aria-labelledby="mortgage-inputs">
         <h2 id="mortgage-inputs">Your bank loan</h2>
         <div className="domain-calc-fields">
-          <NumberField id="mortgage-principal" label="Amount borrowed" unit="€" min={0} max={10000000} step={5000} value={principal} onChange={setPrincipal} />
+          <NumberField id="mortgage-principal" label="Amount borrowed" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
           <NumberField id="mortgage-interest" label="Annual interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
           <NumberField id="mortgage-repayment" label="Initial annual repayment rate" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} />
           <NumberField id="mortgage-years" label="Show balance after" unit="years" min={1} max={50} step={1} value={years} construct={toMortgageYears} onChange={setYears} />
