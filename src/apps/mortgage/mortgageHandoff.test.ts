@@ -25,6 +25,8 @@ it("transfers mortgage inputs only once and rejects invalid data", () => {
   const input = { principal: toEuroAmount(125000),
     kfwPrincipal: toEuroAmount(170000),
     propertyPrice: toEuroAmount(500000),
+    savings: toEuroAmount(100000),
+    closingCosts: toEuroAmount(50000),
     annualInterest: toPercentageRate(0.04),
     initialRepayment: toPercentageRate(0.02) };
   assert.equal(writeMortgageHandoff(storage, input), true);

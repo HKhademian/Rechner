@@ -281,6 +281,8 @@ export default function HousingCalculator(): JSX.Element {
                     principal: evalResult.remainingBankLoanEur,
                     kfwPrincipal: evalResult.kfw300MaxSubsidizedLoanEur,
                     propertyPrice: s.purchasePriceEur,
+                    savings: s.availableEquityEur,
+                    closingCosts: evalResult.totalClosingCostsEur,
                     annualInterest: s.marketMortgageAnnualInterestRate,
                     initialRepayment: s.initialAnnualRepaymentRate,
                   })) {
