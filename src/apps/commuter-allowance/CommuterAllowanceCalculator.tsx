@@ -128,6 +128,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
           <div className="domain-calc-fields">
             <NumberField
               id="commuter-distance"
+              topicId="commuting"
               label="One-Way Commute Distance"
               unit="km"
               min={0}
@@ -144,6 +145,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
               </div>
               <SegmentedControl
                 label="Commute transport mode"
+                topicId="commuting"
                 value={s.transportMode}
                 options={TRANSPORT_MODE_OPTIONS}
                 fullWidth
@@ -166,6 +168,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
 
               <NumberField
                 id="commuter-homeoffice-days"
+                topicId="commuting"
                 label="Homeoffice Days / Year"
                 unit="days"
                 min={0}
@@ -191,6 +194,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
 
               <NumberField
                 id="commuter-jobticket-subsidy"
+                topicId="commuting"
                 label="Employer JobTicket (§ 3 Nr. 15)"
                 unit="€/mo"
                 min={0}
@@ -205,6 +209,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
             <div className="domain-calc-field-row">
               <NumberField
                 id="commuter-other-expenses"
+                topicId="commuting"
                 label="Other Work Expenses"
                 unit="€/yr"
                 min={0}
@@ -216,6 +221,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
 
               <NumberField
                 id="commuter-zve"
+                topicId="taxable-income"
                 label="Annual Taxable Income (zvE)"
                 unit="€"
                 min={0}
@@ -228,6 +234,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
 
             <ToggleSwitch
               id="commuter-joint"
+              topicId="joint-assessment"
               label="Joint spousal splitting (§ 26b EStG)"
               checked={s.isMarriedJointAssessment}
               onChange={(checked) => updateCommuterAllowanceField("isMarriedJointAssessment", checked)}
