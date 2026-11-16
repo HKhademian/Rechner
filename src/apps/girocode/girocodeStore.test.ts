@@ -218,4 +218,48 @@ describe("girocodeStore", () => {
       "girocode-qr-frame__footer",
     ]);
   });
+
+  it("uses general GiroCode wording in UI and manifest with zero QR Code trademark strings", () => {
+    const forbiddenPattern = /qr[\s-]*code|denso\s+wave/i;
+    const filesToCheck: readonly { readonly path: string;
+      readonly kind: ts.ScriptKind }[] = [
+      { path: "src/apps/girocode/GiroCodeGenerator.tsx",
+        kind: ts.ScriptKind.TSX },
+      { path: "src/apps/girocode/manifest.ts",
+        kind: ts.ScriptKind.TS },
+    ];
+
+    const violations: string[] = [];
+    for (const item of filesToCheck) {
+      const sourceText = readFileSync(item.path, "utf8");
+      const sourceFile = ts.createSourceFile(
+        item.path,
+        sourceText,
+        ts.ScriptTarget.Latest,
+        true,
+        item.kind,
+      );
+      const visit = (node: ts.Node): void => {
+        if (ts.isImportDeclaration(node)) {
+          return;
+        }
+        if (
+          ts.isStringLiteral(node) ||
+          ts.isNoSubstitutionTemplateLiteral(node) ||
+          ts.isJsxText(node)
+        ) {
+          const text = node.text.trim();
+          if (text && forbiddenPattern.test(text)) {
+            violations.push(`${item.path}: ${text}`);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sourceFile);
+    }
+
+    assert.deepEqual(violations, []);
+    const generatorText = readFileSync("src/apps/girocode/GiroCodeGenerator.tsx", "utf8");
+    assert.equal(generatorText.includes("Scan GiroCode"), true);
+  });
 });

@@ -65,7 +65,7 @@ import {
   toQrModuleScale,
 } from "#utils/qrcode/canvasSurface";
 
-// Fixed optical paper/ink contrast required for scannable EPC QR codes and printable PNG slips.
+// Fixed optical paper/ink contrast required for scannable GiroCode symbols and printable PNG slips.
 const QR_PAPER_LIGHT_HEX = "#ffffff";
 const QR_INK_DARK_HEX = "#0f172a";
 
@@ -130,7 +130,7 @@ export default function GiroCodeGenerator(): JSX.Element {
     }
     catch (error) {
       setQrModuleCount(null);
-      const message = error instanceof Error ? error.message : "Could not render QR code.";
+      const message = error instanceof Error ? error.message : "Could not render GiroCode.";
       notify(message, true);
     }
   }, [hydrated, build.payload]);
@@ -154,7 +154,7 @@ export default function GiroCodeGenerator(): JSX.Element {
         });
       }
       catch (error) {
-        const message = error instanceof Error ? error.message : "Could not render QR code.";
+        const message = error instanceof Error ? error.message : "Could not render GiroCode.";
         notify(message, true);
       }
     }
@@ -304,9 +304,9 @@ export default function GiroCodeGenerator(): JSX.Element {
       mainClassName="girocode-page"
     >
       <PageHeader
-        eyebrow="SEPA Payment QR"
+        eyebrow="SEPA Payment Code"
         title="GiroCode Generator"
-        subtitle="Create scannable SEPA transfer QR codes for invoices and payments."
+        subtitle="Create scannable SEPA GiroCode payment codes for invoices and transfers."
         actions={
           <>
             <button
@@ -338,7 +338,7 @@ export default function GiroCodeGenerator(): JSX.Element {
       />
 
       <div className="girocode-grid">
-        <section className="ui-card girocode-qr-card" aria-label="Generated GiroCode QR">
+        <section className="ui-card girocode-qr-card" aria-label="Generated GiroCode">
           <div className="girocode-qr-card__top">
             <div className="girocode-qr-card__brand">
               <span className="girocode-qr-badge">GiroCode</span>
@@ -356,7 +356,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                     type="button"
                     className="girocode-qr-trigger"
                     onClick={() => setIsQrZoomOpen(true)}
-                    aria-label="Enlarge QR code for scanning"
+                    aria-label="Enlarge GiroCode for scanning"
                     title="Click to enlarge"
                   >
                     <canvas ref={canvasRef} className="girocode-qr-canvas" />
@@ -370,7 +370,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                 )}
             </div>
             <div className="girocode-qr-frame__footer">
-              <span>Scan in banking app</span>
+              <span>Scan GiroCode</span>
               <span className="girocode-qr-frame__amount">
                 {build.amountValidation.formattedDisplay}
               </span>
@@ -388,10 +388,6 @@ export default function GiroCodeGenerator(): JSX.Element {
               <span>Download PNG</span>
             </button>
           </div>
-
-          <p className="girocode-note">
-            &ldquo;QR Code&rdquo; is a registered trademark of DENSO WAVE INCORPORATED.
-          </p>
         </section>
 
         <section className="girocode-stack" aria-label="Transfer details and payload">
@@ -660,7 +656,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                   </dd>
                 </div>
                 <div>
-                  <dt>QR size</dt>
+                  <dt>Grid size</dt>
                   <dd className="girocode-mono">
                     {qrModuleCount !== null ? `${qrModuleCount}×${qrModuleCount}` : "Auto"}
                   </dd>
@@ -708,7 +704,7 @@ export default function GiroCodeGenerator(): JSX.Element {
         eyebrow="GiroCode"
         title={build.previewLines[5] || "SEPA"}
         size={ModalDialogSize.Compact}
-        closeLabel="Close enlarged QR code"
+        closeLabel="Close enlarged GiroCode"
         footer={
           <div className="girocode-modal__footer" style={{ width: "100%" }}>
             <span className="girocode-mono">{build.ibanValidation.spaced}</span>
@@ -720,7 +716,7 @@ export default function GiroCodeGenerator(): JSX.Element {
           <canvas
             ref={zoomCanvasRef}
             className="girocode-modal__canvas"
-            aria-label="Enlarged scannable SEPA GiroCode QR"
+            aria-label="Enlarged scannable SEPA GiroCode"
           />
         </div>
       </ModalDialog>

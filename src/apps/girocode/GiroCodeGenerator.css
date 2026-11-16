@@ -345,14 +345,6 @@
   white-space: pre;
 }
 
-.girocode-note {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  text-align: center;
-  line-height: var(--line-height-normal);
-}
-
 .girocode-modal-backdrop {
   position: fixed;
   inset: 0;

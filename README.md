@@ -10,7 +10,7 @@ Rechner brings together clear estimates for German take-home pay and parental-le
 
 - [**Net Pay Calculator**](https://hkhademian.github.io/Rechner/calculators/net-pay/) — estimate German take-home pay and see the tax and social contribution breakdown.
 - [**Parental Leave Planner**](https://hkhademian.github.io/Rechner/calculators/parental-leave/) — compare parental-leave, work and household-income scenarios over time.
-- [**SEPA GiroCode Generator**](https://hkhademian.github.io/Rechner/calculators/girocode/) — create EPC069-12 V002 compliant SEPA QR payment codes locally in your browser.
+- [**SEPA GiroCode Generator**](https://hkhademian.github.io/Rechner/calculators/girocode/) — create EPC069-12 V002 compliant SEPA GiroCode payment codes locally in your browser.
 
 ### Designed for clarity
 

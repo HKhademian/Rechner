@@ -8,7 +8,7 @@ import {
 export const giroCodeApp = {
   id: AppId.GiroCode,
   title: "GiroCode Generator",
-  description: "Create scannable SEPA transfer QR codes for invoices and payments.",
+  description: "Create scannable SEPA GiroCode payment codes for invoices and transfers.",
   category: CalculatorCategory.Everyday,
   releaseStatus: CalculatorReleaseStatus.Published,
   features: [
@@ -19,7 +19,7 @@ export const giroCodeApp = {
   keywords: [
     "GiroCode",
     "SEPA",
-    "QR",
+    "Payment Code",
     "IBAN",
     "BIC",
     "Überweisung",
