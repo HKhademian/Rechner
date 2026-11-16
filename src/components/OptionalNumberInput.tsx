@@ -1,5 +1,8 @@
 import "./ui/UnifiedControls.css";
 import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
+import {
   type JSX,
 } from "preact";
 import {
@@ -8,9 +11,10 @@ import {
 } from "preact/hooks";
 
 /** Blank means use the model's default; invalid text never replaces its last valid value. */
-export default function OptionalNumberInput({ id, label, unit, value, onChange, onValidityChange, min = 0, max, step = 1 }: {
+export default function OptionalNumberInput({ id, label, topicId, unit, value, onChange, onValidityChange, min = 0, max, step = 1 }: {
   id: string;
   label: string;
+  topicId?: string;
   unit?: string;
   value: number | undefined;
   onChange: (value: number | undefined) => void;
@@ -34,6 +38,7 @@ export default function OptionalNumberInput({ id, label, unit, value, onChange, 
     <div className="ui-field">
       <div className="ui-field__top">
         <label className="ui-field__label" for={id}>{label}</label>
+        {topicId && <TopicHelp id={topicId} />}
       </div>
       <div className="ui-number-box ui-number-box--compact" data-invalid={error !== "" ? "true" : undefined}>
         <input

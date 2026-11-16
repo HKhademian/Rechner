@@ -59,6 +59,7 @@ export default function TaxSettings({ onValidityChange }: { onValidityChange?: (
       </div>
       <OptionalNumberInput
         id="payrollFactor"
+        topicId="tax-class"
         label="Approved class IV factor (optional, 0–1)"
         max={1}
         step={0.001}

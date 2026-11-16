@@ -1,4 +1,7 @@
 import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
+import {
   formatEur,
   formatEurCents,
   formatSignedEurDelta,
@@ -1093,6 +1096,8 @@ export function ComparisonTableContent(): JSX.Element {
           }}
         >
           {label}
+          {(fieldKey === "taxBracket" || fieldKey === "partnerTaxBracket") && <TopicHelp id="tax-class" />}
+          {fieldKey === "assessmentMode" && <TopicHelp id="joint-assessment" />}
           {fieldKey === "assessmentMode" && (
             <small className="comparison-field-hint">
               <LawRefLink

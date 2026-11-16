@@ -67,6 +67,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
           />
           <OptionalNumberInput
             id={`${id}-children`}
+            topicId="care-insurance"
             label="Children under 25 (care ins.)"
             value={options.value.childrenUnder25}
             onChange={(value) => update("childrenUnder25", value)}
@@ -74,6 +75,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
           />
           <OptionalNumberInput
             id={`${id}-allowance`}
+            topicId="tax-class"
             label="ELStAM child allowance (ZKF)"
             step={0.1}
             value={options.value.childAllowanceFactor}
@@ -83,6 +85,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
         </div>
         <ToggleSwitch
           id={`${id}-is-parent`}
+          topicId="care-insurance"
           label="Parent status active"
           hint="Keeps parent care-insurance rate even if no child under 25 is counted above"
           checked={options.value.isParent ?? false}
@@ -101,6 +104,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
             gap: "12px" }}>
             <ToggleSwitch
               id={`${id}-saxony`}
+              topicId="care-insurance"
               label="Employment in Saxony"
               checked={options.value.saxony ?? false}
               onChange={(checked) => {
