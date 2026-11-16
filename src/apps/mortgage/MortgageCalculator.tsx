@@ -73,7 +73,7 @@ export default function MortgageCalculator(): JSX.Element {
   const [kfwPrincipal, setKfwPrincipal] = useState(0);
   const [kfwInterest, setKfwInterest] = useState<number | undefined>();
   const [kfwTerm, setKfwTerm] = useState<number | undefined>();
-  const [kfwGrace, setKfwGrace] = useState(0);
+  const [kfwGrace, setKfwGrace] = useState<number | undefined>();
   const [method, setMethod] = useState<LoanRepaymentMethod>(LoanMethod.Annuity);
   const [years, setYears] = useState(10);
   const [income, setIncome] = useState<number | undefined>();
@@ -124,12 +124,12 @@ export default function MortgageCalculator(): JSX.Element {
   const totalDebt = toEuroAmount(principal + kfwPrincipal);
   const ltv = propertyPrice === undefined ? null : calculatePurchaseLtv(totalDebt, toEuroAmount(propertyPrice));
   const validTerm = kfwTerm !== undefined && Number.isInteger(kfwTerm) && kfwTerm >= 1 && kfwTerm <= 50;
-  const validGrace = method === LoanMethod.Balloon || (validTerm && kfwGrace < kfwTerm);
+  const validGrace = method === LoanMethod.Balloon || (validTerm && kfwGrace !== undefined && kfwGrace < kfwTerm);
   const kfwTerms = kfwPrincipal > 0 && kfwInterest !== undefined && validTerm && validGrace ? {
     principal: toEuroAmount(kfwPrincipal),
     annualInterest: toPercentageRate(kfwInterest / 100),
     term: toMortgageYears(kfwTerm),
-    grace: toGraceYears(method === LoanMethod.Balloon ? 0 : kfwGrace),
+    grace: toGraceYears(method === LoanMethod.Balloon ? 0 : (kfwGrace ?? 0)),
     method,
   } : null;
   const kfw = kfwTerms ? projectKfwLoan(kfwTerms, horizon) : null;
@@ -140,13 +140,13 @@ export default function MortgageCalculator(): JSX.Element {
   const alternative = kfwTerms ? projectKfwLoan({ ...kfwTerms,
     annualInterest: toPercentageRate(interest / 100) }, horizon) : null;
   const kfwInterestDifference = alternative && kfw ? alternative.interestPaid - kfw.interestPaid : null;
-  const bankAtGraceEnd = kfwGrace > 0 ? projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), toMortgageYears(kfwGrace)) : bank;
+  const bankAtGraceEnd = kfwGrace !== undefined && kfwGrace > 0 ? projectMortgage(toEuroAmount(principal), toPercentageRate(interest / 100), toPercentageRate(repayment / 100), toMortgageYears(kfwGrace)) : bank;
   const kfwBudgetPayment = kfw ? Math.max(kfw.initialMonthlyPayment, kfw.laterMonthlyPayment) : 0;
   const availableForBank = affordability ? affordability.availableBeforeLoans - kfwBudgetPayment : null;
   const affordableBank = availableForBank === null ? null : estimateAffordableBankLoan(toEuroAmount(availableForBank), toPercentageRate(interest / 100), toPercentageRate(repayment / 100));
   const affordablePrice = affordableBank !== null && savings !== undefined && closingCosts !== undefined
     ? Math.max(0, affordableBank + kfwPrincipal + savings - closingCosts) : null;
-  const afterGrace = kfw && method === LoanMethod.Annuity && kfwGrace > 0
+  const afterGrace = kfw && method === LoanMethod.Annuity && kfwGrace !== undefined && kfwGrace > 0
     ? (bankAtGraceEnd.paidOff ? 0 : bank.monthlyPayment) + kfw.laterMonthlyPayment : null;
   const laterAffordability = afterGrace !== null && income !== undefined && expenses !== undefined && housingCosts !== undefined
     ? estimateAffordability(toEuroAmount(income), toEuroAmount(expenses), toEuroAmount(housingCosts), toEuroAmount(afterGrace)) : null;
@@ -183,8 +183,13 @@ export default function MortgageCalculator(): JSX.Element {
                 setKfwTerm(value);
               }} />
               <div><p>Repayment type</p><SegmentedControl label="KfW repayment type" value={method} options={METHODS} onChange={setMethod} /></div>
-              {method === LoanMethod.Annuity && <NumberField id="mortgage-kfw-grace" onValidityChange={trackValidity("mortgage-kfw-grace")} label="Interest-only period" unit="years" min={0} max={49} step={1} value={kfwGrace} construct={toGraceYears} onChange={setKfwGrace} />}
-              {!validGrace && validTerm && <p role="alert">The interest-only period must be shorter than the KfW term.</p>}
+              {method === LoanMethod.Annuity && <OptionalNumberInput id="mortgage-kfw-grace" onValidityChange={trackValidity("mortgage-kfw-grace")} label="Interest-only period" unit="years" min={0} max={49} step={1} placeholder="Enter years" value={kfwGrace} onChange={(value) => {
+                if (value !== undefined) {
+                  toGraceYears(value);
+                }
+                setKfwGrace(value);
+              }} />}
+              {!validGrace && validTerm && kfwGrace !== undefined && <p role="alert">The interest-only period must be shorter than the KfW term.</p>}
             </>}
           </div>
         </section>
@@ -203,12 +208,12 @@ export default function MortgageCalculator(): JSX.Element {
         <div className="domain-calc-kpis">
           <MetricCard label="Total borrowed" value={formatEur(totalDebt)} subtitle={`Bank ${formatEur(principal)} + KfW ${formatEur(kfwPrincipal)}`} tone={MetricTone.Primary} />
           <MetricCard label="Loan-to-value" value={ltv === null ? "Enter property value" : `${(ltv * 100).toFixed(1)}%`} subtitle="Both loans ÷ entered purchase price / value" />
-          <MetricCard label="Starting monthly loan payments" value={monthly === null ? "Enter KfW terms" : formatEur(monthly)} subtitle={monthly === null ? "Bank and KfW together require the KfW rate and term" : `Bank ${formatEur(bank.monthlyPayment)} + KfW ${formatEur(kfw?.initialMonthlyPayment ?? 0)}`} />
+          <MetricCard label="Starting monthly loan payments" value={monthly === null ? "Enter KfW terms" : formatEur(monthly)} subtitle={monthly === null ? "Bank and KfW together require your KfW repayment terms" : `Bank ${formatEur(bank.monthlyPayment)} + KfW ${formatEur(kfw?.initialMonthlyPayment ?? 0)}`} />
         </div>
         <section className="ui-card mortgage-results">
           <h2>What you repay</h2>
           <p>Your total debt includes both loans. Loan-to-value uses the entered purchase price, not the bank's valuation; buying costs can make it exceed 100%.</p>
-          {kfwPrincipal > 0 && !complete && <p role="status">Enter the KfW interest rate and term to see combined payments, interest, balance and affordability.</p>}
+          {kfwPrincipal > 0 && !complete && <p role="status">Enter the KfW interest rate, term and, for monthly repayment, interest-only period to see combined payments, interest, balance and affordability.</p>}
           {kfw && <>
             <p>KfW starts at <strong>{formatEur(kfw.initialMonthlyPayment)}/month</strong>{afterGrace !== null && <>; after {kfwGrace} interest-only {kfwGrace === 1 ? "year" : "years"}, its regular payment becomes <strong>{formatEur(kfw.laterMonthlyPayment)}/month</strong> and both loans together are estimated at <strong>{formatEur(afterGrace)}/month</strong></>}.</p>
             {method === LoanMethod.Balloon && <p role="status">The KfW payment above covers interest only. The entire <strong>{formatEur(kfwPrincipal)}</strong> principal is due as a lump sum at the end of year {kfwTerm}.</p>}
