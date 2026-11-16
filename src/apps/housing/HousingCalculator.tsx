@@ -16,6 +16,7 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import {
   EligibilityConfirmedIcon,
+  InformationalNoticeIcon,
   StatutoryLimitationWarningIcon,
 } from "#components/Icons";
 import {
@@ -167,21 +168,43 @@ export default function HousingCalculator(): JSX.Element {
               />
             </div>
 
-            <ToggleSwitch
-              id="housing-newbuild"
-              label="Owner-occupied EH 40 new build"
-              hint="Required energy standard for KfW 300"
-              checked={s.isOwnerOccupiedNewBuildOrKfw300Standard}
-              onChange={(checked) => updateHousingField("isOwnerOccupiedNewBuildOrKfw300Standard", checked)}
-            />
+            <div className="housing-explained-toggle">
+              <ToggleSwitch
+                id="housing-newbuild"
+                label="Owner-occupied EH 40 new build"
+                checked={s.isOwnerOccupiedNewBuildOrKfw300Standard}
+                onChange={(checked) => updateHousingField("isOwnerOccupiedNewBuildOrKfw300Standard", checked)}
+              />
+              <LawRefLink
+                lawId={LawId.KfW_300}
+                className="housing-explained-toggle__help"
+                title="Explain owner-occupied EH 40 new build"
+                context={{
+                  title: "Owner-occupied EH 40 new build",
+                  description: "Owner-occupied means you live in the home yourself. Efficiency House 40 (EH 40) is an energy-efficiency standard for a new building. KfW 300 also requires a qualifying climate-friendly new build or first purchase, limits on lifecycle greenhouse gas emissions, and no heating with oil, gas or biomass. An energy-efficiency expert must confirm the technical requirements.",
+                  calculatorEffect: "Turn this on if you expect your self-occupied home to meet the KfW 300 building requirements. The calculator uses this as one eligibility assumption; it does not verify the technical requirements or all other program conditions.",
+                }}
+              ><InformationalNoticeIcon size={16} /></LawRefLink>
+            </div>
 
-            <ToggleSwitch
-              id="housing-qng"
-              label="QNG-Plus sustainability seal"
-              hint="+€50,000 extra KfW 300 loan ceiling"
-              checked={s.isQngPlusCertified}
-              onChange={(checked) => updateHousingField("isQngPlusCertified", checked)}
-            />
+            <div className="housing-explained-toggle">
+              <ToggleSwitch
+                id="housing-qng"
+                label="QNG sustainability certification"
+                checked={s.isQngPlusCertified}
+                onChange={(checked) => updateHousingField("isQngPlusCertified", checked)}
+              />
+              <LawRefLink
+                lawId={LawId.KfW_300}
+                className="housing-explained-toggle__help"
+                title="Explain QNG sustainability certification"
+                context={{
+                  title: "QNG sustainability certification",
+                  description: "The Quality Seal for Sustainable Buildings (Qualitätssiegel Nachhaltiges Gebäude, QNG) is a sustainability certification. KfW 300's higher funding tier accepts QNG-PLUS or QNG-PREMIUM, confirmed by a sustainability certificate. It also requires EH 40 and compliance with the program's heating rules; sustainability and energy-efficiency experts confirm the requirements.",
+                  calculatorEffect: "Turn this on if the home will qualify for the QNG tier. The calculator adds the configured QNG top-up to the potential KfW loan ceiling, subject to modeled eligibility and financing need. This is a loan, not a grant.",
+                }}
+              ><InformationalNoticeIcon size={16} /></LawRefLink>
+            </div>
 
             <NumberField
               id="housing-craftsman"
@@ -229,7 +252,7 @@ export default function HousingCalculator(): JSX.Element {
                 {evalResult.kfw300Eligible ? <EligibilityConfirmedIcon size={18} /> : <StatutoryLimitationWarningIcon size={18} />}
                 <span>
                   {evalResult.kfw300Eligible
-                    ? `Eligible for up to ${formatEur(evalResult.kfw300MaxSubsidizedLoanEur)} KfW 300 family loan`
+                    ? `Potentially eligible for up to ${formatEur(evalResult.kfw300MaxSubsidizedLoanEur)} KfW 300 family loan`
                     : `Not eligible for KfW 300 (${s.dependentChildrenCount === 0 ? "requires 1+ minor children" : !s.isOwnerOccupiedNewBuildOrKfw300Standard ? "requires EH 40 new build" : `household income exceeds ${formatEur(evalResult.kfw300IncomeCeilingEur)} limit`})`}
                 </span>
               </strong>

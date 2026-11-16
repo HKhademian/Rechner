@@ -60,6 +60,16 @@ describe("lawReferenceStore navigation & history", () => {
     assert.deepEqual(activeLawModalState.peek()?.history, []);
   });
 
+  it("keeps contextual explanations scoped to the opened reference", () => {
+    const context = { title: "Building standard",
+      description: "Explanation",
+      calculatorEffect: "Effect" };
+    openLawReference(LawId.KfW_300, undefined, context);
+    assert.deepEqual(activeLawModalState.value?.context, context);
+    openLawReference(LawId.EStG_2);
+    assert.equal(activeLawModalState.value?.context, undefined);
+  });
+
   it("opens thematic LawGroupId and resets filter state on close", () => {
     openLawGroupReference(LawGroupId.BEEG_SiblingBonus);
     assert.equal(activeLawModalState.value?.currentLawId, LawId.BEEG_2a);
