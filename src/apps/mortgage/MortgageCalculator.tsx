@@ -217,6 +217,7 @@ export default function MortgageCalculator(): JSX.Element {
           </>}
           {kfwPrincipal === 0 && <p>Over {years} years: estimated bank interest <strong>{formatEur(bank.interestPaid)}</strong>; remaining bank debt <strong>{formatEur(bank.balance)}</strong>.</p>}
           {bank.balanceIncreasing && <p role="status">The bank payment does not cover interest, so its balance grows.</p>}
+          {!bank.paidOff && !bank.balanceIncreasing && principal > 0 && repayment === 0 && <p role="status">The bank loan has no initial principal repayment, so the balance may remain outstanding.</p>}
           <p>This scenario does not verify which term, grace period or repayment type KfW currently offers. Figures assume both loans are fully paid out at the start and use fixed nominal rates for the entire projection. Fees, special repayments, disbursement timing, rate changes and refinancing are excluded. KfW terms vary by offer; the last payment may differ due to rounding. A fixed-rate period may end before the loan does.</p>
         </section>
         <section className="ui-card mortgage-results" aria-labelledby="affordability-results">
