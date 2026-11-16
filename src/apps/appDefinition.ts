@@ -11,6 +11,7 @@ export const AppId = { Catalog: "catalog",
   CompanyCar: "company-car",
   SolarEnergy: "solar-energy",
   Housing: "housing",
+  Mortgage: "mortgage",
   Kita: "kita",
   MinijobMidijob: "minijob-midijob",
   CommuterAllowance: "commuter-allowance" } as const;

@@ -1,0 +1,10 @@
+---
+import MortgageCalculator from "#/apps/mortgage/MortgageCalculator.tsx";
+import {
+  mortgageApp,
+} from "#/apps/mortgage/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument title={`${mortgageApp.title} | Rechner`} description={mortgageApp.description}>
+  <MortgageCalculator client:load />
+</BaseDocument>

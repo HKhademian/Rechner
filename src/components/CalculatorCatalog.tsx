@@ -71,6 +71,7 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
     case AppId.SolarEnergy:
       return <SolarEnergyIcon size={24} />;
     case AppId.Housing:
+    case AppId.Mortgage:
       return <HomeAcquisitionIcon size={24} />;
     case AppId.Kita:
       return <ChildcareKitaIcon size={24} />;

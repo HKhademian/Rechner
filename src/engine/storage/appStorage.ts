@@ -160,6 +160,7 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
   [Apps.CompanyCar]: {},
   [Apps.SolarEnergy]: {},
   [Apps.Housing]: {},
+  [Apps.Mortgage]: {},
   [Apps.Kita]: {},
   [Apps.MinijobMidijob]: {},
   [Apps.CommuterAllowance]: {},

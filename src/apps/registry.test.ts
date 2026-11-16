@@ -32,6 +32,7 @@ it("limits default release catalog to published calculators while retaining draf
       AppId.CompanyCar,
       AppId.SolarEnergy,
       AppId.Housing,
+      AppId.Mortgage,
       AppId.Kita,
       AppId.MinijobMidijob,
       AppId.CommuterAllowance,

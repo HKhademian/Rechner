@@ -23,6 +23,9 @@ import {
   minijobMidijobApp,
 } from "#/apps/minijob-midijob/manifest.ts";
 import {
+  mortgageApp,
+} from "#/apps/mortgage/manifest.ts";
+import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
 import {
@@ -44,6 +47,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   companyCarApp,
   solarEnergyApp,
   housingApp,
+  mortgageApp,
   kitaApp,
   minijobMidijobApp,
   commuterAllowanceApp,

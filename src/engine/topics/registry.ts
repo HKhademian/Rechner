@@ -292,9 +292,9 @@ export const topics: readonly Topic[] = [
     description: "Mortgage interest is the cost of borrowing; initial repayment (Tilgung) is the part of the starting annual payment used to reduce the loan principal.",
     benefit: "A higher repayment rate reduces the outstanding balance faster, all else being equal.",
     limitation: "The interest rate, repayment schedule, fixed-rate period, fees and future refinancing can differ from this simple estimate.",
-    calculatorEffect: "The home planner applies the entered annual rates to estimate the initial monthly bank payment; it does not calculate a complete loan offer.",
+    calculatorEffect: "The home planner estimates the initial bank payment. The mortgage calculator projects a balance using fixed rates; neither is a complete loan offer.",
     laws: [],
-    apps: [Apps.Housing],
+    apps: [Apps.Housing, Apps.Mortgage],
     source: { label: "Consumer information on home financing",
       url: "https://www.verbraucherzentrale.de/wissen/geld-versicherungen/bau-und-immobilienfinanzierung" } },
 

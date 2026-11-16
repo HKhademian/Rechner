@@ -233,6 +233,7 @@ export function getProjectionProfileForApp(
     case AppId.SolarEnergy:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.SolarEnergyFocus];
     case AppId.Housing:
+    case AppId.Mortgage:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.HousingFocus];
     case AppId.Kita:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.KitaFocus];
