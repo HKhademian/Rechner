@@ -22,6 +22,7 @@ it("has unique topics with valid rules, calculators and sources", () => {
     ids.add(topic.id);
     assert.equal(getTopic(topic.id), topic);
     assert.ok(topic.title && topic.description && topic.benefit && topic.limitation && topic.calculatorEffect);
+    assert.doesNotMatch([topic.title, topic.description, topic.benefit, topic.limitation, topic.calculatorEffect].join(" "), /\bqr(?:[ -]?code)?\b/i);
     assert.ok(topic.laws.length || topic.source);
     for (const law of topic.laws) {
       assert.ok(getLawEntry(law));
