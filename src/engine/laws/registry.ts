@@ -496,6 +496,36 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
     },
   }),
 
+  [LawId.EStG_9_1_4]: freezeEntry({
+    id: LawId.EStG_9_1_4,
+    citation: toStatutoryCitation("§ 9 Abs. 1 Nr. 4 EStG"),
+    code: LawCode.EStG,
+    section: "§ 9 Abs. 1 Nr. 4",
+    title: "Commuter Distance Allowance (Entfernungspauschale) & Homeoffice Deduction",
+    summary: "Deducts fixed per-kilometer work-commute allowances per office day (2024–2025: €0.30/km for first 20 km and €0.38/km from km 21; 2026+: €0.38/km from km 1; €4,500 non-car cap) plus up to €6/day (€1,260/yr) Homeoffice-Pauschale as income-related expenses.",
+    benefit: "Lowers annual taxable income once total Werbungskosten exceed the €1,230 Arbeitnehmer-Pauschbetrag, or via actual public-transit fares under § 9 Abs. 2 S. 2 EStG.",
+    antiBenefit: "Does not yield additional tax savings until total Werbungskosten exceed the automatic €1,230 lump sum, and tax-free § 3 Nr. 15 JobTicket subsidies reduce distance claims euro for euro.",
+    tags: [LawTag.Tax, LawTag.Payroll],
+    groupId: LawGroupId.EStG_CommuterWorkExpenses,
+    relatedLaws: {
+      [LawId.EStG_9a]: {
+        relationType: LawRelationType.ContrastsWith,
+        description: "Only itemized work expenses exceeding the €1,230 lump sum produce extra tax relief.",
+      },
+      [LawId.EStG_3_15]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Tax-free employer transit subsidies reduce deductible commuter allowance under § 3 Nr. 15 S. 3 EStG.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: gesetzeUrl("estg", "9"),
+        label: "§ 9 EStG Statutory Text",
+        description: "Official Werbungskosten, Entfernungspauschale, and Homeoffice-Pauschale provisions.",
+      },
+    },
+  }),
+
   [LawId.EStG_9a]: freezeEntry({
     id: LawId.EStG_9a,
     citation: toStatutoryCitation("§ 9a EStG"),
@@ -1628,6 +1658,36 @@ export const LAW_REGISTRY: Readonly<Record<LawId, LawEntry>> = Object.freeze({
     },
   }),
 
+  [LawId.EStG_3_15]: freezeEntry({
+    id: LawId.EStG_3_15,
+    citation: toStatutoryCitation("§ 3 Nr. 15 EStG"),
+    code: LawCode.EStG,
+    section: "§ 3 Nr. 15",
+    title: "Tax-Free Employer JobTicket & Public Transit Subsidies",
+    summary: "Exempts employer-paid public transit and Deutschlandticket subsidies provided in addition to contractual salary from income tax and social security, while offsetting the commuter distance allowance.",
+    benefit: "Delivers 100% tax-free and social-contribution-free commuting support when paid on top of agreed salary.",
+    antiBenefit: "Reduces the employee's claimable § 9 Abs. 1 Nr. 4 Entfernungspauschale euro-for-euro by the tax-free subsidy amount.",
+    tags: [LawTag.Tax, LawTag.Payroll, LawTag.Green],
+    groupId: LawGroupId.EStG_CommuterWorkExpenses,
+    relatedLaws: {
+      [LawId.EStG_9_1_4]: {
+        relationType: LawRelationType.Modifies,
+        description: "Credited against claimable commuter Entfernungspauschale (§ 3 Nr. 15 S. 3 EStG).",
+      },
+      [LawId.EStG_9a]: {
+        relationType: LawRelationType.InteractsWith,
+        description: "Offsetting commuter deductions can still leave full €1,230 Arbeitnehmer-Pauschbetrag intact.",
+      },
+    },
+    externalSources: {
+      [ExternalSourceId.GesetzeImInternet]: {
+        url: gesetzeUrl("estg", "3"),
+        label: "§ 3 Nr. 15 EStG Statutory Text",
+        description: "Tax exemption conditions and Werbungskosten offset rule for employer JobTickets.",
+      },
+    },
+  }),
+
   [LawId.EStG_3_72]: freezeEntry({
     id: LawId.EStG_3_72,
     citation: toStatutoryCitation("§ 3 Nr. 72 EStG"),
@@ -2134,6 +2194,18 @@ export const LAW_GROUP_REGISTRY: Readonly<Record<LawGroupId, LawGroupEntry>> = O
     tags: [LawTag.Car, LawTag.Tax, LawTag.Payroll, LawTag.Green],
     primaryLawId: LawId.EStG_6_1_4,
     memberLawIds: [LawId.EStG_6_1_4, LawId.EStG_8_2, LawId.EStG_19],
+  }),
+
+  [LawGroupId.EStG_CommuterWorkExpenses]: freezeGroup({
+    id: LawGroupId.EStG_CommuterWorkExpenses,
+    title: "Commuter Allowance, Homeoffice & JobTicket Rules",
+    citationLabel: "§ 9 Abs. 1 Nr. 4, § 9a, § 3 Nr. 15 EStG",
+    summary: "Governs daily commuter distance deductions, Homeoffice flat-rate relief, the €1,230 employee lump sum, and tax-free employer transit subsidies.",
+    benefit: "Combines tax-free employer transit benefits or excess Werbungskosten above €1,230 to reduce annual tax liability.",
+    antiBenefit: "Tax-free § 3 Nr. 15 JobTicket subsidies reduce claimable commuter distance deductions euro for euro.",
+    tags: [LawTag.Tax, LawTag.Payroll, LawTag.Green],
+    primaryLawId: LawId.EStG_9_1_4,
+    memberLawIds: [LawId.EStG_9_1_4, LawId.EStG_3_15, LawId.EStG_9a],
   }),
 
   [LawGroupId.EEG_ResidentialSolar]: freezeGroup({

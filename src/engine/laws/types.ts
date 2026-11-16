@@ -49,9 +49,11 @@ export const LawId = {
 
   // EStG (Einkommensteuergesetz)
   EStG_2: "estg-2",
+  EStG_3_15: "estg-3-15",
   EStG_3_72: "estg-3-72",
   EStG_6_1_4: "estg-6-1-4",
   EStG_8_2: "estg-8-2",
+  EStG_9_1_4: "estg-9-1-4",
   EStG_9a: "estg-9a",
   EStG_10: "estg-10",
   EStG_10_1_5: "estg-10-1-5",
@@ -126,6 +128,7 @@ export const LawGroupId = {
   SGB_SocialSecurity: "group-sgb-social-security",
   AufenthG_BlueCard: "group-aufenthg-blue-card",
   EStG_CompanyCar: "group-estg-company-car",
+  EStG_CommuterWorkExpenses: "group-estg-commuter-work-expenses",
   EEG_ResidentialSolar: "group-eeg-residential-solar",
   Housing_HomeAcquisition: "group-housing-home-acquisition",
 } as const;

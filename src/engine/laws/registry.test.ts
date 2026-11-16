@@ -93,4 +93,17 @@ describe("Central Law Reference Registry & Graph", () => {
     assert.equal(Object.isFrozen(LAW_REGISTRY), true);
     assert.equal(Object.isFrozen(LAW_GROUP_REGISTRY), true);
   });
+
+  it("registers commuter allowance and JobTicket statutes within EStG_CommuterWorkExpenses", () => {
+    const commuter = getLawEntry(LawId.EStG_9_1_4);
+    const jobTicket = getLawEntry(LawId.EStG_3_15);
+    const group = getLawGroupEntry(LawGroupId.EStG_CommuterWorkExpenses);
+
+    assert.equal(commuter.groupId, LawGroupId.EStG_CommuterWorkExpenses);
+    assert.equal(jobTicket.groupId, LawGroupId.EStG_CommuterWorkExpenses);
+    assert.equal(group.primaryLawId, LawId.EStG_9_1_4);
+    assert.deepEqual(group.memberLawIds, [LawId.EStG_9_1_4, LawId.EStG_3_15, LawId.EStG_9a]);
+    assert.ok(getRelatedLaws(LawId.EStG_9_1_4).some((item) => item.law.id === LawId.EStG_3_15));
+    assert.ok(getRelatedLaws(LawId.EStG_3_15).some((item) => item.law.id === LawId.EStG_9_1_4));
+  });
 });
