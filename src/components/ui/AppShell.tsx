@@ -4,6 +4,15 @@ import type {
   JSX,
 } from "preact";
 import Navigation from "#components/Navigation";
+import {
+  calculatorAtPath, 
+} from "#/apps/registry.ts";
+import {
+  sitePath, 
+} from "#/apps/appDefinition.ts";
+import {
+  topics, 
+} from "#engine/topics/registry";
 import SourceRevision from "#components/SourceRevision";
 import {
   appShellMainClassName,
@@ -30,6 +39,8 @@ export function AppShell({
   footerNote,
   children,
 }: AppShellProps): JSX.Element {
+  const app = calculatorAtPath(currentPath);
+  const relatedTopics = app ? topics.filter((topic) => topic.apps.includes(app.id)) : [];
   return (
     <div className={["ui-app-shell", shellClassName.trim()].filter(Boolean).join(" ")}>
       <Navigation currentPath={currentPath} />
@@ -39,6 +50,10 @@ export function AppShell({
         tabIndex={-1}
       >
         {children}
+        {relatedTopics.length > 0 && <section className="ui-related-topics" aria-label="Related explanations">
+          <h2>Related explanations</h2>
+          <ul>{relatedTopics.map((topic) => <li key={topic.id}><a href={sitePath(`/topics/${topic.id}/`)}>{topic.title}</a></li>)}</ul>
+        </section>}
       </main>
       <footer className="ui-app-footer source-revision-footer">
         <SourceRevision note={footerNote} />

@@ -1022,3 +1022,24 @@ input.ui-text-box__input:focus-visible {
   flex: 1;
   min-width: 0;
 }
+
+.ui-related-topics {
+  margin: 32px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ui-related-topics h2 {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.ui-related-topics ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
