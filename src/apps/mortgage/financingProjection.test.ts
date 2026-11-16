@@ -69,3 +69,18 @@ it("estimates a bank loan from the available payment without assuming a lending 
   assert.equal(estimateAffordableBankLoan(toEuroAmount(-1), toPercentageRate(0.04), toPercentageRate(0.02)), null);
   assert.equal(estimateAffordableBankLoan(toEuroAmount(1000), toPercentageRate(0), toPercentageRate(0)), null);
 });
+
+it("charges interest during the grace period before starting an amortizing payment", () => {
+  const result = projectKfwLoan({
+    principal: toEuroAmount(120000),
+    annualInterest: toPercentageRate(0.06),
+    term: toMortgageYears(11),
+    grace: toGraceYears(1),
+    method: LoanRepaymentMethod.Annuity,
+  }, toMortgageYears(2));
+  assert.equal(result.initialMonthlyPayment, 600);
+  assert.equal(result.laterMonthlyPayment, 1332.25);
+  assert.equal(result.yearly[0].balance, 120000);
+  assert.equal(result.yearly[0].interestPaid, 7200);
+  assert.ok(result.yearly[1].balance < 120000);
+});
