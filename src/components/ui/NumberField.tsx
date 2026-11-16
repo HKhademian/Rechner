@@ -1,4 +1,7 @@
 import "./UnifiedControls.css";
+import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
 import type {
   JSX,
 } from "preact";
@@ -23,6 +26,7 @@ export interface NumberSliderConfig {
 
 export interface NumberFieldProps<T extends number = number> {
   readonly id: string;
+  readonly topicId?: string;
   readonly label: string;
   readonly value: T | undefined;
   readonly onChange: (value: T) => void;
@@ -53,6 +57,7 @@ function defaultConstruct<T extends number>(value: number): T {
  */
 export function NumberField<T extends number = number>({
   id,
+  topicId,
   label,
   value,
   onChange,
@@ -116,6 +121,7 @@ export function NumberField<T extends number = number>({
     <div className="ui-field">
       <div className="ui-field__top">
         <label className="ui-field__label" for={id}>{label}</label>
+        {topicId && <TopicHelp id={topicId} />}
         {asideValue && <span className="ui-field__aside">{asideValue}</span>}
       </div>
 

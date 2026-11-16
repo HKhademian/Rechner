@@ -1,4 +1,7 @@
 import "./UnifiedControls.css";
+import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
 import type {
   JSX,
 } from "preact";
@@ -12,6 +15,7 @@ export interface SegmentedOption<T extends string | number> {
 
 export interface SegmentedControlProps<T extends string | number> {
   readonly label: string;
+  readonly topicId?: string;
   readonly value: T;
   readonly options: readonly SegmentedOption<T>[];
   readonly onChange: (value: T) => void;
@@ -22,6 +26,7 @@ export interface SegmentedControlProps<T extends string | number> {
 /** Single canonical segmented option bar replacing fragmented inline button groups. */
 export function SegmentedControl<T extends string | number>({
   label,
+  topicId,
   value,
   options,
   onChange,
@@ -34,7 +39,7 @@ export function SegmentedControl<T extends string | number>({
     fullWidth ? "ui-segmented--full" : "",
   ].filter(Boolean).join(" ");
 
-  return (
+  const control = (
     <div className={classes} role="group" aria-label={label}>
       {options.map((option) => (
         <button
@@ -50,4 +55,5 @@ export function SegmentedControl<T extends string | number>({
       ))}
     </div>
   );
+  return topicId ? <div className="ui-toggle-with-help">{control}<TopicHelp id={topicId} /></div> : control;
 }

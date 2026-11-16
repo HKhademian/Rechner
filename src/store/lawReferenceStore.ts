@@ -16,6 +16,7 @@ import {
  */
 export interface LawReferenceContext {
   readonly title: string;
+  readonly topicId?: string;
   readonly description: string;
   readonly calculatorEffect: string;
 }

@@ -1,10 +1,14 @@
 import "./UnifiedControls.css";
+import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
 import type {
   JSX,
 } from "preact";
 
 export interface ToggleSwitchProps {
   readonly id?: string;
+  readonly topicId?: string;
   readonly label: string;
   readonly hint?: string;
   readonly checked: boolean;
@@ -16,6 +20,7 @@ export interface ToggleSwitchProps {
 /** Accessible binary switch control sharing a 42px hit area and institutional styling. */
 export function ToggleSwitch({
   id,
+  topicId,
   label,
   hint,
   checked,
@@ -23,7 +28,7 @@ export function ToggleSwitch({
   plain = false,
   disabled = false,
 }: ToggleSwitchProps): JSX.Element {
-  return (
+  const control = (
     <label className={`ui-toggle${plain ? " ui-toggle--plain" : ""}`} for={id}>
       <span className="ui-toggle__text">
         <span className="ui-toggle__label">{label}</span>
@@ -43,4 +48,5 @@ export function ToggleSwitch({
       </span>
     </label>
   );
+  return topicId ? <div className="ui-toggle-with-help">{control}<TopicHelp id={topicId} /></div> : control;
 }

@@ -171,6 +171,7 @@ export default function LawReferenceModal(): JSX.Element | null {
             <h3>{modalState.context.title}</h3>
             <p>{modalState.context.description}</p>
             <p><strong>In this calculator:</strong> {modalState.context.calculatorEffect}</p>
+            {modalState.context.topicId && <a href={sitePath(`/topics/${modalState.context.topicId}/`)}>Explore this topic →</a>}
           </section>}
           <p className="law-reference-dialog__summary">{entry.summary}</p>
 

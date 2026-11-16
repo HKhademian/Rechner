@@ -1,4 +1,7 @@
 import "./UnifiedControls.css";
+import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
 import type {
   JSX,
 } from "preact";
@@ -10,6 +13,7 @@ export interface SelectOption<T extends string | number> {
 
 export interface ChoiceSelectProps<T extends string | number> {
   readonly id: string;
+  readonly topicId?: string;
   readonly label: string;
   readonly value: T;
   readonly options: readonly SelectOption<T>[];
@@ -22,6 +26,7 @@ export interface ChoiceSelectProps<T extends string | number> {
 /** Shared styled `<select>` wrapper matching NumberField heights and tokens. */
 export function ChoiceSelect<T extends string | number>({
   id,
+  topicId,
   label,
   value,
   options,
@@ -34,6 +39,7 @@ export function ChoiceSelect<T extends string | number>({
     <div className="ui-field">
       <div className="ui-field__top">
         <label className="ui-field__label" for={id}>{label}</label>
+        {topicId && <TopicHelp id={topicId} />}
       </div>
       <select
         id={id}
