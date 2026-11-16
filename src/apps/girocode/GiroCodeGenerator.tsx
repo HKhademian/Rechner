@@ -397,6 +397,7 @@ export default function GiroCodeGenerator(): JSX.Element {
               <SegmentedControl
                 compact
                 label="Character encoding mode"
+                topicId="girocode"
                 value={draft.charsetMode}
                 onChange={(mode) => updateGiroCodeField("charsetMode", mode)}
                 options={[
@@ -562,6 +563,7 @@ export default function GiroCodeGenerator(): JSX.Element {
                   <SegmentedControl
                     compact
                     label="Remittance reference mode"
+                    topicId="payment-reference"
                     value={draft.remittanceKind}
                     onChange={(kind) => updateGiroCodeField("remittanceKind", kind)}
                     options={[

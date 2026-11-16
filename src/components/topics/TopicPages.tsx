@@ -52,9 +52,10 @@ export function TopicPage({ topic }: { readonly topic: Topic }): JSX.Element {
       <section className="ui-card"><h2>In the calculators</h2><p>{topic.calculatorEffect}</p>
         <ul>{allCalculatorApps.filter((app) => topic.apps.includes(app.id)).map((app) => <li key={app.id}><a href={calculatorPath(app.id)}>{app.title}</a></li>)}</ul>
       </section>
-      <section className="ui-card"><h2>Related laws and program sources</h2>
+      {(topic.laws.length > 0 || topic.source) && <section className="ui-card"><h2>Related rules and sources</h2>
         <ul>{topic.laws.map((law) => <li key={law}><LawRefLink lawId={law} label={`${getLawEntry(law).citation} · ${getLawEntry(law).title}`} /></li>)}</ul>
-      </section>
+        {topic.source && <p><a href={topic.source.url} target="_blank" rel="noopener noreferrer">{topic.source.label} ↗</a></p>}
+      </section>}
       {related.length > 0 && <section className="ui-card"><h2>Related topics</h2>
         <ul>{related.map((other) => <li key={other.id}><a href={topicPath(other.id)}>{other.title}</a></li>)}</ul>
       </section>}

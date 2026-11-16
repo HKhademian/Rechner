@@ -17,6 +17,8 @@ export interface Topic {
   readonly calculatorEffect: string;
   readonly laws: readonly LawId[];
   readonly apps: readonly AppId[];
+  readonly source?: { readonly label: string;
+    readonly url: string };
 }
 
 export const topics: readonly Topic[] = [
@@ -172,6 +174,26 @@ export const topics: readonly Topic[] = [
     calculatorEffect: "The home planner applies the modeled credit to the entered annual eligible labor cost; it does not verify the work or tax liability.",
     laws: [Laws.EStG_35a],
     apps: [Apps.Housing] },
+  { id: "girocode",
+    title: "GiroCode and SEPA credit transfers",
+    description: "A GiroCode is a QR code containing payment instructions in a format supported by participating banking apps. A SEPA credit transfer is a euro bank transfer under the SEPA scheme.",
+    benefit: "Scanning can fill the recipient and transfer details in a banking app, reducing manual typing.",
+    limitation: "The code does not send money or verify the recipient. Check the details in your banking app before approving a transfer; support varies by bank.",
+    calculatorEffect: "The generator creates a payment code locally from the entered transfer details. It does not submit the transfer.",
+    laws: [],
+    apps: [Apps.GiroCode],
+    source: { label: "European Payments Council · SEPA schemes",
+      url: "https://www.europeanpaymentscouncil.eu/what-we-do/sepa-payment-schemes" } },
+  { id: "payment-reference",
+    title: "Payment reference and purpose code",
+    description: "A remittance reference helps a recipient identify a payment. Structured references use a defined format; unstructured references contain free text. A purpose code describes the kind of payment.",
+    benefit: "An accurate reference can help the recipient match a transfer to an invoice or account.",
+    limitation: "Use the reference requested by the recipient; a purpose code is separate and optional. Bank support and format limits apply.",
+    calculatorEffect: "The generator places the selected reference format and optional purpose code into the QR payload.",
+    laws: [],
+    apps: [Apps.GiroCode],
+    source: { label: "European Payments Council · SEPA schemes",
+      url: "https://www.europeanpaymentscouncil.eu/what-we-do/sepa-payment-schemes" } },
 
 ];
 
