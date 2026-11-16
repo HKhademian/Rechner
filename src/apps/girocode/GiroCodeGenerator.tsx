@@ -390,7 +390,7 @@ export default function GiroCodeGenerator(): JSX.Element {
           </div>
         </section>
 
-        <section className="girocode-stack" aria-label="Transfer details and payload">
+        <section className="girocode-stack" aria-label="Transfer details">
           <div className="ui-card">
             <div className="girocode-card__header">
               <h2>Transfer Details</h2>
@@ -610,92 +610,92 @@ export default function GiroCodeGenerator(): JSX.Element {
               )}
             </div>
           </div>
-
-          <details className="ui-card girocode-details">
-            <summary className="girocode-details__summary">
-              <span className="girocode-details__title">
-                <ExpandSectionIcon size={16} className="girocode-details__chevron" />
-                <span>Technical details</span>
-              </span>
-              {build.utf8ByteLength > build.maxByteLength && (
-                <span className="badge-loss">
-                  {build.utf8ByteLength} / {build.maxByteLength} B
-                </span>
-              )}
-            </summary>
-
-            <div className="girocode-details__body">
-              <div>
-                <div className="girocode-field__top">
-                  <label htmlFor="girocode-purpose">Purpose (optional)</label>
-                </div>
-                <input
-                  id="girocode-purpose"
-                  type="text"
-                  maxLength={EPC_MAX_PURPOSE_LENGTH}
-                  className="girocode-mono"
-                  placeholder="CHAR, SALA, RENT"
-                  value={draft.purposeCode}
-                  onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
-                />
-              </div>
-
-              <dl className="girocode-tech-specs">
-                <div>
-                  <dt>Format</dt>
-                  <dd className="girocode-mono">SEPA Credit Transfer (EPC)</dd>
-                </div>
-                <div>
-                  <dt>IBAN check</dt>
-                  <dd className="girocode-mono">
-                    {build.ibanValidation.status === IbanValidationStatus.Valid
-                      ? "Valid"
-                      : build.ibanValidation.status === IbanValidationStatus.Empty
-                        ? "—"
-                        : "Invalid"}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Grid size</dt>
-                  <dd className="girocode-mono">
-                    {qrModuleCount !== null ? `${qrModuleCount}×${qrModuleCount}` : "Auto"}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Encoding</dt>
-                  <dd className="girocode-mono">
-                    {draft.charsetMode === GiroCodeCharsetMode.Utf8 ? "UTF-8" : "ASCII"}
-                  </dd>
-                </div>
-              </dl>
-
-              <div className="girocode-payload-block">
-                <div className="girocode-field__top">
-                  <span>Transfer text preview</span>
-                  <div className="girocode-field__actions">
-                    <span className={build.utf8ByteLength > build.maxByteLength ? "badge-loss" : "badge-neutral"}>
-                      {build.utf8ByteLength} / {build.maxByteLength} B
-                    </span>
-                    <button
-                      type="button"
-                      className="girocode-copy-btn"
-                      disabled={!build.payload}
-                      onClick={() => {
-                        if (build.payload) {
-                          void copyText(build.payload, "Payload");
-                        }
-                      }}
-                    >
-                      <ClipboardCopyIcon size={13} />
-                      <span>Copy</span>
-                    </button>
-                  </div>
-                </div>
-                <pre className="girocode-payload">{numberedPreview}</pre>
-              </div>
-            </div>
-          </details>
         </section>
+
+        <details className="ui-card girocode-details">
+          <summary className="girocode-details__summary">
+            <span className="girocode-details__title">
+              <ExpandSectionIcon size={16} className="girocode-details__chevron" />
+              <span>Technical details</span>
+            </span>
+            {build.utf8ByteLength > build.maxByteLength && (
+              <span className="badge-loss">
+                {build.utf8ByteLength} / {build.maxByteLength} B
+              </span>
+            )}
+          </summary>
+
+          <div className="girocode-details__body">
+            <div>
+              <div className="girocode-field__top">
+                <label htmlFor="girocode-purpose">Purpose (optional)</label>
+              </div>
+              <input
+                id="girocode-purpose"
+                type="text"
+                maxLength={EPC_MAX_PURPOSE_LENGTH}
+                className="girocode-mono"
+                placeholder="CHAR, SALA, RENT"
+                value={draft.purposeCode}
+                onInput={(event) => updateGiroCodeField("purposeCode", event.currentTarget.value)}
+              />
+            </div>
+
+            <dl className="girocode-tech-specs">
+              <div>
+                <dt>Format</dt>
+                <dd className="girocode-mono">SEPA Credit Transfer (EPC)</dd>
+              </div>
+              <div>
+                <dt>IBAN check</dt>
+                <dd className="girocode-mono">
+                  {build.ibanValidation.status === IbanValidationStatus.Valid
+                    ? "Valid"
+                    : build.ibanValidation.status === IbanValidationStatus.Empty
+                      ? "—"
+                      : "Invalid"}
+                </dd>
+              </div>
+              <div>
+                <dt>Grid size</dt>
+                <dd className="girocode-mono">
+                  {qrModuleCount !== null ? `${qrModuleCount}×${qrModuleCount}` : "Auto"}
+                </dd>
+              </div>
+              <div>
+                <dt>Encoding</dt>
+                <dd className="girocode-mono">
+                  {draft.charsetMode === GiroCodeCharsetMode.Utf8 ? "UTF-8" : "ASCII"}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="girocode-payload-block">
+              <div className="girocode-field__top">
+                <span>Transfer text preview</span>
+                <div className="girocode-field__actions">
+                  <span className={build.utf8ByteLength > build.maxByteLength ? "badge-loss" : "badge-neutral"}>
+                    {build.utf8ByteLength} / {build.maxByteLength} B
+                  </span>
+                  <button
+                    type="button"
+                    className="girocode-copy-btn"
+                    disabled={!build.payload}
+                    onClick={() => {
+                      if (build.payload) {
+                        void copyText(build.payload, "Payload");
+                      }
+                    }}
+                  >
+                    <ClipboardCopyIcon size={13} />
+                    <span>Copy</span>
+                  </button>
+                </div>
+              </div>
+              <pre className="girocode-payload">{numberedPreview}</pre>
+            </div>
+          </div>
+        </details>
       </div>
 
       <ModalDialog

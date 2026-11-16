@@ -129,6 +129,7 @@ describe("girocodeStore", () => {
     let gatesDraftWithHydrated = false;
     let gatesBuildWithHydrated = false;
     let hasCanvasEffectWithHydratedDep = false;
+    let gridElement: ts.JsxElement | undefined;
     let frameElement: ts.JsxElement | undefined;
 
     const getClassName = (attrs: ts.JsxAttributes): string | undefined => {
@@ -194,6 +195,10 @@ describe("girocodeStore", () => {
         }
       }
 
+      if (ts.isJsxElement(node) && getClassName(node.openingElement.attributes) === "girocode-grid") {
+        gridElement = node;
+      }
+
       if (ts.isJsxElement(node) && getClassName(node.openingElement.attributes) === "girocode-qr-frame") {
         frameElement = node;
       }
@@ -217,6 +222,23 @@ describe("girocodeStore", () => {
       "girocode-qr-frame__stage",
       "girocode-qr-frame__footer",
     ]);
+
+    assert.ok(gridElement, "GiroCodeGenerator.tsx must render .girocode-grid");
+    const gridChildren = gridElement.children
+      .filter((child): child is ts.JsxElement => ts.isJsxElement(child))
+      .map((child) => getClassName(child.openingElement.attributes));
+    assert.deepEqual(gridChildren, [
+      "ui-card girocode-qr-card",
+      "girocode-stack",
+      "ui-card girocode-details",
+    ]);
+
+    const girocodeCss = readFileSync("src/apps/girocode/GiroCodeGenerator.css", "utf8");
+    assert.equal(
+      /\.girocode-details\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/.test(girocodeCss),
+      true,
+      "GiroCodeGenerator.css must span .girocode-details across all grid columns",
+    );
   });
 
   it("uses general GiroCode wording in UI and manifest with zero QR Code trademark strings", () => {

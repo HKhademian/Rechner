@@ -260,6 +260,11 @@
   font-size: 0.8rem;
 }
 
+.girocode-details {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 .girocode-details__summary {
   display: flex;
   align-items: center;
