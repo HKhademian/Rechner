@@ -1,4 +1,7 @@
 import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
+import {
   batch,
 } from "@preact/signals";
 import {
@@ -112,6 +115,7 @@ export default function ElterngeldDashboard(): JSX.Element {
           },
         ]}
       />
+      <p>Understand parental allowance and leave <TopicHelp id="parental-allowance" /></p>
 
       {/* Set up the plan before choosing which calculated results to review. */}
       <SandboxControls />
