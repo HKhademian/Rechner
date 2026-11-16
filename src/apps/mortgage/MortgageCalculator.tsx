@@ -192,9 +192,9 @@ export default function MortgageCalculator(): JSX.Element {
           <h2 id="mortgage-budget">Monthly affordability</h2>
           <p>Enter your own monthly amounts. Exclude the loans modeled here from expenses to avoid counting them twice.</p>
           <div className="domain-calc-fields">
-            <OptionalNumberInput id="mortgage-income" onValidityChange={trackValidity("mortgage-income")} label="Household income after tax" unit="€/month" min={0} placeholder="Enter income" value={income} onChange={setIncome} />
-            <OptionalNumberInput id="mortgage-expenses" onValidityChange={trackValidity("mortgage-expenses")} label="Other spending and existing debts" unit="€/month" min={0} placeholder="Enter spending" value={expenses} onChange={setExpenses} />
-            <OptionalNumberInput id="mortgage-running-costs" onValidityChange={trackValidity("mortgage-running-costs")} label="Home running costs and maintenance reserve" unit="€/month" min={0} placeholder="Enter costs" value={housingCosts} onChange={setHousingCosts} />
+            <OptionalNumberInput id="mortgage-income" onValidityChange={trackValidity("mortgage-income")} label="Household income after tax" unit="€/month" min={0} max={10000000} placeholder="Enter income" value={income} onChange={setIncome} />
+            <OptionalNumberInput id="mortgage-expenses" onValidityChange={trackValidity("mortgage-expenses")} label="Other spending and existing debts" unit="€/month" min={0} max={10000000} placeholder="Enter spending" value={expenses} onChange={setExpenses} />
+            <OptionalNumberInput id="mortgage-running-costs" onValidityChange={trackValidity("mortgage-running-costs")} label="Home running costs and maintenance reserve" unit="€/month" min={0} max={10000000} placeholder="Enter costs" value={housingCosts} onChange={setHousingCosts} />
           </div>
         </section>
       </div>
