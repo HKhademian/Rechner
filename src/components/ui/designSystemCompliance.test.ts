@@ -26,6 +26,7 @@ const ROUTE_COMPONENTS: readonly string[] = [
   "src/apps/solar-energy/SolarEnergyCalculator.tsx",
   "src/apps/visa/VisaCalculator.tsx",
   "src/apps/girocode/GiroCodeGenerator.tsx",
+  "src/apps/kita/KitaCalculator.tsx",
 ];
 
 function walkFiles(

@@ -143,6 +143,9 @@ it("track 3 domain calculators isolate persisted state exclusively under their o
     { app: "housing",
       storeFile: "./src/apps/housing/housingStore.ts",
       updateExpr: `store.updateHousingField("dependentChildrenCount", 2)` },
+    { app: "kita",
+      storeFile: "./src/apps/kita/kitaStore.ts",
+      updateExpr: `store.updateKitaField("careMonthsPerYear", 10)` },
   ];
   for (const item of cases) {
     const script = `
@@ -182,6 +185,9 @@ it("track 3 Sync Life Profile only persists under the target app and shared para
     { app: "housing",
       storeFile: "./src/apps/housing/housingStore.ts",
       syncCall: "store.syncHousingFromLifeProfile()" },
+    { app: "kita",
+      storeFile: "./src/apps/kita/kitaStore.ts",
+      syncCall: "store.syncKitaFromLifeProfile()" },
   ];
   for (const item of cases) {
     const script = `

@@ -67,6 +67,7 @@ const VISA_STORE = resolve("src/apps/visa/visaStore.ts");
 const COMPANY_CAR_STORE = resolve("src/apps/company-car/companyCarStore.ts");
 const SOLAR_ENERGY_STORE = resolve("src/apps/solar-energy/solarEnergyStore.ts");
 const HOUSING_STORE = resolve("src/apps/housing/housingStore.ts");
+const KITA_STORE = resolve("src/apps/kita/kitaStore.ts");
 
 const ALL_CALCULATOR_STORES = [
   NET_PAY_STORE,
@@ -77,6 +78,7 @@ const ALL_CALCULATOR_STORES = [
   COMPANY_CAR_STORE,
   SOLAR_ENERGY_STORE,
   HOUSING_STORE,
+  KITA_STORE,
 ] as const;
 
 it("catalog and app entries cannot initialize another calculator's financial stores", () => {
@@ -95,6 +97,7 @@ it("catalog and app entries cannot initialize another calculator's financial sto
     ["src/apps/company-car/App.tsx", [COMPANY_CAR_STORE]],
     ["src/apps/solar-energy/App.tsx", [SOLAR_ENERGY_STORE]],
     ["src/apps/housing/App.tsx", [HOUSING_STORE]],
+    ["src/apps/kita/App.tsx", [KITA_STORE]],
   ];
 
   for (const [entryPath, owned] of entryOwnStores) {

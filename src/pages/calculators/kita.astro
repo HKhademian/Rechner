@@ -1,0 +1,13 @@
+---
+import KitaApp from "#/apps/kita/App.tsx";
+import {
+  kitaApp,
+} from "#/apps/kita/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${kitaApp.title} | Rechner`}
+  description={kitaApp.description}
+>
+  <KitaApp client:load />
+</BaseDocument>

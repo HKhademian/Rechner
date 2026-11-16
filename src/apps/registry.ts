@@ -14,6 +14,9 @@ import {
   housingApp,
 } from "#/apps/housing/manifest.ts";
 import {
+  kitaApp,
+} from "#/apps/kita/manifest.ts";
+import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
 import {
@@ -35,6 +38,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   companyCarApp,
   solarEnergyApp,
   housingApp,
+  kitaApp,
 ]);
 
 /** Default release catalog shown on the home page. */
