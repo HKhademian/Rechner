@@ -56,6 +56,10 @@ import {
   toGermanFederalState,
 } from "#engine/formulas/pure/housingFormulas";
 import {
+  getLawEntry,
+} from "#engine/laws/registry";
+import {
+  ExternalSourceId,
   LawId,
 } from "#engine/laws/types";
 import {
@@ -82,6 +86,7 @@ export default function HousingCalculator(): JSX.Element {
   const [transferNotice, setTransferNotice] = useState("");
   const s = housingState.value;
   const evalResult = housingEvaluation.value.value;
+  const repairLawSource = getLawEntry(LawId.EStG_35a).externalSources[ExternalSourceId.GesetzeImInternet];
   const savingsUsed = Math.min(s.availableEquityEur, evalResult.totalCapitalRequirementEur);
 
   return (
@@ -197,7 +202,7 @@ export default function HousingCalculator(): JSX.Element {
             <NumberField
               id="housing-craftsman"
               topicId="craftsman-credit"
-              label="Annual Craftsmanship Labor Cost"
+              label="Annual labor cost for qualifying home repairs"
               unit="€"
               min={0}
               step={250}
@@ -293,7 +298,7 @@ export default function HousingCalculator(): JSX.Element {
               label="Potential tax reduction for home repairs"
               value={`+${formatEur(evalResult.craftsmanTaxCreditEur)}`}
               subtitle="Estimated income-tax reduction, subject to eligibility and tax owed"
-              footer={<><LawRefLink lawId={LawId.EStG_35a} label="How the tax reduction works" /> <a href="https://www.gesetze-im-internet.de/estg/__35a.html">Official law: § 35a EStG</a></>}
+              footer={<><LawRefLink lawId={LawId.EStG_35a} label="How the tax reduction works" /> {repairLawSource && <a href={repairLawSource.url}>Official law: § 35a EStG</a>}</>}
               tone={MetricTone.Gain}
             />
           </div>
