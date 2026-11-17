@@ -7,6 +7,7 @@ import {
 import {
   AppId,
   calculatorPath,
+  sitePath,
 } from "#/apps/appDefinition.ts";
 import {
   currentScenarioData,
@@ -115,7 +116,7 @@ export default function ElterngeldDashboard(): JSX.Element {
           },
         ]}
       />
-      <p>Understand parental allowance and leave <TopicHelp id="parental-allowance" /></p>
+      <p>Explore parental allowance <TopicHelp id="parental-allowance" /> and its <a href={sitePath("/formulas/formula.parentalAllowance.entitlement/")}>calculation</a>.</p>
 
       {/* Set up the plan before choosing which calculated results to review. */}
       <SandboxControls />

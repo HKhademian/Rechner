@@ -32,7 +32,7 @@ import {
   setParameterSearchQuery,
 } from "#store/parameterStore";
 
-export const REFERENCE_FORMULAS = [FormulaId.AnnualIncomeTaxTariff, FormulaId.SpousalSplittingIncomeTax] as const;
+export const REFERENCE_FORMULAS = [FormulaId.AnnualIncomeTaxTariff, FormulaId.SpousalSplittingIncomeTax, FormulaId.ParentalAllowanceEntitlement] as const;
 
 export function FormulaDirectory(): JSX.Element {
   return <AppShell currentPath={sitePath("/formulas/")}><div className="reference-page">
@@ -48,16 +48,24 @@ export function FormulaPage({ id }: { readonly id: typeof REFERENCE_FORMULAS[num
     <a href={sitePath("/formulas/")}>All formulas</a>
     <h1>{formula.label}</h1>
     <p>{formula.description}</p>
-    {id === FormulaId.SpousalSplittingIncomeTax
-      ? <section><h2>Calculation</h2><p><code>tax = 2 × tariff(max(0, income₁ + income₂) / 2)</code></p><p>The tariff floors its income and result to whole euros. This models annual assessed income tax, not monthly payroll withholding.</p><p><a href={sitePath(`/formulas/${FormulaId.AnnualIncomeTaxTariff}/`)}>Income tax tariff</a></p></section>
-      : <section><h2>Calculation</h2><p>Let x be taxable income, floored to whole euros and at least zero. The applicable zone uses the thresholds and coefficients below.</p><ul>
-        <li>Up to the basic allowance: <code>tax = 0</code></li>
-        <li>First progression zone: <code>tax = (a × y + b) × y</code>, where <code>y = (x − basic allowance) / divisor</code></li>
-        <li>Second progression zone: <code>tax = (c × z + d) × z + offset</code>, where <code>z = (x − first zone ceiling) / divisor</code></li>
-        <li>Higher zones: <code>tax = rate × x − offset</code></li>
-      </ul><p>In the first zone, a and b are the first-zone quadratic and linear coefficients. In the second, c and d are the second-zone quadratic and linear coefficients; its offset is the second-zone constant. Each higher zone has its own rate and offset.</p><p>The result is floored to whole euros and cannot be negative. This is annual assessed income tax, not monthly payroll withholding.</p></section>}
+    {id === FormulaId.ParentalAllowanceEntitlement
+      ? <section><h2>Calculation</h2><p>For an eligible parent, the model uses monthly income:</p><ul>
+        <li><code>assessable income = min(pre-birth net, income cap)</code></li>
+        <li><code>income loss = max(0, assessable income − part-time net)</code></li>
+        <li><code>raw benefit = income loss × replacement rate</code></li>
+        <li><code>Basiselterngeld = min(maximum, max(minimum, raw benefit))</code></li>
+        <li><code>ElterngeldPlus = min(personal ceiling, max(Plus minimum, raw benefit))</code></li>
+      </ul><p>The personal ceiling is the no-part-time Basis amount multiplied by the Plus fraction. The Plus minimum is the Basis minimum multiplied by the same fraction. The replacement rate depends on pre-birth net income.</p><p>Working more than the hours limit makes this calculation zero. Other eligibility rules, bonuses and offsets are handled separately.</p></section>
+      : id === FormulaId.SpousalSplittingIncomeTax
+        ? <section><h2>Calculation</h2><p><code>tax = 2 × tariff(max(0, income₁ + income₂) / 2)</code></p><p>The tariff floors its income and result to whole euros. This models annual assessed income tax, not monthly payroll withholding.</p><p><a href={sitePath(`/formulas/${FormulaId.AnnualIncomeTaxTariff}/`)}>Income tax tariff</a></p></section>
+        : <section><h2>Calculation</h2><p>Let x be taxable income, floored to whole euros and at least zero. The applicable zone uses the thresholds and coefficients below.</p><ul>
+          <li>Up to the basic allowance: <code>tax = 0</code></li>
+          <li>First progression zone: <code>tax = (a × y + b) × y</code>, where <code>y = (x − basic allowance) / divisor</code></li>
+          <li>Second progression zone: <code>tax = (c × z + d) × z + offset</code>, where <code>z = (x − first zone ceiling) / divisor</code></li>
+          <li>Higher zones: <code>tax = rate × x − offset</code></li>
+        </ul><p>In the first zone, a and b are the first-zone quadratic and linear coefficients. In the second, c and d are the second-zone quadratic and linear coefficients; its offset is the second-zone constant. Each higher zone has its own rate and offset.</p><p>The result is floored to whole euros and cannot be negative. This is annual assessed income tax, not monthly payroll withholding.</p></section>}
     <section><h2>Rates and thresholds</h2><ul>{formula.consumedParameterIds.map((parameterId) => <li key={parameterId}><a href={sitePath(`/constants/${parameterId}/`)}>{getParameterDefinition(parameterId).label}</a></li>)}</ul></section>
-    <section><h2>Related topics</h2><ul><li><a href={sitePath("/topics/taxable-income/")}>Taxable income</a></li>{id === FormulaId.SpousalSplittingIncomeTax && <li><a href={sitePath("/topics/joint-assessment/")}>Joint assessment</a></li>}</ul></section>
+    <section><h2>Related topics</h2><ul>{id === FormulaId.ParentalAllowanceEntitlement ? <li><a href={sitePath("/topics/parental-allowance/")}>Parental allowance</a></li> : <li><a href={sitePath("/topics/taxable-income/")}>Taxable income</a></li>}{id === FormulaId.SpousalSplittingIncomeTax && <li><a href={sitePath("/topics/joint-assessment/")}>Joint assessment</a></li>}</ul></section>
     <section><h2>Law</h2><ul>{formula.governingLawIds.map((lawId) => <li key={lawId}><LawRefLink lawId={lawId} /></li>)}</ul></section>
   </div></AppShell>;
 }
