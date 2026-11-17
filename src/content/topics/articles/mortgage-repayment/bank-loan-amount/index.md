@@ -25,7 +25,7 @@ Entering the amount makes it possible to estimate the bank payment, interest and
 
 ## Conditions and limitations
 
-This amount excludes the separately entered KfW loan. The bank loan is borrowed money, not the price of the home or the combined total of all loans.
+This amount excludes the separately entered [KfW loan](rechner://topic/kfw-300). The bank loan is borrowed money, not the price of the home or the combined total of all loans.
 
 ## In the calculators
 

@@ -550,7 +550,7 @@
     "title": "Bank loan amount",
     "description": "The amount you plan to borrow from a bank for the purchase. It is the starting balance you must repay, before any interest or payments.",
     "benefit": "Entering the amount makes it possible to estimate the bank payment, interest and remaining balance over time.",
-    "limitation": "This amount excludes the separately entered KfW loan. The bank loan is borrowed money, not the price of the home or the combined total of all loans.",
+    "limitation": "This amount excludes the separately entered [KfW loan](rechner://topic/kfw-300). The bank loan is borrowed money, not the price of the home or the combined total of all loans.",
     "calculatorEffect": "The mortgage simulator uses this value for the bank repayment and adds any KfW amount to total debt and loan-to-value. It is an independent input: changing the property price, savings or purchase costs here does not recalculate the loan amount. The Home Purchase Planner can calculate and transfer an estimate.",
     "laws": [],
     "apps": [
