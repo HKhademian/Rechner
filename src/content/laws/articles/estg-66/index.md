@@ -9,22 +9,22 @@
     "benefits",
     "tax"
   ],
-  "groupId": "group-estg-kindergeld",
-  "relatedLaws": {
-    "estg-62": {
-      "relationType": "depends_on",
-      "description": "Requires personal entitlement under § 62 EStG."
-    },
-    "estg-31": {
-      "relationType": "interacts_with",
-      "description": "Tested annually against the § 32 Kinderfreibetrag."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__66.html",
       "label": "§ 66 EStG Statutory Text",
       "description": "Monthly Kindergeld euro amount per child."
+    }
+  },
+  "group": "rechner://group/group-estg-kindergeld",
+  "dependsOn": {
+    "rechner://law/estg-62": {
+      "description": "Requires personal entitlement under § 62 EStG."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-31": {
+      "description": "Tested annually against the § 32 Kinderfreibetrag."
     }
   }
 }

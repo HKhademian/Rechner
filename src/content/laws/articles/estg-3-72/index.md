@@ -10,22 +10,20 @@
     "green",
     "tax"
   ],
-  "groupId": "group-eeg-residential-solar",
-  "relatedLaws": {
-    "ustg-12-3": {
-      "relationType": "interacts_with",
-      "description": "Pairs with 0% VAT on system purchase for tax-free rooftop solar operation."
-    },
-    "eeg-48": {
-      "relationType": "interacts_with",
-      "description": "Applies to feed-in remuneration collected under § 48 EEG."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__3.html",
       "label": "§ 3 Nr. 72 EStG Statutory Text",
       "description": "Official statutory text governing income tax exemptions for small PV plants."
+    }
+  },
+  "group": "rechner://group/group-eeg-residential-solar",
+  "interactsWith": {
+    "rechner://law/ustg-12-3": {
+      "description": "Pairs with 0% VAT on system purchase for tax-free rooftop solar operation."
+    },
+    "rechner://law/eeg-48": {
+      "description": "Applies to feed-in remuneration collected under § 48 EEG."
     }
   }
 }

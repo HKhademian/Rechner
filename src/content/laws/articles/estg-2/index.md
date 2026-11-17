@@ -9,28 +9,34 @@
     "payroll",
     "benefits"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-9a": {
-      "relationType": "depends_on",
-      "description": "Subtracts work-expense lump sum before arriving at employment income."
-    },
-    "estg-32a": {
-      "relationType": "implements",
-      "description": "zvE from § 2 feeds the statutory § 32a income tax tariff."
-    },
-    "beeg-1": {
-      "relationType": "interacts_with",
-      "description": "Determines couple taxable income tested against the BEEG limit."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__2.html",
       "label": "§ 2 EStG Statutory Text",
       "description": "Scope of income and taxable income derivation."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "dependsOn": {
+    "rechner://law/estg-9a": {
+      "description": "Subtracts work-expense lump sum before arriving at employment income."
+    }
+  },
+  "implements": {
+    "rechner://law/estg-32a": {
+      "description": "zvE from § 2 feeds the statutory § 32a income tax tariff."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-1": {
+      "description": "Determines couple taxable income tested against the BEEG limit."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-9a",
+    "rechner://law/estg-32a",
+    "rechner://law/beeg-1"
+  ]
 }
 ---
 

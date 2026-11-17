@@ -8,18 +8,17 @@
     "marriage",
     "tax"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-26b": {
-      "relationType": "implements",
-      "description": "Joint assessment election triggers the § 26b splitting calculation."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__26.html",
       "label": "§ 26 EStG Statutory Text",
       "description": "Conditions for spouse/partner assessment election."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "implements": {
+    "rechner://law/estg-26b": {
+      "description": "Joint assessment election triggers the § 26b splitting calculation."
     }
   }
 }

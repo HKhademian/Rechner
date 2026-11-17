@@ -6,12 +6,12 @@
     "visa",
     "payroll"
   ],
-  "primaryLawId": "aufenthg-18g",
-  "memberLawIds": [
-    "aufenthg-18-2-5",
-    "aufenthg-18c",
-    "aufenthg-18g",
-    "aufenthg-20a"
+  "primaryLaw": "rechner://law/aufenthg-18g",
+  "includes": [
+    "rechner://law/aufenthg-18-2-5",
+    "rechner://law/aufenthg-18c",
+    "rechner://law/aufenthg-18g",
+    "rechner://law/aufenthg-20a"
   ]
 }
 ---

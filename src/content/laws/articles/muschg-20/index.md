@@ -9,26 +9,27 @@
     "payroll",
     "benefits"
   ],
-  "groupId": "group-muschg-maternity",
-  "relatedLaws": {
-    "muschg-3": {
-      "relationType": "depends_on",
-      "description": "Paid during § 3 MuSchG protection periods."
-    },
-    "muschg-19": {
-      "relationType": "extends",
-      "description": "Tops up § 19 health-insurer payments to 100% net."
-    },
-    "beeg-3": {
-      "relationType": "offsets",
-      "description": "Offsets post-birth Elterngeld under § 3 BEEG."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/muschg_2018/__20.html",
       "label": "§ 20 MuSchG Statutory Text",
       "description": "3-month reference earnings for employer maternity supplement."
+    }
+  },
+  "group": "rechner://group/group-muschg-maternity",
+  "dependsOn": {
+    "rechner://law/muschg-3": {
+      "description": "Paid during § 3 MuSchG protection periods."
+    }
+  },
+  "extends": {
+    "rechner://law/muschg-19": {
+      "description": "Tops up § 19 health-insurer payments to 100% net."
+    }
+  },
+  "offsets": {
+    "rechner://law/beeg-3": {
+      "description": "Offsets post-birth Elterngeld under § 3 BEEG."
     }
   }
 }

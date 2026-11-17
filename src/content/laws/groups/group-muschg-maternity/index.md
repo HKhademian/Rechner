@@ -8,12 +8,12 @@
     "benefits",
     "payroll"
   ],
-  "primaryLawId": "muschg-20",
-  "memberLawIds": [
-    "muschg-3",
-    "muschg-19",
-    "muschg-20",
-    "beeg-3"
+  "primaryLaw": "rechner://law/muschg-20",
+  "includes": [
+    "rechner://law/muschg-3",
+    "rechner://law/muschg-19",
+    "rechner://law/muschg-20",
+    "rechner://law/beeg-3"
   ]
 }
 ---

@@ -8,18 +8,17 @@
     "visa",
     "benefits"
   ],
-  "groupId": "group-aufenthg-blue-card",
-  "relatedLaws": {
-    "aufenthg-18g": {
-      "relationType": "depends_on",
-      "description": "Blue Card duration directly accelerates § 18c settlement eligibility."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__18c.html",
       "label": "§ 18c AufenthG Statutory Text",
       "description": "Official permanent residence timelines for skilled workers and Blue Card holders."
+    }
+  },
+  "group": "rechner://group/group-aufenthg-blue-card",
+  "dependsOn": {
+    "rechner://law/aufenthg-18g": {
+      "description": "Blue Card duration directly accelerates § 18c settlement eligibility."
     }
   }
 }

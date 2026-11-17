@@ -9,24 +9,28 @@
     "tax",
     "marriage"
   ],
-  "groupId": "group-estg-payroll-withholding",
-  "relatedLaws": {
-    "estg-38b": {
-      "relationType": "modifies",
-      "description": "Modifies Tax Class IV monthly payroll withholding."
-    },
-    "bmf-pap": {
-      "relationType": "depends_on",
-      "description": "Factor calculation uses the published BMF PAP tax tables."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__39f.html",
       "label": "§ 39f EStG Statutory Text",
       "description": "Formula and 3-decimal truncation for Class IV factor."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-payroll-withholding",
+  "modifies": {
+    "rechner://law/estg-38b": {
+      "description": "Modifies Tax Class IV monthly payroll withholding."
+    }
+  },
+  "dependsOn": {
+    "rechner://law/bmf-pap": {
+      "description": "Factor calculation uses the published BMF PAP tax tables."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-38b",
+    "rechner://law/bmf-pap"
+  ]
 }
 ---
 

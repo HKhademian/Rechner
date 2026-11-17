@@ -7,18 +7,17 @@
   "tags": [
     "tax"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-10": {
-      "relationType": "interacts_with",
-      "description": "Applied alongside provident insurance deductions."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__10c.html",
       "label": "§ 10c EStG Statutory Text",
       "description": "Standard €36 / €72 special-expense lump sum."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "interactsWith": {
+    "rechner://law/estg-10": {
+      "description": "Applied alongside provident insurance deductions."
     }
   }
 }

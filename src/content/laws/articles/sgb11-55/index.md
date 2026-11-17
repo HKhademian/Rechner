@@ -10,17 +10,6 @@
     "parent",
     "payroll"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "sgb11-58": {
-      "relationType": "interacts_with",
-      "description": "Coordinates base employee/employer care share (including Saxony rule)."
-    },
-    "sgb4-20": {
-      "relationType": "interacts_with",
-      "description": "Midijob transition applies distinct bases to surcharge vs. child discounts."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_11/__55.html",
@@ -31,6 +20,15 @@
       "url": "https://www.gkv-spitzenverband.de/media/dokumente/pflegeversicherung/grundprinzipien/2025-03-31_GH_Beitragssatzdifferenzierung_sPV.pdf",
       "label": "GKV Care Differentiation Guidance",
       "description": "Official combined-rate rounding rules (§ 3.3)."
+    }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "interactsWith": {
+    "rechner://law/sgb11-58": {
+      "description": "Coordinates base employee/employer care share (including Saxony rule)."
+    },
+    "rechner://law/sgb4-20": {
+      "description": "Midijob transition applies distinct bases to surcharge vs. child discounts."
     }
   }
 }

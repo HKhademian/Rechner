@@ -8,13 +8,6 @@
     "insurance",
     "payroll"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "sgb11-55": {
-      "relationType": "interacts_with",
-      "description": "Combined with childless surcharge or child discounts under § 55."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_11/__58.html",
@@ -25,6 +18,12 @@
       "url": "https://www.bundesgesundheitsministerium.de/themen/pflege/online-ratgeber-pflege/die-pflegeversicherung/finanzierung",
       "label": "BMG Care Financing Overview",
       "description": "Federal Ministry of Health published contribution rates."
+    }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "interactsWith": {
+    "rechner://law/sgb11-55": {
+      "description": "Combined with childless surcharge or child discounts under § 55."
     }
   }
 }

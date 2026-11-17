@@ -6,16 +6,16 @@
     "payroll",
     "tax"
   ],
-  "primaryLawId": "estg-38b",
-  "memberLawIds": [
-    "estg-19",
-    "estg-24b",
-    "estg-38b",
-    "estg-39b",
-    "estg-39f",
-    "solzg-1",
-    "solzg-4",
-    "bmf-pap"
+  "primaryLaw": "rechner://law/estg-38b",
+  "includes": [
+    "rechner://law/estg-19",
+    "rechner://law/estg-24b",
+    "rechner://law/estg-38b",
+    "rechner://law/estg-39b",
+    "rechner://law/estg-39f",
+    "rechner://law/solzg-1",
+    "rechner://law/solzg-4",
+    "rechner://law/bmf-pap"
   ]
 }
 ---

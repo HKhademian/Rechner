@@ -8,22 +8,22 @@
     "tax",
     "payroll"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-19": {
-      "relationType": "modifies",
-      "description": "Applies directly to employment income under § 19 EStG."
-    },
-    "estg-2": {
-      "relationType": "implements",
-      "description": "Lowers net employment income entering § 2 EStG."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__9a.html",
       "label": "§ 9a EStG Statutory Text",
       "description": "Standard lump-sum work-expense deduction."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "modifies": {
+    "rechner://law/estg-19": {
+      "description": "Applies directly to employment income under § 19 EStG."
+    }
+  },
+  "implements": {
+    "rechner://law/estg-2": {
+      "description": "Lowers net employment income entering § 2 EStG."
     }
   }
 }

@@ -9,28 +9,32 @@
     "tax",
     "benefits"
   ],
-  "groupId": "group-beeg-synthetic-net",
-  "relatedLaws": {
-    "bmf-pap": {
-      "relationType": "depends_on",
-      "description": "Uses the January BMF PAP table of the calendar year before birth."
-    },
-    "beeg-2f": {
-      "relationType": "interacts_with",
-      "description": "Combined with § 2f flat social deductions to form BEEG standardized net."
-    },
-    "beeg-2c": {
-      "relationType": "depends_on",
-      "description": "Receives the frozen tax class and church tax flag from § 2c."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__2e.html",
       "label": "§ 2e BEEG Statutory Text",
       "description": "Standardized BEEG tax deduction rules."
     }
-  }
+  },
+  "group": "rechner://group/group-beeg-synthetic-net",
+  "dependsOn": {
+    "rechner://law/bmf-pap": {
+      "description": "Uses the January BMF PAP table of the calendar year before birth."
+    },
+    "rechner://law/beeg-2c": {
+      "description": "Receives the frozen tax class and church tax flag from § 2c."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-2f": {
+      "description": "Combined with § 2f flat social deductions to form BEEG standardized net."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/bmf-pap",
+    "rechner://law/beeg-2f",
+    "rechner://law/beeg-2c"
+  ]
 }
 ---
 

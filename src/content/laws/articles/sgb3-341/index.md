@@ -8,24 +8,28 @@
     "insurance",
     "payroll"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "sgb6-158": {
-      "relationType": "interacts_with",
-      "description": "Shares the statutory pension assessment ceiling."
-    },
-    "sgb4-20": {
-      "relationType": "modifies",
-      "description": "Midijob transition zone reduces employee contributions under § 20 SGB IV."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_3/__341.html",
       "label": "§ 341 SGB III Statutory Text",
       "description": "Official unemployment contribution rate."
     }
-  }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "interactsWith": {
+    "rechner://law/sgb6-158": {
+      "description": "Shares the statutory pension assessment ceiling."
+    }
+  },
+  "modifies": {
+    "rechner://law/sgb4-20": {
+      "description": "Midijob transition zone reduces employee contributions under § 20 SGB IV."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/sgb6-158",
+    "rechner://law/sgb4-20"
+  ]
 }
 ---
 

@@ -8,22 +8,20 @@
     "insurance",
     "payroll"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "estg-10": {
-      "relationType": "interacts_with",
-      "description": "Employee pension contributions are 100% deductible under § 10 EStG."
-    },
-    "sgb3-341": {
-      "relationType": "interacts_with",
-      "description": "Shares the statutory annual pension ceiling."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_6/__158.html",
       "label": "§ 158 SGB VI Statutory Text",
       "description": "Statutory pension contribution rate."
+    }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "interactsWith": {
+    "rechner://law/estg-10": {
+      "description": "Employee pension contributions are 100% deductible under § 10 EStG."
+    },
+    "rechner://law/sgb3-341": {
+      "description": "Shares the statutory annual pension ceiling."
     }
   }
 }

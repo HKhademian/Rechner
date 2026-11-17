@@ -7,16 +7,16 @@
     "payroll",
     "child"
   ],
-  "primaryLawId": "sgb5-241",
-  "memberLawIds": [
-    "sgb4-20",
-    "sgb4-23a",
-    "sgb5-241",
-    "sgb6-158",
-    "sgb3-341",
-    "sgb11-55",
-    "sgb11-58",
-    "bvv-2"
+  "primaryLaw": "rechner://law/sgb5-241",
+  "includes": [
+    "rechner://law/sgb4-20",
+    "rechner://law/sgb4-23a",
+    "rechner://law/sgb5-241",
+    "rechner://law/sgb6-158",
+    "rechner://law/sgb3-341",
+    "rechner://law/sgb11-55",
+    "rechner://law/sgb11-58",
+    "rechner://law/bvv-2"
   ]
 }
 ---

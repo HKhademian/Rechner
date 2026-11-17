@@ -10,26 +10,27 @@
     "benefits",
     "payroll"
   ],
-  "groupId": "group-beeg-synthetic-net",
-  "relatedLaws": {
-    "beeg-2": {
-      "relationType": "depends_on",
-      "description": "Uses the parent's § 2 no-income Basis amount to set the 50% Plus cap."
-    },
-    "beeg-4": {
-      "relationType": "modifies",
-      "description": "Converts 1 Basis month into 2 ElterngeldPlus months."
-    },
-    "beeg-4b": {
-      "relationType": "interacts_with",
-      "description": "Partnership bonus months are paid under ElterngeldPlus rules."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__4a.html",
       "label": "§ 4a BEEG Statutory Text",
       "description": "ElterngeldPlus rate, cap, and conversion mechanics."
+    }
+  },
+  "group": "rechner://group/group-beeg-synthetic-net",
+  "dependsOn": {
+    "rechner://law/beeg-2": {
+      "description": "Uses the parent's § 2 no-income Basis amount to set the 50% Plus cap."
+    }
+  },
+  "modifies": {
+    "rechner://law/beeg-4": {
+      "description": "Converts 1 Basis month into 2 ElterngeldPlus months."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-4b": {
+      "description": "Partnership bonus months are paid under ElterngeldPlus rules."
     }
   }
 }

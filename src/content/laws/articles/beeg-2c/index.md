@@ -10,25 +10,6 @@
     "tax",
     "benefits"
   ],
-  "groupId": "group-beeg-tax-swap",
-  "relatedLaws": {
-    "beeg-2b": {
-      "relationType": "depends_on",
-      "description": "Uses the eligible assessment months defined in § 2b BEEG."
-    },
-    "beeg-2e": {
-      "relationType": "interacts_with",
-      "description": "Standardized tax deductions are computed using the selected class under § 2e."
-    },
-    "estg-38b": {
-      "relationType": "depends_on",
-      "description": "Wage tax classes I–VI originate from § 38b EStG."
-    },
-    "estg-26b": {
-      "relationType": "contrasts_with",
-      "description": "Temporary class swaps do not change final annual liability under joint assessment."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__2c.html",
@@ -40,7 +21,32 @@
       "label": "Familienportal Tax-Class Guidance",
       "description": "Official federal guidance on tax-class switches and equal-duration ties."
     }
-  }
+  },
+  "group": "rechner://group/group-beeg-tax-swap",
+  "dependsOn": {
+    "rechner://law/beeg-2b": {
+      "description": "Uses the eligible assessment months defined in § 2b BEEG."
+    },
+    "rechner://law/estg-38b": {
+      "description": "Wage tax classes I–VI originate from § 38b EStG."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-2e": {
+      "description": "Standardized tax deductions are computed using the selected class under § 2e."
+    }
+  },
+  "contrastsWith": {
+    "rechner://law/estg-26b": {
+      "description": "Temporary class swaps do not change final annual liability under joint assessment."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/beeg-2b",
+    "rechner://law/beeg-2e",
+    "rechner://law/estg-38b",
+    "rechner://law/estg-26b"
+  ]
 }
 ---
 

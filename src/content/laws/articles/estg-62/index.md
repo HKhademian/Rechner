@@ -9,18 +9,17 @@
     "benefits",
     "visa"
   ],
-  "groupId": "group-estg-kindergeld",
-  "relatedLaws": {
-    "estg-66": {
-      "relationType": "implements",
-      "description": "Determines who receives the monthly § 66 payout."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__62.html",
       "label": "§ 62 EStG Statutory Text",
       "description": "Residency and personal eligibility for Kindergeld."
+    }
+  },
+  "group": "rechner://group/group-estg-kindergeld",
+  "implements": {
+    "rechner://law/estg-66": {
+      "description": "Determines who receives the monthly § 66 payout."
     }
   }
 }

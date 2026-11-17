@@ -9,18 +9,17 @@
     "energy",
     "green"
   ],
-  "groupId": "group-eeg-residential-solar",
-  "relatedLaws": {
-    "estg-3-72": {
-      "relationType": "interacts_with",
-      "description": "Feed-in payments under § 48 EEG remain income-tax exempt up to 30 kWp."
-    }
-  },
   "externalSources": {
     "bundesnetzagentur": {
       "url": "https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/ErneuerbareEnergien/EEG_Foerderung/start.html",
       "label": "Bundesnetzagentur EEG Tariffs",
       "description": "Official semi-annual PV feed-in tariff schedule."
+    }
+  },
+  "group": "rechner://group/group-eeg-residential-solar",
+  "interactsWith": {
+    "rechner://law/estg-3-72": {
+      "description": "Feed-in payments under § 48 EEG remain income-tax exempt up to 30 kWp."
     }
   }
 }

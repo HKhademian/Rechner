@@ -8,11 +8,11 @@
     "green",
     "tax"
   ],
-  "primaryLawId": "eeg-48",
-  "memberLawIds": [
-    "ustg-12-3",
-    "estg-3-72",
-    "eeg-48"
+  "primaryLaw": "rechner://law/eeg-48",
+  "includes": [
+    "rechner://law/ustg-12-3",
+    "rechner://law/estg-3-72",
+    "rechner://law/eeg-48"
   ]
 }
 ---

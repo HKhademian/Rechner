@@ -7,10 +7,10 @@
     "parent",
     "benefits"
   ],
-  "primaryLawId": "beeg-2a",
-  "memberLawIds": [
-    "beeg-2a",
-    "beeg-4a"
+  "primaryLaw": "rechner://law/beeg-2a",
+  "includes": [
+    "rechner://law/beeg-2a",
+    "rechner://law/beeg-4a"
   ]
 }
 ---

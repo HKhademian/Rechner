@@ -9,24 +9,28 @@
     "payroll",
     "insurance"
   ],
-  "groupId": "group-aufenthg-blue-card",
-  "relatedLaws": {
-    "aufenthg-18g": {
-      "relationType": "interacts_with",
-      "description": "EU Blue Card carries its own salary gate; non-Blue-Card skilled permits apply the 45+ threshold."
-    },
-    "sgb6-158": {
-      "relationType": "depends_on",
-      "description": "55% threshold derives directly from the annual general pension BBG ceiling."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__18.html",
       "label": "§ 18 AufenthG Statutory Text",
       "description": "Official skilled immigration conditions and 45+ pension adequacy rule."
     }
-  }
+  },
+  "group": "rechner://group/group-aufenthg-blue-card",
+  "interactsWith": {
+    "rechner://law/aufenthg-18g": {
+      "description": "EU Blue Card carries its own salary gate; non-Blue-Card skilled permits apply the 45+ threshold."
+    }
+  },
+  "dependsOn": {
+    "rechner://law/sgb6-158": {
+      "description": "55% threshold derives directly from the annual general pension BBG ceiling."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/aufenthg-18g",
+    "rechner://law/sgb6-158"
+  ]
 }
 ---
 

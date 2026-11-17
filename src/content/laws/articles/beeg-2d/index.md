@@ -9,22 +9,22 @@
     "tax",
     "benefits"
   ],
-  "groupId": "group-beeg-synthetic-net",
-  "relatedLaws": {
-    "beeg-2b": {
-      "relationType": "modifies",
-      "description": "Shifts the assessment window when profit-based income exists."
-    },
-    "beeg-2c": {
-      "relationType": "contrasts_with",
-      "description": "Applies to non-employment profit income vs. § 2c employment wages."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__2d.html",
       "label": "§ 2d BEEG Statutory Text",
       "description": "Assessment rules for profit and mixed income."
+    }
+  },
+  "group": "rechner://group/group-beeg-synthetic-net",
+  "modifies": {
+    "rechner://law/beeg-2b": {
+      "description": "Shifts the assessment window when profit-based income exists."
+    }
+  },
+  "contrastsWith": {
+    "rechner://law/beeg-2c": {
+      "description": "Applies to non-employment profit income vs. § 2c employment wages."
     }
   }
 }

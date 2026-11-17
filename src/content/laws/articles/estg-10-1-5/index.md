@@ -9,21 +9,6 @@
     "parent",
     "tax"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-10": {
-      "relationType": "extends",
-      "description": "Itemized under § 10 EStG Sonderausgaben alongside provident insurance deductions."
-    },
-    "estg-2": {
-      "relationType": "modifies",
-      "description": "Reduces annual joint taxable income (§ 2 Abs. 4 EStG)."
-    },
-    "estg-66": {
-      "relationType": "interacts_with",
-      "description": "Applies independently alongside Kindergeld / Kinderfreibetrag."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__10.html",
@@ -35,7 +20,28 @@
       "label": "Jahressteuergesetz 2024 (BGBl. I 2024 Nr. 387)",
       "description": "Raised deductible share from 2/3 (€4,000) to 80% (€4,800) starting 2025."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "extends": {
+    "rechner://law/estg-10": {
+      "description": "Itemized under § 10 EStG Sonderausgaben alongside provident insurance deductions."
+    }
+  },
+  "modifies": {
+    "rechner://law/estg-2": {
+      "description": "Reduces annual joint taxable income (§ 2 Abs. 4 EStG)."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-66": {
+      "description": "Applies independently alongside Kindergeld / Kinderfreibetrag."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-10",
+    "rechner://law/estg-2",
+    "rechner://law/estg-66"
+  ]
 }
 ---
 

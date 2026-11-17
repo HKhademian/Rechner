@@ -8,12 +8,12 @@
     "benefits",
     "child"
   ],
-  "primaryLawId": "kfw-300",
-  "memberLawIds": [
-    "kfw-300",
-    "grestg-11",
-    "estg-35a",
-    "estg-2"
+  "primaryLaw": "rechner://law/kfw-300",
+  "includes": [
+    "rechner://law/kfw-300",
+    "rechner://law/grestg-11",
+    "rechner://law/estg-35a",
+    "rechner://law/estg-2"
   ]
 }
 ---

@@ -8,14 +8,14 @@
     "tax",
     "insurance"
   ],
-  "primaryLawId": "beeg-2",
-  "memberLawIds": [
-    "beeg-2",
-    "beeg-2c",
-    "beeg-2d",
-    "beeg-2e",
-    "beeg-2f",
-    "beeg-4a"
+  "primaryLaw": "rechner://law/beeg-2",
+  "includes": [
+    "rechner://law/beeg-2",
+    "rechner://law/beeg-2c",
+    "rechner://law/beeg-2d",
+    "rechner://law/beeg-2e",
+    "rechner://law/beeg-2f",
+    "rechner://law/beeg-4a"
   ]
 }
 ---

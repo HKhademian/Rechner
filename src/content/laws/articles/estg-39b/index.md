@@ -8,24 +8,28 @@
     "payroll",
     "tax"
   ],
-  "groupId": "group-estg-payroll-withholding",
-  "relatedLaws": {
-    "bmf-pap": {
-      "relationType": "implements",
-      "description": "Implemented algorithmically via the official BMF PAP."
-    },
-    "estg-19": {
-      "relationType": "depends_on",
-      "description": "Withholds tax on § 19 employment earnings."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__39b.html",
       "label": "§ 39b EStG Statutory Text",
       "description": "Regular and Sonstige Bezüge withholding rules."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-payroll-withholding",
+  "implements": {
+    "rechner://law/bmf-pap": {
+      "description": "Implemented algorithmically via the official BMF PAP."
+    }
+  },
+  "dependsOn": {
+    "rechner://law/estg-19": {
+      "description": "Withholds tax on § 19 employment earnings."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/bmf-pap",
+    "rechner://law/estg-19"
+  ]
 }
 ---
 

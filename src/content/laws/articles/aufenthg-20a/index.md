@@ -7,18 +7,17 @@
   "tags": [
     "visa"
   ],
-  "groupId": "group-aufenthg-blue-card",
-  "relatedLaws": {
-    "aufenthg-18g": {
-      "relationType": "interacts_with",
-      "description": "Holders transition directly to EU Blue Card once a qualifying job contract is signed."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__20a.html",
       "label": "§ 20a AufenthG Statutory Text",
       "description": "Official statutory text for Opportunity Card scoring and subsistence."
+    }
+  },
+  "group": "rechner://group/group-aufenthg-blue-card",
+  "interactsWith": {
+    "rechner://law/aufenthg-18g": {
+      "description": "Holders transition directly to EU Blue Card once a qualifying job contract is signed."
     }
   }
 }

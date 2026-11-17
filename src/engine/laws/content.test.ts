@@ -18,3 +18,10 @@ it("loads every law and group without changing the authored content", () => {
   assert.deepEqual(LAW_REGISTRY, lawContent);
   assert.deepEqual(LAW_GROUP_REGISTRY, groupContent);
 });
+
+it("preserves relationship intent, descriptions and display order", () => {
+  const law = LAW_REGISTRY["beeg-2c"];
+  assert.deepEqual(Object.keys(law.relatedLaws), ["beeg-2b", "beeg-2e", "estg-38b", "estg-26b"]);
+  assert.equal(law.relatedLaws["beeg-2b"]?.relationType, "depends_on");
+  assert.ok(law.relatedLaws["beeg-2b"]?.description);
+});

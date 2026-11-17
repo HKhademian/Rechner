@@ -8,12 +8,12 @@
     "benefits",
     "payroll"
   ],
-  "primaryLawId": "beeg-4b",
-  "memberLawIds": [
-    "beeg-1",
-    "beeg-4",
-    "beeg-4a",
-    "beeg-4b"
+  "primaryLaw": "rechner://law/beeg-4b",
+  "includes": [
+    "rechner://law/beeg-1",
+    "rechner://law/beeg-4",
+    "rechner://law/beeg-4a",
+    "rechner://law/beeg-4b"
   ]
 }
 ---

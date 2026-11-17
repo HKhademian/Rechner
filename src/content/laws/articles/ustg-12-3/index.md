@@ -10,18 +10,17 @@
     "green",
     "tax"
   ],
-  "groupId": "group-eeg-residential-solar",
-  "relatedLaws": {
-    "estg-3-72": {
-      "relationType": "interacts_with",
-      "description": "Pairs zero acquisition VAT with zero ongoing income tax on residential PV."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/ustg_1980/__12.html",
       "label": "§ 12 UStG Tax Rates",
       "description": "Official VAT zero-rating rules for residential photovoltaic installations."
+    }
+  },
+  "group": "rechner://group/group-eeg-residential-solar",
+  "interactsWith": {
+    "rechner://law/estg-3-72": {
+      "description": "Pairs zero acquisition VAT with zero ongoing income tax on residential PV."
     }
   }
 }

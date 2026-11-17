@@ -8,10 +8,10 @@
     "benefits",
     "payroll"
   ],
-  "primaryLawId": "beeg-2c",
-  "memberLawIds": [
-    "beeg-2b",
-    "beeg-2c"
+  "primaryLaw": "rechner://law/beeg-2c",
+  "includes": [
+    "rechner://law/beeg-2b",
+    "rechner://law/beeg-2c"
   ]
 }
 ---

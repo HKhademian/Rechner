@@ -10,24 +10,28 @@
     "payroll",
     "green"
   ],
-  "groupId": "group-estg-company-car",
-  "relatedLaws": {
-    "estg-8-2": {
-      "relationType": "interacts_with",
-      "description": "Combined with the 0.03%/km commute surcharge on the reduced assessment basis."
-    },
-    "estg-19": {
-      "relationType": "extends",
-      "description": "Adds imputed benefit-in-kind to monthly taxable employment wages."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__6.html",
       "label": "§ 6 Abs. 1 Nr. 4 EStG Statutory Text",
       "description": "Official valuation rules for company car private usage."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-company-car",
+  "interactsWith": {
+    "rechner://law/estg-8-2": {
+      "description": "Combined with the 0.03%/km commute surcharge on the reduced assessment basis."
+    }
+  },
+  "extends": {
+    "rechner://law/estg-19": {
+      "description": "Adds imputed benefit-in-kind to monthly taxable employment wages."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-8-2",
+    "rechner://law/estg-19"
+  ]
 }
 ---
 

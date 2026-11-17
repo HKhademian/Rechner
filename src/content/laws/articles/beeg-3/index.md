@@ -9,26 +9,25 @@
     "parent",
     "benefits"
   ],
-  "groupId": "group-muschg-maternity",
-  "relatedLaws": {
-    "muschg-19": {
-      "relationType": "offsets",
-      "description": "Offsets statutory Mutterschaftsgeld against Elterngeld."
-    },
-    "muschg-20": {
-      "relationType": "offsets",
-      "description": "Offsets employer maternity supplement against Elterngeld."
-    },
-    "beeg-4": {
-      "relationType": "interacts_with",
-      "description": "Maternity offset months count toward the mother's Basis budget."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__3.html",
       "label": "§ 3 BEEG Statutory Text",
       "description": "Crediting rules for maternity and replacement benefits."
+    }
+  },
+  "group": "rechner://group/group-muschg-maternity",
+  "offsets": {
+    "rechner://law/muschg-19": {
+      "description": "Offsets statutory Mutterschaftsgeld against Elterngeld."
+    },
+    "rechner://law/muschg-20": {
+      "description": "Offsets employer maternity supplement against Elterngeld."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-4": {
+      "description": "Maternity offset months count toward the mother's Basis budget."
     }
   }
 }

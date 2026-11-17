@@ -9,22 +9,20 @@
     "insurance",
     "benefits"
   ],
-  "groupId": "group-beeg-synthetic-net",
-  "relatedLaws": {
-    "beeg-2e": {
-      "relationType": "interacts_with",
-      "description": "Combined with § 2e tax deductions to produce BEEG net."
-    },
-    "sgb4-20": {
-      "relationType": "interacts_with",
-      "description": "Transition-zone BEEG factor parallels the SGB IV Midijob corridor."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__2f.html",
       "label": "§ 2f BEEG Statutory Text",
       "description": "Flat 9%/10%/2% social-insurance deductions for BEEG."
+    }
+  },
+  "group": "rechner://group/group-beeg-synthetic-net",
+  "interactsWith": {
+    "rechner://law/beeg-2e": {
+      "description": "Combined with § 2e tax deductions to produce BEEG net."
+    },
+    "rechner://law/sgb4-20": {
+      "description": "Transition-zone BEEG factor parallels the SGB IV Midijob corridor."
     }
   }
 }

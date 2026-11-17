@@ -8,24 +8,28 @@
     "payroll",
     "insurance"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "estg-39b": {
-      "relationType": "interacts_with",
-      "description": "Coordinates social contribution caps with Sonstige Bezüge wage tax."
-    },
-    "bvv-2": {
-      "relationType": "depends_on",
-      "description": "Applies statutory cent-rounding to one-off contribution bases."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_4/__23a.html",
       "label": "§ 23a SGB IV Statutory Text",
       "description": "Annual YTD contribution assessment for one-off payments."
     }
-  }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "interactsWith": {
+    "rechner://law/estg-39b": {
+      "description": "Coordinates social contribution caps with Sonstige Bezüge wage tax."
+    }
+  },
+  "dependsOn": {
+    "rechner://law/bvv-2": {
+      "description": "Applies statutory cent-rounding to one-off contribution bases."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-39b",
+    "rechner://law/bvv-2"
+  ]
 }
 ---
 

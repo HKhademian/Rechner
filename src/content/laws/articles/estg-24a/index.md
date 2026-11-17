@@ -8,18 +8,17 @@
     "tax",
     "payroll"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-2": {
-      "relationType": "modifies",
-      "description": "Deducted when computing annual adjusted gross income."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__24a.html",
       "label": "§ 24a EStG Statutory Text",
       "description": "Age relief cohort table and maximum annual amounts."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "modifies": {
+    "rechner://law/estg-2": {
+      "description": "Deducted when computing annual adjusted gross income."
     }
   }
 }

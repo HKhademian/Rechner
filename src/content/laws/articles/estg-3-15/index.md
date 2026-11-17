@@ -9,22 +9,22 @@
     "payroll",
     "green"
   ],
-  "groupId": "group-estg-commuter-work-expenses",
-  "relatedLaws": {
-    "estg-9-1-4": {
-      "relationType": "modifies",
-      "description": "Credited against claimable commuter Entfernungspauschale (§ 3 Nr. 15 S. 3 EStG)."
-    },
-    "estg-9a": {
-      "relationType": "interacts_with",
-      "description": "Offsetting commuter deductions can still leave full €1,230 Arbeitnehmer-Pauschbetrag intact."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__3.html",
       "label": "§ 3 Nr. 15 EStG Statutory Text",
       "description": "Tax exemption conditions and Werbungskosten offset rule for employer JobTickets."
+    }
+  },
+  "group": "rechner://group/group-estg-commuter-work-expenses",
+  "modifies": {
+    "rechner://law/estg-9-1-4": {
+      "description": "Credited against claimable commuter Entfernungspauschale (§ 3 Nr. 15 S. 3 EStG)."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-9a": {
+      "description": "Offsetting commuter deductions can still leave full €1,230 Arbeitnehmer-Pauschbetrag intact."
     }
   }
 }

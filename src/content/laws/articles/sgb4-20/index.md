@@ -8,26 +8,25 @@
     "payroll",
     "insurance"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "sgb5-241": {
-      "relationType": "modifies",
-      "description": "Uses reduced employee contribution base in the Midijob corridor."
-    },
-    "sgb11-55": {
-      "relationType": "interacts_with",
-      "description": "Care childless surcharge uses the total transition base while child discounts use employee base."
-    },
-    "beeg-2f": {
-      "relationType": "interacts_with",
-      "description": "Paralleled by BEEG's own transition factor under § 2f."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_4/__20.html",
       "label": "§ 20 SGB IV Statutory Text",
       "description": "Midijob corridor formula and F-factor definition."
+    }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "modifies": {
+    "rechner://law/sgb5-241": {
+      "description": "Uses reduced employee contribution base in the Midijob corridor."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/sgb11-55": {
+      "description": "Care childless surcharge uses the total transition base while child discounts use employee base."
+    },
+    "rechner://law/beeg-2f": {
+      "description": "Paralleled by BEEG's own transition factor under § 2f."
     }
   }
 }

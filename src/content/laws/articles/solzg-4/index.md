@@ -8,22 +8,22 @@
     "tax",
     "payroll"
   ],
-  "groupId": "group-estg-payroll-withholding",
-  "relatedLaws": {
-    "solzg-3": {
-      "relationType": "depends_on",
-      "description": "Uses the § 3 assessment base and exemption thresholds."
-    },
-    "estg-32a": {
-      "relationType": "interacts_with",
-      "description": "Surcharge scales off assessed § 32a income tax."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/solzg_1995/__4.html",
       "label": "§ 4 SolzG Statutory Text",
       "description": "5.5% rate, 11.9% mitigation cap, and exemption bounds."
+    }
+  },
+  "group": "rechner://group/group-estg-payroll-withholding",
+  "dependsOn": {
+    "rechner://law/solzg-3": {
+      "description": "Uses the § 3 assessment base and exemption thresholds."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-32a": {
+      "description": "Surcharge scales off assessed § 32a income tax."
     }
   }
 }

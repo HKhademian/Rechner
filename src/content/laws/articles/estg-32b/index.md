@@ -10,26 +10,25 @@
     "benefits",
     "maternity"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-32a": {
-      "relationType": "modifies",
-      "description": "Computes effective average rate at T(zvE + benefits) / (zvE + benefits)."
-    },
-    "estg-26b": {
-      "relationType": "interacts_with",
-      "description": "Hits joint spousal income during parental-leave years."
-    },
-    "beeg-2": {
-      "relationType": "interacts_with",
-      "description": "Elterngeld payouts enter the § 32b progression base."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__32b.html",
       "label": "§ 32b EStG Statutory Text",
       "description": "List of progression-subject benefits and rate formula."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "modifies": {
+    "rechner://law/estg-32a": {
+      "description": "Computes effective average rate at T(zvE + benefits) / (zvE + benefits)."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-26b": {
+      "description": "Hits joint spousal income during parental-leave years."
+    },
+    "rechner://law/beeg-2": {
+      "description": "Elterngeld payouts enter the § 32b progression base."
     }
   }
 }

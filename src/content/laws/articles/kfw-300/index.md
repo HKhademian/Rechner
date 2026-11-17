@@ -11,22 +11,22 @@
     "energy",
     "green"
   ],
-  "groupId": "group-housing-home-acquisition",
-  "relatedLaws": {
-    "estg-2": {
-      "relationType": "depends_on",
-      "description": "Tests household taxable income (zvE) from official tax assessments."
-    },
-    "grestg-11": {
-      "relationType": "interacts_with",
-      "description": "Combines with regional real estate transfer tax during family home acquisition."
-    }
-  },
   "externalSources": {
     "kfw_portal": {
       "url": "https://www.kfw.de/inlandsfoerderung/Privatpersonen/Neubau/F%C3%B6rderprodukte/Wohneigentum-f%C3%BCr-Familien-(300)/",
       "label": "KfW 300 official program details",
       "description": "Official eligibility, building requirements, and loan terms."
+    }
+  },
+  "group": "rechner://group/group-housing-home-acquisition",
+  "dependsOn": {
+    "rechner://law/estg-2": {
+      "description": "Tests household taxable income (zvE) from official tax assessments."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/grestg-11": {
+      "description": "Combines with regional real estate transfer tax during family home acquisition."
     }
   }
 }

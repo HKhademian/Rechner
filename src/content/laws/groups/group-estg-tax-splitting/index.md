@@ -7,21 +7,21 @@
     "marriage",
     "parent"
   ],
-  "primaryLawId": "estg-26b",
-  "memberLawIds": [
-    "estg-2",
-    "estg-9a",
-    "estg-10",
-    "estg-10-1-5",
-    "estg-10c",
-    "estg-24a",
-    "estg-26",
-    "estg-26b",
-    "estg-32a",
-    "estg-32b",
-    "estg-36",
-    "inflg",
-    "solzg-3"
+  "primaryLaw": "rechner://law/estg-26b",
+  "includes": [
+    "rechner://law/estg-2",
+    "rechner://law/estg-9a",
+    "rechner://law/estg-10",
+    "rechner://law/estg-10-1-5",
+    "rechner://law/estg-10c",
+    "rechner://law/estg-24a",
+    "rechner://law/estg-26",
+    "rechner://law/estg-26b",
+    "rechner://law/estg-32a",
+    "rechner://law/estg-32b",
+    "rechner://law/estg-36",
+    "rechner://law/inflg",
+    "rechner://law/solzg-3"
   ]
 }
 ---

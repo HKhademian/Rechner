@@ -8,17 +8,6 @@
     "tax",
     "child"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-32a": {
-      "relationType": "modifies",
-      "description": "Adjusts § 32a EStG Grundfreibetrag and zone ceilings for inflation."
-    },
-    "estg-32": {
-      "relationType": "modifies",
-      "description": "Accompanies periodic adjustments to the § 32 Kinderfreibetrag."
-    }
-  },
   "externalSources": {
     "bundesgesetzblatt": {
       "url": "https://www.recht.bund.de/bgbl/1/2024/449/regelungstext.pdf?__blob=publicationFile&v=3",
@@ -29,6 +18,15 @@
       "url": "https://www.gesetze-im-internet.de/estg/__32a.html",
       "label": "§ 32a EStG Statutory Text",
       "description": "Underlying progressive income tax tariff structure."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "modifies": {
+    "rechner://law/estg-32a": {
+      "description": "Adjusts § 32a EStG Grundfreibetrag and zone ceilings for inflation."
+    },
+    "rechner://law/estg-32": {
+      "description": "Accompanies periodic adjustments to the § 32 Kinderfreibetrag."
     }
   }
 }

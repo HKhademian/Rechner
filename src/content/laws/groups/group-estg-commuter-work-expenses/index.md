@@ -7,11 +7,11 @@
     "payroll",
     "green"
   ],
-  "primaryLawId": "estg-9-1-4",
-  "memberLawIds": [
-    "estg-9-1-4",
-    "estg-3-15",
-    "estg-9a"
+  "primaryLaw": "rechner://law/estg-9-1-4",
+  "includes": [
+    "rechner://law/estg-9-1-4",
+    "rechner://law/estg-3-15",
+    "rechner://law/estg-9a"
   ]
 }
 ---

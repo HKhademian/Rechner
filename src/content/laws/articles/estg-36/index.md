@@ -8,22 +8,22 @@
     "tax",
     "payroll"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-26b": {
-      "relationType": "depends_on",
-      "description": "Settles assessed annual joint liability."
-    },
-    "estg-38b": {
-      "relationType": "interacts_with",
-      "description": "Reconciles monthly payroll withholding back to true liability."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__36.html",
       "label": "§ 36 EStG Statutory Text",
       "description": "Assessment settlement and credit rules."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "dependsOn": {
+    "rechner://law/estg-26b": {
+      "description": "Settles assessed annual joint liability."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-38b": {
+      "description": "Reconciles monthly payroll withholding back to true liability."
     }
   }
 }

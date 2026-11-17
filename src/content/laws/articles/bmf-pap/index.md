@@ -8,28 +8,32 @@
     "payroll",
     "tax"
   ],
-  "groupId": "group-estg-payroll-withholding",
-  "relatedLaws": {
-    "estg-39b": {
-      "relationType": "implements",
-      "description": "Executes statutory § 39b EStG monthly and bonus withholding."
-    },
-    "estg-39f": {
-      "relationType": "implements",
-      "description": "Computes Class IV factor parameters."
-    },
-    "beeg-2e": {
-      "relationType": "interacts_with",
-      "description": "January PAP snapshot before birth determines BEEG § 2e tax deductions."
-    }
-  },
   "externalSources": {
     "bmf_steuerrechner": {
       "url": "https://www.bmf-steuerrechner.de/interface/programmablauf.xhtml",
       "label": "BMF Programmablaufplan (PAP)",
       "description": "Official BMF wage-tax algorithm and publication history."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-payroll-withholding",
+  "implements": {
+    "rechner://law/estg-39b": {
+      "description": "Executes statutory § 39b EStG monthly and bonus withholding."
+    },
+    "rechner://law/estg-39f": {
+      "description": "Computes Class IV factor parameters."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-2e": {
+      "description": "January PAP snapshot before birth determines BEEG § 2e tax deductions."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-39b",
+    "rechner://law/estg-39f",
+    "rechner://law/beeg-2e"
+  ]
 }
 ---
 

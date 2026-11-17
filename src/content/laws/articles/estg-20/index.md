@@ -8,21 +8,19 @@
     "tax",
     "benefits"
   ],
-  "relatedLaws": {
-    "estg-2": {
-      "relationType": "interacts_with",
-      "description": "Enters § 2 Abs. 5a EStG modifications for benefit income limits."
-    },
-    "beeg-1": {
-      "relationType": "interacts_with",
-      "description": "Can push household income above the BEEG § 1 Abs. 8 limit."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__20.html",
       "label": "§ 20 EStG Statutory Text",
       "description": "Taxation of dividends, interest, and capital gains."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-2": {
+      "description": "Enters § 2 Abs. 5a EStG modifications for benefit income limits."
+    },
+    "rechner://law/beeg-1": {
+      "description": "Can push household income above the BEEG § 1 Abs. 8 limit."
     }
   }
 }

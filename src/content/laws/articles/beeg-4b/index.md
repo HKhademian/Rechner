@@ -10,28 +10,34 @@
     "benefits",
     "payroll"
   ],
-  "groupId": "group-beeg-partnership-bonus",
-  "relatedLaws": {
-    "beeg-1": {
-      "relationType": "depends_on",
-      "description": "Tightens the § 1 max 32h limit into a 24–32h dual-parent corridor."
-    },
-    "beeg-4a": {
-      "relationType": "implements",
-      "description": "Bonus months are computed and capped as ElterngeldPlus."
-    },
-    "beeg-4": {
-      "relationType": "extends",
-      "description": "Adds supplementary months on top of the 12+2 family budget."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__4b.html",
       "label": "§ 4b BEEG Statutory Text",
       "description": "24–32h corridor and 2–4 consecutive month conditions."
     }
-  }
+  },
+  "group": "rechner://group/group-beeg-partnership-bonus",
+  "dependsOn": {
+    "rechner://law/beeg-1": {
+      "description": "Tightens the § 1 max 32h limit into a 24–32h dual-parent corridor."
+    }
+  },
+  "implements": {
+    "rechner://law/beeg-4a": {
+      "description": "Bonus months are computed and capped as ElterngeldPlus."
+    }
+  },
+  "extends": {
+    "rechner://law/beeg-4": {
+      "description": "Adds supplementary months on top of the 12+2 family budget."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/beeg-1",
+    "rechner://law/beeg-4a",
+    "rechner://law/beeg-4"
+  ]
 }
 ---
 

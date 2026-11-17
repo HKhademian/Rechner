@@ -9,18 +9,17 @@
     "child",
     "tax"
   ],
-  "groupId": "group-estg-payroll-withholding",
-  "relatedLaws": {
-    "estg-38b": {
-      "relationType": "implements",
-      "description": "Incorporated into Tax Class II wage withholding."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__24b.html",
       "label": "§ 24b EStG Statutory Text",
       "description": "Single-parent relief base and extra-child increments."
+    }
+  },
+  "group": "rechner://group/group-estg-payroll-withholding",
+  "implements": {
+    "rechner://law/estg-38b": {
+      "description": "Incorporated into Tax Class II wage withholding."
     }
   }
 }

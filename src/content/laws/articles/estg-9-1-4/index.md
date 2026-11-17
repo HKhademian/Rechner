@@ -8,24 +8,28 @@
     "tax",
     "payroll"
   ],
-  "groupId": "group-estg-commuter-work-expenses",
-  "relatedLaws": {
-    "estg-9a": {
-      "relationType": "contrasts_with",
-      "description": "Only itemized work expenses exceeding the €1,230 lump sum produce extra tax relief."
-    },
-    "estg-3-15": {
-      "relationType": "interacts_with",
-      "description": "Tax-free employer transit subsidies reduce deductible commuter allowance under § 3 Nr. 15 S. 3 EStG."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__9.html",
       "label": "§ 9 EStG Statutory Text",
       "description": "Official Werbungskosten, Entfernungspauschale, and Homeoffice-Pauschale provisions."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-commuter-work-expenses",
+  "contrastsWith": {
+    "rechner://law/estg-9a": {
+      "description": "Only itemized work expenses exceeding the €1,230 lump sum produce extra tax relief."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-3-15": {
+      "description": "Tax-free employer transit subsidies reduce deductible commuter allowance under § 3 Nr. 15 S. 3 EStG."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-9a",
+    "rechner://law/estg-3-15"
+  ]
 }
 ---
 

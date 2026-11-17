@@ -9,32 +9,38 @@
     "tax",
     "parent"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-26": {
-      "relationType": "depends_on",
-      "description": "Requires an eligible joint-assessment election under § 26."
-    },
-    "estg-32a": {
-      "relationType": "implements",
-      "description": "Applies the § 32a Abs. 5 splitting formula to pooled zvE."
-    },
-    "estg-32b": {
-      "relationType": "interacts_with",
-      "description": "Elterngeld/Mutterschutz progression raises the effective tax rate on joint income."
-    },
-    "estg-36": {
-      "relationType": "implements",
-      "description": "Reconciles assessed liability against monthly withheld tax credits."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__26b.html",
       "label": "§ 26b EStG Statutory Text",
       "description": "Pooling of spousal income under joint assessment."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "dependsOn": {
+    "rechner://law/estg-26": {
+      "description": "Requires an eligible joint-assessment election under § 26."
+    }
+  },
+  "implements": {
+    "rechner://law/estg-32a": {
+      "description": "Applies the § 32a Abs. 5 splitting formula to pooled zvE."
+    },
+    "rechner://law/estg-36": {
+      "description": "Reconciles assessed liability against monthly withheld tax credits."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-32b": {
+      "description": "Elterngeld/Mutterschutz progression raises the effective tax rate on joint income."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-26",
+    "rechner://law/estg-32a",
+    "rechner://law/estg-32b",
+    "rechner://law/estg-36"
+  ]
 }
 ---
 

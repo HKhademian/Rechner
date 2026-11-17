@@ -9,26 +9,23 @@
     "parent",
     "benefits"
   ],
-  "groupId": "group-muschg-maternity",
-  "relatedLaws": {
-    "muschg-19": {
-      "relationType": "interacts_with",
-      "description": "Triggers statutory Mutterschaftsgeld payouts during the protection window."
-    },
-    "muschg-20": {
-      "relationType": "interacts_with",
-      "description": "Triggers the employer supplement topping up to 100% of prior net."
-    },
-    "beeg-2b": {
-      "relationType": "interacts_with",
-      "description": "Maternity protection months are excluded from later BEEG lookbacks."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/muschg_2018/__3.html",
       "label": "§ 3 MuSchG Statutory Text",
       "description": "Pre-birth and post-birth employment protection periods."
+    }
+  },
+  "group": "rechner://group/group-muschg-maternity",
+  "interactsWith": {
+    "rechner://law/muschg-19": {
+      "description": "Triggers statutory Mutterschaftsgeld payouts during the protection window."
+    },
+    "rechner://law/muschg-20": {
+      "description": "Triggers the employer supplement topping up to 100% of prior net."
+    },
+    "rechner://law/beeg-2b": {
+      "description": "Maternity protection months are excluded from later BEEG lookbacks."
     }
   }
 }

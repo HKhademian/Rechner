@@ -8,21 +8,6 @@
     "tax",
     "marriage"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-26b": {
-      "relationType": "implements",
-      "description": "Applies Abs. 5 splitting formula for joint assessment."
-    },
-    "estg-32b": {
-      "relationType": "modifies",
-      "description": "Progression clause modifies the average rate applied to § 32a."
-    },
-    "estg-2": {
-      "relationType": "depends_on",
-      "description": "Takes annual zvE from § 2 EStG as input."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__32a.html",
@@ -34,7 +19,28 @@
       "label": "Federal Law Gazette (Steuerfortentwicklungsgesetz)",
       "description": "Official published 2025/2026 Grundfreibetrag and tariff coefficients."
     }
-  }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "implements": {
+    "rechner://law/estg-26b": {
+      "description": "Applies Abs. 5 splitting formula for joint assessment."
+    }
+  },
+  "modifies": {
+    "rechner://law/estg-32b": {
+      "description": "Progression clause modifies the average rate applied to § 32a."
+    }
+  },
+  "dependsOn": {
+    "rechner://law/estg-2": {
+      "description": "Takes annual zvE from § 2 EStG as input."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/estg-26b",
+    "rechner://law/estg-32b",
+    "rechner://law/estg-2"
+  ]
 }
 ---
 

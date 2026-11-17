@@ -8,28 +8,34 @@
     "insurance",
     "payroll"
   ],
-  "groupId": "group-sgb-social-security",
-  "relatedLaws": {
-    "bvv-2": {
-      "relationType": "depends_on",
-      "description": "General rate and Zusatzbeitrag are rounded separately before addition."
-    },
-    "estg-10": {
-      "relationType": "interacts_with",
-      "description": "Basic health share (96% of general contribution) is tax-deductible."
-    },
-    "sgb4-20": {
-      "relationType": "modifies",
-      "description": "Reduced inside the Midijob transition zone."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/sgb_5/__241.html",
       "label": "§ 241 SGB V Statutory Text",
       "description": "General 14.6% statutory health contribution rate."
     }
-  }
+  },
+  "group": "rechner://group/group-sgb-social-security",
+  "dependsOn": {
+    "rechner://law/bvv-2": {
+      "description": "General rate and Zusatzbeitrag are rounded separately before addition."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/estg-10": {
+      "description": "Basic health share (96% of general contribution) is tax-deductible."
+    }
+  },
+  "modifies": {
+    "rechner://law/sgb4-20": {
+      "description": "Reduced inside the Midijob transition zone."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/bvv-2",
+    "rechner://law/estg-10",
+    "rechner://law/sgb4-20"
+  ]
 }
 ---
 

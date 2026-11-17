@@ -7,12 +7,12 @@
     "benefits",
     "tax"
   ],
-  "primaryLawId": "estg-66",
-  "memberLawIds": [
-    "estg-31",
-    "estg-32",
-    "estg-62",
-    "estg-66"
+  "primaryLaw": "rechner://law/estg-66",
+  "includes": [
+    "rechner://law/estg-31",
+    "rechner://law/estg-32",
+    "rechner://law/estg-62",
+    "rechner://law/estg-66"
   ]
 }
 ---

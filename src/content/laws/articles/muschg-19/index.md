@@ -9,28 +9,32 @@
     "insurance",
     "benefits"
   ],
-  "groupId": "group-muschg-maternity",
-  "relatedLaws": {
-    "muschg-20": {
-      "relationType": "interacts_with",
-      "description": "Combined with employer supplement to reach 100% of average net."
-    },
-    "beeg-3": {
-      "relationType": "offsets",
-      "description": "Credited against post-birth Elterngeld."
-    },
-    "estg-32b": {
-      "relationType": "interacts_with",
-      "description": "Subject to annual tax progression."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/muschg_2018/__19.html",
       "label": "§ 19 MuSchG Statutory Text",
       "description": "Statutory maternity allowance calculation."
     }
-  }
+  },
+  "group": "rechner://group/group-muschg-maternity",
+  "interactsWith": {
+    "rechner://law/muschg-20": {
+      "description": "Combined with employer supplement to reach 100% of average net."
+    },
+    "rechner://law/estg-32b": {
+      "description": "Subject to annual tax progression."
+    }
+  },
+  "offsets": {
+    "rechner://law/beeg-3": {
+      "description": "Credited against post-birth Elterngeld."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/muschg-20",
+    "rechner://law/beeg-3",
+    "rechner://law/estg-32b"
+  ]
 }
 ---
 

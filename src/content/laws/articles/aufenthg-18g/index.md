@@ -8,17 +8,6 @@
     "visa",
     "payroll"
   ],
-  "groupId": "group-aufenthg-blue-card",
-  "relatedLaws": {
-    "aufenthg-18c": {
-      "relationType": "extends",
-      "description": "Qualifies holder for 21/27-month permanent residence track."
-    },
-    "aufenthg-20a": {
-      "relationType": "contrasts_with",
-      "description": "Applies when an eligible job offer exists; otherwise Opportunity Card enables job-search entry."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__18g.html",
@@ -29,6 +18,17 @@
       "url": "https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card",
       "label": "Make it in Germany — EU Blue Card",
       "description": "Official federal portal confirming current Blue Card salary thresholds."
+    }
+  },
+  "group": "rechner://group/group-aufenthg-blue-card",
+  "extends": {
+    "rechner://law/aufenthg-18c": {
+      "description": "Qualifies holder for 21/27-month permanent residence track."
+    }
+  },
+  "contrastsWith": {
+    "rechner://law/aufenthg-20a": {
+      "description": "Applies when an eligible job offer exists; otherwise Opportunity Card enables job-search entry."
     }
   }
 }

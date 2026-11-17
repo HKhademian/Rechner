@@ -8,18 +8,17 @@
     "housing",
     "tax"
   ],
-  "groupId": "group-housing-home-acquisition",
-  "relatedLaws": {
-    "kfw-300": {
-      "relationType": "interacts_with",
-      "description": "Upfront closing taxes remain required alongside KfW 300 subsidized financing."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/grestg_1983/__11.html",
       "label": "§ 11 GrEStG Statutory Text",
       "description": "Official tax rate framework for German Real Estate Transfer Tax."
+    }
+  },
+  "group": "rechner://group/group-housing-home-acquisition",
+  "interactsWith": {
+    "rechner://law/kfw-300": {
+      "description": "Upfront closing taxes remain required alongside KfW 300 subsidized financing."
     }
   }
 }

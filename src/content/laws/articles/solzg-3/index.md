@@ -8,22 +8,22 @@
     "tax",
     "child"
   ],
-  "groupId": "group-estg-tax-splitting",
-  "relatedLaws": {
-    "estg-32": {
-      "relationType": "depends_on",
-      "description": "Always deducts Kinderfreibetrag when computing SolZ base."
-    },
-    "solzg-4": {
-      "relationType": "implements",
-      "description": "Passes reduced tax base to § 4 SolzG rate and exemption."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/solzg_1995/__3.html",
       "label": "§ 3 SolzG Statutory Text",
       "description": "Notional child-adjusted SolZ assessment base."
+    }
+  },
+  "group": "rechner://group/group-estg-tax-splitting",
+  "dependsOn": {
+    "rechner://law/estg-32": {
+      "description": "Always deducts Kinderfreibetrag when computing SolZ base."
+    }
+  },
+  "implements": {
+    "rechner://law/solzg-4": {
+      "description": "Passes reduced tax base to § 4 SolzG rate and exemption."
     }
   }
 }

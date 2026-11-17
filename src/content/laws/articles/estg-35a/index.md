@@ -8,18 +8,17 @@
     "housing",
     "tax"
   ],
-  "groupId": "group-housing-home-acquisition",
-  "relatedLaws": {
-    "kfw-300": {
-      "relationType": "contrasts_with",
-      "description": "Applies to direct unsubsidized renovation labor not funded by public grant programs."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/estg/__35a.html",
       "label": "§ 35a EStG Statutory Text",
       "description": "Official tax credit limits for household craftsmanship services."
+    }
+  },
+  "group": "rechner://group/group-housing-home-acquisition",
+  "contrastsWith": {
+    "rechner://law/kfw-300": {
+      "description": "Applies to direct unsubsidized renovation labor not funded by public grant programs."
     }
   }
 }

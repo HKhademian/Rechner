@@ -10,28 +10,34 @@
     "benefits",
     "maternity"
   ],
-  "groupId": "group-beeg-tax-swap",
-  "relatedLaws": {
-    "beeg-2c": {
-      "relationType": "interacts_with",
-      "description": "Supplies the eligible months used to determine the frozen tax class."
-    },
-    "muschg-3": {
-      "relationType": "depends_on",
-      "description": "Maternity protection months trigger statutory lookback exclusions."
-    },
-    "beeg-2": {
-      "relationType": "implements",
-      "description": "Feeds the 12-month average into the § 2 replacement calculation."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__2b.html",
       "label": "§ 2b BEEG Statutory Text",
       "description": "12-month assessment window and statutory exclusion rules."
     }
-  }
+  },
+  "group": "rechner://group/group-beeg-tax-swap",
+  "interactsWith": {
+    "rechner://law/beeg-2c": {
+      "description": "Supplies the eligible months used to determine the frozen tax class."
+    }
+  },
+  "dependsOn": {
+    "rechner://law/muschg-3": {
+      "description": "Maternity protection months trigger statutory lookback exclusions."
+    }
+  },
+  "implements": {
+    "rechner://law/beeg-2": {
+      "description": "Feeds the 12-month average into the § 2 replacement calculation."
+    }
+  },
+  "relatedOrder": [
+    "rechner://law/beeg-2c",
+    "rechner://law/muschg-3",
+    "rechner://law/beeg-2"
+  ]
 }
 ---
 

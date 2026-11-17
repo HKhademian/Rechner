@@ -9,22 +9,22 @@
     "parent",
     "benefits"
   ],
-  "groupId": "group-beeg-sibling-bonus",
-  "relatedLaws": {
-    "beeg-2": {
-      "relationType": "extends",
-      "description": "Applies 10% uplift on top of the calculated § 2 entitlement."
-    },
-    "beeg-4a": {
-      "relationType": "interacts_with",
-      "description": "Halves the €75 minimum addition to €37.50 for ElterngeldPlus months."
-    }
-  },
   "externalSources": {
     "gesetze_im_internet": {
       "url": "https://www.gesetze-im-internet.de/beeg/__2a.html",
       "label": "§ 2a BEEG Statutory Text",
       "description": "Sibling age routes (<36 months for 1 child, <72 months for 2+ children)."
+    }
+  },
+  "group": "rechner://group/group-beeg-sibling-bonus",
+  "extends": {
+    "rechner://law/beeg-2": {
+      "description": "Applies 10% uplift on top of the calculated § 2 entitlement."
+    }
+  },
+  "interactsWith": {
+    "rechner://law/beeg-4a": {
+      "description": "Halves the €75 minimum addition to €37.50 for ElterngeldPlus months."
     }
   }
 }
