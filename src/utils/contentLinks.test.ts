@@ -7,6 +7,10 @@ import {
   plainContentText,
   resolveContentLink,
 } from "#utils/contentLinks";
+import {
+  LawGroupId,
+  LawId,
+} from "#engine/laws/types";
 
 const topics = [{ id: "solar" }, { id: "solar-vat",
   parentId: "solar" }];
@@ -19,6 +23,15 @@ it("resolves links to calculators, laws and nested topics", () => {
   for (const value of ["rechner://app/unknown", "rechner://law/nope", "rechner://topic/other/solar-vat", "javascript:alert%281%29"]) {
     assert.equal(resolveContentLink(value, topics), undefined);
   }
+});
+
+it("resolves categories and law groups to normal web destinations", () => {
+  const resources = { categoryIds: ["home"],
+    primaryLawForGroup: (id: string) => id === LawGroupId.Housing_HomeAcquisition ? LawId.KfW_300 : undefined };
+  assert.ok(resolveContentLink("rechner://category/home", topics, resources)?.href.endsWith("/topics/#home"));
+  assert.deepEqual(resolveContentLink("rechner://group/group-housing-home-acquisition", topics, resources), { href: "/laws/kfw-300/?group=group-housing-home-acquisition",
+    groupId: LawGroupId.Housing_HomeAcquisition });
+  assert.equal(resolveContentLink("rechner://category/unknown", topics, resources), undefined);
 });
 
 it("extracts readable labels without exposing link syntax", () => {

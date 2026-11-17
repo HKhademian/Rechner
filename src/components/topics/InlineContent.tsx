@@ -3,6 +3,12 @@ import type {
 } from "preact";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  getLawGroupEntry, 
+} from "#engine/laws/registry";
+import {
+  topicCategories, 
+} from "#engine/topics/categories";
+import {
   topics, 
 } from "#engine/topics/registry";
 import {
@@ -16,12 +22,19 @@ export function InlineContent({ text }: { readonly text: string }): JSX.Element 
     if (!part.target) {
       return part.text;
     }
-    const resolved = resolveContentLink(part.target, topics);
+    const resolved = resolveContentLink(part.target, topics, {
+      categoryIds: topicCategories.map((category) => category.id),
+      primaryLawForGroup: (id) => getLawGroupEntry(id)?.primaryLawId,
+    });
     if (!resolved) {
       return part.text;
     }
-    return resolved.lawId
-      ? <LawRefLink key={index} lawId={resolved.lawId} variant="plain" showIcon={false} label={part.text} />
-      : <a key={index} href={resolved.href}>{part.text}</a>;
+    if (resolved.lawId) {
+      return <LawRefLink key={index} lawId={resolved.lawId} variant="plain" showIcon={false} label={part.text} />;
+    }
+    if (resolved.groupId) {
+      return <LawRefLink key={index} groupId={resolved.groupId} variant="plain" showIcon={false} label={part.text} />;
+    }
+    return <a key={index} href={resolved.href}>{part.text}</a>;
   })}</>;
 }

@@ -153,7 +153,23 @@ for (const entry of entries) {
   }
   for (const text of [entry.topic.title, entry.topic.description, entry.topic.benefit, entry.topic.limitation, entry.topic.calculatorEffect]) {
     for (const part of parseContentLinks(text)) {
-      if (part.target && !resolveContentLink(part.target, entries.map((item) => item.topic))) {
+      if (part.target && !resolveContentLink(part.target, entries.map((item) => item.topic), {
+        categoryIds: categories.map((item) => item.category.id),
+        primaryLawForGroup: (groupId) => {
+          const groupPath = resolve(root, "../laws/groups", groupId, "index.md");
+          try {
+            const header = /^---\n([\s\S]*?)\n---/.exec(readFileSync(groupPath, "utf8").replace(/\r\n/g, "\n"));
+            const metadata: unknown = header && JSON.parse(header[1]);
+            if (!metadata || typeof metadata !== "object" || !("primaryLaw" in metadata)) {
+              return undefined;
+            }
+            return toLawId(resourceId(metadata.primaryLaw, ResourceKind.Law));
+          }
+          catch {
+            return undefined;
+          }
+        },
+      })) {
         throw new Error(`Invalid link ${part.target} in topic ${entry.topic.id}`);
       }
     }
