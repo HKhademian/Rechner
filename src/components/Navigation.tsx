@@ -2,6 +2,7 @@ import "./Navigation.css";
 import {
   useEffect,
   useRef,
+  useState,
 } from "preact/hooks";
 import type {
   JSX,
@@ -46,6 +47,7 @@ export interface NavigationProps {
 /** Shared sticky top header with Home, Tools dropdown switcher, Life Profile, Laws, Quick § Ref, Privacy, and Theme controls. */
 export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.Element {
   const toolsDetailsRef = useRef<HTMLDetailsElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const app = calculatorAtPath(currentPath);
   const home = normalizeRoutePath(currentPath) === normalizeRoutePath(sitePath("/"));
   const onLawsPage = isActiveRoute(currentPath, lawCatalogPath());
@@ -119,67 +121,70 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
           <span className="calculator-navigation__mark"><CalculatorNavigationIcon size={22} /></span>
           <span><strong>Rechner</strong><small>Life in Germany, calculated</small></span>
         </a>
-        <nav aria-label="Main navigation" className="calculator-navigation__links">
-          <a href={sitePath("/")} aria-current={home ? "page" : undefined}>All calculators</a>
-          <details ref={toolsDetailsRef} className="calculator-navigation__tools">
-            <summary
-              className={app ? "is-active" : undefined}
-              aria-label="Switch calculator tool"
-            >
-              <span>{app ? app.title : "Tools"}</span>
-              {app?.releaseStatus === CalculatorReleaseStatus.Draft && (
-                <span className="calculator-navigation__tool-badge">Demo</span>
-              )}
-              <ChevronDownIcon size={13} className="calculator-navigation__tools-chevron" />
-            </summary>
-            <div
-              className="calculator-navigation__tools-panel"
-              role="region"
-              aria-label="Calculators and planning tools"
-            >
-              {toolItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className="calculator-navigation__tool-item"
-                  aria-current={item.isCurrent ? "page" : undefined}
-                >
-                  <span className="calculator-navigation__tool-header">
-                    <span className="calculator-navigation__tool-title">{item.title}</span>
-                    {item.isDraft && (
-                      <span className="calculator-navigation__tool-badge">Demo</span>
-                    )}
-                  </span>
-                  <span className="calculator-navigation__tool-meta">{item.category}</span>
-                </a>
-              ))}
-            </div>
-          </details>
-          <a href={lifeProfilePath()} aria-current={onProfilePage ? "page" : undefined}>Life Profile</a>
-          <a href={lawCatalogPath()} aria-current={onLawsPage ? "page" : undefined}>Laws &amp; Rules</a>
-          <a href={sitePath("/topics/")} aria-current={isActiveRoute(currentPath, sitePath("/topics/")) ? "page" : undefined}>Topics</a>
-        </nav>
-        <div className="calculator-navigation__preferences">
-          {!onLawsPage && (
-            <a
-              href={quickLawHref}
-              className="calculator-navigation__law-btn"
-              aria-label="Open quick law reference popup or Ctrl+Click for full law page"
-              title="Click for quick statutory preview · Ctrl+Click to open full Law Page"
-              onClick={(event) => {
-                if (!isPlainPrimaryClick(event)) {
-                  return;
-                }
-                event.preventDefault();
-                openLawReference(defaultLawId);
-              }}
-            >
-              <StatutorySectionIcon size={13} />
-              <span>Quick § Ref</span>
-            </a>
-          )}
-          <PrivacyStatus />
-          <ThemeToggle />
+        <button type="button" className="calculator-navigation__menu-toggle" aria-expanded={menuOpen} aria-controls="navigation-menu" onClick={() => setMenuOpen(!menuOpen)}>Menu</button>
+        <div id="navigation-menu" className={`calculator-navigation__menu${menuOpen ? " is-open" : ""}`}>
+          <nav aria-label="Main navigation" className="calculator-navigation__links">
+            <a href={sitePath("/")} aria-current={home ? "page" : undefined}>All calculators</a>
+            <details ref={toolsDetailsRef} className="calculator-navigation__tools">
+              <summary
+                className={app ? "is-active" : undefined}
+                aria-label="Switch calculator tool"
+              >
+                <span>{app ? app.title : "Tools"}</span>
+                {app?.releaseStatus === CalculatorReleaseStatus.Draft && (
+                  <span className="calculator-navigation__tool-badge">Demo</span>
+                )}
+                <ChevronDownIcon size={13} className="calculator-navigation__tools-chevron" />
+              </summary>
+              <div
+                className="calculator-navigation__tools-panel"
+                role="region"
+                aria-label="Calculators and planning tools"
+              >
+                {toolItems.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    className="calculator-navigation__tool-item"
+                    aria-current={item.isCurrent ? "page" : undefined}
+                  >
+                    <span className="calculator-navigation__tool-header">
+                      <span className="calculator-navigation__tool-title">{item.title}</span>
+                      {item.isDraft && (
+                        <span className="calculator-navigation__tool-badge">Demo</span>
+                      )}
+                    </span>
+                    <span className="calculator-navigation__tool-meta">{item.category}</span>
+                  </a>
+                ))}
+              </div>
+            </details>
+            <a href={lifeProfilePath()} aria-current={onProfilePage ? "page" : undefined}>Life Profile</a>
+            <a href={lawCatalogPath()} aria-current={onLawsPage ? "page" : undefined}>Laws &amp; Rules</a>
+            <a href={sitePath("/topics/")} aria-current={isActiveRoute(currentPath, sitePath("/topics/")) ? "page" : undefined}>Topics</a>
+          </nav>
+          <div className="calculator-navigation__preferences">
+            {!onLawsPage && (
+              <a
+                href={quickLawHref}
+                className="calculator-navigation__law-btn"
+                aria-label="Open quick law reference popup or Ctrl+Click for full law page"
+                title="Click for quick statutory preview · Ctrl+Click to open full Law Page"
+                onClick={(event) => {
+                  if (!isPlainPrimaryClick(event)) {
+                    return;
+                  }
+                  event.preventDefault();
+                  openLawReference(defaultLawId);
+                }}
+              >
+                <StatutorySectionIcon size={13} />
+                <span>Quick § Ref</span>
+              </a>
+            )}
+            <PrivacyStatus />
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>

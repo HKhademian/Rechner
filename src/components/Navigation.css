@@ -495,3 +495,46 @@ a.calculator-navigation__tool-item[aria-current="page"] {
     display: none;
   }
 }
+
+.calculator-navigation__menu {
+  display: contents;
+}
+
+.calculator-navigation__menu-toggle {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .calculator-navigation__menu {
+    display: none;
+    flex-basis: 100%;
+  }
+
+  .calculator-navigation__menu.is-open {
+    display: block;
+  }
+
+  .calculator-navigation__menu-toggle {
+    display: block;
+    padding: 10px 14px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .calculator-navigation__menu.is-open .calculator-navigation__links,
+  .calculator-navigation__menu.is-open .calculator-navigation__preferences {
+    width: 100%;
+  }
+
+  .calculator-navigation__menu.is-open .calculator-navigation__links {
+    padding-top: 8px;
+  }
+
+  .calculator-navigation__menu.is-open .calculator-navigation__preferences {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+}
