@@ -19,3 +19,14 @@
 .mortgage-table-wrap {
   overflow-x: auto;
 }
+
+.mortgage-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mortgage-heading h2 {
+  margin: 0;
+}

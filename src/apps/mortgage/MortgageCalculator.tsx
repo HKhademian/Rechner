@@ -30,6 +30,9 @@ import {
   takeMortgageHandoff,
 } from "#/apps/mortgage/mortgageHandoff.ts";
 import OptionalNumberInput from "#components/OptionalNumberInput";
+import {
+  TopicHelp, 
+} from "#components/topics/TopicHelp";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
   AppShell,
@@ -184,14 +187,14 @@ export default function MortgageCalculator(): JSX.Element {
         <section className="ui-card" aria-labelledby="mortgage-property">
           <h2 id="mortgage-property">Property &amp; bank loan</h2>
           <div className="domain-calc-fields">
-            <OptionalNumberInput id="mortgage-value" onValidityChange={trackValidity("mortgage-value")} label="Property purchase price / value" unit="€" min={0} max={20000000} placeholder="Enter value" value={propertyPrice} onChange={setPropertyPrice} />
+            <OptionalNumberInput id="mortgage-value" topicId="loan-to-value" onValidityChange={trackValidity("mortgage-value")} label="Property purchase price / value" unit="€" min={0} max={20000000} placeholder="Enter value" value={propertyPrice} onChange={setPropertyPrice} />
             <OptionalNumberInput id="mortgage-savings" onValidityChange={trackValidity("mortgage-savings")} label="Savings available for purchase" unit="€" min={0} max={20000000} placeholder="Enter savings" value={savings} onChange={setSavings} />
             <OptionalNumberInput id="mortgage-closing-costs" topicId="purchase-costs" onValidityChange={trackValidity("mortgage-closing-costs")} label="Purchase costs beyond the property price" unit="€" min={0} max={20000000} placeholder="Enter costs" value={closingCosts} onChange={setClosingCosts} />
             <NumberField id="mortgage-principal" topicId="bank-loan-amount" onValidityChange={trackValidity("mortgage-principal")} label="Bank loan amount (excluding KfW)" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
             <NumberField id="mortgage-interest" onValidityChange={trackValidity("mortgage-interest")} label="Bank annual interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
             <div><p>Bank repayment setup</p><SegmentedControl label="Bank repayment setup" value={bankMode} options={BANK_MODES} onChange={setBankMode} /></div>
-            {bankMode === BankPaymentMode.InitialRepayment ? <NumberField id="mortgage-repayment" onValidityChange={trackValidity("mortgage-repayment")} label="Bank initial annual repayment" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} /> : <NumberField id="mortgage-bank-term" onValidityChange={trackValidity("mortgage-bank-term")} label="Target bank payoff term" unit="years" min={1} max={50} step={1} value={bankTerm} construct={toMortgageYears} onChange={setBankTerm} />}
-            <NumberField id="mortgage-extra" onValidityChange={trackValidity("mortgage-extra")} label="Extra bank principal payment" unit="€/month" min={0} max={1000000} step={50} value={extraPayment} onChange={setExtraPayment} />
+            {bankMode === BankPaymentMode.InitialRepayment ? <NumberField id="mortgage-repayment" onValidityChange={trackValidity("mortgage-repayment")} label="Bank initial annual repayment" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} /> : <NumberField id="mortgage-bank-term" topicId="mortgage-payoff-term" onValidityChange={trackValidity("mortgage-bank-term")} label="Target bank payoff term" unit="years" min={1} max={50} step={1} value={bankTerm} construct={toMortgageYears} onChange={setBankTerm} />}
+            <NumberField id="mortgage-extra" topicId="extra-bank-payment" onValidityChange={trackValidity("mortgage-extra")} label="Extra bank principal payment" unit="€/month" min={0} max={1000000} step={50} value={extraPayment} onChange={setExtraPayment} />
             <NumberField id="mortgage-years" onValidityChange={trackValidity("mortgage-years")} label="Show projection for" unit="years" min={1} max={50} step={1} value={years} construct={toMortgageYears} onChange={setYears} />
           </div>
         </section>
@@ -202,15 +205,15 @@ export default function MortgageCalculator(): JSX.Element {
           <div className="domain-calc-fields">
             <NumberField id="mortgage-kfw-amount" onValidityChange={trackValidity("mortgage-kfw-amount")} label="KfW loan amount" unit="€" min={0} max={20000000} step={5000} value={kfwPrincipal} onChange={setKfwPrincipal} />
             {kfwPrincipal > 0 && <>
-              <OptionalNumberInput id="mortgage-kfw-rate" onValidityChange={trackValidity("mortgage-kfw-rate")} label="KfW nominal annual interest rate" unit="%" min={0} max={15} step={0.01} placeholder="Enter offer rate" value={kfwInterest} onChange={setKfwInterest} />
-              <OptionalNumberInput id="mortgage-kfw-term" onValidityChange={trackValidity("mortgage-kfw-term")} label="KfW total loan term" unit="years" min={1} max={50} step={1} placeholder="Enter term" value={kfwTerm} onChange={(value) => {
+              <OptionalNumberInput id="mortgage-kfw-rate" topicId="kfw-repayment-options" onValidityChange={trackValidity("mortgage-kfw-rate")} label="KfW nominal annual interest rate" unit="%" min={0} max={15} step={0.01} placeholder="Enter offer rate" value={kfwInterest} onChange={setKfwInterest} />
+              <OptionalNumberInput id="mortgage-kfw-term" topicId="kfw-repayment-options" onValidityChange={trackValidity("mortgage-kfw-term")} label="KfW total loan term" unit="years" min={1} max={50} step={1} placeholder="Enter term" value={kfwTerm} onChange={(value) => {
                 if (value !== undefined) {
                   toMortgageYears(value);
                 }
                 setKfwTerm(value);
               }} />
-              <div><p>Repayment type</p><SegmentedControl label="KfW repayment type" value={method} options={METHODS} onChange={setMethod} /></div>
-              {method === LoanMethod.Annuity && <OptionalNumberInput id="mortgage-kfw-grace" onValidityChange={trackValidity("mortgage-kfw-grace")} label="Interest-only period" unit="years" min={0} max={49} step={1} placeholder="Enter years" value={kfwGrace} onChange={(value) => {
+              <div><p>Repayment type</p><SegmentedControl topicId="kfw-repayment-options" label="KfW repayment type" value={method} options={METHODS} onChange={setMethod} /></div>
+              {method === LoanMethod.Annuity && <OptionalNumberInput id="mortgage-kfw-grace" topicId="kfw-repayment-options" onValidityChange={trackValidity("mortgage-kfw-grace")} label="Interest-only period" unit="years" min={0} max={49} step={1} placeholder="Enter years" value={kfwGrace} onChange={(value) => {
                 if (value !== undefined) {
                   toGraceYears(value);
                 }
@@ -221,7 +224,7 @@ export default function MortgageCalculator(): JSX.Element {
           </div>
         </section>
         <section className="ui-card" aria-labelledby="mortgage-budget">
-          <h2 id="mortgage-budget">Monthly affordability</h2>
+          <div className="mortgage-heading"><h2 id="mortgage-budget">Monthly affordability</h2><TopicHelp id="mortgage-affordability" /></div>
           <p>Enter your own monthly amounts. Exclude the loans modeled here from expenses to avoid counting them twice.</p>
           <div className="domain-calc-fields">
             <OptionalNumberInput id="mortgage-income" onValidityChange={trackValidity("mortgage-income")} label="Household income after tax" unit="€/month" min={0} max={10000000} placeholder="Enter income" value={income} onChange={setIncome} />
@@ -234,7 +237,7 @@ export default function MortgageCalculator(): JSX.Element {
         {hasInvalidFields && <p role="alert">Correct the highlighted inputs. Results below use the last valid values.</p>}
         <div className="domain-calc-kpis">
           <MetricCard label="Total borrowed" value={formatEur(totalDebt)} subtitle={`Bank ${formatEur(principal)} + KfW ${formatEur(kfwPrincipal)}`} tone={MetricTone.Primary} />
-          <MetricCard label="Loan-to-value" value={ltv === null ? "Enter property value" : `${(ltv * 100).toFixed(1)}%`} subtitle="Both loans ÷ entered purchase price / value" />
+          <MetricCard label="Loan-to-value" value={ltv === null ? "Enter property value" : `${(ltv * 100).toFixed(1)}%`} subtitle="Both loans ÷ entered purchase price / value" footer={<TopicHelp id="loan-to-value" />} />
           <MetricCard label="Starting monthly loan payments" value={monthly === null ? "Enter KfW terms" : formatEur(monthly)} subtitle={monthly === null ? "Bank and KfW together require your KfW repayment terms" : `Bank ${formatEur(bank.monthlyPayment)} (including extra) + KfW ${formatEur(kfw?.initialMonthlyPayment ?? 0)}`} />
         </div>
         <section className="ui-card mortgage-results">
