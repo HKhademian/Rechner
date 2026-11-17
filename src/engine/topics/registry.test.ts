@@ -48,7 +48,7 @@ it("has unique topics with valid rules, calculators and sources", () => {
 
 it("groups subtopics without hiding them from search", () => {
   const children = getSubtopics("mortgage-repayment");
-  assert.deepEqual(children.map((item) => item.id), ["purchase-costs", "bank-loan-amount"]);
+  assert.deepEqual(children.map((item) => item.id), ["purchase-costs", "bank-loan-amount", "loan-to-value", "mortgage-payoff-term", "extra-bank-payment", "kfw-repayment-options", "mortgage-affordability"]);
   assert.ok(searchTopics("").every((topic) => !topic.parentId));
   assert.deepEqual(searchTopics("bank loan amount").map((topic) => topic.id), ["mortgage-repayment"]);
   assert.ok(searchTopics("purchase costs beyond").some((topic) => topic.id === "mortgage-repayment"));
