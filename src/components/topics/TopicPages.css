@@ -7,6 +7,7 @@
 
 .topic-page h1,
 .topic-page h2,
+.topic-page h3,
 .topic-page p {
   margin: 0;
 }
@@ -14,6 +15,70 @@
 .topic-page h2 {
   font-size: 1.05rem;
   margin-bottom: 8px;
+}
+
+.topic-page h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.topic-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.topic-layout .topic-page {
+  width: 100%;
+}
+
+.topic-navigation {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  line-height: 1.45;
+}
+
+.topic-navigation ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.topic-navigation [aria-current="page"] {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.topic-category {
+  display: grid;
+  gap: 12px;
+  scroll-margin-top: 100px;
+}
+
+.topic-category-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.topic-subtopic-count {
+  margin-top: 8px !important;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 700px) {
+  .topic-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .topic-navigation {
+    order: 2;
+  }
 }
 
 .topic-page p,
