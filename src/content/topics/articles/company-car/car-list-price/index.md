@@ -1,7 +1,5 @@
 ---
 {
-  "id": "car-list-price",
-  "parentId": "company-car",
   "order": 23,
   "laws": [
     "estg-6-1-4",

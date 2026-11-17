@@ -1,13 +1,14 @@
 ---
 {
-  "id": "craftsman-credit",
   "order": 18,
   "laws": [
     "estg-35a"
   ],
   "apps": [
     "housing"
-  ]
+  ],
+  "category": "home",
+  "categoryOrder": 2
 }
 ---
 

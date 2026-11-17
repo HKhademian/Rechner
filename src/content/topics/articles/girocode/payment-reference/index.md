@@ -1,7 +1,5 @@
 ---
 {
-  "id": "payment-reference",
-  "parentId": "girocode",
   "order": 20,
   "laws": [],
   "apps": [

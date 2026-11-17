@@ -1,6 +1,5 @@
 ---
 {
-  "id": "qualification-recognition",
   "order": 14,
   "laws": [
     "aufenthg-20a",
@@ -8,7 +7,9 @@
   ],
   "apps": [
     "visa"
-  ]
+  ],
+  "category": "residence",
+  "categoryOrder": 2
 }
 ---
 

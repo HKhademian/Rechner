@@ -1,7 +1,5 @@
 ---
 {
-  "id": "opportunity-points",
-  "parentId": "opportunity-card",
   "order": 25,
   "laws": [
     "aufenthg-20a"

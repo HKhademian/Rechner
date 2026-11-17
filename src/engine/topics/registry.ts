@@ -1,4 +1,4 @@
-import topicContent from "#/content/topics/topics.json" with { type: "json" };
+import topicContent from "../../../.generated/topics.json" with { type: "json" };
 import {
   plainContentText, 
 } from "#utils/contentLinks";

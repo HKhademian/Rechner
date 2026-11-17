@@ -1,7 +1,5 @@
 ---
 {
-  "id": "parental-allowance-options",
-  "parentId": "parental-allowance",
   "order": 26,
   "laws": [
     "beeg-4",

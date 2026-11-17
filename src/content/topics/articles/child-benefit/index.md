@@ -1,6 +1,5 @@
 ---
 {
-  "id": "child-benefit",
   "order": 30,
   "laws": [
     "estg-31",
@@ -11,7 +10,9 @@
   "apps": [
     "net-pay",
     "parental-leave"
-  ]
+  ],
+  "category": "family",
+  "categoryOrder": 2
 }
 ---
 

@@ -1,6 +1,5 @@
 ---
 {
-  "id": "parental-allowance",
   "order": 6,
   "laws": [
     "beeg-1",
@@ -10,7 +9,9 @@
   ],
   "apps": [
     "parental-leave"
-  ]
+  ],
+  "category": "family",
+  "categoryOrder": 0
 }
 ---
 

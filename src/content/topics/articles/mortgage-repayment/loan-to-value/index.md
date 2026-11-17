@@ -1,7 +1,5 @@
 ---
 {
-  "id": "loan-to-value",
-  "parentId": "mortgage-repayment",
   "order": 35,
   "laws": [],
   "apps": [

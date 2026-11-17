@@ -1,7 +1,5 @@
 ---
 {
-  "id": "extra-bank-payment",
-  "parentId": "mortgage-repayment",
   "order": 37,
   "laws": [],
   "apps": [

@@ -1,6 +1,5 @@
 ---
 {
-  "id": "maternity-protection",
   "order": 29,
   "laws": [
     "muschg-3",
@@ -10,7 +9,9 @@
   ],
   "apps": [
     "parental-leave"
-  ]
+  ],
+  "category": "family",
+  "categoryOrder": 1
 }
 ---
 

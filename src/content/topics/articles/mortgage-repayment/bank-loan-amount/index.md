@@ -1,7 +1,5 @@
 ---
 {
-  "id": "bank-loan-amount",
-  "parentId": "mortgage-repayment",
   "order": 34,
   "laws": [],
   "apps": [

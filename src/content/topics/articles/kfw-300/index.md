@@ -1,6 +1,5 @@
 ---
 {
-  "id": "kfw-300",
   "order": 0,
   "laws": [
     "kfw-300",
@@ -8,7 +7,9 @@
   ],
   "apps": [
     "housing"
-  ]
+  ],
+  "category": "home",
+  "categoryOrder": 1
 }
 ---
 

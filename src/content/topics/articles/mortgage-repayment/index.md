@@ -1,6 +1,5 @@
 ---
 {
-  "id": "mortgage-repayment",
   "order": 32,
   "laws": [],
   "apps": [
@@ -10,7 +9,9 @@
   "source": {
     "label": "Consumer information on home financing",
     "url": "https://www.verbraucherzentrale.de/wissen/geld-versicherungen/bau-und-immobilienfinanzierung"
-  }
+  },
+  "category": "home",
+  "categoryOrder": 0
 }
 ---
 

@@ -1,7 +1,5 @@
 ---
 {
-  "id": "solar-self-consumption",
-  "parentId": "solar",
   "order": 22,
   "laws": [
     "eeg-48"

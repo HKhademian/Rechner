@@ -1,7 +1,5 @@
 ---
 {
-  "id": "kfw-repayment-options",
-  "parentId": "mortgage-repayment",
   "order": 38,
   "laws": [
     "kfw-300"

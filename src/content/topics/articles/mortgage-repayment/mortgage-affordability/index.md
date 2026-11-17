@@ -1,7 +1,5 @@
 ---
 {
-  "id": "mortgage-affordability",
-  "parentId": "mortgage-repayment",
   "order": 39,
   "laws": [],
   "apps": [

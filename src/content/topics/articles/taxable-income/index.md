@@ -1,6 +1,5 @@
 ---
 {
-  "id": "taxable-income",
   "order": 3,
   "laws": [
     "estg-2",
@@ -12,7 +11,9 @@
     "kita",
     "commuter-allowance",
     "parental-leave"
-  ]
+  ],
+  "category": "tax",
+  "categoryOrder": 0
 }
 ---
 

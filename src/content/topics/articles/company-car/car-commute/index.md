@@ -1,7 +1,5 @@
 ---
 {
-  "id": "car-commute",
-  "parentId": "company-car",
   "order": 24,
   "laws": [
     "estg-8-2"

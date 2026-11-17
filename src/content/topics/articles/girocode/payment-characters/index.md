@@ -1,7 +1,5 @@
 ---
 {
-  "id": "payment-characters",
-  "parentId": "girocode",
   "order": 31,
   "laws": [],
   "apps": [

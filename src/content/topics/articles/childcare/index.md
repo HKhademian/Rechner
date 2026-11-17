@@ -1,6 +1,5 @@
 ---
 {
-  "id": "childcare",
   "order": 11,
   "laws": [
     "estg-10-1-5",
@@ -8,7 +7,9 @@
   ],
   "apps": [
     "kita"
-  ]
+  ],
+  "category": "family",
+  "categoryOrder": 3
 }
 ---
 

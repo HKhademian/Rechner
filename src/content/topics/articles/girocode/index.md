@@ -1,6 +1,5 @@
 ---
 {
-  "id": "girocode",
   "order": 19,
   "laws": [],
   "apps": [
@@ -9,7 +8,9 @@
   "source": {
     "label": "European Payments Council · About SEPA",
     "url": "https://www.europeanpaymentscouncil.eu/about-sepa"
-  }
+  },
+  "category": "payments",
+  "categoryOrder": 0
 }
 ---
 

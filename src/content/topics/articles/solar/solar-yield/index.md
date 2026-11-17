@@ -1,7 +1,5 @@
 ---
 {
-  "id": "solar-yield",
-  "parentId": "solar",
   "order": 21,
   "laws": [
     "eeg-48"

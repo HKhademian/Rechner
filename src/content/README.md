@@ -2,9 +2,8 @@
 
 The topic Markdown files supply the text used in search results, popups and full pages. The application bundles generated structured data and does not require a content server.
 
-- `topics/articles/`: each topic has its own directory with an `index.md`. A subtopic has its own directory inside its parent's directory; `parentId` must match the parent directory. The JSON front matter records stable IDs, display order, calculator and law links, and optional sources. The title and four text sections supply the page content.
-- `topics/topics.json`: generated from the Markdown files. Do not edit it directly.
-- `topics/categories.json`: the directory categories and the order of their top-level topic IDs.
+- `topics/articles/`: each topic has its own directory with an `index.md`. A subtopic has its own directory inside its parent's directory. The path supplies the topic ID and parent; JSON front matter records display order, category, calculator and law links, and optional sources. The title and four text sections supply the page content.
+- `topics/categories/`: one Markdown file per directory category, with its title, description and order. Top-level topic front matter assigns category membership and order.
 - `laws/laws.json`: law explanations, related laws and external source links, keyed by law ID.
 - `laws/groups.json`: explanations and members of law groups, keyed by group ID.
 

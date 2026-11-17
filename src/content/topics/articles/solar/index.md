@@ -1,6 +1,5 @@
 ---
 {
-  "id": "solar",
   "order": 10,
   "laws": [
     "eeg-48",
@@ -9,7 +8,9 @@
   ],
   "apps": [
     "solar-energy"
-  ]
+  ],
+  "category": "energy",
+  "categoryOrder": 0
 }
 ---
 

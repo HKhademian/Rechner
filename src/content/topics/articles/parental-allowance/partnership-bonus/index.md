@@ -1,7 +1,5 @@
 ---
 {
-  "id": "partnership-bonus",
-  "parentId": "parental-allowance",
   "order": 27,
   "laws": [
     "beeg-4b",

@@ -1,13 +1,14 @@
 ---
 {
-  "id": "opportunity-card",
   "order": 8,
   "laws": [
     "aufenthg-20a"
   ],
   "apps": [
     "visa"
-  ]
+  ],
+  "category": "residence",
+  "categoryOrder": 1
 }
 ---
 

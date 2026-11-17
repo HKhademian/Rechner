@@ -1,6 +1,5 @@
 ---
 {
-  "id": "joint-assessment",
   "order": 4,
   "laws": [
     "estg-26",
@@ -12,7 +11,9 @@
     "kita",
     "commuter-allowance",
     "parental-leave"
-  ]
+  ],
+  "category": "tax",
+  "categoryOrder": 1
 }
 ---
 

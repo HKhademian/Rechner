@@ -1,6 +1,5 @@
 ---
 {
-  "id": "commuting",
   "order": 13,
   "laws": [
     "estg-9-1-4",
@@ -9,7 +8,9 @@
   ],
   "apps": [
     "commuter-allowance"
-  ]
+  ],
+  "category": "work",
+  "categoryOrder": 2
 }
 ---
 

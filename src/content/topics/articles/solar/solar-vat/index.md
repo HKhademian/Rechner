@@ -1,7 +1,5 @@
 ---
 {
-  "id": "solar-vat",
-  "parentId": "solar",
   "order": 15,
   "laws": [
     "ustg-12-3"

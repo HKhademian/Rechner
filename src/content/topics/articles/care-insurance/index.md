@@ -1,6 +1,5 @@
 ---
 {
-  "id": "care-insurance",
   "order": 17,
   "laws": [
     "sgb11-55",
@@ -9,7 +8,9 @@
   "apps": [
     "net-pay",
     "minijob-midijob"
-  ]
+  ],
+  "category": "tax",
+  "categoryOrder": 3
 }
 ---
 

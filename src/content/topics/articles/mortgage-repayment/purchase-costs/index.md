@@ -1,7 +1,5 @@
 ---
 {
-  "id": "purchase-costs",
-  "parentId": "mortgage-repayment",
   "order": 33,
   "laws": [],
   "apps": [

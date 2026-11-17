@@ -1,7 +1,5 @@
 ---
 {
-  "id": "pension-exemption",
-  "parentId": "minijob",
   "order": 16,
   "laws": [
     "sgb6-158",

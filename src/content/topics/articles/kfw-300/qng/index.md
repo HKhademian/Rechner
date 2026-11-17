@@ -1,7 +1,5 @@
 ---
 {
-  "id": "qng",
-  "parentId": "kfw-300",
   "order": 2,
   "laws": [
     "kfw-300"

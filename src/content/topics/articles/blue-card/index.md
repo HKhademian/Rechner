@@ -1,6 +1,5 @@
 ---
 {
-  "id": "blue-card",
   "order": 7,
   "laws": [
     "aufenthg-18g",
@@ -8,7 +7,9 @@
   ],
   "apps": [
     "visa"
-  ]
+  ],
+  "category": "residence",
+  "categoryOrder": 0
 }
 ---
 

@@ -1,6 +1,5 @@
 ---
 {
-  "id": "tax-class",
   "order": 5,
   "laws": [
     "estg-38b",
@@ -11,7 +10,9 @@
     "net-pay",
     "minijob-midijob",
     "parental-leave"
-  ]
+  ],
+  "category": "tax",
+  "categoryOrder": 2
 }
 ---
 

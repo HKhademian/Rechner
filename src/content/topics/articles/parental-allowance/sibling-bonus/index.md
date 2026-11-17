@@ -1,7 +1,5 @@
 ---
 {
-  "id": "sibling-bonus",
-  "parentId": "parental-allowance",
   "order": 28,
   "laws": [
     "beeg-2a"

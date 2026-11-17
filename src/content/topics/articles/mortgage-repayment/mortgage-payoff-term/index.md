@@ -1,7 +1,5 @@
 ---
 {
-  "id": "mortgage-payoff-term",
-  "parentId": "mortgage-repayment",
   "order": 36,
   "laws": [],
   "apps": [

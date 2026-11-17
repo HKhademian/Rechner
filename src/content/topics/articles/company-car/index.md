@@ -1,6 +1,5 @@
 ---
 {
-  "id": "company-car",
   "order": 9,
   "laws": [
     "estg-6-1-4",
@@ -8,7 +7,9 @@
   ],
   "apps": [
     "company-car"
-  ]
+  ],
+  "category": "work",
+  "categoryOrder": 1
 }
 ---
 

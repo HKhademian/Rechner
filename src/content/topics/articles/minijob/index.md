@@ -1,6 +1,5 @@
 ---
 {
-  "id": "minijob",
   "order": 12,
   "laws": [
     "sgb4-20",
@@ -9,7 +8,9 @@
   ],
   "apps": [
     "minijob-midijob"
-  ]
+  ],
+  "category": "work",
+  "categoryOrder": 0
 }
 ---
 

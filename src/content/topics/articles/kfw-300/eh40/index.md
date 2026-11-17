@@ -1,7 +1,5 @@
 ---
 {
-  "id": "eh40",
-  "parentId": "kfw-300",
   "order": 1,
   "laws": [
     "kfw-300"
