@@ -1,6 +1,7 @@
 import {
   AppId,
   calculatorPath,
+  sitePath,
 } from "#/apps/appDefinition.ts";
 import type {
   JSX,
@@ -24,10 +25,11 @@ export default function Calculator(): JSX.Element {
       <PageHeader
         eyebrow="Salary & Payroll"
         title="Net Pay Calculator"
-        subtitle="Edit your live salary and household setup beside saved scenarios to compare take-home pay side by side."
+        subtitle="Compare take-home pay across salary and household scenarios."
         actions={<CalculatorPeriodControl />}
       />
       <ComparisonTable />
+      <p>Explore <a href={sitePath("/topics/taxable-income/")}>taxable income</a>, <a href={sitePath("/formulas/")}>formulas</a>, and <a href={sitePath("/constants/")}>rates and assumptions</a>.</p>
       <ParameterObserverSection embedded projectionProfile={FormProjectionProfileId.NetPayFocus} />
     </AppShell>
   );

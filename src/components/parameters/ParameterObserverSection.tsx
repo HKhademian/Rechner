@@ -1,3 +1,6 @@
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
 import "./ParameterObserverSection.css";
 import {
   AuditInspectionIcon,
@@ -337,7 +340,7 @@ export default function ParameterObserverSection({
                 <article key={def.id} className="parameter-observer__row">
                   <div className="parameter-observer__row-info">
                     <div className="parameter-observer__row-header">
-                      <strong>{def.label}</strong>
+                      <strong><a href={sitePath(`/constants/${def.id}/`)}>{def.label}</a></strong>
                       <span className="parameter-observer__domain-pill">
                         {PARAMETER_DOMAIN_LABELS[def.domain]}
                       </span>

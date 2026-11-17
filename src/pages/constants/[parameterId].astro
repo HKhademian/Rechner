@@ -1,0 +1,16 @@
+---
+import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  ConstantPage,
+} from "#components/reference/ReferencePages";
+import {
+  getAllParameterDefinitions,
+} from "#engine/parameters/registry";
+export function getStaticPaths() {
+  return getAllParameterDefinitions().map((parameter) => ({ params: { parameterId: parameter.id }, props: { parameter } }));
+}
+const { parameter } = Astro.props;
+---
+<BaseDocument title={`${parameter.label} | Rechner`} description={parameter.description}>
+  <ConstantPage client:load id={parameter.id} />
+</BaseDocument>

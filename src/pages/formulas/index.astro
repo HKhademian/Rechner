@@ -1,0 +1,9 @@
+---
+import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  FormulaDirectory,
+} from "#components/reference/ReferencePages";
+---
+<BaseDocument title="Formulas | Rechner" description="Explore selected calculations.">
+  <FormulaDirectory client:load />
+</BaseDocument>

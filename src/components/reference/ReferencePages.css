@@ -1,0 +1,34 @@
+.reference-page {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.reference-page h1,
+.reference-page h2,
+.reference-page p {
+  margin: 0;
+}
+
+.reference-page section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.reference-page h2 {
+  font-size: 1.1rem;
+}
+
+.reference-page ul {
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.reference-page li {
+  margin-block: 0.4rem;
+}
+
+.reference-page code {
+  overflow-wrap: anywhere;
+}
