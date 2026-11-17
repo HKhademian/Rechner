@@ -295,3 +295,16 @@
     display: none;
   }
 }
+
+.comparison-scroll-hint {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .comparison-scroll-hint {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin: 0 0 8px;
+  }
+}

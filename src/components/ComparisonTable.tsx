@@ -1188,6 +1188,9 @@ export function ComparisonTableContent(): JSX.Element {
         </div>
       )}
 
+      {savedScenarios.value.length > 0 && showSavedComparison.value && (
+        <p className="comparison-scroll-hint">Swipe horizontally to see saved scenarios.</p>
+      )}
       <div className="ui-card comparison-table-card">
         <div className="comparison-scroll" style={{ overflowX: "auto" }}>
           <table
