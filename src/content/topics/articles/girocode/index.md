@@ -27,4 +27,4 @@ The code does not send money or verify the recipient. Check the details in your 
 
 ## In the calculators
 
-The generator creates a payment code locally from the entered transfer details. It does not submit the transfer.
+The [GiroCode Generator](rechner://app/girocode) creates a payment code locally from the entered transfer details. It does not submit the transfer.
