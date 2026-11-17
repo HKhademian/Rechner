@@ -57,6 +57,10 @@ function readArticle(path: string) {
     throw new Error(`Invalid topic metadata: ${path}`);
   }
   const data = metadata as Record<string, unknown>;
+  const allowedKeys = new Set(["order", "explainedBy", "usedBy", "related", "source", "category", "categoryOrder"]);
+  if (Object.keys(data).some((key) => !allowedKeys.has(key))) {
+    throw new Error(`Unknown topic metadata field: ${path}`);
+  }
   const segments = relative(articles, path).split(sep);
   if ((segments.length !== 2 && segments.length !== 3) || segments.at(-1) !== "index.md") {
     throw new Error(`Invalid topic path: ${path}`);

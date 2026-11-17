@@ -34,6 +34,10 @@ const relationTypes = {
 } as const;
 
 function lawMetadata(metadata: Record<string, unknown>, path: string): Record<string, unknown> {
+  const allowedKeys = new Set(["citation", "code", "section", "tags", "group", "externalSources", ...Object.keys(relationTypes)]);
+  if (Object.keys(metadata).some((key) => !allowedKeys.has(key))) {
+    throw new Error(`Unknown law metadata field in ${path}`);
+  }
   const { group, ...rest } = metadata;
   const related = new Map<string, { relationType: string;
     description?: string }>();
@@ -73,6 +77,10 @@ function lawMetadata(metadata: Record<string, unknown>, path: string): Record<st
 }
 
 function groupMetadata(metadata: Record<string, unknown>, path: string): Record<string, unknown> {
+  const allowedKeys = new Set(["citationLabel", "tags", "primaryLaw", "includes"]);
+  if (Object.keys(metadata).some((key) => !allowedKeys.has(key))) {
+    throw new Error(`Unknown law group metadata field in ${path}`);
+  }
   const { primaryLaw, includes, ...rest } = metadata;
   if (!Array.isArray(includes)) {
     throw new Error(`Invalid group members in ${path}`);
