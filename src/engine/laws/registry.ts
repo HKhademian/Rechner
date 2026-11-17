@@ -1,5 +1,5 @@
-import lawContent from "#/content/laws/laws.json" with { type: "json" };
-import groupContent from "#/content/laws/groups.json" with { type: "json" };
+import lawContent from "../../../.generated/laws.json" with { type: "json" };
+import groupContent from "../../../.generated/law-groups.json" with { type: "json" };
 import {
   toSourceUrl, 
 } from "#engine/config/benefitRules";

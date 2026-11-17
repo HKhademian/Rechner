@@ -4,8 +4,8 @@ The topic Markdown files supply the text used in search results, popups and full
 
 - `topics/articles/`: each topic has its own directory with an `index.md`. A subtopic has its own directory inside its parent's directory. The path supplies the topic ID and parent; JSON front matter records display order, category, calculator and law links, and optional sources. The title and four text sections supply the page content.
 - `topics/categories/`: one Markdown file per directory category, with its title, description and order. Top-level topic front matter assigns category membership and order.
-- `laws/laws.json`: law explanations, related laws and external source links, keyed by law ID.
-- `laws/groups.json`: explanations and members of law groups, keyed by group ID.
+- `laws/articles/`: one directory per law, with an `index.md` for its explanation and reference metadata.
+- `laws/groups/`: one directory per law group, with its explanation and membership in `index.md`.
 
 Keep existing IDs stable when editing text: calculators, other content and bookmarked links refer to them. Law, law-group and calculator IDs must match their definitions in the application; adding a new one also requires a corresponding definition. Check the cited official sources when changing a legal explanation.
 
@@ -18,4 +18,4 @@ Use inline Markdown links in the section text to connect explanations:
 
 These `rechner://` targets are content identifiers; the app renders them as its normal components and web URLs. The generator validates target IDs, but section anchors must be checked on their destination pages. JSON metadata continues to define indexing and related references independently. Other rich Markdown formatting is not rendered yet.
 
-After editing an article, run `npm run content:topics` to refresh the generated file (or restart the development server). `npm run build` also refreshes it. Run `npm run check`; the checks verify that generated content is current and cover references, topic hierarchy and category membership.
+After editing content, run `npm run content:all` to refresh the disposable `.generated/` build cache (or restart the development server). Builds and standard checks also refresh it. Run `npm run check`; the checks cover references, topic hierarchy and category membership.

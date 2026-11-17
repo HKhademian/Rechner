@@ -1,0 +1,42 @@
+---
+{
+  "order": 48,
+  "citation": "§ 2 BVV",
+  "code": "BVV",
+  "section": "§ 2",
+  "tags": [
+    "payroll",
+    "insurance"
+  ],
+  "groupId": "group-sgb-social-security",
+  "relatedLaws": {
+    "sgb5-241": {
+      "relationType": "implements",
+      "description": "Governs cent rounding for § 241 SGB V health contributions."
+    },
+    "sgb4-23a": {
+      "relationType": "implements",
+      "description": "Applies to one-off bonus social contribution bases."
+    }
+  },
+  "externalSources": {
+    "gesetze_im_internet": {
+      "url": "https://www.gesetze-im-internet.de/beitrvv/BJNR113800006.html",
+      "label": "§ 2 BVV Statutory Text",
+      "description": "Official contribution procedure and rounding ordinance."
+    }
+  }
+}
+---
+
+# Social Contribution Rounding Rules
+
+Requires calculating and rounding general health contributions and the insurer Zusatzbeitrag separately to cents before summing.
+
+## Benefit
+
+Ensures payroll cent parity with certified German payroll engines.
+
+## Limitation
+
+Tiny 1-cent rounding differences can occur if rates are summed before multiplying the base.
