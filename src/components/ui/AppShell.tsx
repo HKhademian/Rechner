@@ -8,8 +8,8 @@ import {
   calculatorAtPath, 
 } from "#/apps/registry.ts";
 import {
-  sitePath, 
-} from "#/apps/appDefinition.ts";
+  topicPath, 
+} from "#utils/topicPath";
 import {
   topics, 
 } from "#engine/topics/registry";
@@ -52,7 +52,7 @@ export function AppShell({
         {children}
         {relatedTopics.length > 0 && <section className="ui-related-topics" aria-label="Related explanations">
           <h2>Related explanations</h2>
-          <ul>{relatedTopics.map((topic) => <li key={topic.id}><a href={sitePath(`/topics/${topic.id}/`)}>{topic.title}</a></li>)}</ul>
+          <ul>{relatedTopics.map((topic) => <li key={topic.id}><a href={topicPath(topic.id)}>{topic.title}</a></li>)}</ul>
         </section>}
       </main>
       <footer className="ui-app-footer source-revision-footer">

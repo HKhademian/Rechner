@@ -1,6 +1,6 @@
 import {
-  sitePath,
-} from "#/apps/appDefinition.ts";
+  topicPath, 
+} from "#utils/topicPath";
 import {
   InformationalNoticeIcon,
 } from "#components/Icons";
@@ -33,7 +33,7 @@ export function TopicHelp({ id }: { readonly id: string }): JSX.Element | null {
   if (!topic) {
     return null;
   }
-  const href = sitePath(`/topics/${topic.id}/`);
+  const href = topicPath(topic.id);
   return <><a className="topic-help" href={href} title={`Explain ${topic.title}`} aria-label={`Explain ${topic.title}`}
     onClick={(event) => {
       if (!isPlainPrimaryClick(event)) {

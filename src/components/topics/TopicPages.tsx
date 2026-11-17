@@ -4,8 +4,13 @@ import {
   getSubtopics,
   getTopic,
   searchTopics,
-  topics,
 } from "#engine/topics/registry";
+import {
+  getRelatedTopics, 
+} from "#engine/topics/navigation";
+import {
+  topicPath, 
+} from "#utils/topicPath";
 import {
   topicCategories,
 } from "#engine/topics/categories";
@@ -17,7 +22,6 @@ import {
 } from "#/apps/registry.ts";
 import {
   calculatorPath,
-  sitePath,
 } from "#/apps/appDefinition.ts";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
@@ -29,10 +33,6 @@ import {
 import type {
   JSX,
 } from "preact";
-
-export function topicPath(id?: string): string {
-  return sitePath(id ? `/topics/${id}/` : "/topics/");
-}
 
 export function TopicDirectory(): JSX.Element {
   const [query, setQuery] = useState("");
@@ -60,7 +60,7 @@ export function TopicDirectory(): JSX.Element {
             {categoryTopics.map((topic) => <article className="ui-card" key={topic.id}>
               <h3><a href={topicPath(topic.id)}>{topic.title}</a></h3>
               <p>{topic.description}</p>
-              {!search && getSubtopics(topic.id).length > 0 && <p className="topic-subtopic-count">{getSubtopics(topic.id).length} related {getSubtopics(topic.id).length === 1 ? "explanation" : "explanations"}</p>}
+              {!search && getSubtopics(topic.id).length > 0 && <p className="topic-subtopic-count">{getSubtopics(topic.id).length} {getSubtopics(topic.id).length === 1 ? "subtopic" : "subtopics"}</p>}
               {search && getSubtopics(topic.id).some((child) => `${child.title} ${child.description}`.toLowerCase().includes(search)) && <ul aria-label={`Matching subtopics for ${topic.title}`}>
                 {getSubtopics(topic.id).filter((child) => `${child.title} ${child.description}`.toLowerCase().includes(search)).map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}
               </ul>}
@@ -79,7 +79,7 @@ export function TopicPage({ topic }: { readonly topic: Topic }): JSX.Element {
   const category = topicCategories.find((item) => item.topicIds.some((id) => id === overview.id));
   const siblings = getSubtopics(overview.id);
   const children = getSubtopics(topic.id);
-  const related = topics.filter((other) => !other.parentId && other.id !== topic.id && other.laws.some((law) => topic.laws.includes(law)));
+  const related = getRelatedTopics(topic);
   return <AppShell currentPath={topicPath(topic.id)}>
     <div className="topic-layout">
       <nav aria-label="Topic navigation" className="topic-navigation">
@@ -91,7 +91,7 @@ export function TopicPage({ topic }: { readonly topic: Topic }): JSX.Element {
         <a href={topicPath(parent?.id)}>{parent ? `← ${parent.title}` : "← All topics"}</a>
         <h1>{topic.title}</h1>
         <p>{topic.description}</p>
-        {children.length > 0 && <section className="ui-card"><h2>Explore this topic</h2>
+        {children.length > 0 && <section className="ui-card"><h2>Subtopics</h2>
           <ul>{children.map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}</ul>
         </section>}
         <section className="ui-card"><h2>Potential benefit</h2><p>{topic.benefit}</p></section>

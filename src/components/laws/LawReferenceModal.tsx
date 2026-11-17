@@ -1,7 +1,9 @@
 import "./LawReferenceModal.css";
 import {
+  topicPath, 
+} from "#utils/topicPath";
+import {
   lawDetailPath,
-  sitePath,
 } from "#/apps/appDefinition.ts";
 import {
   CloseIcon,
@@ -171,7 +173,7 @@ export default function LawReferenceModal(): JSX.Element | null {
             <h3>{modalState.context.title}</h3>
             <p>{modalState.context.description}</p>
             <p><strong>In this calculator:</strong> {modalState.context.calculatorEffect}</p>
-            {modalState.context.topicId && <a href={sitePath(`/topics/${modalState.context.topicId}/`)}>Explore this topic →</a>}
+            {modalState.context.topicId && <a href={topicPath(modalState.context.topicId)}>Explore this topic →</a>}
           </section>}
           <p className="law-reference-dialog__summary">{entry.summary}</p>
 
@@ -201,7 +203,7 @@ export default function LawReferenceModal(): JSX.Element | null {
           {topicsForLaw(entry.id).length > 0 && <div className="law-reference-dialog__crossrefs">
             <span className="law-reference-dialog__micro-label">Understand topics:</span>
             <div className="law-reference-dialog__chips">
-              {topicsForLaw(entry.id).map((topic) => <a className="law-reference-dialog__chip" href={sitePath(`/topics/${topic.id}/`)} key={topic.id}>{topic.title}</a>)}
+              {topicsForLaw(entry.id).map((topic) => <a className="law-reference-dialog__chip" href={topicPath(topic.id)} key={topic.id}>{topic.title}</a>)}
             </div>
           </div>}
           {entry.tags.length > 0 && (

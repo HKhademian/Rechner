@@ -7,6 +7,9 @@ import {
   getTopic,
   topics,
 } from "#engine/topics/registry";
+import {
+  topicPath,
+} from "#utils/topicPath";
 
 export function getStaticPaths() {
   return topics.map((topic) => ({ params: { topicId: topic.id } }));
@@ -14,6 +17,9 @@ export function getStaticPaths() {
 const topic = getTopic(Astro.params.topicId ?? "");
 if (!topic) {
   throw new Error("Unknown topic");
+}
+if (topic.parentId) {
+  return Astro.redirect(topicPath(topic.id), 301);
 }
 ---
 <BaseDocument title={`${topic.title} | Rechner`} description={topic.description}>
