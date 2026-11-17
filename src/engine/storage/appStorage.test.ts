@@ -280,3 +280,111 @@ it("backs up and restores all active calculator data and rejects invalid backups
     }
   }
 });
+
+it("exports readable values and imports both structured and original backups losslessly", () => {
+  const local = browserStorage(new Map<string, string>());
+  const session = browserStorage(new Map<string, string>());
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window")?.value;
+  Object.defineProperty(globalThis, "window", { configurable: true,
+    value: { localStorage: local,
+      sessionStorage: session } });
+  try {
+    assert.equal(setStorageMode(StorageMode.Session), true);
+    const storage = browserAppStorage(AppId.NetPay);
+    storage.setItem("grossIncome", "42000");
+    storage.setItem("hasPartner", "true");
+    storage.setItem("savedScenarios", JSON.stringify([{ name: "Family",
+      values: [1, 2] }]));
+    storage.setItem("theme", "light");
+    storage.setItem("noncanonical", '{ "amount": 3 }');
+    const sharedKey = "rechner:shared:parameters:v1";
+    session.setItem(sharedKey, '{"year":2026,"overrides":{}}');
+    const grossKey = appStorageKey(AppId.NetPay, "grossIncome");
+    const scenarioKey = appStorageKey(AppId.NetPay, "savedScenarios");
+    const themeKey = appStorageKey(AppId.NetPay, "theme");
+    const originalGross = session.getItem(grossKey);
+    const legacyBackup = JSON.stringify({ format: "rechner-backup",
+      version: 1,
+      entries: {
+        [grossKey]: originalGross,
+        [scenarioKey]: session.getItem(scenarioKey),
+        [sharedKey]: session.getItem(sharedKey),
+      } });
+    const backup = exportAllData();
+    const parsed = JSON.parse(backup);
+    assert.equal(parsed.version, 2);
+    assert.equal(parsed.entries[grossKey].value, 42000);
+    assert.equal(parsed.entries[appStorageKey(AppId.NetPay, "hasPartner")].value, true);
+    assert.deepEqual(parsed.entries[scenarioKey].value, [{ name: "Family",
+      values: [1, 2] }]);
+    assert.equal(parsed.entries[themeKey].value, "light");
+    assert.equal(parsed.entries[themeKey].kind, "envelope");
+    assert.deepEqual(parsed.entries[sharedKey].value, { year: 2026,
+      overrides: {} });
+    assert.equal(parsed.entries[appStorageKey(AppId.NetPay, "noncanonical")].value, '{ "amount": 3 }');
+    assert.equal(parsed.entries[appStorageKey(AppId.NetPay, "noncanonical")].encoding, "text");
+
+    parsed.entries[grossKey].value = 42001;
+    assert.throws(() => importAllData(JSON.stringify(parsed)));
+    assert.equal(storage.getItem("grossIncome"), "42000");
+    importAllData(backup);
+    assert.equal(storage.getItem("grossIncome"), "42000");
+    assert.equal(storage.getItem("savedScenarios"), '[{"name":"Family","values":[1,2]}]');
+    assert.equal(storage.getItem("noncanonical"), '{ "amount": 3 }');
+    assert.equal(session.getItem(grossKey), originalGross);
+    storage.setItem("grossIncome", "99");
+    importAllData(legacyBackup);
+    assert.equal(storage.getItem("grossIncome"), "42000");
+    assert.equal(storage.getItem("savedScenarios"), '[{"name":"Family","values":[1,2]}]');
+    assert.equal(session.getItem(sharedKey), '{"year":2026,"overrides":{}}');
+  }
+  finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+    else {
+      Object.defineProperty(globalThis, "window", { configurable: true,
+        value: previousWindow });
+    }
+  }
+});
+
+it("rolls back structured imports if browser storage rejects a write", () => {
+  const local = browserStorage(new Map<string, string>());
+  const backing = browserStorage(new Map<string, string>());
+  let failKey: string | null = null;
+  const session = { ...backing,
+    get length() {
+      return backing.length; 
+    },
+    setItem(key: string, value: string) {
+      if (key === failKey) {
+        failKey = null;
+        throw new Error("quota");
+      }
+      backing.setItem(key, value);
+    } };
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window")?.value;
+  Object.defineProperty(globalThis, "window", { configurable: true,
+    value: { localStorage: local,
+      sessionStorage: session } });
+  try {
+    assert.equal(setStorageMode(StorageMode.Session), true);
+    const storage = browserAppStorage(AppId.NetPay);
+    storage.setItem("grossIncome", "12345");
+    const backup = exportAllData();
+    storage.setItem("grossIncome", "67890");
+    failKey = appStorageKey(AppId.NetPay, "grossIncome");
+    assert.throws(() => importAllData(backup));
+    assert.equal(storage.getItem("grossIncome"), "67890");
+  }
+  finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+    else {
+      Object.defineProperty(globalThis, "window", { configurable: true,
+        value: previousWindow });
+    }
+  }
+});

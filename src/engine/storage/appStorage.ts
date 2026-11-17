@@ -730,10 +730,74 @@ const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parame
 
 type BackupEntries = Record<string, string>;
 
-/** Collects the active calculator data and shared settings in a portable format. */
+const BackupValueEncoding = { Json: "json",
+  Text: "text" } as const;
+type BackupValueEncoding = (typeof BackupValueEncoding)[keyof typeof BackupValueEncoding];
+
+interface ReadableValue {
+  readonly encoding: BackupValueEncoding;
+  readonly value: unknown;
+}
+
+/** Decode only canonical JSON so importing reconstructs the exact hashed value. */
+function readableValue(raw: string): ReadableValue {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (JSON.stringify(parsed) === raw) {
+      return { encoding: BackupValueEncoding.Json,
+        value: parsed };
+    }
+  }
+  catch {
+    // Plain text and noncanonical JSON must remain byte-for-byte recoverable.
+  }
+  return { encoding: BackupValueEncoding.Text,
+    value: raw };
+}
+
+function storedValue(value: unknown): string {
+  if (typeof value !== "object" || value === null || Array.isArray(value)
+    || !("encoding" in value) || !("value" in value)) {
+    throw new Error("The backup contains an invalid value.");
+  }
+  if (value.encoding === BackupValueEncoding.Text && typeof value.value === "string") {
+    return value.value;
+  }
+  if (value.encoding === BackupValueEncoding.Json) {
+    const serialized = JSON.stringify(value.value);
+    if (serialized !== undefined) {
+      return serialized;
+    }
+  }
+  throw new Error("The backup contains an invalid value encoding.");
+}
+
+function exportEntry(raw: string, isApp: boolean): object {
+  const decoded = isApp ? deserializeStorageValue(raw) : null;
+  if (decoded?.status === DecodedStorageStatus.Invalid) {
+    throw new Error("A stored value failed its integrity check.");
+  }
+  if (decoded?.status === DecodedStorageStatus.Valid && decoded.value !== undefined) {
+    const envelope: StorageValueEnvelope = JSON.parse(raw);
+    return {
+      kind: "envelope",
+      format: envelope.format,
+      version: envelope.version,
+      timestamp: envelope.timestamp,
+      applicationVersion: envelope.applicationVersion,
+      applicationReleaseHash: envelope.applicationReleaseHash,
+      hash: envelope.hash,
+      ...readableValue(envelope.value),
+    };
+  }
+  return { kind: "raw",
+    ...readableValue(raw) };
+}
+
+/** Collect active calculator data in readable JSON without losing storage metadata. */
 export function exportAllData(): string {
   const mode = getStorageMode();
-  const entries: BackupEntries = {};
+  const entries: Record<string, object> = {};
   for (const app of Object.values(Apps)) {
     const storage = rawStorageForMode(app, mode);
     if (!storage) {
@@ -742,7 +806,7 @@ export function exportAllData(): string {
     for (const key of appDataKeys(storage, app)) {
       const value = storage.getItem(key);
       if (value !== null) {
-        entries[key] = value;
+        entries[key] = exportEntry(value, true);
       }
     }
   }
@@ -750,30 +814,60 @@ export function exportAllData(): string {
   for (const key of sharedBackupKeys) {
     const value = shared?.getItem(key);
     if (value !== null && value !== undefined) {
-      entries[key] = value;
+      entries[key] = exportEntry(value, false);
     }
   }
   return JSON.stringify({ format: backupFormat,
-    version: 1,
+    version: 2,
     entries }, null, 2);
+}
+
+function importReadableEntry(value: unknown, isApp: boolean): string {
+  if (typeof value !== "object" || value === null || Array.isArray(value) || !("kind" in value)) {
+    throw new Error("The backup contains an invalid entry.");
+  }
+  const decoded = storedValue(value);
+  if (value.kind === "raw") {
+    return decoded;
+  }
+  if (value.kind === "envelope" && isApp
+    && "format" in value && "version" in value && "timestamp" in value
+    && "applicationVersion" in value && "applicationReleaseHash" in value && "hash" in value) {
+    const serialized = JSON.stringify({
+      format: value.format,
+      version: value.version,
+      timestamp: value.timestamp,
+      applicationVersion: value.applicationVersion,
+      applicationReleaseHash: value.applicationReleaseHash,
+      value: decoded,
+      hash: value.hash,
+    });
+    if (deserializeStorageValue(serialized).status === DecodedStorageStatus.Valid) {
+      return serialized;
+    }
+  }
+  throw new Error("The backup contains an invalid or changed storage record.");
 }
 
 function parseBackup(serialized: string): BackupEntries {
   const parsed: unknown = JSON.parse(serialized);
   if (typeof parsed !== "object" || parsed === null || !("format" in parsed) || parsed.format !== backupFormat
-    || !("version" in parsed) || parsed.version !== 1 || !("entries" in parsed)
+    || !("version" in parsed) || (parsed.version !== 1 && parsed.version !== 2) || !("entries" in parsed)
     || typeof parsed.entries !== "object" || parsed.entries === null || Array.isArray(parsed.entries)) {
     throw new Error("This is not a supported Rechner backup.");
   }
   const entries: BackupEntries = {};
   for (const [key, value] of Object.entries(parsed.entries)) {
     const app = Object.values(Apps).find((id) => key.startsWith(`rechner:${id}:v1:`));
-    if (typeof value !== "string" || (!app && !sharedBackupKeys.includes(key))
-      || (app && (key.endsWith(":legacy-migrated") || key.endsWith(":envelopes-v1-migrated")
-        || deserializeStorageValue(value).status === DecodedStorageStatus.Invalid))) {
+    if ((!app && !sharedBackupKeys.includes(key))
+      || (app && (key.endsWith(":legacy-migrated") || key.endsWith(":envelopes-v1-migrated")))) {
       throw new Error("The backup contains invalid data.");
     }
-    entries[key] = value;
+    const raw = parsed.version === 2 ? importReadableEntry(value, Boolean(app)) : value;
+    if (typeof raw !== "string" || (app && deserializeStorageValue(raw).status === DecodedStorageStatus.Invalid)) {
+      throw new Error("The backup contains invalid data.");
+    }
+    entries[key] = raw;
   }
   return entries;
 }
