@@ -152,7 +152,7 @@
     "description": "Private use of an employer-provided car can be treated as a taxable non-cash benefit. Valuation can depend on the car and commuting method.",
     "benefit": "Eligible electric vehicles may use reduced valuation rates under applicable rules.",
     "limitation": "Actual payroll treatment depends on vehicle eligibility, use and the chosen valuation method; a taxable benefit is not the same as cash received.",
-    "calculatorEffect": "The tool estimates the taxable amount and applies the entered marginal rate to approximate net cost.",
+    "calculatorEffect": "The [Company Car Calculator](rechner://app/company-car) estimates the taxable amount and applies the entered marginal rate to approximate net cost.",
     "laws": [
       "estg-6-1-4",
       "estg-8-2"

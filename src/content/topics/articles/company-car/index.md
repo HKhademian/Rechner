@@ -26,4 +26,4 @@ Actual payroll treatment depends on vehicle eligibility, use and the chosen valu
 
 ## In the calculators
 
-The tool estimates the taxable amount and applies the entered marginal rate to approximate net cost.
+The [Company Car Calculator](rechner://app/company-car) estimates the taxable amount and applies the entered marginal rate to approximate net cost.
