@@ -18,7 +18,10 @@
     "#/*": "./src/*"
   },
   "scripts": {
+    "content:topics": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 node src/cli/topicContent.ts",
+    "predev": "npm run content:topics",
     "dev": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro dev",
+    "prebuild": "npm run content:topics",
     "build": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro preview",
     "astro": "ASTRO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 astro",
