@@ -120,10 +120,10 @@
   {
     "id": "blue-card",
     "title": "EU Blue Card",
-    "description": "The EU Blue Card is a residence permit for qualifying skilled employment, with requirements that depend on the applicant and job.",
+    "description": "The [EU Blue Card](rechner://law/aufenthg-18g) is a residence permit for qualifying skilled employment, with requirements that depend on the applicant and job.",
     "benefit": "It provides a route to work and residence in Germany and may offer a route to settlement subject to additional conditions.",
     "limitation": "Recognition, occupation, salary and other requirements must be checked with the responsible authority; different thresholds can apply.",
-    "calculatorEffect": "The visa tool compares the supplied salary and occupation track with modeled thresholds; it does not decide permit eligibility.",
+    "calculatorEffect": "The [EU Blue Card & Visa Planner](rechner://app/visa) compares the supplied salary and occupation track with modeled thresholds; it does not decide permit eligibility.",
     "laws": [
       "aufenthg-18g",
       "aufenthg-18c"

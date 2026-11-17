@@ -14,7 +14,7 @@
 
 # EU Blue Card
 
-The EU Blue Card is a residence permit for qualifying skilled employment, with requirements that depend on the applicant and job.
+The [EU Blue Card](rechner://law/aufenthg-18g) is a residence permit for qualifying skilled employment, with requirements that depend on the applicant and job.
 
 ## Potential benefit
 
@@ -26,4 +26,4 @@ Recognition, occupation, salary and other requirements must be checked with the 
 
 ## In the calculators
 
-The visa tool compares the supplied salary and occupation track with modeled thresholds; it does not decide permit eligibility.
+The [EU Blue Card & Visa Planner](rechner://app/visa) compares the supplied salary and occupation track with modeled thresholds; it does not decide permit eligibility.
