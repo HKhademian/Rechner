@@ -1,16 +1,16 @@
 ---
 {
   "order": 12,
-  "laws": [
-    "sgb4-20",
-    "sgb6-158",
-    "sgb11-55"
+  "categoryOrder": 0,
+  "explainedBy": [
+    "rechner://law/sgb4-20",
+    "rechner://law/sgb6-158",
+    "rechner://law/sgb11-55"
   ],
-  "apps": [
-    "minijob-midijob"
+  "usedBy": [
+    "rechner://app/minijob-midijob"
   ],
-  "category": "work",
-  "categoryOrder": 0
+  "category": "rechner://category/work"
 }
 ---
 

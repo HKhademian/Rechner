@@ -1,11 +1,11 @@
 ---
 {
   "order": 38,
-  "laws": [
-    "kfw-300"
+  "explainedBy": [
+    "rechner://law/kfw-300"
   ],
-  "apps": [
-    "mortgage"
+  "usedBy": [
+    "rechner://app/mortgage"
   ]
 }
 ---

@@ -1,11 +1,11 @@
 ---
 {
   "order": 1,
-  "laws": [
-    "kfw-300"
+  "explainedBy": [
+    "rechner://law/kfw-300"
   ],
-  "apps": [
-    "housing"
+  "usedBy": [
+    "rechner://app/housing"
   ]
 }
 ---

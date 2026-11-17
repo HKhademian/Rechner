@@ -1,17 +1,17 @@
 ---
 {
   "order": 6,
-  "laws": [
-    "beeg-1",
-    "beeg-2",
-    "beeg-4",
-    "beeg-4b"
+  "categoryOrder": 0,
+  "explainedBy": [
+    "rechner://law/beeg-1",
+    "rechner://law/beeg-2",
+    "rechner://law/beeg-4",
+    "rechner://law/beeg-4b"
   ],
-  "apps": [
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/parental-leave"
   ],
-  "category": "family",
-  "categoryOrder": 0
+  "category": "rechner://category/family"
 }
 ---
 

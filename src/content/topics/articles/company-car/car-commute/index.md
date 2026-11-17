@@ -1,11 +1,11 @@
 ---
 {
   "order": 24,
-  "laws": [
-    "estg-8-2"
+  "explainedBy": [
+    "rechner://law/estg-8-2"
   ],
-  "apps": [
-    "company-car"
+  "usedBy": [
+    "rechner://app/company-car"
   ]
 }
 ---

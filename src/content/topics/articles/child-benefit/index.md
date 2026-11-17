@@ -1,18 +1,18 @@
 ---
 {
   "order": 30,
-  "laws": [
-    "estg-31",
-    "estg-32",
-    "estg-62",
-    "estg-66"
+  "categoryOrder": 2,
+  "explainedBy": [
+    "rechner://law/estg-31",
+    "rechner://law/estg-32",
+    "rechner://law/estg-62",
+    "rechner://law/estg-66"
   ],
-  "apps": [
-    "net-pay",
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/net-pay",
+    "rechner://app/parental-leave"
   ],
-  "category": "family",
-  "categoryOrder": 2
+  "category": "rechner://category/family"
 }
 ---
 

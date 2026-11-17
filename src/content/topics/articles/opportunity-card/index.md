@@ -1,14 +1,14 @@
 ---
 {
   "order": 8,
-  "laws": [
-    "aufenthg-20a"
+  "categoryOrder": 1,
+  "explainedBy": [
+    "rechner://law/aufenthg-20a"
   ],
-  "apps": [
-    "visa"
+  "usedBy": [
+    "rechner://app/visa"
   ],
-  "category": "residence",
-  "categoryOrder": 1
+  "category": "rechner://category/residence"
 }
 ---
 

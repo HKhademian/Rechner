@@ -1,18 +1,18 @@
 ---
 {
   "order": 5,
-  "laws": [
-    "estg-38b",
-    "estg-39f",
-    "beeg-2b"
+  "categoryOrder": 2,
+  "explainedBy": [
+    "rechner://law/estg-38b",
+    "rechner://law/estg-39f",
+    "rechner://law/beeg-2b"
   ],
-  "apps": [
-    "net-pay",
-    "minijob-midijob",
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/net-pay",
+    "rechner://app/minijob-midijob",
+    "rechner://app/parental-leave"
   ],
-  "category": "tax",
-  "categoryOrder": 2
+  "category": "rechner://category/tax"
 }
 ---
 

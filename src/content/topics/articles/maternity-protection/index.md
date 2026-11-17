@@ -1,17 +1,17 @@
 ---
 {
   "order": 29,
-  "laws": [
-    "muschg-3",
-    "muschg-19",
-    "muschg-20",
-    "beeg-3"
+  "categoryOrder": 1,
+  "explainedBy": [
+    "rechner://law/muschg-3",
+    "rechner://law/muschg-19",
+    "rechner://law/muschg-20",
+    "rechner://law/beeg-3"
   ],
-  "apps": [
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/parental-leave"
   ],
-  "category": "family",
-  "categoryOrder": 1
+  "category": "rechner://category/family"
 }
 ---
 

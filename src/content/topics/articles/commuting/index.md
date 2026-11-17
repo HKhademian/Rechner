@@ -1,16 +1,16 @@
 ---
 {
   "order": 13,
-  "laws": [
-    "estg-9-1-4",
-    "estg-3-15",
-    "estg-9a"
+  "categoryOrder": 2,
+  "explainedBy": [
+    "rechner://law/estg-9-1-4",
+    "rechner://law/estg-3-15",
+    "rechner://law/estg-9a"
   ],
-  "apps": [
-    "commuter-allowance"
+  "usedBy": [
+    "rechner://app/commuter-allowance"
   ],
-  "category": "work",
-  "categoryOrder": 2
+  "category": "rechner://category/work"
 }
 ---
 

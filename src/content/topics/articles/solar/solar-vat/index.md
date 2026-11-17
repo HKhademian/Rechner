@@ -1,11 +1,11 @@
 ---
 {
   "order": 15,
-  "laws": [
-    "ustg-12-3"
+  "explainedBy": [
+    "rechner://law/ustg-12-3"
   ],
-  "apps": [
-    "solar-energy"
+  "usedBy": [
+    "rechner://app/solar-energy"
   ]
 }
 ---

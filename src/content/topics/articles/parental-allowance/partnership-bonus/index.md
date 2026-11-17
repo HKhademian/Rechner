@@ -1,12 +1,12 @@
 ---
 {
   "order": 27,
-  "laws": [
-    "beeg-4b",
-    "beeg-4a"
+  "explainedBy": [
+    "rechner://law/beeg-4b",
+    "rechner://law/beeg-4a"
   ],
-  "apps": [
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/parental-leave"
   ]
 }
 ---

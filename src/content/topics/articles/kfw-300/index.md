@@ -1,15 +1,15 @@
 ---
 {
   "order": 0,
-  "laws": [
-    "kfw-300",
-    "estg-2"
+  "categoryOrder": 1,
+  "explainedBy": [
+    "rechner://law/kfw-300",
+    "rechner://law/estg-2"
   ],
-  "apps": [
-    "housing"
+  "usedBy": [
+    "rechner://app/housing"
   ],
-  "category": "home",
-  "categoryOrder": 1
+  "category": "rechner://category/home"
 }
 ---
 

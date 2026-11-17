@@ -1,15 +1,15 @@
 ---
 {
   "order": 9,
-  "laws": [
-    "estg-6-1-4",
-    "estg-8-2"
+  "categoryOrder": 1,
+  "explainedBy": [
+    "rechner://law/estg-6-1-4",
+    "rechner://law/estg-8-2"
   ],
-  "apps": [
-    "company-car"
+  "usedBy": [
+    "rechner://app/company-car"
   ],
-  "category": "work",
-  "categoryOrder": 1
+  "category": "rechner://category/work"
 }
 ---
 

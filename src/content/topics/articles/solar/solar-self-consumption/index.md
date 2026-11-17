@@ -1,11 +1,11 @@
 ---
 {
   "order": 22,
-  "laws": [
-    "eeg-48"
+  "explainedBy": [
+    "rechner://law/eeg-48"
   ],
-  "apps": [
-    "solar-energy"
+  "usedBy": [
+    "rechner://app/solar-energy"
   ]
 }
 ---

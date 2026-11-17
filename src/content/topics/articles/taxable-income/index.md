@@ -1,19 +1,19 @@
 ---
 {
   "order": 3,
-  "laws": [
-    "estg-2",
-    "kfw-300"
+  "categoryOrder": 0,
+  "explainedBy": [
+    "rechner://law/estg-2",
+    "rechner://law/kfw-300"
   ],
-  "apps": [
-    "net-pay",
-    "housing",
-    "kita",
-    "commuter-allowance",
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/net-pay",
+    "rechner://app/housing",
+    "rechner://app/kita",
+    "rechner://app/commuter-allowance",
+    "rechner://app/parental-leave"
   ],
-  "category": "tax",
-  "categoryOrder": 0
+  "category": "rechner://category/tax"
 }
 ---
 

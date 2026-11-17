@@ -1,14 +1,14 @@
 ---
 {
   "order": 18,
-  "laws": [
-    "estg-35a"
+  "categoryOrder": 2,
+  "explainedBy": [
+    "rechner://law/estg-35a"
   ],
-  "apps": [
-    "housing"
+  "usedBy": [
+    "rechner://app/housing"
   ],
-  "category": "home",
-  "categoryOrder": 2
+  "category": "rechner://category/home"
 }
 ---
 

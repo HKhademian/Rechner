@@ -1,14 +1,14 @@
 ---
 {
   "order": 37,
-  "laws": [],
-  "apps": [
-    "mortgage"
-  ],
   "source": {
     "label": "Consumer information on home financing",
     "url": "https://www.verbraucherzentrale.de/wissen/geld-versicherungen/bau-und-immobilienfinanzierung"
-  }
+  },
+  "explainedBy": [],
+  "usedBy": [
+    "rechner://app/mortgage"
+  ]
 }
 ---
 

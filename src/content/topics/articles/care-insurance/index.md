@@ -1,16 +1,16 @@
 ---
 {
   "order": 17,
-  "laws": [
-    "sgb11-55",
-    "sgb11-58"
+  "categoryOrder": 3,
+  "explainedBy": [
+    "rechner://law/sgb11-55",
+    "rechner://law/sgb11-58"
   ],
-  "apps": [
-    "net-pay",
-    "minijob-midijob"
+  "usedBy": [
+    "rechner://app/net-pay",
+    "rechner://app/minijob-midijob"
   ],
-  "category": "tax",
-  "categoryOrder": 3
+  "category": "rechner://category/tax"
 }
 ---
 

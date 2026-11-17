@@ -24,6 +24,10 @@ import {
   parseContentLinks,
   resolveContentLink,
 } from "#utils/contentLinks";
+import {
+  ResourceKind,
+  resourceId,
+} from "#utils/resourceUri";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../content/topics");
 const articles = join(root, "articles");
@@ -59,22 +63,22 @@ function readArticle(path: string) {
   }
   const id = segments.at(-2)!;
   const parentId = segments.length === 3 ? segments[0] : undefined;
-  const { order, laws, apps, source, category, categoryOrder } = data;
-  if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id) || (parentId !== undefined && (typeof parentId !== "string" || !/^[a-z0-9-]+$/.test(parentId))) || !Number.isSafeInteger(order) || typeof order !== "number" || order < 0 || !Array.isArray(laws) || !laws.every((item) => typeof item === "string") || !Array.isArray(apps) || !apps.every((item) => typeof item === "string")) {
+  const { order, explainedBy, usedBy, source, category: categoryUri, categoryOrder } = data;
+  if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id) || (parentId !== undefined && (typeof parentId !== "string" || !/^[a-z0-9-]+$/.test(parentId))) || !Number.isSafeInteger(order) || typeof order !== "number" || order < 0 || !Array.isArray(explainedBy) || !Array.isArray(usedBy)) {
     throw new Error(`Invalid topic metadata fields: ${path}`);
   }
   const expected = [...(parentId ? [parentId] : []), id, "index.md"].join(sep);
   if (relative(articles, path) !== expected) {
     throw new Error(`Topic file must be at ${expected}: ${path}`);
   }
-  if ((!parentId && (typeof category !== "string" || !/^[a-z0-9-]+$/.test(category) || typeof categoryOrder !== "number" || !Number.isSafeInteger(categoryOrder) || categoryOrder < 0)) || (parentId && (category !== undefined || categoryOrder !== undefined))) {
+  if ((!parentId && (categoryUri === undefined || typeof categoryOrder !== "number" || !Number.isSafeInteger(categoryOrder) || categoryOrder < 0)) || (parentId && (categoryUri !== undefined || categoryOrder !== undefined))) {
     throw new Error(`Invalid topic category: ${path}`);
   }
-  for (const law of laws) {
-    toLawId(law);
-  }
-  for (const app of apps) {
-    toAppId(app);
+  const category = categoryUri === undefined ? undefined : resourceId(categoryUri, ResourceKind.Category);
+  const laws = explainedBy.map((uri) => toLawId(resourceId(uri, ResourceKind.Law)));
+  const apps = usedBy.map((uri) => toAppId(resourceId(uri, ResourceKind.App)));
+  if (new Set(laws).size !== laws.length || new Set(apps).size !== apps.length) {
+    throw new Error(`Duplicate topic references: ${path}`);
   }
   let parsedSource: { label: string;
     url: string } | undefined;

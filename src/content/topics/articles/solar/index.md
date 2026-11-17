@@ -1,16 +1,16 @@
 ---
 {
   "order": 10,
-  "laws": [
-    "eeg-48",
-    "ustg-12-3",
-    "estg-3-72"
+  "categoryOrder": 0,
+  "explainedBy": [
+    "rechner://law/eeg-48",
+    "rechner://law/ustg-12-3",
+    "rechner://law/estg-3-72"
   ],
-  "apps": [
-    "solar-energy"
+  "usedBy": [
+    "rechner://app/solar-energy"
   ],
-  "category": "energy",
-  "categoryOrder": 0
+  "category": "rechner://category/energy"
 }
 ---
 

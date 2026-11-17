@@ -1,19 +1,19 @@
 ---
 {
   "order": 4,
-  "laws": [
-    "estg-26",
-    "estg-26b",
-    "estg-32a"
+  "categoryOrder": 1,
+  "explainedBy": [
+    "rechner://law/estg-26",
+    "rechner://law/estg-26b",
+    "rechner://law/estg-32a"
   ],
-  "apps": [
-    "net-pay",
-    "kita",
-    "commuter-allowance",
-    "parental-leave"
+  "usedBy": [
+    "rechner://app/net-pay",
+    "rechner://app/kita",
+    "rechner://app/commuter-allowance",
+    "rechner://app/parental-leave"
   ],
-  "category": "tax",
-  "categoryOrder": 1
+  "category": "rechner://category/tax"
 }
 ---
 

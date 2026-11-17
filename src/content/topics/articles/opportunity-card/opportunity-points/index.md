@@ -1,11 +1,11 @@
 ---
 {
   "order": 25,
-  "laws": [
-    "aufenthg-20a"
+  "explainedBy": [
+    "rechner://law/aufenthg-20a"
   ],
-  "apps": [
-    "visa"
+  "usedBy": [
+    "rechner://app/visa"
   ]
 }
 ---

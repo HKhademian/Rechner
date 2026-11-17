@@ -1,15 +1,15 @@
 ---
 {
   "order": 11,
-  "laws": [
-    "estg-10-1-5",
-    "estg-32a"
+  "categoryOrder": 3,
+  "explainedBy": [
+    "rechner://law/estg-10-1-5",
+    "rechner://law/estg-32a"
   ],
-  "apps": [
-    "kita"
+  "usedBy": [
+    "rechner://app/kita"
   ],
-  "category": "family",
-  "categoryOrder": 3
+  "category": "rechner://category/family"
 }
 ---
 

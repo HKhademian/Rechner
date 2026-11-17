@@ -1,12 +1,12 @@
 ---
 {
   "order": 16,
-  "laws": [
-    "sgb6-158",
-    "sgb4-20"
+  "explainedBy": [
+    "rechner://law/sgb6-158",
+    "rechner://law/sgb4-20"
   ],
-  "apps": [
-    "minijob-midijob"
+  "usedBy": [
+    "rechner://app/minijob-midijob"
   ]
 }
 ---

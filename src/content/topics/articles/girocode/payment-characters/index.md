@@ -1,14 +1,14 @@
 ---
 {
   "order": 31,
-  "laws": [],
-  "apps": [
-    "girocode"
-  ],
   "source": {
     "label": "European Payments Council · About SEPA",
     "url": "https://www.europeanpaymentscouncil.eu/about-sepa"
-  }
+  },
+  "explainedBy": [],
+  "usedBy": [
+    "rechner://app/girocode"
+  ]
 }
 ---
 
