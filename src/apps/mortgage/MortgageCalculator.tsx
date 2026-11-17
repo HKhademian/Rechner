@@ -55,7 +55,7 @@ import {
   toPercentageRate,
 } from "#engine/types";
 import {
-  formatEur,
+  formatEurCents as formatEur,
 } from "#utils/currencyFormat";
 
 const BankPaymentMode = { InitialRepayment: "initial-repayment",
