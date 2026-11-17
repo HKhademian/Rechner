@@ -167,7 +167,7 @@
     "description": "A solar installation can supply household electricity and export surplus electricity to the grid. Feed-in compensation and tax treatment follow separate rules.",
     "benefit": "Self-consumption can reduce purchased electricity and eligible exported electricity can earn compensation.",
     "limitation": "Actual yield, tariffs, technical eligibility and tax treatment depend on the installation and commissioning details.",
-    "calculatorEffect": "The tool uses entered yield, consumption and costs with modeled tariffs and assumptions; it is not a tax assessment.",
+    "calculatorEffect": "The [Solar Savings Calculator](rechner://app/solar-energy) uses entered yield, consumption and costs with modeled tariffs and assumptions; it is not a tax assessment.",
     "laws": [
       "eeg-48",
       "ustg-12-3",

@@ -27,4 +27,4 @@ Actual yield, tariffs, technical eligibility and tax treatment depend on the ins
 
 ## In the calculators
 
-The tool uses entered yield, consumption and costs with modeled tariffs and assumptions; it is not a tax assessment.
+The [Solar Savings Calculator](rechner://app/solar-energy) uses entered yield, consumption and costs with modeled tariffs and assumptions; it is not a tax assessment.
