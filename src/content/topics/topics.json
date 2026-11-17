@@ -198,7 +198,7 @@
     "description": "Minijob and Midijob are employment categories with different earnings limits and social-insurance treatment.",
     "benefit": "The transition-area rules can reduce an eligible employee's contribution burden; Minijobs have separate contribution and tax rules.",
     "limitation": "Classification, multiple jobs, pension-insurance choices and tax arrangements can change the result.",
-    "calculatorEffect": "The tool estimates employee deductions using the selected pay, tax and insurance assumptions.",
+    "calculatorEffect": "The [Minijob & Midijob Calculator](rechner://app/minijob-midijob) estimates employee deductions using the selected pay, tax and insurance assumptions.",
     "laws": [
       "sgb4-20",
       "sgb6-158",

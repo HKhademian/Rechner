@@ -27,4 +27,4 @@ Classification, multiple jobs, pension-insurance choices and tax arrangements ca
 
 ## In the calculators
 
-The tool estimates employee deductions using the selected pay, tax and insurance assumptions.
+The [Minijob & Midijob Calculator](rechner://app/minijob-midijob) estimates employee deductions using the selected pay, tax and insurance assumptions.
