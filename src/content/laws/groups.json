@@ -1,0 +1,317 @@
+{
+  "group-beeg-tax-swap": {
+    "id": "group-beeg-tax-swap",
+    "title": "Tax Class & Assessment History",
+    "citationLabel": "§§ 2b, 2c BEEG",
+    "summary": "Selects 12 eligible pre-birth months (skipping maternity/older-child exclusion months) and locks in the tax class held in the majority or tie-break of those months.",
+    "benefit": "Planning a timely tax-class switch into Class III for the primary leave-taking parent can materially increase standardized Elterngeld net.",
+    "antiBenefit": "Late switches do not rewrite the majority/tie rule, and Class V reduces the other spouse's monthly paycheck until annual filing.",
+    "tags": [
+      "parent",
+      "tax",
+      "benefits",
+      "payroll"
+    ],
+    "primaryLawId": "beeg-2c",
+    "memberLawIds": [
+      "beeg-2b",
+      "beeg-2c"
+    ]
+  },
+  "group-muschg-maternity": {
+    "id": "group-muschg-maternity",
+    "title": "Maternity Protection & Reference Pay",
+    "citationLabel": "§§ 3, 19, 20 MuSchG; § 3 BEEG",
+    "summary": "Protects employment around birth and replaces 100% of the prior 3-month average net wage, credited against concurrent Elterngeld.",
+    "benefit": "Preserves 100% net take-home pay during maternity protection and protects later BEEG lookbacks via exclusion months.",
+    "antiBenefit": "Post-birth maternity weeks consume mother's Basiselterngeld months and enter annual § 32b tax progression.",
+    "tags": [
+      "maternity",
+      "parent",
+      "benefits",
+      "payroll"
+    ],
+    "primaryLawId": "muschg-20",
+    "memberLawIds": [
+      "muschg-3",
+      "muschg-19",
+      "muschg-20",
+      "beeg-3"
+    ]
+  },
+  "group-beeg-synthetic-net": {
+    "id": "group-beeg-synthetic-net",
+    "title": "Standardized BEEG Net & Personal Plus Ceiling",
+    "citationLabel": "§§ 2, 2c–2f, 4a BEEG",
+    "summary": "Computes BEEG assessment net using flat social rates (9%/10%/2%) and January PAP taxes, independent of actual payroll take-home.",
+    "benefit": "High replacement up to 100% at lower incomes and 2-for-1 duration stretching under ElterngeldPlus.",
+    "antiBenefit": "Capped at €2,770 assessable net (€1,800 Basis / €900 Plus) with no social-contribution ceiling in flat deductions.",
+    "tags": [
+      "parent",
+      "benefits",
+      "tax",
+      "insurance"
+    ],
+    "primaryLawId": "beeg-2",
+    "memberLawIds": [
+      "beeg-2",
+      "beeg-2c",
+      "beeg-2d",
+      "beeg-2e",
+      "beeg-2f",
+      "beeg-4a"
+    ]
+  },
+  "group-estg-tax-splitting": {
+    "id": "group-estg-tax-splitting",
+    "title": "Annual Joint Assessment & Progression Settlement",
+    "citationLabel": "§§ 2, 26, 26b, 32a, 32b, 36 EStG; SolzG",
+    "summary": "Reconciles monthly payroll withholdings against actual annual joint liability including splitting tariff and progression on replacement benefits.",
+    "benefit": "Income splitting and deductions often generate substantial tax refunds when one partner has low/zero earnings.",
+    "antiBenefit": "Elterngeld and maternity progression (§ 32b) frequently create year-end tax repayments when one spouse earns full salary.",
+    "tags": [
+      "tax",
+      "marriage",
+      "parent"
+    ],
+    "primaryLawId": "estg-26b",
+    "memberLawIds": [
+      "estg-2",
+      "estg-9a",
+      "estg-10",
+      "estg-10-1-5",
+      "estg-10c",
+      "estg-24a",
+      "estg-26",
+      "estg-26b",
+      "estg-32a",
+      "estg-32b",
+      "estg-36",
+      "inflg",
+      "solzg-3"
+    ]
+  },
+  "group-beeg-partnership-bonus": {
+    "id": "group-beeg-partnership-bonus",
+    "title": "Parent Claim Budgets & Partnership Bonus",
+    "citationLabel": "§§ 1, 4, 4a, 4b BEEG",
+    "summary": "Coordinates individual/family Basis & Plus budgets (12+2 months) and unlocks 2–4 Partnership Bonus months when both parents work 24–32h/week.",
+    "benefit": "Adds up to 4 extra ElterngeldPlus months per parent when sharing work and childcare symmetrically.",
+    "antiBenefit": "Strict 24–32h corridor and minimum 2-month claim duration mean mistimed hours can forfeit bonus months.",
+    "tags": [
+      "parent",
+      "child",
+      "benefits",
+      "payroll"
+    ],
+    "primaryLawId": "beeg-4b",
+    "memberLawIds": [
+      "beeg-1",
+      "beeg-4",
+      "beeg-4a",
+      "beeg-4b"
+    ]
+  },
+  "group-beeg-sibling-bonus": {
+    "id": "group-beeg-sibling-bonus",
+    "title": "Household Sibling Bonus (Geschwisterbonus)",
+    "citationLabel": "§§ 2a, 4a BEEG",
+    "summary": "Grants a +10% supplement (minimum €75 Basis / €37.50 Plus) while qualifying older siblings remain under age 3 (or two under age 6).",
+    "benefit": "Rewards closely spaced births with guaranteed minimum monthly additions.",
+    "antiBenefit": "Expires immediately after the older sibling passes the age threshold and requires known sibling ages.",
+    "tags": [
+      "child",
+      "parent",
+      "benefits"
+    ],
+    "primaryLawId": "beeg-2a",
+    "memberLawIds": [
+      "beeg-2a",
+      "beeg-4a"
+    ]
+  },
+  "group-beeg-child2-dilution": {
+    "id": "group-beeg-child2-dilution",
+    "title": "Assessment Lookback for Later Births",
+    "citationLabel": "§§ 2b, 2c BEEG",
+    "summary": "Recomputes the 12-month assessment before each later birth, skipping maternity and eligible older-child Elterngeld months up to 14 life-months.",
+    "benefit": "Prevents older-child leave months (within 14 life-months) from depressing the next child's pre-birth average.",
+    "antiBenefit": "Part-time work or unpaid leave outside the 14-month exclusion window reduces the assessment base for the next child.",
+    "tags": [
+      "parent",
+      "child",
+      "benefits"
+    ],
+    "primaryLawId": "beeg-2b",
+    "memberLawIds": [
+      "beeg-2b",
+      "beeg-2c"
+    ]
+  },
+  "group-estg-kindergeld": {
+    "id": "group-estg-kindergeld",
+    "title": "Child Benefit & Tax-Allowance Favorability",
+    "citationLabel": "§§ 31, 32, 62, 66 EStG",
+    "summary": "Pays tax-free monthly Kindergeld per qualifying child and automatically tests annually whether Kinderfreibetrag yields greater tax relief.",
+    "benefit": "Guarantees monthly cash flow plus automatic optimization at higher marginal tax brackets.",
+    "antiBenefit": "You do not keep both full Kindergeld and full Kinderfreibetrag income-tax relief; § 31 nets them against each other.",
+    "tags": [
+      "child",
+      "benefits",
+      "tax"
+    ],
+    "primaryLawId": "estg-66",
+    "memberLawIds": [
+      "estg-31",
+      "estg-32",
+      "estg-62",
+      "estg-66"
+    ]
+  },
+  "group-estg-payroll-withholding": {
+    "id": "group-estg-payroll-withholding",
+    "title": "Monthly Payroll Withholding & Bonus Rules",
+    "citationLabel": "§§ 19, 24b, 38b, 39b, 39f EStG; §§ 1, 4 SolzG",
+    "summary": "Governs monthly wage tax, single-parent relief, Class IV factor, Solidarity Surcharge, and differential bonus withholding via BMF PAP.",
+    "benefit": "Accurate monthly cash flow modeling matching certified German payroll outputs.",
+    "antiBenefit": "Monthly withholding is only an advance payment; annual assessment determines final liability.",
+    "tags": [
+      "payroll",
+      "tax"
+    ],
+    "primaryLawId": "estg-38b",
+    "memberLawIds": [
+      "estg-19",
+      "estg-24b",
+      "estg-38b",
+      "estg-39b",
+      "estg-39f",
+      "solzg-1",
+      "solzg-4",
+      "bmf-pap"
+    ]
+  },
+  "group-sgb-social-security": {
+    "id": "group-sgb-social-security",
+    "title": "Social Security Contributions & Midijob Corridor",
+    "citationLabel": "§§ 20, 23a SGB IV; § 241 SGB V; § 158 SGB VI; § 341 SGB III; §§ 55, 58 SGB XI; § 2 BVV",
+    "summary": "Models statutory health, pension, unemployment, and care insurance contributions including Midijob relief, Saxony care rules, and cent rounding.",
+    "benefit": "Captures Midijob contribution savings and multi-child long-term care discounts accurately.",
+    "antiBenefit": "Childless employees aged 23+ pay a 0.6% surcharge, and Saxony employees pay an extra 0.5% base share.",
+    "tags": [
+      "insurance",
+      "payroll",
+      "child"
+    ],
+    "primaryLawId": "sgb5-241",
+    "memberLawIds": [
+      "sgb4-20",
+      "sgb4-23a",
+      "sgb5-241",
+      "sgb6-158",
+      "sgb3-341",
+      "sgb11-55",
+      "sgb11-58",
+      "bvv-2"
+    ]
+  },
+  "group-aufenthg-blue-card": {
+    "id": "group-aufenthg-blue-card",
+    "title": "EU Blue Card, Opportunity Card & Permanent Settlement",
+    "citationLabel": "§§ 18 Abs. 2 Nr. 5, 18c, 18g, 20a AufenthG",
+    "summary": "Governs skilled worker salary floors, shortage/graduate exemptions, Opportunity Card points, and accelerated permanent residency.",
+    "benefit": "Enables 21- or 27-month permanent residence and streamlined spousal work rights when Blue Card thresholds are met.",
+    "antiBenefit": "Thresholds scale annually with statutory pension BBG limits and require careful salary verification at renewal.",
+    "tags": [
+      "visa",
+      "payroll"
+    ],
+    "primaryLawId": "aufenthg-18g",
+    "memberLawIds": [
+      "aufenthg-18-2-5",
+      "aufenthg-18c",
+      "aufenthg-18g",
+      "aufenthg-20a"
+    ]
+  },
+  "group-estg-company-car": {
+    "id": "group-estg-company-car",
+    "title": "Company Car & Electric Mobility Taxation",
+    "citationLabel": "§§ 6 Abs. 1 Nr. 4, 8 Abs. 2 EStG",
+    "summary": "Models imputed benefit-in-kind for private vehicle use (1% ICE, 0.5% PHEV, 0.25% EV up to €100,000) and commute distance surcharges.",
+    "benefit": "Pure electric vehicles within the €100,000 cap reduce monthly imputed taxable income by 75%.",
+    "antiBenefit": "Longer commutes add 0.03%/km monthly (quarter/halved for qualifying EVs/PHEVs) unless switched to actual-trip records.",
+    "tags": [
+      "car",
+      "tax",
+      "payroll",
+      "green"
+    ],
+    "primaryLawId": "estg-6-1-4",
+    "memberLawIds": [
+      "estg-6-1-4",
+      "estg-8-2",
+      "estg-19"
+    ]
+  },
+  "group-estg-commuter-work-expenses": {
+    "id": "group-estg-commuter-work-expenses",
+    "title": "Commuter Allowance, Homeoffice & JobTicket Rules",
+    "citationLabel": "§ 9 Abs. 1 Nr. 4, § 9a, § 3 Nr. 15 EStG",
+    "summary": "Governs daily commuter distance deductions, Homeoffice flat-rate relief, the €1,230 employee lump sum, and tax-free employer transit subsidies.",
+    "benefit": "Combines tax-free employer transit benefits or excess Werbungskosten above €1,230 to reduce annual tax liability.",
+    "antiBenefit": "Tax-free § 3 Nr. 15 JobTicket subsidies reduce claimable commuter distance deductions euro for euro.",
+    "tags": [
+      "tax",
+      "payroll",
+      "green"
+    ],
+    "primaryLawId": "estg-9-1-4",
+    "memberLawIds": [
+      "estg-9-1-4",
+      "estg-3-15",
+      "estg-9a"
+    ]
+  },
+  "group-eeg-residential-solar": {
+    "id": "group-eeg-residential-solar",
+    "title": "Residential Photovoltaic & Green Energy Incentives",
+    "citationLabel": "§ 12 Abs. 3 UStG; § 3 Nr. 72 EStG; § 48 EEG",
+    "summary": "Combines 0% VAT purchase relief, full income tax exemption up to 30 kWp, and 20-year statutory EEG grid feed-in tariffs.",
+    "benefit": "Zero VAT upfront plus tax-free self-consumption savings (~37 ct/kWh) and guaranteed 20-year feed-in income.",
+    "antiBenefit": "EEG feed-in rates degress 1% semi-annually and export alone earns lower per-kWh returns than self-consumption.",
+    "tags": [
+      "solar",
+      "energy",
+      "green",
+      "tax"
+    ],
+    "primaryLawId": "eeg-48",
+    "memberLawIds": [
+      "ustg-12-3",
+      "estg-3-72",
+      "eeg-48"
+    ]
+  },
+  "group-housing-home-acquisition": {
+    "id": "group-housing-home-acquisition",
+    "title": "Family Home Acquisition, KfW 300 & Closing Taxes",
+    "citationLabel": "KfW 300; § 11 GrEStG; § 35a EStG",
+    "summary": "Evaluates federal-state real estate transfer taxes, KfW 300 subsidized family loan limits by child count, and renovation craftsmanship tax credits.",
+    "benefit": "KfW 300 provides up to €270,000 low-interest family loans while § 35a refunds up to €1,200/yr in renovation labor tax.",
+    "antiBenefit": "Upfront closing taxes (3.5%–6.5% GrEStG + notary/agent) require liquid equity and KfW 300 tests prior-year zvE.",
+    "tags": [
+      "housing",
+      "tax",
+      "benefits",
+      "child"
+    ],
+    "primaryLawId": "kfw-300",
+    "memberLawIds": [
+      "kfw-300",
+      "grestg-11",
+      "estg-35a",
+      "estg-2"
+    ]
+  }
+}
