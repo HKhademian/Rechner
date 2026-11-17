@@ -88,7 +88,7 @@
     "description": "A tax class is part of the electronic payroll tax information (ELStAM) used by an employer to withhold wage tax.",
     "benefit": "The class tailors withholding to the employee's registered circumstances.",
     "limitation": "Withholding is an advance, not necessarily the final annual income tax; changing class may also affect certain benefits.",
-    "calculatorEffect": "The selected class changes modeled payroll withholding and, where relevant, the parental allowance estimate.",
+    "calculatorEffect": "The selected class changes modeled payroll withholding in the [Net Pay Calculator](rechner://app/net-pay) and, where relevant, the parental allowance estimate.",
     "laws": [
       "estg-38b",
       "estg-39f",

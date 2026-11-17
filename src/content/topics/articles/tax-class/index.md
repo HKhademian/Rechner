@@ -29,4 +29,4 @@ Withholding is an advance, not necessarily the final annual income tax; changing
 
 ## In the calculators
 
-The selected class changes modeled payroll withholding and, where relevant, the parental allowance estimate.
+The selected class changes modeled payroll withholding in the [Net Pay Calculator](rechner://app/net-pay) and, where relevant, the parental allowance estimate.
