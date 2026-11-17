@@ -9,7 +9,9 @@ import {
   getLawEntry,
 } from "#engine/laws/registry";
 import {
+  getSubtopics,
   getTopic,
+  searchTopics,
   topics,
   topicsForLaw,
 } from "#engine/topics/registry";
@@ -24,9 +26,15 @@ it("has unique topics with valid rules, calculators and sources", () => {
     assert.ok(topic.title && topic.description && topic.benefit && topic.limitation && topic.calculatorEffect);
     assert.doesNotMatch([topic.title, topic.description, topic.benefit, topic.limitation, topic.calculatorEffect].join(" "), /\bqr(?:[ -]?code)?\b/i);
     assert.ok(topic.laws.length || topic.source);
+    if (topic.parentId) {
+      const parent = getTopic(topic.parentId);
+      assert.ok(parent, `Missing parent for ${topic.id}`);
+      assert.equal(parent.parentId, undefined, "Subtopics must have a top-level parent");
+      assert.ok(getSubtopics(parent.id).includes(topic));
+    }
     for (const law of topic.laws) {
       assert.ok(getLawEntry(law));
-      assert.ok(topicsForLaw(law).includes(topic));
+      assert.equal(topicsForLaw(law).includes(topic), !topic.parentId);
     }
     for (const app of topic.apps) {
       assert.ok(allCalculatorApps.some((candidate) => candidate.id === app));
@@ -35,4 +43,13 @@ it("has unique topics with valid rules, calculators and sources", () => {
       assert.equal(new URL(topic.source.url).protocol, "https:");
     }
   }
+});
+
+
+it("groups subtopics without hiding them from search", () => {
+  const children = getSubtopics("mortgage-repayment");
+  assert.deepEqual(children.map((item) => item.id), ["purchase-costs", "bank-loan-amount"]);
+  assert.ok(searchTopics("").every((topic) => !topic.parentId));
+  assert.deepEqual(searchTopics("bank loan amount").map((topic) => topic.id), ["mortgage-repayment"]);
+  assert.ok(searchTopics("purchase costs beyond").some((topic) => topic.id === "mortgage-repayment"));
 });

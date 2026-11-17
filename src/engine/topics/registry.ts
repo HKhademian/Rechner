@@ -11,6 +11,7 @@ import {
 export interface Topic {
   readonly id: string;
   readonly title: string;
+  readonly parentId?: string;
   readonly description: string;
   readonly benefit: string;
   readonly limitation: string;
@@ -288,11 +289,34 @@ export const topics: readonly Topic[] = [
     source: { label: "European Payments Council · About SEPA",
       url: "https://www.europeanpaymentscouncil.eu/about-sepa" } },
   { id: "mortgage-repayment",
-    title: "Mortgage interest and initial repayment",
+    title: "Mortgage financing and repayment",
     description: "Mortgage interest is the cost of borrowing; initial repayment (Tilgung) is the part of the starting annual payment used to reduce the loan principal.",
     benefit: "A higher repayment rate reduces the outstanding balance faster, all else being equal.",
     limitation: "The interest rate, repayment schedule, fixed-rate period, fees and future refinancing can differ from this simple estimate.",
     calculatorEffect: "The home planner estimates the initial bank payment. The mortgage calculator projects a balance using fixed rates; neither is a complete loan offer.",
+    laws: [],
+    apps: [Apps.Housing, Apps.Mortgage],
+    source: { label: "Consumer information on home financing",
+      url: "https://www.verbraucherzentrale.de/wissen/geld-versicherungen/bau-und-immobilienfinanzierung" } },
+
+  { id: "purchase-costs",
+    parentId: "mortgage-repayment",
+    title: "Purchase costs beyond the property price",
+    description: "The extra one-time costs of buying a home, such as property transfer tax, notary and land registry fees, and any buyer's estate-agent fee. These are in addition to the property's purchase price.",
+    benefit: "Including these costs helps you estimate the total cash needed to buy, instead of planning for the property price alone.",
+    limitation: "The amount depends on the property, location and transaction. An estimate is not a bill, and may not include every expense.",
+    calculatorEffect: "In the mortgage simulator this amount is used in the estimated purchase budget; changing it does not automatically change the separately entered bank loan. The Home Purchase Planner can calculate and transfer an estimate.",
+    laws: [],
+    apps: [Apps.Housing, Apps.Mortgage],
+    source: { label: "Consumer information on home financing",
+      url: "https://www.verbraucherzentrale.de/wissen/geld-versicherungen/bau-und-immobilienfinanzierung" } },
+  { id: "bank-loan-amount",
+    parentId: "mortgage-repayment",
+    title: "Bank loan amount",
+    description: "The amount you plan to borrow from a bank for the purchase. It is the starting balance you must repay, before any interest or payments.",
+    benefit: "Entering the amount makes it possible to estimate the bank payment, interest and remaining balance over time.",
+    limitation: "This amount excludes the separately entered KfW loan. The bank loan is borrowed money, not the price of the home or the combined total of all loans.",
+    calculatorEffect: "The mortgage simulator uses this value for the bank repayment and adds any KfW amount to total debt and loan-to-value. It is an independent input: changing the property price, savings or purchase costs here does not recalculate the loan amount. The Home Purchase Planner can calculate and transfer an estimate.",
     laws: [],
     apps: [Apps.Housing, Apps.Mortgage],
     source: { label: "Consumer information on home financing",
@@ -304,6 +328,17 @@ export function getTopic(id: string): Topic | undefined {
   return topics.find((topic) => topic.id === id);
 }
 
+/** Subtopics have their own pages but stay grouped under a single directory entry. */
+export function getSubtopics(parentId: string): readonly Topic[] {
+  return topics.filter((topic) => topic.parentId === parentId);
+}
+
+export function searchTopics(query: string): readonly Topic[] {
+  const search = query.trim().toLowerCase();
+  const matches = (topic: Topic): boolean => `${topic.title} ${topic.description}`.toLowerCase().includes(search);
+  return topics.filter((topic) => !topic.parentId && (matches(topic) || getSubtopics(topic.id).some(matches)));
+}
+
 export function topicsForLaw(lawId: LawId): readonly Topic[] {
-  return topics.filter((topic) => topic.laws.includes(lawId));
+  return topics.filter((topic) => !topic.parentId && topic.laws.includes(lawId));
 }
