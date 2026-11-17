@@ -6,6 +6,7 @@ import {
   calculatePurchaseLtv,
   estimateAffordability,
   estimateAffordableBankLoan,
+  estimateAffordableBankLoanForTerm,
   LoanRepaymentMethod,
   projectKfwLoan,
   toGraceYears,
@@ -83,4 +84,12 @@ it("charges interest during the grace period before starting an amortizing payme
   assert.equal(result.yearly[0].balance, 120000);
   assert.equal(result.yearly[0].interestPaid, 7200);
   assert.ok(result.yearly[1].balance < 120000);
+});
+
+
+it("estimates a bank loan using a chosen payoff term", () => {
+  assert.equal(estimateAffordableBankLoanForTerm(toEuroAmount(1000), toPercentageRate(0), toMortgageYears(10)), 120000);
+  const loan = estimateAffordableBankLoanForTerm(toEuroAmount(1000), toPercentageRate(0.06), toMortgageYears(10));
+  assert.ok(loan !== null && loan > 90000 && loan < 91000);
+  assert.equal(estimateAffordableBankLoanForTerm(toEuroAmount(-1), toPercentageRate(0.06), toMortgageYears(10)), null);
 });

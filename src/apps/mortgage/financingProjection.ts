@@ -138,3 +138,17 @@ export function estimateAffordableBankLoan(monthlyBudget: EuroAmount, annualInte
   }
   return toEuroAmount(Math.floor((monthlyBudget * 12 / annualRate) * 100) / 100);
 }
+
+/** Maximum principal amortized within the chosen term under a monthly bank-payment budget. */
+export function estimateAffordableBankLoanForTerm(monthlyBudget: EuroAmount, annualInterest: PercentageRate, term: MortgageYears): EuroAmount | null {
+  if (!Number.isFinite(monthlyBudget) || !Number.isFinite(annualInterest) || annualInterest < 0) {
+    throw new TypeError("Budget and rate must be finite, with a non-negative rate.");
+  }
+  if (monthlyBudget < 0) {
+    return null;
+  }
+  const monthlyRate = annualInterest / 12;
+  const months = term * 12;
+  const factor = monthlyRate === 0 ? months : -Math.expm1(-months * Math.log1p(monthlyRate)) / monthlyRate;
+  return toEuroAmount(Math.floor(monthlyBudget * factor * 100) / 100);
+}
