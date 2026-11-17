@@ -1,6 +1,9 @@
 import "./TopicPages.css";
 import {
   type Topic,
+  getSubtopics,
+  getTopic,
+  searchTopics,
   topics,
 } from "#engine/topics/registry";
 import {
@@ -31,7 +34,7 @@ export function topicPath(id?: string): string {
 export function TopicDirectory(): JSX.Element {
   const [query, setQuery] = useState("");
   const search = query.trim().toLowerCase();
-  const matching = topics.filter((topic) => `${topic.title} ${topic.description}`.toLowerCase().includes(search));
+  const matching = searchTopics(search);
   return <AppShell currentPath={topicPath()}>
     <div className="topic-page">
       <h1>Benefits, programs &amp; concepts</h1>
@@ -44,6 +47,9 @@ export function TopicDirectory(): JSX.Element {
         {matching.map((topic) => <article className="ui-card" key={topic.id}>
           <h2><a href={topicPath(topic.id)}>{topic.title}</a></h2>
           <p>{topic.description}</p>
+          {search && getSubtopics(topic.id).some((child) => `${child.title} ${child.description}`.toLowerCase().includes(search)) && <ul aria-label={`Matching subtopics for ${topic.title}`}>
+            {getSubtopics(topic.id).filter((child) => `${child.title} ${child.description}`.toLowerCase().includes(search)).map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}
+          </ul>}
         </article>)}
       </div>
     </div>
@@ -51,12 +57,17 @@ export function TopicDirectory(): JSX.Element {
 }
 
 export function TopicPage({ topic }: { readonly topic: Topic }): JSX.Element {
-  const related = topics.filter((other) => other.id !== topic.id && other.laws.some((law) => topic.laws.includes(law)));
+  const parent = topic.parentId ? getTopic(topic.parentId) : undefined;
+  const children = getSubtopics(topic.id);
+  const related = topics.filter((other) => !other.parentId && other.id !== topic.id && other.laws.some((law) => topic.laws.includes(law)));
   return <AppShell currentPath={topicPath(topic.id)}>
     <article className="topic-page">
-      <a href={topicPath()}>← All topics</a>
+      <a href={topicPath(parent?.id)}>{parent ? `← ${parent.title}` : "← All topics"}</a>
       <h1>{topic.title}</h1>
       <p>{topic.description}</p>
+      {children.length > 0 && <section className="ui-card"><h2>Explore this topic</h2>
+        <ul>{children.map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}</ul>
+      </section>}
       <section className="ui-card"><h2>Potential benefit</h2><p>{topic.benefit}</p></section>
       <section className="ui-card"><h2>Conditions and limitations</h2><p>{topic.limitation}</p></section>
       <section className="ui-card"><h2>In the calculators</h2><p>{topic.calculatorEffect}</p>

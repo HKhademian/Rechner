@@ -40,7 +40,7 @@ export function AppShell({
   children,
 }: AppShellProps): JSX.Element {
   const app = calculatorAtPath(currentPath);
-  const relatedTopics = app ? topics.filter((topic) => topic.apps.includes(app.id)) : [];
+  const relatedTopics = app ? topics.filter((topic) => !topic.parentId && topic.apps.includes(app.id)) : [];
   return (
     <div className={["ui-app-shell", shellClassName.trim()].filter(Boolean).join(" ")}>
       <Navigation currentPath={currentPath} />
