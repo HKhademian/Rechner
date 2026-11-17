@@ -705,7 +705,8 @@ select.ui-select:focus-visible {
 
 .ui-text-box:focus-within {
   border-color: var(--color-primary);
-  outline: 2px solid var(--color-primary-bg);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .ui-text-box[data-invalid="true"] {
@@ -724,7 +725,7 @@ select.ui-select:focus-visible {
   color: var(--text-muted);
 }
 
-input.ui-text-box__input {
+.ui-text-box input.ui-text-box__input {
   flex: 1 1 0;
   width: 100%;
   min-width: 0;
@@ -740,12 +741,12 @@ input.ui-text-box__input {
   outline: none;
 }
 
-.ui-text-box--compact input.ui-text-box__input {
+.ui-text-box--compact .ui-text-box input.ui-text-box__input {
   padding: 5px 0;
   font-size: var(--font-size-sm);
 }
 
-.ui-text-box--monospace input.ui-text-box__input {
+.ui-text-box--monospace .ui-text-box input.ui-text-box__input {
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
 }
@@ -754,8 +755,8 @@ input.ui-text-box__input::placeholder {
   color: var(--text-muted);
 }
 
-input.ui-text-box__input:focus,
-input.ui-text-box__input:focus-visible {
+.ui-text-box input.ui-text-box__input:focus,
+.ui-text-box input.ui-text-box__input:focus-visible {
   outline: none;
   border: 0;
   box-shadow: none;
