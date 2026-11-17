@@ -8,6 +8,9 @@ import {
   getTopic,
 } from "#engine/topics/registry";
 import {
+  InlineContent, 
+} from "#components/topics/InlineContent";
+import {
   isPlainPrimaryClick,
   openLawReference,
 } from "#store/lawReferenceStore";
@@ -62,8 +65,8 @@ export function TopicHelp({ id }: { readonly id: string }): JSX.Element | null {
         <button type="button" className="law-reference-dialog__icon-btn" onClick={() => setOpen(false)} autoFocus>Close</button>
       </header>
       <div className="law-reference-dialog__body">
-        <p>{topic.description}</p><p><strong>Benefit:</strong> {topic.benefit}</p><p><strong>Limitation:</strong> {topic.limitation}</p>
-        <p><strong>In this calculator:</strong> {topic.calculatorEffect}</p>
+        <p><InlineContent text={topic.description} /></p><p><strong>Benefit:</strong> <InlineContent text={topic.benefit} /></p><p><strong>Limitation:</strong> <InlineContent text={topic.limitation} /></p>
+        <p><strong>In this calculator:</strong> <InlineContent text={topic.calculatorEffect} /></p>
         <a href={href}>Explore this topic →</a>
       </div>
     </div>

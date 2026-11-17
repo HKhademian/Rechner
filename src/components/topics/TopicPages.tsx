@@ -25,6 +25,12 @@ import {
 } from "#/apps/appDefinition.ts";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  InlineContent, 
+} from "#components/topics/InlineContent";
+import {
+  plainContentText, 
+} from "#utils/contentLinks";
+import {
   AppShell,
 } from "#components/ui/AppShell";
 import {
@@ -59,10 +65,10 @@ export function TopicDirectory(): JSX.Element {
           <div className="topic-directory">
             {categoryTopics.map((topic) => <article className="ui-card" key={topic.id}>
               <h3><a href={topicPath(topic.id)}>{topic.title}</a></h3>
-              <p>{topic.description}</p>
+              <p><InlineContent text={topic.description} /></p>
               {!search && getSubtopics(topic.id).length > 0 && <p className="topic-subtopic-count">{getSubtopics(topic.id).length} {getSubtopics(topic.id).length === 1 ? "subtopic" : "subtopics"}</p>}
-              {search && getSubtopics(topic.id).some((child) => `${child.title} ${child.description}`.toLowerCase().includes(search)) && <ul aria-label={`Matching subtopics for ${topic.title}`}>
-                {getSubtopics(topic.id).filter((child) => `${child.title} ${child.description}`.toLowerCase().includes(search)).map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}
+              {search && getSubtopics(topic.id).some((child) => plainContentText(`${child.title} ${child.description}`).toLowerCase().includes(search)) && <ul aria-label={`Matching subtopics for ${topic.title}`}>
+                {getSubtopics(topic.id).filter((child) => plainContentText(`${child.title} ${child.description}`).toLowerCase().includes(search)).map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}
               </ul>}
             </article>)}
           </div>
@@ -90,13 +96,13 @@ export function TopicPage({ topic }: { readonly topic: Topic }): JSX.Element {
       <article className="topic-page">
         <a href={topicPath(parent?.id)}>{parent ? `← ${parent.title}` : "← All topics"}</a>
         <h1>{topic.title}</h1>
-        <p>{topic.description}</p>
+        <p><InlineContent text={topic.description} /></p>
         {children.length > 0 && <section className="ui-card"><h2>Subtopics</h2>
           <ul>{children.map((child) => <li key={child.id}><a href={topicPath(child.id)}>{child.title}</a></li>)}</ul>
         </section>}
-        <section className="ui-card"><h2>Potential benefit</h2><p>{topic.benefit}</p></section>
-        <section className="ui-card"><h2>Conditions and limitations</h2><p>{topic.limitation}</p></section>
-        <section className="ui-card"><h2>In the calculators</h2><p>{topic.calculatorEffect}</p>
+        <section className="ui-card"><h2>Potential benefit</h2><p><InlineContent text={topic.benefit} /></p></section>
+        <section className="ui-card"><h2>Conditions and limitations</h2><p><InlineContent text={topic.limitation} /></p></section>
+        <section className="ui-card"><h2>In the calculators</h2><p><InlineContent text={topic.calculatorEffect} /></p>
           <ul>{allCalculatorApps.filter((app) => topic.apps.includes(app.id)).map((app) => <li key={app.id}><a href={calculatorPath(app.id)}>{app.title}</a></li>)}</ul>
         </section>
         {(topic.laws.length > 0 || topic.source) && <section className="ui-card"><h2>Related rules and sources</h2>

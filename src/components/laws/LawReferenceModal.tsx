@@ -1,5 +1,8 @@
 import "./LawReferenceModal.css";
 import {
+  InlineContent, 
+} from "#components/topics/InlineContent";
+import {
   topicPath, 
 } from "#utils/topicPath";
 import {
@@ -171,8 +174,8 @@ export default function LawReferenceModal(): JSX.Element | null {
         <div className="law-reference-dialog__body">
           {modalState.context && <section className="law-reference-dialog__context" aria-label={modalState.context.title}>
             <h3>{modalState.context.title}</h3>
-            <p>{modalState.context.description}</p>
-            <p><strong>In this calculator:</strong> {modalState.context.calculatorEffect}</p>
+            <p><InlineContent text={modalState.context.description} /></p>
+            <p><strong>In this calculator:</strong> <InlineContent text={modalState.context.calculatorEffect} /></p>
             {modalState.context.topicId && <a href={topicPath(modalState.context.topicId)}>Explore this topic →</a>}
           </section>}
           <p className="law-reference-dialog__summary">{entry.summary}</p>

@@ -1,6 +1,9 @@
 ---
 import BaseDocument from "#/layouts/BaseDocument.astro";
 import {
+  plainContentText,
+} from "#utils/contentLinks";
+import {
   TopicPage,
 } from "#components/topics/TopicPages";
 import {
@@ -22,6 +25,6 @@ if (topic.parentId) {
   return Astro.redirect(topicPath(topic.id), 301);
 }
 ---
-<BaseDocument title={`${topic.title} | Rechner`} description={topic.description}>
+<BaseDocument title={`${topic.title} | Rechner`} description={plainContentText(topic.description)}>
   <TopicPage topic={topic} client:load />
 </BaseDocument>

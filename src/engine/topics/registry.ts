@@ -1,5 +1,8 @@
 import topicContent from "#/content/topics/topics.json" with { type: "json" };
 import {
+  plainContentText, 
+} from "#utils/contentLinks";
+import {
   type AppId,
   toAppId,
 } from "#/apps/appDefinition.ts";
@@ -49,7 +52,7 @@ export function getSubtopics(parentId: string): readonly Topic[] {
 
 export function searchTopics(query: string): readonly Topic[] {
   const search = query.trim().toLowerCase();
-  const matches = (topic: Topic): boolean => `${topic.title} ${topic.description}`.toLowerCase().includes(search);
+  const matches = (topic: Topic): boolean => plainContentText(`${topic.title} ${topic.description}`).toLowerCase().includes(search);
   return topics.filter((topic) => !topic.parentId && (matches(topic) || getSubtopics(topic.id).some(matches)));
 }
 

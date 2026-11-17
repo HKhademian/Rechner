@@ -1,6 +1,9 @@
 ---
 import BaseDocument from "#/layouts/BaseDocument.astro";
 import {
+  plainContentText,
+} from "#utils/contentLinks";
+import {
   TopicPage,
 } from "#components/topics/TopicPages";
 import {
@@ -18,6 +21,6 @@ if (!topic || topic.parentId !== Astro.params.topicId) {
   throw new Error("Unknown subtopic");
 }
 ---
-<BaseDocument title={`${topic.title} | Rechner`} description={topic.description}>
+<BaseDocument title={`${topic.title} | Rechner`} description={plainContentText(topic.description)}>
   <TopicPage topic={topic} client:load />
 </BaseDocument>
