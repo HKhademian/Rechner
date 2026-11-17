@@ -23,7 +23,7 @@ export interface ContentTopic {
 /** Recognize inline Markdown links without interpreting or injecting HTML. */
 export function parseContentLinks(text: string): readonly ContentPart[] {
   const parts: ContentPart[] = [];
-  const expression = /\[([^\]\n]+)\]\(([^()\s]+)\)/g;
+  const expression = /\[([^\]\n]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g;
   let offset = 0;
   for (const match of text.matchAll(expression)) {
     const index = match.index;

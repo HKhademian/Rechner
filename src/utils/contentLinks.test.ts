@@ -25,4 +25,6 @@ it("extracts readable labels without exposing link syntax", () => {
   const text = "See [the planner](rechner://app/housing) and [KfW](rechner://law/kfw-300).";
   assert.equal(plainContentText(text), "See the planner and KfW.");
   assert.deepEqual(parseContentLinks(text).filter((part) => part.target).map((part) => part.target), ["rechner://app/housing", "rechner://law/kfw-300"]);
+  assert.deepEqual(parseContentLinks("[KfW](https://example.org/product-(300)/)")[0], { text: "KfW",
+    target: "https://example.org/product-(300)/" });
 });
