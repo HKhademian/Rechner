@@ -183,7 +183,7 @@
     "description": "Qualifying childcare expenses can be considered as special expenses for income tax under the applicable conditions.",
     "benefit": "An eligible deduction can reduce taxable income and therefore the family's tax bill.",
     "limitation": "Not every expense qualifies: meals and the particular payment and documentation requirements must be considered. The deduction is not a euro-for-euro refund.",
-    "calculatorEffect": "The Kita tool estimates eligible costs and their tax effect using the entered assumptions.",
+    "calculatorEffect": "The [Kita Fee & Tax Offset](rechner://app/kita) calculator estimates eligible costs and their tax effect using the entered assumptions.",
     "laws": [
       "estg-10-1-5",
       "estg-32a"

@@ -26,4 +26,4 @@ Not every expense qualifies: meals and the particular payment and documentation 
 
 ## In the calculators
 
-The Kita tool estimates eligible costs and their tax effect using the entered assumptions.
+The [Kita Fee & Tax Offset](rechner://app/kita) calculator estimates eligible costs and their tax effect using the entered assumptions.
