@@ -10,4 +10,13 @@ The topic Markdown files supply the text used in search results, popups and full
 
 Keep existing IDs stable when editing text: calculators, other content and bookmarked links refer to them. Law, law-group and calculator IDs must match their definitions in the application; adding a new one also requires a corresponding definition. Check the cited official sources when changing a legal explanation.
 
-Write plain text in the title and sections: the current popup and page components display text and do not render rich Markdown formatting. After editing an article, run `npm run content:topics` to refresh the generated file (or restart the development server). `npm run build` also refreshes it. Run `npm run check`; the checks verify that generated content is current and cover references, topic hierarchy and category membership.
+Use inline Markdown links in the section text to connect explanations:
+
+- `[Home Purchase Planner](rechner://app/housing)` links to a calculator.
+- `[KfW 300](rechner://law/kfw-300)` opens the law reference popup, with a normal law-page URL for modified clicks.
+- `[Loan-to-value](rechner://topic/mortgage-repayment/loan-to-value)` links to a topic or subtopic. Top-level topics use `rechner://topic/topic-id`.
+- `rechner://app/app-id/section-id` and `rechner://law/law-id/section-id` link to a section anchor. Standard `https://` and `http://` links also work.
+
+These `rechner://` targets are content identifiers; the app renders them as its normal components and web URLs. The generator validates target IDs, but section anchors must be checked on their destination pages. JSON metadata continues to define indexing and related references independently. Other rich Markdown formatting is not rendered yet.
+
+After editing an article, run `npm run content:topics` to refresh the generated file (or restart the development server). `npm run build` also refreshes it. Run `npm run check`; the checks verify that generated content is current and cover references, topic hierarchy and category membership.
