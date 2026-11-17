@@ -9,11 +9,25 @@ The topic Markdown files supply the text used in search results, popups and full
 
 Keep existing IDs stable when editing text: calculators, other content and bookmarked links refer to them. Law, law-group and calculator IDs must match their definitions in the application; adding a new one also requires a corresponding definition. Check the cited official sources when changing a legal explanation.
 
+Topic front matter uses flat relationships: `explainedBy` is an array of law URIs, `usedBy` an array of app URIs, and optional `related` an array of parent or sibling topic URIs. Top-level topics use a category URI and `categoryOrder`. The topic ID and parent come from its path.
+
+Law front matter uses `group` for its law-group URI and intent-named maps such as `dependsOn` and `interactsWith`, keyed by law URI. Each map value can contain a `description`; where display order matters, give each relationship an `order`. Law groups use `primaryLaw` and `includes` with law URIs. External sources retain their provider IDs, HTTPS URLs and labels.
+
+```json
+{
+  "category": "rechner://category/residence",
+  "explainedBy": ["rechner://law/aufenthg-18g"],
+  "usedBy": ["rechner://app/visa"],
+  "related": ["rechner://topic/blue-card"]
+}
+```
+
 Use inline Markdown links in the section text to connect explanations:
 
 - `[Home Purchase Planner](rechner://app/housing)` links to a calculator.
 - `[KfW 300](rechner://law/kfw-300)` opens the law reference popup, with a normal law-page URL for modified clicks.
 - `[Loan-to-value](rechner://topic/mortgage-repayment/loan-to-value)` links to a topic or subtopic. Top-level topics use `rechner://topic/topic-id`.
+- `[Home financing](rechner://category/home)` links to a topic category, and `[Home acquisition rules](rechner://group/group-housing-home-acquisition)` opens the law-group reference.
 - `rechner://app/app-id/section-id` and `rechner://law/law-id/section-id` link to a section anchor. Standard `https://` and `http://` links also work.
 
 These `rechner://` targets are content identifiers; the app renders them as its normal components and web URLs. The generator validates target IDs, but section anchors must be checked on their destination pages. JSON metadata continues to define indexing and related references independently. Other rich Markdown formatting is not rendered yet.
