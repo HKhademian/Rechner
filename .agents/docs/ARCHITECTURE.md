@@ -95,7 +95,7 @@ State is managed using **`@preact/signals`**, ensuring fine-grained, dependency-
    - Reactive computation functions invoking `timelineGenerator.ts`:
      - `computeTimelineData('A')`: Baseline employment under the supplied hours, raises and financial actions.
      - `computeTimelineData('B')`: Baseline scenario retaining the initial supplied tax classes.
-     - `computeTimelineData('C')`: Scenario with supplied or synthesized tax switches; actual history and eligibility determine benefits, and tax settlements can have either sign.
+     - `computeTimelineData('C')`: Scenario with explicitly supplied tax switches; actual history and eligibility determine benefits, and tax settlements can have either sign.
    - Computes KPI metrics: Total Salaries, State Benefits, Signed Tax Settlements, Grand Total Cash Flow, and delta comparisons.
 
 3. **`src/store/taxConfigStore.ts`**:
