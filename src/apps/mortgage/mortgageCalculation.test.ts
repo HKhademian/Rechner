@@ -36,3 +36,27 @@ it("reduces the balance over time and validates the projection period", () => {
   assert.throws(() => toMortgageYears(0));
   assert.throws(() => toMortgageYears(51));
 });
+
+it("uses a payoff term and handles a smaller final payment", async () => {
+  const { mortgagePaymentForTerm } = await import("#/apps/mortgage/mortgageCalculation.ts");
+  const principal = toEuroAmount(360000);
+  const rate = toPercentageRate(0.0365);
+  const payment = mortgagePaymentForTerm(principal, rate, toMortgageYears(30));
+  assert.equal(payment, 1646.86);
+  const projection = projectMortgage(principal, rate, toPercentageRate(0), toMortgageYears(30), { baseMonthlyPayment: payment });
+  assert.equal(projection.paidOff, true);
+  assert.equal(projection.elapsedMonths, 360);
+  assert.equal(mortgagePaymentForTerm(toEuroAmount(1200), toPercentageRate(0), toMortgageYears(1)), 100);
+});
+
+it("applies extra principal only until payoff and reduces interest", () => {
+  const principal = toEuroAmount(12000);
+  const base = projectMortgage(principal, toPercentageRate(0.06), toPercentageRate(0.1), toMortgageYears(20));
+  const extra = projectMortgage(principal, toPercentageRate(0.06), toPercentageRate(0.1), toMortgageYears(20), { extraMonthlyPayment: toEuroAmount(100) });
+  assert.equal(extra.monthlyPayment, base.monthlyPayment + 100);
+  assert.equal(extra.paidOff, true);
+  assert.ok(extra.elapsedMonths < base.elapsedMonths);
+  assert.ok(extra.interestPaid < base.interestPaid);
+  assert.equal(extra.principalRepaid, principal);
+  assert.equal(projectMortgage(toEuroAmount(0), toPercentageRate(0), toPercentageRate(0), toMortgageYears(1), { extraMonthlyPayment: toEuroAmount(100) }).monthlyPayment, 0);
+});
