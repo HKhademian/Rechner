@@ -3,7 +3,7 @@
  *
  * Provides pure functional transformation of simulation action batches
  * according to statutory simulation strategies (StatusQuo, UnoptimizedBaseline, StatutoryOptimized).
- * Automatically derives optimal § 2b BEEG tax class switch windows when none are provided.
+ * Applies only the tax-class switches explicitly included in the plan.
  *
  * @module engine/simulator/strategySynthesizer
  */
@@ -86,7 +86,7 @@ export function synthesizeOptimalTaxSwitches(
  * - **`SimulationStrategy.UnoptimizedBaseline`**:
  *   Retains pregnancies and parental leaves, but suppresses tax class switches (holding static Class V/III baseline).
  * - **`SimulationStrategy.StatutoryOptimized`**:
- *   Retains pregnancies, applies existing custom tax switches or auto-synthesizes statutorily optimal § 2b BEEG switches.
+ *   Retains pregnancies and applies the explicitly configured tax switches.
  *
  * @param batches - Original strongly-typed `ScenarioActionBatches` input.
  * @param strategyOverride - Optional strategy identifier override.
@@ -115,15 +115,10 @@ export function synthesizeStrategyBatches(
     };
   }
 
-  // StatutoryOptimized
-  const taxClassSwitches =
-    batches.taxClassSwitches && batches.taxClassSwitches.length > 0
-      ? batches.taxClassSwitches
-      : synthesizeOptimalTaxSwitches(batches.pregnancies, batches.preexisting);
-
+  // The planned scenario uses only switches explicitly included in the plan.
   return {
     ...batches,
     scenarioKey: SimulationStrategy.StatutoryOptimized,
-    taxClassSwitches,
+    taxClassSwitches: batches.taxClassSwitches,
   };
 }

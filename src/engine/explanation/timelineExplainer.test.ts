@@ -21,6 +21,9 @@ import {
   runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
+  synthesizeOptimalTaxSwitches,
+} from "#engine/simulator/strategySynthesizer";
+import {
   type PreexistingConditions,
   type PregnancyAction,
   type ActionRowItem,
@@ -101,7 +104,7 @@ describe("Timeline Explanation Engine (Field-Level & Full-Row Audits)", () => {
     scenarioKey: ScenarioId.C,
     preexisting: basePreexisting,
     pregnancies: [preg],
-    taxClassSwitches: [],
+    taxClassSwitches: synthesizeOptimalTaxSwitches([preg], basePreexisting),
     salaryRaises: [],
     financialEvents: [],
   });

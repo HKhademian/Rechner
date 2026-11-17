@@ -10,6 +10,9 @@ import {
   runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
+  synthesizeOptimalTaxSwitches,
+} from "#engine/simulator/strategySynthesizer";
+import {
   type PreexistingConditions,
   type PregnancyAction,
   ActionType,
@@ -89,7 +92,7 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
       scenarioKey: ScenarioId.C,
       preexisting,
       pregnancies,
-      taxClassSwitches: [],
+      taxClassSwitches: synthesizeOptimalTaxSwitches(pregnancies, preexisting),
       salaryRaises: [],
       workingHoursChanges: [],
       financialEvents: [],
@@ -110,7 +113,7 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
       scenarioKey: ScenarioId.C,
       preexisting,
       pregnancies,
-      taxClassSwitches: [],
+      taxClassSwitches: synthesizeOptimalTaxSwitches(pregnancies, preexisting),
       salaryRaises: [],
       workingHoursChanges: [],
       financialEvents: [],
@@ -134,7 +137,7 @@ describe("Elterngeld Reallocation Engine (*Partnerübertragung* § 4, § 7 BEEG)
         husbandWeeklyHours: toWorkingHours(40), // 40h > 32h statutory cap
       },
       pregnancies,
-      taxClassSwitches: [],
+      taxClassSwitches: synthesizeOptimalTaxSwitches(pregnancies, preexisting),
       salaryRaises: [],
       workingHoursChanges: [],
       financialEvents: [],

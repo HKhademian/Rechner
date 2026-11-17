@@ -10,6 +10,9 @@ import {
   runScenarioBatches,
 } from "#engine/simulator/timelineGenerator";
 import {
+  synthesizeOptimalTaxSwitches,
+} from "#engine/simulator/strategySynthesizer";
+import {
   deriveSpousalNetSalaries,
 } from "#engine/tax/wageTax";
 import {
@@ -890,7 +893,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         scenarioKey: ScenarioId.C,
         preexisting: basePreexisting,
         pregnancies: [lowHoursPregnancy],
-        taxClassSwitches: [],
+        taxClassSwitches: synthesizeOptimalTaxSwitches([lowHoursPregnancy], basePreexisting),
         salaryRaises: [],
         financialEvents: [],
       });
@@ -937,7 +940,7 @@ describe("Sandbox Unit Tests: Discrete Actions (Batches 1, 2, 3)", () => {
         scenarioKey: ScenarioId.C,
         preexisting: basePreexisting,
         pregnancies: [optimalHoursPregnancy],
-        taxClassSwitches: [],
+        taxClassSwitches: synthesizeOptimalTaxSwitches([optimalHoursPregnancy], basePreexisting),
         salaryRaises: [],
         financialEvents: [],
       });

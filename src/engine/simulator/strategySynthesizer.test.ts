@@ -159,16 +159,14 @@ describe("Strategy Synthesizer & Auto-Optimization Engine", () => {
       assert.equal(result.taxClassSwitches.length, 0);
     });
 
-    it("StatutoryOptimized: auto-synthesizes § 2b BEEG switches when input has zero switches", () => {
+    it("StatutoryOptimized: retains an empty switch plan", () => {
       const result = synthesizeStrategyBatches(
         baseBatches,
         SimulationStrategy.StatutoryOptimized,
       );
       assert.equal(result.scenarioKey, SimulationStrategy.StatutoryOptimized);
       assert.equal(result.pregnancies.length, 2);
-      assert.equal(result.taxClassSwitches.length, 2);
-      assert.equal(result.taxClassSwitches[0].targetWifeTaxClass, TaxClass.III);
-      assert.equal(result.taxClassSwitches[1].targetWifeTaxClass, TaxClass.III);
+      assert.equal(result.taxClassSwitches.length, 0);
     });
 
     it("StatutoryOptimized: preserves explicit user-defined tax switches if already provided", () => {
