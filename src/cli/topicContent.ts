@@ -19,6 +19,10 @@ import {
 import {
   toLawId, 
 } from "#engine/laws/types";
+import {
+  parseContentLinks,
+  resolveContentLink,
+} from "#utils/contentLinks";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../content/topics");
 const articles = join(root, "articles");
@@ -97,6 +101,13 @@ for (const entry of entries) {
   const parentId = entry.topic.parentId;
   if (parentId && !entries.some((candidate) => candidate.topic.id === parentId && !candidate.topic.parentId)) {
     throw new Error(`Missing top-level parent ${parentId} for ${entry.topic.id}`);
+  }
+  for (const text of [entry.topic.title, entry.topic.description, entry.topic.benefit, entry.topic.limitation, entry.topic.calculatorEffect]) {
+    for (const part of parseContentLinks(text)) {
+      if (part.target && !resolveContentLink(part.target, entries.map((item) => item.topic))) {
+        throw new Error(`Invalid link ${part.target} in topic ${entry.topic.id}`);
+      }
+    }
   }
 }
 const generated = `${JSON.stringify(entries.map((entry) => entry.topic), null, 2)}\n`;
