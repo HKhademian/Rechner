@@ -9,6 +9,10 @@
   "usedBy": [
     "rechner://app/visa"
   ],
+  "related": [
+    "rechner://topic/opportunity-card",
+    "rechner://topic/blue-card"
+  ],
   "category": "rechner://category/residence"
 }
 ---

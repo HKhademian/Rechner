@@ -22,6 +22,7 @@ export interface Topic {
   readonly calculatorEffect: string;
   readonly laws: readonly LawId[];
   readonly apps: readonly AppId[];
+  readonly relatedTopics?: readonly string[];
   readonly source?: { readonly label: string;
     readonly url: string };
 }

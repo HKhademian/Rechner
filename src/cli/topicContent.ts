@@ -63,8 +63,8 @@ function readArticle(path: string) {
   }
   const id = segments.at(-2)!;
   const parentId = segments.length === 3 ? segments[0] : undefined;
-  const { order, explainedBy, usedBy, source, category: categoryUri, categoryOrder } = data;
-  if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id) || (parentId !== undefined && (typeof parentId !== "string" || !/^[a-z0-9-]+$/.test(parentId))) || !Number.isSafeInteger(order) || typeof order !== "number" || order < 0 || !Array.isArray(explainedBy) || !Array.isArray(usedBy)) {
+  const { order, explainedBy, usedBy, related, source, category: categoryUri, categoryOrder } = data;
+  if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id) || (parentId !== undefined && (typeof parentId !== "string" || !/^[a-z0-9-]+$/.test(parentId))) || !Number.isSafeInteger(order) || typeof order !== "number" || order < 0 || !Array.isArray(explainedBy) || !Array.isArray(usedBy) || (related !== undefined && !Array.isArray(related))) {
     throw new Error(`Invalid topic metadata fields: ${path}`);
   }
   const expected = [...(parentId ? [parentId] : []), id, "index.md"].join(sep);
@@ -77,7 +77,8 @@ function readArticle(path: string) {
   const category = categoryUri === undefined ? undefined : resourceId(categoryUri, ResourceKind.Category);
   const laws = explainedBy.map((uri) => toLawId(resourceId(uri, ResourceKind.Law)));
   const apps = usedBy.map((uri) => toAppId(resourceId(uri, ResourceKind.App)));
-  if (new Set(laws).size !== laws.length || new Set(apps).size !== apps.length) {
+  const relatedTopics = related?.map((uri) => resourceId(uri, ResourceKind.Topic));
+  if (new Set(laws).size !== laws.length || new Set(apps).size !== apps.length || (relatedTopics && new Set(relatedTopics).size !== relatedTopics.length)) {
     throw new Error(`Duplicate topic references: ${path}`);
   }
   let parsedSource: { label: string;
@@ -105,6 +106,7 @@ function readArticle(path: string) {
       calculatorEffect: parts[6].trim(),
       laws,
       apps,
+      ...(relatedTopics ? { relatedTopics } : {}),
       ...(parsedSource ? { source: parsedSource } : {}) } };
 }
 
@@ -142,6 +144,12 @@ for (const entry of entries) {
   const parentId = entry.topic.parentId;
   if (parentId && !entries.some((candidate) => candidate.topic.id === parentId && !candidate.topic.parentId)) {
     throw new Error(`Missing top-level parent ${parentId} for ${entry.topic.id}`);
+  }
+  for (const relatedId of entry.topic.relatedTopics ?? []) {
+    const target = entries.find((candidate) => candidate.topic.id === relatedId);
+    if (!target || target.topic.id === entry.topic.id || (entry.topic.parentId ? target.topic.id !== entry.topic.parentId && target.topic.parentId !== entry.topic.parentId : target.topic.parentId || target.category !== entry.category)) {
+      throw new Error(`Related topic ${relatedId} is not a parent or sibling of ${entry.topic.id}`);
+    }
   }
   for (const text of [entry.topic.title, entry.topic.description, entry.topic.benefit, entry.topic.limitation, entry.topic.calculatorEffect]) {
     for (const part of parseContentLinks(text)) {

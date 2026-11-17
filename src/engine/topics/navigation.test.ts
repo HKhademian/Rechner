@@ -30,3 +30,8 @@ it("places each subtopic under its parent and relates only parents or siblings",
   assert.ok(getRelatedTopics(getTopic("solar-vat")!).some((topic) => topic.id === "solar-yield"));
   assert.ok(!getRelatedTopics(getTopic("solar")!).some((topic) => topic.id === "solar-vat"));
 });
+
+it("places authored related topics first without duplicating them", () => {
+  const related = getRelatedTopics(getTopic("qualification-recognition")!);
+  assert.deepEqual(related.map((topic) => topic.id), ["opportunity-card", "blue-card"]);
+});
