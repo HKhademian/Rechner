@@ -27,4 +27,4 @@ The tax saving depends on the overall deduction and tax position. An employer su
 
 ## In the calculators
 
-The tool compares modeled self-paid and employer-ticket scenarios using the entered costs and tax assumptions.
+The [Commuter & JobTicket](rechner://app/commuter-allowance) calculator compares modeled self-paid and employer-ticket scenarios using the entered costs and tax assumptions.
