@@ -2,10 +2,10 @@
   {
     "id": "kfw-300",
     "title": "KfW 300: family home loan",
-    "description": "A subsidized loan program for eligible families building or buying a qualifying climate-friendly home to live in.",
+    "description": "A [subsidized loan program](rechner://law/kfw-300) for eligible families building or buying a qualifying climate-friendly home to live in.",
     "benefit": "A qualifying household can finance part of the project with a KfW loan; this is borrowing, not a grant.",
     "limitation": "Income, family, ownership and building requirements apply. An energy-efficiency expert must confirm the technical requirements.",
-    "calculatorEffect": "The home planner models a subset of eligibility conditions and caps the loan at the estimated financing need.",
+    "calculatorEffect": "The [Home Purchase Planner](rechner://app/housing) models a subset of eligibility conditions and caps the loan at the estimated financing need.",
     "laws": [
       "kfw-300",
       "estg-2"

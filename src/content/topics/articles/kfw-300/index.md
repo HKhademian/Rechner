@@ -14,7 +14,7 @@
 
 # KfW 300: family home loan
 
-A subsidized loan program for eligible families building or buying a qualifying climate-friendly home to live in.
+A [subsidized loan program](rechner://law/kfw-300) for eligible families building or buying a qualifying climate-friendly home to live in.
 
 ## Potential benefit
 
@@ -26,4 +26,4 @@ Income, family, ownership and building requirements apply. An energy-efficiency 
 
 ## In the calculators
 
-The home planner models a subset of eligibility conditions and caps the loan at the estimated financing need.
+The [Home Purchase Planner](rechner://app/housing) models a subset of eligibility conditions and caps the loan at the estimated financing need.
