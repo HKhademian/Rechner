@@ -50,7 +50,7 @@ function readArticle(path: string) {
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id) || (parentId !== undefined && (typeof parentId !== "string" || !/^[a-z0-9-]+$/.test(parentId))) || !Number.isSafeInteger(order) || typeof order !== "number" || order < 0 || !Array.isArray(laws) || !laws.every((item) => typeof item === "string") || !Array.isArray(apps) || !apps.every((item) => typeof item === "string")) {
     throw new Error(`Invalid topic metadata fields: ${path}`);
   }
-  const expected = [...(parentId ? [parentId] : []), `${id}.md`].join(sep);
+  const expected = [...(parentId ? [parentId] : []), id, "index.md"].join(sep);
   if (relative(articles, path) !== expected) {
     throw new Error(`Topic file must be at ${expected}: ${path}`);
   }
