@@ -34,7 +34,7 @@ it("has unique topics with valid rules, calculators and sources", () => {
     }
     for (const law of topic.laws) {
       assert.ok(getLawEntry(law));
-      assert.equal(topicsForLaw(law).includes(topic), !topic.parentId);
+      assert.ok(topicsForLaw(law).includes(topic));
     }
     for (const app of topic.apps) {
       assert.ok(allCalculatorApps.some((candidate) => candidate.id === app));
@@ -42,6 +42,13 @@ it("has unique topics with valid rules, calculators and sources", () => {
     if (topic.source) {
       assert.equal(new URL(topic.source.url).protocol, "https:");
     }
+  }
+});
+
+it("groups related explanations and preserves their rule links", () => {
+  for (const [parent, child] of [["kfw-300", "eh40"], ["solar", "solar-vat"], ["company-car", "car-commute"], ["parental-allowance", "sibling-bonus"], ["girocode", "payment-reference"]]) {
+    assert.ok(getSubtopics(parent).some((topic) => topic.id === child));
+    assert.ok(searchTopics(getTopic(child)!.title).some((topic) => topic.id === parent));
   }
 });
 

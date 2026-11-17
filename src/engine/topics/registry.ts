@@ -32,6 +32,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.KfW_300, Laws.EStG_2],
     apps: [Apps.Housing] },
   { id: "eh40",
+    parentId: "kfw-300",
     title: "Owner-occupied EH 40 new build",
     description: "Owner-occupied means you live in the home yourself. Efficiency House 40 (EH 40) is an energy-efficiency standard for a building.",
     benefit: "The standard is one building requirement for the KfW 300 climate-friendly housing tiers.",
@@ -40,6 +41,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.KfW_300],
     apps: [Apps.Housing] },
   { id: "qng",
+    parentId: "kfw-300",
     title: "QNG sustainability certification",
     description: "The Quality Seal for Sustainable Buildings (Qualitätssiegel Nachhaltiges Gebäude, QNG) certifies sustainability. KfW 300 accepts the PLUS or PREMIUM tier for its higher funding level.",
     benefit: "The QNG funding tier can allow a higher KfW loan ceiling.",
@@ -144,6 +146,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.AufenthG_20a, Laws.AufenthG_18g],
     apps: [Apps.Visa] },
   { id: "solar-vat",
+    parentId: "solar",
     title: "Zero VAT on eligible solar installations",
     description: "A zero VAT rate can apply to qualifying supplies and installation of photovoltaic systems under the statutory conditions.",
     benefit: "Eligible purchases are invoiced at a zero VAT rate.",
@@ -152,6 +155,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.UStG_12_3],
     apps: [Apps.SolarEnergy] },
   { id: "pension-exemption",
+    parentId: "minijob",
     title: "Minijob pension insurance exemption",
     description: "A Minijob employee can apply for exemption from compulsory pension insurance. The employer contribution and the employee's pension position are separate matters.",
     benefit: "Exemption can increase current take-home pay by removing the modeled employee pension contribution.",
@@ -186,6 +190,7 @@ export const topics: readonly Topic[] = [
     source: { label: "European Payments Council · About SEPA",
       url: "https://www.europeanpaymentscouncil.eu/about-sepa" } },
   { id: "payment-reference",
+    parentId: "girocode",
     title: "Payment reference and purpose code",
     description: "A remittance reference helps a recipient identify a payment. Structured references use a defined format; unstructured references contain free text. A purpose code describes the kind of payment.",
     benefit: "An accurate reference can help the recipient match a transfer to an invoice or account.",
@@ -197,6 +202,7 @@ export const topics: readonly Topic[] = [
       url: "https://www.europeanpaymentscouncil.eu/about-sepa" } },
 
   { id: "solar-yield",
+    parentId: "solar",
     title: "Solar system size and specific yield",
     description: "Kilowatt-peak (kWp) describes a solar system's rated peak power under standard test conditions. Specific yield estimates annual electricity generation per kWp, in kWh per kWp per year.",
     benefit: "Together they give a simple estimate of annual generation.",
@@ -205,6 +211,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.EEG_48],
     apps: [Apps.SolarEnergy] },
   { id: "solar-self-consumption",
+    parentId: "solar",
     title: "Solar self-consumption and feed-in",
     description: "Self-consumption is the share of generated electricity used by the household; feed-in is electricity exported to the grid.",
     benefit: "Self-consumed electricity can replace grid purchases; eligible exports can earn compensation.",
@@ -213,6 +220,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.EEG_48],
     apps: [Apps.SolarEnergy] },
   { id: "car-list-price",
+    parentId: "company-car",
     title: "Gross list price for a company car",
     description: "Bruttolistenpreis is the vehicle's gross domestic list price used as an input to the flat-rate valuation of private car use, rather than necessarily the amount paid for the car.",
     benefit: "The list-price method offers a standardized way to estimate the taxable non-cash benefit.",
@@ -221,6 +229,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.EStG_6_1_4, Laws.EStG_8_2],
     apps: [Apps.CompanyCar] },
   { id: "car-commute",
+    parentId: "company-car",
     title: "Company car commute valuation",
     description: "A company car used for trips between home and the first workplace can generate an additional taxable benefit. The valuation can use a monthly method or a method based on actual trips, subject to the rules.",
     benefit: "The available method can affect the amount added to taxable pay.",
@@ -229,6 +238,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.EStG_8_2],
     apps: [Apps.CompanyCar] },
   { id: "opportunity-points",
+    parentId: "opportunity-card",
     title: "Opportunity Card points factors",
     description: "The points route considers qualifications, experience, language, age, previous stays and a qualifying partner. A shortage occupation is a profession in the applicable shortage list; partial recognition means an authority has identified differences from the German qualification. The prior-stay and partner factors have their own conditions.",
     benefit: "Qualifying factors can contribute toward the points needed for the points-based route.",
@@ -238,6 +248,7 @@ export const topics: readonly Topic[] = [
     apps: [Apps.Visa] },
 
   { id: "parental-allowance-options",
+    parentId: "parental-allowance",
     title: "Basiselterngeld and ElterngeldPlus",
     description: "Basiselterngeld and ElterngeldPlus are different ways to receive parental allowance. ElterngeldPlus can spread an entitlement over a longer period and is often relevant when working part-time.",
     benefit: "The options allow families to plan benefit timing around work and childcare.",
@@ -246,6 +257,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.BEEG_4, Laws.BEEG_4a, Laws.BEEG_2],
     apps: [Apps.ParentalLeave] },
   { id: "partnership-bonus",
+    parentId: "parental-allowance",
     title: "Elterngeld partnership bonus",
     description: "The partnership bonus provides additional ElterngeldPlus months when eligible parents share work and childcare and satisfy the applicable working-time conditions.",
     benefit: "Qualifying parents can receive additional months of ElterngeldPlus.",
@@ -254,6 +266,7 @@ export const topics: readonly Topic[] = [
     laws: [Laws.BEEG_4b, Laws.BEEG_4a],
     apps: [Apps.ParentalLeave] },
   { id: "sibling-bonus",
+    parentId: "parental-allowance",
     title: "Elterngeld sibling bonus",
     description: "The sibling bonus (Geschwisterbonus) is an addition to parental allowance for a qualifying family with older children.",
     benefit: "It increases the allowance while the statutory conditions are satisfied.",
@@ -279,6 +292,7 @@ export const topics: readonly Topic[] = [
     apps: [Apps.NetPay, Apps.ParentalLeave] },
 
   { id: "payment-characters",
+    parentId: "girocode",
     title: "Payment code character encoding",
     description: "Character encoding determines how text is represented in the payment symbol. UTF-8 supports a broad range of characters; the ASCII option converts text to a narrower character set.",
     benefit: "The ASCII option can improve compatibility with systems that cannot handle all characters in the original text.",
@@ -394,5 +408,5 @@ export function searchTopics(query: string): readonly Topic[] {
 }
 
 export function topicsForLaw(lawId: LawId): readonly Topic[] {
-  return topics.filter((topic) => !topic.parentId && topic.laws.includes(lawId));
+  return topics.filter((topic) => topic.laws.includes(lawId));
 }
