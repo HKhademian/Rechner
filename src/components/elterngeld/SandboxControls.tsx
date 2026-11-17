@@ -1068,8 +1068,8 @@ export default function SandboxControls(): JSX.Element {
                           {isFirst ? (
                             <>
                               ↳ Sim Start:{" "}
-                              <strong>01.{startCalendarYear.value}</strong> (
-                              {prePregnancyPlanningMonths.value}M planning
+                              <strong>{String(startCalendarMonth.value).padStart(2, "0")}.{startCalendarYear.value}</strong> (
+                              {Math.max(0, (preg.positiveTestCalendarYear - startCalendarYear.value) * 12 + preg.positiveTestCalendarMonth - startCalendarMonth.value)}M planning
                               before pregnancy)
                             </>
                           ) : (
@@ -1266,7 +1266,7 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
-                      <span>Initial Baseline Tax Class ($M1$)</span>
+                      <span>Initial Baseline Tax Class</span>
                     </div>
                     <div
                       style={{
@@ -4436,7 +4436,7 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       <InformationalNoticeIcon size={13} />
-                      <span>Preconditions Baseline ($M1$ / $t=0$)</span>
+                      <span>Conditions at simulation start</span>
                     </div>
                     <div
                       style={{
@@ -4476,7 +4476,7 @@ export default function SandboxControls(): JSX.Element {
                       marginTop: "6px",
                     }}
                   >
-                    ↳ Precondition: baseline status at simulation start ($M1$).
+                    ↳ Precondition: baseline status at simulation start.
                     Defaults to 0 if unreported.
                   </div>
                 </div>

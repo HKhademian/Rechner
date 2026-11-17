@@ -240,7 +240,7 @@ export default function TimelineTable(): JSX.Element {
               margin: 0,
             }}
           >
-            {current.months.length}-Month Cash Flow Ledger (Scenario {scenario})
+            {current.months.length}-Month Cash Flow Ledger
           </h3>
           <p
             style={{
