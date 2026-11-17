@@ -1,4 +1,7 @@
 import "./ReferencePages.css";
+import {
+  ParameterValue,
+} from "#components/reference/ParameterValue";
 import type {
   JSX,
 } from "preact";
@@ -86,13 +89,12 @@ export function ConstantDirectory(): JSX.Element {
 
 export function ConstantPage({ id }: { readonly id: ParameterId }): JSX.Element {
   const parameter = getParameterDefinition(id);
-  const editor = `${sitePath("/constants/")}?q=${encodeURIComponent(parameter.id)}`;
   const formulas = REFERENCE_FORMULAS.filter((formulaId) => STATUTORY_FORMULA_DESCRIPTORS[formulaId].consumedParameterIds.includes(id));
   return <AppShell currentPath={sitePath("/constants/")}><div className="reference-page">
     <a href={sitePath("/constants/")}>All rates and assumptions</a>
     <h1>{parameter.label}</h1><p>{parameter.description}</p>
     <p>{PARAMETER_MUTABILITY_LABELS[parameter.mutability]}</p>
-    <p><a className="ui-btn ui-btn--tint" href={editor}>View value and settings</a></p>
+    <ParameterValue id={id} />
     {parameter.lawIds.length > 0 && <section><h2>Law</h2><ul>{parameter.lawIds.map((lawId) => <li key={lawId}><LawRefLink lawId={lawId} /></li>)}</ul></section>}
     {formulas.length > 0 && <section><h2>Formulas</h2><ul>{formulas.map((formulaId) => <li key={formulaId}><a href={sitePath(`/formulas/${formulaId}/`)}>{STATUTORY_FORMULA_DESCRIPTORS[formulaId].label}</a></li>)}</ul></section>}
   </div></AppShell>;

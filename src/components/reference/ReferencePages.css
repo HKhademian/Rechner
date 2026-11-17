@@ -32,3 +32,35 @@
 .reference-page code {
   overflow-wrap: anywhere;
 }
+
+.reference-value {
+  padding: 1rem;
+}
+
+.reference-value label,
+.reference-value__form {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.reference-value input,
+.reference-value select {
+  max-width: 100%;
+  padding: 0.45rem;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+}
+
+.reference-value__amount {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
+}
+
+.reference-value__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
