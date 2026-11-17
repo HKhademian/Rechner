@@ -106,7 +106,7 @@
     "description": "Elterngeld is an income-related family benefit; Elternzeit is leave from employment. They are related but separate arrangements.",
     "benefit": "Eligible parents can receive financial support while caring for a child; different allowance options can be combined under their rules.",
     "limitation": "Income, working hours, timing and other conditions affect eligibility and amounts. A simulation is not an official determination.",
-    "calculatorEffect": "The planner estimates payments and cash flow from the entered household and leave timeline.",
+    "calculatorEffect": "The [Parental Leave Planner](rechner://app/parental-leave) estimates payments and cash flow from the entered household and leave timeline.",
     "laws": [
       "beeg-1",
       "beeg-2",

@@ -28,4 +28,4 @@ Income, working hours, timing and other conditions affect eligibility and amount
 
 ## In the calculators
 
-The planner estimates payments and cash flow from the entered household and leave timeline.
+The [Parental Leave Planner](rechner://app/parental-leave) estimates payments and cash flow from the entered household and leave timeline.
