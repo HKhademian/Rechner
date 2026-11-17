@@ -19,28 +19,26 @@
   "group": "rechner://group/group-estg-tax-splitting",
   "dependsOn": {
     "rechner://law/estg-26": {
-      "description": "Requires an eligible joint-assessment election under § 26."
+      "description": "Requires an eligible joint-assessment election under § 26.",
+      "order": 0
     }
   },
   "implements": {
     "rechner://law/estg-32a": {
-      "description": "Applies the § 32a Abs. 5 splitting formula to pooled zvE."
+      "description": "Applies the § 32a Abs. 5 splitting formula to pooled zvE.",
+      "order": 1
     },
     "rechner://law/estg-36": {
-      "description": "Reconciles assessed liability against monthly withheld tax credits."
+      "description": "Reconciles assessed liability against monthly withheld tax credits.",
+      "order": 3
     }
   },
   "interactsWith": {
     "rechner://law/estg-32b": {
-      "description": "Elterngeld/Mutterschutz progression raises the effective tax rate on joint income."
+      "description": "Elterngeld/Mutterschutz progression raises the effective tax rate on joint income.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-26",
-    "rechner://law/estg-32a",
-    "rechner://law/estg-32b",
-    "rechner://law/estg-36"
-  ]
+  }
 }
 ---
 

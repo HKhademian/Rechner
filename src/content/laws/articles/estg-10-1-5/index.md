@@ -24,24 +24,22 @@
   "group": "rechner://group/group-estg-tax-splitting",
   "extends": {
     "rechner://law/estg-10": {
-      "description": "Itemized under § 10 EStG Sonderausgaben alongside provident insurance deductions."
+      "description": "Itemized under § 10 EStG Sonderausgaben alongside provident insurance deductions.",
+      "order": 0
     }
   },
   "modifies": {
     "rechner://law/estg-2": {
-      "description": "Reduces annual joint taxable income (§ 2 Abs. 4 EStG)."
+      "description": "Reduces annual joint taxable income (§ 2 Abs. 4 EStG).",
+      "order": 1
     }
   },
   "interactsWith": {
     "rechner://law/estg-66": {
-      "description": "Applies independently alongside Kindergeld / Kinderfreibetrag."
+      "description": "Applies independently alongside Kindergeld / Kinderfreibetrag.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-10",
-    "rechner://law/estg-2",
-    "rechner://law/estg-66"
-  ]
+  }
 }
 ---
 

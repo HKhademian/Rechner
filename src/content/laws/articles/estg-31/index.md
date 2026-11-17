@@ -19,24 +19,22 @@
   "group": "rechner://group/group-estg-kindergeld",
   "dependsOn": {
     "rechner://law/estg-32": {
-      "description": "Tests the annual § 32 Abs. 6 Kinderfreibetrag amount."
+      "description": "Tests the annual § 32 Abs. 6 Kinderfreibetrag amount.",
+      "order": 0
     }
   },
   "contrastsWith": {
     "rechner://law/estg-66": {
-      "description": "Compares tax relief against monthly § 66 Kindergeld payouts."
+      "description": "Compares tax relief against monthly § 66 Kindergeld payouts.",
+      "order": 1
     }
   },
   "interactsWith": {
     "rechner://law/solzg-3": {
-      "description": "Kinderfreibetrag always reduces the Solidarity Surcharge base even when Kindergeld wins."
+      "description": "Kinderfreibetrag always reduces the Solidarity Surcharge base even when Kindergeld wins.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-32",
-    "rechner://law/estg-66",
-    "rechner://law/solzg-3"
-  ]
+  }
 }
 ---
 

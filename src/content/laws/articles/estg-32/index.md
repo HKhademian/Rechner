@@ -18,18 +18,16 @@
   "group": "rechner://group/group-estg-kindergeld",
   "implements": {
     "rechner://law/estg-31": {
-      "description": "Evaluated by the § 31 favorability test."
+      "description": "Evaluated by the § 31 favorability test.",
+      "order": 0
     }
   },
   "contrastsWith": {
     "rechner://law/estg-66": {
-      "description": "Alternative to monthly Kindergeld cash payments."
+      "description": "Alternative to monthly Kindergeld cash payments.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-31",
-    "rechner://law/estg-66"
-  ]
+  }
 }
 ---
 

@@ -18,18 +18,16 @@
   "group": "rechner://group/group-sgb-social-security",
   "interactsWith": {
     "rechner://law/sgb6-158": {
-      "description": "Shares the statutory pension assessment ceiling."
+      "description": "Shares the statutory pension assessment ceiling.",
+      "order": 0
     }
   },
   "modifies": {
     "rechner://law/sgb4-20": {
-      "description": "Midijob transition zone reduces employee contributions under § 20 SGB IV."
+      "description": "Midijob transition zone reduces employee contributions under § 20 SGB IV.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/sgb6-158",
-    "rechner://law/sgb4-20"
-  ]
+  }
 }
 ---
 

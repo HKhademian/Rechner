@@ -20,24 +20,22 @@
   "group": "rechner://group/group-beeg-partnership-bonus",
   "dependsOn": {
     "rechner://law/beeg-1": {
-      "description": "Tightens the § 1 max 32h limit into a 24–32h dual-parent corridor."
+      "description": "Tightens the § 1 max 32h limit into a 24–32h dual-parent corridor.",
+      "order": 0
     }
   },
   "implements": {
     "rechner://law/beeg-4a": {
-      "description": "Bonus months are computed and capped as ElterngeldPlus."
+      "description": "Bonus months are computed and capped as ElterngeldPlus.",
+      "order": 1
     }
   },
   "extends": {
     "rechner://law/beeg-4": {
-      "description": "Adds supplementary months on top of the 12+2 family budget."
+      "description": "Adds supplementary months on top of the 12+2 family budget.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/beeg-1",
-    "rechner://law/beeg-4a",
-    "rechner://law/beeg-4"
-  ]
+  }
 }
 ---
 

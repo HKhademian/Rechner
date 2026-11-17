@@ -19,22 +19,20 @@
   "group": "rechner://group/group-muschg-maternity",
   "interactsWith": {
     "rechner://law/muschg-20": {
-      "description": "Combined with employer supplement to reach 100% of average net."
+      "description": "Combined with employer supplement to reach 100% of average net.",
+      "order": 0
     },
     "rechner://law/estg-32b": {
-      "description": "Subject to annual tax progression."
+      "description": "Subject to annual tax progression.",
+      "order": 2
     }
   },
   "offsets": {
     "rechner://law/beeg-3": {
-      "description": "Credited against post-birth Elterngeld."
+      "description": "Credited against post-birth Elterngeld.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/muschg-20",
-    "rechner://law/beeg-3",
-    "rechner://law/estg-32b"
-  ]
+  }
 }
 ---
 

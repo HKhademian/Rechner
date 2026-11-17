@@ -19,24 +19,22 @@
   "group": "rechner://group/group-estg-tax-splitting",
   "dependsOn": {
     "rechner://law/estg-9a": {
-      "description": "Subtracts work-expense lump sum before arriving at employment income."
+      "description": "Subtracts work-expense lump sum before arriving at employment income.",
+      "order": 0
     }
   },
   "implements": {
     "rechner://law/estg-32a": {
-      "description": "zvE from § 2 feeds the statutory § 32a income tax tariff."
+      "description": "zvE from § 2 feeds the statutory § 32a income tax tariff.",
+      "order": 1
     }
   },
   "interactsWith": {
     "rechner://law/beeg-1": {
-      "description": "Determines couple taxable income tested against the BEEG limit."
+      "description": "Determines couple taxable income tested against the BEEG limit.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-9a",
-    "rechner://law/estg-32a",
-    "rechner://law/beeg-1"
-  ]
+  }
 }
 ---
 

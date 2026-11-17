@@ -18,24 +18,22 @@
   "group": "rechner://group/group-sgb-social-security",
   "dependsOn": {
     "rechner://law/bvv-2": {
-      "description": "General rate and Zusatzbeitrag are rounded separately before addition."
+      "description": "General rate and Zusatzbeitrag are rounded separately before addition.",
+      "order": 0
     }
   },
   "interactsWith": {
     "rechner://law/estg-10": {
-      "description": "Basic health share (96% of general contribution) is tax-deductible."
+      "description": "Basic health share (96% of general contribution) is tax-deductible.",
+      "order": 1
     }
   },
   "modifies": {
     "rechner://law/sgb4-20": {
-      "description": "Reduced inside the Midijob transition zone."
+      "description": "Reduced inside the Midijob transition zone.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/bvv-2",
-    "rechner://law/estg-10",
-    "rechner://law/sgb4-20"
-  ]
+  }
 }
 ---
 

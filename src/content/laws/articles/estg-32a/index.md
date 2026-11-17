@@ -23,24 +23,22 @@
   "group": "rechner://group/group-estg-tax-splitting",
   "implements": {
     "rechner://law/estg-26b": {
-      "description": "Applies Abs. 5 splitting formula for joint assessment."
+      "description": "Applies Abs. 5 splitting formula for joint assessment.",
+      "order": 0
     }
   },
   "modifies": {
     "rechner://law/estg-32b": {
-      "description": "Progression clause modifies the average rate applied to § 32a."
+      "description": "Progression clause modifies the average rate applied to § 32a.",
+      "order": 1
     }
   },
   "dependsOn": {
     "rechner://law/estg-2": {
-      "description": "Takes annual zvE from § 2 EStG as input."
+      "description": "Takes annual zvE from § 2 EStG as input.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-26b",
-    "rechner://law/estg-32b",
-    "rechner://law/estg-2"
-  ]
+  }
 }
 ---
 

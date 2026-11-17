@@ -18,18 +18,16 @@
   "group": "rechner://group/group-sgb-social-security",
   "interactsWith": {
     "rechner://law/estg-39b": {
-      "description": "Coordinates social contribution caps with Sonstige Bezüge wage tax."
+      "description": "Coordinates social contribution caps with Sonstige Bezüge wage tax.",
+      "order": 0
     }
   },
   "dependsOn": {
     "rechner://law/bvv-2": {
-      "description": "Applies statutory cent-rounding to one-off contribution bases."
+      "description": "Applies statutory cent-rounding to one-off contribution bases.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-39b",
-    "rechner://law/bvv-2"
-  ]
+  }
 }
 ---
 

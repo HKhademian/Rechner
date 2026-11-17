@@ -18,18 +18,16 @@
   "group": "rechner://group/group-estg-payroll-withholding",
   "implements": {
     "rechner://law/bmf-pap": {
-      "description": "Implemented algorithmically via the official BMF PAP."
+      "description": "Implemented algorithmically via the official BMF PAP.",
+      "order": 0
     }
   },
   "dependsOn": {
     "rechner://law/estg-19": {
-      "description": "Withholds tax on § 19 employment earnings."
+      "description": "Withholds tax on § 19 employment earnings.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/bmf-pap",
-    "rechner://law/estg-19"
-  ]
+  }
 }
 ---
 

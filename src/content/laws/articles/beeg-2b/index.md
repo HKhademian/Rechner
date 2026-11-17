@@ -20,24 +20,22 @@
   "group": "rechner://group/group-beeg-tax-swap",
   "interactsWith": {
     "rechner://law/beeg-2c": {
-      "description": "Supplies the eligible months used to determine the frozen tax class."
+      "description": "Supplies the eligible months used to determine the frozen tax class.",
+      "order": 0
     }
   },
   "dependsOn": {
     "rechner://law/muschg-3": {
-      "description": "Maternity protection months trigger statutory lookback exclusions."
+      "description": "Maternity protection months trigger statutory lookback exclusions.",
+      "order": 1
     }
   },
   "implements": {
     "rechner://law/beeg-2": {
-      "description": "Feeds the 12-month average into the § 2 replacement calculation."
+      "description": "Feeds the 12-month average into the § 2 replacement calculation.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/beeg-2c",
-    "rechner://law/muschg-3",
-    "rechner://law/beeg-2"
-  ]
+  }
 }
 ---
 

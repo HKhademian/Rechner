@@ -19,22 +19,20 @@
   "group": "rechner://group/group-beeg-synthetic-net",
   "dependsOn": {
     "rechner://law/bmf-pap": {
-      "description": "Uses the January BMF PAP table of the calendar year before birth."
+      "description": "Uses the January BMF PAP table of the calendar year before birth.",
+      "order": 0
     },
     "rechner://law/beeg-2c": {
-      "description": "Receives the frozen tax class and church tax flag from § 2c."
+      "description": "Receives the frozen tax class and church tax flag from § 2c.",
+      "order": 2
     }
   },
   "interactsWith": {
     "rechner://law/beeg-2f": {
-      "description": "Combined with § 2f flat social deductions to form BEEG standardized net."
+      "description": "Combined with § 2f flat social deductions to form BEEG standardized net.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/bmf-pap",
-    "rechner://law/beeg-2f",
-    "rechner://law/beeg-2c"
-  ]
+  }
 }
 ---
 

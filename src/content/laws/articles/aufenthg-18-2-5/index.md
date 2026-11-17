@@ -19,18 +19,16 @@
   "group": "rechner://group/group-aufenthg-blue-card",
   "interactsWith": {
     "rechner://law/aufenthg-18g": {
-      "description": "EU Blue Card carries its own salary gate; non-Blue-Card skilled permits apply the 45+ threshold."
+      "description": "EU Blue Card carries its own salary gate; non-Blue-Card skilled permits apply the 45+ threshold.",
+      "order": 0
     }
   },
   "dependsOn": {
     "rechner://law/sgb6-158": {
-      "description": "55% threshold derives directly from the annual general pension BBG ceiling."
+      "description": "55% threshold derives directly from the annual general pension BBG ceiling.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/aufenthg-18g",
-    "rechner://law/sgb6-158"
-  ]
+  }
 }
 ---
 

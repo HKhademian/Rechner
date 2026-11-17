@@ -19,18 +19,16 @@
   "group": "rechner://group/group-estg-payroll-withholding",
   "modifies": {
     "rechner://law/estg-38b": {
-      "description": "Modifies Tax Class IV monthly payroll withholding."
+      "description": "Modifies Tax Class IV monthly payroll withholding.",
+      "order": 0
     }
   },
   "dependsOn": {
     "rechner://law/bmf-pap": {
-      "description": "Factor calculation uses the published BMF PAP tax tables."
+      "description": "Factor calculation uses the published BMF PAP tax tables.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-38b",
-    "rechner://law/bmf-pap"
-  ]
+  }
 }
 ---
 

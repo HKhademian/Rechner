@@ -34,9 +34,10 @@ const relationTypes = {
 } as const;
 
 function lawMetadata(metadata: Record<string, unknown>, path: string): Record<string, unknown> {
-  const { group, relatedOrder, ...rest } = metadata;
+  const { group, ...rest } = metadata;
   const related = new Map<string, { relationType: string;
     description?: string }>();
+  const order = new Map<string, number>();
   for (const [intent, relationType] of Object.entries(relationTypes)) {
     const map = rest[intent];
     delete rest[intent];
@@ -48,22 +49,23 @@ function lawMetadata(metadata: Record<string, unknown>, path: string): Record<st
     }
     for (const [uri, details] of Object.entries(map)) {
       const target = toLawId(resourceId(uri, ResourceKind.Law));
-      if (related.has(target) || !details || typeof details !== "object" || Array.isArray(details) || Object.keys(details).some((key) => key !== "description") || ("description" in details && typeof details.description !== "string")) {
+      if (related.has(target) || !details || typeof details !== "object" || Array.isArray(details) || Object.keys(details).some((key) => key !== "description" && key !== "order") || ("description" in details && typeof details.description !== "string") || ("order" in details && (typeof details.order !== "number" || !Number.isSafeInteger(details.order) || details.order < 0))) {
         throw new Error(`Invalid or duplicate relationship ${uri} in ${path}`);
       }
+      const { order: position, ...description } = details;
+      if (typeof position === "number") {
+        order.set(target, position);
+      }
       related.set(target, { relationType,
-        ...details });
+        ...description });
     }
   }
-  let ordered = [...related.keys()];
-  if (relatedOrder !== undefined) {
-    if (!Array.isArray(relatedOrder)) {
-      throw new Error(`Invalid relationship order in ${path}`);
+  const ordered = [...related.keys()];
+  if (order.size) {
+    if (order.size !== related.size || new Set(order.values()).size !== order.size) {
+      throw new Error(`Relationship order must be unique and complete in ${path}`);
     }
-    ordered = relatedOrder.map((uri) => toLawId(resourceId(uri, ResourceKind.Law)));
-    if (ordered.length !== related.size || new Set(ordered).size !== related.size || ordered.some((id) => !related.has(id))) {
-      throw new Error(`Relationship order does not match targets in ${path}`);
-    }
+    ordered.sort((a, b) => order.get(a)! - order.get(b)!);
   }
   return { ...rest,
     ...(group === undefined ? {} : { groupId: toLawGroupId(resourceId(group, ResourceKind.Group)) }),

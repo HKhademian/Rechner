@@ -20,18 +20,16 @@
   "group": "rechner://group/group-estg-company-car",
   "interactsWith": {
     "rechner://law/estg-8-2": {
-      "description": "Combined with the 0.03%/km commute surcharge on the reduced assessment basis."
+      "description": "Combined with the 0.03%/km commute surcharge on the reduced assessment basis.",
+      "order": 0
     }
   },
   "extends": {
     "rechner://law/estg-19": {
-      "description": "Adds imputed benefit-in-kind to monthly taxable employment wages."
+      "description": "Adds imputed benefit-in-kind to monthly taxable employment wages.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-8-2",
-    "rechner://law/estg-19"
-  ]
+  }
 }
 ---
 

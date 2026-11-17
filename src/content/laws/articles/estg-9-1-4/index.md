@@ -18,18 +18,16 @@
   "group": "rechner://group/group-estg-commuter-work-expenses",
   "contrastsWith": {
     "rechner://law/estg-9a": {
-      "description": "Only itemized work expenses exceeding the €1,230 lump sum produce extra tax relief."
+      "description": "Only itemized work expenses exceeding the €1,230 lump sum produce extra tax relief.",
+      "order": 0
     }
   },
   "interactsWith": {
     "rechner://law/estg-3-15": {
-      "description": "Tax-free employer transit subsidies reduce deductible commuter allowance under § 3 Nr. 15 S. 3 EStG."
+      "description": "Tax-free employer transit subsidies reduce deductible commuter allowance under § 3 Nr. 15 S. 3 EStG.",
+      "order": 1
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-9a",
-    "rechner://law/estg-3-15"
-  ]
+  }
 }
 ---
 

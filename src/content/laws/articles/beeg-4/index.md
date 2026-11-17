@@ -19,22 +19,20 @@
   "group": "rechner://group/group-beeg-partnership-bonus",
   "extends": {
     "rechner://law/beeg-4a": {
-      "description": "Each remaining Basis month can be converted into 2 ElterngeldPlus months."
+      "description": "Each remaining Basis month can be converted into 2 ElterngeldPlus months.",
+      "order": 0
     },
     "rechner://law/beeg-4b": {
-      "description": "Adds up to 4 extra Plus months per parent via Partnership Bonus."
+      "description": "Adds up to 4 extra Plus months per parent via Partnership Bonus.",
+      "order": 1
     }
   },
   "dependsOn": {
     "rechner://law/beeg-1": {
-      "description": "Requires meeting the § 1 weekly hours and income limits."
+      "description": "Requires meeting the § 1 weekly hours and income limits.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/beeg-4a",
-    "rechner://law/beeg-4b",
-    "rechner://law/beeg-1"
-  ]
+  }
 }
 ---
 

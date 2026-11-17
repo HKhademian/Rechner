@@ -18,22 +18,20 @@
   "group": "rechner://group/group-estg-payroll-withholding",
   "implements": {
     "rechner://law/estg-39b": {
-      "description": "Executes statutory § 39b EStG monthly and bonus withholding."
+      "description": "Executes statutory § 39b EStG monthly and bonus withholding.",
+      "order": 0
     },
     "rechner://law/estg-39f": {
-      "description": "Computes Class IV factor parameters."
+      "description": "Computes Class IV factor parameters.",
+      "order": 1
     }
   },
   "interactsWith": {
     "rechner://law/beeg-2e": {
-      "description": "January PAP snapshot before birth determines BEEG § 2e tax deductions."
+      "description": "January PAP snapshot before birth determines BEEG § 2e tax deductions.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-39b",
-    "rechner://law/estg-39f",
-    "rechner://law/beeg-2e"
-  ]
+  }
 }
 ---
 

@@ -19,22 +19,20 @@
   "group": "rechner://group/group-estg-tax-splitting",
   "interactsWith": {
     "rechner://law/estg-10c": {
-      "description": "Works alongside the general special-expense lump sum."
+      "description": "Works alongside the general special-expense lump sum.",
+      "order": 0
     }
   },
   "dependsOn": {
     "rechner://law/sgb5-241": {
-      "description": "Deducts employee health share contributions."
+      "description": "Deducts employee health share contributions.",
+      "order": 1
     },
     "rechner://law/sgb6-158": {
-      "description": "Deducts employee pension contributions."
+      "description": "Deducts employee pension contributions.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-10c",
-    "rechner://law/sgb5-241",
-    "rechner://law/sgb6-158"
-  ]
+  }
 }
 ---
 

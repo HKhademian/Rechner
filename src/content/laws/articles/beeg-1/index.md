@@ -25,24 +25,22 @@
   "group": "rechner://group/group-beeg-partnership-bonus",
   "dependsOn": {
     "rechner://law/estg-2": {
-      "description": "Prior-year taxable income eligibility uses § 2 Abs. 5 and Abs. 5a EStG."
+      "description": "Prior-year taxable income eligibility uses § 2 Abs. 5 and Abs. 5a EStG.",
+      "order": 0
     }
   },
   "interactsWith": {
     "rechner://law/beeg-4": {
-      "description": "Defines how eligible months are claimed across Basis and Plus budgets."
+      "description": "Defines how eligible months are claimed across Basis and Plus budgets.",
+      "order": 1
     }
   },
   "extends": {
     "rechner://law/beeg-4b": {
-      "description": "Partnership bonus narrows the weekly hours corridor to 24–32 hours."
+      "description": "Partnership bonus narrows the weekly hours corridor to 24–32 hours.",
+      "order": 2
     }
-  },
-  "relatedOrder": [
-    "rechner://law/estg-2",
-    "rechner://law/beeg-4",
-    "rechner://law/beeg-4b"
-  ]
+  }
 }
 ---
 
