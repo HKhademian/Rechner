@@ -16,7 +16,6 @@ import {
   AppId,
   CalculatorReleaseStatus,
   calculatorPath,
-  lifeProfilePath,
   toCalculatorCategory,
 } from "#/apps/appDefinition.ts";
 import {
@@ -197,19 +196,7 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
   };
   return (
     <AppShell currentPath="/" mainClassName="calculator-catalog">
-      <PageHeader
-        eyebrow="Rechner"
-        title="German finance and tax calculators"
-        subtitle="Simple, private estimates for take-home pay, parental leave, taxes, and everyday payments."
-        actions={
-          <>
-            <span className="badge-neutral">Private · browser only</span>
-            <a href={lifeProfilePath()} className="ui-btn ui-btn--tint">
-              My Life Profile
-            </a>
-          </>
-        }
-      />
+      <PageHeader title="Life in Germany, calculated." />
 
       <form className="ui-card calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <TextField
@@ -241,8 +228,8 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
           <div className="calculator-catalog__demo-toggle">
             <ToggleSwitch
               id="calculator-show-demos"
-              label="Show demo tools"
-              hint={`${demoCount} prerelease`}
+              label={`Include demo tools (${demoCount})`}
+              plain
               checked={showDemos.value}
               onChange={toggleDemos}
             />
