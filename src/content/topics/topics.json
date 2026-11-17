@@ -515,7 +515,7 @@
     "description": "Mortgage interest is the cost of borrowing; initial repayment (Tilgung) is the part of the starting annual payment used to reduce the loan principal.",
     "benefit": "A higher repayment rate reduces the outstanding balance faster, all else being equal.",
     "limitation": "The interest rate, repayment schedule, fixed-rate period, fees and future refinancing can differ from this simple estimate.",
-    "calculatorEffect": "The home planner estimates the initial bank payment. The mortgage calculator projects a balance using fixed rates; neither is a complete loan offer.",
+    "calculatorEffect": "The [Home Purchase Planner](rechner://app/housing) estimates the initial bank payment. The [Mortgage Simulator](rechner://app/mortgage) projects a balance using fixed rates; neither is a complete loan offer.",
     "laws": [],
     "apps": [
       "housing",

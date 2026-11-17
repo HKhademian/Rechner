@@ -28,4 +28,4 @@ The interest rate, repayment schedule, fixed-rate period, fees and future refina
 
 ## In the calculators
 
-The home planner estimates the initial bank payment. The mortgage calculator projects a balance using fixed rates; neither is a complete loan offer.
+The [Home Purchase Planner](rechner://app/housing) estimates the initial bank payment. The [Mortgage Simulator](rechner://app/mortgage) projects a balance using fixed rates; neither is a complete loan offer.
