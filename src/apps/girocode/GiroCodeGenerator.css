@@ -489,6 +489,10 @@
 }
 
 @media (max-width: 640px) {
+  .girocode-qr-card {
+    order: 1;
+  }
+
   .girocode-row-2 {
     grid-template-columns: 1fr;
   }
