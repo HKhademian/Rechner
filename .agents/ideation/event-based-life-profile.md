@@ -8,6 +8,14 @@ Make Life Profile a growing, understandable picture of a person's or household's
 
 An event timeline should be the primary way to understand and extend the profile, not another collection of calculator-specific settings. Static facts remain useful where there is no meaningful date or the date is unknown.
 
+## Long-term direction: help people prepare
+
+Over time, the user envisions Life Profile becoming a personal planning assistant: using accumulated life information to help people see what may be coming, compare financial and other choices, prepare for life changes, and find a plan that fits their goals and circumstances. This is a direction to build towards incrementally, not a request to deliver all of it now.
+
+For example, a planned move, job change or new child could prompt a person to explore relevant calculators, identify information or decisions still needed, and compare alternative timelines. Eventually the assistant could explain trade-offs and suggest next steps, while letting the person set priorities, revise assumptions and make the decisions. Recommendations should expose their assumptions and gaps, avoid implying a universally best plan, and distinguish supported calculations from ideas for future capabilities.
+
+A possible progression is: capture events and show a useful timeline; derive dated information; connect a few calculators; support scenario comparison; then explore proactive planning and personalized guidance as evidence and capabilities mature.
+
 ## What exists today
 
 - `src/engine/lifeProfile/types.ts` defines a version 1 profile of mostly current, flat fields, including income, household and home details. Its default values describe an example household, so they cannot safely be treated as confirmed personal history.
