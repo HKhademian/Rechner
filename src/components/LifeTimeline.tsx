@@ -240,6 +240,17 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           return <li key={event.id}>
             <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
             <div className="life-people__actions">
+              {cash && event.status === LifeEventStatus.Planned && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Record ${label} as happened`} onClick={() => {
+                setEditing(event.id);
+                setPersonId(event.personId);
+                setEntryType(EntryType.Cash);
+                setTitle(cash.title);
+                setCashAmount(amountText(cash.amount));
+                setCashDirection(cash.direction);
+                setDate(event.date ?? "");
+                setDatePrecision(DatePrecision.Day);
+                setStatus(LifeEventStatus.Actual);
+              }}>Record as happened</button>}
               {(payload || job || change || move || cash) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
@@ -321,6 +332,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>}
         {entryType === EntryType.Cash && <>
+          {editing && <p>Review the date, amount and status. Saving updates this cash entry rather than adding another.</p>}
           <label className="life-people__field">Cash direction
             <select value={cashDirection} onChange={(event) => setCashDirection(event.currentTarget.value === CashDirection.Inflow ? CashDirection.Inflow : CashDirection.Outflow)}>
               <option value={CashDirection.Outflow}>Expense</option><option value={CashDirection.Inflow}>Inflow</option>
