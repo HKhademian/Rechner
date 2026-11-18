@@ -1108,6 +1108,7 @@ export default function SandboxControls(): JSX.Element {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
+                    flexWrap: "wrap",
                   }}
                 >
                   <LawRefLink
@@ -1128,7 +1129,7 @@ export default function SandboxControls(): JSX.Element {
                     }}
                     title="§ 2b BEEG & BEEG § 2c(3) tax optimization rules — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>2. Tax Classes &amp; Strategy</span>
+                    <span>2. Tax classes</span>
                     <span
                       style={{
                         fontSize: "0.72rem",
@@ -1143,7 +1144,7 @@ export default function SandboxControls(): JSX.Element {
                     </span>
                   </LawRefLink>
                   <span className="badge-gain">
-                    {customTaxClassSwitches.value.length} Switches Active
+                    {customTaxClassSwitches.value.length} changes
                   </span>
                   {customTaxClassSwitches.value.length > 0 && (
                     <button
@@ -1258,7 +1259,7 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
-                      <span>Initial Baseline Tax Class</span>
+                      <span>Starting tax classes</span>
                     </div>
                     <div
                       style={{
@@ -1270,11 +1271,13 @@ export default function SandboxControls(): JSX.Element {
                     >
                       <button
                         type="button"
+                        aria-pressed={husbandInitialTaxClass.value === TaxClass.III && wifeInitialTaxClass.value === TaxClass.V && !useInitialTaxFactor.value}
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.III, TaxClass.V, false)
                         }
                         style={{
-                          padding: "5px 8px",
+                          padding: "8px 10px",
+                          minHeight: "40px",
                           borderRadius: "4px",
                           border:
                             husbandInitialTaxClass.value === TaxClass.III &&
@@ -1303,7 +1306,7 @@ export default function SandboxControls(): JSX.Element {
                           alignItems: "center",
                         }}
                       >
-                        <span>H: Class III / W: Class V (Standard)</span>
+                        <span>Husband: III / Wife: V</span>
                         {husbandInitialTaxClass.value === TaxClass.III &&
                           wifeInitialTaxClass.value === TaxClass.V &&
                           !useInitialTaxFactor.value && (
@@ -1313,11 +1316,13 @@ export default function SandboxControls(): JSX.Element {
 
                       <button
                         type="button"
+                        aria-pressed={husbandInitialTaxClass.value === TaxClass.IV && wifeInitialTaxClass.value === TaxClass.IV && !useInitialTaxFactor.value}
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.IV, TaxClass.IV, false)
                         }
                         style={{
-                          padding: "5px 8px",
+                          padding: "8px 10px",
+                          minHeight: "40px",
                           borderRadius: "4px",
                           border:
                             husbandInitialTaxClass.value === TaxClass.IV &&
@@ -1346,7 +1351,7 @@ export default function SandboxControls(): JSX.Element {
                           alignItems: "center",
                         }}
                       >
-                        <span>H: Class IV / W: Class IV (Equal)</span>
+                        <span>Husband: IV / Wife: IV</span>
                         {husbandInitialTaxClass.value === TaxClass.IV &&
                           wifeInitialTaxClass.value === TaxClass.IV &&
                           !useInitialTaxFactor.value && (
@@ -1356,11 +1361,13 @@ export default function SandboxControls(): JSX.Element {
 
                       <button
                         type="button"
+                        aria-pressed={husbandInitialTaxClass.value === TaxClass.IV && wifeInitialTaxClass.value === TaxClass.IV && useInitialTaxFactor.value}
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.IV, TaxClass.IV, true)
                         }
                         style={{
-                          padding: "5px 8px",
+                          padding: "8px 10px",
+                          minHeight: "40px",
                           borderRadius: "4px",
                           border:
                             husbandInitialTaxClass.value === TaxClass.IV &&
@@ -1389,7 +1396,7 @@ export default function SandboxControls(): JSX.Element {
                           alignItems: "center",
                         }}
                       >
-                        <span>H: IV / W: IV + Factor (§ 39f)</span>
+                        <span>Husband: IV / Wife: IV + factor (§ 39f)</span>
                         <span
                           style={{
                             display: "flex",
@@ -1423,11 +1430,13 @@ export default function SandboxControls(): JSX.Element {
 
                       <button
                         type="button"
+                        aria-pressed={husbandInitialTaxClass.value === TaxClass.V && wifeInitialTaxClass.value === TaxClass.III && !useInitialTaxFactor.value}
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.V, TaxClass.III, false)
                         }
                         style={{
-                          padding: "5px 8px",
+                          padding: "8px 10px",
+                          minHeight: "40px",
                           borderRadius: "4px",
                           border:
                             husbandInitialTaxClass.value === TaxClass.V &&
@@ -1456,7 +1465,7 @@ export default function SandboxControls(): JSX.Element {
                           alignItems: "center",
                         }}
                       >
-                        <span>H: Class V / W: Class III (Inverted)</span>
+                        <span>Husband: V / Wife: III</span>
                         {husbandInitialTaxClass.value === TaxClass.V &&
                           wifeInitialTaxClass.value === TaxClass.III &&
                           !useInitialTaxFactor.value && (
@@ -1472,8 +1481,7 @@ export default function SandboxControls(): JSX.Element {
                       marginTop: "4px",
                     }}
                   >
-                    ↳ Precondition: baseline tax class pairing before pregnancy
-                    switches.
+                    These are your tax classes before any planned changes.
                   </div>
                 </div>
 
@@ -1967,7 +1975,7 @@ export default function SandboxControls(): JSX.Element {
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
                       <span>
-                        Automatic Tax Take-Home &amp; Factor (
+                        Estimated take-home pay by tax class (
                         <LawRefLink
                           lawId={LawId.EStG_38b}
                           label="§ 38b"
@@ -1987,8 +1995,7 @@ export default function SandboxControls(): JSX.Element {
                         marginBottom: "8px",
                       }}
                     >
-                      Derived automatically from Batch 3 Gross Compensations via
-                      German progressive wage tax formulas.
+                      Estimated from the salaries and tax classes in this plan.
                     </div>
 
                     {/* Wife Optimized Class III FT Net */}
@@ -2010,7 +2017,7 @@ export default function SandboxControls(): JSX.Element {
                           marginBottom: "2px",
                         }}
                       >
-                        <span>Wife in Class III (Swap Boost):</span>
+                        <span>Wife in class III:</span>
                         <strong
                           style={{
                             fontVariantNumeric: "tabular-nums",
@@ -2063,7 +2070,7 @@ export default function SandboxControls(): JSX.Element {
                           derivedSpousalSet.value.wifeClass3FullTimeNet -
                             derivedSpousalSet.value.wifeClass5FullTimeNet,
                         )}
-                        /mo assessment booster!
+                        /mo difference between class III and V
                       </div>
                     </div>
 
