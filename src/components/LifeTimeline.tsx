@@ -22,6 +22,14 @@ import {
   noteEventModule,
 } from "#engine/lifeProfile/eventModules";
 import {
+  jobStartedModule,
+} from "#engine/lifeProfile/employmentEvent";
+import {
+  type SalaryPeriod,
+  SalaryPeriod as PayPeriod,
+  toSalaryPeriod,
+} from "#engine/types";
+import {
   PeopleRecordStatus,
 } from "#engine/lifeProfile/peopleRecord";
 import {
@@ -41,12 +49,20 @@ const DatePrecision = { Unknown: "unknown",
   Month: "month",
   Day: "day" } as const;
 type DatePrecision = (typeof DatePrecision)[keyof typeof DatePrecision];
+const EntryType = { Note: "note",
+  Job: "job" } as const;
+type EntryType = (typeof EntryType)[keyof typeof EntryType];
 
 export default function LifeTimeline({ peopleRevision }: { readonly peopleRevision: number }): JSX.Element {
   const [people, setPeople] = useState<readonly LifePerson[]>([]);
   const [events, setEvents] = useState<readonly LifeEvent<unknown>[]>([]);
   const [personId, setPersonId] = useState("");
   const [title, setTitle] = useState("");
+  const [entryType, setEntryType] = useState<EntryType>(EntryType.Note);
+  const [gross, setGross] = useState("");
+  const [grossPeriod, setGrossPeriod] = useState<SalaryPeriod>(PayPeriod.Monthly);
+  const [hours, setHours] = useState("");
+  const [jobId, setJobId] = useState("");
   const [date, setDate] = useState("");
   const [datePrecision, setDatePrecision] = useState<DatePrecision>(DatePrecision.Day);
   const [status, setStatus] = useState<LifeEventStatus>(LifeEventStatus.Planned);
@@ -100,6 +116,11 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   function resetForm(): void {
     setEditing(undefined);
     setTitle("");
+    setEntryType(EntryType.Note);
+    setGross("");
+    setGrossPeriod(PayPeriod.Monthly);
+    setHours("");
+    setJobId("");
     setDate("");
     setDatePrecision(DatePrecision.Day);
     setStatus(LifeEventStatus.Planned);
@@ -112,19 +133,24 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       if (datePrecision !== DatePrecision.Unknown && date.length !== expectedLength) {
         throw new TypeError("Date does not match its precision.");
       }
+      const isJob = entryType === EntryType.Job;
       const item: LifeEvent<unknown> = { id: editing ?? toLifeEventId(crypto.randomUUID()),
-        kind: noteEventModule.kind,
+        kind: isJob ? jobStartedModule.kind : noteEventModule.kind,
         personId: toPersonId(personId),
         ...(datePrecision === DatePrecision.Unknown ? {} : { date: toLifeEventDate(date) }),
         status,
-        payload: noteEventModule.parsePayload({ title: title.trim() }) };
+        payload: isJob ? jobStartedModule.parsePayload({ jobId: jobId || crypto.randomUUID(),
+          employer: title.trim(),
+          ...(gross === "" ? {} : { gross: Number(gross),
+            grossPeriod }),
+          ...(hours === "" ? {} : { weeklyHours: Number(hours) }) }) : noteEventModule.parsePayload({ title: title.trim() }) };
       const next = editing ? events.map((entry) => entry.id === editing ? item : entry) : [...events, item];
       if (saveEvents(next)) {
         resetForm();
       }
     }
     catch {
-      setError("Choose a person and date and enter an event name.");
+      setError("Check the person, date and event details.");
     }
   }
 
@@ -136,15 +162,21 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       {events.length === 0 ? <p>No events added yet.</p> : <ul className="life-people__list">
         {orderLifeEvents(events).map((event) => {
           const payload = event.kind === noteEventModule.kind ? noteEventModule.parsePayload(event.payload) : undefined;
-          const label = payload?.title ?? "Life event";
+          const job = event.kind === jobStartedModule.kind ? jobStartedModule.parsePayload(event.payload) : undefined;
+          const label = payload?.title ?? (job ? `Job at ${job.employer}` : "Life event");
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
-            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}</p></div>
+            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{job?.gross !== undefined ? ` · ${job.gross} € / ${job.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{job?.weeklyHours !== undefined ? ` · ${job.weeklyHours} h/week` : ""}</p></div>
             <div className="life-people__actions">
-              {payload && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
+              {(payload || job) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
-                setTitle(payload.title);
+                setEntryType(job ? EntryType.Job : EntryType.Note);
+                setTitle(job?.employer ?? payload?.title ?? "");
+                setJobId(job?.jobId ?? "");
+                setGross(job?.gross === undefined ? "" : String(job.gross));
+                setGrossPeriod(job?.grossPeriod ?? PayPeriod.Monthly);
+                setHours(job?.weeklyHours === undefined ? "" : String(job.weeklyHours));
                 setDate(event.date ?? "");
                 setDatePrecision(!event.date ? DatePrecision.Unknown : event.date.length === 4 ? DatePrecision.Year : event.date.length === 7 ? DatePrecision.Month : DatePrecision.Day);
                 setStatus(event.status);
@@ -165,9 +197,32 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             {people.map((person) => <option value={person.id} key={person.id}>{person.name}</option>)}
           </select>
         </label>
-        <label className="life-people__field">Event
+        <label className="life-people__field">Event type
+          <select disabled={editing !== undefined} value={entryType} onChange={(event) => {
+            setEntryType(event.currentTarget.value === EntryType.Job ? EntryType.Job : EntryType.Note);
+            setTitle("");
+          }}>
+            <option value={EntryType.Note}>Life event</option>
+            <option value={EntryType.Job}>Job started</option>
+          </select>
+        </label>
+        <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : "Event"}
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>
+        {entryType === EntryType.Job && <>
+          <label className="life-people__field">Gross pay rate (optional)
+            <input type="number" min="0" step="0.01" value={gross} onInput={(event) => setGross(event.currentTarget.value)} />
+          </label>
+          {gross !== "" && <label className="life-people__field">Pay basis
+            <select value={grossPeriod} onChange={(event) => setGrossPeriod(toSalaryPeriod(event.currentTarget.value))}>
+              <option value={PayPeriod.Monthly}>Monthly gross rate</option>
+              <option value={PayPeriod.Yearly}>Yearly gross rate</option>
+            </select>
+          </label>}
+          <label className="life-people__field">Hours per week (optional)
+            <input type="number" min="0" max="60" step="0.5" value={hours} onInput={(event) => setHours(event.currentTarget.value)} />
+          </label>
+        </>}
         <label className="life-people__field">Date precision
           <select value={datePrecision} onChange={(event) => {
             const value = event.currentTarget.value;
