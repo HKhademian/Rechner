@@ -24,7 +24,8 @@
   color: var(--text-primary);
 }
 
-.life-people__field input {
+.life-people__field input,
+.life-people__field select {
   min-height: 40px;
   max-width: 100%;
   box-sizing: border-box;

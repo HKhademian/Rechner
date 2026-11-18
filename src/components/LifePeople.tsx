@@ -26,7 +26,7 @@ function today(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
-export default function LifePeople(): JSX.Element {
+export default function LifePeople({ onChange }: { readonly onChange?: () => void }): JSX.Element {
   const [people, setPeople] = useState<readonly LifePerson[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -78,6 +78,7 @@ export default function LifePeople(): JSX.Element {
         return;
       }
       setPeople(next);
+      onChange?.();
       setName("");
       setBirthDate("");
       setEditing(undefined);
@@ -96,10 +97,11 @@ export default function LifePeople(): JSX.Element {
     const next = people.filter((person) => person.id !== id);
     if (!writePeople({ version: 1,
       people: next })) {
-      setError("Could not save people. Check your storage or export existing data.");
+      setError("Could not remove this person. Remove their timeline events first and check your storage.");
       return;
     }
     setPeople(next);
+    onChange?.();
     if (editing === id) {
       setEditing(undefined);
       setName("");

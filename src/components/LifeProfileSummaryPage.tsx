@@ -6,6 +6,9 @@ import {
   type JSX,
 } from "preact";
 import {
+  useState,
+} from "preact/hooks";
+import {
   AppId,
   calculatorPath,
   lifeProfilePath,
@@ -20,6 +23,7 @@ import {
 } from "#components/Icons";
 import LifeProfilePanel from "#components/LifeProfilePanel";
 import LifePeople from "#components/LifePeople";
+import LifeTimeline from "#components/LifeTimeline";
 import {
   AppShell,
 } from "#components/ui/AppShell";
@@ -61,6 +65,7 @@ function formatPercent(rate: number): string {
  * Imports ONLY the shared `lifeProfileStore` and never any calculator-private store.
  */
 export default function LifeProfileSummaryPage(): JSX.Element {
+  const [peopleRevision, setPeopleRevision] = useState(0);
   const profile = unifiedLifeProfile.value;
   const overview = unifiedLifeOverview.value;
   const {
@@ -137,7 +142,8 @@ export default function LifeProfileSummaryPage(): JSX.Element {
         />
       </section>
 
-      <LifePeople />
+      <LifePeople onChange={() => setPeopleRevision((revision) => revision + 1)} />
+      <LifeTimeline peopleRevision={peopleRevision} />
       <LifeProfilePanel defaultExpanded showSummaryLink={false} />
 
       <div className="life-summary__section-heading">
