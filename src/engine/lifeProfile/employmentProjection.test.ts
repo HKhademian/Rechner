@@ -68,4 +68,16 @@ it("does not guess when dates or same-day changes conflict", () => {
     date: "2026" }], "2026-07-01")[0].existence, ProjectedFactStatus.Ambiguous);
   assert.equal(project([start, { ...change,
     date: "2025-01-01" }], "2026-08-01", true)[0].existence, ProjectedFactStatus.Ambiguous);
+  const yearChange = { ...change,
+    id: "year",
+    date: "2026",
+    payload: { ...change.payload,
+      gross: 4500 } };
+  assert.equal(project([start, yearChange, change], "2027-01-01", true)[0].gross.status, ProjectedFactStatus.Ambiguous);
+  const later = { ...change,
+    id: "later",
+    date: "2027-02-01",
+    payload: { ...change.payload,
+      gross: 5500 } };
+  assert.equal(project([start, yearChange, change, later], "2027-03-01", true)[0].gross.value?.amount, 5500);
 });
