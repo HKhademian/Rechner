@@ -51,7 +51,7 @@ export default function CashEventsPreview({ events, personId, date, includePlann
       {expanded ? "Hide cash events projection" : "Project recorded cash events"}
     </button>
     {expanded && <>
-      <p>This preview includes only this person's cash entries from the six displayed months. It excludes the separate recurring what-if assumptions and all unrecorded activity; a month with no entries adds nothing. {includePlanned ? "Planned entries are included." : "Planned entries are excluded."} The opening balance is a temporary manual assumption, not a recorded bank balance. Negative balances indicate a shortfall; no funding is assumed.</p>
+      <p>This preview includes only this person's cash entries from the six displayed months. It excludes the separate recurring what-if assumptions and all unrecorded activity; a month with no entries adds nothing. {includePlanned ? "Planned entries are included. Update a planned entry when it happens to avoid counting it twice." : "Planned entries are excluded."} The opening balance is a temporary manual assumption, not a recorded bank balance. Negative balances indicate a shortfall; no funding is assumed.</p>
       <label className="life-people__field">Opening balance for cash events (€)
         <input type="number" step="0.01" value={opening} onInput={(event) => setOpening(event.currentTarget.value)} />
       </label>
