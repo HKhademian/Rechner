@@ -8,9 +8,9 @@ export function closingCashBalance(opening: EuroCents, inflow: EuroCents, expens
   if (![opening, inflow, expense].every(Number.isSafeInteger) || inflow < 0 || expense < 0) {
     throw new TypeError("Cash amounts must be safe integer cents; inflows and expenses cannot be negative.");
   }
-  const closing = opening + inflow - expense;
-  if (!Number.isSafeInteger(closing)) {
+  const closing = BigInt(opening) + BigInt(inflow) - BigInt(expense);
+  if (closing > BigInt(Number.MAX_SAFE_INTEGER) || closing < BigInt(Number.MIN_SAFE_INTEGER)) {
     throw new TypeError("The closing cash balance exceeds the supported range.");
   }
-  return toEuroCents(closing);
+  return toEuroCents(Number(closing));
 }

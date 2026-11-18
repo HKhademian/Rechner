@@ -14,4 +14,5 @@ it("reconciles cash in cents and rejects invalid or unsafe inputs", () => {
   assert.equal(closingCashBalance(toEuroCents(0), toEuroCents(0), toEuroCents(100)), -100);
   assert.throws(() => closingCashBalance(toEuroCents(0), toEuroCents(-1), toEuroCents(0)));
   assert.throws(() => closingCashBalance(toEuroCents(Number.MAX_SAFE_INTEGER), toEuroCents(1), toEuroCents(0)));
+  assert.equal(closingCashBalance(toEuroCents(Number.MAX_SAFE_INTEGER), toEuroCents(2), toEuroCents(2)), Number.MAX_SAFE_INTEGER);
 });
