@@ -27,6 +27,9 @@ import {
   jobStartedModule,
 } from "#engine/lifeProfile/employmentEvent";
 import {
+  residenceMoveModule,
+} from "#engine/lifeProfile/residenceEvent";
+import {
   type SalaryPeriod,
   SalaryPeriod as PayPeriod,
   toSalaryPeriod,
@@ -58,7 +61,8 @@ const DatePrecision = { Unknown: "unknown",
 type DatePrecision = (typeof DatePrecision)[keyof typeof DatePrecision];
 const EntryType = { Note: "note",
   Job: "job",
-  JobChange: "job-change" } as const;
+  JobChange: "job-change",
+  Move: "move" } as const;
 type EntryType = (typeof EntryType)[keyof typeof EntryType];
 
 export default function LifeTimeline({ peopleRevision }: { readonly peopleRevision: number }): JSX.Element {
@@ -74,6 +78,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   const [grossPeriod, setGrossPeriod] = useState<SalaryPeriod>(PayPeriod.Monthly);
   const [hours, setHours] = useState("");
   const [jobId, setJobId] = useState("");
+  const [placeId, setPlaceId] = useState("");
   const [date, setDate] = useState("");
   const [datePrecision, setDatePrecision] = useState<DatePrecision>(DatePrecision.Day);
   const [status, setStatus] = useState<LifeEventStatus>(LifeEventStatus.Planned);
@@ -151,6 +156,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     setGrossPeriod(PayPeriod.Monthly);
     setHours("");
     setJobId("");
+    setPlaceId("");
     setDate("");
     setDatePrecision(DatePrecision.Day);
     setStatus(LifeEventStatus.Planned);
@@ -165,8 +171,9 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       }
       const isJob = entryType === EntryType.Job;
       const isJobChange = entryType === EntryType.JobChange;
+      const isMove = entryType === EntryType.Move;
       const item: LifeEvent<unknown> = { id: editing ?? toLifeEventId(crypto.randomUUID()),
-        kind: isJob ? jobStartedModule.kind : isJobChange ? jobChangedModule.kind : noteEventModule.kind,
+        kind: isJob ? jobStartedModule.kind : isJobChange ? jobChangedModule.kind : isMove ? residenceMoveModule.kind : noteEventModule.kind,
         personId: toPersonId(personId),
         ...(datePrecision === DatePrecision.Unknown ? {} : { date: toLifeEventDate(date) }),
         status,
@@ -174,7 +181,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           ...(isJob ? { employer: title.trim() } : {}),
           ...(gross === "" ? {} : { gross: Number(gross),
             grossPeriod }),
-          ...(hours === "" ? {} : { weeklyHours: Number(hours) }) }) : noteEventModule.parsePayload({ title: title.trim() }) };
+          ...(hours === "" ? {} : { weeklyHours: Number(hours) }) }) : isMove
+          ? residenceMoveModule.parsePayload({ placeId: placeId || crypto.randomUUID(),
+            location: title.trim() })
+          : noteEventModule.parsePayload({ title: title.trim() }) };
       const next = editing ? events.map((entry) => entry.id === editing ? item : entry) : [...events, item];
       if (saveEvents(next)) {
         resetForm();
@@ -195,20 +205,22 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const payload = event.kind === noteEventModule.kind ? noteEventModule.parsePayload(event.payload) : undefined;
           const job = event.kind === jobStartedModule.kind ? jobStartedModule.parsePayload(event.payload) : undefined;
           const change = event.kind === jobChangedModule.kind ? jobChangedModule.parsePayload(event.payload) : undefined;
+          const move = event.kind === residenceMoveModule.kind ? residenceMoveModule.parsePayload(event.payload) : undefined;
           const start = change && events.find((entry) => entry.kind === jobStartedModule.kind
             && jobStartedModule.parsePayload(entry.payload).jobId === change.jobId);
           const employer = start ? jobStartedModule.parsePayload(start.payload).employer : undefined;
-          const label = payload?.title ?? (job ? `Job at ${job.employer}` : change ? `Job change${employer ? ` at ${employer}` : ""}` : "Life event");
+          const label = payload?.title ?? (job ? `Job at ${job.employer}` : change ? `Job change${employer ? ` at ${employer}` : ""}` : move ? `Move to ${move.location}` : "Life event");
           const pay = job ?? change;
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
             <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
             <div className="life-people__actions">
-              {(payload || job || change) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
+              {(payload || job || change || move) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
-                setEntryType(job ? EntryType.Job : change ? EntryType.JobChange : EntryType.Note);
-                setTitle(job?.employer ?? payload?.title ?? "");
+                setEntryType(job ? EntryType.Job : change ? EntryType.JobChange : move ? EntryType.Move : EntryType.Note);
+                setTitle(job?.employer ?? move?.location ?? payload?.title ?? "");
+                setPlaceId(move?.placeId ?? "");
                 setJobId(pay?.jobId ?? "");
                 setGross(pay?.gross === undefined ? "" : String(pay.gross));
                 setGrossPeriod(pay?.grossPeriod ?? PayPeriod.Monthly);
@@ -264,16 +276,17 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         <label className="life-people__field">Event type
           <select disabled={editing !== undefined} value={entryType} onChange={(event) => {
             const value = event.currentTarget.value;
-            setEntryType(value === EntryType.Job ? EntryType.Job : value === EntryType.JobChange ? EntryType.JobChange : EntryType.Note);
+            setEntryType(value === EntryType.Job ? EntryType.Job : value === EntryType.JobChange ? EntryType.JobChange : value === EntryType.Move ? EntryType.Move : EntryType.Note);
             setTitle("");
             setJobId("");
           }}>
             <option value={EntryType.Note}>Life event</option>
             <option value={EntryType.Job}>Job started</option>
             <option value={EntryType.JobChange}>Job change</option>
+            <option value={EntryType.Move}>Move</option>
           </select>
         </label>
-        {entryType !== EntryType.JobChange && <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : "Event"}
+        {entryType !== EntryType.JobChange && <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : entryType === EntryType.Move ? "Location" : "Event"}
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>}
         {entryType === EntryType.JobChange && <label className="life-people__field">Job
