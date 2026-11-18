@@ -70,6 +70,14 @@ it("round-trips timeline events, preserves older backups and protects linked peo
     importAllData(mixedBackup);
     assert.equal(readTimeline().record.events[4].payload.location, "Berlin");
     assert.deepEqual(recordedLifeMonths(readTimeline().record.events, readPeople().record.people[0].id, month, month, month, true), before);
+    const paid = { id: "paid", kind: "cash.entry", personId: "p", date: "2027-12-01", status: "actual",
+      payload: { title: "Rent", direction: "outflow", amount: 100001 } };
+    const plannedCash = { ...paid, id: "planned-cash", date: "2027-12-31", status: "planned" };
+    assert.equal(writeTimeline({ version: 2, events: [...partial.events, job, change, move, paid, plannedCash] }), true);
+    const cashBackup = exportAllData();
+    assert.equal(writeTimeline({ version: 2, events: [] }), true);
+    importAllData(cashBackup);
+    assert.deepEqual(readTimeline().record.events.slice(-2), [paid, plannedCash]);
     const invalid = JSON.stringify({ format: "rechner-backup", version: 1,
       entries: { "rechner:life-profile:people:v1": JSON.stringify({ version: 1, people: [] }) } });
     assert.throws(() => importAllData(invalid));
