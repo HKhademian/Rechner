@@ -32,6 +32,19 @@ The user identified these ways the assistant could eventually help. They are pro
 
 A helpful output might combine a timeline, a preparation checklist and side-by-side scenarios, with links back to the events and calculator inputs that support each result. People retain control over their plans and decisions.
 
+## Shared building blocks across journeys
+
+The user wants each planning area to be able to grow around a common set of capabilities. These are directions for gradual development, not a requirement to build every capability for every journey at once:
+
+- **Small calculators:** focused tools for individual questions, reusable as standalone tools and as steps in a larger plan. Each should state its inputs, outputs and limitations and work with explicitly selected profile information where supported.
+- **Mathematical models:** explain formulas, assumptions, units, time periods and calculation methods. Make intermediate values understandable and preserve the model version and inputs needed to reproduce a result.
+- **Laws, rules and topics:** connect calculations and preparation steps to relevant explanations and sources. Record jurisdiction, effective dates and rule versions; distinguish a rule or estimate from a determination by an authority. Keep sources current as rules change.
+- **History and projections:** visualize recorded history alongside forecasts or scenarios, clearly distinguishing actual events, plans and estimates. The mortgage calculator is a useful reference for the sort of chart experience to explore. Show dates, assumptions, gaps and uncertainty where relevant.
+- **Comparisons:** let people compare alternatives side by side using consistent periods, assumptions and inputs, with differences made clear. The net pay calculator is a useful reference for this interaction. Keep alternative scenarios separate until the user chooses to apply one.
+- **Backup, import and export:** let people retain and move their information, including events, scenarios, assumptions and relevant settings as support is added. Preserve existing backup formats and storage modes, explain what is included, handle versions and duplicates, and preview potentially conflicting imports before changes are applied. Sensitive information should remain under the user's control.
+
+Use existing project capabilities where appropriate; investigate their actual coverage before promising reuse. Any suggested calculation, chart, comparison or legal check needs its own supported inputs and validation, and should not imply that every journey is already implemented.
+
 ## What exists today
 
 - `src/engine/lifeProfile/types.ts` defines a version 1 profile of mostly current, flat fields, including income, household and home details. Its default values describe an example household, so they cannot safely be treated as confirmed personal history.
