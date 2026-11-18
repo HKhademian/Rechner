@@ -340,14 +340,15 @@
 
 .ui-number-box:focus-within {
   border-color: var(--color-primary);
-  outline: 2px solid var(--color-primary-bg);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .ui-number-box[data-invalid="true"] {
   border-color: var(--color-loss);
 }
 
-input.ui-number-box__input {
+.ui-number-box input.ui-number-box__input {
   flex: 1 1 0;
   width: 100%;
   min-width: 0;
@@ -364,8 +365,8 @@ input.ui-number-box__input {
   outline: none;
 }
 
-input.ui-number-box__input:focus,
-input.ui-number-box__input:focus-visible {
+.ui-number-box input.ui-number-box__input:focus,
+.ui-number-box input.ui-number-box__input:focus-visible {
   outline: none;
   border: 0;
   box-shadow: none;
