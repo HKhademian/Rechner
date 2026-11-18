@@ -329,7 +329,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           <label className="life-people__field">Amount (€)
             <input required type="number" min="0.01" step="0.01" value={cashAmount} onInput={(event) => setCashAmount(event.currentTarget.value)} />
           </label>
-          <p>Enter an actual transaction or a planned cash event. This does not change a cash-flow forecast.</p>
+          <p>Enter an actual transaction or a planned cash event. It can be included in the cash events projection; it does not change recurring what-if assumptions.</p>
         </>}
         {entryType === EntryType.JobChange && <label className="life-people__field">Job
           <select required value={jobId} onChange={(event) => setJobId(event.currentTarget.value)}>
