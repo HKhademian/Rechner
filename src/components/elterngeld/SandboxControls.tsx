@@ -448,6 +448,7 @@ export default function SandboxControls(): JSX.Element {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
+                    flexWrap: "wrap",
                   }}
                 >
                   <span
@@ -457,10 +458,10 @@ export default function SandboxControls(): JSX.Element {
                       color: "var(--color-primary)",
                     }}
                   >
-                    1. Pregnancy Positive Decisions &amp; Milestones
+                    1. Pregnancies &amp; births
                   </span>
                   <span className="badge-brand">
-                    {customPregnancies.value.length} Pregnancies Active
+                    {customPregnancies.value.length} planned
                   </span>
                   {customPregnancies.value.length > 0 && (
                     <button
@@ -571,7 +572,7 @@ export default function SandboxControls(): JSX.Element {
                 >
                   <AddActionIcon size={12} />
                   <span>
-                    Add Pregnancy (Child #{Math.min(10, Math.max(0, ...customPregnancies.value.map((p) => p.childIndex)) + 1)})
+                    Add pregnancy (child #{Math.min(10, Math.max(0, ...customPregnancies.value.map((p) => p.childIndex)) + 1)})
                   </span>
                 </button>
               </div>
@@ -590,9 +591,7 @@ export default function SandboxControls(): JSX.Element {
                     lineHeight: 1.5,
                   }}
                 >
-                  Zero pregnancy milestone actions currently active. Click
-                  &quot;Add Pregnancy&quot; above to model maternity protection,
-                  parental leave, and ElterngeldPlus benefits.
+                  No pregnancies planned yet. Add a pregnancy to see its expected birth and related benefits.
                 </div>
               ) : (
                 <div
@@ -682,9 +681,10 @@ export default function SandboxControls(): JSX.Element {
                                       marginBottom: "2px",
                                     }}
                                   >
-                                    Positive Month:
+                                    Positive test month
                                   </label>
                                   <select
+                                    aria-label={`Child ${preg.childIndex}: positive test month`}
                                     value={
                                       ((startCalendarMonth.value -
                                         1 +
@@ -720,7 +720,7 @@ export default function SandboxControls(): JSX.Element {
                                   >
                                     {MONTH_NAMES.map((name, mIdx) => (
                                       <option key={mIdx + 1} value={mIdx + 1}>
-                                        {name.slice(0, 14)}
+                                        {name.split(" (")[0]}
                                       </option>
                                     ))}
                                   </select>
@@ -734,9 +734,10 @@ export default function SandboxControls(): JSX.Element {
                                       marginBottom: "2px",
                                     }}
                                   >
-                                    Positive Year:
+                                    Positive test year
                                   </label>
                                   <select
+                                    aria-label={`Child ${preg.childIndex}: positive test year`}
                                     value={
                                       startCalendarYear.value +
                                       Math.floor(
@@ -831,9 +832,10 @@ export default function SandboxControls(): JSX.Element {
                                       marginBottom: "2px",
                                     }}
                                   >
-                                    Positive Month:
+                                    Positive test month
                                   </label>
                                   <select
+                                    aria-label={`Child ${preg.childIndex}: positive test month`}
                                     value={
                                       ((startCalendarMonth.value -
                                         1 +
@@ -886,7 +888,7 @@ export default function SandboxControls(): JSX.Element {
                                   >
                                     {MONTH_NAMES.map((name, mIdx) => (
                                       <option key={mIdx + 1} value={mIdx + 1}>
-                                        {name.slice(0, 14)}
+                                        {name.split(" (")[0]}
                                       </option>
                                     ))}
                                   </select>
@@ -900,9 +902,10 @@ export default function SandboxControls(): JSX.Element {
                                       marginBottom: "2px",
                                     }}
                                   >
-                                    Positive Year:
+                                    Positive test year
                                   </label>
                                   <select
+                                    aria-label={`Child ${preg.childIndex}: positive test year`}
                                     value={
                                       startCalendarYear.value +
                                       Math.floor(
