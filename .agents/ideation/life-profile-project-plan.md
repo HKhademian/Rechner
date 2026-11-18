@@ -8,7 +8,8 @@ Status: proposed roadmap, updated 18 November 2026. This plans incremental work 
 - Step 2: Profile now notes that existing values may be examples. Individual legacy fields still cannot be reliably classified as user-confirmed; explicit confirmation remains future work.
 - Steps 3–4: initial people UI supports optional birthdates and age on a selected date, backed by a separate validated record included in backup and storage modes. Unsupported records are protected from ordinary overwrites. The people record is not yet linked to calculator inputs or timeline events. Further work remains for comprehensive restore-failure, cross-tab and UI interaction coverage before treating the complete compatibility contract as finished.
 - Step 5: the first timeline supports named, dated actual or planned notes for a person, with editing and backup. Registered modules validate their own payloads; calculator inputs and parental planner scenarios remain separate. A linked person cannot be removed while events refer to them.
-- Follow-up: restore rollback has an initial people-record regression test; comprehensive rollback-failure and cross-tab coverage remain. Next add incomplete dates and corrections before employment events; monthly simulation and calculator handoffs are not implemented.
+- Step 6: timeline entries can be edited and may use exact, month-only, year-only or unknown dates. Version 2 records preserve that precision; existing version 1 records remain readable.
+- Follow-up: restore rollback has an initial people-record regression test; comprehensive rollback-failure and cross-tab coverage remain. Next add employment events; monthly simulation and calculator handoffs are not implemented.
 
 ## Outcome
 
