@@ -1,6 +1,6 @@
 # Event-based Life Profile: exploration
 
-Status: proposal for discussion, not an approved implementation plan.
+Status: exploration, not an approved implementation plan. The user endorsed Life Profile as the home for shared life information and requested the event areas below.
 
 ## Direction
 
@@ -24,6 +24,20 @@ An event timeline should be the primary way to understand and extend the profile
 5. Let calculators retain their specialized input flows and private what-if scenarios. A transfer into an existing scenario should be explicit and previewable; never silently overwrite a user's planner work.
 
 Example: someone records a job starting in March with a gross salary, then a planned reduction in working hours in October. Profile can show the applicable gross salary and planned hours for a selected month, provided the necessary details are known. If they later add a pregnancy, the parental planner can offer a preview to use the relevant household and income information. A predicted birth is tentative, and an actual birth should be linked to that prediction rather than silently creating an unrelated duplicate. Calculations such as net pay or benefits remain estimates made by the relevant calculator, with their own required inputs and rules; an event alone does not establish eligibility.
+
+## Life information to accumulate
+
+The user wants the profile to grow beyond parental planning. These are candidate inputs and useful derived views, not claims that the current app supports them:
+
+- **Birthdates and family:** record each person's birthdate and family events; derive age on a chosen date and surface upcoming birthdays. A birthdate is a fact about a person and may also appear as a birth event in the timeline, without duplicating the underlying information.
+- **Visa and residency:** record optional citizenship and relevant visa or residence-permit details, issue and expiry dates, residency periods and application milestones. Surface upcoming dates, elapsed recorded residence and missing information; offer a relevant check when supported. Any eligibility estimate must state the applicable rules, date, assumptions and missing evidence, and must not present a document date or elapsed duration alone as a legal conclusion.
+- **Locations:** record moves and residence periods, with only the location detail needed for the user's purpose. Derive the location applicable on a date and offer it to relevant calculators; support uncertain dates and time spent in different places.
+- **Employment:** record starting or leaving a job, employer changes, pay and hours changes, and leave. Derive applicable employment, income and hours for a selected period without assuming there can be only one job.
+- **Cars:** record a vehicle purchase, sale or other ownership change with optional date, price and relevant details; show ownership periods and offer relevant inputs to a car calculator where supported.
+- **Solar:** record an installation and subsequent changes with optional commissioning date, system details and costs; show the applicable system over time and offer relevant inputs to a solar calculator where supported.
+- **Purchases generally:** allow meaningful purchases and their dates, costs and categories to be captured without requiring every purchase to become a specialized object. Link a purchase to a car, property or installation where applicable, rather than counting the same expense twice. Decide later which categories need richer forms and calculations.
+
+These entries can be added gradually, including historical, current and planned information. Users choose what to record; sensitive immigration and location details should remain optional and follow the app's existing storage and backup choices. A derived view needs to distinguish what is recorded from what has actually been checked or calculated.
 
 ## Proposed model boundaries
 
@@ -55,8 +69,8 @@ At every phase, existing planner inputs, events, scenarios, storage and calculat
 
 ## Decisions to make together
 
-- Is Life Profile the home for shared real-life events, with each calculator owning its own what-if scenarios? Which planned events should be shareable?
+- The user endorsed Life Profile as the home for shared life information. Which planned events should be shared, and how should calculator-specific what-if scenarios remain separate?
 - Should users primarily create events in Profile, or also promote existing planner events into it? What should happen when either copy is edited later?
-- Which first end-to-end journey is most valuable: employment and income, pregnancy and birth, or a different life change?
+- Which first end-to-end journey is most valuable: employment and income, pregnancy and birth, visa and residency, a purchase, or a different life change?
 - What should the timeline show when a date or amount is uncertain, and how should conflicting information be resolved?
 - How should existing flat profile values be presented for confirmation, given that some may be example defaults?
