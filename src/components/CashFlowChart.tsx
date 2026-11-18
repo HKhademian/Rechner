@@ -1,11 +1,11 @@
 import {
-  type JSX, 
+  type JSX,
 } from "preact";
 import {
-  formatEur, 
+  formatEur,
 } from "#utils/currencyFormat";
 import {
-  CashFlowChartGraphic, 
+  CashFlowChartGraphic,
 } from "./Icons";
 
 /** A visual summary of the same estimates presented in the adjacent table. */
