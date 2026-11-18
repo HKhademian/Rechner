@@ -2273,6 +2273,7 @@ export default function SandboxControls(): JSX.Element {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
+                    flexWrap: "wrap",
                   }}
                 >
                   <span
@@ -2282,11 +2283,11 @@ export default function SandboxControls(): JSX.Element {
                       color: "var(--color-warning)",
                     }}
                   >
-                    3. Salaries, Working Times &amp; Career Progression
+                    3. Pay &amp; working hours
                   </span>
                   <span className="badge-warning">
-                    {customWorkingHoursChanges.value.length} Schedules ·{" "}
-                    {customSalaryRaises.value.length} Raises
+                    {customWorkingHoursChanges.value.length} hour changes ·{" "}
+                    {customSalaryRaises.value.length} pay changes
                   </span>
                 </div>
 
@@ -3209,7 +3210,6 @@ export default function SandboxControls(): JSX.Element {
                             : derivedSpousalSet.value.wifeClass3FullTimeNet,
                         )}
                       </strong>{" "}
-                      (Booster!)
                     </span>
                   </div>
                 </div>
