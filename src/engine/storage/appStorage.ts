@@ -21,6 +21,14 @@ import {
   LegacyRecordStatus,
   inspectLegacyRecord,
 } from "#engine/lifeProfile/legacyRecord";
+import {
+  lifeEventCatalog,
+} from "#engine/lifeProfile/eventCatalog";
+import {
+  TIMELINE_STORAGE_KEY,
+  TimelineRecordStatus,
+  decodeTimelineRecord,
+} from "#engine/lifeProfile/timelineRecord";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -738,7 +746,7 @@ export function clearSharedBrowserKey(key: string): void {
 
 const backupFormat = "rechner-backup";
 const memoryRestoreKey = "rechner:privacy:memory-restore:v1";
-const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY];
+const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY, TIMELINE_STORAGE_KEY];
 
 type BackupEntries = Record<string, string>;
 
@@ -882,6 +890,9 @@ function parseBackup(serialized: string): BackupEntries {
     if (key === PEOPLE_STORAGE_KEY && decodePeopleRecord(raw).status !== PeopleRecordStatus.Valid) {
       throw new Error("The backup contains an invalid or unsupported people record.");
     }
+    if (key === TIMELINE_STORAGE_KEY && decodeTimelineRecord(raw, lifeEventCatalog).status !== TimelineRecordStatus.Valid) {
+      throw new Error("The backup contains an invalid or unsupported timeline.");
+    }
     if (key === LIFE_PROFILE_STORAGE_KEY && inspectLegacyRecord(raw) !== LegacyRecordStatus.Supported) {
       throw new Error("The backup contains an invalid or unsupported life profile.");
     }
@@ -914,6 +925,18 @@ export function importAllData(serialized: string): void {
   // Older backups predate people records; importing them must not silently erase people.
   if (!Object.hasOwn(entries, PEOPLE_STORAGE_KEY) && currentPeople !== null) {
     entries[PEOPLE_STORAGE_KEY] = currentPeople;
+  }
+  const currentTimeline = shared?.getItem(TIMELINE_STORAGE_KEY) ?? null;
+  if (currentTimeline !== null && decodeTimelineRecord(currentTimeline, lifeEventCatalog).status !== TimelineRecordStatus.Valid) {
+    throw new Error("The saved timeline is invalid or unsupported. Export it before restoring data.");
+  }
+  if (!Object.hasOwn(entries, TIMELINE_STORAGE_KEY) && currentTimeline !== null) {
+    entries[TIMELINE_STORAGE_KEY] = currentTimeline;
+  }
+  const timeline = decodeTimelineRecord(entries[TIMELINE_STORAGE_KEY] ?? null, lifeEventCatalog);
+  const people = decodePeopleRecord(entries[PEOPLE_STORAGE_KEY] ?? null);
+  if (timeline.record?.events.some((event) => !people.record?.people.some((person) => person.id === event.personId))) {
+    throw new Error("The backup would leave timeline events without their people.");
   }
   const previous = exportAllData();
   const apply = (values: BackupEntries): void => {

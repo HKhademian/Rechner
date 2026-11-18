@@ -8,6 +8,14 @@ import {
 import {
   browserWebStorageForCurrentMode,
 } from "#engine/storage/appStorage";
+import {
+  lifeEventCatalog,
+} from "#engine/lifeProfile/eventCatalog";
+import {
+  TIMELINE_STORAGE_KEY,
+  TimelineRecordStatus,
+  decodeTimelineRecord,
+} from "#engine/lifeProfile/timelineRecord";
 
 export function readPeople(): DecodedPeopleRecord {
   try {
@@ -30,6 +38,11 @@ export function writePeople(record: PeopleRecord): boolean {
     const serialized = JSON.stringify(record);
     if ((current.status !== PeopleRecordStatus.Missing && current.status !== PeopleRecordStatus.Valid)
       || decodePeopleRecord(serialized).status !== PeopleRecordStatus.Valid) {
+      return false;
+    }
+    const timeline = decodeTimelineRecord(storage.getItem(TIMELINE_STORAGE_KEY), lifeEventCatalog);
+    if ((timeline.status !== TimelineRecordStatus.Missing && timeline.status !== TimelineRecordStatus.Valid)
+      || timeline.record?.events.some((event) => !record.people.some((person) => person.id === event.personId))) {
       return false;
     }
     storage.setItem(PEOPLE_STORAGE_KEY, serialized);
