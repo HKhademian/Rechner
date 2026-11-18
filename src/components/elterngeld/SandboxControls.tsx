@@ -3756,6 +3756,7 @@ export default function SandboxControls(): JSX.Element {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
+                    flexWrap: "wrap",
                   }}
                 >
                   <span
@@ -3765,10 +3766,10 @@ export default function SandboxControls(): JSX.Element {
                       color: "var(--color-primary)",
                     }}
                   >
-                    4. Financial Events, Recurring Inflows &amp; Costs
+                    4. Other income &amp; costs
                   </span>
                   <span className="badge-neutral">
-                    {customFinancialEvents.value.length} Events Active
+                    {customFinancialEvents.value.length} events
                   </span>
                 </div>
 
@@ -4028,7 +4029,7 @@ export default function SandboxControls(): JSX.Element {
                       marginTop: "4px",
                     }}
                   >
-                    ↳ Precondition channels: dividend, rental, ETF cash flow (
+                    Examples include dividends, rent, and ETF income (
                     <LawRefLink lawId={LawId.EStG_20} />
                     ).
                   </div>
