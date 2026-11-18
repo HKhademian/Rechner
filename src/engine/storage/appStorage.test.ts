@@ -439,3 +439,53 @@ it("rolls back structured imports if browser storage rejects a write", () => {
     }
   }
 });
+
+it("restores the previous people and calculator data when writing an imported people record fails", () => {
+  const local = browserStorage(new Map<string, string>());
+  const backing = browserStorage(new Map<string, string>());
+  let failNextPeopleWrite = false;
+  const peopleKey = "rechner:life-profile:people:v1";
+  const session = { ...backing,
+    get length() {
+      return backing.length;
+    },
+    setItem(key: string, value: string) {
+      if (key === peopleKey && failNextPeopleWrite) {
+        failNextPeopleWrite = false;
+        throw new Error("quota");
+      }
+      backing.setItem(key, value);
+    } };
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window")?.value;
+  Object.defineProperty(globalThis, "window", { configurable: true,
+    value: { localStorage: local,
+      sessionStorage: session } });
+  try {
+    assert.equal(setStorageMode(StorageMode.Session), true);
+    const calculator = browserAppStorage(AppId.NetPay);
+    const original = JSON.stringify({ version: 1,
+      people: [{ id: "one",
+        name: "Alex" }] });
+    const changed = JSON.stringify({ version: 1,
+      people: [{ id: "two",
+        name: "Sam" }] });
+    session.setItem(peopleKey, original);
+    calculator.setItem("grossIncome", "42000");
+    const backup = exportAllData();
+    session.setItem(peopleKey, changed);
+    calculator.setItem("grossIncome", "70000");
+    failNextPeopleWrite = true;
+    assert.throws(() => importAllData(backup));
+    assert.equal(session.getItem(peopleKey), changed);
+    assert.equal(calculator.getItem("grossIncome"), "70000");
+  }
+  finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+    else {
+      Object.defineProperty(globalThis, "window", { configurable: true,
+        value: previousWindow });
+    }
+  }
+});
