@@ -229,7 +229,7 @@ export default function TimelineChart(): JSX.Element {
     },
     {
       key: "mutterschutz",
-      label: "Maternity (*Mutterschutz*)",
+      label: "Maternity (Mutterschutz)",
       statutory: "MuSchG",
       color: colors.mutterschutz,
     },
@@ -241,19 +241,19 @@ export default function TimelineChart(): JSX.Element {
     },
     {
       key: "husbandElterngeld",
-      label: "Partner Months (*Partnermonate*)",
+      label: "Partner Months (Partnermonate)",
       statutory: "§ 4 BEEG",
       color: colors.husbandElterngeld,
     },
     {
       key: "kindergeld",
-      label: "Child Benefit (*Kindergeld*)",
+      label: "Child Benefit (Kindergeld)",
       statutory: "§ 66 EStG",
       color: colors.kindergeld,
     },
     {
       key: "taxRefund",
-      label: "Tax Office Refund (*Finanzamt*)",
+      label: "Tax Office Refund (Finanzamt)",
       statutory: "§ 26b EStG",
       color: colors.taxRefund,
     },
@@ -469,6 +469,7 @@ export default function TimelineChart(): JSX.Element {
               <button
                 key={s.key}
                 type="button"
+                aria-pressed={isVisible}
                 onClick={() => toggleSeries(s.key)}
                 style={{
                   display: "inline-flex",
@@ -1189,7 +1190,7 @@ export default function TimelineChart(): JSX.Element {
                         background: colors.mutterschutz,
                       }}
                     ></span>
-                    Maternity Pay (*MuSchG*):
+                    Maternity Pay (MuSchG):
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
@@ -1253,7 +1254,7 @@ export default function TimelineChart(): JSX.Element {
                         background: colors.husbandElterngeld,
                       }}
                     ></span>
-                    Partner Months (*Partnermonate* § 4 BEEG):
+                    Partner Months (Partnermonate, § 4 BEEG):
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
@@ -1285,7 +1286,7 @@ export default function TimelineChart(): JSX.Element {
                         background: colors.kindergeld,
                       }}
                     ></span>
-                    Child Benefit (*Kindergeld* § 66 EStG):
+                    Child Benefit (Kindergeld, § 66 EStG):
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
@@ -1316,7 +1317,7 @@ export default function TimelineChart(): JSX.Element {
                         background: colors.taxRefund,
                       }}
                     ></span>
-                    Tax Office Refund (*Finanzamt* § 26b EStG):
+                    Tax Office Refund (Finanzamt, § 26b EStG):
                   </span>
                   <span style={{ fontFamily: "monospace",
                     fontWeight: 600 }}>
@@ -1348,6 +1349,7 @@ export default function TimelineChart(): JSX.Element {
             <button
               key={`legend-${s.key}`}
               type="button"
+              aria-pressed={isVisible}
               onClick={() => toggleSeries(s.key)}
               style={{
                 display: "flex",
