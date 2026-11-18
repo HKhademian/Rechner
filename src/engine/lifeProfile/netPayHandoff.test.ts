@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import {
+  execFileSync,
+} from "node:child_process";
+import {
   it,
 } from "node:test";
 import {
@@ -75,4 +78,46 @@ it("previews a midyear rate as a hypothetical comparison without changing the ba
     gross: { ...job.gross,
       value: { ...job.gross.value!,
         period: SalaryPeriod.Yearly } } }, date));
+});
+
+it("connects saved profile events to a new comparison without replacing live inputs", () => {
+  const script = `
+    import assert from "node:assert/strict";
+    const makeStorage = () => {
+      const values = new Map();
+      return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value),
+        removeItem: key => values.delete(key), key: index => [...values.keys()][index] ?? null,
+        get length() { return values.size; } };
+    };
+    globalThis.window = globalThis;
+    globalThis.localStorage = makeStorage();
+    globalThis.sessionStorage = makeStorage();
+    const { StorageMode, setStorageMode } = await import("#engine/storage/appStorage");
+    setStorageMode(StorageMode.Session, true);
+    const { writePeople, readPeople } = await import("#engine/lifeProfile/peopleStorage");
+    const { writeTimeline, readTimeline } = await import("#engine/lifeProfile/timelineStorage");
+    const { projectEmploymentAtDate } = await import("#engine/lifeProfile/employmentProjection");
+    const { prepareNetPayHandoff } = await import("#engine/lifeProfile/netPayHandoff");
+    const { toLifeDate } = await import("#engine/lifeProfile/person");
+    const { getCurrentInputs, saveScenarioInputs, savedScenarios } = await import("#store/calculatorStore");
+    assert.equal(writePeople({ version: 1, people: [{ id: "p", name: "Alex" }] }), true);
+    assert.equal(writeTimeline({ version: 2, events: [
+      { id: "start", kind: "employment.started", personId: "p", date: "2026-01-01", status: "actual",
+        payload: { jobId: "job", employer: "Example", gross: 4000, grossPeriod: "MONTHLY" } },
+      { id: "raise", kind: "employment.changed", personId: "p", date: "2026-07-01", status: "actual",
+        payload: { jobId: "job", gross: 5000, grossPeriod: "MONTHLY" } }
+    ] }), true);
+    const date = toLifeDate("2026-08-01");
+    const job = projectEmploymentAtDate(readTimeline().record.events, readPeople().record.people[0].id, date, false)[0];
+    const live = structuredClone(getCurrentInputs());
+    const preview = prepareNetPayHandoff(live, job, date);
+    const saved = saveScenarioInputs("Profile comparison", "Example", preview, { edit: false });
+    assert.equal(saved.inputs.grossIncome, 5000);
+    assert.equal(savedScenarios.value.at(-1).id, saved.id);
+    assert.deepEqual(getCurrentInputs(), live);
+  `;
+  assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], {
+    cwd: process.cwd(),
+    stdio: "pipe",
+  }));
 });
