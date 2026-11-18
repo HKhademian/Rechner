@@ -1,0 +1,12 @@
+.planner-ledger-scroll-hint {
+  display: none;
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .planner-ledger-scroll-hint {
+    display: block;
+  }
+}

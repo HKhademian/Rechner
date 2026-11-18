@@ -1,3 +1,4 @@
+import "./TimelineTable.css";
 import {
   LedgerRowKind,
   projectLedgerMonth,
@@ -338,8 +339,12 @@ export default function TimelineTable(): JSX.Element {
         </div>
       </div>
 
+      <p className="planner-ledger-scroll-hint">Scroll horizontally to see all columns.</p>
       {/* Table Container */}
       <div
+        tabIndex={0}
+        role="region"
+        aria-label="Monthly cash flow table; scroll horizontally to see all columns"
         style={{
           overflowX: "auto",
           borderRadius: "var(--border-radius-sm)",
@@ -375,7 +380,7 @@ export default function TimelineTable(): JSX.Element {
               </th>
               <th style={{ padding: "10px 12px",
                 textAlign: "left" }}>
-                Tax Classes (*Steuerklassen*)
+                Tax Classes (Steuerklassen)
               </th>
               <th style={{ padding: "10px 12px" }}>
                 <div>Husband Base Salary</div>
@@ -427,7 +432,7 @@ export default function TimelineTable(): JSX.Element {
                     }}
                     title="§ 3 MuSchG statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>(*MuSchG*)</span>
+                    <span>(MuSchG)</span>
                     <StatutorySectionIcon size={10} />
                   </LawRefLink>
                 </div>
@@ -464,7 +469,7 @@ export default function TimelineTable(): JSX.Element {
                     }}
                     title="§ 4 BEEG statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>(*§ 4 BEEG*)</span>
+                    <span>(§ 4 BEEG)</span>
                     <StatutorySectionIcon size={10} />
                   </LawRefLink>
                 </div>
@@ -501,7 +506,7 @@ export default function TimelineTable(): JSX.Element {
                     }}
                     title="§ 4b BEEG Partnership Bonus statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>(*§ 4b BEEG*)</span>
+                    <span>(§ 4b BEEG)</span>
                     <StatutorySectionIcon size={10} />
                   </LawRefLink>
                 </div>
@@ -538,7 +543,7 @@ export default function TimelineTable(): JSX.Element {
                     }}
                     title="§ 66 EStG Kindergeld statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>(*§ 66 EStG*)</span>
+                    <span>(§ 66 EStG)</span>
                     <StatutorySectionIcon size={10} />
                   </LawRefLink>
                 </div>
@@ -576,7 +581,7 @@ export default function TimelineTable(): JSX.Element {
                     }}
                     title="§ 26b EStG Marital Splitting statutory rule and example — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>(*§ 26b*)</span>
+                    <span>(§ 26b)</span>
                     <StatutorySectionIcon size={10} />
                   </LawRefLink>
                 </div>
