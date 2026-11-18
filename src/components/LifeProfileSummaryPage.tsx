@@ -19,6 +19,7 @@ import {
   VisaResidenceIcon,
 } from "#components/Icons";
 import LifeProfilePanel from "#components/LifeProfilePanel";
+import LifePeople from "#components/LifePeople";
 import {
   AppShell,
 } from "#components/ui/AppShell";
@@ -136,6 +137,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
         />
       </section>
 
+      <LifePeople />
       <LifeProfilePanel defaultExpanded showSummaryLink={false} />
 
       <div className="life-summary__section-heading">

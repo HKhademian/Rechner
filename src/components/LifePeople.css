@@ -1,0 +1,56 @@
+.life-people {
+  margin: 20px 0;
+}
+
+.life-people h2 {
+  margin: 0;
+}
+
+.life-people p {
+  color: var(--text-secondary);
+}
+
+.life-people__form,
+.life-people__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.life-people__field {
+  display: inline-grid;
+  gap: 6px;
+  color: var(--text-primary);
+}
+
+.life-people__field input {
+  min-height: 40px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+}
+
+.life-people__list {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.life-people__list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.life-people__list p {
+  margin: 4px 0 0;
+}
