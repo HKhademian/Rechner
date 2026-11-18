@@ -4224,7 +4224,7 @@ export default function SandboxControls(): JSX.Element {
                       color: "var(--color-primary)",
                     }}
                   >
-                    0. Preexisting Conditions &amp; Simulation Parameters
+                    Starting conditions &amp; forecast period
                   </span>
                 </div>
                 <span
@@ -4320,6 +4320,7 @@ export default function SandboxControls(): JSX.Element {
                       }}
                     >
                       <select
+                        aria-label="Forecast start month"
                         value={startCalendarMonth.value}
                         onChange={(e) => {
                           startCalendarMonth.value = toCalendarMonth(
@@ -4342,6 +4343,7 @@ export default function SandboxControls(): JSX.Element {
                         ))}
                       </select>
                       <select
+                        aria-label="Forecast start year"
                         value={startCalendarYear.value}
                         onChange={(e) => {
                           startCalendarYear.value = toFullCalendarYear(
@@ -4380,12 +4382,15 @@ export default function SandboxControls(): JSX.Element {
                         <button
                           key={`dur-btn-${dur}`}
                           type="button"
+                          aria-label={`${dur} months`}
+                          aria-pressed={simulationDurationMonths.value === dur}
                           onClick={() => {
                             simulationDurationMonths.value =
                               toMonthDuration(dur);
                           }}
                           style={{
-                            padding: "3px 8px",
+                            padding: "8px 10px",
+                            minHeight: "40px",
                             borderRadius: "3px",
                             border:
                               simulationDurationMonths.value === dur
@@ -4476,7 +4481,7 @@ export default function SandboxControls(): JSX.Element {
                       marginTop: "6px",
                     }}
                   >
-                    ↳ Precondition: baseline status at simulation start.
+                    Values at the start of the forecast.
                     Defaults to 0 if unreported.
                   </div>
                 </div>
@@ -4806,7 +4811,7 @@ export default function SandboxControls(): JSX.Element {
                         }}
                       >
                         <ChildBirthMilestoneIcon size={12} />
-                        <span>Prior Living Children ($t=0$):</span>
+                        <span>Children before the plan:</span>
                       </span>
                       <span
                         style={{
@@ -4912,11 +4917,11 @@ export default function SandboxControls(): JSX.Element {
                         ↳ Kindergeld (<LawRefLink lawId={LawId.EStG_66} label="§ 66 EStG" />),{" "}
                         SGB XI care discount (<LawRefLink lawId={LawId.SGB11_55} label="§ 55 SGB XI" />),{" "}
                         and tax allowances scale for {existingChildrenCount.value} prior child(ren).{" "}
-                        <LawRefLink lawId={LawId.BEEG_2a} label="§ 2a BEEG" /> sibling bonus stays locked unless birth ages are modeled in Batch 1.
+                        <LawRefLink lawId={LawId.BEEG_2a} label="§ 2a BEEG" /> sibling bonus requires modeled birth ages.
                       </>
                     ) : (
                       <>
-                        ↳ Model prior children here, or add Child #1..#N pregnancies in Batch 1 for automatic{" "}
+                        Enter existing children here, or add pregnancies above for automatic{" "}
                         <LawRefLink lawId={LawId.BEEG_2a} label="§ 2a BEEG" /> sibling-bonus tracking.
                       </>
                     )}
