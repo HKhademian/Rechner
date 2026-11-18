@@ -7,6 +7,7 @@ import {
 } from "preact/hooks";
 import {
   type LifePerson,
+  toLifeDate,
   toPersonId,
 } from "#engine/lifeProfile/person";
 import {
@@ -30,6 +31,10 @@ import {
   SalaryPeriod as PayPeriod,
   toSalaryPeriod,
 } from "#engine/types";
+import {
+  ProjectedFactStatus,
+  projectEmploymentAtDate,
+} from "#engine/lifeProfile/employmentProjection";
 import {
   PeopleRecordStatus,
 } from "#engine/lifeProfile/peopleRecord";
@@ -59,6 +64,9 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   const [people, setPeople] = useState<readonly LifePerson[]>([]);
   const [events, setEvents] = useState<readonly LifeEvent<unknown>[]>([]);
   const [personId, setPersonId] = useState("");
+  const [viewPersonId, setViewPersonId] = useState("");
+  const [viewDate, setViewDate] = useState("");
+  const [includePlanned, setIncludePlanned] = useState(false);
   const [title, setTitle] = useState("");
   const [entryType, setEntryType] = useState<EntryType>(EntryType.Note);
   const [gross, setGross] = useState("");
@@ -76,6 +84,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     const current = readPeople();
     if (current.status === PeopleRecordStatus.Valid) {
       setPeople(current.record?.people ?? []);
+      setViewPersonId((selected) => current.record?.people.some((person) => person.id === selected)
+        ? selected : current.record?.people[0]?.id ?? "");
     }
     else if (current.status === PeopleRecordStatus.Missing) {
       setPeople([]);
@@ -95,7 +105,24 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       return;
     }
     setReady(true);
+    const now = new Date();
+    setViewDate(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
   }, []);
+
+  let jobs: ReturnType<typeof projectEmploymentAtDate> = [];
+  try {
+    if (viewPersonId && viewDate) {
+      jobs = projectEmploymentAtDate(events, toPersonId(viewPersonId), toLifeDate(viewDate), includePlanned);
+    }
+  }
+  catch {
+    jobs = [];
+  }
+
+  function sourceLabel(id: LifeEventId | undefined): string {
+    const source = events.find((event) => event.id === id);
+    return source ? `${source.kind === jobStartedModule.kind ? "job start" : "job change"} · ${source.date ?? "date unknown"}${source.status === LifeEventStatus.Planned ? " · planned" : ""}` : "source unavailable";
+  }
 
   function saveEvents(next: readonly LifeEvent<unknown>[]): boolean {
     const current = readTimeline();
@@ -198,6 +225,33 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           </li>;
         })}
       </ul>}
+      {people.length > 0 && <div className="life-timeline__view">
+        <h3>Employment on a date</h3>
+        <p>Uses recorded job starts and changes. Job endings are not supported yet.</p>
+        <div className="life-people__form">
+          <label className="life-people__field">Person for view
+            <select value={viewPersonId} onChange={(event) => setViewPersonId(event.currentTarget.value)}>
+              {people.map((person) => <option value={person.id} key={person.id}>{person.name}</option>)}
+            </select>
+          </label>
+          <label className="life-people__field">View date
+            <input type="date" value={viewDate} onInput={(event) => setViewDate(event.currentTarget.value)} />
+          </label>
+          <label><input type="checkbox" checked={includePlanned} onChange={(event) => setIncludePlanned(event.currentTarget.checked)} /> Include planned events</label>
+        </div>
+        {!viewDate ? <p>Choose a date.</p> : jobs.length === 0 ? <p>No applicable jobs recorded for this date.</p> : <ul className="life-people__list">
+          {jobs.map((job) => <li key={job.jobId}><div><strong>{job.employer}</strong>
+            {job.existence === ProjectedFactStatus.Ambiguous ? <p>Job start or change date is uncertain or conflicting.</p> : <>
+              <p>Gross rate: {job.gross.status === ProjectedFactStatus.Known && job.gross.value
+                ? `${job.gross.value.amount} € / ${job.gross.value.period === PayPeriod.Monthly ? "month" : "year"} · ${sourceLabel(job.gross.sourceEventId)}`
+                : job.gross.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
+              <p>Working hours: {job.weeklyHours.status === ProjectedFactStatus.Known
+                ? `${job.weeklyHours.value} h/week · ${sourceLabel(job.weeklyHours.sourceEventId)}`
+                : job.weeklyHours.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
+            </>}
+          </div></li>)}
+        </ul>}
+      </div>}
       {people.length === 0 ? <p>Add a person above to start your timeline.</p> : <form className="life-people__form" onSubmit={save}>
         <label className="life-people__field">Person
           <select required value={personId} onChange={(event) => setPersonId(event.currentTarget.value)}>
