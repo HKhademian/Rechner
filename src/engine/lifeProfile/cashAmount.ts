@@ -26,4 +26,3 @@ export function amountText(cents: EuroCents): string {
   const absolute = value < 0n ? -value : value;
   return `${value < 0n ? "-" : ""}${absolute / 100n}.${String(absolute % 100n).padStart(2, "0")}`;
 }
-
