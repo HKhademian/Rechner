@@ -29,6 +29,11 @@ import {
   TimelineRecordStatus,
   decodeTimelineRecord,
 } from "#engine/lifeProfile/timelineRecord";
+import {
+  CASH_SCENARIO_STORAGE_KEY,
+  CashScenarioStatus,
+  decodeCashScenarios,
+} from "#engine/lifeProfile/cashScenarioRecord";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -557,7 +562,7 @@ export function setStorageMode(
           sharedMemory.set(key, value); 
         },
         removeItem: (key: string) => {
-          sharedMemory.delete(key); 
+          sharedMemory.delete(key);
         },
       }
       : nextMode === StorageMode.Session ? window.sessionStorage : window.localStorage;
@@ -725,7 +730,7 @@ export function browserWebStorageForCurrentMode(): Pick<Storage, "getItem" | "se
         sharedMemory.set(key, value); 
       },
       removeItem: (key) => {
-        sharedMemory.delete(key); 
+        sharedMemory.delete(key);
       },
     };
   }
@@ -746,7 +751,7 @@ export function clearSharedBrowserKey(key: string): void {
 
 const backupFormat = "rechner-backup";
 const memoryRestoreKey = "rechner:privacy:memory-restore:v1";
-const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY, TIMELINE_STORAGE_KEY];
+const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY, TIMELINE_STORAGE_KEY, CASH_SCENARIO_STORAGE_KEY];
 
 type BackupEntries = Record<string, string>;
 
@@ -893,6 +898,9 @@ function parseBackup(serialized: string): BackupEntries {
     if (key === TIMELINE_STORAGE_KEY && decodeTimelineRecord(raw, lifeEventCatalog).status !== TimelineRecordStatus.Valid) {
       throw new Error("The backup contains an invalid or unsupported timeline.");
     }
+    if (key === CASH_SCENARIO_STORAGE_KEY && decodeCashScenarios(raw).status !== CashScenarioStatus.Valid) {
+      throw new Error("The backup contains invalid or unsupported cash scenarios.");
+    }
     if (key === LIFE_PROFILE_STORAGE_KEY && inspectLegacyRecord(raw) !== LegacyRecordStatus.Supported) {
       throw new Error("The backup contains an invalid or unsupported life profile.");
     }
@@ -932,6 +940,13 @@ export function importAllData(serialized: string): void {
   }
   if (!Object.hasOwn(entries, TIMELINE_STORAGE_KEY) && currentTimeline !== null) {
     entries[TIMELINE_STORAGE_KEY] = currentTimeline;
+  }
+  const currentCashScenarios = shared?.getItem(CASH_SCENARIO_STORAGE_KEY) ?? null;
+  if (currentCashScenarios !== null && decodeCashScenarios(currentCashScenarios).status !== CashScenarioStatus.Valid) {
+    throw new Error("The saved cash scenarios are invalid or unsupported. Export them before restoring data.");
+  }
+  if (!Object.hasOwn(entries, CASH_SCENARIO_STORAGE_KEY) && currentCashScenarios !== null) {
+    entries[CASH_SCENARIO_STORAGE_KEY] = currentCashScenarios;
   }
   const timeline = decodeTimelineRecord(entries[TIMELINE_STORAGE_KEY] ?? null, lifeEventCatalog);
   const people = decodePeopleRecord(entries[PEOPLE_STORAGE_KEY] ?? null);
