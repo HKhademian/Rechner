@@ -30,6 +30,18 @@ import {
   residenceMoveModule,
 } from "#engine/lifeProfile/residenceEvent";
 import {
+  type CashDirection as CashDirectionType,
+  cashEventModule,
+  CashDirection,
+} from "#engine/lifeProfile/cashEvent";
+import {
+  parseAmount,
+  amountText,
+} from "#engine/lifeProfile/cashAmount";
+import {
+  formatIntegerEuroCents,
+} from "#utils/currencyFormat";
+import {
   type SalaryPeriod,
   SalaryPeriod as PayPeriod,
   toSalaryPeriod,
@@ -62,7 +74,8 @@ type DatePrecision = (typeof DatePrecision)[keyof typeof DatePrecision];
 const EntryType = { Note: "note",
   Job: "job",
   JobChange: "job-change",
-  Move: "move" } as const;
+  Move: "move",
+  Cash: "cash" } as const;
 type EntryType = (typeof EntryType)[keyof typeof EntryType];
 
 export default function LifeTimeline({ peopleRevision }: { readonly peopleRevision: number }): JSX.Element {
@@ -79,6 +92,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   const [hours, setHours] = useState("");
   const [jobId, setJobId] = useState("");
   const [placeId, setPlaceId] = useState("");
+  const [cashAmount, setCashAmount] = useState("");
+  const [cashDirection, setCashDirection] = useState<CashDirectionType>(CashDirection.Outflow);
   const [date, setDate] = useState("");
   const [datePrecision, setDatePrecision] = useState<DatePrecision>(DatePrecision.Day);
   const [status, setStatus] = useState<LifeEventStatus>(LifeEventStatus.Planned);
@@ -157,6 +172,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     setHours("");
     setJobId("");
     setPlaceId("");
+    setCashAmount("");
+    setCashDirection(CashDirection.Outflow);
     setDate("");
     setDatePrecision(DatePrecision.Day);
     setStatus(LifeEventStatus.Planned);
@@ -172,8 +189,12 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       const isJob = entryType === EntryType.Job;
       const isJobChange = entryType === EntryType.JobChange;
       const isMove = entryType === EntryType.Move;
+      const isCash = entryType === EntryType.Cash;
+      if (isCash && (datePrecision !== DatePrecision.Day || !date)) {
+        throw new TypeError("Cash events require an exact date.");
+      }
       const item: LifeEvent<unknown> = { id: editing ?? toLifeEventId(crypto.randomUUID()),
-        kind: isJob ? jobStartedModule.kind : isJobChange ? jobChangedModule.kind : isMove ? residenceMoveModule.kind : noteEventModule.kind,
+        kind: isJob ? jobStartedModule.kind : isJobChange ? jobChangedModule.kind : isMove ? residenceMoveModule.kind : isCash ? cashEventModule.kind : noteEventModule.kind,
         personId: toPersonId(personId),
         ...(datePrecision === DatePrecision.Unknown ? {} : { date: toLifeEventDate(date) }),
         status,
@@ -184,7 +205,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           ...(hours === "" ? {} : { weeklyHours: Number(hours) }) }) : isMove
           ? residenceMoveModule.parsePayload({ placeId: placeId || crypto.randomUUID(),
             location: title.trim() })
-          : noteEventModule.parsePayload({ title: title.trim() }) };
+          : isCash ? cashEventModule.parsePayload({ title: title.trim(),
+            direction: cashDirection,
+            amount: parseAmount(cashAmount, false) })
+            : noteEventModule.parsePayload({ title: title.trim() }) };
       const next = editing ? events.map((entry) => entry.id === editing ? item : entry) : [...events, item];
       if (saveEvents(next)) {
         resetForm();
@@ -206,20 +230,23 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const job = event.kind === jobStartedModule.kind ? jobStartedModule.parsePayload(event.payload) : undefined;
           const change = event.kind === jobChangedModule.kind ? jobChangedModule.parsePayload(event.payload) : undefined;
           const move = event.kind === residenceMoveModule.kind ? residenceMoveModule.parsePayload(event.payload) : undefined;
+          const cash = event.kind === cashEventModule.kind ? cashEventModule.parsePayload(event.payload) : undefined;
           const start = change && events.find((entry) => entry.kind === jobStartedModule.kind
             && jobStartedModule.parsePayload(entry.payload).jobId === change.jobId);
           const employer = start ? jobStartedModule.parsePayload(start.payload).employer : undefined;
-          const label = payload?.title ?? (job ? `Job at ${job.employer}` : change ? `Job change${employer ? ` at ${employer}` : ""}` : move ? `Move to ${move.location}` : "Life event");
+          const label = payload?.title ?? (job ? `Job at ${job.employer}` : change ? `Job change${employer ? ` at ${employer}` : ""}` : move ? `Move to ${move.location}` : cash ? cash.title : "Life event");
           const pay = job ?? change;
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
-            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
+            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
             <div className="life-people__actions">
-              {(payload || job || change || move) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
+              {(payload || job || change || move || cash) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
-                setEntryType(job ? EntryType.Job : change ? EntryType.JobChange : move ? EntryType.Move : EntryType.Note);
-                setTitle(job?.employer ?? move?.location ?? payload?.title ?? "");
+                setEntryType(job ? EntryType.Job : change ? EntryType.JobChange : move ? EntryType.Move : cash ? EntryType.Cash : EntryType.Note);
+                setTitle(job?.employer ?? move?.location ?? cash?.title ?? payload?.title ?? "");
+                setCashAmount(cash ? amountText(cash.amount) : "");
+                setCashDirection(cash?.direction ?? CashDirection.Outflow);
                 setPlaceId(move?.placeId ?? "");
                 setJobId(pay?.jobId ?? "");
                 setGross(pay?.gross === undefined ? "" : String(pay.gross));
@@ -276,7 +303,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         <label className="life-people__field">Event type
           <select disabled={editing !== undefined} value={entryType} onChange={(event) => {
             const value = event.currentTarget.value;
-            setEntryType(value === EntryType.Job ? EntryType.Job : value === EntryType.JobChange ? EntryType.JobChange : value === EntryType.Move ? EntryType.Move : EntryType.Note);
+            setEntryType(value === EntryType.Job ? EntryType.Job : value === EntryType.JobChange ? EntryType.JobChange : value === EntryType.Move ? EntryType.Move : value === EntryType.Cash ? EntryType.Cash : EntryType.Note);
+            if (value === EntryType.Cash) {
+              setDatePrecision(DatePrecision.Day); setDate("");
+            }
             setTitle("");
             setJobId("");
           }}>
@@ -284,11 +314,23 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             <option value={EntryType.Job}>Job started</option>
             <option value={EntryType.JobChange}>Job change</option>
             <option value={EntryType.Move}>Move</option>
+            <option value={EntryType.Cash}>Cash inflow or expense</option>
           </select>
         </label>
         {entryType !== EntryType.JobChange && <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : entryType === EntryType.Move ? "Location" : "Event"}
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>}
+        {entryType === EntryType.Cash && <>
+          <label className="life-people__field">Cash direction
+            <select value={cashDirection} onChange={(event) => setCashDirection(event.currentTarget.value === CashDirection.Inflow ? CashDirection.Inflow : CashDirection.Outflow)}>
+              <option value={CashDirection.Outflow}>Expense</option><option value={CashDirection.Inflow}>Inflow</option>
+            </select>
+          </label>
+          <label className="life-people__field">Amount (€)
+            <input required type="number" min="0.01" step="0.01" value={cashAmount} onInput={(event) => setCashAmount(event.currentTarget.value)} />
+          </label>
+          <p>Enter an actual transaction or a planned cash event. This does not change a cash-flow forecast.</p>
+        </>}
         {entryType === EntryType.JobChange && <label className="life-people__field">Job
           <select required value={jobId} onChange={(event) => setJobId(event.currentTarget.value)}>
             <option value="">Choose a job</option>
@@ -312,7 +354,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             <input type="number" min="0" max="60" step="0.5" value={hours} onInput={(event) => setHours(event.currentTarget.value)} />
           </label>
         </>}
-        <label className="life-people__field">Date precision
+        {entryType !== EntryType.Cash && <label className="life-people__field">Date precision
           <select value={datePrecision} onChange={(event) => {
             const value = event.currentTarget.value;
             if (Object.values(DatePrecision).includes(value as DatePrecision)) {
@@ -325,7 +367,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             <option value={DatePrecision.Year}>Year only</option>
             <option value={DatePrecision.Unknown}>Unknown</option>
           </select>
-        </label>
+        </label>}
         {datePrecision !== DatePrecision.Unknown && <label className="life-people__field">Date
           <input required type={datePrecision === DatePrecision.Day ? "date" : datePrecision === DatePrecision.Month ? "month" : "text"}
             inputMode={datePrecision === DatePrecision.Year ? "numeric" : undefined}
