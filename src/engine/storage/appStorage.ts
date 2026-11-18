@@ -1001,6 +1001,9 @@ export function clearAllData(): void {
   for (const key of sharedBackupKeys) {
     clearSharedBrowserKey(key);
   }
+  if (activeMode === StorageMode.Memory && typeof window !== "undefined") {
+    window.sessionStorage.removeItem(memoryRestoreKey);
+  }
 }
 
 if (typeof window !== "undefined") {

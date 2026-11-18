@@ -18,7 +18,7 @@ it("round-trips timeline events, preserves older backups and protects linked peo
     globalThis.window = globalThis;
     globalThis.localStorage = makeStorage();
     globalThis.sessionStorage = makeStorage();
-    const { StorageMode, setStorageMode, exportAllData, importAllData } = await import("#engine/storage/appStorage");
+    const { StorageMode, setStorageMode, exportAllData, importAllData, clearAllData } = await import("#engine/storage/appStorage");
     const { readPeople, writePeople } = await import("#engine/lifeProfile/peopleStorage");
     const { readTimeline, writeTimeline } = await import("#engine/lifeProfile/timelineStorage");
     setStorageMode(StorageMode.Session, true);
@@ -38,6 +38,11 @@ it("round-trips timeline events, preserves older backups and protects linked peo
       entries: { "rechner:life-profile:people:v1": JSON.stringify({ version: 1, people: [] }) } });
     assert.throws(() => importAllData(invalid));
     assert.equal(readPeople().record.people[0].name, "Alex");
+    assert.equal(setStorageMode(StorageMode.Memory, true), true);
+    clearAllData();
+    assert.equal(globalThis.sessionStorage.getItem("rechner:privacy:memory-restore:v1"), null);
+    assert.equal(readPeople().status, "missing");
+    assert.equal(readTimeline().status, "missing");
   `;
   assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], {
     cwd: process.cwd(),
