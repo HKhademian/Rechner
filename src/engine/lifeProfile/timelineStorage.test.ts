@@ -21,6 +21,8 @@ it("round-trips timeline events, preserves older backups and protects linked peo
     const { StorageMode, setStorageMode, exportAllData, importAllData, clearAllData } = await import("#engine/storage/appStorage");
     const { readPeople, writePeople } = await import("#engine/lifeProfile/peopleStorage");
     const { readTimeline, writeTimeline } = await import("#engine/lifeProfile/timelineStorage");
+    const { recordedLifeMonths } = await import("#engine/lifeProfile/recordedLifeMonths");
+    const { toReplayMonth } = await import("#engine/lifeProfile/monthlyReplay");
     setStorageMode(StorageMode.Session, true);
     const people = { version: 1, people: [{ id: "p", name: "Alex" }] };
     const timeline = { version: 1, events: [{ id: "e", kind: "note", personId: "p", date: "2026-01-01", status: "planned", payload: { title: "Move" } }] };
@@ -58,6 +60,16 @@ it("round-trips timeline events, preserves older backups and protects linked peo
     assert.equal(writeTimeline({ version: 2, events: [] }), true);
     importAllData(changeBackup);
     assert.equal(readTimeline().record.events[3].payload.gross, 5000);
+    const move = { id: "move", kind: "residence.move", personId: "p", date: "2027", status: "planned",
+      payload: { placeId: "place", location: "Berlin" } };
+    assert.equal(writeTimeline({ version: 2, events: [...partial.events, job, change, move] }), true);
+    const month = toReplayMonth(2027, 12);
+    const before = recordedLifeMonths(readTimeline().record.events, readPeople().record.people[0].id, month, month, month, true);
+    const mixedBackup = exportAllData();
+    assert.equal(writeTimeline({ version: 2, events: [] }), true);
+    importAllData(mixedBackup);
+    assert.equal(readTimeline().record.events[4].payload.location, "Berlin");
+    assert.deepEqual(recordedLifeMonths(readTimeline().record.events, readPeople().record.people[0].id, month, month, month, true), before);
     const invalid = JSON.stringify({ format: "rechner-backup", version: 1,
       entries: { "rechner:life-profile:people:v1": JSON.stringify({ version: 1, people: [] }) } });
     assert.throws(() => importAllData(invalid));
