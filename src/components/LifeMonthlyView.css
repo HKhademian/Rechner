@@ -1,0 +1,20 @@
+.life-monthly {
+  margin-top: 16px;
+}
+
+.life-monthly__scroll {
+  overflow-x: auto;
+}
+
+.life-monthly table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.life-monthly th,
+.life-monthly td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: top;
+}

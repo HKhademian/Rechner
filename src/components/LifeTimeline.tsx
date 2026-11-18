@@ -35,6 +35,7 @@ import {
   ProjectedFactStatus,
   projectEmploymentAtDate,
 } from "#engine/lifeProfile/employmentProjection";
+import LifeMonthlyView from "#components/LifeMonthlyView";
 import {
   PeopleRecordStatus,
 } from "#engine/lifeProfile/peopleRecord";
@@ -251,6 +252,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             </>}
           </div></li>)}
         </ul>}
+        {viewPersonId && <LifeMonthlyView events={events} personId={toPersonId(viewPersonId)} date={viewDate} includePlanned={includePlanned} />}
       </div>}
       {people.length === 0 ? <p>Add a person above to start your timeline.</p> : <form className="life-people__form" onSubmit={save}>
         <label className="life-people__field">Person
