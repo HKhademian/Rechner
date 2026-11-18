@@ -5,6 +5,7 @@ import {
 import {
   formatEur,
   formatEurCents,
+  formatIntegerEuroCents,
   formatEurOrUnavailable,
   formatSignedEurDelta,
 } from "#utils/currencyFormat";
@@ -13,6 +14,13 @@ it("formats whole-euro and cent amounts consistently with German locale conventi
   assert.match(formatEur(50000), /50\.000\s*€/);
   assert.match(formatEurCents(1234.5), /1\.234,50\s*€/);
   assert.match(formatEur(Number.NaN), /0\s*€/);
+});
+
+it("formats integer cents exactly, including safe integer limits", () => {
+  assert.match(formatIntegerEuroCents(100001), /^1\.000,01\s*€$/);
+  assert.match(formatIntegerEuroCents(-1), /^-0,01\s*€$/);
+  assert.match(formatIntegerEuroCents(Number.MAX_SAFE_INTEGER), /^90\.071\.992\.547\.409,91\s*€$/);
+  assert.throws(() => formatIntegerEuroCents(0.5));
 });
 
 it("handles optional amounts and custom fallbacks cleanly", () => {

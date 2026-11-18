@@ -28,6 +28,16 @@ export function formatEurCents(amount: number): string {
   return getEurFormatter(2, 2).format(safe);
 }
 
+/** Format integer cents exactly, including at the safe-integer boundary. */
+export function formatIntegerEuroCents(cents: number): string {
+  if (!Number.isSafeInteger(cents)) {
+    throw new TypeError("Expected safe integer cents.");
+  }
+  const value = BigInt(cents);
+  const absolute = value < 0n ? -value : value;
+  return `${value < 0n ? "-" : ""}${new Intl.NumberFormat("de-DE").format(absolute / 100n)},${String(absolute % 100n).padStart(2, "0")}\u00a0€`;
+}
+
 /** Format an optional Euro amount or display a consistent unavailable fallback. */
 export function formatEurOrUnavailable(
   amount: number | undefined,
