@@ -2,6 +2,13 @@
 
 Status: proposed roadmap, updated 18 November 2026. This plans incremental work toward a personal planning assistant; it does not imply that the features below already exist or approve a particular legal interpretation. Product vision and requested journeys: [event-based Life Profile exploration](event-based-life-profile.md).
 
+## Implementation progress — 18 November 2026
+
+- Step 1: compatibility inventory and proposed storage contracts documented in [life-profile-compatibility.md](life-profile-compatibility.md); baseline targeted tests passed.
+- Step 2: Profile now notes that existing values may be examples. Individual legacy fields still cannot be reliably classified as user-confirmed; explicit confirmation remains future work.
+- Steps 3–4: initial people UI supports optional birthdates and age on a selected date, backed by a separate validated record included in backup and storage modes. Unsupported records are protected from ordinary overwrites. The people record is not yet linked to calculator inputs or timeline events. Further work remains for comprehensive restore-failure, cross-tab and UI interaction coverage before treating the complete compatibility contract as finished.
+- Next: strengthen restore recovery and multi-tab behavior, then add the first event and timeline without changing parental planner scenarios.
+
 ## Outcome
 
 A person can gradually build a private, understandable life timeline, see relevant information as of a date, and use it to prepare for decisions. Over time, focused calculators, explanations, scenario comparisons, and historical and projected charts can help them make plans that fit their circumstances.
