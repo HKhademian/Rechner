@@ -10,6 +10,7 @@ import {
 import {
   SegmentedControl,
 } from "#components/ui/SegmentedControl";
+import NetPayProfileHandoff from "#components/NetPayProfileHandoff";
 import {
   GermanFederalState,
 } from "#engine/formulas/pure/housingFormulas";
@@ -141,6 +142,7 @@ export default function CalculatorPeriodControl(): JSX.Element {
         ]}
       />
     </div>
+    {hydrated && <NetPayProfileHandoff />}
     <p id="calculator-period-hint" className={invalid ? "calculator-period__error" : "calculator-period__description"} role={invalid ? "status" : undefined}>{invalid ? "Check highlighted inputs." : "All columns. Monthly results: annual / 12. Monthly gross: regular salary. Taxable income: annual."}</p>
   </div>;
 }

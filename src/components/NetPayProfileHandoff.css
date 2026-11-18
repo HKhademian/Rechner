@@ -1,0 +1,45 @@
+.net-pay-handoff {
+  width: 100%;
+  text-align: left;
+}
+
+.net-pay-handoff__panel {
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.net-pay-handoff__fields,
+.net-pay-handoff__preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.net-pay-handoff__fields label,
+.net-pay-handoff__preview label {
+  display: grid;
+  gap: 4px;
+}
+
+.net-pay-handoff__fields input:not([type="checkbox"]),
+.net-pay-handoff__fields select,
+.net-pay-handoff__preview input {
+  box-sizing: border-box;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 8px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-sm);
+}
+
+.net-pay-handoff__preview p {
+  flex-basis: 100%;
+  margin: 8px 0 0;
+}
