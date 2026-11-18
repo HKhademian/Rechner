@@ -50,6 +50,14 @@ it("round-trips timeline events, preserves older backups and protects linked peo
     importAllData(jobBackup);
     assert.equal(readTimeline().record.events[2].payload.weeklyHours, 32);
     assert.equal(readTimeline().record.events[2].payload.gross, undefined);
+    const change = { id: "raise", kind: "employment.changed", personId: "p", date: "2027", status: "planned",
+      payload: { jobId: "job-1", gross: 5000, grossPeriod: "MONTHLY" } };
+    assert.equal(writeTimeline({ version: 2, events: [...partial.events, job, change] }), true);
+    assert.equal(writeTimeline({ version: 2, events: [...partial.events, change] }), false);
+    const changeBackup = exportAllData();
+    assert.equal(writeTimeline({ version: 2, events: [] }), true);
+    importAllData(changeBackup);
+    assert.equal(readTimeline().record.events[3].payload.gross, 5000);
     const invalid = JSON.stringify({ format: "rechner-backup", version: 1,
       entries: { "rechner:life-profile:people:v1": JSON.stringify({ version: 1, people: [] }) } });
     assert.throws(() => importAllData(invalid));

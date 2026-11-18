@@ -1,4 +1,5 @@
 import {
+  type LifeEvent,
   type LifeEventKind,
   toLifeEventKind,
 } from "#engine/lifeProfile/timeline";
@@ -6,6 +7,7 @@ import {
 export interface LifeEventModule<Payload> {
   readonly kind: LifeEventKind;
   readonly parsePayload: (value: unknown) => Payload;
+  readonly validateTimeline?: (events: readonly LifeEvent<unknown>[]) => boolean;
 }
 
 /** Modules validate their own information; the timeline does not interpret it. */

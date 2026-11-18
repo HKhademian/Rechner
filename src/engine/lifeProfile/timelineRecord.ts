@@ -85,6 +85,9 @@ export function decodeTimelineRecord(
         status: toLifeEventStatus(event.status),
         payload: module.parsePayload(event.payload) }));
     }
+    if ([...modules.values()].some((module) => module.validateTimeline && !module.validateTimeline(events))) {
+      return { status: TimelineRecordStatus.Invalid };
+    }
     return { status: TimelineRecordStatus.Valid,
       record: Object.freeze({ version: data.version,
         events: Object.freeze(events) }) };
