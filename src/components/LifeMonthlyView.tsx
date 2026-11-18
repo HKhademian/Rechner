@@ -6,7 +6,17 @@ import {
 } from "preact/hooks";
 import {
   type LifeEvent,
+  LifeEventStatus,
 } from "#engine/lifeProfile/timeline";
+import {
+  CashDirection,
+} from "#engine/lifeProfile/cashEvent";
+import {
+  cashEventsForMonth,
+} from "#engine/lifeProfile/cashEventView";
+import {
+  formatIntegerEuroCents,
+} from "#utils/currencyFormat";
 import {
   type PersonId,
 } from "#engine/lifeProfile/person";
@@ -69,21 +79,27 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
       {expanded ? "Hide monthly view" : "View six months"}
     </button>
     {expanded && <>
-      <p>Recorded facts at each month end, starting with the selected view date. {includePlanned ? "Includes planned events." : "Planned events are excluded."}</p>
+      <p>Recorded facts at each month end, starting with the selected view date. {includePlanned ? "Includes planned events." : "Planned events are excluded."} Cash entries are user-entered and may not be a complete transaction history.</p>
       {error || !date ? <p>Choose a view date within the supported calendar range.</p> : <div className="life-monthly__scroll">
         <table>
-          <thead><tr><th>Month</th><th>Employment</th><th>Residence</th></tr></thead>
-          <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
-            <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
-            <td>{state.jobs.length === 0 ? "No job recorded" : state.jobs.map((job) => <div key={job.jobId}>
-              {job.employer}: {job.existence === ProjectedFactStatus.Ambiguous ? "start uncertain"
-                : job.gross.status === ProjectedFactStatus.Known && job.gross.value
-                  ? `${job.gross.value.amount} € / ${job.gross.value.period === SalaryPeriod.Monthly ? "month" : "year"} gross`
-                  : job.gross.status === ProjectedFactStatus.Ambiguous ? "pay uncertain" : "pay not recorded"}
-            </div>)}</td>
-            <td>{state.residence.status === ProjectedFactStatus.Known ? state.residence.value?.location
-              : state.residence.status === ProjectedFactStatus.Ambiguous ? "Uncertain" : "Not recorded"}</td>
-          </tr>)}</tbody>
+          <thead><tr><th>Month</th><th>Employment</th><th>Residence</th><th>Cash entries</th></tr></thead>
+          <tbody>{rows.map(({ month, state }) => {
+            const cash = cashEventsForMonth(events, personId, month, includePlanned);
+            return <tr key={month.id}>
+              <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
+              <td>{state.jobs.length === 0 ? "No job recorded" : state.jobs.map((job) => <div key={job.jobId}>
+                {job.employer}: {job.existence === ProjectedFactStatus.Ambiguous ? "start uncertain"
+                  : job.gross.status === ProjectedFactStatus.Known && job.gross.value
+                    ? `${job.gross.value.amount} € / ${job.gross.value.period === SalaryPeriod.Monthly ? "month" : "year"} gross`
+                    : job.gross.status === ProjectedFactStatus.Ambiguous ? "pay uncertain" : "pay not recorded"}
+              </div>)}</td>
+              <td>{state.residence.status === ProjectedFactStatus.Known ? state.residence.value?.location
+                : state.residence.status === ProjectedFactStatus.Ambiguous ? "Uncertain" : "Not recorded"}</td>
+              <td>{cash.map((entry) => <div key={entry.id}>
+                {entry.date} · {entry.payload.title} · {entry.status === LifeEventStatus.Actual ? "Happened" : "Planned"} · {entry.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} {formatIntegerEuroCents(entry.payload.amount)} · User entered
+              </div>)}{cash.length === 0 && "No cash entries recorded"}</td>
+            </tr>;
+          })}</tbody>
         </table>
       </div>}
       <CashFlowPreview date={date} onDateChange={onDateChange} />
