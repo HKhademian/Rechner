@@ -1,3 +1,7 @@
+.planner-input-header {
+  scroll-margin-top: 80px;
+}
+
 .planner-input-header > div {
   width: 100%;
 }
@@ -43,4 +47,12 @@
   margin: 4px 0 0;
   color: var(--text-secondary);
   font-size: 0.82rem;
+}
+
+.planner-results-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-primary);
 }

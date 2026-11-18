@@ -1,5 +1,6 @@
 .scenario-selector {
   margin-bottom: 24px;
+  scroll-margin-top: 80px;
 }
 
 .scenario-selector__header {
@@ -12,6 +13,7 @@
 }
 
 .scenario-selector h2 {
+  scroll-margin-top: 80px;
   margin: 0 0 4px;
   font-size: 1.05rem;
 }

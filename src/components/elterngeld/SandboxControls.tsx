@@ -303,7 +303,7 @@ export default function SandboxControls(): JSX.Element {
       className="ui-card"
       style={{ marginBottom: "28px" }}
     >
-      <div className="planner-input-header">
+      <div className="planner-input-header" id="planner-inputs">
         <div>
           <h3>
             <button
@@ -321,6 +321,7 @@ export default function SandboxControls(): JSX.Element {
             </button>
           </h3>
           <p>Edit your household, planned births, tax choices and working hours.</p>
+          <a className="planner-results-link" href="#scenario-heading">Jump to results ↓</a>
         </div>
       </div>
 

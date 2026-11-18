@@ -102,6 +102,7 @@ export default function ScenarioSelector(): JSX.Element {
           <p className="ui-card__subtitle">These are different calculations using your inputs above. Choose which results to view; your inputs stay the same.</p>
         </div>
         <div className="scenario-selector__actions">
+          <a href="#planner-inputs" className="ui-btn">Edit plan inputs</a>
           <a href={calculatorPath(AppId.NetPay)} className="ui-btn">
             Compare single-year Net Pay
           </a>
