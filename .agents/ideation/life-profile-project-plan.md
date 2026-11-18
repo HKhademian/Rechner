@@ -11,9 +11,10 @@ Status: proposed roadmap, updated 18 November 2026. This plans incremental work 
 - Step 6: timeline entries can be edited and may use exact, month-only, year-only or unknown dates. Version 2 records preserve that precision; existing version 1 records remain readable.
 - Steps 7–8: structured job-start and linked job-change events can record an employer, pay rates and weekly hours. A dated employment view shows sourced facts, optionally includes planned events, and marks ambiguous timing or conflicts. Job endings are not yet supported; job events do not automatically alter calculator inputs.
 - Step 9 (initial slice): Net Pay can preview a known monthly job rate into a new named comparison without changing live inputs. The preview exposes the working-month and salary-payment assumptions; yearly rates are not transferred automatically. Session or device storage is needed for Profile data to survive navigation between pages. Full interactive end-to-end handoff verification and additional restore-failure and cross-tab coverage remain.
-- Step 10 (initial slice): a generic monthly replay starts from an explicit opening month; a six-month month-end view shows recorded employment facts. A minimal residence/move module has timeline entry and is covered by mixed-domain and backup tests; it does not assess residency eligibility. The runner does not yet calculate cash flows or expose accumulators.
+- Step 10 (initial slice): a generic monthly replay starts from an explicit opening month; a six-month month-end view shows recorded employment facts. A minimal residence/move module has timeline entry and is covered by mixed-domain and backup tests; it does not assess residency eligibility. The replay is domain-independent and supports domain-owned accumulators.
 - Step 11 (initial slice): actual or planned job changes and moves can be reflected in the six-month view; scenario comparison remains future work.
-- Next: add accumulators with explicit opening values and domain-owned formulas.
+- Steps 12–13 (initial slice): a generic accumulator accepts explicit opening values and domain-owned behavior. A separately tested cash-balance formula powers a six-month what-if with manually entered opening balance, inflow and expenses. These assumptions are temporary, are not saved or backed up, and are not inferred from events or legal rules.
+- Next: build on this preview with clear visualizations and comparisons; saved scenarios, event-driven cash flows and broader journeys remain future work.
 
 ## Outcome
 
