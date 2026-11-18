@@ -38,6 +38,14 @@ export const AddActionIcon = ({
   </svg>
 );
 
+export function CashFlowChartGraphic({ points, zeroY }: { readonly points: string;
+  readonly zeroY: number }) {
+  return <svg viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <line x1="12" x2="288" y1={zeroY} y2={zeroY} className="life-monthly__chart-zero" />
+    <polyline points={points} className="life-monthly__chart-line" />
+  </svg>;
+}
+
 /** Intention: Export timeline simulation ledger and transactions to a CSV data file */
 export const ExportDataIcon = ({
   size = 18,

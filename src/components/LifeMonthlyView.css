@@ -23,3 +23,42 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+.life-monthly__chart {
+  margin: 24px 0;
+}
+
+.life-monthly__chart figcaption {
+  font-weight: 600;
+}
+
+.life-monthly__chart figcaption span {
+  font-weight: 400;
+}
+
+.life-monthly__chart svg {
+  display: block;
+  width: 100%;
+  height: 150px;
+  margin-top: 12px;
+}
+
+.life-monthly__chart-zero {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.life-monthly__chart-line {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.life-monthly__chart-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+}

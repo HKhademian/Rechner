@@ -18,6 +18,7 @@ import {
 import {
   formatEur,
 } from "#utils/currencyFormat";
+import CashFlowChart from "./CashFlowChart";
 
 function parseAmount(value: string, allowNegative: boolean): EuroCents | undefined {
   if (value.trim() === "") {
@@ -72,16 +73,17 @@ export default function CashFlowPreview({ date }: { readonly date: string }): JS
       </div>
       {invalid ? <p role="status">Check the date and amounts.</p> : !date ? <p>Choose a view date above.</p>
         : opening === "" || inflow === "" || expense === "" ? <p>Enter all three amounts to calculate a balance.</p>
-          : <div className="life-monthly__scroll"><table>
-            <thead><tr><th>Month</th><th className="life-monthly__amount">Opening</th><th className="life-monthly__amount">Inflow</th><th className="life-monthly__amount">Expenses</th><th className="life-monthly__amount">Closing</th></tr></thead>
-            <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
-              <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
-              <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatEur(state.opening / 100)}</td>
-              <td className="life-monthly__amount">{state.contribution?.inflow === undefined ? "Unknown" : formatEur(state.contribution.inflow / 100)}</td>
-              <td className="life-monthly__amount">{state.contribution?.expense === undefined ? "Unknown" : formatEur(state.contribution.expense / 100)}</td>
-              <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatEur(state.closing / 100)}</td>
-            </tr>)}</tbody>
-          </table></div>}
+          : <><CashFlowChart balances={[rows[0].state.opening!, ...rows.map(({ state }) => state.closing!)]} />
+            <div className="life-monthly__scroll"><table>
+              <thead><tr><th>Month</th><th className="life-monthly__amount">Opening</th><th className="life-monthly__amount">Inflow</th><th className="life-monthly__amount">Expenses</th><th className="life-monthly__amount">Closing</th></tr></thead>
+              <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
+                <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
+                <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatEur(state.opening / 100)}</td>
+                <td className="life-monthly__amount">{state.contribution?.inflow === undefined ? "Unknown" : formatEur(state.contribution.inflow / 100)}</td>
+                <td className="life-monthly__amount">{state.contribution?.expense === undefined ? "Unknown" : formatEur(state.contribution.expense / 100)}</td>
+                <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatEur(state.closing / 100)}</td>
+              </tr>)}</tbody>
+            </table></div></>}
     </>}
   </section>;
 }
