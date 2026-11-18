@@ -16,6 +16,22 @@ For example, a planned move, job change or new child could prompt a person to ex
 
 A possible progression is: capture events and show a useful timeline; derive dated information; connect a few calculators; support scenario comparison; then explore proactive planning and personalized guidance as evidence and capabilities mature.
 
+## Planning journeys to explore
+
+The user identified these ways the assistant could eventually help. They are product opportunities, not claims about current support. Each journey should use only information the person chooses to provide, explain its assumptions, and make it easy to adjust dates and compare alternatives.
+
+- **Permanent residency preparation:** bring together recorded residence periods, permit history and other relevant circumstances to identify missing requirements and estimate the earliest potential application date. Show the applicable route, rules and evidence needed; flag uncertainty, interruptions and potential exceptions rather than treating elapsed time alone as eligibility.
+- **Citizenship preparation:** similarly explore possible pathways, potential dates, requirements and preparation steps using relevant history, while showing what is known, missing or uncertain. Immigration and citizenship rules can change, so checks need current, jurisdiction-specific sources and a date for the rules used; estimates are not decisions by an authority.
+- **Pregnancy planning:** compare possible timelines and their effects on work, income, parental leave and preparations. Build on the existing parental planner rather than replacing or changing its established event experience.
+- **Kita and Krippe:** help organize possible childcare needs, desired start dates, local options, application dates, costs and trade-offs. Availability, application processes and fees depend on location and provider; do not imply a place is guaranteed.
+- **School planning:** explore likely timelines, local school choices, application or enrollment milestones and associated costs, using the child's details and location where relevant. Local rules and actual availability need verification.
+- **Travel planning:** organize intended dates, destinations, budget and relevant document validity, and surface possible preparation steps. Entry and visa requirements vary by destination, nationality, status and travel date, so checks need current authoritative information and should not imply guaranteed entry.
+- **Tax class switches:** compare proposed switch dates and household scenarios, including estimated effects on take-home pay and other relevant calculators where supported. Show assumptions and distinguish payroll withholding from the final tax outcome.
+- **Affordability:** compare planned purchases or commitments with household income, expenses, savings and existing obligations; show cash-flow effects, assumptions and sensitivity to changes. Avoid presenting an estimate as a lending decision or a guarantee that a purchase is safe.
+- **Financial sustainability and resignation:** project savings and cash runway through a planned resignation or job search, including adjustable expenses, final pay, possible benefits, waiting periods and unexpected costs when relevant. Make uncertain dates and benefit assumptions explicit and let people compare alternatives.
+
+A helpful output might combine a timeline, a preparation checklist and side-by-side scenarios, with links back to the events and calculator inputs that support each result. People retain control over their plans and decisions.
+
 ## What exists today
 
 - `src/engine/lifeProfile/types.ts` defines a version 1 profile of mostly current, flat fields, including income, household and home details. Its default values describe an example household, so they cannot safely be treated as confirmed personal history.
