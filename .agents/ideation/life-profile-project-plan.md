@@ -1,6 +1,6 @@
 # Event-based Life Profile project plan
 
-Status: proposed roadmap, 18 November 2026. This plans incremental work toward a personal planning assistant; it does not imply that the features below already exist or approve a particular legal interpretation. Product vision and requested journeys: [event-based Life Profile exploration](event-based-life-profile.md).
+Status: proposed roadmap, updated 18 November 2026. This plans incremental work toward a personal planning assistant; it does not imply that the features below already exist or approve a particular legal interpretation. Product vision and requested journeys: [event-based Life Profile exploration](event-based-life-profile.md).
 
 ## Outcome
 
@@ -23,7 +23,49 @@ A user can add a person and optional birthdate, record a dated job start and gro
 
 Acceptance: a new user can complete this journey without example defaults becoming their facts; an existing user retains their profile and scenarios; transfers are inspectable and never silently overwrite a calculator; restoring a backup reproduces the entered timeline. Show event sources and distinguish actual, planned, unknown and derived information.
 
-## Delivery phases
+## Architecture direction: a generic life-simulation harness
+
+The user wants a reusable engine that can accommodate future event and entity types without placing their domain rules or mathematical formulas in the harness. The existing parental planner's month-by-month future, event milestones and cumulative values are the experience to learn from; keep its existing implementation and semantics intact. First inspect and selectively reuse existing ledger, timeline and rule infrastructure where its contracts fit; generalization does not require rewriting the parental planner.
+
+- **Harness:** orchestrate validated entities, events, simulation periods, scenario inputs, ordering and registered domain modules. It knows how to advance time, invoke contributions, track dependencies and produce explainable results; it does not know visa, salary, pregnancy or car formulas. Unknown event/entity records must be preserved or rejected explicitly without data loss, never silently interpreted or discarded.
+- **Domain modules:** supply typed schemas and validation, event handling and state projections, calculation dependencies, outputs and presentation metadata where appropriate. Register modules through explicit, type-safe contracts. A future event can be stored only under a defined versioned representation; making it meaningful still requires a tested handler or adapter. Prove extensibility with a second distinct module without editing the core harness, rather than assuming arbitrary unknown events automatically work.
+- **Facts, rules and formulas:** keep observed/user-entered facts distinct from assumptions, domain rules and derived results. Implement mathematics as independently unit-tested pure functions with explicit units and inputs; compose them through domain evaluators. Feed in versioned, jurisdiction- and effective-date-aware rule values and links to laws and topics where applicable. Reuse existing formula/parameter/law architecture when appropriate, checking actual coverage; never hide statutory constants, legal decisions or financial math in orchestration.
+- **Time and accumulators:** support absolute calendar-month identities and configurable simulation ranges, with history, actual events, planned events and forecast periods visibly distinct. A monthly snapshot can contain applicable facts, event milestones, domain outputs, flows and separately defined running accumulators. Each accumulator specifies its unit, initial value, scope, contribution and reset/carry rules; show unknown when inputs are missing. Example: opening savings + modeled monthly inflows − modeled monthly outflows = closing savings, only when those values and assumptions are supplied by the appropriate modules.
+- **Traceability and isolation:** store result provenance (input events/facts, assumptions, module and formula versions, parameters, source references and effective period), indicate missing data and conflicts, and make a run reproducible. Scenario overlays do not mutate shared facts or other scenarios. Explicitly define same-month ordering, mid-month behavior, rounding and event corrections per domain before publishing results.
+- **Compatibility and scope:** use existing typed constructors, storage modes and export boundaries. Do not couple every record to one predefined domain, invent a universal financial transaction model prematurely, or let an extension execute untrusted code. Support extension as a developer-facing module contract first; user-authored plugins or runtime scripting are not part of this plan.
+
+## Small, usable delivery steps
+
+Each numbered step is independently reviewable and leaves the application usable; release after a step when its acceptance condition is met. Earlier infrastructure may be internally delivered behind existing UI while providing visible value through the first small Profile slice. Every new persisted piece ships with appropriate backup/import, migration and tests, rather than postponing portability to the end. These steps refine the phase overview below; no calendar estimates are assumed.
+
+1. **Inventory and protect current use:** map Profile, storage, backup, net-pay and parental flows; capture representative regression examples. Deliverable: a verified compatibility map with no behavior change.
+2. **Clearer starting Profile:** improve empty/unknown and example-data presentation without converting defaults into personal facts. Usable result: people can see what they have actually provided.
+3. **People and birthdates:** add a minimal person with optional birthdate, editing and age-as-of-date calculation in a separately tested function. Usable result: a saved household entry and a correct, explainable age.
+4. **Portable people:** extend existing backup and restore for the new representation as part of step 3's release; deliver the compatibility and round-trip checks as a separately reviewable change, not a period where user data cannot be backed up.
+5. **Timeline shell and first event:** add one typed, dated life event with planned/actual status, editing and a chronological list. Usable result: record and review one meaningful change without a calculator.
+6. **Event corrections and incomplete dates:** support explicit unknown or partial dates, corrections and clear ambiguity. Usable result: people can record imperfect history without false precision.
+7. **Employment events:** add a job and pay change as the first separately registered domain module. Usable result: a person's employment history and planned changes appear on the timeline.
+8. **Date-specific facts:** derive the job and recorded gross pay applicable to a selected date, with provenance and conflict handling. Usable result: a simple dated Profile view.
+9. **First calculator handoff:** preview supported dated inputs into net pay and apply deliberately while preserving other inputs and scenarios. Usable result: answer a real take-home-pay question from the timeline.
+10. **General monthly runner:** introduce a pure generic monthly period runner and results contract, independently tested with a simple fixture; retain step 8's dated view. Usable result: browse applicable recorded facts month by month.
+11. **Monthly events and forecasts:** project confirmed and planned employment changes over a chosen range, distinguishing history, plans and unknown future values. Usable result: inspect how recorded facts change in future months.
+12. **Generic accumulators:** add typed, named accumulator contracts and deterministic carry/reset semantics using a test module, with provenance and missing-input handling. Usable result: show a transparent running total for a supported, well-defined measure; do not infer net income or savings from gross salary.
+13. **First financial projection:** independently implement and test a small cash-flow module with explicit opening balance, income and expense assumptions, then plug it into the runner. Usable result: monthly cash flow and savings runway with an explainable running balance and scenarios kept local.
+14. **History and forecast visualization:** present the monthly results in a table and a chart, marking actuals, plans and estimates; compare at least two alternatives only when both have reproducible inputs. Usable result: see and compare a financial trajectory.
+15. **Rule and formula linkage:** connect the first applicable domain calculation to the project's formula, parameter, law and topic facilities; show rule period, source and assumptions. Any earlier statutory output must meet these same requirements at its initial release, not wait for this step. Usable result: inspect why a supported result was calculated.
+16. **Second domain module:** introduce a genuinely different entity/event type, such as residence and a move, via the same public contracts without modifying the harness. Usable result: recorded residence periods and an understandable monthly history; do not infer legal eligibility from time alone.
+17. **Family and parental handoff:** add shared family and pregnancy milestones with explicit previewed transfer to the existing parental planner. Usable result: reuse selected information while preserving its scenarios and simulation behavior.
+18. **Residency preparation:** build one verified pathway with independently tested rules and effective dates, missing-evidence handling and a qualified potential earliest date. Usable result: inspect a preparation timeline for that supported pathway, not a claim of official eligibility.
+19. **More journeys one at a time:** add citizenship, childcare/school, travel, tax switches, purchases, car and solar as separate vertical slices, each with its own domain module, facts, tests, traceability and backup support. Usable result: one complete planning question at a time.
+20. **Planning assistance:** add checklists, relevant next steps and wider scenario comparisons only on top of supported and explainable models. Usable result: an actionable plan that people can revise and control.
+
+## Extension contract and release checks
+
+For each new entity or event: define versioned schema and validated branded identities; declare references and time precision; provide typed module registration and migration; implement pure state transitions and formulas outside the harness; declare rule sources and versions; add UI and import/export mapping; test corrections, missing data, scenario isolation and backward/forward compatibility. Extending a domain should not require modifying generic monthly orchestration; where a core capability is genuinely missing, add it as a generic contract with tests rather than adding a domain switch.
+
+Monthly release checks cover deterministic replay, same-month ordering, inclusive/exclusive boundaries, year transitions, actual/planned separation, accumulator opening and closing reconciliation, resets, precision/rounding, unknowns, multiple entities, scenario isolation, historical corrections and serialization round trips. Formula tests are independent of the harness and include worked examples and edge cases; integration tests verify selected rule values and provenance for the right jurisdiction and date. Compare regression results against the existing parental planner without replacing its implementation.
+
+## Phase overview
 
 ### 0. Inventory and interaction design
 
