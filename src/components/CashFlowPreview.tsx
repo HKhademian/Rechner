@@ -2,11 +2,11 @@ import {
   type JSX,
 } from "preact";
 import {
+  useEffect,
   useState,
 } from "preact/hooks";
 import {
   type EuroCents,
-  toEuroAmount,
   toEuroCents,
 } from "#engine/types";
 import {
@@ -16,26 +16,46 @@ import {
   projectCashFlow,
 } from "#engine/lifeProfile/cashFlowProjection";
 import {
-  formatEur,
+  formatIntegerEuroCents,
 } from "#utils/currencyFormat";
 import CashFlowChart from "./CashFlowChart";
+import {
+  type CashScenario,
+  type CashScenarioRecord,
+  CashScenarioStatus,
+  toCashScenarioId,
+} from "#engine/lifeProfile/cashScenarioRecord";
+import {
+  readCashScenarios,
+  writeCashScenarios,
+} from "#engine/lifeProfile/cashScenarioStorage";
 
 function parseAmount(value: string, allowNegative: boolean): EuroCents | undefined {
   if (value.trim() === "") {
     return undefined;
   }
-  const amount = toEuroAmount(Number(value));
-  if (!allowNegative && amount < 0) {
+  const match = /^(-?)(\d+)(?:\.(\d{1,2}))?$/.exec(value.trim());
+  if (!match) {
+    throw new TypeError("Enter an amount with at most two decimal places.");
+  }
+  if (!allowNegative && match[1]) {
     throw new TypeError("Income and expenses must be non-negative.");
   }
-  const cents = Math.round(amount * 100);
-  if (!Number.isSafeInteger(cents)) {
+  const cents = (BigInt(match[2]) * 100n + BigInt((match[3] ?? "").padEnd(2, "0"))) * (match[1] ? -1n : 1n);
+  if (cents > BigInt(Number.MAX_SAFE_INTEGER) || cents < BigInt(Number.MIN_SAFE_INTEGER)) {
     throw new TypeError("Amount is outside the supported range.");
   }
-  return toEuroCents(cents);
+  return toEuroCents(Number(cents));
 }
 
-export default function CashFlowPreview({ date }: { readonly date: string }): JSX.Element {
+function amountText(cents: EuroCents): string {
+  const value = BigInt(cents);
+  const absolute = value < 0n ? -value : value;
+  return `${value < 0n ? "-" : ""}${absolute / 100n}.${String(absolute % 100n).padStart(2, "0")}`;
+}
+
+export default function CashFlowPreview({ date, onDateChange }: { readonly date: string;
+  readonly onDateChange: (date: string) => void }): JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [opening, setOpening] = useState("");
   const [inflow, setInflow] = useState("");
@@ -44,6 +64,79 @@ export default function CashFlowPreview({ date }: { readonly date: string }): JS
   const [alternativeOpening, setAlternativeOpening] = useState("");
   const [alternativeInflow, setAlternativeInflow] = useState("");
   const [alternativeExpense, setAlternativeExpense] = useState("");
+  const [saved, setSaved] = useState<CashScenarioRecord>({ version: 1,
+    scenarios: [] });
+  const [ready, setReady] = useState(false);
+  const [savingName, setSavingName] = useState("");
+  const [editingId, setEditingId] = useState<CashScenario["id"] | undefined>();
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    const decoded = readCashScenarios();
+    if (decoded.status === CashScenarioStatus.Valid && decoded.record) {
+      setSaved(decoded.record);
+    }
+    else if (decoded.status !== CashScenarioStatus.Missing) {
+      setMessage("Saved cash scenarios could not be read. Export your data before making changes.");
+      return;
+    }
+    setReady(true);
+  }, []);
+
+  function loadScenario(id: string, alternative: boolean): void {
+    const scenario = saved.scenarios.find((item) => item.id === id);
+    if (!scenario) {
+      return;
+    }
+    if (alternative && scenario.origin !== date.slice(0, 7)) {
+      setMessage(`This alternative starts in ${scenario.origin}. Choose a first projection with the same start month.`);
+      return;
+    }
+    if (alternative) {
+      setAlternativeOpening(amountText(scenario.opening));
+      setAlternativeInflow(amountText(scenario.inflow));
+      setAlternativeExpense(amountText(scenario.expense));
+    }
+    else {
+      onDateChange(`${scenario.origin}-01`);
+      setOpening(amountText(scenario.opening));
+      setInflow(amountText(scenario.inflow));
+      setExpense(amountText(scenario.expense));
+      setSavingName(scenario.name);
+      setEditingId(scenario.id);
+    }
+    setMessage("");
+  }
+
+  function saveScenario(): void {
+    try {
+      const start = date.slice(0, 7);
+      const startingCash = parseAmount(opening, true);
+      const income = parseAmount(inflow, false);
+      const costs = parseAmount(expense, false);
+      if (!savingName.trim() || startingCash === undefined || income === undefined || costs === undefined) {
+        throw new TypeError();
+      }
+      const scenario: CashScenario = { id: editingId ?? toCashScenarioId(crypto.randomUUID()),
+        name: savingName.trim(),
+        origin: start,
+        opening: startingCash,
+        inflow: income,
+        expense: costs };
+      const next: CashScenarioRecord = { version: 1,
+        scenarios: editingId ? saved.scenarios.map((item) => item.id === editingId ? scenario : item) : [...saved.scenarios, scenario] };
+      if (!writeCashScenarios(next, saved)) {
+        setMessage("Could not save. Data may have changed elsewhere or storage may be unavailable; reload or export your data.");
+        return;
+      }
+      setSaved(next);
+      setEditingId(scenario.id);
+      setSavingName(scenario.name);
+      setMessage("Scenario saved.");
+    }
+    catch {
+      setMessage("Enter a name, valid date and all three valid amounts before saving.");
+    }
+  }
   let rows: ReturnType<typeof projectCashFlow> = [];
   let alternativeRows: ReturnType<typeof projectCashFlow> = [];
   let invalid = false;
@@ -79,7 +172,7 @@ export default function CashFlowPreview({ date }: { readonly date: string }): JS
       {expanded ? "Hide cash flow what-if" : "Try cash flow what-if"}
     </button>
     {expanded && <>
-      <p>Enter an opening balance before the selected month and a constant monthly inflow and expense. These are separate assumptions, not calculated from your timeline, and are not saved. Negative balances indicate a shortfall; no funding is assumed.</p>
+      <p>Enter an opening balance before the selected month and a constant monthly inflow and expense. These are manual assumptions, not calculated from your timeline. Named scenarios use your selected storage mode; page-only data is lost on reload. Update a saved scenario to keep later changes. Negative balances indicate a shortfall; no funding is assumed.</p>
       <div className="life-people__form">
         <label className="life-people__field">Opening balance (€)
           <input type="number" step="0.01" value={opening} onInput={(event) => setOpening(event.currentTarget.value)} />
@@ -91,6 +184,22 @@ export default function CashFlowPreview({ date }: { readonly date: string }): JS
           <input type="number" min="0" step="0.01" value={expense} onInput={(event) => setExpense(event.currentTarget.value)} />
         </label>
       </div>
+      <div className="life-people__form">
+        <label className="life-people__field">Scenario name
+          <input value={savingName} onInput={(event) => setSavingName(event.currentTarget.value)} />
+        </label>
+        <button type="button" className="ui-btn" disabled={!ready} onClick={saveScenario}>{editingId ? "Update saved scenario" : "Save scenario"}</button>
+        {editingId && <button type="button" className="ui-btn" onClick={() => {
+          setEditingId(undefined); setSavingName(""); setMessage("Enter a name to save a new scenario.");
+        }}>Save as new</button>}
+        {saved.scenarios.length > 0 && <label className="life-people__field">Load saved scenario
+          <select value="" onChange={(event) => loadScenario(event.currentTarget.value, false)}>
+            <option value="">Choose a scenario</option>
+            {saved.scenarios.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name} · {scenario.origin}</option>)}
+          </select>
+        </label>}
+      </div>
+      {message && <p role="status">{message}</p>}
       {invalid ? <p role="status">Check the date and amounts.</p> : !date ? <p>Choose a view date above.</p>
         : opening === "" || inflow === "" || expense === "" ? <p>Enter all three amounts to calculate a balance.</p>
           : <><CashFlowChart balances={[rows[0].state.opening!, ...rows.map(({ state }) => state.closing!)]} />
@@ -98,17 +207,23 @@ export default function CashFlowPreview({ date }: { readonly date: string }): JS
               <thead><tr><th>Month</th><th className="life-monthly__amount">Opening</th><th className="life-monthly__amount">Inflow</th><th className="life-monthly__amount">Expenses</th><th className="life-monthly__amount">Closing</th></tr></thead>
               <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
                 <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
-                <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatEur(state.opening / 100)}</td>
-                <td className="life-monthly__amount">{state.contribution?.inflow === undefined ? "Unknown" : formatEur(state.contribution.inflow / 100)}</td>
-                <td className="life-monthly__amount">{state.contribution?.expense === undefined ? "Unknown" : formatEur(state.contribution.expense / 100)}</td>
-                <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatEur(state.closing / 100)}</td>
+                <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatIntegerEuroCents(state.opening)}</td>
+                <td className="life-monthly__amount">{state.contribution?.inflow === undefined ? "Unknown" : formatIntegerEuroCents(state.contribution.inflow)}</td>
+                <td className="life-monthly__amount">{state.contribution?.expense === undefined ? "Unknown" : formatIntegerEuroCents(state.contribution.expense)}</td>
+                <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
               </tr>)}</tbody>
             </table></div></>}
       <button type="button" className="ui-btn" aria-expanded={comparing} onClick={() => setComparing((value) => !value)}>
         {comparing ? "Hide comparison" : "Compare an alternative"}
       </button>
       {comparing && <section aria-label="Cash flow comparison">
-        <p>Enter another set of assumptions for the same six months. Both alternatives are temporary and can be reproduced from the amounts shown here.</p>
+        <p>Enter another set of assumptions for the same six months, or load a saved scenario. Changes to the alternative are not saved unless loaded into the first projection and saved.</p>
+        {saved.scenarios.length > 0 && <label className="life-people__field">Load alternative
+          <select value="" onChange={(event) => loadScenario(event.currentTarget.value, true)}>
+            <option value="">Choose a scenario</option>
+            {saved.scenarios.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name} · {scenario.origin}</option>)}
+          </select>
+        </label>}
         <div className="life-people__form">
           <label className="life-people__field">Alternative opening balance (€)
             <input type="number" step="0.01" value={alternativeOpening} onInput={(event) => setAlternativeOpening(event.currentTarget.value)} />
@@ -128,8 +243,8 @@ export default function CashFlowPreview({ date }: { readonly date: string }): JS
               <thead><tr><th scope="col">Month</th><th scope="col" className="life-monthly__amount">First projection</th><th scope="col" className="life-monthly__amount">Alternative</th></tr></thead>
               <tbody>{rows.map(({ month, state }, index) => <tr key={month.id}>
                 <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
-                <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatEur(state.closing / 100)}</td>
-                <td className="life-monthly__amount">{alternativeRows[index]?.state.closing === undefined ? "Unknown" : formatEur(alternativeRows[index].state.closing! / 100)}</td>
+                <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
+                <td className="life-monthly__amount">{alternativeRows[index]?.state.closing === undefined ? "Unknown" : formatIntegerEuroCents(alternativeRows[index].state.closing!)}</td>
               </tr>)}</tbody>
             </table></div>}
       </section>}

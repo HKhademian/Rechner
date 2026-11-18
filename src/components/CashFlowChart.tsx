@@ -2,7 +2,7 @@ import {
   type JSX,
 } from "preact";
 import {
-  formatEur,
+  formatIntegerEuroCents,
 } from "#utils/currencyFormat";
 import {
   CashFlowChartGraphic,
@@ -22,8 +22,8 @@ export default function CashFlowChart({ balances }: { readonly balances: readonl
     <figcaption>Estimated closing balance <span>· based on your assumptions</span></figcaption>
     <CashFlowChartGraphic points={points} zeroY={zeroY} />
     <div className="life-monthly__chart-labels" aria-hidden="true">
-      <span>Opening: {formatEur(balances[0] / 100)}</span>
-      <span>After 6 months: {formatEur(balances[balances.length - 1] / 100)}</span>
+      <span>Opening: {formatIntegerEuroCents(balances[0])}</span>
+      <span>After 6 months: {formatIntegerEuroCents(balances[balances.length - 1])}</span>
     </div>
   </figure>;
 }
