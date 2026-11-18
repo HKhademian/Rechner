@@ -243,6 +243,45 @@ it("resolves and clears centralized shared Web Storage by active StorageMode", (
 });
 
 
+it("preserves people across older backups and rejects unsupported records before replacing data", () => {
+  const local = browserStorage(new Map<string, string>());
+  const session = browserStorage(new Map<string, string>());
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window")?.value;
+  Object.defineProperty(globalThis, "window", { configurable: true,
+    value: { localStorage: local,
+      sessionStorage: session } });
+  try {
+    assert.equal(setStorageMode(StorageMode.Session), true);
+    const key = "rechner:life-profile:people:v1";
+    const people = JSON.stringify({ version: 1,
+      people: [{ id: "one",
+        name: "Alex" }] });
+    session.setItem(key, people);
+    const backup = exportAllData();
+    const oldBackup = JSON.stringify({ format: "rechner-backup",
+      version: 1,
+      entries: {} });
+    importAllData(oldBackup);
+    assert.equal(session.getItem(key), people);
+    const bad = JSON.parse(backup);
+    bad.entries[key].value.version = 2;
+    assert.throws(() => importAllData(JSON.stringify(bad)));
+    assert.equal(session.getItem(key), people);
+    session.setItem(key, '{"version":2,"people":[]}');
+    assert.throws(() => importAllData(backup));
+    assert.equal(session.getItem(key), '{"version":2,"people":[]}');
+  }
+  finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+    else {
+      Object.defineProperty(globalThis, "window", { configurable: true,
+        value: previousWindow });
+    }
+  }
+});
+
 it("backs up and restores all active calculator data and rejects invalid backups", () => {
   const local = browserStorage(new Map<string, string>());
   const session = browserStorage(new Map<string, string>());

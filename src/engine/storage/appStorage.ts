@@ -9,6 +9,11 @@ import {
 import {
   buildInfo,
 } from "#data/buildInfo";
+import {
+  PEOPLE_STORAGE_KEY,
+  PeopleRecordStatus,
+  decodePeopleRecord,
+} from "#engine/lifeProfile/peopleRecord";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -726,7 +731,7 @@ export function clearSharedBrowserKey(key: string): void {
 
 const backupFormat = "rechner-backup";
 const memoryRestoreKey = "rechner:privacy:memory-restore:v1";
-const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile"];
+const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY];
 
 type BackupEntries = Record<string, string>;
 
@@ -867,6 +872,9 @@ function parseBackup(serialized: string): BackupEntries {
     if (typeof raw !== "string" || (app && deserializeStorageValue(raw).status === DecodedStorageStatus.Invalid)) {
       throw new Error("The backup contains invalid data.");
     }
+    if (key === PEOPLE_STORAGE_KEY && decodePeopleRecord(raw).status !== PeopleRecordStatus.Valid) {
+      throw new Error("The backup contains an invalid or unsupported people record.");
+    }
     entries[key] = raw;
   }
   return entries;
@@ -885,6 +893,14 @@ export function importAllData(serialized: string): void {
       storage };
   });
   const shared = browserWebStorageForCurrentMode();
+  const currentPeople = shared?.getItem(PEOPLE_STORAGE_KEY) ?? null;
+  if (currentPeople !== null && decodePeopleRecord(currentPeople).status !== PeopleRecordStatus.Valid) {
+    throw new Error("The saved people record is invalid or unsupported. Export it before restoring data.");
+  }
+  // Older backups predate people records; importing them must not silently erase people.
+  if (!Object.hasOwn(entries, PEOPLE_STORAGE_KEY) && currentPeople !== null) {
+    entries[PEOPLE_STORAGE_KEY] = currentPeople;
+  }
   const previous = exportAllData();
   const apply = (values: BackupEntries): void => {
     for (const { app, storage } of targets) {
@@ -913,7 +929,9 @@ export function importAllData(serialized: string): void {
     apply(entries);
     if (mode === StorageMode.Memory) {
       // Carry page-only data across the one reload needed to reinitialize stores.
-      window.sessionStorage.setItem(memoryRestoreKey, serialized);
+      window.sessionStorage.setItem(memoryRestoreKey, JSON.stringify({ format: backupFormat,
+        version: 1,
+        entries }));
     }
   }
   catch {
