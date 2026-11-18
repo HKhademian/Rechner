@@ -5,6 +5,8 @@ import {
 import {
   calculateScenarioData,
   getCurrentInputs,
+  saveScenarioInputs,
+  savedScenarios,
 } from "#store/calculatorStore";
 import {
   projectEmploymentAtDate,
@@ -62,6 +64,12 @@ it("previews a midyear rate as a hypothetical comparison without changing the ba
   assert.equal(preview.salariesPerYear, 13);
   assert.equal(calculateScenarioData(preview).person1.grossYearly, 48750);
   assert.deepEqual(base, copy);
+  const liveBefore = structuredClone(getCurrentInputs());
+  const savedBefore = savedScenarios.peek().length;
+  const scenario = saveScenarioInputs("Profile example", "Constant monthly rate", preview, { edit: false });
+  assert.equal(savedScenarios.peek().length, savedBefore + 1);
+  assert.equal(scenario.inputs.grossIncome, 5000);
+  assert.deepEqual(getCurrentInputs(), liveBefore);
   assert.throws(() => prepareNetPayHandoff(base, job, toLifeDate("2027-01-01")));
   assert.throws(() => prepareNetPayHandoff(base, { ...job,
     gross: { ...job.gross,
