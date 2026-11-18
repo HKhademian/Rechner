@@ -24,3 +24,18 @@ it("carries explicitly entered cash assumptions and preserves missing values", (
   assert.equal(projectCashFlow(january, january, april, undefined, assumption)[3].state.closing, undefined);
   assert.equal(projectCashFlow(january, january, april, toEuroCents(100000), { inflow: toEuroCents(300000) })[3].state.closing, undefined);
 });
+
+it("keeps alternative projections independent, including negative and unknown balances", () => {
+  const january = toReplayMonth(2026, 1);
+  const march = toReplayMonth(2026, 3);
+  const first = { inflow: toEuroCents(300000),
+    expense: toEuroCents(200000) };
+  const second = { inflow: toEuroCents(100000),
+    expense: toEuroCents(200000) };
+  const firstRows = projectCashFlow(january, january, march, toEuroCents(100000), first);
+  const secondRows = projectCashFlow(january, january, march, toEuroCents(100000), second);
+  assert.deepEqual(firstRows.map(({ state }) => state.closing), [200000, 300000, 400000]);
+  assert.deepEqual(secondRows.map(({ state }) => state.closing), [0, -100000, -200000]);
+  assert.equal(projectCashFlow(january, january, march, undefined, second)[2].state.closing, undefined);
+  assert.deepEqual(projectCashFlow(january, january, march, toEuroCents(100000), first), firstRows);
+});
