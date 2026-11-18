@@ -56,3 +56,29 @@
   font-weight: 600;
   color: var(--color-primary);
 }
+
+.planner-examples {
+  flex: 1 1 100%;
+}
+
+.planner-examples summary {
+  width: fit-content;
+  min-height: 36px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.planner-examples p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.planner-examples__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}

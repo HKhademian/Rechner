@@ -349,79 +349,67 @@ export default function SandboxControls(): JSX.Element {
               border: "1px solid var(--border-subtle)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                flexWrap: "wrap",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "0.76rem",
-                  color: "var(--text-muted)",
-                  fontWeight: 600,
-                }}
-              >
-                Example plans:
-              </span>
-              {BUILTIN_SCENARIO_CATALOG.map((preset) => (
+            <details className="planner-examples">
+              <summary>Example plans</summary>
+              <p>Loading an example replaces your current plan.</p>
+              <div className="planner-examples__list">
+                {BUILTIN_SCENARIO_CATALOG.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className="ui-btn ui-btn--sm"
+                    onClick={() => applyPreset(preset.id)}
+                    title={preset.description}
+                  >
+                    {preset.id === "empty" ? "Empty plan" : preset.name}
+                  </button>
+                ))}
+              </div>
+            </details>
+
+            <details className="planner-examples">
+              <summary>Plan tools</summary>
+              <div className="planner-examples__list">
                 <button
-                  key={preset.id}
                   type="button"
-                  className={preset.id === "empty" ? "ui-btn ui-btn--sm ui-btn--tint" : "ui-btn ui-btn--sm"}
-                  onClick={() => applyPreset(preset.id)}
-                  title={preset.description}
+                  className="ui-btn ui-btn--sm ui-btn--tint"
+                  onClick={() => openExportImportModal("export")}
+                  id="export-data-btn"
                 >
-                  {preset.id === "empty" ? "Empty plan" : preset.name}
+                  <DownloadFileIcon size={13} />
+                  Export Data
                 </button>
-              ))}
-            </div>
 
-            <div style={{ display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "8px" }}>
-              <button
-                type="button"
-                className="ui-btn ui-btn--sm ui-btn--tint"
-                onClick={() => openExportImportModal("export")}
-                id="export-data-btn"
-              >
-                <DownloadFileIcon size={13} />
-                Export Data
-              </button>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--sm"
+                  onClick={() => openExportImportModal("import")}
+                  id="import-data-btn"
+                >
+                  <ImportDataIcon size={13} />
+                  Import Data
+                </button>
 
-              <button
-                type="button"
-                className="ui-btn ui-btn--sm"
-                onClick={() => openExportImportModal("import")}
-                id="import-data-btn"
-              >
-                <ImportDataIcon size={13} />
-                Import Data
-              </button>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--sm"
+                  onClick={resetToDefaults}
+                >
+                  <ResetDefaultsIcon size={13} />
+                  Reset to Defaults
+                </button>
 
-              <button
-                type="button"
-                className="ui-btn ui-btn--sm"
-                onClick={resetToDefaults}
-              >
-                <ResetDefaultsIcon size={13} />
-                Reset to Defaults
-              </button>
-
-              <button
-                type="button"
-                className="ui-btn ui-btn--sm ui-btn--danger"
-                onClick={removeAllCustomActions}
-                title="Remove all custom actions across all batches"
-              >
-                <DeleteActionIcon size={13} />
-                Clear All Actions
-              </button>
-            </div>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--sm ui-btn--danger"
+                  onClick={removeAllCustomActions}
+                  title="Remove all planned events"
+                >
+                  <DeleteActionIcon size={13} />
+                  Clear All Actions
+                </button>
+              </div>
+            </details>
           </div>
 
           {/* Discrete Batches: Full-Width Rows Layout with Auto-Wrapping Column Entries */}
