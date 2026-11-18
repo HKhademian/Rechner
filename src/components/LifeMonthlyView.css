@@ -18,3 +18,8 @@
   text-align: left;
   vertical-align: top;
 }
+
+.life-monthly .life-monthly__amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

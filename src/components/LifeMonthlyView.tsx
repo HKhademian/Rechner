@@ -23,6 +23,7 @@ import {
 import {
   SalaryPeriod,
 } from "#engine/types";
+import CashFlowPreview from "#components/CashFlowPreview";
 import "./LifeMonthlyView.css";
 
 export interface LifeMonthlyViewProps {
@@ -84,6 +85,7 @@ export default function LifeMonthlyView({ events, personId, date, includePlanned
           </tr>)}</tbody>
         </table>
       </div>}
+      <CashFlowPreview date={date} />
     </>}
   </section>;
 }
