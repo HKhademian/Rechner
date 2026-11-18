@@ -270,9 +270,10 @@ export default function TimelineTable(): JSX.Element {
             <button
               type="button"
               className={`ui-btn ui-btn--sm${showDelta ? " ui-btn--tint" : ""}`}
+              aria-pressed={showDelta}
               onClick={() => setShowDelta(!showDelta)}
             >
-              {showDelta ? "Diff vs Baseline: ON" : "Diff vs Baseline: OFF"}
+              Show differences from baseline
             </button>
           )}
 
@@ -280,11 +281,12 @@ export default function TimelineTable(): JSX.Element {
           <button
             type="button"
             className={`ui-btn ui-btn--sm${isSpecialRowsActive ? " ui-btn--tint" : ""}`}
+            aria-pressed={isSpecialRowsActive}
             onClick={() => {
               showSpecialEventRows.value = !showSpecialEventRows.value;
             }}
           >
-            {isSpecialRowsActive ? "Special Rows: Separate" : "Special Rows: Combined"}
+            Show event rows separately
           </button>
 
           {/* Search box */}
