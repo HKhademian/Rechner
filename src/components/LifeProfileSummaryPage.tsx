@@ -99,6 +99,10 @@ export default function LifeProfileSummaryPage(): JSX.Element {
         ]}
       />
 
+      <p className="life-summary__input-note">
+        Some profile values may still be examples. Review your shared inputs before using these estimates.
+      </p>
+
       <section className="life-summary__headline-grid" aria-label="Cross-calculator headline totals">
         <MetricCard
           label="Monthly Household Cash"

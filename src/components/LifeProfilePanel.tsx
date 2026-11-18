@@ -147,7 +147,7 @@ export default function LifeProfilePanel({
           <div>
             <h2 id="life-profile-heading">Shared Household Profile</h2>
             <p className="life-profile-panel__subtitle">
-              Enter your household, car, solar, and housing details once to prefill the calculators below.
+              Review these shared inputs before using them. Some values may still be examples.
             </p>
           </div>
         </div>
