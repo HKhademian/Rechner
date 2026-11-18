@@ -7,7 +7,6 @@ import {
 } from "preact/hooks";
 import {
   type LifePerson,
-  toLifeDate,
   toPersonId,
 } from "#engine/lifeProfile/person";
 import {
@@ -15,6 +14,7 @@ import {
   type LifeEventId,
   LifeEventStatus,
   orderLifeEvents,
+  toLifeEventDate,
   toLifeEventId,
   toLifeEventStatus,
 } from "#engine/lifeProfile/timeline";
@@ -36,12 +36,19 @@ import {
 } from "#engine/lifeProfile/timelineStorage";
 import "./LifePeople.css";
 
+const DatePrecision = { Unknown: "unknown",
+  Year: "year",
+  Month: "month",
+  Day: "day" } as const;
+type DatePrecision = (typeof DatePrecision)[keyof typeof DatePrecision];
+
 export default function LifeTimeline({ peopleRevision }: { readonly peopleRevision: number }): JSX.Element {
   const [people, setPeople] = useState<readonly LifePerson[]>([]);
   const [events, setEvents] = useState<readonly LifeEvent<unknown>[]>([]);
   const [personId, setPersonId] = useState("");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
+  const [datePrecision, setDatePrecision] = useState<DatePrecision>(DatePrecision.Day);
   const [status, setStatus] = useState<LifeEventStatus>(LifeEventStatus.Planned);
   const [editing, setEditing] = useState<LifeEventId | undefined>();
   const [ready, setReady] = useState(false);
@@ -80,7 +87,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       setError("Timeline data changed elsewhere. Reload this page before editing.");
       return false;
     }
-    if (!writeTimeline({ version: 1,
+    if (!writeTimeline({ version: 2,
       events: next })) {
       setError("Could not save the timeline. Check the selected person and your storage.");
       return false;
@@ -94,16 +101,21 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     setEditing(undefined);
     setTitle("");
     setDate("");
+    setDatePrecision(DatePrecision.Day);
     setStatus(LifeEventStatus.Planned);
   }
 
   function save(event: JSX.TargetedEvent<HTMLFormElement, Event>): void {
     event.preventDefault();
     try {
+      const expectedLength = datePrecision === DatePrecision.Year ? 4 : datePrecision === DatePrecision.Month ? 7 : 10;
+      if (datePrecision !== DatePrecision.Unknown && date.length !== expectedLength) {
+        throw new TypeError("Date does not match its precision.");
+      }
       const item: LifeEvent<unknown> = { id: editing ?? toLifeEventId(crypto.randomUUID()),
         kind: noteEventModule.kind,
         personId: toPersonId(personId),
-        date: toLifeDate(date),
+        ...(datePrecision === DatePrecision.Unknown ? {} : { date: toLifeEventDate(date) }),
         status,
         payload: noteEventModule.parsePayload({ title: title.trim() }) };
       const next = editing ? events.map((entry) => entry.id === editing ? item : entry) : [...events, item];
@@ -127,13 +139,14 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const label = payload?.title ?? "Life event";
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
-            <div><strong>{label}</strong><p>{event.date} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}</p></div>
+            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}</p></div>
             <div className="life-people__actions">
               {payload && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
                 setTitle(payload.title);
-                setDate(event.date);
+                setDate(event.date ?? "");
+                setDatePrecision(!event.date ? DatePrecision.Unknown : event.date.length === 4 ? DatePrecision.Year : event.date.length === 7 ? DatePrecision.Month : DatePrecision.Day);
                 setStatus(event.status);
               }}>Edit</button>}
               <button className="ui-btn ui-btn--sm" type="button" aria-label={`Remove ${label}`} onClick={() => {
@@ -155,9 +168,26 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         <label className="life-people__field">Event
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>
-        <label className="life-people__field">Date
-          <input required type="date" value={date} onInput={(event) => setDate(event.currentTarget.value)} />
+        <label className="life-people__field">Date precision
+          <select value={datePrecision} onChange={(event) => {
+            const value = event.currentTarget.value;
+            if (Object.values(DatePrecision).includes(value as DatePrecision)) {
+              setDatePrecision(value as DatePrecision);
+              setDate("");
+            }
+          }}>
+            <option value={DatePrecision.Day}>Exact date</option>
+            <option value={DatePrecision.Month}>Month only</option>
+            <option value={DatePrecision.Year}>Year only</option>
+            <option value={DatePrecision.Unknown}>Unknown</option>
+          </select>
         </label>
+        {datePrecision !== DatePrecision.Unknown && <label className="life-people__field">Date
+          <input required type={datePrecision === DatePrecision.Day ? "date" : datePrecision === DatePrecision.Month ? "month" : "text"}
+            inputMode={datePrecision === DatePrecision.Year ? "numeric" : undefined}
+            placeholder={datePrecision === DatePrecision.Year ? "YYYY" : undefined}
+            value={date} onInput={(event) => setDate(event.currentTarget.value)} />
+        </label>}
         <label className="life-people__field">Status
           <select value={status} onChange={(event) => setStatus(toLifeEventStatus(event.currentTarget.value))}>
             <option value={LifeEventStatus.Planned}>Planned</option>

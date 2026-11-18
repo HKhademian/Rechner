@@ -5,11 +5,11 @@ import {
   type LifeEvent,
   type LifeEventKind,
   toLifeEventId,
+  toLifeEventDate,
   toLifeEventKind,
   toLifeEventStatus,
 } from "#engine/lifeProfile/timeline";
 import {
-  toLifeDate,
   toPersonId,
 } from "#engine/lifeProfile/person";
 
@@ -23,7 +23,7 @@ export const TimelineRecordStatus = {
 export type TimelineRecordStatus = (typeof TimelineRecordStatus)[keyof typeof TimelineRecordStatus];
 
 export interface TimelineRecord {
-  readonly version: 1;
+  readonly version: 1 | 2;
   readonly events: readonly LifeEvent<unknown>[];
 }
 
@@ -48,7 +48,7 @@ export function decodeTimelineRecord(
     if (!isObject(data) || !Number.isInteger(data.version)) {
       return { status: TimelineRecordStatus.Invalid };
     }
-    if (data.version !== 1 || Object.keys(data).some((key) => key !== "version" && key !== "events")) {
+    if ((data.version !== 1 && data.version !== 2) || Object.keys(data).some((key) => key !== "version" && key !== "events")) {
       return { status: TimelineRecordStatus.Unsupported };
     }
     if (!Array.isArray(data.events)) {
@@ -64,7 +64,8 @@ export function decodeTimelineRecord(
         return { status: TimelineRecordStatus.Unsupported };
       }
       if (typeof event.id !== "string" || typeof event.kind !== "string" || typeof event.personId !== "string"
-        || typeof event.date !== "string" || typeof event.status !== "string") {
+        || (event.date !== undefined && typeof event.date !== "string") || typeof event.status !== "string"
+        || (data.version === 1 && (typeof event.date !== "string" || event.date.length !== 10))) {
         return { status: TimelineRecordStatus.Invalid };
       }
       const id = toLifeEventId(event.id);
@@ -80,12 +81,12 @@ export function decodeTimelineRecord(
       events.push(Object.freeze({ id,
         kind,
         personId: toPersonId(event.personId),
-        date: toLifeDate(event.date),
+        ...(event.date === undefined ? {} : { date: toLifeEventDate(event.date) }),
         status: toLifeEventStatus(event.status),
         payload: module.parsePayload(event.payload) }));
     }
     return { status: TimelineRecordStatus.Valid,
-      record: Object.freeze({ version: 1,
+      record: Object.freeze({ version: data.version,
         events: Object.freeze(events) }) };
   }
   catch {
