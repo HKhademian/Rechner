@@ -14,7 +14,8 @@ Status: proposed roadmap, updated 18 November 2026. This plans incremental work 
 - Step 10 (initial slice): a generic monthly replay starts from an explicit opening month; a six-month month-end view shows recorded employment facts. A minimal residence/move module has timeline entry and is covered by mixed-domain and backup tests; it does not assess residency eligibility. The replay is domain-independent and supports domain-owned accumulators.
 - Step 11 (initial slice): actual or planned job changes and moves can be reflected in the six-month view; scenario comparison remains future work.
 - Steps 12–13 (initial slice): a generic accumulator accepts explicit opening values and domain-owned behavior. A separately tested cash-balance formula powers a six-month what-if with manually entered opening balance, inflow and expenses. These assumptions are temporary, are not saved or backed up, and are not inferred from events or legal rules.
-- Next: build on this preview with clear visualizations and comparisons; saved scenarios, event-driven cash flows and broader journeys remain future work.
+- Step 14 (initial slice): the temporary cash-flow what-if includes a chart and an accessible monthly table, both showing the same explicit estimates. Recorded cash history and comparisons are not yet modeled.
+- Next: compare two explicit projections with reproducible inputs; saved scenarios, event-driven cash flows and broader journeys remain future work.
 
 ## Outcome
 
