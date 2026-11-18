@@ -270,6 +270,18 @@ it("preserves people across older backups and rejects unsupported records before
     session.setItem(key, '{"version":2,"people":[]}');
     assert.throws(() => importAllData(backup));
     assert.equal(session.getItem(key), '{"version":2,"people":[]}');
+    session.removeItem(key);
+    const legacyKey = "rechner:life-profile:v1:profile";
+    const futureLegacy = '{"version":2,"future":true}';
+    session.setItem(legacyKey, futureLegacy);
+    assert.throws(() => importAllData(backup));
+    assert.equal(session.getItem(legacyKey), futureLegacy);
+    session.removeItem(legacyKey);
+    const unsupportedBackup = JSON.stringify({ format: "rechner-backup",
+      version: 1,
+      entries: { [legacyKey]: futureLegacy } });
+    assert.throws(() => importAllData(unsupportedBackup));
+    assert.equal(session.getItem(legacyKey), null);
   }
   finally {
     if (previousWindow === undefined) {

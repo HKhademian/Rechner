@@ -14,6 +14,13 @@ import {
   PeopleRecordStatus,
   decodePeopleRecord,
 } from "#engine/lifeProfile/peopleRecord";
+import {
+  LIFE_PROFILE_STORAGE_KEY,
+} from "#engine/lifeProfile/types";
+import {
+  LegacyRecordStatus,
+  inspectLegacyRecord,
+} from "#engine/lifeProfile/legacyRecord";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -875,6 +882,9 @@ function parseBackup(serialized: string): BackupEntries {
     if (key === PEOPLE_STORAGE_KEY && decodePeopleRecord(raw).status !== PeopleRecordStatus.Valid) {
       throw new Error("The backup contains an invalid or unsupported people record.");
     }
+    if (key === LIFE_PROFILE_STORAGE_KEY && inspectLegacyRecord(raw) !== LegacyRecordStatus.Supported) {
+      throw new Error("The backup contains an invalid or unsupported life profile.");
+    }
     entries[key] = raw;
   }
   return entries;
@@ -893,6 +903,10 @@ export function importAllData(serialized: string): void {
       storage };
   });
   const shared = browserWebStorageForCurrentMode();
+  const legacyStatus = inspectLegacyRecord(shared?.getItem(LIFE_PROFILE_STORAGE_KEY) ?? null);
+  if (legacyStatus !== LegacyRecordStatus.Missing && legacyStatus !== LegacyRecordStatus.Supported) {
+    throw new Error("The saved life profile is invalid or unsupported. Export it before restoring data.");
+  }
   const currentPeople = shared?.getItem(PEOPLE_STORAGE_KEY) ?? null;
   if (currentPeople !== null && decodePeopleRecord(currentPeople).status !== PeopleRecordStatus.Valid) {
     throw new Error("The saved people record is invalid or unsupported. Export it before restoring data.");

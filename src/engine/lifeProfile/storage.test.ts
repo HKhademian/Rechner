@@ -33,6 +33,25 @@ describe("Unified Life Profile Storage Serialization & Privacy Mode Isolation", 
     assert.equal(deserializeUnifiedLifeProfile("[]"), null);
   });
 
+  it("does not overwrite a future legacy profile", () => {
+    const script = `
+      import assert from "node:assert/strict";
+      globalThis.window = globalThis;
+      const { browserWebStorageForCurrentMode } = await import("#engine/storage/appStorage");
+      const { LIFE_PROFILE_STORAGE_KEY, createDefaultUnifiedLifeProfile } = await import("#engine/lifeProfile/types");
+      const { writeUnifiedLifeProfile } = await import("#engine/lifeProfile/storage");
+      const storage = browserWebStorageForCurrentMode();
+      const future = '{"version":2,"future":true}';
+      storage.setItem(LIFE_PROFILE_STORAGE_KEY, future);
+      assert.equal(writeUnifiedLifeProfile(createDefaultUnifiedLifeProfile()), false);
+      assert.equal(storage.getItem(LIFE_PROFILE_STORAGE_KEY), future);
+    `;
+    assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], {
+      cwd: process.cwd(),
+      stdio: "pipe",
+    }));
+  });
+
   it("persists under rechner:life-profile:v1: only when storage mode allows and never touches app keys", () => {
     const script = `
       import assert from "node:assert/strict";

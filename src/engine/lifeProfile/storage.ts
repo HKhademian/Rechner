@@ -8,6 +8,10 @@ import {
   browserWebStorageForCurrentMode,
   clearSharedBrowserKey,
 } from "#engine/storage/appStorage";
+import {
+  LegacyRecordStatus,
+  inspectLegacyRecord,
+} from "#engine/lifeProfile/legacyRecord";
 
 /** Serializes a `UnifiedLifeProfile` deterministically. */
 export function serializeUnifiedLifeProfile(profile: UnifiedLifeProfile): string {
@@ -53,6 +57,10 @@ export function writeUnifiedLifeProfile(profile: UnifiedLifeProfile): boolean {
     return false;
   }
   try {
+    const status = inspectLegacyRecord(storage.getItem(LIFE_PROFILE_STORAGE_KEY));
+    if (status !== LegacyRecordStatus.Missing && status !== LegacyRecordStatus.Supported) {
+      return false;
+    }
     storage.setItem(LIFE_PROFILE_STORAGE_KEY, serializeUnifiedLifeProfile(profile));
     return true;
   }
