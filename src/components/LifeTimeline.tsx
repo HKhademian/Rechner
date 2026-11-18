@@ -22,6 +22,7 @@ import {
   noteEventModule,
 } from "#engine/lifeProfile/eventModules";
 import {
+  jobChangedModule,
   jobStartedModule,
 } from "#engine/lifeProfile/employmentEvent";
 import {
@@ -50,7 +51,8 @@ const DatePrecision = { Unknown: "unknown",
   Day: "day" } as const;
 type DatePrecision = (typeof DatePrecision)[keyof typeof DatePrecision];
 const EntryType = { Note: "note",
-  Job: "job" } as const;
+  Job: "job",
+  JobChange: "job-change" } as const;
 type EntryType = (typeof EntryType)[keyof typeof EntryType];
 
 export default function LifeTimeline({ peopleRevision }: { readonly peopleRevision: number }): JSX.Element {
@@ -105,7 +107,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     }
     if (!writeTimeline({ version: 2,
       events: next })) {
-      setError("Could not save the timeline. Check the selected person and your storage.");
+      setError("Could not save the timeline. Check the person, linked job changes and your storage.");
       return false;
     }
     setEvents(next);
@@ -134,13 +136,14 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         throw new TypeError("Date does not match its precision.");
       }
       const isJob = entryType === EntryType.Job;
+      const isJobChange = entryType === EntryType.JobChange;
       const item: LifeEvent<unknown> = { id: editing ?? toLifeEventId(crypto.randomUUID()),
-        kind: isJob ? jobStartedModule.kind : noteEventModule.kind,
+        kind: isJob ? jobStartedModule.kind : isJobChange ? jobChangedModule.kind : noteEventModule.kind,
         personId: toPersonId(personId),
         ...(datePrecision === DatePrecision.Unknown ? {} : { date: toLifeEventDate(date) }),
         status,
-        payload: isJob ? jobStartedModule.parsePayload({ jobId: jobId || crypto.randomUUID(),
-          employer: title.trim(),
+        payload: isJob || isJobChange ? (isJob ? jobStartedModule : jobChangedModule).parsePayload({ jobId: isJob ? jobId || crypto.randomUUID() : jobId,
+          ...(isJob ? { employer: title.trim() } : {}),
           ...(gross === "" ? {} : { gross: Number(gross),
             grossPeriod }),
           ...(hours === "" ? {} : { weeklyHours: Number(hours) }) }) : noteEventModule.parsePayload({ title: title.trim() }) };
@@ -163,20 +166,25 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         {orderLifeEvents(events).map((event) => {
           const payload = event.kind === noteEventModule.kind ? noteEventModule.parsePayload(event.payload) : undefined;
           const job = event.kind === jobStartedModule.kind ? jobStartedModule.parsePayload(event.payload) : undefined;
-          const label = payload?.title ?? (job ? `Job at ${job.employer}` : "Life event");
+          const change = event.kind === jobChangedModule.kind ? jobChangedModule.parsePayload(event.payload) : undefined;
+          const start = change && events.find((entry) => entry.kind === jobStartedModule.kind
+            && jobStartedModule.parsePayload(entry.payload).jobId === change.jobId);
+          const employer = start ? jobStartedModule.parsePayload(start.payload).employer : undefined;
+          const label = payload?.title ?? (job ? `Job at ${job.employer}` : change ? `Job change${employer ? ` at ${employer}` : ""}` : "Life event");
+          const pay = job ?? change;
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
-            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{job?.gross !== undefined ? ` · ${job.gross} € / ${job.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{job?.weeklyHours !== undefined ? ` · ${job.weeklyHours} h/week` : ""}</p></div>
+            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
             <div className="life-people__actions">
-              {(payload || job) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
+              {(payload || job || change) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
-                setEntryType(job ? EntryType.Job : EntryType.Note);
+                setEntryType(job ? EntryType.Job : change ? EntryType.JobChange : EntryType.Note);
                 setTitle(job?.employer ?? payload?.title ?? "");
-                setJobId(job?.jobId ?? "");
-                setGross(job?.gross === undefined ? "" : String(job.gross));
-                setGrossPeriod(job?.grossPeriod ?? PayPeriod.Monthly);
-                setHours(job?.weeklyHours === undefined ? "" : String(job.weeklyHours));
+                setJobId(pay?.jobId ?? "");
+                setGross(pay?.gross === undefined ? "" : String(pay.gross));
+                setGrossPeriod(pay?.grossPeriod ?? PayPeriod.Monthly);
+                setHours(pay?.weeklyHours === undefined ? "" : String(pay.weeklyHours));
                 setDate(event.date ?? "");
                 setDatePrecision(!event.date ? DatePrecision.Unknown : event.date.length === 4 ? DatePrecision.Year : event.date.length === 7 ? DatePrecision.Month : DatePrecision.Day);
                 setStatus(event.status);
@@ -199,17 +207,29 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         </label>
         <label className="life-people__field">Event type
           <select disabled={editing !== undefined} value={entryType} onChange={(event) => {
-            setEntryType(event.currentTarget.value === EntryType.Job ? EntryType.Job : EntryType.Note);
+            const value = event.currentTarget.value;
+            setEntryType(value === EntryType.Job ? EntryType.Job : value === EntryType.JobChange ? EntryType.JobChange : EntryType.Note);
             setTitle("");
+            setJobId("");
           }}>
             <option value={EntryType.Note}>Life event</option>
             <option value={EntryType.Job}>Job started</option>
+            <option value={EntryType.JobChange}>Job change</option>
           </select>
         </label>
-        <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : "Event"}
+        {entryType !== EntryType.JobChange && <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : "Event"}
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
-        </label>
-        {entryType === EntryType.Job && <>
+        </label>}
+        {entryType === EntryType.JobChange && <label className="life-people__field">Job
+          <select required value={jobId} onChange={(event) => setJobId(event.currentTarget.value)}>
+            <option value="">Choose a job</option>
+            {events.filter((event) => event.kind === jobStartedModule.kind && event.personId === personId).map((event) => {
+              const job = jobStartedModule.parsePayload(event.payload);
+              return <option key={job.jobId} value={job.jobId}>{job.employer}</option>;
+            })}
+          </select>
+        </label>}
+        {(entryType === EntryType.Job || entryType === EntryType.JobChange) && <>
           <label className="life-people__field">Gross pay rate (optional)
             <input type="number" min="0" step="0.01" value={gross} onInput={(event) => setGross(event.currentTarget.value)} />
           </label>
