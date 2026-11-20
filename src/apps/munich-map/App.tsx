@@ -11,6 +11,7 @@ import {
 import {
   AppId,
   calculatorPath,
+  sitePath,
 } from "#/apps/appDefinition.ts";
 import {
   AppShell,
@@ -76,7 +77,7 @@ export default function MunichMap() {
   const [radius, setRadius] = useState(0);
   const [selected, setSelected] = useState<MapPlace>();
   const [focus, setFocus] = useState<MapFocus>();
-  const [showPlaces, setShowPlaces] = useState(true);
+  const [mapOnly, setMapOnly] = useState(false);
   // A draft is either a home/work pin, or a place with an optional existing record.
   const [draft, setDraft] = useState<{ pin?: PersonalPin;
     place?: MapPlace;
@@ -213,9 +214,10 @@ export default function MunichMap() {
     : undefined;
 
   return (
-    <AppShell currentPath={calculatorPath(AppId.MunichMap)} wide mainClassName="munich-map-page">
+    <AppShell currentPath={calculatorPath(AppId.MunichMap)} wide mainClassName="munich-map-page"
+      shellClassName={mapOnly ? "munich-map-shell is-map-only" : "munich-map-shell"}>
       <PageHeader title="Munich Map" />
-      <div class={`munich-map-layout${showPlaces ? "" : " is-map-only"}`}>
+      <div class="munich-map-layout">
         <section class="munich-map-main" aria-label="Map and distance controls">
           <div class="munich-map-frame">
             {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={radius} focus={focus} draft={draft?.position}
@@ -233,10 +235,15 @@ export default function MunichMap() {
                       {layer}
                     </label>
                   ))}
+                  {mapOnly && <a href={sitePath("/THIRD_PARTY_NOTICES.txt")}>Third-party notices</a>}
                 </fieldset>
               </details>
-              <button type="button" aria-controls="munich-map-places" aria-expanded={showPlaces}
-                onClick={() => setShowPlaces(!showPlaces)}>{showPlaces ? "Hide places" : "Show places"}</button>
+              <div class="munich-map-view-switch" role="group" aria-label="Map view">
+                <button type="button" aria-controls="munich-map-places" aria-pressed={!mapOnly}
+                  onClick={() => setMapOnly(false)}>Split</button>
+                <button type="button" aria-controls="munich-map-places" aria-pressed={mapOnly}
+                  onClick={() => setMapOnly(true)}>Map</button>
+              </div>
             </div>
           </div>
           <div class="munich-map-distance">
@@ -269,7 +276,7 @@ export default function MunichMap() {
               radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>
           </div>
         </section>
-        <aside id="munich-map-places" class="munich-map-panel" aria-label="Places and event filters" hidden={!showPlaces}>
+        <aside id="munich-map-places" class="munich-map-panel" aria-label="Places and event filters" hidden={mapOnly}>
           <div class="munich-map-panel-title">
             <h2>Explore Munich</h2>
             <button type="button" onClick={() => startDraft({})}>Add place</button>
