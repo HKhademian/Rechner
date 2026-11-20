@@ -44,6 +44,9 @@ import {
   LegacyConfirmationStatus,
   decodeLegacyConfirmations,
 } from "#engine/lifeProfile/legacyConfirmation";
+import {
+  detectTimelineConflicts,
+} from "#engine/lifeProfile/timelineConflicts";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -932,6 +935,149 @@ function parseBackup(serialized: string): BackupEntries {
     entries[key] = raw;
   }
   return entries;
+}
+
+export interface BackupCollectionDiff {
+  readonly added: number;
+  readonly changed: number;
+  readonly removed: number;
+}
+
+export interface BackupImportPreview {
+  readonly valid: boolean;
+  readonly error?: string;
+  readonly incomingKeyCount: number;
+  readonly overwrittenKeyCount: number;
+  readonly preservedKeyCount: number;
+  readonly peopleDiff: BackupCollectionDiff;
+  readonly timelineDiff: BackupCollectionDiff;
+  readonly cashScenarioDiff: BackupCollectionDiff;
+  readonly eventProjectionDiff: BackupCollectionDiff;
+  readonly duplicatePersonNames: readonly string[];
+  readonly incomingTimelineConflicts: number;
+}
+
+function diffById<T extends { readonly id: string }>(
+  before: readonly T[],
+  after: readonly T[],
+): BackupCollectionDiff {
+  const beforeMap = new Map(before.map((item) => [item.id, JSON.stringify(item)]));
+  const afterMap = new Map(after.map((item) => [item.id, JSON.stringify(item)]));
+  let added = 0;
+  let changed = 0;
+  let removed = 0;
+  for (const [id, serialized] of afterMap.entries()) {
+    if (!beforeMap.has(id)) {
+      added += 1;
+    }
+    else if (beforeMap.get(id) !== serialized) {
+      changed += 1;
+    }
+  }
+  for (const id of beforeMap.keys()) {
+    if (!afterMap.has(id)) {
+      removed += 1;
+    }
+  }
+  return Object.freeze({ added,
+    changed,
+    removed });
+}
+
+/** Validates and previews backup additions, overwrites, preserved keys and conflicts without mutating browser storage. */
+export function inspectBackupImport(serialized: string): BackupImportPreview {
+  const emptyDiff: BackupCollectionDiff = Object.freeze({ added: 0,
+    changed: 0,
+    removed: 0 });
+  try {
+    const entries = parseBackup(serialized);
+    const shared = browserWebStorageForCurrentMode();
+    const currentPeopleRaw = shared?.getItem(PEOPLE_STORAGE_KEY) ?? null;
+    const currentTimelineRaw = shared?.getItem(TIMELINE_STORAGE_KEY) ?? null;
+    const currentCashRaw = shared?.getItem(CASH_SCENARIO_STORAGE_KEY) ?? null;
+    const currentProjRaw = shared?.getItem(EVENT_PROJECTION_STORAGE_KEY) ?? null;
+    const currentConfRaw = shared?.getItem(LEGACY_CONFIRMATION_STORAGE_KEY) ?? null;
+
+    const effectiveEntries: BackupEntries = { ...entries };
+    let preservedKeyCount = 0;
+    const preserveIfAbsent = (key: string, currentValue: string | null): void => {
+      if (!Object.hasOwn(effectiveEntries, key) && currentValue !== null) {
+        effectiveEntries[key] = currentValue;
+        preservedKeyCount += 1;
+      }
+    };
+    preserveIfAbsent(PEOPLE_STORAGE_KEY, currentPeopleRaw);
+    preserveIfAbsent(TIMELINE_STORAGE_KEY, currentTimelineRaw);
+    preserveIfAbsent(CASH_SCENARIO_STORAGE_KEY, currentCashRaw);
+    preserveIfAbsent(EVENT_PROJECTION_STORAGE_KEY, currentProjRaw);
+    preserveIfAbsent(LEGACY_CONFIRMATION_STORAGE_KEY, currentConfRaw);
+
+    const nextPeople = decodePeopleRecord(effectiveEntries[PEOPLE_STORAGE_KEY] ?? null).record?.people ?? [];
+    const nextTimeline = decodeTimelineRecord(effectiveEntries[TIMELINE_STORAGE_KEY] ?? null, lifeEventCatalog).record?.events ?? [];
+    const nextCash = decodeCashScenarios(effectiveEntries[CASH_SCENARIO_STORAGE_KEY] ?? null).record?.scenarios ?? [];
+    const nextProj = decodeEventProjections(effectiveEntries[EVENT_PROJECTION_STORAGE_KEY] ?? null).record?.projections ?? [];
+
+    if (nextTimeline.some((event) => !nextPeople.some((person) => person.id === event.personId))) {
+      throw new Error("The backup would leave timeline events without their people.");
+    }
+    if (nextProj.some((projection) => !nextPeople.some((person) => person.id === projection.personId))) {
+      throw new Error("The backup would leave event projections without their people.");
+    }
+
+    const beforePeople = decodePeopleRecord(currentPeopleRaw).record?.people ?? [];
+    const beforeTimeline = decodeTimelineRecord(currentTimelineRaw, lifeEventCatalog).record?.events ?? [];
+    const beforeCash = decodeCashScenarios(currentCashRaw).record?.scenarios ?? [];
+    const beforeProj = decodeEventProjections(currentProjRaw).record?.projections ?? [];
+
+    const nameCounts = new Map<string, number>();
+    for (const person of nextPeople) {
+      const normalized = person.name.trim().toLocaleLowerCase();
+      nameCounts.set(normalized, (nameCounts.get(normalized) ?? 0) + 1);
+    }
+    const duplicatePersonNames = nextPeople
+      .filter((person) => (nameCounts.get(person.name.trim().toLocaleLowerCase()) ?? 0) > 1)
+      .map((person) => person.name);
+
+    const mode = getStorageMode();
+    let overwrittenKeyCount = 0;
+    for (const key of Object.keys(entries)) {
+      const app = Object.values(Apps).find((id) => key.startsWith(`rechner:${id}:v1:`));
+      const existing = app
+        ? rawStorageForMode(app, mode)?.getItem(key) ?? null
+        : shared?.getItem(key) ?? null;
+      if (existing !== null && existing !== entries[key]) {
+        overwrittenKeyCount += 1;
+      }
+    }
+
+    return Object.freeze({
+      valid: true,
+      incomingKeyCount: Object.keys(entries).length,
+      overwrittenKeyCount,
+      preservedKeyCount,
+      peopleDiff: diffById(beforePeople, nextPeople),
+      timelineDiff: diffById(beforeTimeline, nextTimeline),
+      cashScenarioDiff: diffById(beforeCash, nextCash),
+      eventProjectionDiff: diffById(beforeProj, nextProj),
+      duplicatePersonNames: Object.freeze([...new Set(duplicatePersonNames)]),
+      incomingTimelineConflicts: detectTimelineConflicts(nextTimeline).length,
+    });
+  }
+  catch (error) {
+    return Object.freeze({
+      valid: false,
+      error: error instanceof Error ? error.message : "This backup could not be validated.",
+      incomingKeyCount: 0,
+      overwrittenKeyCount: 0,
+      preservedKeyCount: 0,
+      peopleDiff: emptyDiff,
+      timelineDiff: emptyDiff,
+      cashScenarioDiff: emptyDiff,
+      eventProjectionDiff: emptyDiff,
+      duplicatePersonNames: Object.freeze([]),
+      incomingTimelineConflicts: 0,
+    });
+  }
 }
 
 /** Replaces all active data only after the complete backup has been validated. */

@@ -17,9 +17,11 @@ import {
   PrivacyShieldIcon,
 } from "#components/Icons";
 import {
+  type BackupImportPreview,
   clearAllData,
   exportAllData,
   importAllData,
+  inspectBackupImport,
 } from "#engine/storage/appStorage";
 import StorageModeControl from "#components/StorageModeControl";
 
@@ -138,6 +140,8 @@ export default function PrivacyStatus(): JSX.Element {
     }
   };
 
+  const [pendingBackup, setPendingBackup] = useState<{ readonly raw: string;
+    readonly preview: BackupImportPreview } | undefined>();
   const importData = async (event: Event): Promise<void> => {
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement) || !input.files?.[0]) {
@@ -147,14 +151,33 @@ export default function PrivacyStatus(): JSX.Element {
     input.value = "";
     try {
       const contents = await file.text();
-      if (!window.confirm("Replace all calculator data with this backup?")) {
+      const preview = inspectBackupImport(contents);
+      if (!preview.valid) {
+        setPendingBackup(undefined);
+        setDataNotice(preview.error ?? "Could not import this backup. Check the file and browser storage.");
         return;
       }
-      importAllData(contents);
+      setPendingBackup({ raw: contents,
+        preview });
+      setDataNotice("");
+    }
+    catch {
+      setPendingBackup(undefined);
+      setDataNotice("Could not read this backup file.");
+    }
+  };
+
+  const confirmImport = (): void => {
+    if (!pendingBackup) {
+      return;
+    }
+    try {
+      importAllData(pendingBackup.raw);
       window.location.reload();
     }
     catch {
       setDataNotice("Could not import this backup. Check the file and browser storage.");
+      setPendingBackup(undefined);
     }
   };
 
@@ -198,6 +221,16 @@ export default function PrivacyStatus(): JSX.Element {
         <button type="button" onClick={() => fileRef.current?.click()} title="Import a backup"><ImportDataIcon size={16} /><span>Import</span></button>
         <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importData} />
       </div>
+      {pendingBackup && <div role="region" aria-label="Backup import preview">
+        <p><strong>Backup preview:</strong> {pendingBackup.preview.incomingKeyCount} entries ({pendingBackup.preview.overwrittenKeyCount} will overwrite existing data, {pendingBackup.preview.preservedKeyCount} preserved from current browser).</p>
+        <p>People: +{pendingBackup.preview.peopleDiff.added} / ~{pendingBackup.preview.peopleDiff.changed} / −{pendingBackup.preview.peopleDiff.removed} · Timeline: +{pendingBackup.preview.timelineDiff.added} / ~{pendingBackup.preview.timelineDiff.changed} / −{pendingBackup.preview.timelineDiff.removed}</p>
+        {pendingBackup.preview.duplicatePersonNames.length > 0 && <p role="status">Duplicate person names in backup: {pendingBackup.preview.duplicatePersonNames.join(", ")}</p>}
+        {pendingBackup.preview.incomingTimelineConflicts > 0 && <p role="status">Incoming timeline has {pendingBackup.preview.incomingTimelineConflicts} conflicts or ambiguities to review after import.</p>}
+        <div className="privacy-status__data-actions">
+          <button type="button" onClick={confirmImport}>Confirm import</button>
+          <button type="button" onClick={() => setPendingBackup(undefined)}>Cancel</button>
+        </div>
+      </div>}
       {dataNotice && <p role="status">{dataNotice}</p>}
       {showOfflineSection && <div className="privacy-status__offline">
         <p className="privacy-status__offline-status">
