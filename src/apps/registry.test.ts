@@ -36,6 +36,7 @@ it("limits default release catalog to published calculators while retaining draf
       AppId.Kita,
       AppId.MinijobMidijob,
       AppId.CommuterAllowance,
+      AppId.ExpensePlanner,
     ],
   );
   assert.deepEqual(
@@ -69,6 +70,7 @@ it("filters German search terms, categories and empty results and clamps paginat
   assert.equal(catalogPage(allCalculatorApps, "kinderbetreuung", undefined, 1).items[0].id, AppId.Kita);
   assert.equal(catalogPage(allCalculatorApps, "übergangsbereich", undefined, 1).items[0].id, AppId.MinijobMidijob);
   assert.equal(catalogPage(allCalculatorApps, "pendlerpauschale", undefined, 1).items[0].id, AppId.CommuterAllowance);
+  assert.equal(catalogPage(allCalculatorApps, "haushaltsbuch", undefined, 1).items[0].id, AppId.ExpensePlanner);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Everyday, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(calculatorApps, "nothing matches", undefined, 99).total, 0);
   const many = Array.from({ length: 8 }, () => calculatorApps[0]);

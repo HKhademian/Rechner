@@ -11,6 +11,9 @@ import {
   commuterAllowanceApp,
 } from "#/apps/commuter-allowance/manifest.ts";
 import {
+  expensePlannerApp,
+} from "#/apps/expense-planner/manifest.ts";
+import {
   giroCodeApp,
 } from "#/apps/girocode/manifest.ts";
 import {
@@ -51,6 +54,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   kitaApp,
   minijobMidijobApp,
   commuterAllowanceApp,
+  expensePlannerApp,
 ]);
 
 /** Default release catalog shown on the home page. */

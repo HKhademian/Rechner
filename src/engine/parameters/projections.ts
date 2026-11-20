@@ -241,6 +241,7 @@ export function getProjectionProfileForApp(
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.MinijobMidijobFocus];
     case AppId.CommuterAllowance:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.CommuterAllowanceFocus];
+    case AppId.ExpensePlanner:
     case AppId.Catalog:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.FullCatalog];
   }

@@ -30,6 +30,7 @@ import {
   CommuterAllowanceIcon,
   CompanyCarMobilityIcon,
   EmploymentTransitionIcon,
+  ExpensePlannerIcon,
   HomeAcquisitionIcon,
   PaymentQrCodeIcon,
   SimulatorNavigationIcon,
@@ -78,6 +79,8 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
       return <EmploymentTransitionIcon size={24} />;
     case AppId.CommuterAllowance:
       return <CommuterAllowanceIcon size={24} />;
+    case AppId.ExpensePlanner:
+      return <ExpensePlannerIcon size={24} />;
     case AppId.NetPay:
       return <CalculatorNavigationIcon size={24} />;
   }

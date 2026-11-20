@@ -70,6 +70,7 @@ const HOUSING_STORE = resolve("src/apps/housing/housingStore.ts");
 const KITA_STORE = resolve("src/apps/kita/kitaStore.ts");
 const MINIJOB_MIDIJOB_STORE = resolve("src/apps/minijob-midijob/minijobMidijobStore.ts");
 const COMMUTER_ALLOWANCE_STORE = resolve("src/apps/commuter-allowance/commuterAllowanceStore.ts");
+const EXPENSE_PLANNER_STORE = resolve("src/apps/expense-planner/expensePlannerStore.ts");
 
 const ALL_CALCULATOR_STORES = [
   NET_PAY_STORE,
@@ -83,6 +84,7 @@ const ALL_CALCULATOR_STORES = [
   KITA_STORE,
   MINIJOB_MIDIJOB_STORE,
   COMMUTER_ALLOWANCE_STORE,
+  EXPENSE_PLANNER_STORE,
 ] as const;
 
 it("catalog and app entries cannot initialize another calculator's financial stores", () => {
@@ -104,6 +106,7 @@ it("catalog and app entries cannot initialize another calculator's financial sto
     ["src/apps/kita/App.tsx", [KITA_STORE]],
     ["src/apps/minijob-midijob/App.tsx", [MINIJOB_MIDIJOB_STORE]],
     ["src/apps/commuter-allowance/App.tsx", [COMMUTER_ALLOWANCE_STORE]],
+    ["src/apps/expense-planner/App.tsx", [EXPENSE_PLANNER_STORE]],
   ];
 
   for (const [entryPath, owned] of entryOwnStores) {

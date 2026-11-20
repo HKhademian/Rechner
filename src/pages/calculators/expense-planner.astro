@@ -1,0 +1,13 @@
+---
+import ExpensePlannerApp from "#/apps/expense-planner/App.tsx";
+import {
+  expensePlannerApp,
+} from "#/apps/expense-planner/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${expensePlannerApp.title} | Rechner`}
+  description={expensePlannerApp.description}
+>
+  <ExpensePlannerApp client:load />
+</BaseDocument>
