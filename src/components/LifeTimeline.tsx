@@ -72,7 +72,12 @@ import {
   toJurisdictionCode,
 } from "#engine/lifeProfile/statutoryRuleResolver";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
+import LifeDomainEventForm from "#components/LifeDomainEventForm";
+import LifeJourneyPanels from "#components/LifeJourneyPanels";
 import LifeMonthlyView from "#components/LifeMonthlyView";
+import {
+  describeExtendedLifeEvent,
+} from "#utils/lifeEventDisplay";
 import {
   PeopleRecordStatus,
 } from "#engine/lifeProfile/peopleRecord";
@@ -344,6 +349,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const start = linkedJobId && events.find((entry) => entry.kind === jobStartedModule.kind
             && jobStartedModule.parsePayload(entry.payload).jobId === linkedJobId);
           const employer = start ? jobStartedModule.parsePayload(start.payload).employer : undefined;
+          const extended = describeExtendedLifeEvent(event);
           const label = payload?.title ?? (
             job
               ? `Job at ${job.employer}`
@@ -357,7 +363,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
                       ? `Move to ${move.location}`
                       : cash
                         ? cash.title
-                        : "Life event"
+                        : extended?.label ?? "Life event"
           );
           const pay = job ?? change;
           const person = people.find((entry) => entry.id === event.personId);
@@ -365,7 +371,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{settledActual ? ` · Replaced by actual ${formatIntegerEuroCents(settledActual.payload.amount)} on ${settledActual.date} · Counted once` : ""}{linkedPlanned && cash ? ` · ${formatCashReconciliationNote(linkedPlanned, {
               ...event,
               payload: cash,
-            })}` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}{jobEnd ? ` · Reason: ${jobEnd.reason}${jobEnd.finalPayCents !== undefined ? ` · Final pay ${formatIntegerEuroCents(jobEnd.finalPayCents)}` : ""}` : ""}{jobLeave?.endDate ? ` · Until ${jobLeave.endDate}` : ""}</p></div>
+            })}` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}{jobEnd ? ` · Reason: ${jobEnd.reason}${jobEnd.finalPayCents !== undefined ? ` · Final pay ${formatIntegerEuroCents(jobEnd.finalPayCents)}` : ""}` : ""}{jobLeave?.endDate ? ` · Until ${jobLeave.endDate}` : ""}{extended ? ` · ${extended.detail}` : ""}</p></div>
             <div className="life-people__actions">
               {cash && event.status === LifeEventStatus.Planned && !settledActual && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Record ${label} as happened`} onClick={() => {
                 setEditing(undefined);
@@ -485,7 +491,18 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             </div></li>;
           })}
         </ul>}
-        {viewPersonId && <LifeMonthlyView events={events} personId={toPersonId(viewPersonId)} date={viewDate} onDateChange={setViewDate} includePlanned={includePlanned} onIncludePlannedChange={setIncludePlanned} />}
+        {viewPersonId && <>
+          <LifeMonthlyView events={events} personId={toPersonId(viewPersonId)} date={viewDate} onDateChange={setViewDate} includePlanned={includePlanned} onIncludePlannedChange={setIncludePlanned} />
+          <LifeJourneyPanels
+            people={people}
+            events={events}
+            personId={toPersonId(viewPersonId)}
+            date={viewDate}
+            includePlanned={includePlanned}
+            jurisdiction={ruleJurisdiction}
+            allowProjection={allowRuleProjection}
+          />
+        </>}
       </div>}
       {people.length === 0 ? <p>Add a person above to start your timeline.</p> : <form className="life-people__form" onSubmit={save}>
         <label className="life-people__field">Person
@@ -632,6 +649,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         <button className="ui-btn ui-btn--primary" type="submit">{editing ? "Save event" : "Add event"}</button>
         {(editing || reconcilesEventId) && <button className="ui-btn" type="button" onClick={resetForm}>Cancel</button>}
       </form>}
+      {people.length > 0 && <LifeDomainEventForm people={people} onAddEvent={(item) => saveEvents([...events, item])} />}
     </>}
   </section>;
 }
