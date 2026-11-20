@@ -199,3 +199,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ### Map imagery
 
 The Munich Map uses OpenStreetMap tiles and displays the required attribution on the map. [Copyright and license](https://www.openstreetmap.org/copyright) · [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/)
+
+### Munich Map layers
+
+- [Landmarks dataset](src/apps/munich-map/data/landmarks.json) from RentHarness’s snapshot of the BBBike Munich extract dated 2026-11-15. Filtered to named churches and cemeteries near Munich and deduplicated. © OpenStreetMap contributors, [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/). The deployed site serves the extract at `/data/munich-landmarks.json` relative to its base URL.
+- [Transit dataset](src/apps/munich-map/data/transit.json) derived from the [MVV Gesamt GTFS feed](https://www.mvv-muenchen.de/fahrplanauskunft/fuer-entwickler/opendata/index.html). Münchner Verkehrs- und Tarifverbund GmbH (MVV), retrieved 2026-11-20, feed version 20261102. Creative Commons Attribution (CC BY). Filtered to Munich and aggregated by station. The deployed site serves the extract at `/data/munich-transit.json` relative to its base URL.
+
+The map displays the required data credits as plain text. Set `PUBLIC_SHOW_MAP_ATTRIBUTION=true` in the build environment to add the optional Leaflet credit.

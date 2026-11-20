@@ -165,3 +165,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Munich Map imagery © OpenStreetMap contributors
 https://www.openstreetmap.org/copyright
 https://operations.osmfoundation.org/policies/tiles/
+
+Named churches and cemeteries from RentHarness’s snapshot of the BBBike
+Munich extract dated 2026-11-15, filtered and deduplicated for Munich Map.
+© OpenStreetMap contributors — Open Database License 1.0
+https://opendatacommons.org/licenses/odbl/1-0/
+Dataset: data/munich-landmarks.json
+
+Transit stops © Münchner Verkehrs- und Tarifverbund GmbH (MVV).
+Creative Commons Attribution (CC BY). MVV Gesamt GTFS feed, version
+20261102, retrieved 2026-11-20. Filtered to Munich and aggregated by station.
+https://www.mvv-muenchen.de/fahrplanauskunft/fuer-entwickler/opendata/index.html
+Dataset: data/munich-transit.json
