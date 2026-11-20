@@ -649,7 +649,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         <button className="ui-btn ui-btn--primary" type="submit">{editing ? "Save event" : "Add event"}</button>
         {(editing || reconcilesEventId) && <button className="ui-btn" type="button" onClick={resetForm}>Cancel</button>}
       </form>}
-      {people.length > 0 && <LifeDomainEventForm people={people} onAddEvent={(item) => saveEvents([...events, item])} />}
+      {people.length > 0 && <LifeDomainEventForm people={people} events={events} onAddEvent={(item) => saveEvents([...events, item])} />}
     </>}
   </section>;
 }

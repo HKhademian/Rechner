@@ -26,9 +26,15 @@ import {
   toApplicationTarget,
   toResidencePermitKind,
 } from "#engine/lifeProfile/residencePermitEvent";
+import {
+  actualBirthModule,
+  expectedBirthModule,
+  pregnancyStartedModule,
+} from "#engine/lifeProfile/familyEvent";
 
 export interface LifeDomainEventFormProps {
   readonly people: readonly LifePerson[];
+  readonly events: readonly LifeEvent<unknown>[];
   readonly onAddEvent: (event: LifeEvent<unknown>) => boolean;
 }
 
@@ -36,6 +42,9 @@ const DomainEventKind = {
   ResidencePermit: "residence.permit",
   ResidenceInterruption: "residence.interruption",
   ResidenceMilestone: "residence.milestone",
+  FamilyPregnancy: "family.pregnancy",
+  FamilyExpectedBirth: "family.expected-birth",
+  FamilyActualBirth: "family.actual-birth",
 } as const;
 type DomainEventKind = (typeof DomainEventKind)[keyof typeof DomainEventKind];
 
@@ -46,7 +55,7 @@ function toDomainEventKind(value: string): DomainEventKind {
   return value as DomainEventKind;
 }
 
-export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEventFormProps): JSX.Element {
+export default function LifeDomainEventForm({ people, events, onAddEvent }: LifeDomainEventFormProps): JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [personId, setPersonId] = useState<string>(people[0]?.id ?? "");
   const [kind, setKind] = useState<DomainEventKind>(DomainEventKind.ResidencePermit);
@@ -70,10 +79,22 @@ export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEv
   const [milestoneStage, setMilestoneStage] = useState<ApplicationMilestoneStage>(ApplicationMilestoneStage.Preparing);
   const [milestoneTitle, setMilestoneTitle] = useState("");
 
+  // Family & pregnancy fields
+  const [pregnancyId, setPregnancyId] = useState("");
+  const [pregnancyLabel, setPregnancyLabel] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [childName, setChildName] = useState("");
+  const [multipleCount, setMultipleCount] = useState("1");
+
+  const activePersonId = personId || people[0]?.id || "";
+  const personPregnancies = events
+    .filter((entry) => entry.kind === pregnancyStartedModule.kind && entry.personId === activePersonId)
+    .map((entry) => pregnancyStartedModule.parsePayload(entry.payload));
+
   function handleSubmit(event: JSX.TargetedEvent<HTMLFormElement, Event>): void {
     event.preventDefault();
     try {
-      const targetPersonId = toPersonId(personId || people[0]?.id || "");
+      const targetPersonId = toPersonId(activePersonId);
       let payload: unknown;
       let eventKind = residencePermitModule.kind;
 
@@ -95,12 +116,36 @@ export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEv
           ...(returnDate ? { returnDate } : {}),
         });
       }
-      else {
+      else if (kind === DomainEventKind.ResidenceMilestone) {
         eventKind = residenceMilestoneModule.kind;
         payload = residenceMilestoneModule.parsePayload({
           target: milestoneTarget,
           stage: milestoneStage,
           title: milestoneTitle.trim(),
+        });
+      }
+      else if (kind === DomainEventKind.FamilyPregnancy) {
+        eventKind = pregnancyStartedModule.kind;
+        payload = pregnancyStartedModule.parsePayload({
+          pregnancyId: crypto.randomUUID(),
+          ...(dueDate ? { expectedDueDate: dueDate } : {}),
+          multipleCount: Number(multipleCount),
+          ...(pregnancyLabel.trim() ? { label: pregnancyLabel.trim() } : {}),
+        });
+      }
+      else if (kind === DomainEventKind.FamilyExpectedBirth) {
+        eventKind = expectedBirthModule.kind;
+        payload = expectedBirthModule.parsePayload({
+          pregnancyId,
+          multipleCount: Number(multipleCount),
+        });
+      }
+      else {
+        eventKind = actualBirthModule.kind;
+        payload = actualBirthModule.parsePayload({
+          pregnancyId,
+          ...(childName.trim() ? { childName: childName.trim() } : {}),
+          multipleCount: Number(multipleCount),
         });
       }
 
@@ -121,6 +166,11 @@ export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEv
         setAbsenceReason("");
         setReturnDate("");
         setMilestoneTitle("");
+        setPregnancyId("");
+        setPregnancyLabel("");
+        setDueDate("");
+        setChildName("");
+        setMultipleCount("1");
         setDate("");
       }
     }
@@ -131,13 +181,16 @@ export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEv
 
   return <section className="life-monthly" aria-label="Additional life journey events">
     <button type="button" className="ui-btn" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
-      {expanded ? "Hide residence & journey event form" : "Add residence permit, absence or milestone"}
+      {expanded ? "Hide journey event form" : "Add residence, family or other journey event"}
     </button>
     {expanded && <>
       {error && <p role="alert">{error}</p>}
       <form className="life-people__form" onSubmit={handleSubmit}>
         <label className="life-people__field">Person
-          <select required value={personId || people[0]?.id || ""} onChange={(event) => setPersonId(event.currentTarget.value)}>
+          <select required value={activePersonId} onChange={(event) => {
+            setPersonId(event.currentTarget.value);
+            setPregnancyId("");
+          }}>
             {people.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
           </select>
         </label>
@@ -146,6 +199,9 @@ export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEv
             <option value={DomainEventKind.ResidencePermit}>Residence permit / visa</option>
             <option value={DomainEventKind.ResidenceInterruption}>Residence absence / interruption</option>
             <option value={DomainEventKind.ResidenceMilestone}>Application milestone</option>
+            <option value={DomainEventKind.FamilyPregnancy}>Pregnancy started</option>
+            <option value={DomainEventKind.FamilyExpectedBirth}>Expected birth milestone</option>
+            <option value={DomainEventKind.FamilyActualBirth}>Actual birth milestone</option>
           </select>
         </label>
         {kind === DomainEventKind.ResidencePermit && <>
@@ -201,6 +257,33 @@ export default function LifeDomainEventForm({ people, onAddEvent }: LifeDomainEv
           </label>
           <label className="life-people__field">Milestone title
             <input required value={milestoneTitle} onInput={(event) => setMilestoneTitle(event.currentTarget.value)} placeholder="e.g. Ausländerbehörde appointment" />
+          </label>
+        </>}
+        {kind === DomainEventKind.FamilyPregnancy && <>
+          <label className="life-people__field">Label (optional)
+            <input value={pregnancyLabel} onInput={(event) => setPregnancyLabel(event.currentTarget.value)} placeholder="e.g. First baby" />
+          </label>
+          <label className="life-people__field">Expected due date (optional)
+            <input type="date" value={dueDate} onInput={(event) => setDueDate(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Number of children (multiples)
+            <input required type="number" min="1" max="6" step="1" value={multipleCount} onInput={(event) => setMultipleCount(event.currentTarget.value)} />
+          </label>
+        </>}
+        {(kind === DomainEventKind.FamilyExpectedBirth || kind === DomainEventKind.FamilyActualBirth) && <>
+          <label className="life-people__field">Linked pregnancy
+            <select required value={pregnancyId} onChange={(event) => setPregnancyId(event.currentTarget.value)}>
+              <option value="">Choose a recorded pregnancy</option>
+              {personPregnancies.map((preg) => <option key={preg.pregnancyId} value={preg.pregnancyId}>
+                {preg.label ?? "Pregnancy"}{preg.expectedDueDate ? ` (due ${preg.expectedDueDate})` : ""}
+              </option>)}
+            </select>
+          </label>
+          {kind === DomainEventKind.FamilyActualBirth && <label className="life-people__field">Child name (optional)
+            <input value={childName} onInput={(event) => setChildName(event.currentTarget.value)} />
+          </label>}
+          <label className="life-people__field">Number of children (multiples)
+            <input required type="number" min="1" max="6" step="1" value={multipleCount} onInput={(event) => setMultipleCount(event.currentTarget.value)} />
           </label>
         </>}
         <label className="life-people__field">Event date

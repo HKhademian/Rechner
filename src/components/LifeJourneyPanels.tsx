@@ -13,6 +13,7 @@ import {
 } from "#engine/lifeProfile/statutoryRuleResolver";
 import ResidencyPreparationPanel from "#components/ResidencyPreparationPanel";
 import CitizenshipPreparationPanel from "#components/CitizenshipPreparationPanel";
+import FamilyParentalHandoffPanel from "#components/FamilyParentalHandoffPanel";
 
 export interface LifeJourneyPanelsProps {
   readonly people: readonly LifePerson[];
@@ -25,6 +26,7 @@ export interface LifeJourneyPanelsProps {
 }
 
 export default function LifeJourneyPanels({
+  people,
   events,
   personId,
   date,
@@ -48,6 +50,12 @@ export default function LifeJourneyPanels({
       includePlanned={includePlanned}
       jurisdiction={jurisdiction}
       allowProjection={allowProjection}
+    />
+    <FamilyParentalHandoffPanel
+      people={people}
+      events={events}
+      date={date}
+      includePlanned={includePlanned}
     />
   </>;
 }

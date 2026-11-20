@@ -6,6 +6,11 @@ import {
   residenceMilestoneModule,
   residencePermitModule,
 } from "#engine/lifeProfile/residencePermitEvent";
+import {
+  actualBirthModule,
+  expectedBirthModule,
+  pregnancyStartedModule,
+} from "#engine/lifeProfile/familyEvent";
 
 export interface DomainEventSummary {
   readonly label: string;
@@ -39,6 +44,34 @@ export function describeExtendedLifeEvent(event: LifeEvent<unknown>): DomainEven
     return {
       label: milestone.title,
       detail: `Milestone: ${milestone.target} · ${milestone.stage}`,
+    };
+  }
+  if (event.kind === pregnancyStartedModule.kind) {
+    const preg = pregnancyStartedModule.parsePayload(event.payload);
+    return {
+      label: preg.label ?? "Pregnancy milestone",
+      detail: [
+        ...(preg.expectedDueDate ? [`Due ${preg.expectedDueDate}`] : []),
+        ...(preg.multipleCount && preg.multipleCount > 1 ? [`Multiples (${preg.multipleCount})`] : []),
+      ].join(" · ") || "Pregnancy recorded",
+    };
+  }
+  if (event.kind === expectedBirthModule.kind) {
+    const expected = expectedBirthModule.parsePayload(event.payload);
+    return {
+      label: "Expected birth milestone",
+      detail: expected.multipleCount && expected.multipleCount > 1
+        ? `Linked pregnancy · ${expected.multipleCount} children`
+        : "Linked to pregnancy",
+    };
+  }
+  if (event.kind === actualBirthModule.kind) {
+    const birth = actualBirthModule.parsePayload(event.payload);
+    return {
+      label: birth.childName ? `Birth of ${birth.childName}` : "Actual birth milestone",
+      detail: birth.multipleCount && birth.multipleCount > 1
+        ? `Linked pregnancy · ${birth.multipleCount} children`
+        : "Linked to pregnancy",
     };
   }
   return undefined;
