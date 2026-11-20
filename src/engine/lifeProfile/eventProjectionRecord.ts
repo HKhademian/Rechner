@@ -27,8 +27,12 @@ import {
   toReplayMonth,
 } from "#engine/lifeProfile/monthlyReplay";
 import {
-  cashEventsForMonth,
+  rawCashEventsForMonth,
 } from "#engine/lifeProfile/cashEventView";
+import {
+  reconciledPlannedByActualId,
+  reconcilingActualByPlannedId,
+} from "#engine/lifeProfile/cashReconciliation";
 
 export const EVENT_PROJECTION_STORAGE_KEY = "rechner:life-profile:event-projections:v1";
 export const EventProjectionStatus = { Missing: "missing",
@@ -66,7 +70,22 @@ export function projectionMonths(origin: string): readonly ReplayMonth[] {
   return Array.from({ length: 6 }, (_, index) => toReplayMonth(Math.floor((start + index) / 12), (start + index) % 12 + 1));
 }
 export function eventProjectionSources(events: readonly LifeEvent<unknown>[], personId: PersonId, origin: string): readonly LifeEvent<CashEventPayload>[] {
-  return projectionMonths(origin).flatMap((month) => cashEventsForMonth(events, personId, month, true));
+  const inWindow = projectionMonths(origin).flatMap((month) => rawCashEventsForMonth(events, personId, month));
+  const plannedByActual = reconciledPlannedByActualId(events, personId);
+  const actualByPlanned = reconcilingActualByPlannedId(events, personId);
+  const byId = new Map<LifeEvent<CashEventPayload>["id"], LifeEvent<CashEventPayload>>();
+  for (const entry of inWindow) {
+    byId.set(entry.id, entry);
+    const linkedPlanned = plannedByActual.get(entry.id);
+    if (linkedPlanned) {
+      byId.set(linkedPlanned.id, linkedPlanned);
+    }
+    const linkedActual = actualByPlanned.get(entry.id);
+    if (linkedActual) {
+      byId.set(linkedActual.id, linkedActual);
+    }
+  }
+  return orderLifeEvents([...byId.values()]);
 }
 export function eventProjectionChangeDetails(saved: EventProjection, current: readonly LifeEvent<unknown>[]) {
   const now = eventProjectionSources(current, saved.personId, saved.origin);

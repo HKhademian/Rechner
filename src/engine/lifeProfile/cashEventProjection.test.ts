@@ -56,3 +56,50 @@ it("replays sourced actual and optional planned entries without recurring assump
       amount: toEuroCents(70000) } };
   assert.equal(projectCashEvents(jan, jan, apr, toEuroCents(100000), [actual, corrected], person, true)[3].state.closing, 80000);
 });
+
+it("counts a reconciled planned-to-actual cash transaction once across same-month and cross-month shifts", () => {
+  const person = toPersonId("p");
+  const jan = toReplayMonth(2026, 1);
+  const apr = toReplayMonth(2026, 4);
+  const plannedExpense = {
+    id: toLifeEventId("plan-100"),
+    personId: person,
+    date: toLifeEventDate("2026-02-10"),
+    status: LifeEventStatus.Planned,
+    kind: cashEventModule.kind,
+    payload: {
+      title: "Expense",
+      direction: CashDirection.Outflow,
+      amount: toEuroCents(10000),
+    },
+  };
+  const actualSameMonth = {
+    id: toLifeEventId("actual-110-50"),
+    personId: person,
+    date: toLifeEventDate("2026-02-12"),
+    status: LifeEventStatus.Actual,
+    kind: cashEventModule.kind,
+    payload: {
+      title: "Expense",
+      direction: CashDirection.Outflow,
+      amount: toEuroCents(11050),
+      reconcilesEventId: plannedExpense.id,
+    },
+  };
+
+  // Same-month reconciliation: €1,000.00 - €110.50 = €889.50 (NOT €789.50)
+  const sameMonth = projectCashEvents(jan, jan, apr, toEuroCents(100000), [plannedExpense, actualSameMonth], person, true);
+  assert.deepEqual(sameMonth.map(({ state }) => state.closing), [100000, 88950, 88950, 88950]);
+  assert.deepEqual(sameMonth[1].state.contribution?.sources.map((entry) => entry.id), [actualSameMonth.id]);
+
+  // Cross-month reconciliation: planned Feb €100.00, happened Mar €110.50
+  const actualNextMonth = {
+    ...actualSameMonth,
+    date: toLifeEventDate("2026-03-03"),
+  };
+  const crossMonth = projectCashEvents(jan, jan, apr, toEuroCents(100000), [plannedExpense, actualNextMonth], person, true);
+  assert.deepEqual(crossMonth.map(({ state }) => state.closing), [100000, 100000, 88950, 88950]);
+  assert.deepEqual(projectCashEvents(jan, apr, apr, toEuroCents(100000), [plannedExpense, actualNextMonth], person, true)[0], crossMonth[3]);
+  // Without planned events, actual is still counted once in March
+  assert.deepEqual(projectCashEvents(jan, jan, apr, toEuroCents(100000), [plannedExpense, actualNextMonth], person, false).map(({ state }) => state.closing), [100000, 100000, 88950, 88950]);
+});

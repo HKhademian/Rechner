@@ -93,6 +93,25 @@ it("restores reproducible event projections and reports timeline changes in ever
       assert.equal(people.writePeople({ version: 1, people: [] }), false);
       assert.throws(() => app.importAllData(backup));
       storage.removeItem(rec.EVENT_PROJECTION_STORAGE_KEY);
+
+      // Reconciled planned-to-actual pair spanning across the 6-month projection boundary
+      const crossPlan = { id: "cross-plan", kind: "cash.entry", personId: "p", date: "2026-10-25", status: "planned",
+        payload: { title: "Expense", direction: "outflow", amount: 10000 } };
+      const crossActual = { id: "cross-actual", kind: "cash.entry", personId: "p", date: "2026-11-05", status: "actual",
+        payload: { title: "Expense", direction: "outflow", amount: 11050, reconcilesEventId: "cross-plan" } };
+      assert.equal(timeline.writeTimeline({ version: 2, events: [crossPlan, crossActual] }), true);
+      const crossEvents = timeline.readTimeline().record.events;
+      const crossSources = rec.eventProjectionSources(crossEvents, "p", "2026-11");
+      assert.deepEqual(crossSources.map((entry) => entry.id), ["cross-plan", "cross-actual"]);
+      const crossProj = { version: 1, projections: [{ id: "cross-run", name: "Cross", personId: "p", origin: "2026-11",
+        opening: 100000, includePlanned: true, sources: crossSources }] };
+      assert.equal(store.writeEventProjections(crossProj, empty), true);
+      const crossBackup = app.exportAllData();
+      assert.equal(store.writeEventProjections(empty, crossProj), true);
+      app.importAllData(crossBackup);
+      assert.deepEqual(store.readEventProjections().record.projections[0].sources.map((entry) => entry.id), ["cross-plan", "cross-actual"]);
+      const crossReplay = projectCashEvents(toReplayMonth(2026, 11), toReplayMonth(2026, 11), toReplayMonth(2027, 4), 100000, crossEvents, "p", true);
+      assert.equal(crossReplay[0].state.closing, 88950);
     }
   `;
   assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
