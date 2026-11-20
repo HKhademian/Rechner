@@ -81,6 +81,13 @@ export function toMapPlaceId(value: string): MapPlaceId {
   return value as MapPlaceId;
 }
 
+export interface MarketDetails {
+  readonly venue: string;
+  readonly theme: string;
+  readonly hours: readonly (readonly [label: string, time: string])[];
+  readonly exceptions?: readonly (readonly [label: string, time: string])[];
+}
+
 export interface MapPlace {
   readonly id: MapPlaceId;
   readonly title: string;
@@ -92,6 +99,22 @@ export interface MapPlace {
   readonly endDate?: string;
   readonly modes?: readonly MapCategory[];
   readonly sourceLabel?: string;
+  readonly market?: MarketDetails;
+  readonly alsoListedUnder?: MapCategory;
+}
+
+const dateLabel = new Intl.DateTimeFormat("en-GB", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+export function formatPlaceDate(place: MapPlace): string | undefined {
+  if (!place.date) {
+    return undefined;
+  }
+  return place.endDate
+    ? dateLabel.formatRange(new Date(place.date), new Date(place.endDate))
+    : dateLabel.format(new Date(place.date));
 }
 
 export const landmarkLayers = [MapCategory.Landmark, MapCategory.Church, MapCategory.Cemetery] as const;
@@ -156,8 +179,6 @@ export const munichPlaces: readonly MapPlace[] = [
   place("olympiapark-flohmarkt", "Flohmarkt im Olympiapark", MapCategory.FleaMarket, toMapPosition(48.1739, 11.5349), "Flea market on the Parkharfe.", "https://www.olympiapark.de/"),
   place("messe", "Messe München", MapCategory.Event, toMapPosition(48.1357, 11.6958), "Trade fairs and exhibitions in Riem.", "https://messe-muenchen.de/"),
   place("deutsches-museum", "Deutsches Museum", MapCategory.Event, toMapPosition(48.1299, 11.5832), "Exhibitions and public programs on Museumsinsel.", "https://www.deutsches-museum.de/"),
-  place("christkindlmarkt", "Münchner Christkindlmarkt", MapCategory.ChristmasMarket, toMapPosition(48.1374, 11.5755), "Seasonal market around Marienplatz and the Neues Rathaus.", "https://www.christkindlmarkt-muenchen.de/", "2026-11-20", "2026-12-24"),
-  place("wintertollwood", "Tollwood Winterfestival", MapCategory.Festival, toMapPosition(48.1342, 11.5496), "Winter festival at Theresienwiese.", "https://www.tollwood.de/", "2026-11-24", "2026-12-23"),
   place("sommertollwood", "Tollwood Sommerfestival", MapCategory.Festival, toMapPosition(48.1686, 11.5417), "Summer festival in the southern Olympiapark.", "https://www.tollwood.de/"),
   place("isarphilharmonie", "Isarphilharmonie", MapCategory.Concert, toMapPosition(48.1140, 11.5483), "Concert hall at Gasteig HP8.", "https://www.gasteig.de/"),
   place("olympiahalle", "Olympiahalle", MapCategory.Concert, toMapPosition(48.1743, 11.5500), "Concert and event venue in Olympiapark.", "https://www.olympiapark.de/"),

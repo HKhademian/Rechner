@@ -1,5 +1,8 @@
 import "leaflet/dist/leaflet.css";
 import {
+  render,
+} from "preact";
+import {
   type Map as LeafletMap,
   type Marker,
   type LeafletMouseEvent,
@@ -27,6 +30,10 @@ import {
   mapLayers,
   toMapPosition,
 } from "./places.ts";
+
+import {
+  ChristmasMarketDetails,
+} from "./ChristmasMarketDetails.tsx";
 
 interface MapViewProps {
   readonly places: readonly MapPlace[];
@@ -124,6 +131,16 @@ export function MapView({
     }
     const visiblePlaces = layerGroup().addTo(view);
     const markers = new Map<MapPlaceId, Marker>();
+    // Multiple market programs can use the same venue on different dates.
+    const marketsByPosition = new Map<string, MapPlace[]>();
+    for (const place of places) {
+      if (place.market) {
+        const key = place.position.join(",");
+        const markets = marketsByPosition.get(key) ?? [];
+        markets.push(place);
+        marketsByPosition.set(key, markets);
+      }
+    }
     const renderVisiblePlaces = () => {
       const visibleIds = new Set<MapPlaceId>();
       const bounds = view.getBounds().pad(0.1);
@@ -132,7 +149,8 @@ export function MapView({
       const declutter = view.getZoom() <= 13;
       for (const place of places) {
         const coordinates = point(place.position);
-        if (!bounds.contains(coordinates)) {
+        const venueMarkets = place.market ? marketsByPosition.get(place.position.join(",")) : undefined;
+        if (!bounds.contains(coordinates) || (venueMarkets && venueMarkets[0].id !== place.id)) {
           continue;
         }
         if (declutter && (place.category === MapCategory.Church || place.category === MapCategory.Bus)) {
@@ -151,11 +169,26 @@ export function MapView({
         const overlay = mapLayers.includes(place.category);
         const pin = marker(coordinates, {
           icon: pinStyle(style.code, style.color, overlay ? 20 : 26),
-          title: place.title,
+          title: venueMarkets?.map((market) => market.title).join(" · ") ?? place.title,
           zIndexOffset: overlay ? 0 : 250,
         }).on("click", () => onSelect(place)).addTo(visiblePlaces);
         pin.bindPopup(() => {
           const content = document.createElement("div");
+          if (venueMarkets) {
+            render(
+              <div class="munich-market-popup">
+                {venueMarkets.map((item) => item.market && (
+                  <section key={item.id} aria-label={item.title}>
+                    <strong>{item.title}</strong>
+                    <ChristmasMarketDetails place={item} market={item.market} />
+                    {item.source && <a href={item.source}>Published schedule</a>}
+                  </section>
+                ))}
+              </div>,
+              content,
+            );
+            return content;
+          }
           const title = document.createElement("strong");
           title.textContent = place.title;
           content.append(title);
@@ -165,9 +198,10 @@ export function MapView({
             content.append(detail);
           }
           return content;
-        });
+        }, { maxHeight: 300,
+          maxWidth: 300 });
         markers.set(place.id, pin);
-        pin.getElement()?.setAttribute("aria-label", place.title);
+        pin.getElement()?.setAttribute("aria-label", pin.options.title ?? place.title);
       }
       for (const [id, pin] of markers) {
         if (!visibleIds.has(id)) {

@@ -28,6 +28,7 @@ import {
   PersonalPin,
   categoryStyle,
   distanceKm,
+  formatPlaceDate,
   landmarkLayers,
   mapLayers,
   transitLayers,
@@ -42,23 +43,27 @@ import {
   saveMapData,
 } from "./mapStorage.ts";
 
+import {
+  ChristmasMarketDetails,
+} from "./ChristmasMarketDetails.tsx";
+import {
+  christmasMarkets,
+  munichChristmasMarketGuide,
+} from "./christmasMarkets.ts";
+
 const categories = Object.values(MapCategory);
 const eventCategories = categories.filter((item) => !mapLayers.includes(item) && item !== MapCategory.Transit);
 const defaultLayers: readonly MapCategory[] = [...landmarkLayers, MapCategory.Subway, MapCategory.SuburbanRail];
 const resultLimit = 80;
 const personalPins = Object.values(PersonalPin);
-const dateLabel = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium",
-  timeZone: "UTC" });
 const munichDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin",
   dateStyle: "short" });
 
-function placeDate(place: MapPlace): string | undefined {
-  if (!place.date) {
-    return undefined;
-  }
-  return place.endDate
-    ? dateLabel.formatRange(new Date(place.date), new Date(place.endDate))
-    : dateLabel.format(new Date(place.date));
+function inCategory(
+  place: MapPlace,
+  category: MapCategory,
+): boolean {
+  return place.category === category || place.alsoListedUnder === category;
 }
 
 const initialData: MapData = { pins: {},
@@ -107,8 +112,9 @@ export default function MunichMap() {
   const origin = (reference && data.pins[reference]?.position) || MUNICH_CENTER;
   const places = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
-    return [...munichPlaces, ...cityPlaces, ...data.places].flatMap((place) => {
-      if (!`${place.title} ${place.detail}`.toLocaleLowerCase().includes(term)) {
+    return [...munichPlaces, ...christmasMarkets, ...cityPlaces, ...data.places].flatMap((place) => {
+      const searchText = [place.title, place.detail, place.market?.venue, place.market?.theme].join(" ");
+      if (!searchText.toLocaleLowerCase().includes(term)) {
         return [];
       }
       if (place.modes) {
@@ -122,7 +128,7 @@ export default function MunichMap() {
       if (mapLayers.includes(place.category)) {
         return layers.includes(place.category) ? [place] : [];
       }
-      return !category || category === place.category ? [place] : [];
+      return !category || inCategory(place, category) ? [place] : [];
     }).map((place) => ({
       place,
       distance: distanceKm(origin, place.position),
@@ -130,10 +136,13 @@ export default function MunichMap() {
       .sort((left, right) => left.distance - right.distance);
   }, [cityPlaces, data.places, origin, query, category, layers, radius]);
   const markers = useMemo(() => places.map(({ place }) => place), [places]);
-  const listedPlaces = useMemo(() => [
-    ...places.filter(({ place }) => eventCategories.includes(place.category)),
-    ...places.filter(({ place }) => !eventCategories.includes(place.category)),
-  ].slice(0, resultLimit), [places]);
+  const resultPlaces = useMemo(() => category
+    ? places.filter(({ place }) => inCategory(place, category))
+    : [
+      ...places.filter(({ place }) => eventCategories.includes(place.category)),
+      ...places.filter(({ place }) => !eventCategories.includes(place.category)),
+    ], [category, places]);
+  const listedPlaces = resultPlaces.slice(0, resultLimit);
   const pins = useMemo(() => personalPins.flatMap((name) => {
     const pin = data.pins[name];
     return pin ? [{ title: name,
@@ -210,7 +219,7 @@ export default function MunichMap() {
   const activePlace = selected && places.find(({ place }) => place.id === selected.id);
   const ownPlace = activePlace && data.places.some((place) => place.id === activePlace.place.id);
   const activeDate = activePlace && (ownPlace || today && today <= (activePlace.place.endDate ?? activePlace.place.date ?? ""))
-    ? placeDate(activePlace.place)
+    ? formatPlaceDate(activePlace.place)
     : undefined;
 
   return (
@@ -345,12 +354,20 @@ export default function MunichMap() {
                 {item ?? "All events"}
               </button>)}
           </div>
-          <p class="munich-map-count">{places.length} {places.length === 1 ? "place" : "places"}</p>
+          <p class="munich-map-count">
+            {resultPlaces.length} {category === MapCategory.ChristmasMarket
+              ? (resultPlaces.length === 1 ? "Christmas market" : "Christmas markets")
+              : (resultPlaces.length === 1 ? "place" : "places")}
+          </p>
           {activePlace && (
             <section class="munich-map-detail" aria-label="Selected place">
               <h3>{activePlace.place.title}</h3>
-              {activeDate && <time dateTime={activePlace.place.date}>{activeDate}</time>}
-              {activePlace.place.detail && <p>{activePlace.place.detail}</p>}
+              {activePlace.place.market ? <ChristmasMarketDetails place={activePlace.place} market={activePlace.place.market} /> : (
+                <>
+                  {activeDate && <time dateTime={activePlace.place.date}>{activeDate}</time>}
+                  {activePlace.place.detail && <p>{activePlace.place.detail}</p>}
+                </>
+              )}
               {activePlace.place.source && <a href={activePlace.place.source}>
                 {activePlace.place.sourceLabel ?? "Official site"}
               </a>}
@@ -369,7 +386,7 @@ export default function MunichMap() {
               </div>}
             </section>
           )}
-          {places.length === 0 && <p>No places match these filters.</p>}
+          {resultPlaces.length === 0 && <p>No places match these filters.</p>}
           <ul class="munich-map-results">
             {listedPlaces.map(({ place, distance }) => {
               const style = categoryStyle[place.category];
@@ -377,16 +394,21 @@ export default function MunichMap() {
                 <li key={place.id}>
                   <button type="button" aria-pressed={selected?.id === place.id} onClick={() => selectPlace(place)}>
                     <span class="munich-map-category-code" style={{ backgroundColor: style.color }} aria-hidden="true">{style.code}</span>
-                    <span><strong>{place.title}</strong><small>{place.category}</small></span>
+                    <span>
+                      <strong>{place.title}</strong>
+                      <small>{place.market ? `${formatPlaceDate(place)} · ${place.market.theme}` : place.category}</small>
+                    </span>
                     <span>{distance.toFixed(1)} km</span>
                   </button>
                 </li>
               );
             })}
           </ul>
-          {places.length > resultLimit && <p class="munich-map-count">Showing {resultLimit} places, with events first. Search or set a radius to narrow the list.</p>}
+          {resultPlaces.length > resultLimit && <p class="munich-map-count">Showing {resultLimit} places. Search or set a radius to narrow the list.</p>}
           <p class="munich-map-schedule">
-            Check organizer sites for dates and opening hours. <a href="https://www.muenchen.de/veranstaltungen">Munich event calendar</a>
+            {category === MapCategory.ChristmasMarket
+              ? <a href={munichChristmasMarketGuide}>Munich’s 2026 Christmas market guide</a>
+              : <a href="https://www.muenchen.de/veranstaltungen">Munich event calendar</a>}
           </p>
         </aside>
       </div>
