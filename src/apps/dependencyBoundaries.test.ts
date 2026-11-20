@@ -71,6 +71,15 @@ const KITA_STORE = resolve("src/apps/kita/kitaStore.ts");
 const MINIJOB_MIDIJOB_STORE = resolve("src/apps/minijob-midijob/minijobMidijobStore.ts");
 const COMMUTER_ALLOWANCE_STORE = resolve("src/apps/commuter-allowance/commuterAllowanceStore.ts");
 const EXPENSE_PLANNER_STORE = resolve("src/apps/expense-planner/expensePlannerStore.ts");
+const RESIGNATION_RUNWAY_STORE = resolve("src/apps/resignation-runway/resignationRunwayStore.ts");
+const PERMANENT_RESIDENCY_STORE = resolve("src/apps/permanent-residency/permanentResidencyStore.ts");
+const CITIZENSHIP_STORE = resolve("src/apps/citizenship/citizenshipStore.ts");
+const FAMILY_MILESTONES_STORE = resolve("src/apps/family-milestones/familyMilestonesStore.ts");
+const CHILDCARE_PLANNER_STORE = resolve("src/apps/childcare-planner/childcarePlannerStore.ts");
+const TRAVEL_PLANNER_STORE = resolve("src/apps/travel-planner/travelPlannerStore.ts");
+const TAX_CLASS_SWITCH_STORE = resolve("src/apps/tax-class-switch/taxClassSwitchStore.ts");
+const ASSET_AFFORDABILITY_STORE = resolve("src/apps/asset-affordability/assetAffordabilityStore.ts");
+const PLANNING_DASHBOARD_STORE = resolve("src/apps/planning-dashboard/planningDashboardStore.ts");
 
 const ALL_CALCULATOR_STORES = [
   NET_PAY_STORE,
@@ -85,6 +94,15 @@ const ALL_CALCULATOR_STORES = [
   MINIJOB_MIDIJOB_STORE,
   COMMUTER_ALLOWANCE_STORE,
   EXPENSE_PLANNER_STORE,
+  RESIGNATION_RUNWAY_STORE,
+  PERMANENT_RESIDENCY_STORE,
+  CITIZENSHIP_STORE,
+  FAMILY_MILESTONES_STORE,
+  CHILDCARE_PLANNER_STORE,
+  TRAVEL_PLANNER_STORE,
+  TAX_CLASS_SWITCH_STORE,
+  ASSET_AFFORDABILITY_STORE,
+  PLANNING_DASHBOARD_STORE,
 ] as const;
 
 it("catalog and app entries cannot initialize another calculator's financial stores", () => {
@@ -107,6 +125,15 @@ it("catalog and app entries cannot initialize another calculator's financial sto
     ["src/apps/minijob-midijob/App.tsx", [MINIJOB_MIDIJOB_STORE]],
     ["src/apps/commuter-allowance/App.tsx", [COMMUTER_ALLOWANCE_STORE]],
     ["src/apps/expense-planner/App.tsx", [EXPENSE_PLANNER_STORE]],
+    ["src/apps/resignation-runway/App.tsx", [RESIGNATION_RUNWAY_STORE]],
+    ["src/apps/permanent-residency/App.tsx", [PERMANENT_RESIDENCY_STORE]],
+    ["src/apps/citizenship/App.tsx", [CITIZENSHIP_STORE]],
+    ["src/apps/family-milestones/App.tsx", [FAMILY_MILESTONES_STORE]],
+    ["src/apps/childcare-planner/App.tsx", [CHILDCARE_PLANNER_STORE]],
+    ["src/apps/travel-planner/App.tsx", [TRAVEL_PLANNER_STORE]],
+    ["src/apps/tax-class-switch/App.tsx", [TAX_CLASS_SWITCH_STORE]],
+    ["src/apps/asset-affordability/App.tsx", [ASSET_AFFORDABILITY_STORE]],
+    ["src/apps/planning-dashboard/App.tsx", [PLANNING_DASHBOARD_STORE]],
   ];
 
   for (const [entryPath, owned] of entryOwnStores) {

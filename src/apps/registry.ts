@@ -5,6 +5,15 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  assetAffordabilityApp,
+} from "#/apps/asset-affordability/manifest.ts";
+import {
+  childcarePlannerApp,
+} from "#/apps/childcare-planner/manifest.ts";
+import {
+  citizenshipApp,
+} from "#/apps/citizenship/manifest.ts";
+import {
   companyCarApp,
 } from "#/apps/company-car/manifest.ts";
 import {
@@ -13,6 +22,9 @@ import {
 import {
   expensePlannerApp,
 } from "#/apps/expense-planner/manifest.ts";
+import {
+  familyMilestonesApp,
+} from "#/apps/family-milestones/manifest.ts";
 import {
   giroCodeApp,
 } from "#/apps/girocode/manifest.ts";
@@ -35,8 +47,23 @@ import {
   parentalLeaveApp,
 } from "#/apps/parental-leave/manifest.ts";
 import {
+  permanentResidencyApp,
+} from "#/apps/permanent-residency/manifest.ts";
+import {
+  planningDashboardApp,
+} from "#/apps/planning-dashboard/manifest.ts";
+import {
+  resignationRunwayApp,
+} from "#/apps/resignation-runway/manifest.ts";
+import {
   solarEnergyApp,
 } from "#/apps/solar-energy/manifest.ts";
+import {
+  taxClassSwitchApp,
+} from "#/apps/tax-class-switch/manifest.ts";
+import {
+  travelPlannerApp,
+} from "#/apps/travel-planner/manifest.ts";
 import {
   visaApp,
 } from "#/apps/visa/manifest.ts";
@@ -55,6 +82,15 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   minijobMidijobApp,
   commuterAllowanceApp,
   expensePlannerApp,
+  resignationRunwayApp,
+  permanentResidencyApp,
+  citizenshipApp,
+  familyMilestonesApp,
+  childcarePlannerApp,
+  travelPlannerApp,
+  taxClassSwitchApp,
+  assetAffordabilityApp,
+  planningDashboardApp,
 ]);
 
 /** Default release catalog shown on the home page. */

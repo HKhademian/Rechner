@@ -107,10 +107,8 @@ export default function FamilyMilestonesCalculator(): JSX.Element {
       payload: {
         jobId: toLifeJobId("primary-job"),
         employer: "Primary employer",
-        gross: {
-          amount: state.primaryAnnualGrossEur,
-          period: SalaryPeriod.Yearly,
-        },
+        gross: state.primaryAnnualGrossEur,
+        grossPeriod: SalaryPeriod.Yearly,
       },
     });
   }
@@ -124,10 +122,8 @@ export default function FamilyMilestonesCalculator(): JSX.Element {
       payload: {
         jobId: toLifeJobId("partner-job"),
         employer: "Partner employer",
-        gross: {
-          amount: state.partnerAnnualGrossEur,
-          period: SalaryPeriod.Yearly,
-        },
+        gross: state.partnerAnnualGrossEur,
+        grossPeriod: SalaryPeriod.Yearly,
       },
     });
   }

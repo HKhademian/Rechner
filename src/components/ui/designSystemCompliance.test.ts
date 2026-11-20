@@ -31,6 +31,15 @@ const ROUTE_COMPONENTS: readonly string[] = [
   "src/apps/minijob-midijob/MinijobMidijobCalculator.tsx",
   "src/apps/commuter-allowance/CommuterAllowanceCalculator.tsx",
   "src/apps/expense-planner/ExpensePlannerCalculator.tsx",
+  "src/apps/resignation-runway/ResignationRunwayCalculator.tsx",
+  "src/apps/permanent-residency/PermanentResidencyCalculator.tsx",
+  "src/apps/citizenship/CitizenshipCalculator.tsx",
+  "src/apps/family-milestones/FamilyMilestonesCalculator.tsx",
+  "src/apps/childcare-planner/ChildcarePlannerCalculator.tsx",
+  "src/apps/travel-planner/TravelPlannerCalculator.tsx",
+  "src/apps/tax-class-switch/TaxClassSwitchCalculator.tsx",
+  "src/apps/asset-affordability/AssetAffordabilityCalculator.tsx",
+  "src/apps/planning-dashboard/PlanningDashboardCalculator.tsx",
 ];
 
 function walkFiles(

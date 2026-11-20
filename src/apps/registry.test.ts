@@ -37,6 +37,15 @@ it("limits default release catalog to published calculators while retaining draf
       AppId.MinijobMidijob,
       AppId.CommuterAllowance,
       AppId.ExpensePlanner,
+      AppId.ResignationRunway,
+      AppId.PermanentResidency,
+      AppId.Citizenship,
+      AppId.FamilyMilestones,
+      AppId.ChildcarePlanner,
+      AppId.TravelPlanner,
+      AppId.TaxClassSwitch,
+      AppId.AssetAffordability,
+      AppId.PlanningDashboard,
     ],
   );
   assert.deepEqual(
@@ -71,6 +80,15 @@ it("filters German search terms, categories and empty results and clamps paginat
   assert.equal(catalogPage(allCalculatorApps, "übergangsbereich", undefined, 1).items[0].id, AppId.MinijobMidijob);
   assert.equal(catalogPage(allCalculatorApps, "pendlerpauschale", undefined, 1).items[0].id, AppId.CommuterAllowance);
   assert.equal(catalogPage(allCalculatorApps, "haushaltsbuch", undefined, 1).items[0].id, AppId.ExpensePlanner);
+  assert.equal(catalogPage(allCalculatorApps, "sperrzeit", undefined, 1).items[0].id, AppId.ResignationRunway);
+  assert.equal(catalogPage(allCalculatorApps, "ausländerbehörde", undefined, 1).items[0].id, AppId.PermanentResidency);
+  assert.equal(catalogPage(allCalculatorApps, "einbürgerung", undefined, 1).items[0].id, AppId.Citizenship);
+  assert.equal(catalogPage(allCalculatorApps, "schwangerschaft", undefined, 1).items[0].id, AppId.FamilyMilestones);
+  assert.equal(catalogPage(allCalculatorApps, "grundschule", undefined, 1).items[0].id, AppId.ChildcarePlanner);
+  assert.equal(catalogPage(allCalculatorApps, "schengen", undefined, 1).items[0].id, AppId.TravelPlanner);
+  assert.equal(catalogPage(allCalculatorApps, "steuerklassenwechsel", undefined, 1).items[0].id, AppId.TaxClassSwitch);
+  assert.equal(catalogPage(allCalculatorApps, "upfront", undefined, 1).items[0].id, AppId.AssetAffordability);
+  assert.equal(catalogPage(allCalculatorApps, "trade-offs", undefined, 1).items[0].id, AppId.PlanningDashboard);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Everyday, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(calculatorApps, "nothing matches", undefined, 99).total, 0);
   const many = Array.from({ length: 8 }, () => calculatorApps[0]);
