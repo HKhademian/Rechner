@@ -46,6 +46,14 @@ it("limits default release catalog to published calculators while retaining draf
       AppId.TaxClassSwitch,
       AppId.AssetAffordability,
       AppId.PlanningDashboard,
+      AppId.Mutterschutz,
+      AppId.ProgressionTax,
+      AppId.KindergeldComparison,
+      AppId.ElterngeldQuick,
+      AppId.SalaryRaise,
+      AppId.KalteProgression,
+      AppId.CashReconciliation,
+      AppId.AgeRelief,
     ],
   );
   assert.deepEqual(
@@ -89,6 +97,14 @@ it("filters German search terms, categories and empty results and clamps paginat
   assert.equal(catalogPage(allCalculatorApps, "steuerklassenwechsel", undefined, 1).items[0].id, AppId.TaxClassSwitch);
   assert.equal(catalogPage(allCalculatorApps, "upfront", undefined, 1).items[0].id, AppId.AssetAffordability);
   assert.equal(catalogPage(allCalculatorApps, "trade-offs", undefined, 1).items[0].id, AppId.PlanningDashboard);
+  assert.equal(catalogPage(allCalculatorApps, "arbeitgeberzuschuss", undefined, 1).items[0].id, AppId.Mutterschutz);
+  assert.equal(catalogPage(allCalculatorApps, "progressionsvorbehalt", undefined, 1).items[0].id, AppId.ProgressionTax);
+  assert.equal(catalogPage(allCalculatorApps, "günstigerprüfung", undefined, 1).items[0].id, AppId.KindergeldComparison);
+  assert.equal(catalogPage(allCalculatorApps, "einkommensgrenze", undefined, 1).items[0].id, AppId.ElterngeldQuick);
+  assert.equal(catalogPage(allCalculatorApps, "gehaltserhöhung", undefined, 1).items[0].id, AppId.SalaryRaise);
+  assert.equal(catalogPage(allCalculatorApps, "kalte progression", undefined, 1).items[0].id, AppId.KalteProgression);
+  assert.equal(catalogPage(allCalculatorApps, "soll ist", undefined, 1).items[0].id, AppId.CashReconciliation);
+  assert.equal(catalogPage(allCalculatorApps, "altersentlastungsbetrag", undefined, 1).items[0].id, AppId.AgeRelief);
   assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Everyday, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(calculatorApps, "nothing matches", undefined, 99).total, 0);
   const many = Array.from({ length: 8 }, () => calculatorApps[0]);

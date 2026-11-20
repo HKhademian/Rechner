@@ -50,13 +50,20 @@ import {
   resolveEffectiveTaxRulesForYear,
 } from "#engine/tax/inflationIndexing";
 import {
+  annualWithholdingTaxBase,
+  payrollInputs,
+} from "#engine/tax/payroll";
+import {
   VERIFIED_TAX_YEARS,
 } from "#engine/tax/taxRules";
 import {
+  computeAnnualIncomeTax,
   computeGrossToNetBreakdown,
+  computeSolidaritySurcharge,
 } from "#engine/tax/wageTax";
 import {
   TaxClass,
+  toChildrenCount,
   toEuroAmount,
   toEuroCents,
   toFullCalendarYear,
@@ -78,6 +85,7 @@ export default function KalteProgressionCalculator(): JSX.Element {
   const wageRate = toPercentageRate(state.annualWageGrowthPct / 100);
   const inflationRate = toPercentageRate(state.annualInflationPct / 100);
   const indexRate = toPercentageRate(state.annualBracketIndexPct / 100);
+  const children = toChildrenCount(state.childrenCount);
 
   const rows = Array.from({ length: state.horizonYears + 1 }, (_, offset) => {
     const year = toFullCalendarYear(state.baseYear + offset);
@@ -97,14 +105,18 @@ export default function KalteProgressionCalculator(): JSX.Element {
       undefined,
       frozenRules,
     );
-    const indexedBreakdown = computeGrossToNetBreakdown(
-      toGrossSalary(nominalGross),
-      state.taxClass,
-      state.childrenCount,
-      undefined,
-      undefined,
-      indexedRules,
+
+    const annualTaxBase = annualWithholdingTaxBase(
+      payrollInputs(toGrossSalary(nominalGross), state.taxClass, children, frozenRules, {}),
+      frozenRules,
     );
+    const frozenIncomeTax = computeAnnualIncomeTax(annualTaxBase, frozenRules);
+    const frozenAnnualTaxTotal = frozenIncomeTax + computeSolidaritySurcharge(frozenIncomeTax, false, frozenRules);
+    const indexedIncomeTax = computeAnnualIncomeTax(annualTaxBase, indexedRules);
+    const indexedAnnualTaxTotal = indexedIncomeTax + computeSolidaritySurcharge(indexedIncomeTax, false, indexedRules);
+
+    const monthlyFiscalDragEur = Math.max(0, (frozenAnnualTaxTotal - indexedAnnualTaxTotal) / 12);
+    const nominalIndexedNet = frozenBreakdown.monthlyNetTakeHome + monthlyFiscalDragEur;
 
     const realFrozenNet = evaluatePurchasingPowerDiscountFormula({
       nominalAmount: toEuroAmount(frozenBreakdown.monthlyNetTakeHome),
@@ -112,12 +124,10 @@ export default function KalteProgressionCalculator(): JSX.Element {
       elapsedMonths: offset * 12,
     }).realAmount;
     const realIndexedNet = evaluatePurchasingPowerDiscountFormula({
-      nominalAmount: toEuroAmount(indexedBreakdown.monthlyNetTakeHome),
+      nominalAmount: toEuroAmount(nominalIndexedNet),
       annualInflationRate: inflationRate,
       elapsedMonths: offset * 12,
     }).realAmount;
-
-    const monthlyFiscalDragEur = Math.max(0, indexedBreakdown.monthlyNetTakeHome - frozenBreakdown.monthlyNetTakeHome);
 
     return {
       offset,

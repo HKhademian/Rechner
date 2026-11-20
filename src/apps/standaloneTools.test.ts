@@ -4,8 +4,14 @@ import {
   it,
 } from "node:test";
 import {
+  ageReliefStore,
+} from "#/apps/age-relief/ageReliefStore.ts";
+import {
   assetAffordabilityStore,
 } from "#/apps/asset-affordability/assetAffordabilityStore.ts";
+import {
+  cashReconciliationStore,
+} from "#/apps/cash-reconciliation/cashReconciliationStore.ts";
 import {
   childcarePlannerStore,
 } from "#/apps/childcare-planner/childcarePlannerStore.ts";
@@ -13,8 +19,20 @@ import {
   citizenshipStore,
 } from "#/apps/citizenship/citizenshipStore.ts";
 import {
+  elterngeldQuickStore,
+} from "#/apps/elterngeld-quick/elterngeldQuickStore.ts";
+import {
   familyMilestonesStore,
 } from "#/apps/family-milestones/familyMilestonesStore.ts";
+import {
+  kalteProgressionStore,
+} from "#/apps/kalte-progression/kalteProgressionStore.ts";
+import {
+  kindergeldComparisonStore,
+} from "#/apps/kindergeld-comparison/kindergeldComparisonStore.ts";
+import {
+  mutterschutzStore,
+} from "#/apps/mutterschutz/mutterschutzStore.ts";
 import {
   permanentResidencyStore,
 } from "#/apps/permanent-residency/permanentResidencyStore.ts";
@@ -22,8 +40,14 @@ import {
   planningDashboardStore,
 } from "#/apps/planning-dashboard/planningDashboardStore.ts";
 import {
+  progressionTaxStore,
+} from "#/apps/progression-tax/progressionTaxStore.ts";
+import {
   resignationRunwayStore,
 } from "#/apps/resignation-runway/resignationRunwayStore.ts";
+import {
+  salaryRaiseStore,
+} from "#/apps/salary-raise/salaryRaiseStore.ts";
 import {
   taxClassSwitchStore,
 } from "#/apps/tax-class-switch/taxClassSwitchStore.ts";
@@ -44,7 +68,7 @@ import {
 } from "#engine/lifeProfile/taxSwitchEvent";
 
 describe("standalone intent-based planning tool stores", () => {
-  it("supports isolated updates, validation clamping and clean reset across all 9 stores", () => {
+  it("supports isolated updates, validation clamping and clean reset across all 17 scoped stores", () => {
     resignationRunwayStore.update((s) => ({ ...s,
       openingSavingsEur: 42000,
       waitingPeriodMonths: 2 }));
@@ -110,5 +134,65 @@ describe("standalone intent-based planning tool stores", () => {
     assert.equal(planningDashboardStore.state.value.hasMajorPurchase, true);
     planningDashboardStore.reset();
     assert.deepEqual(planningDashboardStore.state.value, planningDashboardStore.defaultState);
+
+    mutterschutzStore.update((s) => ({ ...s,
+      preBirthMonthlyNetEur: 3600,
+      extendedPostBirth: true }));
+    assert.equal(mutterschutzStore.state.value.preBirthMonthlyNetEur, 3600);
+    assert.equal(mutterschutzStore.state.value.extendedPostBirth, true);
+    mutterschutzStore.reset();
+    assert.deepEqual(mutterschutzStore.state.value, mutterschutzStore.defaultState);
+
+    progressionTaxStore.update((s) => ({ ...s,
+      progressionBenefitsEur: 18000 }));
+    assert.equal(progressionTaxStore.state.value.progressionBenefitsEur, 18000);
+    progressionTaxStore.reset();
+    assert.deepEqual(progressionTaxStore.state.value, progressionTaxStore.defaultState);
+
+    kindergeldComparisonStore.update((s) => ({ ...s,
+      jointAnnualZveEur: 140000,
+      childrenCount: 3 }));
+    assert.equal(kindergeldComparisonStore.state.value.jointAnnualZveEur, 140000);
+    assert.equal(kindergeldComparisonStore.state.value.childrenCount, 3);
+    kindergeldComparisonStore.reset();
+    assert.deepEqual(kindergeldComparisonStore.state.value, kindergeldComparisonStore.defaultState);
+
+    elterngeldQuickStore.update((s) => ({ ...s,
+      couplePriorYearZveEur: 185000,
+      hasOlderSiblingUnder3: true }));
+    assert.equal(elterngeldQuickStore.state.value.couplePriorYearZveEur, 185000);
+    assert.equal(elterngeldQuickStore.state.value.hasOlderSiblingUnder3, true);
+    elterngeldQuickStore.reset();
+    assert.deepEqual(elterngeldQuickStore.state.value, elterngeldQuickStore.defaultState);
+
+    salaryRaiseStore.update((s) => ({ ...s,
+      raisePercent: 12.5,
+      oneOffBonusEur: 5000 }));
+    assert.equal(salaryRaiseStore.state.value.raisePercent, 12.5);
+    assert.equal(salaryRaiseStore.state.value.oneOffBonusEur, 5000);
+    salaryRaiseStore.reset();
+    assert.deepEqual(salaryRaiseStore.state.value, salaryRaiseStore.defaultState);
+
+    kalteProgressionStore.update((s) => ({ ...s,
+      horizonYears: 8,
+      annualInflationPct: 3.5 }));
+    assert.equal(kalteProgressionStore.state.value.horizonYears, 8);
+    assert.equal(kalteProgressionStore.state.value.annualInflationPct, 3.5);
+    kalteProgressionStore.reset();
+    assert.deepEqual(kalteProgressionStore.state.value, kalteProgressionStore.defaultState);
+
+    cashReconciliationStore.update((s) => ({ ...s,
+      entries: s.entries.slice(0, 2) }));
+    assert.equal(cashReconciliationStore.state.value.entries.length, 2);
+    cashReconciliationStore.reset();
+    assert.deepEqual(cashReconciliationStore.state.value, cashReconciliationStore.defaultState);
+
+    ageReliefStore.update((s) => ({ ...s,
+      birthYear: 1960,
+      monthlyGrossEur: 5500 }));
+    assert.equal(ageReliefStore.state.value.birthYear, 1960);
+    assert.equal(ageReliefStore.state.value.monthlyGrossEur, 5500);
+    ageReliefStore.reset();
+    assert.deepEqual(ageReliefStore.state.value, ageReliefStore.defaultState);
   });
 });

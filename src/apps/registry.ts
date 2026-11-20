@@ -5,8 +5,14 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 import {
+  ageReliefApp,
+} from "#/apps/age-relief/manifest.ts";
+import {
   assetAffordabilityApp,
 } from "#/apps/asset-affordability/manifest.ts";
+import {
+  cashReconciliationApp,
+} from "#/apps/cash-reconciliation/manifest.ts";
 import {
   childcarePlannerApp,
 } from "#/apps/childcare-planner/manifest.ts";
@@ -20,6 +26,9 @@ import {
   commuterAllowanceApp,
 } from "#/apps/commuter-allowance/manifest.ts";
 import {
+  elterngeldQuickApp,
+} from "#/apps/elterngeld-quick/manifest.ts";
+import {
   expensePlannerApp,
 } from "#/apps/expense-planner/manifest.ts";
 import {
@@ -32,6 +41,12 @@ import {
   housingApp,
 } from "#/apps/housing/manifest.ts";
 import {
+  kalteProgressionApp,
+} from "#/apps/kalte-progression/manifest.ts";
+import {
+  kindergeldComparisonApp,
+} from "#/apps/kindergeld-comparison/manifest.ts";
+import {
   kitaApp,
 } from "#/apps/kita/manifest.ts";
 import {
@@ -40,6 +55,9 @@ import {
 import {
   mortgageApp,
 } from "#/apps/mortgage/manifest.ts";
+import {
+  mutterschutzApp,
+} from "#/apps/mutterschutz/manifest.ts";
 import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
@@ -53,8 +71,14 @@ import {
   planningDashboardApp,
 } from "#/apps/planning-dashboard/manifest.ts";
 import {
+  progressionTaxApp,
+} from "#/apps/progression-tax/manifest.ts";
+import {
   resignationRunwayApp,
 } from "#/apps/resignation-runway/manifest.ts";
+import {
+  salaryRaiseApp,
+} from "#/apps/salary-raise/manifest.ts";
 import {
   solarEnergyApp,
 } from "#/apps/solar-energy/manifest.ts";
@@ -91,6 +115,14 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   taxClassSwitchApp,
   assetAffordabilityApp,
   planningDashboardApp,
+  mutterschutzApp,
+  progressionTaxApp,
+  kindergeldComparisonApp,
+  elterngeldQuickApp,
+  salaryRaiseApp,
+  kalteProgressionApp,
+  cashReconciliationApp,
+  ageReliefApp,
 ]);
 
 /** Default release catalog shown on the home page. */

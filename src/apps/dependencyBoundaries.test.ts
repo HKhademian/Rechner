@@ -80,6 +80,14 @@ const TRAVEL_PLANNER_STORE = resolve("src/apps/travel-planner/travelPlannerStore
 const TAX_CLASS_SWITCH_STORE = resolve("src/apps/tax-class-switch/taxClassSwitchStore.ts");
 const ASSET_AFFORDABILITY_STORE = resolve("src/apps/asset-affordability/assetAffordabilityStore.ts");
 const PLANNING_DASHBOARD_STORE = resolve("src/apps/planning-dashboard/planningDashboardStore.ts");
+const MUTTERSCHUTZ_STORE = resolve("src/apps/mutterschutz/mutterschutzStore.ts");
+const PROGRESSION_TAX_STORE = resolve("src/apps/progression-tax/progressionTaxStore.ts");
+const KINDERGELD_COMPARISON_STORE = resolve("src/apps/kindergeld-comparison/kindergeldComparisonStore.ts");
+const ELTERNGELD_QUICK_STORE = resolve("src/apps/elterngeld-quick/elterngeldQuickStore.ts");
+const SALARY_RAISE_STORE = resolve("src/apps/salary-raise/salaryRaiseStore.ts");
+const KALTE_PROGRESSION_STORE = resolve("src/apps/kalte-progression/kalteProgressionStore.ts");
+const CASH_RECONCILIATION_STORE = resolve("src/apps/cash-reconciliation/cashReconciliationStore.ts");
+const AGE_RELIEF_STORE = resolve("src/apps/age-relief/ageReliefStore.ts");
 
 const ALL_CALCULATOR_STORES = [
   NET_PAY_STORE,
@@ -103,6 +111,14 @@ const ALL_CALCULATOR_STORES = [
   TAX_CLASS_SWITCH_STORE,
   ASSET_AFFORDABILITY_STORE,
   PLANNING_DASHBOARD_STORE,
+  MUTTERSCHUTZ_STORE,
+  PROGRESSION_TAX_STORE,
+  KINDERGELD_COMPARISON_STORE,
+  ELTERNGELD_QUICK_STORE,
+  SALARY_RAISE_STORE,
+  KALTE_PROGRESSION_STORE,
+  CASH_RECONCILIATION_STORE,
+  AGE_RELIEF_STORE,
 ] as const;
 
 it("catalog and app entries cannot initialize another calculator's financial stores", () => {
@@ -134,6 +150,14 @@ it("catalog and app entries cannot initialize another calculator's financial sto
     ["src/apps/tax-class-switch/App.tsx", [TAX_CLASS_SWITCH_STORE]],
     ["src/apps/asset-affordability/App.tsx", [ASSET_AFFORDABILITY_STORE]],
     ["src/apps/planning-dashboard/App.tsx", [PLANNING_DASHBOARD_STORE]],
+    ["src/apps/mutterschutz/App.tsx", [MUTTERSCHUTZ_STORE]],
+    ["src/apps/progression-tax/App.tsx", [PROGRESSION_TAX_STORE]],
+    ["src/apps/kindergeld-comparison/App.tsx", [KINDERGELD_COMPARISON_STORE]],
+    ["src/apps/elterngeld-quick/App.tsx", [ELTERNGELD_QUICK_STORE]],
+    ["src/apps/salary-raise/App.tsx", [SALARY_RAISE_STORE]],
+    ["src/apps/kalte-progression/App.tsx", [KALTE_PROGRESSION_STORE]],
+    ["src/apps/cash-reconciliation/App.tsx", [CASH_RECONCILIATION_STORE]],
+    ["src/apps/age-relief/App.tsx", [AGE_RELIEF_STORE]],
   ];
 
   for (const [entryPath, owned] of entryOwnStores) {

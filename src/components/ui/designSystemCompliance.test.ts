@@ -40,6 +40,14 @@ const ROUTE_COMPONENTS: readonly string[] = [
   "src/apps/tax-class-switch/TaxClassSwitchCalculator.tsx",
   "src/apps/asset-affordability/AssetAffordabilityCalculator.tsx",
   "src/apps/planning-dashboard/PlanningDashboardCalculator.tsx",
+  "src/apps/mutterschutz/MutterschutzCalculator.tsx",
+  "src/apps/progression-tax/ProgressionTaxCalculator.tsx",
+  "src/apps/kindergeld-comparison/KindergeldComparisonCalculator.tsx",
+  "src/apps/elterngeld-quick/ElterngeldQuickCalculator.tsx",
+  "src/apps/salary-raise/SalaryRaiseCalculator.tsx",
+  "src/apps/kalte-progression/KalteProgressionCalculator.tsx",
+  "src/apps/cash-reconciliation/CashReconciliationCalculator.tsx",
+  "src/apps/age-relief/AgeReliefCalculator.tsx",
 ];
 
 function walkFiles(
