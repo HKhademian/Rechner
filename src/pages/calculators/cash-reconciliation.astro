@@ -1,0 +1,13 @@
+---
+import CashReconciliationApp from "#/apps/cash-reconciliation/App.tsx";
+import {
+  cashReconciliationApp,
+} from "#/apps/cash-reconciliation/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${cashReconciliationApp.title} | Rechner`}
+  description={cashReconciliationApp.description}
+>
+  <CashReconciliationApp client:load />
+</BaseDocument>

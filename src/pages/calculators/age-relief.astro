@@ -1,0 +1,13 @@
+---
+import AgeReliefApp from "#/apps/age-relief/App.tsx";
+import {
+  ageReliefApp,
+} from "#/apps/age-relief/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${ageReliefApp.title} | Rechner`}
+  description={ageReliefApp.description}
+>
+  <AgeReliefApp client:load />
+</BaseDocument>
