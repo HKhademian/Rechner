@@ -34,6 +34,11 @@ import {
   CashScenarioStatus,
   decodeCashScenarios,
 } from "#engine/lifeProfile/cashScenarioRecord";
+import {
+  EVENT_PROJECTION_STORAGE_KEY,
+  EventProjectionStatus,
+  decodeEventProjections,
+} from "#engine/lifeProfile/eventProjectionRecord";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -751,7 +756,7 @@ export function clearSharedBrowserKey(key: string): void {
 
 const backupFormat = "rechner-backup";
 const memoryRestoreKey = "rechner:privacy:memory-restore:v1";
-const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY, TIMELINE_STORAGE_KEY, CASH_SCENARIO_STORAGE_KEY];
+const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY, TIMELINE_STORAGE_KEY, CASH_SCENARIO_STORAGE_KEY, EVENT_PROJECTION_STORAGE_KEY];
 
 type BackupEntries = Record<string, string>;
 
@@ -901,6 +906,9 @@ function parseBackup(serialized: string): BackupEntries {
     if (key === CASH_SCENARIO_STORAGE_KEY && decodeCashScenarios(raw).status !== CashScenarioStatus.Valid) {
       throw new Error("The backup contains invalid or unsupported cash scenarios.");
     }
+    if (key === EVENT_PROJECTION_STORAGE_KEY && decodeEventProjections(raw).status !== EventProjectionStatus.Valid) {
+      throw new Error("The backup contains invalid or unsupported event projections.");
+    }
     if (key === LIFE_PROFILE_STORAGE_KEY && inspectLegacyRecord(raw) !== LegacyRecordStatus.Supported) {
       throw new Error("The backup contains an invalid or unsupported life profile.");
     }
@@ -947,6 +955,13 @@ export function importAllData(serialized: string): void {
   }
   if (!Object.hasOwn(entries, CASH_SCENARIO_STORAGE_KEY) && currentCashScenarios !== null) {
     entries[CASH_SCENARIO_STORAGE_KEY] = currentCashScenarios;
+  }
+  const currentEventProjections = shared?.getItem(EVENT_PROJECTION_STORAGE_KEY) ?? null;
+  if (currentEventProjections !== null && decodeEventProjections(currentEventProjections).status !== EventProjectionStatus.Valid) {
+    throw new Error("The saved event projections are invalid or unsupported. Export them before restoring data.");
+  }
+  if (!Object.hasOwn(entries, EVENT_PROJECTION_STORAGE_KEY) && currentEventProjections !== null) {
+    entries[EVENT_PROJECTION_STORAGE_KEY] = currentEventProjections;
   }
   const timeline = decodeTimelineRecord(entries[TIMELINE_STORAGE_KEY] ?? null, lifeEventCatalog);
   const people = decodePeopleRecord(entries[PEOPLE_STORAGE_KEY] ?? null);
