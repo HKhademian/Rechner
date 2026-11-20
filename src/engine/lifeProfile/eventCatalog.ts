@@ -28,6 +28,9 @@ import {
   travelTripModule,
 } from "#engine/lifeProfile/travelEvent";
 import {
+  taxClassSwitchModule,
+} from "#engine/lifeProfile/taxSwitchEvent";
+import {
   cashEventModule,
 } from "#engine/lifeProfile/cashEvent";
 
@@ -47,5 +50,6 @@ export const lifeEventCatalog = createLifeEventRegistry([
   actualBirthModule,
   childcarePlanModule,
   travelTripModule,
+  taxClassSwitchModule,
   cashEventModule,
 ]);
