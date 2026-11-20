@@ -38,7 +38,11 @@ import {
 import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
+import CalculationExplanationPanel from "./CalculationExplanationPanel";
 import CashFlowChart from "./CashFlowChart";
+import {
+  explainRecurringCashProjection,
+} from "#engine/lifeProfile/calculationExplanation";
 import {
   type CashScenario,
   type CashScenarioRecord,
@@ -197,6 +201,36 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
   }
   const hasCompleteChart = rows.length > 0 && rows[0].state.opening !== undefined
     && rows.every(({ state }) => state.closing !== undefined);
+  let safeOpening;
+  let safeInflow;
+  let safeExpense;
+  try {
+    safeOpening = parseAmount(opening, true);
+  }
+  catch {
+    safeOpening = undefined;
+  }
+  try {
+    safeInflow = parseAmount(inflow, false);
+  }
+  catch {
+    safeInflow = undefined;
+  }
+  try {
+    safeExpense = parseAmount(expense, false);
+  }
+  catch {
+    safeExpense = undefined;
+  }
+  const explanation = explainRecurringCashProjection({
+    originMonth: date ? date.slice(0, 7) : "",
+    monthCount: 6,
+    opening: safeOpening,
+    recurringInflow: safeInflow,
+    recurringExpense: safeExpense,
+    policy: overlapPolicy,
+    selectedExtraCount: extraEventIds.length,
+  });
   return <section className="life-monthly" aria-label="Cash flow what-if">
     <button type="button" className="ui-btn" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
       {expanded ? "Hide cash flow what-if" : "Try cash flow what-if"}
@@ -269,7 +303,8 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
                   </div>)}
                 </td>}
               </tr>)}</tbody>
-            </table></div></>}
+            </table></div>
+            <CalculationExplanationPanel explanation={explanation} summary="Explain cash flow formula and inputs" /></>}
       <button type="button" className="ui-btn" aria-expanded={comparing} onClick={() => setComparing((value) => !value)}>
         {comparing ? "Hide comparison" : "Compare an alternative"}
       </button>

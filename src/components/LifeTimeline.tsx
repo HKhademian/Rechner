@@ -58,6 +58,14 @@ import {
   ProjectedFactStatus,
   projectEmploymentAtDate,
 } from "#engine/lifeProfile/employmentProjection";
+import {
+  evaluateEmploymentBand,
+} from "#engine/lifeProfile/employmentBandEvaluation";
+import {
+  JurisdictionCode,
+  toJurisdictionCode,
+} from "#engine/lifeProfile/statutoryRuleResolver";
+import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
 import LifeMonthlyView from "#components/LifeMonthlyView";
 import {
   PeopleRecordStatus,
@@ -93,6 +101,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   const [viewPersonId, setViewPersonId] = useState("");
   const [viewDate, setViewDate] = useState("");
   const [includePlanned, setIncludePlanned] = useState(false);
+  const [ruleJurisdiction, setRuleJurisdiction] = useState<JurisdictionCode>(JurisdictionCode.GermanyFederal);
+  const [allowRuleProjection, setAllowRuleProjection] = useState(false);
   const [title, setTitle] = useState("");
   const [entryType, setEntryType] = useState<EntryType>(EntryType.Note);
   const [gross, setGross] = useState("");
@@ -312,19 +322,50 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           <label className="life-people__field">View date
             <input type="date" value={viewDate} onInput={(event) => setViewDate(event.currentTarget.value)} />
           </label>
+          <label className="life-people__field">Rule jurisdiction
+            <select value={ruleJurisdiction} onChange={(event) => setRuleJurisdiction(toJurisdictionCode(event.currentTarget.value))}>
+              <option value={JurisdictionCode.GermanyFederal}>Germany (federal · DE)</option>
+              <option value={JurisdictionCode.UnsupportedOther}>Other / outside Germany</option>
+            </select>
+          </label>
           <label><input type="checkbox" checked={includePlanned} onChange={(event) => setIncludePlanned(event.currentTarget.checked)} /> Include planned events</label>
+          <label><input type="checkbox" checked={allowRuleProjection} onChange={(event) => setAllowRuleProjection(event.currentTarget.checked)} /> Project beyond verified rule dates</label>
         </div>
         {!viewDate ? <p>Choose a date.</p> : jobs.length === 0 ? <p>No applicable jobs recorded for this date.</p> : <ul className="life-people__list">
-          {jobs.map((job) => <li key={job.jobId}><div><strong>{job.employer}</strong>
-            {job.existence === ProjectedFactStatus.Ambiguous ? <p>Job start or change date is uncertain or conflicting.</p> : <>
-              <p>Gross rate: {job.gross.status === ProjectedFactStatus.Known && job.gross.value
-                ? `${job.gross.value.amount} € / ${job.gross.value.period === PayPeriod.Monthly ? "month" : "year"} · ${sourceLabel(job.gross.sourceEventId)}`
-                : job.gross.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
-              <p>Working hours: {job.weeklyHours.status === ProjectedFactStatus.Known
-                ? `${job.weeklyHours.value} h/week · ${sourceLabel(job.weeklyHours.sourceEventId)}`
-                : job.weeklyHours.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
-            </>}
-          </div></li>)}
+          {jobs.map((job) => {
+            let bandEvaluation;
+            if (job.existence !== ProjectedFactStatus.Ambiguous && job.gross.status !== ProjectedFactStatus.Ambiguous) {
+              try {
+                bandEvaluation = evaluateEmploymentBand({
+                  grossRate: job.gross.status === ProjectedFactStatus.Known ? job.gross.value : undefined,
+                  grossSourceLabel: job.gross.sourceEventId ? sourceLabel(job.gross.sourceEventId) : "Not recorded",
+                  date: toLifeDate(viewDate),
+                  jurisdiction: ruleJurisdiction,
+                  allowProjection: allowRuleProjection,
+                });
+              }
+              catch {
+                bandEvaluation = undefined;
+              }
+            }
+            return <li key={job.jobId}><div><strong>{job.employer}</strong>
+              {job.existence === ProjectedFactStatus.Ambiguous ? <p>Job start or change date is uncertain or conflicting.</p> : <>
+                <p>Gross rate: {job.gross.status === ProjectedFactStatus.Known && job.gross.value
+                  ? `${job.gross.value.amount} € / ${job.gross.value.period === PayPeriod.Monthly ? "month" : "year"} · ${sourceLabel(job.gross.sourceEventId)}`
+                  : job.gross.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
+                <p>Working hours: {job.weeklyHours.status === ProjectedFactStatus.Known
+                  ? `${job.weeklyHours.value} h/week · ${sourceLabel(job.weeklyHours.sourceEventId)}`
+                  : job.weeklyHours.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
+                {bandEvaluation && <>
+                  <p>Statutory band: <strong>{bandEvaluation.label}</strong></p>
+                  <CalculationExplanationPanel
+                    explanation={bandEvaluation.explanation}
+                    summary="Explain employment band rule and sources"
+                  />
+                </>}
+              </>}
+            </div></li>;
+          })}
         </ul>}
         {viewPersonId && <LifeMonthlyView events={events} personId={toPersonId(viewPersonId)} date={viewDate} onDateChange={setViewDate} includePlanned={includePlanned} onIncludePlannedChange={setIncludePlanned} />}
       </div>}

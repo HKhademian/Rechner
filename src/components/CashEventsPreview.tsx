@@ -32,6 +32,10 @@ import {
 import {
   formatCashReconciliationNote,
 } from "#utils/cashReconciliationFormat";
+import CalculationExplanationPanel from "./CalculationExplanationPanel";
+import {
+  explainEventCashProjection,
+} from "#engine/lifeProfile/calculationExplanation";
 import {
   reconciledPlannedByActualId,
 } from "#engine/lifeProfile/cashReconciliation";
@@ -209,7 +213,7 @@ export default function CashEventsPreview({ events, personId, date, includePlann
         </ul>
       </details>}
       {error ? <p role="status">Check the date, opening amount and cash event totals.</p> : !date || opening.trim() === "" ? <p>Choose a view date and enter an opening balance to calculate this preview.</p>
-        : <div className="life-monthly__scroll"><table>
+        : <><div className="life-monthly__scroll"><table>
           <caption>Cash events only · estimated balance</caption>
           <thead><tr><th scope="col">Month</th><th scope="col">Included sources</th><th scope="col" className="life-monthly__amount">Opening</th><th scope="col" className="life-monthly__amount">Closing</th></tr></thead>
           <tbody>{rows.map(({ month, state }) => {
@@ -228,7 +232,18 @@ export default function CashEventsPreview({ events, personId, date, includePlann
               <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
             </tr>;
           })}</tbody>
-        </table></div>}
+        </table></div>
+        <CalculationExplanationPanel
+          summary="Explain cash events formula and inputs"
+          explanation={explainEventCashProjection({
+            originMonth: date.slice(0, 7),
+            monthCount: rows.length,
+            opening: rows[0]?.state.opening,
+            includePlanned,
+            includedEventCount: rows.reduce((sum, row) => sum + (row.state.contribution?.sources.length ?? 0), 0),
+            reconciledPlanCount: rows.reduce((sum, row) => sum + reconciledPlannedCashEventsForMonth(events, personId, row.month).length, 0),
+          })}
+        /></>}
     </>}
   </section>;
 }
