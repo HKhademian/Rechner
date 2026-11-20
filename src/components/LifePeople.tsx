@@ -97,7 +97,7 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
     const next = people.filter((person) => person.id !== id);
     if (!writePeople({ version: 1,
       people: next })) {
-      setError("Could not remove this person. Remove their timeline events first and check your storage.");
+      setError("Could not remove this person. Remove their timeline events and saved event projections first, and check your storage.");
       return;
     }
     setPeople(next);

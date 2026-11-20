@@ -133,6 +133,21 @@ export default function CashEventsPreview({ events, personId, date, includePlann
     onIncludePlannedChange(projection.includePlanned);
     setMessage("");
   }
+  function remove(): void {
+    if (!selectedId) {
+      return;
+    }
+    const next: EventProjectionRecord = { version: 1,
+      projections: saved.projections.filter((entry) => entry.id !== selectedId) };
+    if (!writeEventProjections(next, saved)) {
+      setMessage("Could not remove the projection. Data may have changed elsewhere; reload or export your data.");
+      return;
+    }
+    setSaved(next);
+    setSelectedId(undefined);
+    setName("");
+    setMessage("Projection removed. Timeline entries remain unchanged.");
+  }
   let rows: ReturnType<typeof projectCashEvents> = [];
   let error = false;
   if (expanded && date) {
@@ -161,6 +176,7 @@ export default function CashEventsPreview({ events, personId, date, includePlann
         {selectedId && <button type="button" className="ui-btn" onClick={() => {
           setSelectedId(undefined); setName(""); setMessage("");
         }}>Save as new</button>}
+        {selectedId && <button type="button" className="ui-btn" onClick={remove}>Remove saved projection</button>}
         {saved.projections.some((entry) => entry.personId === personId) && <label className="life-people__field">Load event projection
           <select value="" onChange={(event) => load(event.currentTarget.value)}><option value="">Choose a projection</option>
             {saved.projections.filter((entry) => entry.personId === personId).map((entry) => <option value={entry.id} key={entry.id}>{entry.name} · {entry.origin}</option>)}
