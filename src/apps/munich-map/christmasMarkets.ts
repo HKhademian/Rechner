@@ -3,7 +3,7 @@ import {
 } from "#engine/lifeProfile/person";
 import {
   type MapPlace,
-  type MarketDetails,
+  type SeasonalSchedule,
   MapCategory,
   toMapPlaceId,
   toMapPosition,
@@ -15,7 +15,7 @@ export const munichChristmasMarketGuide =
 const cityListing = "https://www.muenchen.de/veranstaltungen/freizeit/weihnachtsmarkt-christkindlmarkt";
 const closedMemorialSunday = ["22 Nov", "Closed (Totensonntag)"] as const;
 
-interface MarketEntry extends MarketDetails {
+interface MarketEntry extends SeasonalSchedule {
   readonly id: string;
   readonly title: string;
   readonly coordinates: readonly [number, number];
@@ -442,7 +442,7 @@ export const christmasMarkets: readonly MapPlace[] = markets.map((entry) => ({
   endDate: toLifeDate(entry.ends),
   source: entry.source ?? `${cityListing}/${entry.id}`,
   sourceLabel: "Published schedule",
-  market: {
+  schedule: {
     venue: entry.venue,
     theme: entry.theme,
     hours: entry.hours,

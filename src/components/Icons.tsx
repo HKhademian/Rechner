@@ -1754,3 +1754,11 @@ export function ChristmasMarketIcon({ size = 16, className }: IconProps): JSX.El
     </svg>
   );
 }
+
+export function ChristmasOutingIcon({ size = 16, className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2l2.8 6.7L22 9.4l-5.5 4.8 1.7 7L12 17.5l-6.2 3.7 1.7-7L2 9.4l7.2-.7L12 2Z" />
+    </svg>
+  );
+}

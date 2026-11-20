@@ -6,6 +6,7 @@ export const MapCategory = {
   FleaMarket: "Flea markets",
   Event: "Events",
   ChristmasMarket: "Christmas markets",
+  ChristmasOuting: "Christmas outings",
   Festival: "Fairs & festivals",
   Concert: "Concerts",
   Landmark: "Landmarks",
@@ -69,7 +70,9 @@ export function distanceKm(
 export interface MapFocus {
   readonly position: MapPosition;
   readonly minimumZoom?: number;
+  readonly zoom?: number;
   readonly radius?: number;
+  readonly fitPositions?: readonly MapPosition[];
 }
 
 export type MapPlaceId = Brand<string, "MapPlaceId">;
@@ -81,7 +84,31 @@ export function toMapPlaceId(value: string): MapPlaceId {
   return value as MapPlaceId;
 }
 
-export interface MarketDetails {
+export type DriveMinutes = Brand<number, "DriveMinutes">;
+
+export function toDriveMinutes(value: number): DriveMinutes {
+  if (!Number.isInteger(value) || value < 0 || value > 1440) {
+    throw new TypeError("Drive time must be a whole number of minutes between 0 and 1440.");
+  }
+  return value as DriveMinutes;
+}
+
+export interface OutingLocation {
+  readonly locality: string;
+  readonly drive?: {
+    readonly minutes: DriveMinutes;
+    readonly source: string;
+    readonly transfer?: string;
+  };
+}
+
+export function formatDriveMinutes(minutes: DriveMinutes): string {
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return [hours ? `${hours} h` : "", remainder || !hours ? `${remainder} min` : ""].filter(Boolean).join(" ");
+}
+
+export interface SeasonalSchedule {
   readonly venue: string;
   readonly theme: string;
   readonly hours: readonly (readonly [label: string, time: string])[];
@@ -99,7 +126,8 @@ export interface MapPlace {
   readonly endDate?: string;
   readonly modes?: readonly MapCategory[];
   readonly sourceLabel?: string;
-  readonly market?: MarketDetails;
+  readonly schedule?: SeasonalSchedule;
+  readonly outing?: OutingLocation;
   readonly alsoListedUnder?: MapCategory;
 }
 
@@ -130,6 +158,7 @@ export const categoryStyle: Record<MapCategory, { readonly code?: string;
   [MapCategory.Event]: { code: "E",
     color: "var(--color-primary-hover)" },
   [MapCategory.ChristmasMarket]: { color: "#174b36" },
+  [MapCategory.ChristmasOuting]: { color: "#43327b" },
   [MapCategory.Festival]: { code: "T",
     color: "#92400e" },
   [MapCategory.Concert]: { code: "C",

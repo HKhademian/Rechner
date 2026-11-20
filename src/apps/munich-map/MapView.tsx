@@ -10,6 +10,7 @@ import {
   circle,
   divIcon,
   latLng,
+  latLngBounds,
   layerGroup,
   map,
   marker,
@@ -33,11 +34,11 @@ import {
 } from "./places.ts";
 
 import {
-  ChristmasMarketIcon,
-} from "#components/Icons";
+  SeasonalPlaceDetails,
+} from "./SeasonalPlaceDetails.tsx";
 import {
-  ChristmasMarketDetails,
-} from "./ChristmasMarketDetails.tsx";
+  mapSymbol,
+} from "./mapSymbols.tsx";
 
 interface MapViewProps {
   readonly places: readonly MapPlace[];
@@ -140,14 +141,14 @@ export function MapView({
     }
     const visiblePlaces = layerGroup().addTo(view);
     const markers = new Map<MapPlaceId, Marker>();
-    // Multiple market programs can use the same venue on different dates.
-    const marketsByPosition = new Map<string, MapPlace[]>();
+    // Multiple seasonal programs can use the same venue on different dates.
+    const schedulesByPosition = new Map<string, MapPlace[]>();
     for (const place of places) {
-      if (place.market) {
+      if (place.schedule) {
         const key = place.position.join(",");
-        const markets = marketsByPosition.get(key) ?? [];
-        markets.push(place);
-        marketsByPosition.set(key, markets);
+        const schedules = schedulesByPosition.get(key) ?? [];
+        schedules.push(place);
+        schedulesByPosition.set(key, schedules);
       }
     }
     const renderVisiblePlaces = () => {
@@ -158,8 +159,8 @@ export function MapView({
       const declutter = view.getZoom() <= 13;
       for (const place of places) {
         const coordinates = point(place.position);
-        const venueMarkets = place.market ? marketsByPosition.get(place.position.join(",")) : undefined;
-        if (!bounds.contains(coordinates) || (venueMarkets && venueMarkets[0].id !== place.id)) {
+        const venueSchedules = place.schedule ? schedulesByPosition.get(place.position.join(",")) : undefined;
+        if (!bounds.contains(coordinates) || (venueSchedules && venueSchedules[0].id !== place.id)) {
           continue;
         }
         if (declutter && (place.category === MapCategory.Church || place.category === MapCategory.Bus)) {
@@ -176,22 +177,22 @@ export function MapView({
         }
         const style = categoryStyle[place.category];
         const overlay = mapLayers.includes(place.category);
-        const symbol = place.category === MapCategory.ChristmasMarket ? <ChristmasMarketIcon size={17} /> : style.code ?? "";
+        const symbol = mapSymbol(place.category, 17);
         const pin = marker(coordinates, {
           icon: pinStyle(symbol, style.color, overlay ? 20 : 26),
-          title: venueMarkets?.map((market) => market.title).join(" · ") ?? place.title,
+          title: venueSchedules?.map((entry) => entry.title).join(" · ") ?? place.title,
           zIndexOffset: overlay ? 0 : 250,
         }).on("click", () => onSelect(place)).addTo(visiblePlaces);
         pin.bindPopup(() => {
           const content = document.createElement("div");
-          if (venueMarkets) {
+          if (venueSchedules) {
             render(
-              <div class="munich-market-popup">
-                {venueMarkets.map((item) => item.market && (
+              <div class="munich-seasonal-popup">
+                {venueSchedules.map((item) => item.schedule && (
                   <section key={item.id} aria-label={item.title}>
                     <strong>{item.title}</strong>
-                    <ChristmasMarketDetails place={item} market={item.market} />
-                    {item.source && <a href={item.source}>Published schedule</a>}
+                    <SeasonalPlaceDetails place={item} schedule={item.schedule} />
+                    {item.source && <a href={item.source}>{item.sourceLabel ?? "Published schedule"}</a>}
                   </section>
                 ))}
               </div>,
@@ -272,7 +273,15 @@ export function MapView({
     const target = point(focus.position);
     const animate = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     view.closePopup();
-    if (focus.radius) {
+    if (focus.fitPositions && focus.fitPositions.length > 1) {
+      view.fitBounds(latLngBounds(focus.fitPositions.map(point)), {
+        paddingTopLeft: [42, 54],
+        paddingBottomRight: [42, 86],
+        maxZoom: 14,
+        animate,
+      });
+    }
+    else if (focus.radius) {
       const bounds = latLng(target).toBounds(focus.radius * 2000);
       view.fitBounds(bounds, { paddingTopLeft: [28, 28],
         paddingBottomRight: [28, 80],
@@ -280,7 +289,7 @@ export function MapView({
         animate });
     }
     else {
-      const zoom = Math.max(view.getZoom(), focus.minimumZoom ?? 0);
+      const zoom = focus.zoom ?? Math.max(view.getZoom(), focus.minimumZoom ?? 0);
       if (animate) {
         view.flyTo(target, zoom, { duration: 0.5 });
       }

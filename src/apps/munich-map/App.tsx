@@ -14,9 +14,6 @@ import {
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
-  ChristmasMarketIcon,
-} from "#components/Icons";
-import {
   AppShell,
 } from "#components/ui/AppShell";
 import {
@@ -31,10 +28,12 @@ import {
   PersonalPin,
   categoryStyle,
   distanceKm,
+  formatDriveMinutes,
   formatPlaceDate,
   mapLayers,
   transitLayers,
   munichPlaces,
+  toDriveMinutes,
   toMapCategory,
   toMapPlaceId,
   toPersonalPin,
@@ -46,12 +45,20 @@ import {
 } from "./mapStorage.ts";
 
 import {
-  ChristmasMarketDetails,
-} from "./ChristmasMarketDetails.tsx";
+  SeasonalPlaceDetails,
+} from "./SeasonalPlaceDetails.tsx";
 import {
   christmasMarkets,
   munichChristmasMarketGuide,
 } from "./christmasMarkets.ts";
+
+import {
+  christmasOutings,
+} from "./christmasOutings.ts";
+import {
+  mapSymbol,
+  seasonalSymbol,
+} from "./mapSymbols.tsx";
 
 const categories = Object.values(MapCategory);
 const eventCategories = categories.filter((item) => !mapLayers.includes(item) && item !== MapCategory.Transit);
@@ -61,6 +68,7 @@ const defaultLayers: readonly MapCategory[] = [
   MapCategory.SuburbanRail,
 ];
 const resultLimit = 80;
+const driveOptions = [0, 60, 90, 120].map(toDriveMinutes);
 const personalPins = Object.values(PersonalPin);
 const munichDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin",
   dateStyle: "short" });
@@ -86,6 +94,7 @@ export default function MunichMap() {
   const [cityPlaces, setCityPlaces] = useState<readonly MapPlace[]>([]);
   const [reference, setReference] = useState<PersonalPin>();
   const [radius, setRadius] = useState(0);
+  const [maxDrive, setMaxDrive] = useState(toDriveMinutes(120));
   const [selected, setSelected] = useState<MapPlace>();
   const [focus, setFocus] = useState<MapFocus>();
   const [mapOnly, setMapOnly] = useState(false);
@@ -115,12 +124,17 @@ export default function MunichMap() {
     };
   }, []);
 
+  const outingsMode = category === MapCategory.ChristmasOuting;
+  const activeRadius = outingsMode ? 0 : radius;
   const origin = (reference && data.pins[reference]?.position) || MUNICH_CENTER;
   const places = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
-    return [...munichPlaces, ...christmasMarkets, ...cityPlaces, ...data.places].flatMap((place) => {
-      const searchText = [place.title, place.detail, place.market?.venue, place.market?.theme].join(" ");
+    return [...munichPlaces, ...christmasMarkets, ...christmasOutings, ...cityPlaces, ...data.places].flatMap((place) => {
+      const searchText = [place.title, place.detail, place.schedule?.venue, place.schedule?.theme, place.outing?.locality].join(" ");
       if (!searchText.toLocaleLowerCase().includes(term)) {
+        return [];
+      }
+      if (outingsMode && place.outing?.drive && place.outing.drive.minutes > maxDrive) {
         return [];
       }
       if (place.modes) {
@@ -138,22 +152,53 @@ export default function MunichMap() {
     }).map((place) => ({
       place,
       distance: distanceKm(origin, place.position),
-    })).filter(({ distance }) => radius === 0 || distance <= radius)
+    })).filter(({ distance }) => activeRadius === 0 || distance <= activeRadius)
       .sort((left, right) => left.distance - right.distance);
-  }, [cityPlaces, data.places, origin, query, category, layers, radius]);
+  }, [cityPlaces, data.places, origin, query, category, layers, activeRadius, outingsMode, maxDrive]);
   const markers = useMemo(() => places.map(({ place }) => place), [places]);
-  const resultPlaces = useMemo(() => category
-    ? places.filter(({ place }) => inCategory(place, category))
-    : [
+  const resultPlaces = useMemo(() => {
+    if (category) {
+      const matching = places.filter(({ place }) => inCategory(place, category));
+      return outingsMode ? matching.sort((left, right) =>
+        (left.place.outing?.drive?.minutes ?? 0) - (right.place.outing?.drive?.minutes ?? 0)) : matching;
+    }
+    return [
       ...places.filter(({ place }) => eventCategories.includes(place.category)),
       ...places.filter(({ place }) => !eventCategories.includes(place.category)),
-    ], [category, places]);
+    ];
+  }, [category, outingsMode, places]);
   const listedPlaces = resultPlaces.slice(0, resultLimit);
+
+  const fitOutings = useCallback(() => {
+    if (resultPlaces.length > 0) {
+      setFocus({
+        position: resultPlaces[0].place.position,
+        fitPositions: resultPlaces.map(({ place }) => place.position),
+        minimumZoom: 14,
+      });
+    }
+  }, [resultPlaces]);
+
+  useEffect(() => {
+    if (outingsMode) {
+      fitOutings();
+    }
+  }, [outingsMode, fitOutings]);
+
   const pins = useMemo(() => personalPins.flatMap((name) => {
     const pin = data.pins[name];
     return pin ? [{ title: name,
       position: pin.position }] : [];
   }), [data.pins]);
+
+  function selectCategory(next: MapCategory | undefined) {
+    setCategory(next);
+    if (outingsMode && next !== MapCategory.ChristmasOuting) {
+      setFocus({ position: origin,
+        radius,
+        zoom: 12 });
+    }
+  }
 
   const selectPlace = useCallback((place: MapPlace) => {
     setSelected(place);
@@ -235,7 +280,7 @@ export default function MunichMap() {
       <div class="munich-map-layout">
         <section class="munich-map-main" aria-label="Map and distance controls">
           <div class="munich-map-frame">
-            {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={radius} focus={focus} draft={draft?.position}
+            {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={activeRadius} focus={focus} draft={draft?.position}
               picking={picking} onPick={pickPosition} onSelect={setSelected} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
             <div class="munich-map-tools">
               <details class="munich-map-layer-control">
@@ -262,33 +307,48 @@ export default function MunichMap() {
             </div>
           </div>
           <div class="munich-map-distance">
-            <label>Distance from
-              <select value={reference ?? ""} onChange={(event) => {
-                const value = event.currentTarget.value;
-                const pin = value ? toPersonalPin(value) : undefined;
-                setReference(pin);
-                setFocus({ position: (pin && data.pins[pin]?.position) || MUNICH_CENTER,
-                  radius });
-              }}>
-                <option value="">Marienplatz</option>
-                {personalPins.filter((name) => data.pins[name]).map((name) => <option key={name} value={name}>{name}</option>)}
-              </select>
-            </label>
-            <label>Straight-line radius
-              <select value={radius} onChange={(event) => {
-                const nextRadius = Number(event.currentTarget.value);
-                setRadius(nextRadius);
-                if (nextRadius > 0) {
-                  setFocus({ position: origin,
-                    radius: nextRadius });
-                }
-              }}>
-                <option value={0}>Any distance</option>
-                {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
-              </select>
-            </label>
-            <button type="button" onClick={() => setFocus({ position: origin,
-              radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>
+            {outingsMode ? (
+              <>
+                <label>Drive from Munich
+                  <select value={maxDrive} onChange={(event) => setMaxDrive(toDriveMinutes(Number(event.currentTarget.value)))}>
+                    {driveOptions.map((minutes) => (
+                      <option key={minutes} value={minutes}>{minutes ? `About ${formatDriveMinutes(minutes)} or less` : "Munich only"}</option>
+                    ))}
+                  </select>
+                </label>
+                <button type="button" onClick={fitOutings} disabled={!resultPlaces.length}>Fit outings</button>
+              </>
+            ) : (
+              <>
+                <label>Distance from
+                  <select value={reference ?? ""} onChange={(event) => {
+                    const value = event.currentTarget.value;
+                    const pin = value ? toPersonalPin(value) : undefined;
+                    setReference(pin);
+                    setFocus({ position: (pin && data.pins[pin]?.position) || MUNICH_CENTER,
+                      radius });
+                  }}>
+                    <option value="">Marienplatz</option>
+                    {personalPins.filter((name) => data.pins[name]).map((name) => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </label>
+                <label>Straight-line radius
+                  <select value={radius} onChange={(event) => {
+                    const nextRadius = Number(event.currentTarget.value);
+                    setRadius(nextRadius);
+                    if (nextRadius > 0) {
+                      setFocus({ position: origin,
+                        radius: nextRadius });
+                    }
+                  }}>
+                    <option value={0}>Any distance</option>
+                    {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
+                  </select>
+                </label>
+                <button type="button" onClick={() => setFocus({ position: origin,
+                  radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>
+              </>
+            )}
           </div>
         </section>
         <aside id="munich-map-places" class="munich-map-panel" aria-label="Places and event filters" hidden={mapOnly}>
@@ -356,20 +416,23 @@ export default function MunichMap() {
           <label>Search places<input type="search" value={query} placeholder="e.g. Tollwood" onInput={(event) => setQuery(event.currentTarget.value)} /></label>
           <div class="munich-map-categories" aria-label="Event categories">
             {[undefined, ...eventCategories].map((item) =>
-              <button type="button" key={item ?? "all"} aria-pressed={category === item} onClick={() => setCategory(item)}>
-                {item === MapCategory.ChristmasMarket && <ChristmasMarketIcon size={14} />}
+              <button type="button" key={item ?? "all"} aria-pressed={category === item} onClick={() => selectCategory(item)}>
+                {item && seasonalSymbol(item, 14)}
                 {item ?? "All events"}
               </button>)}
           </div>
           <p class="munich-map-count">
-            {resultPlaces.length} {category === MapCategory.ChristmasMarket
-              ? (resultPlaces.length === 1 ? "Christmas market" : "Christmas markets")
-              : (resultPlaces.length === 1 ? "place" : "places")}
+            {resultPlaces.length} {outingsMode
+              ? (resultPlaces.length === 1 ? "Christmas outing" : "Christmas outings")
+              : category === MapCategory.ChristmasMarket
+                ? (resultPlaces.length === 1 ? "Christmas market" : "Christmas markets")
+                : (resultPlaces.length === 1 ? "place" : "places")}
           </p>
+          {outingsMode && <p class="munich-map-count">Approximate one-way drives from Munich. Allow extra time for traffic, parking and transfers.</p>}
           {activePlace && (
             <section class="munich-map-detail" aria-label="Selected place">
               <h3>{activePlace.place.title}</h3>
-              {activePlace.place.market ? <ChristmasMarketDetails place={activePlace.place} market={activePlace.place.market} /> : (
+              {activePlace.place.schedule ? <SeasonalPlaceDetails place={activePlace.place} schedule={activePlace.place.schedule} /> : (
                 <>
                   {activeDate && <time dateTime={activePlace.place.date}>{activeDate}</time>}
                   {activePlace.place.detail && <p>{activePlace.place.detail}</p>}
@@ -401,13 +464,17 @@ export default function MunichMap() {
                 <li key={place.id}>
                   <button type="button" aria-pressed={selected?.id === place.id} onClick={() => selectPlace(place)}>
                     <span class="munich-map-category-code" style={{ backgroundColor: style.color }} aria-hidden="true">
-                      {place.category === MapCategory.ChristmasMarket ? <ChristmasMarketIcon /> : style.code}
+                      {mapSymbol(place.category, 16)}
                     </span>
                     <span>
                       <strong>{place.title}</strong>
-                      <small>{place.market ? `${formatPlaceDate(place)} · ${place.market.theme}` : place.category}</small>
+                      <small>{place.schedule
+                        ? [place.outing?.locality, formatPlaceDate(place), place.schedule.theme].filter(Boolean).join(" · ")
+                        : place.category}</small>
                     </span>
-                    <span>{distance.toFixed(1)} km</span>
+                    <span>{place.outing
+                      ? (place.outing.drive ? `~${formatDriveMinutes(place.outing.drive.minutes)}${place.outing.drive.transfer ? " + ferry" : ""}` : "In Munich")
+                      : `${distance.toFixed(1)} km`}</span>
                   </button>
                 </li>
               );
