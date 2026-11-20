@@ -44,6 +44,11 @@ import {
   travelTripModule,
 } from "#engine/lifeProfile/travelEvent";
 import {
+  TaxClassCombination,
+  taxClassSwitchModule,
+  toTaxClassCombination,
+} from "#engine/lifeProfile/taxSwitchEvent";
+import {
   parseAmount,
 } from "#engine/lifeProfile/cashAmount";
 
@@ -62,6 +67,7 @@ const DomainEventKind = {
   FamilyActualBirth: "family.actual-birth",
   ChildcarePlan: "childcare.plan",
   TravelTrip: "travel.trip",
+  TaxClassSwitch: "tax.class-switch",
 } as const;
 type DomainEventKind = (typeof DomainEventKind)[keyof typeof DomainEventKind];
 
@@ -121,6 +127,10 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
   const [tripBudgetEur, setTripBudgetEur] = useState("");
   const [tripPassportExpiry, setTripPassportExpiry] = useState("");
   const [tripTasksText, setTripTasksText] = useState("");
+
+  // Tax class switch fields
+  const [taxCombination, setTaxCombination] = useState<TaxClassCombination>(TaxClassCombination.III_V);
+  const [taxNote, setTaxNote] = useState("");
 
   const activePersonId = personId || people[0]?.id || "";
   const personPregnancies = events
@@ -198,7 +208,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           ...(monthlyMealEur.trim() ? { monthlyMealCents: parseAmount(monthlyMealEur, true) } : {}),
         });
       }
-      else {
+      else if (kind === DomainEventKind.TravelTrip) {
         eventKind = travelTripModule.kind;
         const parsedTasks = tripTasksText
           .split(",")
@@ -212,6 +222,13 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           ...(tripBudgetEur.trim() ? { budgetCents: parseAmount(tripBudgetEur, true) } : {}),
           ...(tripPassportExpiry ? { passportExpiryDate: tripPassportExpiry } : {}),
           ...(parsedTasks.length > 0 ? { tasks: parsedTasks } : {}),
+        });
+      }
+      else {
+        eventKind = taxClassSwitchModule.kind;
+        payload = taxClassSwitchModule.parsePayload({
+          combination: taxCombination,
+          ...(taxNote.trim() ? { note: taxNote.trim() } : {}),
         });
       }
 
@@ -248,6 +265,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
         setTripBudgetEur("");
         setTripPassportExpiry("");
         setTripTasksText("");
+        setTaxNote("");
         setDate("");
       }
     }
@@ -281,6 +299,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
             <option value={DomainEventKind.FamilyActualBirth}>Actual birth milestone</option>
             <option value={DomainEventKind.ChildcarePlan}>Kita, Krippe or school option</option>
             <option value={DomainEventKind.TravelTrip}>Travel trip</option>
+            <option value={DomainEventKind.TaxClassSwitch}>Tax class switch</option>
           </select>
         </label>
         {kind === DomainEventKind.ResidencePermit && <>
@@ -432,6 +451,19 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           </label>
           <label className="life-people__field">Preparation tasks (comma-separated, optional)
             <input value={tripTasksText} onInput={(event) => setTripTasksText(event.currentTarget.value)} placeholder="e.g. Book train, Check eAT, Travel insurance" />
+          </label>
+        </>}
+        {kind === DomainEventKind.TaxClassSwitch && <>
+          <label className="life-people__field">Target tax class combination
+            <select value={taxCombination} onChange={(event) => setTaxCombination(toTaxClassCombination(event.currentTarget.value))}>
+              <option value={TaxClassCombination.III_V}>III / V</option>
+              <option value={TaxClassCombination.V_III}>V / III</option>
+              <option value={TaxClassCombination.IV_IV}>IV / IV</option>
+              <option value={TaxClassCombination.IV_IV_Factor}>IV / IV with factor (§ 39f EStG)</option>
+            </select>
+          </label>
+          <label className="life-people__field">Note (optional)
+            <input value={taxNote} onInput={(event) => setTaxNote(event.currentTarget.value)} placeholder="e.g. Switch effective after marriage" />
           </label>
         </>}
         <label className="life-people__field">{kind === DomainEventKind.ChildcarePlan ? "Desired start date" : kind === DomainEventKind.TravelTrip ? "Departure date" : "Event date"}

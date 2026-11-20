@@ -16,6 +16,7 @@ import CitizenshipPreparationPanel from "#components/CitizenshipPreparationPanel
 import FamilyParentalHandoffPanel from "#components/FamilyParentalHandoffPanel";
 import ChildcareTimelinePanel from "#components/ChildcareTimelinePanel";
 import TravelPlannerPanel from "#components/TravelPlannerPanel";
+import TaxSwitchComparisonPanel from "#components/TaxSwitchComparisonPanel";
 
 export interface LifeJourneyPanelsProps {
   readonly people: readonly LifePerson[];
@@ -69,5 +70,6 @@ export default function LifeJourneyPanels({
       personId={personId}
       includePlanned={includePlanned}
     />
+    <TaxSwitchComparisonPanel jurisdiction={jurisdiction} />
   </>;
 }

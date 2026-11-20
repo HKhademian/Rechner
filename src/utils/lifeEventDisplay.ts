@@ -18,6 +18,9 @@ import {
   travelTripModule,
 } from "#engine/lifeProfile/travelEvent";
 import {
+  taxClassSwitchModule,
+} from "#engine/lifeProfile/taxSwitchEvent";
+import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
 
@@ -105,6 +108,13 @@ export function describeExtendedLifeEvent(event: LifeEvent<unknown>): DomainEven
         ...(trip.endDate ? [`Until ${trip.endDate}`] : []),
         ...(trip.budgetCents !== undefined ? [`Budget ${formatIntegerEuroCents(trip.budgetCents)}`] : []),
       ].join(" · "),
+    };
+  }
+  if (event.kind === taxClassSwitchModule.kind) {
+    const taxSwitch = taxClassSwitchModule.parsePayload(event.payload);
+    return {
+      label: `Tax class switch (${taxSwitch.combination})`,
+      detail: taxSwitch.note ?? "Withholding class update (§ 38b / § 39f EStG)",
     };
   }
   return undefined;
