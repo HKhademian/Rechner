@@ -12,6 +12,7 @@ import {
   type JurisdictionCode,
 } from "#engine/lifeProfile/statutoryRuleResolver";
 import ResidencyPreparationPanel from "#components/ResidencyPreparationPanel";
+import CitizenshipPreparationPanel from "#components/CitizenshipPreparationPanel";
 
 export interface LifeJourneyPanelsProps {
   readonly people: readonly LifePerson[];
@@ -33,6 +34,14 @@ export default function LifeJourneyPanels({
 }: LifeJourneyPanelsProps): JSX.Element {
   return <>
     <ResidencyPreparationPanel
+      events={events}
+      personId={personId}
+      date={date}
+      includePlanned={includePlanned}
+      jurisdiction={jurisdiction}
+      allowProjection={allowProjection}
+    />
+    <CitizenshipPreparationPanel
       events={events}
       personId={personId}
       date={date}
