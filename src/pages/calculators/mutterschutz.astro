@@ -1,0 +1,13 @@
+---
+import MutterschutzApp from "#/apps/mutterschutz/App.tsx";
+import {
+  mutterschutzApp,
+} from "#/apps/mutterschutz/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${mutterschutzApp.title} | Rechner`}
+  description={mutterschutzApp.description}
+>
+  <MutterschutzApp client:load />
+</BaseDocument>

@@ -1,0 +1,13 @@
+---
+import KindergeldComparisonApp from "#/apps/kindergeld-comparison/App.tsx";
+import {
+  kindergeldComparisonApp,
+} from "#/apps/kindergeld-comparison/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${kindergeldComparisonApp.title} | Rechner`}
+  description={kindergeldComparisonApp.description}
+>
+  <KindergeldComparisonApp client:load />
+</BaseDocument>
