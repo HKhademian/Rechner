@@ -1,0 +1,13 @@
+---
+import FamilyMilestonesApp from "#/apps/family-milestones/App.tsx";
+import {
+  familyMilestonesApp,
+} from "#/apps/family-milestones/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${familyMilestonesApp.title} | Rechner`}
+  description={familyMilestonesApp.description}
+>
+  <FamilyMilestonesApp client:load />
+</BaseDocument>

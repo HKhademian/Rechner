@@ -1,0 +1,13 @@
+---
+import TravelPlannerApp from "#/apps/travel-planner/App.tsx";
+import {
+  travelPlannerApp,
+} from "#/apps/travel-planner/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${travelPlannerApp.title} | Rechner`}
+  description={travelPlannerApp.description}
+>
+  <TravelPlannerApp client:load />
+</BaseDocument>

@@ -1,0 +1,13 @@
+---
+import ChildcarePlannerApp from "#/apps/childcare-planner/App.tsx";
+import {
+  childcarePlannerApp,
+} from "#/apps/childcare-planner/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${childcarePlannerApp.title} | Rechner`}
+  description={childcarePlannerApp.description}
+>
+  <ChildcarePlannerApp client:load />
+</BaseDocument>
