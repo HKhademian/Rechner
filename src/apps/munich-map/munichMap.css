@@ -39,6 +39,14 @@
   max-width: 100%;
 }
 
+.munich-map-surface .leaflet-control-attribution {
+  padding: 0 3px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
 .munich-map-surface.is-picking {
   cursor: crosshair;
 }
