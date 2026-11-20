@@ -21,6 +21,9 @@ import {
   taxClassSwitchModule,
 } from "#engine/lifeProfile/taxSwitchEvent";
 import {
+  assetEventModule,
+} from "#engine/lifeProfile/assetEvent";
+import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
 
@@ -115,6 +118,18 @@ export function describeExtendedLifeEvent(event: LifeEvent<unknown>): DomainEven
     return {
       label: `Tax class switch (${taxSwitch.combination})`,
       detail: taxSwitch.note ?? "Withholding class update (§ 38b / § 39f EStG)",
+    };
+  }
+  if (event.kind === assetEventModule.kind) {
+    const asset = assetEventModule.parsePayload(event.payload);
+    return {
+      label: `${asset.title} (${asset.category} · ${asset.action})`,
+      detail: [
+        ...(asset.upfrontCents !== undefined ? [`Upfront ${formatIntegerEuroCents(asset.upfrontCents)}`] : []),
+        ...(asset.ongoingMonthlyCents !== undefined ? [`Ongoing ${formatIntegerEuroCents(asset.ongoingMonthlyCents)}/mo`] : []),
+        ...(asset.monthlySavingsCents !== undefined ? [`Savings ${formatIntegerEuroCents(asset.monthlySavingsCents)}/mo`] : []),
+        ...(asset.linkedCashEventId ? ["Linked cash entry · Counted once"] : []),
+      ].join(" · ") || "Asset event recorded",
     };
   }
   return undefined;

@@ -49,6 +49,16 @@ import {
   toTaxClassCombination,
 } from "#engine/lifeProfile/taxSwitchEvent";
 import {
+  AssetActionKind,
+  AssetCategory,
+  assetEventModule,
+  toAssetActionKind,
+  toAssetCategory,
+} from "#engine/lifeProfile/assetEvent";
+import {
+  cashEventModule,
+} from "#engine/lifeProfile/cashEvent";
+import {
   parseAmount,
 } from "#engine/lifeProfile/cashAmount";
 
@@ -68,6 +78,7 @@ const DomainEventKind = {
   ChildcarePlan: "childcare.plan",
   TravelTrip: "travel.trip",
   TaxClassSwitch: "tax.class-switch",
+  AssetEvent: "asset.event",
 } as const;
 type DomainEventKind = (typeof DomainEventKind)[keyof typeof DomainEventKind];
 
@@ -132,10 +143,26 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
   const [taxCombination, setTaxCombination] = useState<TaxClassCombination>(TaxClassCombination.III_V);
   const [taxNote, setTaxNote] = useState("");
 
+  // Asset fields (purchases, housing, car, solar)
+  const [assetCategory, setAssetCategory] = useState<AssetCategory>(AssetCategory.Housing);
+  const [assetAction, setAssetAction] = useState<AssetActionKind>(AssetActionKind.Purchase);
+  const [assetTitle, setAssetTitle] = useState("");
+  const [assetUpfrontEur, setAssetUpfrontEur] = useState("");
+  const [assetOngoingEur, setAssetOngoingEur] = useState("");
+  const [assetSavingsEur, setAssetSavingsEur] = useState("");
+  const [assetLinkedCashId, setAssetLinkedCashId] = useState("");
+
   const activePersonId = personId || people[0]?.id || "";
   const personPregnancies = events
     .filter((entry) => entry.kind === pregnancyStartedModule.kind && entry.personId === activePersonId)
     .map((entry) => pregnancyStartedModule.parsePayload(entry.payload));
+  const personCashEntries = events
+    .filter((entry) => entry.kind === cashEventModule.kind && entry.personId === activePersonId)
+    .map((entry) => ({
+      id: entry.id,
+      date: entry.date,
+      payload: cashEventModule.parsePayload(entry.payload),
+    }));
 
   function handleSubmit(event: JSX.TargetedEvent<HTMLFormElement, Event>): void {
     event.preventDefault();
@@ -224,11 +251,24 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           ...(parsedTasks.length > 0 ? { tasks: parsedTasks } : {}),
         });
       }
-      else {
+      else if (kind === DomainEventKind.TaxClassSwitch) {
         eventKind = taxClassSwitchModule.kind;
         payload = taxClassSwitchModule.parsePayload({
           combination: taxCombination,
           ...(taxNote.trim() ? { note: taxNote.trim() } : {}),
+        });
+      }
+      else {
+        eventKind = assetEventModule.kind;
+        payload = assetEventModule.parsePayload({
+          assetId: crypto.randomUUID(),
+          category: assetCategory,
+          action: assetAction,
+          title: assetTitle.trim(),
+          ...(assetUpfrontEur.trim() ? { upfrontCents: parseAmount(assetUpfrontEur, true) } : {}),
+          ...(assetOngoingEur.trim() ? { ongoingMonthlyCents: parseAmount(assetOngoingEur, true) } : {}),
+          ...(assetSavingsEur.trim() ? { monthlySavingsCents: parseAmount(assetSavingsEur, true) } : {}),
+          ...(assetLinkedCashId ? { linkedCashEventId: assetLinkedCashId } : {}),
         });
       }
 
@@ -266,6 +306,11 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
         setTripPassportExpiry("");
         setTripTasksText("");
         setTaxNote("");
+        setAssetTitle("");
+        setAssetUpfrontEur("");
+        setAssetOngoingEur("");
+        setAssetSavingsEur("");
+        setAssetLinkedCashId("");
         setDate("");
       }
     }
@@ -300,6 +345,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
             <option value={DomainEventKind.ChildcarePlan}>Kita, Krippe or school option</option>
             <option value={DomainEventKind.TravelTrip}>Travel trip</option>
             <option value={DomainEventKind.TaxClassSwitch}>Tax class switch</option>
+            <option value={DomainEventKind.AssetEvent}>Purchase, housing, car or solar</option>
           </select>
         </label>
         {kind === DomainEventKind.ResidencePermit && <>
@@ -465,6 +511,44 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           <label className="life-people__field">Note (optional)
             <input value={taxNote} onInput={(event) => setTaxNote(event.currentTarget.value)} placeholder="e.g. Switch effective after marriage" />
           </label>
+        </>}
+        {kind === DomainEventKind.AssetEvent && <>
+          <label className="life-people__field">Category
+            <select value={assetCategory} onChange={(event) => setAssetCategory(toAssetCategory(event.currentTarget.value))}>
+              <option value={AssetCategory.Housing}>Housing / property</option>
+              <option value={AssetCategory.Car}>Car / vehicle</option>
+              <option value={AssetCategory.Solar}>Solar PV / battery</option>
+              <option value={AssetCategory.MajorPurchase}>Major purchase</option>
+            </select>
+          </label>
+          <label className="life-people__field">Action
+            <select value={assetAction} onChange={(event) => setAssetAction(toAssetActionKind(event.currentTarget.value))}>
+              <option value={AssetActionKind.Purchase}>Purchase</option>
+              <option value={AssetActionKind.Installation}>Installation</option>
+              <option value={AssetActionKind.OwnershipChange}>Ownership change</option>
+              <option value={AssetActionKind.Sale}>Sale</option>
+            </select>
+          </label>
+          <label className="life-people__field">Description
+            <input required value={assetTitle} onInput={(event) => setAssetTitle(event.currentTarget.value)} placeholder="e.g. 10 kWp Roof PV or Apartment Munich" />
+          </label>
+          <label className="life-people__field">{assetAction === AssetActionKind.Sale ? "Sale proceeds (optional, €)" : "Upfront cost / down payment (optional, €)"}
+            <input type="number" min="0" step="0.01" value={assetUpfrontEur} onInput={(event) => setAssetUpfrontEur(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Ongoing monthly cost (optional, €)
+            <input type="number" min="0" step="0.01" value={assetOngoingEur} onInput={(event) => setAssetOngoingEur(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Monthly savings / feed-in (optional, €)
+            <input type="number" min="0" step="0.01" value={assetSavingsEur} onInput={(event) => setAssetSavingsEur(event.currentTarget.value)} />
+          </label>
+          {personCashEntries.length > 0 && <label className="life-people__field">Link existing cash entry to avoid double-counting (optional)
+            <select value={assetLinkedCashId} onChange={(event) => setAssetLinkedCashId(event.currentTarget.value)}>
+              <option value="">Not linked to a timeline cash entry</option>
+              {personCashEntries.map((entry) => <option key={entry.id} value={entry.id}>
+                {entry.date} · {entry.payload.title}
+              </option>)}
+            </select>
+          </label>}
         </>}
         <label className="life-people__field">{kind === DomainEventKind.ChildcarePlan ? "Desired start date" : kind === DomainEventKind.TravelTrip ? "Departure date" : "Event date"}
           <input required type="date" value={date} onInput={(event) => setDate(event.currentTarget.value)} />
