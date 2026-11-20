@@ -11,6 +11,12 @@ import {
   expectedBirthModule,
   pregnancyStartedModule,
 } from "#engine/lifeProfile/familyEvent";
+import {
+  childcarePlanModule,
+} from "#engine/lifeProfile/childcareEvent";
+import {
+  formatIntegerEuroCents,
+} from "#utils/currencyFormat";
 
 export interface DomainEventSummary {
   readonly label: string;
@@ -72,6 +78,19 @@ export function describeExtendedLifeEvent(event: LifeEvent<unknown>): DomainEven
       detail: birth.multipleCount && birth.multipleCount > 1
         ? `Linked pregnancy · ${birth.multipleCount} children`
         : "Linked to pregnancy",
+    };
+  }
+  if (event.kind === childcarePlanModule.kind) {
+    const plan = childcarePlanModule.parsePayload(event.payload);
+    const monthly = (plan.monthlyFeeCents ?? 0) + (plan.monthlyMealCents ?? 0);
+    return {
+      label: `${plan.providerName} (${plan.facilityKind})`,
+      detail: [
+        `Status: ${plan.applicationStatus}`,
+        ...(plan.municipality ? [plan.municipality] : []),
+        ...(plan.applicationDeadline ? [`Apply by ${plan.applicationDeadline}`] : []),
+        ...(monthly > 0 ? [`${formatIntegerEuroCents(monthly)}/mo`] : []),
+      ].join(" · "),
     };
   }
   return undefined;

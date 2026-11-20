@@ -31,6 +31,16 @@ import {
   expectedBirthModule,
   pregnancyStartedModule,
 } from "#engine/lifeProfile/familyEvent";
+import {
+  ChildcareApplicationStatus,
+  ChildcareFacilityKind,
+  childcarePlanModule,
+  toChildcareApplicationStatus,
+  toChildcareFacilityKind,
+} from "#engine/lifeProfile/childcareEvent";
+import {
+  parseAmount,
+} from "#engine/lifeProfile/cashAmount";
 
 export interface LifeDomainEventFormProps {
   readonly people: readonly LifePerson[];
@@ -45,6 +55,7 @@ const DomainEventKind = {
   FamilyPregnancy: "family.pregnancy",
   FamilyExpectedBirth: "family.expected-birth",
   FamilyActualBirth: "family.actual-birth",
+  ChildcarePlan: "childcare.plan",
 } as const;
 type DomainEventKind = (typeof DomainEventKind)[keyof typeof DomainEventKind];
 
@@ -85,6 +96,16 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
   const [dueDate, setDueDate] = useState("");
   const [childName, setChildName] = useState("");
   const [multipleCount, setMultipleCount] = useState("1");
+
+  // Childcare & school fields
+  const [facilityKind, setFacilityKind] = useState<ChildcareFacilityKind>(ChildcareFacilityKind.Kita);
+  const [providerName, setProviderName] = useState("");
+  const [municipality, setMunicipality] = useState("");
+  const [applicationDeadline, setApplicationDeadline] = useState("");
+  const [enrollmentDeadline, setEnrollmentDeadline] = useState("");
+  const [applicationStatus, setApplicationStatus] = useState<ChildcareApplicationStatus>(ChildcareApplicationStatus.Shortlisted);
+  const [monthlyFeeEur, setMonthlyFeeEur] = useState("");
+  const [monthlyMealEur, setMonthlyMealEur] = useState("");
 
   const activePersonId = personId || people[0]?.id || "";
   const personPregnancies = events
@@ -140,12 +161,26 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           multipleCount: Number(multipleCount),
         });
       }
-      else {
+      else if (kind === DomainEventKind.FamilyActualBirth) {
         eventKind = actualBirthModule.kind;
         payload = actualBirthModule.parsePayload({
           pregnancyId,
           ...(childName.trim() ? { childName: childName.trim() } : {}),
           multipleCount: Number(multipleCount),
+        });
+      }
+      else {
+        eventKind = childcarePlanModule.kind;
+        payload = childcarePlanModule.parsePayload({
+          facilityKind,
+          providerName: providerName.trim(),
+          ...(municipality.trim() ? { municipality: municipality.trim() } : {}),
+          ...(date ? { desiredStartDate: date } : {}),
+          ...(applicationDeadline ? { applicationDeadline } : {}),
+          ...(enrollmentDeadline ? { enrollmentDeadline } : {}),
+          applicationStatus,
+          ...(monthlyFeeEur.trim() ? { monthlyFeeCents: parseAmount(monthlyFeeEur, true) } : {}),
+          ...(monthlyMealEur.trim() ? { monthlyMealCents: parseAmount(monthlyMealEur, true) } : {}),
         });
       }
 
@@ -171,6 +206,12 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
         setDueDate("");
         setChildName("");
         setMultipleCount("1");
+        setProviderName("");
+        setMunicipality("");
+        setApplicationDeadline("");
+        setEnrollmentDeadline("");
+        setMonthlyFeeEur("");
+        setMonthlyMealEur("");
         setDate("");
       }
     }
@@ -202,6 +243,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
             <option value={DomainEventKind.FamilyPregnancy}>Pregnancy started</option>
             <option value={DomainEventKind.FamilyExpectedBirth}>Expected birth milestone</option>
             <option value={DomainEventKind.FamilyActualBirth}>Actual birth milestone</option>
+            <option value={DomainEventKind.ChildcarePlan}>Kita, Krippe or school option</option>
           </select>
         </label>
         {kind === DomainEventKind.ResidencePermit && <>
@@ -286,7 +328,47 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
             <input required type="number" min="1" max="6" step="1" value={multipleCount} onInput={(event) => setMultipleCount(event.currentTarget.value)} />
           </label>
         </>}
-        <label className="life-people__field">Event date
+        {kind === DomainEventKind.ChildcarePlan && <>
+          <label className="life-people__field">Facility type
+            <select value={facilityKind} onChange={(event) => setFacilityKind(toChildcareFacilityKind(event.currentTarget.value))}>
+              <option value={ChildcareFacilityKind.Krippe}>Krippe (0–3 yrs)</option>
+              <option value={ChildcareFacilityKind.Kita}>Kita / Kindergarten (3–6 yrs)</option>
+              <option value={ChildcareFacilityKind.Tagespflege}>Tagespflege</option>
+              <option value={ChildcareFacilityKind.Grundschule}>Grundschule</option>
+              <option value={ChildcareFacilityKind.Hort}>Hort / after-school care</option>
+              <option value={ChildcareFacilityKind.SecondarySchool}>Secondary school</option>
+            </select>
+          </label>
+          <label className="life-people__field">Provider / school name
+            <input required value={providerName} onInput={(event) => setProviderName(event.currentTarget.value)} placeholder="e.g. Kita Sonnenschein" />
+          </label>
+          <label className="life-people__field">Municipality / district (optional)
+            <input value={municipality} onInput={(event) => setMunicipality(event.currentTarget.value)} placeholder="e.g. Munich" />
+          </label>
+          <label className="life-people__field">Application status
+            <select value={applicationStatus} onChange={(event) => setApplicationStatus(toChildcareApplicationStatus(event.currentTarget.value))}>
+              <option value={ChildcareApplicationStatus.Shortlisted}>Shortlisted</option>
+              <option value={ChildcareApplicationStatus.Applied}>Applied</option>
+              <option value={ChildcareApplicationStatus.Waitlisted}>Waitlisted</option>
+              <option value={ChildcareApplicationStatus.Offered}>Offered</option>
+              <option value={ChildcareApplicationStatus.Enrolled}>Enrolled</option>
+              <option value={ChildcareApplicationStatus.Declined}>Declined</option>
+            </select>
+          </label>
+          <label className="life-people__field">Application deadline (optional)
+            <input type="date" value={applicationDeadline} onInput={(event) => setApplicationDeadline(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Enrollment deadline (optional)
+            <input type="date" value={enrollmentDeadline} onInput={(event) => setEnrollmentDeadline(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Monthly fee (optional, €)
+            <input type="number" min="0" step="0.01" value={monthlyFeeEur} onInput={(event) => setMonthlyFeeEur(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Monthly meals (optional, €)
+            <input type="number" min="0" step="0.01" value={monthlyMealEur} onInput={(event) => setMonthlyMealEur(event.currentTarget.value)} />
+          </label>
+        </>}
+        <label className="life-people__field">{kind === DomainEventKind.ChildcarePlan ? "Desired start date" : "Event date"}
           <input required type="date" value={date} onInput={(event) => setDate(event.currentTarget.value)} />
         </label>
         <label className="life-people__field">Status
