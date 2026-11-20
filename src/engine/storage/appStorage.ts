@@ -39,6 +39,11 @@ import {
   EventProjectionStatus,
   decodeEventProjections,
 } from "#engine/lifeProfile/eventProjectionRecord";
+import {
+  LEGACY_CONFIRMATION_STORAGE_KEY,
+  LegacyConfirmationStatus,
+  decodeLegacyConfirmations,
+} from "#engine/lifeProfile/legacyConfirmation";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type EnumerableBrowserStorage = BrowserStorage & Pick<Storage, "length" | "key">;
@@ -756,7 +761,16 @@ export function clearSharedBrowserKey(key: string): void {
 
 const backupFormat = "rechner-backup";
 const memoryRestoreKey = "rechner:privacy:memory-restore:v1";
-const sharedBackupKeys = ["rechner:shared:appearance:v1", "rechner:shared:parameters:v1", "rechner:life-profile:v1:profile", PEOPLE_STORAGE_KEY, TIMELINE_STORAGE_KEY, CASH_SCENARIO_STORAGE_KEY, EVENT_PROJECTION_STORAGE_KEY];
+const sharedBackupKeys = [
+  "rechner:shared:appearance:v1",
+  "rechner:shared:parameters:v1",
+  "rechner:life-profile:v1:profile",
+  PEOPLE_STORAGE_KEY,
+  TIMELINE_STORAGE_KEY,
+  CASH_SCENARIO_STORAGE_KEY,
+  EVENT_PROJECTION_STORAGE_KEY,
+  LEGACY_CONFIRMATION_STORAGE_KEY,
+];
 
 type BackupEntries = Record<string, string>;
 
@@ -912,6 +926,9 @@ function parseBackup(serialized: string): BackupEntries {
     if (key === LIFE_PROFILE_STORAGE_KEY && inspectLegacyRecord(raw) !== LegacyRecordStatus.Supported) {
       throw new Error("The backup contains an invalid or unsupported life profile.");
     }
+    if (key === LEGACY_CONFIRMATION_STORAGE_KEY && decodeLegacyConfirmations(raw).status !== LegacyConfirmationStatus.Valid) {
+      throw new Error("The backup contains an invalid or unsupported legacy confirmation record.");
+    }
     entries[key] = raw;
   }
   return entries;
@@ -962,6 +979,13 @@ export function importAllData(serialized: string): void {
   }
   if (!Object.hasOwn(entries, EVENT_PROJECTION_STORAGE_KEY) && currentEventProjections !== null) {
     entries[EVENT_PROJECTION_STORAGE_KEY] = currentEventProjections;
+  }
+  const currentLegacyConfirmations = shared?.getItem(LEGACY_CONFIRMATION_STORAGE_KEY) ?? null;
+  if (currentLegacyConfirmations !== null && decodeLegacyConfirmations(currentLegacyConfirmations).status !== LegacyConfirmationStatus.Valid) {
+    throw new Error("The saved legacy confirmation flags are invalid or unsupported. Export them before restoring data.");
+  }
+  if (!Object.hasOwn(entries, LEGACY_CONFIRMATION_STORAGE_KEY) && currentLegacyConfirmations !== null) {
+    entries[LEGACY_CONFIRMATION_STORAGE_KEY] = currentLegacyConfirmations;
   }
   const timeline = decodeTimelineRecord(entries[TIMELINE_STORAGE_KEY] ?? null, lifeEventCatalog);
   const people = decodePeopleRecord(entries[PEOPLE_STORAGE_KEY] ?? null);

@@ -6,6 +6,7 @@ import {
   type JSX,
 } from "preact";
 import {
+  useEffect,
   useState,
 } from "preact/hooks";
 import {
@@ -48,6 +49,15 @@ import {
   getLawEntry,
 } from "#engine/laws/registry";
 import {
+  LEGACY_FIELD_GROUP_LABELS,
+  LegacyConfirmationStatus,
+  LegacyProfileFieldGroup,
+} from "#engine/lifeProfile/legacyConfirmation";
+import {
+  readLegacyConfirmations,
+  writeLegacyConfirmations,
+} from "#engine/lifeProfile/legacyConfirmationStorage";
+import {
   unifiedLifeOverview,
   unifiedLifeProfile,
 } from "#store/lifeProfileStore";
@@ -60,12 +70,37 @@ function formatPercent(rate: number): string {
   return `${(rate * 100).toFixed(rate * 100 % 1 === 0 ? 1 : 2)}%`;
 }
 
+const ALL_LEGACY_GROUPS: readonly LegacyProfileFieldGroup[] = Object.values(LegacyProfileFieldGroup);
+
 /**
  * Full-page Unified Life Profile & 6-Domain Cross-Calculator Summary (`/profile/`).
  * Imports ONLY the shared `lifeProfileStore` and never any calculator-private store.
  */
 export default function LifeProfileSummaryPage(): JSX.Element {
   const [peopleRevision, setPeopleRevision] = useState(0);
+  const [confirmedGroups, setConfirmedGroups] = useState<readonly LegacyProfileFieldGroup[]>([]);
+  const [confirmationError, setConfirmationError] = useState("");
+  useEffect(() => {
+    const decoded = readLegacyConfirmations();
+    if (decoded.status === LegacyConfirmationStatus.Valid && decoded.record) {
+      setConfirmedGroups(decoded.record.confirmedGroups);
+    }
+    else if (decoded.status !== LegacyConfirmationStatus.Missing) {
+      setConfirmationError("Saved confirmation flags could not be read. Export your data before changing them.");
+    }
+  }, []);
+  function toggleConfirmedGroup(group: LegacyProfileFieldGroup): void {
+    const next = confirmedGroups.includes(group)
+      ? confirmedGroups.filter((item) => item !== group)
+      : [...confirmedGroups, group];
+    if (!writeLegacyConfirmations({ version: 1,
+      confirmedGroups: next })) {
+      setConfirmationError("Could not save confirmation state in the active storage mode.");
+      return;
+    }
+    setConfirmedGroups(next);
+    setConfirmationError("");
+  }
   const profile = unifiedLifeProfile.value;
   const overview = unifiedLifeOverview.value;
   const {
@@ -105,9 +140,23 @@ export default function LifeProfileSummaryPage(): JSX.Element {
         ]}
       />
 
-      <p className="life-summary__input-note">
-        Some profile values may still be examples. Review your shared inputs before using these estimates.
-      </p>
+      <details className="life-summary__input-note">
+        <summary>
+          {confirmedGroups.length === ALL_LEGACY_GROUPS.length
+            ? "All shared profile groups confirmed as your own figures"
+            : `Legacy profile confirmation: ${confirmedGroups.length} of ${ALL_LEGACY_GROUPS.length} groups confirmed (unconfirmed values may still be examples)`}
+        </summary>
+        {confirmationError && <p role="alert">{confirmationError}</p>}
+        <p>Check each group after reviewing or entering your own figures. Unchecked groups stay marked as unconfirmed examples and are never treated as verified timeline events.</p>
+        <ul>
+          {ALL_LEGACY_GROUPS.map((group) => <li key={group}>
+            <label>
+              <input type="checkbox" checked={confirmedGroups.includes(group)} onChange={() => toggleConfirmedGroup(group)} />
+              {" "}{LEGACY_FIELD_GROUP_LABELS[group]}
+            </label>
+          </li>)}
+        </ul>
+      </details>
 
       <section className="life-summary__headline-grid" aria-label="Cross-calculator headline totals">
         <MetricCard
