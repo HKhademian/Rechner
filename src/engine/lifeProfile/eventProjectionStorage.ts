@@ -8,6 +8,11 @@ import {
 import {
   browserWebStorageForCurrentMode,
 } from "#engine/storage/appStorage";
+import {
+  PEOPLE_STORAGE_KEY,
+  PeopleRecordStatus,
+  decodePeopleRecord,
+} from "#engine/lifeProfile/peopleRecord";
 
 export function readEventProjections(): DecodedEventProjections {
   try {
@@ -29,6 +34,11 @@ export function writeEventProjections(record: EventProjectionRecord, expected: E
       : current.status === EventProjectionStatus.Valid && JSON.stringify(current.record) === JSON.stringify(expected);
     const serialized = JSON.stringify(record);
     if (!unchanged || decodeEventProjections(serialized).status !== EventProjectionStatus.Valid) {
+      return false;
+    }
+    const people = decodePeopleRecord(storage.getItem(PEOPLE_STORAGE_KEY));
+    if (record.projections.length > 0 && (people.status !== PeopleRecordStatus.Valid
+      || record.projections.some((projection) => !people.record?.people.some((person) => person.id === projection.personId)))) {
       return false;
     }
     storage.setItem(EVENT_PROJECTION_STORAGE_KEY, serialized);

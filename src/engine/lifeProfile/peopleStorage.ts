@@ -16,6 +16,11 @@ import {
   TimelineRecordStatus,
   decodeTimelineRecord,
 } from "#engine/lifeProfile/timelineRecord";
+import {
+  EVENT_PROJECTION_STORAGE_KEY,
+  EventProjectionStatus,
+  decodeEventProjections,
+} from "#engine/lifeProfile/eventProjectionRecord";
 
 export function readPeople(): DecodedPeopleRecord {
   try {
@@ -43,6 +48,11 @@ export function writePeople(record: PeopleRecord): boolean {
     const timeline = decodeTimelineRecord(storage.getItem(TIMELINE_STORAGE_KEY), lifeEventCatalog);
     if ((timeline.status !== TimelineRecordStatus.Missing && timeline.status !== TimelineRecordStatus.Valid)
       || timeline.record?.events.some((event) => !record.people.some((person) => person.id === event.personId))) {
+      return false;
+    }
+    const projections = decodeEventProjections(storage.getItem(EVENT_PROJECTION_STORAGE_KEY));
+    if ((projections.status !== EventProjectionStatus.Missing && projections.status !== EventProjectionStatus.Valid)
+      || projections.record?.projections.some((projection) => !record.people.some((person) => person.id === projection.personId))) {
       return false;
     }
     storage.setItem(PEOPLE_STORAGE_KEY, serialized);

@@ -968,6 +968,10 @@ export function importAllData(serialized: string): void {
   if (timeline.record?.events.some((event) => !people.record?.people.some((person) => person.id === event.personId))) {
     throw new Error("The backup would leave timeline events without their people.");
   }
+  const eventProjections = decodeEventProjections(entries[EVENT_PROJECTION_STORAGE_KEY] ?? null);
+  if (eventProjections.record?.projections.some((projection) => !people.record?.people.some((person) => person.id === projection.personId))) {
+    throw new Error("The backup would leave event projections without their people.");
+  }
   const previous = exportAllData();
   const apply = (values: BackupEntries): void => {
     for (const { app, storage } of targets) {

@@ -57,6 +57,23 @@ it("restores reproducible event projections and reports timeline changes in ever
       app.importAllData(JSON.stringify({ format: "rechner-backup", version: 1, entries: {} }));
       assert.equal(store.readEventProjections().record.projections[0].name, "Example");
       assert.equal(store.writeEventProjections(empty, empty), false);
+      const existing = store.readEventProjections().record;
+      const retainedEvents = timeline.readTimeline().record.events;
+      assert.equal(store.writeEventProjections(empty, existing), true);
+      assert.deepEqual(timeline.readTimeline().record.events, retainedEvents);
+      assert.equal(store.writeEventProjections(existing, empty), true);
+      assert.equal(timeline.writeTimeline({ version: 2, events: [] }), true);
+      assert.equal(people.writePeople({ version: 1, people: [] }), false);
+      const orphaningBackup = JSON.stringify({ format: "rechner-backup", version: 1,
+        entries: { "rechner:life-profile:people:v1": JSON.stringify({ version: 1, people: [] }),
+          "rechner:life-profile:timeline:v1": JSON.stringify({ version: 2, events: [] }) } });
+      assert.throws(() => app.importAllData(orphaningBackup));
+      assert.equal(people.readPeople().record.people[0].id, "p");
+      const retained = store.readEventProjections().record;
+      assert.equal(store.writeEventProjections(empty, retained), true);
+      assert.equal(people.writePeople({ version: 1, people: [] }), true);
+      assert.equal(store.writeEventProjections(record, empty), false);
+      app.importAllData(backup);
       if (mode === app.StorageMode.Persistent) {
         const previous = store.readEventProjections().record;
         const updated = { version: 1, projections: [{ ...previous.projections[0], opening: 50000 }] };
@@ -73,6 +90,7 @@ it("restores reproducible event projections and reports timeline changes in ever
       }
       storage.setItem(rec.EVENT_PROJECTION_STORAGE_KEY, '{"version":2,"projections":[]}');
       assert.equal(store.writeEventProjections(empty, empty), false);
+      assert.equal(people.writePeople({ version: 1, people: [] }), false);
       assert.throws(() => app.importAllData(backup));
       storage.removeItem(rec.EVENT_PROJECTION_STORAGE_KEY);
     }
