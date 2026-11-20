@@ -80,6 +80,9 @@ import {
   readTimeline,
   writeTimeline,
 } from "#engine/lifeProfile/timelineStorage";
+import {
+  detectTimelineConflicts,
+} from "#engine/lifeProfile/timelineConflicts";
 import "./LifePeople.css";
 
 const DatePrecision = { Unknown: "unknown",
@@ -244,10 +247,23 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     }
   }
 
+  const conflicts = detectTimelineConflicts(events);
+
   return <section className="ui-card life-people" aria-labelledby="life-timeline-heading">
     <h2 id="life-timeline-heading">Life timeline</h2>
     <p>Record a life event or something you are planning. Events do not change calculator inputs yet.</p>
     {error && <p role="alert">{error}</p>}
+    {ready && conflicts.length > 0 && <details className="calc-explain">
+      <summary>Review {conflicts.length} timeline {conflicts.length === 1 ? "conflict or ambiguity" : "conflicts or ambiguities"}</summary>
+      <ul className="calc-explain__list">
+        {conflicts.map((conflict) => {
+          const person = people.find((entry) => entry.id === conflict.personId);
+          return <li key={`${conflict.kind}-${conflict.eventIds.join("-")}`}>
+            <strong>{person?.name ?? "Person"}:</strong> {conflict.summary} {conflict.suggestedAction}
+          </li>;
+        })}
+      </ul>
+    </details>}
     {ready && <>
       {events.length === 0 ? <p>No events added yet.</p> : <ul className="life-people__list">
         {orderLifeEvents(events).map((event) => {
