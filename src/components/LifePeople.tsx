@@ -8,9 +8,12 @@ import {
 import {
   type LifePerson,
   type PersonId,
+  PersonRelationship,
   completedYearsOn,
   toLifeDate,
   toPersonId,
+  toPersonRelationship,
+  upcomingBirthdays,
 } from "#engine/lifeProfile/person";
 import {
   PeopleRecordStatus,
@@ -26,12 +29,29 @@ function today(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+function formatRelationship(relationship: PersonRelationship | undefined): string {
+  if (relationship === PersonRelationship.Self) {
+    return "Self";
+  }
+  if (relationship === PersonRelationship.Partner) {
+    return "Partner";
+  }
+  if (relationship === PersonRelationship.Child) {
+    return "Child";
+  }
+  if (relationship === PersonRelationship.Other) {
+    return "Other household member";
+  }
+  return "";
+}
+
 export default function LifePeople({ onChange }: { readonly onChange?: () => void }): JSX.Element {
   const [people, setPeople] = useState<readonly LifePerson[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [relationship, setRelationship] = useState("");
   const [asOf, setAsOf] = useState("");
   const [editing, setEditing] = useState<PersonId | undefined>();
 
@@ -64,16 +84,21 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
         setError("People data changed elsewhere. Reload this page before editing.");
         return;
       }
-      const person: LifePerson = { id: editing ?? toPersonId(crypto.randomUUID()),
+      const person: LifePerson = {
+        id: editing ?? toPersonId(crypto.randomUUID()),
         name: name.trim(),
-        ...(birthDate ? { birthDate: toLifeDate(birthDate) } : {}) };
+        ...(birthDate ? { birthDate: toLifeDate(birthDate) } : {}),
+        ...(relationship ? { relationship: toPersonRelationship(relationship) } : {}),
+      };
       if (!person.name) {
         setError("Enter a name.");
         return;
       }
       const next = editing ? people.map((entry) => entry.id === editing ? person : entry) : [...people, person];
-      if (!writePeople({ version: 1,
-        people: next })) {
+      if (!writePeople({
+        version: 1,
+        people: next,
+      })) {
         setError("Could not save people. Check your storage or export existing data.");
         return;
       }
@@ -81,11 +106,12 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
       onChange?.();
       setName("");
       setBirthDate("");
+      setRelationship("");
       setEditing(undefined);
       setError("");
     }
     catch {
-      setError("Enter a valid birthdate.");
+      setError("Enter a valid birthdate and relationship.");
     }
   }
 
@@ -95,8 +121,10 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
       return;
     }
     const next = people.filter((person) => person.id !== id);
-    if (!writePeople({ version: 1,
-      people: next })) {
+    if (!writePeople({
+      version: 1,
+      people: next,
+    })) {
       setError("Could not remove this person. Remove their timeline events and saved event projections first, and check your storage.");
       return;
     }
@@ -106,13 +134,24 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
       setEditing(undefined);
       setName("");
       setBirthDate("");
+      setRelationship("");
     }
     setError("");
   }
 
+  let upcoming: ReturnType<typeof upcomingBirthdays> = [];
+  if (asOf && people.length > 0) {
+    try {
+      upcoming = upcomingBirthdays(people, toLifeDate(asOf), 90);
+    }
+    catch {
+      upcoming = [];
+    }
+  }
+
   return <section className="ui-card life-people" aria-labelledby="life-people-heading">
     <h2 id="life-people-heading">People</h2>
-    <p>Add people to your life profile. Calculator inputs are still managed separately.</p>
+    <p>Add people and household relationships to your life profile. Calculator inputs are still managed separately.</p>
     {error && <p role="alert">{error}</p>}
     {ready && <>
       <label className="life-people__field">Age on
@@ -127,22 +166,41 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
           catch {
             age = undefined;
           }
+          const roleLabel = formatRelationship(person.relationship);
           return <li key={person.id}>
-            <div><strong>{person.name}</strong><p>{person.birthDate ? `Born ${person.birthDate}` : "Birthdate not provided"}{age === undefined ? "" : ` · ${age} years old`}</p></div>
+            <div><strong>{person.name}{roleLabel ? ` (${roleLabel})` : ""}</strong><p>{person.birthDate ? `Born ${person.birthDate}` : "Birthdate not provided"}{age === undefined ? "" : ` · ${age} years old`}</p></div>
             <div className="life-people__actions">
               <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${person.name}`} onClick={() => {
                 setEditing(person.id);
                 setName(person.name);
                 setBirthDate(person.birthDate ?? "");
+                setRelationship(person.relationship ?? "");
               }}>Edit</button>
               <button className="ui-btn ui-btn--sm" type="button" aria-label={`Remove ${person.name}`} onClick={() => remove(person.id)}>Remove</button>
             </div>
           </li>;
         })}
       </ul>}
+      {upcoming.length > 0 && <details className="calc-explain">
+        <summary>Upcoming birthdays within 90 days ({upcoming.length})</summary>
+        <ul className="calc-explain__list">
+          {upcoming.map((entry) => <li key={entry.personId}>
+            <strong>{entry.name}</strong>: {entry.nextBirthday} (turning {entry.turningAge}, {entry.daysUntil === 0 ? "today" : `in ${entry.daysUntil} days`})
+          </li>)}
+        </ul>
+      </details>}
       <form className="life-people__form" onSubmit={save}>
         <label className="life-people__field">Name
           <input required value={name} onInput={(event) => setName(event.currentTarget.value)} />
+        </label>
+        <label className="life-people__field">Relationship <span>(optional)</span>
+          <select value={relationship} onChange={(event) => setRelationship(event.currentTarget.value)}>
+            <option value="">Not specified</option>
+            <option value={PersonRelationship.Self}>Self</option>
+            <option value={PersonRelationship.Partner}>Partner</option>
+            <option value={PersonRelationship.Child}>Child</option>
+            <option value={PersonRelationship.Other}>Other household member</option>
+          </select>
         </label>
         <label className="life-people__field">Birthdate <span>(optional)</span>
           <input type="date" value={birthDate} onInput={(event) => setBirthDate(event.currentTarget.value)} />
@@ -152,6 +210,7 @@ export default function LifePeople({ onChange }: { readonly onChange?: () => voi
           setEditing(undefined);
           setName("");
           setBirthDate("");
+          setRelationship("");
         }}>Cancel</button>}
       </form>
     </>}

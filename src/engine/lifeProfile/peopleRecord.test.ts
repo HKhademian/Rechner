@@ -20,4 +20,20 @@ it("distinguishes missing, valid, malformed and future people records", () => {
   for (const future of ['{"version":2,"people":[]}', '{"version":1,"people":[],"extra":true}', '{"version":1,"people":[{"id":"a","name":"A","extra":true}]}']) {
     assert.equal(decodePeopleRecord(future).status, PeopleRecordStatus.Unsupported);
   }
+  const withRelationship = JSON.stringify({
+    version: 1,
+    people: [
+      {
+        id: "p1",
+        name: "Alex",
+        relationship: "partner",
+      },
+    ],
+  });
+  assert.equal(decodePeopleRecord(withRelationship).status, PeopleRecordStatus.Valid);
+  assert.equal(decodePeopleRecord(withRelationship).record?.people[0].relationship, "partner");
+  assert.equal(
+    decodePeopleRecord('{"version":1,"people":[{"id":"p1","name":"Alex","relationship":"unknown"}]}').status,
+    PeopleRecordStatus.Invalid,
+  );
 });

@@ -2,6 +2,7 @@ import {
   type LifePerson,
   toLifeDate,
   toPersonId,
+  toPersonRelationship,
 } from "#engine/lifeProfile/person";
 
 export const PEOPLE_STORAGE_KEY = "rechner:life-profile:people:v1";
@@ -57,11 +58,12 @@ export function decodePeopleRecord(raw: string | null): DecodedPeopleRecord {
       if (!objectRecord(person)) {
         return { status: PeopleRecordStatus.Invalid };
       }
-      if (!hasOnlyKeys(person, ["id", "name", "birthDate"])) {
+      if (!hasOnlyKeys(person, ["id", "name", "birthDate", "relationship"])) {
         return { status: PeopleRecordStatus.Unsupported };
       }
       if (typeof person.id !== "string" || typeof person.name !== "string" || person.name.trim() === ""
-        || (person.birthDate !== undefined && typeof person.birthDate !== "string")) {
+        || (person.birthDate !== undefined && typeof person.birthDate !== "string")
+        || (person.relationship !== undefined && typeof person.relationship !== "string")) {
         return { status: PeopleRecordStatus.Invalid };
       }
       const id = toPersonId(person.id);
@@ -69,13 +71,20 @@ export function decodePeopleRecord(raw: string | null): DecodedPeopleRecord {
         return { status: PeopleRecordStatus.Invalid };
       }
       ids.add(id);
-      people.push(Object.freeze({ id,
+      people.push(Object.freeze({
+        id,
         name: person.name,
-        ...(person.birthDate === undefined ? {} : { birthDate: toLifeDate(person.birthDate) }) }));
+        ...(person.birthDate === undefined ? {} : { birthDate: toLifeDate(person.birthDate) }),
+        ...(person.relationship === undefined ? {} : { relationship: toPersonRelationship(person.relationship) }),
+      }));
     }
-    return { status: PeopleRecordStatus.Valid,
-      record: Object.freeze({ version: 1,
-        people: Object.freeze(people) }) };
+    return {
+      status: PeopleRecordStatus.Valid,
+      record: Object.freeze({
+        version: 1,
+        people: Object.freeze(people),
+      }),
+    };
   }
   catch {
     return { status: PeopleRecordStatus.Invalid };
