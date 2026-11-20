@@ -26,6 +26,9 @@ import {
   PersonalPin,
   categoryStyle,
   distanceKm,
+  landmarkLayers,
+  mapLayers,
+  transitLayers,
   munichPlaces,
   toMapCategory,
   toMapPlaceId,
@@ -39,7 +42,9 @@ import {
 } from "./mapStorage.ts";
 
 const categories = Object.values(MapCategory);
-const eventCategories = categories.filter((item) => item !== MapCategory.Landmark && item !== MapCategory.Transit);
+const eventCategories = categories.filter((item) => !mapLayers.includes(item) && item !== MapCategory.Transit);
+const defaultLayers: readonly MapCategory[] = [...landmarkLayers, MapCategory.Subway, MapCategory.SuburbanRail];
+const resultLimit = 80;
 const personalPins = Object.values(PersonalPin);
 const dateLabel = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium",
   timeZone: "UTC" });
@@ -65,8 +70,8 @@ export default function MunichMap() {
   const [today, setToday] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<MapCategory>();
-  const [landmarks, setLandmarks] = useState(true);
-  const [transit, setTransit] = useState(false);
+  const [layers, setLayers] = useState<readonly MapCategory[]>(defaultLayers);
+  const [cityPlaces, setCityPlaces] = useState<readonly MapPlace[]>([]);
   const [reference, setReference] = useState<PersonalPin>();
   const [radius, setRadius] = useState(0);
   const [selected, setSelected] = useState<MapPlace>();
@@ -82,9 +87,10 @@ export default function MunichMap() {
     setData(loadMapData());
     setToday(munichDay.format(new Date()));
     let active = true;
-    void import("./MapView.tsx").then(({ MapView }) => {
+    void Promise.all([import("./MapView.tsx"), import("./cityLayers.ts")]).then(([{ MapView }, { cityPlaces }]) => {
       if (active) {
         setMapView(() => MapView);
+        setCityPlaces(cityPlaces);
       }
     }).catch(() => {
       if (active) {
@@ -99,24 +105,33 @@ export default function MunichMap() {
   const origin = (reference && data.pins[reference]?.position) || MUNICH_CENTER;
   const places = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
-    return [...munichPlaces, ...data.places].filter((place) => {
+    return [...munichPlaces, ...cityPlaces, ...data.places].flatMap((place) => {
       if (!`${place.title} ${place.detail}`.toLocaleLowerCase().includes(term)) {
-        return false;
+        return [];
       }
-      if (place.category === MapCategory.Landmark) {
-        return landmarks;
+      if (place.modes) {
+        const activeMode = place.modes.find((mode) => layers.includes(mode));
+        return activeMode ? [{ ...place,
+          category: activeMode }] : [];
       }
       if (place.category === MapCategory.Transit) {
-        return transit;
+        return transitLayers.some((layer) => layers.includes(layer)) ? [place] : [];
       }
-      return !category || category === place.category;
+      if (mapLayers.includes(place.category)) {
+        return layers.includes(place.category) ? [place] : [];
+      }
+      return !category || category === place.category ? [place] : [];
     }).map((place) => ({
       place,
       distance: distanceKm(origin, place.position),
     })).filter(({ distance }) => radius === 0 || distance <= radius)
       .sort((left, right) => left.distance - right.distance);
-  }, [data.places, origin, query, category, landmarks, transit, radius]);
+  }, [cityPlaces, data.places, origin, query, category, layers, radius]);
   const markers = useMemo(() => places.map(({ place }) => place), [places]);
+  const listedPlaces = useMemo(() => [
+    ...places.filter(({ place }) => eventCategories.includes(place.category)),
+    ...places.filter(({ place }) => !eventCategories.includes(place.category)),
+  ].slice(0, resultLimit), [places]);
   const pins = useMemo(() => personalPins.flatMap((name) => {
     const pin = data.pins[name];
     return pin ? [{ title: name,
@@ -177,11 +192,9 @@ export default function MunichMap() {
         places: [...data.places.filter((item) => item.id !== place.id), place] });
       setQuery("");
       setRadius(0);
-      if (place.category === MapCategory.Landmark) {
-        setLandmarks(true);
-      }
-      else if (place.category === MapCategory.Transit) {
-        setTransit(true);
+      const layer = place.category === MapCategory.Transit ? MapCategory.Subway : place.category;
+      if (mapLayers.includes(layer)) {
+        setLayers((current) => current.includes(layer) ? current : [...current, layer]);
       }
       else {
         setCategory(place.category);
@@ -202,8 +215,20 @@ export default function MunichMap() {
       <PageHeader title="Munich Map" subtitle="Markets, venues and places to go around Munich." />
       <div class="munich-map-layout">
         <section class="munich-map-main" aria-label="Map and distance controls">
+          <fieldset class="munich-map-layers">
+            <legend>Map layers</legend>
+            {mapLayers.map((layer) => (
+              <label key={layer}>
+                <input type="checkbox" checked={layers.includes(layer)} onChange={(event) => {
+                  const { checked } = event.currentTarget;
+                  setLayers((current) => checked ? [...current, layer] : current.filter((item) => item !== layer));
+                }} />
+                {layer}
+              </label>
+            ))}
+          </fieldset>
           {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={radius} focus={focus} draft={draft?.position}
-            picking={picking} onPick={pickPosition} onSelect={selectPlace} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
+            transitVisible={transitLayers.some((layer) => layers.includes(layer))} picking={picking} onPick={pickPosition} onSelect={selectPlace} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
           <div class="munich-map-distance">
             <label>Distance from
               <select value={reference ?? ""} onChange={(event) => {
@@ -295,10 +320,6 @@ export default function MunichMap() {
                 {item ?? "All events"}
               </button>)}
           </div>
-          <div class="munich-map-layers">
-            <label><input type="checkbox" checked={landmarks} onChange={(event) => setLandmarks(event.currentTarget.checked)} /> Landmarks</label>
-            <label><input type="checkbox" checked={transit} onChange={(event) => setTransit(event.currentTarget.checked)} /> Public transit</label>
-          </div>
           <p class="munich-map-count">{places.length} {places.length === 1 ? "place" : "places"}</p>
           {activePlace && (
             <section class="munich-map-detail" aria-label="Selected place">
@@ -306,7 +327,7 @@ export default function MunichMap() {
               {activeDate && <time dateTime={activePlace.place.date}>{activeDate}</time>}
               {activePlace.place.detail && <p>{activePlace.place.detail}</p>}
               {activePlace.place.source && <a href={activePlace.place.source}>
-                {activePlace.place.category === MapCategory.Transit ? "MVV journey planner" : "Official site"}
+                {activePlace.place.sourceLabel ?? "Official site"}
               </a>}
               {ownPlace && <div class="munich-map-actions">
                 <button type="button" onClick={() => startDraft({ place: activePlace.place,
@@ -325,7 +346,7 @@ export default function MunichMap() {
           )}
           {places.length === 0 && <p>No places match these filters.</p>}
           <ul class="munich-map-results">
-            {places.map(({ place, distance }) => {
+            {listedPlaces.map(({ place, distance }) => {
               const style = categoryStyle[place.category];
               return (
                 <li key={place.id}>
@@ -338,6 +359,7 @@ export default function MunichMap() {
               );
             })}
           </ul>
+          {places.length > resultLimit && <p class="munich-map-count">Showing {resultLimit} places, with events first. Search or set a radius to narrow the list.</p>}
           <p class="munich-map-schedule">
             Check organizer sites for dates and opening hours. <a href="https://www.muenchen.de/veranstaltungen">Munich event calendar</a>
           </p>

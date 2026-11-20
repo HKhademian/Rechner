@@ -10,6 +10,12 @@ export const MapCategory = {
   Concert: "Concerts",
   Landmark: "Landmarks",
   Transit: "Public transit",
+  Church: "Churches",
+  Cemetery: "Cemeteries",
+  Subway: "U-Bahn",
+  SuburbanRail: "S-Bahn",
+  Tram: "Tram",
+  Bus: "Bus",
 } as const;
 export type MapCategory = (typeof MapCategory)[keyof typeof MapCategory];
 
@@ -78,7 +84,13 @@ export interface MapPlace {
   readonly source?: string;
   readonly date?: string;
   readonly endDate?: string;
+  readonly modes?: readonly MapCategory[];
+  readonly sourceLabel?: string;
 }
+
+export const landmarkLayers = [MapCategory.Landmark, MapCategory.Church, MapCategory.Cemetery] as const;
+export const transitLayers = [MapCategory.Subway, MapCategory.SuburbanRail, MapCategory.Tram, MapCategory.Bus] as const;
+export const mapLayers: readonly MapCategory[] = [...landmarkLayers, ...transitLayers];
 
 export const MUNICH_CENTER = toMapPosition(48.1374, 11.5755);
 
@@ -96,8 +108,20 @@ export const categoryStyle: Record<MapCategory, { readonly code: string;
     color: "#6d28d9" },
   [MapCategory.Landmark]: { code: "L",
     color: "#334155" },
-  [MapCategory.Transit]: { code: "U",
+  [MapCategory.Transit]: { code: "P",
     color: "#0369a1" },
+  [MapCategory.Church]: { code: "+",
+    color: "#475569" },
+  [MapCategory.Cemetery]: { code: "G",
+    color: "#57534e" },
+  [MapCategory.Subway]: { code: "U",
+    color: "#1e40af" },
+  [MapCategory.SuburbanRail]: { code: "S",
+    color: "#166534" },
+  [MapCategory.Tram]: { code: "T",
+    color: "#991b1b" },
+  [MapCategory.Bus]: { code: "B",
+    color: "#115e59" },
 };
 
 function place(
@@ -134,9 +158,4 @@ export const munichPlaces: readonly MapPlace[] = [
   place("english-garden", "Chinesischer Turm", MapCategory.Landmark, toMapPosition(48.1522, 11.5928), "Landmark in the Englischer Garten.", "https://www.schloesser.bayern.de/"),
   place("nymphenburg", "Schloss Nymphenburg", MapCategory.Landmark, toMapPosition(48.1582, 11.5033), "Palace and gardens in western Munich.", "https://www.schloss-nymphenburg.de/"),
   place("odeonsplatz", "Odeonsplatz", MapCategory.Landmark, toMapPosition(48.1427, 11.5771), "Historic square by the Feldherrnhalle.", "https://www.muenchen.de/"),
-  place("hauptbahnhof", "München Hauptbahnhof", MapCategory.Transit, toMapPosition(48.1403, 11.5586), "Rail, S-Bahn, U-Bahn, tram and bus connections.", "https://www.mvv-muenchen.de/"),
-  place("sendlinger-tor", "Sendlinger Tor", MapCategory.Transit, toMapPosition(48.1338, 11.5667), "U-Bahn, tram and bus connections.", "https://www.mvv-muenchen.de/"),
-  place("ostbahnhof", "München Ostbahnhof", MapCategory.Transit, toMapPosition(48.1277, 11.6048), "Rail, S-Bahn, U-Bahn, tram and bus connections.", "https://www.mvv-muenchen.de/"),
-  place("olympiazentrum", "Olympiazentrum", MapCategory.Transit, toMapPosition(48.1791, 11.5557), "U-Bahn and bus connections.", "https://www.mvv-muenchen.de/"),
-  place("messestadt-west", "Messestadt West", MapCategory.Transit, toMapPosition(48.1333, 11.6925), "U-Bahn and bus connections near Messe München.", "https://www.mvv-muenchen.de/"),
 ];

@@ -21,7 +21,7 @@
   min-height: 26rem;
   height: min(68vh, 46rem);
   margin: 0;
-  border-radius: 1rem 1rem 0 0;
+  border-radius: 0;
   background: var(--bg-surface-secondary);
 }
 
@@ -35,6 +35,10 @@
   background: var(--bg-surface-secondary);
 }
 
+.munich-map-surface .leaflet-bottom.leaflet-right {
+  max-width: 100%;
+}
+
 .munich-map-surface.is-picking {
   cursor: crosshair;
 }
@@ -44,7 +48,7 @@
   position: absolute;
   z-index: 1000;
   left: 0.75rem;
-  bottom: 1.65rem;
+  bottom: 3rem;
 }
 
 .munich-map-tile-status {
@@ -177,6 +181,18 @@
 
 .munich-map-layout :is(.munich-map-panel-title button, button[type="submit"]) {
   background: var(--bg-surface-secondary);
+  font-weight: 650;
+}
+
+fieldset.munich-map-layers {
+  margin: 0;
+  padding: 0.5rem 1rem 0.7rem;
+  border: 0;
+}
+
+.munich-map-layers legend {
+  padding-top: 0.55rem;
+  font-size: 0.85rem;
   font-weight: 650;
 }
 

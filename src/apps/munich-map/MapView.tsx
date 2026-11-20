@@ -18,7 +18,9 @@ import {
   type MapPlace,
   type MapPosition,
   MUNICH_CENTER,
+  MapCategory,
   categoryStyle,
+  mapLayers,
   toMapPosition,
 } from "./places.ts";
 
@@ -31,9 +33,13 @@ interface MapViewProps {
   readonly focus?: MapPosition;
   readonly draft?: MapPosition;
   readonly picking: boolean;
+  readonly transitVisible: boolean;
   readonly onPick: (position: MapPosition) => void;
   readonly onSelect: (place: MapPlace) => void;
 }
+
+const transitCredit = "Münchner Verkehrs- und Tarifverbund GmbH (MVV) · 20 Nov 2026 · CC BY";
+const osmCredit = "© OpenStreetMap contributors · Open Database License";
 
 function point(position: MapPosition): [number, number] {
   return [position[0], position[1]];
@@ -42,14 +48,17 @@ function point(position: MapPosition): [number, number] {
 function pinStyle(
   code: string,
   color: string,
+  size = 26,
 ) {
   const label = document.createElement("span");
   label.textContent = code;
   label.style.backgroundColor = color;
+  label.style.width = `${size}px`;
+  label.style.height = `${size}px`;
   return divIcon({ className: "munich-map-pin",
     html: label,
-    iconSize: [26, 26],
-    iconAnchor: [13, 13] });
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2] });
 }
 
 export function MapView({
@@ -60,6 +69,7 @@ export function MapView({
   focus,
   draft,
   picking,
+  transitVisible,
   onPick,
   onSelect,
 }: MapViewProps) {
@@ -78,8 +88,11 @@ export function MapView({
     });
     instance.current = view;
     view.attributionControl?.setPrefix(false);
+    view.attributionControl?.addAttribution(osmCredit);
+    if (import.meta.env.PUBLIC_SHOW_MAP_ATTRIBUTION === "true") {
+      view.attributionControl?.addAttribution("Leaflet");
+    }
     const tiles = tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
       maxZoom: 19,
       referrerPolicy: "strict-origin-when-cross-origin",
     });
@@ -100,18 +113,53 @@ export function MapView({
   }, []);
 
   useEffect(() => {
+    const credits = instance.current?.attributionControl;
+    if (transitVisible) {
+      credits?.addAttribution(transitCredit);
+      return () => {
+        credits?.removeAttribution(transitCredit);
+      };
+    }
+  }, [transitVisible]);
+
+  useEffect(() => {
     const view = instance.current;
     if (!view) {
       return;
     }
     const layer = layerGroup().addTo(view);
-    for (const place of places) {
-      const style = categoryStyle[place.category];
-      marker(point(place.position), { icon: pinStyle(style.code, style.color),
-        title: place.title,
-        alt: place.title })
-        .on("click", () => onSelect(place)).addTo(layer);
-    }
+    const visiblePlaces = layerGroup().addTo(layer);
+    const renderVisiblePlaces = () => {
+      visiblePlaces.clearLayers();
+      const bounds = view.getBounds().pad(0.1);
+      // At city scale, space out the densest layers so rail and event markers stay readable.
+      const occupiedCells = new Set<string>();
+      const declutter = view.getZoom() <= 13;
+      for (const place of places) {
+        const coordinates = point(place.position);
+        if (!bounds.contains(coordinates)) {
+          continue;
+        }
+        if (declutter && (place.category === MapCategory.Church || place.category === MapCategory.Bus)) {
+          const pixel = view.project(coordinates);
+          const cell = `${place.category}-${Math.floor(pixel.x / 34)}-${Math.floor(pixel.y / 34)}`;
+          if (occupiedCells.has(cell)) {
+            continue;
+          }
+          occupiedCells.add(cell);
+        }
+        const style = categoryStyle[place.category];
+        const overlay = mapLayers.includes(place.category);
+        const pin = marker(coordinates, {
+          icon: pinStyle(style.code, style.color, overlay ? 20 : 26),
+          title: place.title,
+          zIndexOffset: overlay ? 0 : 250,
+        }).on("click", () => onSelect(place)).addTo(visiblePlaces);
+        pin.getElement()?.setAttribute("aria-label", place.title);
+      }
+    };
+    renderVisiblePlaces();
+    view.on("moveend resize", renderVisiblePlaces);
     for (const pin of pins) {
       marker(point(pin.position), {
         icon: pinStyle(pin.title[0], "var(--qr-ink)"),
@@ -138,6 +186,7 @@ export function MapView({
         interactive: false }).addTo(layer);
     }
     return () => {
+      view.off("moveend resize", renderVisiblePlaces);
       layer.remove();
     };
   }, [places, pins, origin, radius, draft, onSelect]);

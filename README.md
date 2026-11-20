@@ -14,7 +14,7 @@ Rechner brings together clear estimates for German take-home pay and parental-le
 
 ### Everyday tools
 
-- **Munich Map** opens from the Everyday category in the app catalog. Explore markets, venues, landmarks and transit stops, or add your own places and measure straight-line distances from home or work.
+- **Munich Map** opens from the Everyday category in the app catalog. Explore markets, venues, landmarks, churches, cemeteries and MVV stops, or add your own places and measure straight-line distances from home or work.
 
 ### Designed for clarity
 
