@@ -4,6 +4,8 @@ import {
 } from "#engine/lifeProfile/eventModules";
 import {
   jobChangedModule,
+  jobEndedModule,
+  jobLeaveModule,
   jobStartedModule,
 } from "#engine/lifeProfile/employmentEvent";
 import {
@@ -14,4 +16,12 @@ import {
 } from "#engine/lifeProfile/cashEvent";
 
 /** The composition root registers event modules available to this app version. */
-export const lifeEventCatalog = createLifeEventRegistry([noteEventModule, jobStartedModule, jobChangedModule, residenceMoveModule, cashEventModule]);
+export const lifeEventCatalog = createLifeEventRegistry([
+  noteEventModule,
+  jobStartedModule,
+  jobChangedModule,
+  jobEndedModule,
+  jobLeaveModule,
+  residenceMoveModule,
+  cashEventModule,
+]);

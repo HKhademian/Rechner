@@ -81,3 +81,47 @@ it("does not guess when dates or same-day changes conflict", () => {
       gross: 5500 } };
   assert.equal(project([start, yearChange, change, later], "2027-03-01", true)[0].gross.value?.amount, 5500);
 });
+
+it("excludes ended jobs after their end date and surfaces active leave windows", () => {
+  const leave = {
+    id: "leave",
+    kind: "employment.leave",
+    personId: "p",
+    date: "2026-04-01",
+    status: "actual",
+    payload: {
+      jobId: "job",
+      kind: "sabbatical",
+      endDate: "2026-05-31",
+    },
+  };
+  const ended = {
+    id: "ended",
+    kind: "employment.ended",
+    personId: "p",
+    date: "2026-09-30",
+    status: "planned",
+    payload: {
+      jobId: "job",
+      reason: "resignation",
+      finalPayCents: 300000,
+    },
+  };
+  const duringLeave = project([start, leave, ended], "2026-04-15", true);
+  assert.equal(duringLeave.length, 1);
+  assert.equal(duringLeave[0].activeLeave?.kind, "sabbatical");
+  assert.equal(duringLeave[0].activeLeave?.endDate, "2026-05-31");
+
+  const afterLeave = project([start, leave, ended], "2026-06-01", true);
+  assert.equal(afterLeave.length, 1);
+  assert.equal(afterLeave[0].activeLeave, undefined);
+
+  const onEndDate = project([start, leave, ended], "2026-09-30", true);
+  assert.equal(onEndDate.length, 1);
+
+  const afterEnd = project([start, leave, ended], "2026-10-01", true);
+  assert.equal(afterEnd.length, 0);
+
+  const actualOnlyAfterPlannedEnd = project([start, leave, ended], "2026-10-01", false);
+  assert.equal(actualOnlyAfterPlannedEnd.length, 1);
+});
