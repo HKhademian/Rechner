@@ -1,5 +1,7 @@
-# Household Expense Planner — product idea
+# Household Expense Planner — standalone Rechner utility
 
-A candidate standalone Rechner utility for categorized and tagged household expense line items, account-level funding and sustainability scenarios. It should be usable without a Life Profile or timeline.
+Status: implemented as a standalone Draft (`Demo`) calculator utility at `/calculators/expense-planner/`.
 
-Life Planner is the separate event-based data and calculation harness. The utility and harness may reuse independently tested pure calculations; any future transfer between them should be explicit and preserve each product’s inputs and scenarios. Details, formulas and scope remain to be designed.
+- **Standalone boundary:** works completely offline without a Life Profile or timeline, backed by isolated storage (`browserAppStorage(AppId.ExpensePlanner)`) and versioned JSON export/import (`src/apps/expense-planner/expensePlannerStore.ts`).
+- **Shared pure math:** reuses `closingCashBalance` from `src/engine/lifeProfile/cashFlowFormula.ts` without importing Life Profile state or other calculator stores (`src/apps/dependencyBoundaries.test.ts`).
+- **Capabilities:** categorized and tagged monthly/quarterly/yearly expense line items, per-account funding & 12-month shortfall checks, category/tag breakdowns, and sustainability stress scenarios (reduced income, higher costs, combined shock, and essentials-only emergency mode).
