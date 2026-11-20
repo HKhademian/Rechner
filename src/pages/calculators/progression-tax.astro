@@ -1,0 +1,13 @@
+---
+import ProgressionTaxApp from "#/apps/progression-tax/App.tsx";
+import {
+  progressionTaxApp,
+} from "#/apps/progression-tax/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${progressionTaxApp.title} | Rechner`}
+  description={progressionTaxApp.description}
+>
+  <ProgressionTaxApp client:load />
+</BaseDocument>

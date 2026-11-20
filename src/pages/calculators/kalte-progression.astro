@@ -1,0 +1,13 @@
+---
+import KalteProgressionApp from "#/apps/kalte-progression/App.tsx";
+import {
+  kalteProgressionApp,
+} from "#/apps/kalte-progression/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${kalteProgressionApp.title} | Rechner`}
+  description={kalteProgressionApp.description}
+>
+  <KalteProgressionApp client:load />
+</BaseDocument>
