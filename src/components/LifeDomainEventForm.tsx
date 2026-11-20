@@ -39,6 +39,11 @@ import {
   toChildcareFacilityKind,
 } from "#engine/lifeProfile/childcareEvent";
 import {
+  TravelDestinationRegion,
+  toTravelDestinationRegion,
+  travelTripModule,
+} from "#engine/lifeProfile/travelEvent";
+import {
   parseAmount,
 } from "#engine/lifeProfile/cashAmount";
 
@@ -56,6 +61,7 @@ const DomainEventKind = {
   FamilyExpectedBirth: "family.expected-birth",
   FamilyActualBirth: "family.actual-birth",
   ChildcarePlan: "childcare.plan",
+  TravelTrip: "travel.trip",
 } as const;
 type DomainEventKind = (typeof DomainEventKind)[keyof typeof DomainEventKind];
 
@@ -106,6 +112,15 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
   const [applicationStatus, setApplicationStatus] = useState<ChildcareApplicationStatus>(ChildcareApplicationStatus.Shortlisted);
   const [monthlyFeeEur, setMonthlyFeeEur] = useState("");
   const [monthlyMealEur, setMonthlyMealEur] = useState("");
+
+  // Travel fields
+  const [tripDestination, setTripDestination] = useState("");
+  const [tripOriginCity, setTripOriginCity] = useState("Munich");
+  const [tripRegion, setTripRegion] = useState<TravelDestinationRegion>(TravelDestinationRegion.SchengenArea);
+  const [tripEndDate, setTripEndDate] = useState("");
+  const [tripBudgetEur, setTripBudgetEur] = useState("");
+  const [tripPassportExpiry, setTripPassportExpiry] = useState("");
+  const [tripTasksText, setTripTasksText] = useState("");
 
   const activePersonId = personId || people[0]?.id || "";
   const personPregnancies = events
@@ -169,7 +184,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           multipleCount: Number(multipleCount),
         });
       }
-      else {
+      else if (kind === DomainEventKind.ChildcarePlan) {
         eventKind = childcarePlanModule.kind;
         payload = childcarePlanModule.parsePayload({
           facilityKind,
@@ -181,6 +196,22 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
           applicationStatus,
           ...(monthlyFeeEur.trim() ? { monthlyFeeCents: parseAmount(monthlyFeeEur, true) } : {}),
           ...(monthlyMealEur.trim() ? { monthlyMealCents: parseAmount(monthlyMealEur, true) } : {}),
+        });
+      }
+      else {
+        eventKind = travelTripModule.kind;
+        const parsedTasks = tripTasksText
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0);
+        payload = travelTripModule.parsePayload({
+          destination: tripDestination.trim(),
+          region: tripRegion,
+          ...(tripOriginCity.trim() ? { originCity: tripOriginCity.trim() } : {}),
+          ...(tripEndDate ? { endDate: tripEndDate } : {}),
+          ...(tripBudgetEur.trim() ? { budgetCents: parseAmount(tripBudgetEur, true) } : {}),
+          ...(tripPassportExpiry ? { passportExpiryDate: tripPassportExpiry } : {}),
+          ...(parsedTasks.length > 0 ? { tasks: parsedTasks } : {}),
         });
       }
 
@@ -212,6 +243,11 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
         setEnrollmentDeadline("");
         setMonthlyFeeEur("");
         setMonthlyMealEur("");
+        setTripDestination("");
+        setTripEndDate("");
+        setTripBudgetEur("");
+        setTripPassportExpiry("");
+        setTripTasksText("");
         setDate("");
       }
     }
@@ -244,6 +280,7 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
             <option value={DomainEventKind.FamilyExpectedBirth}>Expected birth milestone</option>
             <option value={DomainEventKind.FamilyActualBirth}>Actual birth milestone</option>
             <option value={DomainEventKind.ChildcarePlan}>Kita, Krippe or school option</option>
+            <option value={DomainEventKind.TravelTrip}>Travel trip</option>
           </select>
         </label>
         {kind === DomainEventKind.ResidencePermit && <>
@@ -368,7 +405,36 @@ export default function LifeDomainEventForm({ people, events, onAddEvent }: Life
             <input type="number" min="0" step="0.01" value={monthlyMealEur} onInput={(event) => setMonthlyMealEur(event.currentTarget.value)} />
           </label>
         </>}
-        <label className="life-people__field">{kind === DomainEventKind.ChildcarePlan ? "Desired start date" : "Event date"}
+        {kind === DomainEventKind.TravelTrip && <>
+          <label className="life-people__field">Destination city / country
+            <input required value={tripDestination} onInput={(event) => setTripDestination(event.currentTarget.value)} placeholder="e.g. Paris or Tokyo" />
+          </label>
+          <label className="life-people__field">Origin city (optional, for offline distance estimate)
+            <input value={tripOriginCity} onInput={(event) => setTripOriginCity(event.currentTarget.value)} placeholder="e.g. Munich" />
+          </label>
+          <label className="life-people__field">Destination region
+            <select value={tripRegion} onChange={(event) => setTripRegion(toTravelDestinationRegion(event.currentTarget.value))}>
+              <option value={TravelDestinationRegion.DomesticGermany}>Domestic Germany</option>
+              <option value={TravelDestinationRegion.SchengenArea}>Schengen Area</option>
+              <option value={TravelDestinationRegion.EuNonSchengen}>EU (non-Schengen)</option>
+              <option value={TravelDestinationRegion.UkIreland}>UK / Ireland</option>
+              <option value={TravelDestinationRegion.InternationalNonEu}>International (non-EU)</option>
+            </select>
+          </label>
+          <label className="life-people__field">Return date (optional)
+            <input type="date" value={tripEndDate} onInput={(event) => setTripEndDate(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Estimated budget (optional, €)
+            <input type="number" min="0" step="0.01" value={tripBudgetEur} onInput={(event) => setTripBudgetEur(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Passport expiry date (optional)
+            <input type="date" value={tripPassportExpiry} onInput={(event) => setTripPassportExpiry(event.currentTarget.value)} />
+          </label>
+          <label className="life-people__field">Preparation tasks (comma-separated, optional)
+            <input value={tripTasksText} onInput={(event) => setTripTasksText(event.currentTarget.value)} placeholder="e.g. Book train, Check eAT, Travel insurance" />
+          </label>
+        </>}
+        <label className="life-people__field">{kind === DomainEventKind.ChildcarePlan ? "Desired start date" : kind === DomainEventKind.TravelTrip ? "Departure date" : "Event date"}
           <input required type="date" value={date} onInput={(event) => setDate(event.currentTarget.value)} />
         </label>
         <label className="life-people__field">Status

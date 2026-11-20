@@ -15,6 +15,7 @@ import ResidencyPreparationPanel from "#components/ResidencyPreparationPanel";
 import CitizenshipPreparationPanel from "#components/CitizenshipPreparationPanel";
 import FamilyParentalHandoffPanel from "#components/FamilyParentalHandoffPanel";
 import ChildcareTimelinePanel from "#components/ChildcareTimelinePanel";
+import TravelPlannerPanel from "#components/TravelPlannerPanel";
 
 export interface LifeJourneyPanelsProps {
   readonly people: readonly LifePerson[];
@@ -61,6 +62,11 @@ export default function LifeJourneyPanels({
     <ChildcareTimelinePanel
       events={events}
       date={date}
+      includePlanned={includePlanned}
+    />
+    <TravelPlannerPanel
+      events={events}
+      personId={personId}
       includePlanned={includePlanned}
     />
   </>;

@@ -15,6 +15,9 @@ import {
   childcarePlanModule,
 } from "#engine/lifeProfile/childcareEvent";
 import {
+  travelTripModule,
+} from "#engine/lifeProfile/travelEvent";
+import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
 
@@ -90,6 +93,17 @@ export function describeExtendedLifeEvent(event: LifeEvent<unknown>): DomainEven
         ...(plan.municipality ? [plan.municipality] : []),
         ...(plan.applicationDeadline ? [`Apply by ${plan.applicationDeadline}`] : []),
         ...(monthly > 0 ? [`${formatIntegerEuroCents(monthly)}/mo`] : []),
+      ].join(" · "),
+    };
+  }
+  if (event.kind === travelTripModule.kind) {
+    const trip = travelTripModule.parsePayload(event.payload);
+    return {
+      label: `Trip to ${trip.destination}`,
+      detail: [
+        `Region: ${trip.region}`,
+        ...(trip.endDate ? [`Until ${trip.endDate}`] : []),
+        ...(trip.budgetCents !== undefined ? [`Budget ${formatIntegerEuroCents(trip.budgetCents)}`] : []),
       ].join(" · "),
     };
   }
