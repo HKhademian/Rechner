@@ -52,3 +52,78 @@ it("round-trips actual and planned events while rejecting imprecise cash dates",
     events: [{ ...event,
       date: "2026-11" }]}), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
 });
+
+it("validates 1-to-1 actual-to-planned cash reconciliation links and rejects broken references", () => {
+  const planned = {
+    id: "plan-1",
+    personId: "person",
+    kind: cashEventModule.kind,
+    date: "2026-11-10",
+    status: "planned",
+    payload: {
+      title: "Groceries",
+      direction: CashDirection.Outflow,
+      amount: 10000,
+    },
+  };
+  const actual = {
+    id: "actual-1",
+    personId: "person",
+    kind: cashEventModule.kind,
+    date: "2026-12-02",
+    status: "actual",
+    payload: {
+      title: "Groceries",
+      direction: CashDirection.Outflow,
+      amount: 11050,
+      reconcilesEventId: "plan-1",
+    },
+  };
+  const valid = decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [planned, actual],
+  }), lifeEventCatalog);
+  assert.equal(valid.status, TimelineRecordStatus.Valid);
+  assert.equal((valid.record?.events[1].payload as { readonly reconcilesEventId?: string }).reconcilesEventId, "plan-1");
+
+  // Rejects orphaned link (removing the planned entry while actual still references it)
+  assert.equal(decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [actual],
+  }), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
+
+  // Rejects planned event reconciling another planned event
+  assert.equal(decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [planned, { ...actual,
+      status: "planned" }],
+  }), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
+
+  // Rejects cross-person link
+  assert.equal(decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [planned, { ...actual,
+      personId: "other-person" }],
+  }), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
+
+  // Rejects reconciling an actual event instead of a planned event
+  assert.equal(decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [{ ...planned,
+      status: "actual" }, actual],
+  }), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
+
+  // Rejects two actual events reconciling the same planned entry
+  assert.equal(decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [planned, actual, { ...actual,
+      id: "actual-2" }],
+  }), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
+
+  // Rejects self-reference
+  assert.equal(decodeTimelineRecord(JSON.stringify({
+    version: 2,
+    events: [{ ...actual,
+      id: "plan-1" }],
+  }), lifeEventCatalog).status, TimelineRecordStatus.Invalid);
+});
