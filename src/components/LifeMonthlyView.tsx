@@ -43,6 +43,7 @@ export interface LifeMonthlyViewProps {
   readonly date: string;
   readonly onDateChange: (date: string) => void;
   readonly includePlanned: boolean;
+  readonly onIncludePlannedChange: (value: boolean) => void;
 }
 
 function firstReplayMonth(events: readonly LifeEvent<unknown>[], view: ReplayMonth): ReplayMonth {
@@ -60,7 +61,7 @@ function firstReplayMonth(events: readonly LifeEvent<unknown>[], view: ReplayMon
   return toReplayMonth(Math.floor(first / 12), first % 12 + 1);
 }
 
-export default function LifeMonthlyView({ events, personId, date, onDateChange, includePlanned }: LifeMonthlyViewProps): JSX.Element {
+export default function LifeMonthlyView({ events, personId, date, onDateChange, includePlanned, onIncludePlannedChange }: LifeMonthlyViewProps): JSX.Element {
   const [expanded, setExpanded] = useState(false);
   let rows: ReturnType<typeof recordedLifeMonths> = [];
   let error = false;
@@ -104,7 +105,7 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
         </table>
       </div>}
       <CashFlowPreview date={date} onDateChange={onDateChange} />
-      <CashEventsPreview events={events} personId={personId} date={date} includePlanned={includePlanned} />
+      <CashEventsPreview key={personId} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} onIncludePlannedChange={onIncludePlannedChange} />
     </>}
   </section>;
 }

@@ -302,7 +302,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             </>}
           </div></li>)}
         </ul>}
-        {viewPersonId && <LifeMonthlyView events={events} personId={toPersonId(viewPersonId)} date={viewDate} onDateChange={setViewDate} includePlanned={includePlanned} />}
+        {viewPersonId && <LifeMonthlyView events={events} personId={toPersonId(viewPersonId)} date={viewDate} onDateChange={setViewDate} includePlanned={includePlanned} onIncludePlannedChange={setIncludePlanned} />}
       </div>}
       {people.length === 0 ? <p>Add a person above to start your timeline.</p> : <form className="life-people__form" onSubmit={save}>
         <label className="life-people__field">Person
