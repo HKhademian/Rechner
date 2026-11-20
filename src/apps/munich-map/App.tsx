@@ -11,7 +11,6 @@ import {
 import {
   AppId,
   calculatorPath,
-  sitePath,
 } from "#/apps/appDefinition.ts";
 import {
   AppShell,
@@ -295,7 +294,6 @@ export default function MunichMap() {
                       {layer}
                     </label>
                   ))}
-                  {mapOnly && <a href={sitePath("/THIRD_PARTY_NOTICES.txt")}>Third-party notices</a>}
                 </fieldset>
               </details>
               <div class="munich-map-view-switch" role="group" aria-label="Map view">
