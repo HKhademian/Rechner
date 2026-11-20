@@ -1,0 +1,13 @@
+---
+import PlanningDashboardApp from "#/apps/planning-dashboard/App.tsx";
+import {
+  planningDashboardApp,
+} from "#/apps/planning-dashboard/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${planningDashboardApp.title} | Rechner`}
+  description={planningDashboardApp.description}
+>
+  <PlanningDashboardApp client:load />
+</BaseDocument>

@@ -1,0 +1,13 @@
+---
+import TaxClassSwitchApp from "#/apps/tax-class-switch/App.tsx";
+import {
+  taxClassSwitchApp,
+} from "#/apps/tax-class-switch/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${taxClassSwitchApp.title} | Rechner`}
+  description={taxClassSwitchApp.description}
+>
+  <TaxClassSwitchApp client:load />
+</BaseDocument>

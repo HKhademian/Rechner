@@ -1,0 +1,13 @@
+---
+import AssetAffordabilityApp from "#/apps/asset-affordability/App.tsx";
+import {
+  assetAffordabilityApp,
+} from "#/apps/asset-affordability/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${assetAffordabilityApp.title} | Rechner`}
+  description={assetAffordabilityApp.description}
+>
+  <AssetAffordabilityApp client:load />
+</BaseDocument>
