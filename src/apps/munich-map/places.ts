@@ -123,14 +123,13 @@ export const mapLayers: readonly MapCategory[] = [...landmarkLayers, ...transitL
 
 export const MUNICH_CENTER = toMapPosition(48.1374, 11.5755);
 
-export const categoryStyle: Record<MapCategory, { readonly code: string;
+export const categoryStyle: Record<MapCategory, { readonly code?: string;
   readonly color: string }> = {
   [MapCategory.FleaMarket]: { code: "F",
     color: "var(--color-gain-hover)" },
   [MapCategory.Event]: { code: "E",
     color: "var(--color-primary-hover)" },
-  [MapCategory.ChristmasMarket]: { code: "X",
-    color: "var(--color-loss-hover)" },
+  [MapCategory.ChristmasMarket]: { color: "#174b36" },
   [MapCategory.Festival]: { code: "T",
     color: "#92400e" },
   [MapCategory.Concert]: { code: "C",

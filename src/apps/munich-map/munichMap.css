@@ -504,3 +504,14 @@ fieldset.munich-map-layers {
   padding-top: 0.65rem;
   border-top: 1px solid var(--border-subtle);
 }
+
+.munich-map-pin span:has(svg),
+.munich-map-category-code:has(svg) {
+  border-radius: 0.45rem;
+}
+
+.munich-map-categories button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}

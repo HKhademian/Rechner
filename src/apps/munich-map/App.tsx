@@ -14,6 +14,9 @@ import {
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
+  ChristmasMarketIcon,
+} from "#components/Icons";
+import {
   AppShell,
 } from "#components/ui/AppShell";
 import {
@@ -351,6 +354,7 @@ export default function MunichMap() {
           <div class="munich-map-categories" aria-label="Event categories">
             {[undefined, ...eventCategories].map((item) =>
               <button type="button" key={item ?? "all"} aria-pressed={category === item} onClick={() => setCategory(item)}>
+                {item === MapCategory.ChristmasMarket && <ChristmasMarketIcon size={14} />}
                 {item ?? "All events"}
               </button>)}
           </div>
@@ -393,7 +397,9 @@ export default function MunichMap() {
               return (
                 <li key={place.id}>
                   <button type="button" aria-pressed={selected?.id === place.id} onClick={() => selectPlace(place)}>
-                    <span class="munich-map-category-code" style={{ backgroundColor: style.color }} aria-hidden="true">{style.code}</span>
+                    <span class="munich-map-category-code" style={{ backgroundColor: style.color }} aria-hidden="true">
+                      {place.category === MapCategory.ChristmasMarket ? <ChristmasMarketIcon /> : style.code}
+                    </span>
                     <span>
                       <strong>{place.title}</strong>
                       <small>{place.market ? `${formatPlaceDate(place)} · ${place.market.theme}` : place.category}</small>

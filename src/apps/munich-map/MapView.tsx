@@ -1,5 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import {
+  type JSX,
   render,
 } from "preact";
 import {
@@ -32,6 +33,9 @@ import {
 } from "./places.ts";
 
 import {
+  ChristmasMarketIcon,
+} from "#components/Icons";
+import {
   ChristmasMarketDetails,
 } from "./ChristmasMarketDetails.tsx";
 
@@ -55,12 +59,17 @@ function point(position: MapPosition): [number, number] {
 }
 
 function pinStyle(
-  code: string,
+  symbol: string | JSX.Element,
   color: string,
   size = 26,
 ) {
   const label = document.createElement("span");
-  label.textContent = code;
+  if (typeof symbol === "string") {
+    label.textContent = symbol;
+  }
+  else {
+    render(symbol, label);
+  }
   label.style.backgroundColor = color;
   label.style.width = `${size}px`;
   label.style.height = `${size}px`;
@@ -167,8 +176,9 @@ export function MapView({
         }
         const style = categoryStyle[place.category];
         const overlay = mapLayers.includes(place.category);
+        const symbol = place.category === MapCategory.ChristmasMarket ? <ChristmasMarketIcon size={17} /> : style.code ?? "";
         const pin = marker(coordinates, {
-          icon: pinStyle(style.code, style.color, overlay ? 20 : 26),
+          icon: pinStyle(symbol, style.color, overlay ? 20 : 26),
           title: venueMarkets?.map((market) => market.title).join(" · ") ?? place.title,
           zIndexOffset: overlay ? 0 : 250,
         }).on("click", () => onSelect(place)).addTo(visiblePlaces);

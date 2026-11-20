@@ -1746,3 +1746,11 @@ export function CityMapNavigationIcon({ size = 20, className }: IconProps): JSX.
     </svg>
   );
 }
+
+export function ChristmasMarketIcon({ size = 16, className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2 6.5 9h3L4.5 15h3L3 20h8v2h2v-2h8l-4.5-5h3l-5-6h3L12 2Z" />
+    </svg>
+  );
+}
