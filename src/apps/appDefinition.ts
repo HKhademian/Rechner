@@ -24,7 +24,15 @@ export const AppId = { Catalog: "catalog",
   TravelPlanner: "travel-planner",
   TaxClassSwitch: "tax-class-switch",
   AssetAffordability: "asset-affordability",
-  PlanningDashboard: "planning-dashboard" } as const;
+  PlanningDashboard: "planning-dashboard",
+  Mutterschutz: "mutterschutz",
+  ProgressionTax: "progression-tax",
+  KindergeldComparison: "kindergeld-comparison",
+  ElterngeldQuick: "elterngeld-quick",
+  SalaryRaise: "salary-raise",
+  KalteProgression: "kalte-progression",
+  CashReconciliation: "cash-reconciliation",
+  AgeRelief: "age-relief" } as const;
 export type AppId = (typeof AppId)[keyof typeof AppId];
 export function toAppId(value: string): AppId {
   if (!Object.values(AppId).includes(value as AppId)) {

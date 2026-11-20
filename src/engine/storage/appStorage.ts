@@ -212,6 +212,14 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
   [Apps.TaxClassSwitch]: {},
   [Apps.AssetAffordability]: {},
   [Apps.PlanningDashboard]: {},
+  [Apps.Mutterschutz]: {},
+  [Apps.ProgressionTax]: {},
+  [Apps.KindergeldComparison]: {},
+  [Apps.ElterngeldQuick]: {},
+  [Apps.SalaryRaise]: {},
+  [Apps.KalteProgression]: {},
+  [Apps.CashReconciliation]: {},
+  [Apps.AgeRelief]: {},
 };
 
 const memoryStores = new Map<AppId, Map<string, string>>();

@@ -123,6 +123,24 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
   else if (app?.id === AppId.CommuterAllowance) {
     defaultLawId = LawId.EStG_9_1_4;
   }
+  else if (app?.id === AppId.Mutterschutz) {
+    defaultLawId = LawId.MuSchG_19;
+  }
+  else if (app?.id === AppId.ProgressionTax) {
+    defaultLawId = LawId.EStG_32b;
+  }
+  else if (app?.id === AppId.KindergeldComparison) {
+    defaultLawId = LawId.EStG_66;
+  }
+  else if (app?.id === AppId.ElterngeldQuick) {
+    defaultLawId = LawId.BEEG_1;
+  }
+  else if (app?.id === AppId.KalteProgression) {
+    defaultLawId = LawId.InflG;
+  }
+  else if (app?.id === AppId.AgeRelief) {
+    defaultLawId = LawId.EStG_24a;
+  }
   const quickLawHref = lawDetailPath(defaultLawId);
 
   return <>

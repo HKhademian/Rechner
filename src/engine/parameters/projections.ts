@@ -245,14 +245,22 @@ export function getProjectionProfileForApp(
     case AppId.Citizenship:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.VisaFocus];
     case AppId.FamilyMilestones:
+    case AppId.Mutterschutz:
+    case AppId.KindergeldComparison:
+    case AppId.ElterngeldQuick:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.ParentalLeaveFocus];
     case AppId.ChildcarePlanner:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.KitaFocus];
     case AppId.TaxClassSwitch:
+    case AppId.ProgressionTax:
+    case AppId.SalaryRaise:
+    case AppId.KalteProgression:
+    case AppId.AgeRelief:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.NetPayFocus];
     case AppId.AssetAffordability:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.HousingFocus];
     case AppId.ExpensePlanner:
+    case AppId.CashReconciliation:
     case AppId.ResignationRunway:
     case AppId.TravelPlanner:
     case AppId.PlanningDashboard:

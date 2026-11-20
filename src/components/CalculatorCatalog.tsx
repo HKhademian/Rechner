@@ -65,6 +65,9 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
   switch (appId) {
     case AppId.ParentalLeave:
     case AppId.FamilyMilestones:
+    case AppId.Mutterschutz:
+    case AppId.KindergeldComparison:
+    case AppId.ElterngeldQuick:
       return <SimulatorNavigationIcon size={24} />;
     case AppId.GiroCode:
       return <PaymentQrCodeIcon size={24} />;
@@ -85,14 +88,19 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
       return <ChildcareKitaIcon size={24} />;
     case AppId.MinijobMidijob:
     case AppId.ResignationRunway:
+    case AppId.SalaryRaise:
       return <EmploymentTransitionIcon size={24} />;
     case AppId.CommuterAllowance:
       return <CommuterAllowanceIcon size={24} />;
     case AppId.ExpensePlanner:
+    case AppId.CashReconciliation:
       return <ExpensePlannerIcon size={24} />;
     case AppId.TravelPlanner:
       return <TravelPlannerIcon size={24} />;
     case AppId.TaxClassSwitch:
+    case AppId.ProgressionTax:
+    case AppId.KalteProgression:
+    case AppId.AgeRelief:
       return <TaxClassSwitchIcon size={24} />;
     case AppId.PlanningDashboard:
       return <PlanningDashboardIcon size={24} />;
