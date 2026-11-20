@@ -50,8 +50,12 @@ import {
 import {
   SalaryPeriod,
 } from "#engine/types";
+import {
+  jobEndedModule,
+} from "#engine/lifeProfile/employmentEvent";
 import CashFlowPreview from "#components/CashFlowPreview";
 import CashEventsPreview from "#components/CashEventsPreview";
+import ResignationRunwayPreview from "#components/ResignationRunwayPreview";
 import "./LifeMonthlyView.css";
 
 export interface LifeMonthlyViewProps {
@@ -126,6 +130,11 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
     }
   }
   const plannedByActual = reconciledPlannedByActualId(events, personId);
+  const latestEndWithFinalPay = events
+    .filter((entry) => entry.personId === personId && entry.kind === jobEndedModule.kind)
+    .map((entry) => jobEndedModule.parsePayload(entry.payload))
+    .find((payload) => payload.finalPayCents !== undefined);
+
   return <section className="life-monthly" aria-label="Monthly recorded facts">
     <button type="button" className="ui-btn" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
       {expanded ? "Hide monthly view" : `View ${monthCount} months`}
@@ -154,10 +163,11 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
               <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
               <td>{formatPhase(phase)}</td>
               <td>{state.jobs.length === 0 ? "No job recorded" : state.jobs.map((job) => <div key={job.jobId}>
-                {job.employer}: {job.existence === ProjectedFactStatus.Ambiguous ? "start uncertain"
+                {job.employer}: {job.existence === ProjectedFactStatus.Ambiguous ? "start/end uncertain"
                   : job.gross.status === ProjectedFactStatus.Known && job.gross.value
                     ? `${job.gross.value.amount} € / ${job.gross.value.period === SalaryPeriod.Monthly ? "month" : "year"} gross`
                     : job.gross.status === ProjectedFactStatus.Ambiguous ? "pay uncertain" : "pay not recorded"}
+                {job.activeLeave ? ` · Leave (${job.activeLeave.kind}${job.activeLeave.endDate ? ` until ${job.activeLeave.endDate}` : ""})` : ""}
               </div>)}</td>
               <td>{state.residence.status === ProjectedFactStatus.Known ? state.residence.value?.location
                 : state.residence.status === ProjectedFactStatus.Ambiguous ? "Uncertain" : "Not recorded"}</td>
@@ -174,8 +184,9 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
           })}</tbody>
         </table>
       </div>}
-      <CashFlowPreview key={personId} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} monthCount={monthCount} referenceDate={today} />
-      <CashEventsPreview key={personId} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} onIncludePlannedChange={onIncludePlannedChange} monthCount={monthCount} referenceDate={today} />
+      <CashFlowPreview key={`flow-${personId}`} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} monthCount={monthCount} referenceDate={today} />
+      <CashEventsPreview key={`events-${personId}`} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} onIncludePlannedChange={onIncludePlannedChange} monthCount={monthCount} referenceDate={today} />
+      <ResignationRunwayPreview key={`runway-${personId}`} defaultFinalPayCents={latestEndWithFinalPay?.finalPayCents} />
     </>}
   </section>;
 }

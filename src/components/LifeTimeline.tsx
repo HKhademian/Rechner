@@ -23,8 +23,14 @@ import {
   noteEventModule,
 } from "#engine/lifeProfile/eventModules";
 import {
+  JobEndReason,
+  JobLeaveKind,
   jobChangedModule,
+  jobEndedModule,
+  jobLeaveModule,
   jobStartedModule,
+  toJobEndReason,
+  toJobLeaveKind,
 } from "#engine/lifeProfile/employmentEvent";
 import {
   residenceMoveModule,
@@ -85,16 +91,23 @@ import {
 } from "#engine/lifeProfile/timelineConflicts";
 import "./LifePeople.css";
 
-const DatePrecision = { Unknown: "unknown",
+const DatePrecision = {
+  Unknown: "unknown",
   Year: "year",
   Month: "month",
-  Day: "day" } as const;
+  Day: "day",
+} as const;
 type DatePrecision = (typeof DatePrecision)[keyof typeof DatePrecision];
-const EntryType = { Note: "note",
+
+const EntryType = {
+  Note: "note",
   Job: "job",
   JobChange: "job-change",
+  JobEnd: "job-end",
+  JobLeave: "job-leave",
   Move: "move",
-  Cash: "cash" } as const;
+  Cash: "cash",
+} as const;
 type EntryType = (typeof EntryType)[keyof typeof EntryType];
 
 export default function LifeTimeline({ peopleRevision }: { readonly peopleRevision: number }): JSX.Element {
@@ -112,6 +125,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   const [grossPeriod, setGrossPeriod] = useState<SalaryPeriod>(PayPeriod.Monthly);
   const [hours, setHours] = useState("");
   const [jobId, setJobId] = useState("");
+  const [jobEndReason, setJobEndReason] = useState<JobEndReason>(JobEndReason.Resignation);
+  const [finalPayAmount, setFinalPayAmount] = useState("");
+  const [jobLeaveKind, setJobLeaveKind] = useState<JobLeaveKind>(JobLeaveKind.ParentalLeave);
+  const [leaveEndDate, setLeaveEndDate] = useState("");
   const [placeId, setPlaceId] = useState("");
   const [cashAmount, setCashAmount] = useState("");
   const [cashDirection, setCashDirection] = useState<CashDirectionType>(CashDirection.Outflow);
@@ -197,6 +214,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     setGrossPeriod(PayPeriod.Monthly);
     setHours("");
     setJobId("");
+    setJobEndReason(JobEndReason.Resignation);
+    setFinalPayAmount("");
+    setJobLeaveKind(JobLeaveKind.ParentalLeave);
+    setLeaveEndDate("");
     setPlaceId("");
     setCashAmount("");
     setCashDirection(CashDirection.Outflow);
@@ -215,28 +236,71 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       }
       const isJob = entryType === EntryType.Job;
       const isJobChange = entryType === EntryType.JobChange;
+      const isJobEnd = entryType === EntryType.JobEnd;
+      const isJobLeave = entryType === EntryType.JobLeave;
       const isMove = entryType === EntryType.Move;
       const isCash = entryType === EntryType.Cash;
       if (isCash && (datePrecision !== DatePrecision.Day || !date)) {
         throw new TypeError("Cash events require an exact date.");
       }
-      const item: LifeEvent<unknown> = { id: editing ?? toLifeEventId(crypto.randomUUID()),
-        kind: isJob ? jobStartedModule.kind : isJobChange ? jobChangedModule.kind : isMove ? residenceMoveModule.kind : isCash ? cashEventModule.kind : noteEventModule.kind,
+      const kind = isJob
+        ? jobStartedModule.kind
+        : isJobChange
+          ? jobChangedModule.kind
+          : isJobEnd
+            ? jobEndedModule.kind
+            : isJobLeave
+              ? jobLeaveModule.kind
+              : isMove
+                ? residenceMoveModule.kind
+                : isCash
+                  ? cashEventModule.kind
+                  : noteEventModule.kind;
+      const payload = isJob || isJobChange
+        ? (isJob ? jobStartedModule : jobChangedModule).parsePayload({
+          jobId: isJob ? jobId || crypto.randomUUID() : jobId,
+          ...(isJob ? { employer: title.trim() } : {}),
+          ...(gross === ""
+            ? {}
+            : {
+              gross: Number(gross),
+              grossPeriod,
+            }),
+          ...(hours === "" ? {} : { weeklyHours: Number(hours) }),
+        })
+        : isJobEnd
+          ? jobEndedModule.parsePayload({
+            jobId,
+            reason: jobEndReason,
+            ...(finalPayAmount.trim() === "" ? {} : { finalPayCents: parseAmount(finalPayAmount, true) }),
+          })
+          : isJobLeave
+            ? jobLeaveModule.parsePayload({
+              jobId,
+              kind: jobLeaveKind,
+              ...(leaveEndDate ? { endDate: leaveEndDate } : {}),
+            })
+            : isMove
+              ? residenceMoveModule.parsePayload({
+                placeId: placeId || crypto.randomUUID(),
+                location: title.trim(),
+              })
+              : isCash
+                ? cashEventModule.parsePayload({
+                  title: title.trim(),
+                  direction: cashDirection,
+                  amount: parseAmount(cashAmount, false),
+                  ...(status === LifeEventStatus.Actual && reconcilesEventId ? { reconcilesEventId } : {}),
+                })
+                : noteEventModule.parsePayload({ title: title.trim() });
+      const item: LifeEvent<unknown> = {
+        id: editing ?? toLifeEventId(crypto.randomUUID()),
+        kind,
         personId: toPersonId(personId),
         ...(datePrecision === DatePrecision.Unknown ? {} : { date: toLifeEventDate(date) }),
         status,
-        payload: isJob || isJobChange ? (isJob ? jobStartedModule : jobChangedModule).parsePayload({ jobId: isJob ? jobId || crypto.randomUUID() : jobId,
-          ...(isJob ? { employer: title.trim() } : {}),
-          ...(gross === "" ? {} : { gross: Number(gross),
-            grossPeriod }),
-          ...(hours === "" ? {} : { weeklyHours: Number(hours) }) }) : isMove
-          ? residenceMoveModule.parsePayload({ placeId: placeId || crypto.randomUUID(),
-            location: title.trim() })
-          : isCash ? cashEventModule.parsePayload({ title: title.trim(),
-            direction: cashDirection,
-            amount: parseAmount(cashAmount, false),
-            ...(status === LifeEventStatus.Actual && reconcilesEventId ? { reconcilesEventId } : {}) })
-            : noteEventModule.parsePayload({ title: title.trim() }) };
+        payload,
+      };
       const next = editing ? events.map((entry) => entry.id === editing ? item : entry) : [...events, item];
       if (saveEvents(next)) {
         resetForm();
@@ -270,19 +334,38 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const payload = event.kind === noteEventModule.kind ? noteEventModule.parsePayload(event.payload) : undefined;
           const job = event.kind === jobStartedModule.kind ? jobStartedModule.parsePayload(event.payload) : undefined;
           const change = event.kind === jobChangedModule.kind ? jobChangedModule.parsePayload(event.payload) : undefined;
+          const jobEnd = event.kind === jobEndedModule.kind ? jobEndedModule.parsePayload(event.payload) : undefined;
+          const jobLeave = event.kind === jobLeaveModule.kind ? jobLeaveModule.parsePayload(event.payload) : undefined;
           const move = event.kind === residenceMoveModule.kind ? residenceMoveModule.parsePayload(event.payload) : undefined;
           const cash = event.kind === cashEventModule.kind ? cashEventModule.parsePayload(event.payload) : undefined;
           const settledActual = cash && event.status === LifeEventStatus.Planned ? actualByPlanned.get(event.id) : undefined;
           const linkedPlanned = cash && event.status === LifeEventStatus.Actual ? plannedByActual.get(event.id) : undefined;
-          const start = change && events.find((entry) => entry.kind === jobStartedModule.kind
-            && jobStartedModule.parsePayload(entry.payload).jobId === change.jobId);
+          const linkedJobId = change?.jobId ?? jobEnd?.jobId ?? jobLeave?.jobId;
+          const start = linkedJobId && events.find((entry) => entry.kind === jobStartedModule.kind
+            && jobStartedModule.parsePayload(entry.payload).jobId === linkedJobId);
           const employer = start ? jobStartedModule.parsePayload(start.payload).employer : undefined;
-          const label = payload?.title ?? (job ? `Job at ${job.employer}` : change ? `Job change${employer ? ` at ${employer}` : ""}` : move ? `Move to ${move.location}` : cash ? cash.title : "Life event");
+          const label = payload?.title ?? (
+            job
+              ? `Job at ${job.employer}`
+              : change
+                ? `Job change${employer ? ` at ${employer}` : ""}`
+                : jobEnd
+                  ? `Job ended${employer ? ` at ${employer}` : ""}`
+                  : jobLeave
+                    ? `Job leave (${jobLeave.kind})${employer ? ` at ${employer}` : ""}`
+                    : move
+                      ? `Move to ${move.location}`
+                      : cash
+                        ? cash.title
+                        : "Life event"
+          );
           const pay = job ?? change;
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
-            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{settledActual ? ` · Replaced by actual ${formatIntegerEuroCents(settledActual.payload.amount)} on ${settledActual.date} · Counted once` : ""}{linkedPlanned && cash ? ` · ${formatCashReconciliationNote(linkedPlanned, { ...event,
-              payload: cash })}` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
+            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{settledActual ? ` · Replaced by actual ${formatIntegerEuroCents(settledActual.payload.amount)} on ${settledActual.date} · Counted once` : ""}{linkedPlanned && cash ? ` · ${formatCashReconciliationNote(linkedPlanned, {
+              ...event,
+              payload: cash,
+            })}` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}{jobEnd ? ` · Reason: ${jobEnd.reason}${jobEnd.finalPayCents !== undefined ? ` · Final pay ${formatIntegerEuroCents(jobEnd.finalPayCents)}` : ""}` : ""}{jobLeave?.endDate ? ` · Until ${jobLeave.endDate}` : ""}</p></div>
             <div className="life-people__actions">
               {cash && event.status === LifeEventStatus.Planned && !settledActual && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Record ${label} as happened`} onClick={() => {
                 setEditing(undefined);
@@ -296,16 +379,34 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
                 setDatePrecision(DatePrecision.Day);
                 setStatus(LifeEventStatus.Actual);
               }}>Record as happened</button>}
-              {(payload || job || change || move || cash) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
+              {(payload || job || change || jobEnd || jobLeave || move || cash) && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Edit ${label}`} onClick={() => {
                 setEditing(event.id);
                 setPersonId(event.personId);
-                setEntryType(job ? EntryType.Job : change ? EntryType.JobChange : move ? EntryType.Move : cash ? EntryType.Cash : EntryType.Note);
+                setEntryType(
+                  job
+                    ? EntryType.Job
+                    : change
+                      ? EntryType.JobChange
+                      : jobEnd
+                        ? EntryType.JobEnd
+                        : jobLeave
+                          ? EntryType.JobLeave
+                          : move
+                            ? EntryType.Move
+                            : cash
+                              ? EntryType.Cash
+                              : EntryType.Note,
+                );
                 setTitle(job?.employer ?? move?.location ?? cash?.title ?? payload?.title ?? "");
                 setCashAmount(cash ? amountText(cash.amount) : "");
                 setCashDirection(cash?.direction ?? CashDirection.Outflow);
                 setReconcilesEventId(cash?.reconcilesEventId ?? "");
                 setPlaceId(move?.placeId ?? "");
-                setJobId(pay?.jobId ?? "");
+                setJobId(pay?.jobId ?? jobEnd?.jobId ?? jobLeave?.jobId ?? "");
+                setJobEndReason(jobEnd?.reason ?? JobEndReason.Resignation);
+                setFinalPayAmount(jobEnd?.finalPayCents !== undefined ? amountText(jobEnd.finalPayCents) : "");
+                setJobLeaveKind(jobLeave?.kind ?? JobLeaveKind.ParentalLeave);
+                setLeaveEndDate(jobLeave?.endDate ?? "");
                 setGross(pay?.gross === undefined ? "" : String(pay.gross));
                 setGrossPeriod(pay?.grossPeriod ?? PayPeriod.Monthly);
                 setHours(pay?.weeklyHours === undefined ? "" : String(pay.weeklyHours));
@@ -328,7 +429,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       </ul>}
       {people.length > 0 && <div className="life-timeline__view">
         <h3>Employment on a date</h3>
-        <p>Uses recorded job starts and changes. Job endings are not supported yet.</p>
+        <p>Uses recorded job starts, changes, leave periods and endings.</p>
         <div className="life-people__form">
           <label className="life-people__field">Person for view
             <select value={viewPersonId} onChange={(event) => setViewPersonId(event.currentTarget.value)}>
@@ -365,13 +466,14 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
               }
             }
             return <li key={job.jobId}><div><strong>{job.employer}</strong>
-              {job.existence === ProjectedFactStatus.Ambiguous ? <p>Job start or change date is uncertain or conflicting.</p> : <>
+              {job.existence === ProjectedFactStatus.Ambiguous ? <p>Job start, change or end date is uncertain or conflicting.</p> : <>
                 <p>Gross rate: {job.gross.status === ProjectedFactStatus.Known && job.gross.value
                   ? `${job.gross.value.amount} € / ${job.gross.value.period === PayPeriod.Monthly ? "month" : "year"} · ${sourceLabel(job.gross.sourceEventId)}`
                   : job.gross.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
                 <p>Working hours: {job.weeklyHours.status === ProjectedFactStatus.Known
                   ? `${job.weeklyHours.value} h/week · ${sourceLabel(job.weeklyHours.sourceEventId)}`
                   : job.weeklyHours.status === ProjectedFactStatus.Ambiguous ? "Uncertain or conflicting dates" : "Not recorded"}</p>
+                {job.activeLeave && <p>Leave status: <strong>{job.activeLeave.kind}</strong>{job.activeLeave.endDate ? ` until ${job.activeLeave.endDate}` : ""}</p>}
                 {bandEvaluation && <>
                   <p>Statutory band: <strong>{bandEvaluation.label}</strong></p>
                   <CalculationExplanationPanel
@@ -398,9 +500,14 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
         <label className="life-people__field">Event type
           <select disabled={editing !== undefined} value={entryType} onChange={(event) => {
             const value = event.currentTarget.value;
-            setEntryType(value === EntryType.Job ? EntryType.Job : value === EntryType.JobChange ? EntryType.JobChange : value === EntryType.Move ? EntryType.Move : value === EntryType.Cash ? EntryType.Cash : EntryType.Note);
+            setEntryType(
+              Object.values(EntryType).includes(value as EntryType)
+                ? value as EntryType
+                : EntryType.Note,
+            );
             if (value === EntryType.Cash) {
-              setDatePrecision(DatePrecision.Day); setDate("");
+              setDatePrecision(DatePrecision.Day);
+              setDate("");
             }
             setTitle("");
             setJobId("");
@@ -409,11 +516,13 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             <option value={EntryType.Note}>Life event</option>
             <option value={EntryType.Job}>Job started</option>
             <option value={EntryType.JobChange}>Job change</option>
+            <option value={EntryType.JobLeave}>Job leave</option>
+            <option value={EntryType.JobEnd}>Job ended / resignation</option>
             <option value={EntryType.Move}>Move</option>
             <option value={EntryType.Cash}>Cash inflow or expense</option>
           </select>
         </label>
-        {entryType !== EntryType.JobChange && <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : entryType === EntryType.Move ? "Location" : "Event"}
+        {entryType !== EntryType.JobChange && entryType !== EntryType.JobEnd && entryType !== EntryType.JobLeave && <label className="life-people__field">{entryType === EntryType.Job ? "Employer" : entryType === EntryType.Move ? "Location" : "Event"}
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>}
         {entryType === EntryType.Cash && <>
@@ -437,7 +546,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           </label>}
           <p>Enter an actual transaction or a planned cash event. Linking an actual entry to a planned entry keeps both amounts for comparison and counts the transaction once.</p>
         </>}
-        {entryType === EntryType.JobChange && <label className="life-people__field">Job
+        {(entryType === EntryType.JobChange || entryType === EntryType.JobEnd || entryType === EntryType.JobLeave) && <label className="life-people__field">Job
           <select required value={jobId} onChange={(event) => setJobId(event.currentTarget.value)}>
             <option value="">Choose a job</option>
             {events.filter((event) => event.kind === jobStartedModule.kind && event.personId === personId).map((event) => {
@@ -446,6 +555,34 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             })}
           </select>
         </label>}
+        {entryType === EntryType.JobEnd && <>
+          <label className="life-people__field">End reason
+            <select value={jobEndReason} onChange={(event) => setJobEndReason(toJobEndReason(event.currentTarget.value))}>
+              <option value={JobEndReason.Resignation}>Resignation</option>
+              <option value={JobEndReason.EmployerTermination}>Employer termination</option>
+              <option value={JobEndReason.MutualAgreement}>Mutual agreement</option>
+              <option value={JobEndReason.ContractEnd}>Fixed-term contract end</option>
+              <option value={JobEndReason.Other}>Other</option>
+            </select>
+          </label>
+          <label className="life-people__field">Expected final pay / severance (optional, €)
+            <input type="number" min="0" step="0.01" value={finalPayAmount} onInput={(event) => setFinalPayAmount(event.currentTarget.value)} />
+          </label>
+        </>}
+        {entryType === EntryType.JobLeave && <>
+          <label className="life-people__field">Leave kind
+            <select value={jobLeaveKind} onChange={(event) => setJobLeaveKind(toJobLeaveKind(event.currentTarget.value))}>
+              <option value={JobLeaveKind.ParentalLeave}>Parental leave</option>
+              <option value={JobLeaveKind.Sabbatical}>Sabbatical</option>
+              <option value={JobLeaveKind.UnpaidLeave}>Unpaid leave</option>
+              <option value={JobLeaveKind.GardenLeave}>Garden leave</option>
+              <option value={JobLeaveKind.MedicalLeave}>Medical leave</option>
+            </select>
+          </label>
+          <label className="life-people__field">Leave end date (optional)
+            <input type="date" value={leaveEndDate} onInput={(event) => setLeaveEndDate(event.currentTarget.value)} />
+          </label>
+        </>}
         {(entryType === EntryType.Job || entryType === EntryType.JobChange) && <>
           <label className="life-people__field">Gross pay rate (optional)
             <input type="number" min="0" step="0.01" value={gross} onInput={(event) => setGross(event.currentTarget.value)} />
