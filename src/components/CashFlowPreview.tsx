@@ -22,10 +22,19 @@ import {
   toCashOverlapPolicy,
 } from "#engine/lifeProfile/cashForecastOverlap";
 import {
+  type MonthHorizon,
+  buildReplayWindow,
+  compareNamedCashScenarios,
+  historyBoundaryPointIndex,
+  toMonthHorizon,
+} from "#engine/lifeProfile/monthlyRange";
+import {
   toReplayMonth,
 } from "#engine/lifeProfile/monthlyReplay";
 import {
+  type LifeDate,
   type PersonId,
+  toLifeDate,
 } from "#engine/lifeProfile/person";
 import {
   projectCashFlow,
@@ -45,6 +54,7 @@ import {
 } from "#engine/lifeProfile/calculationExplanation";
 import {
   type CashScenario,
+  type CashScenarioId,
   type CashScenarioRecord,
   CashScenarioStatus,
   toCashScenarioId,
@@ -60,9 +70,19 @@ export interface CashFlowPreviewProps {
   readonly date: string;
   readonly onDateChange: (date: string) => void;
   readonly includePlanned: boolean;
+  readonly monthCount?: MonthHorizon;
+  readonly referenceDate?: LifeDate;
 }
 
-export default function CashFlowPreview({ events, personId, date, onDateChange, includePlanned }: CashFlowPreviewProps): JSX.Element {
+export default function CashFlowPreview({
+  events,
+  personId,
+  date,
+  onDateChange,
+  includePlanned,
+  monthCount = toMonthHorizon(6),
+  referenceDate,
+}: CashFlowPreviewProps): JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [opening, setOpening] = useState("");
   const [inflow, setInflow] = useState("");
@@ -70,6 +90,7 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
   const [overlapPolicy, setOverlapPolicy] = useState<CashOverlapPolicy>(CashOverlapPolicy.KeepSeparate);
   const [extraEventIds, setExtraEventIds] = useState<readonly LifeEventId[]>([]);
   const [comparing, setComparing] = useState(false);
+  const [comparedScenarioIds, setComparedScenarioIds] = useState<readonly CashScenarioId[]>([]);
   const [alternativeOpening, setAlternativeOpening] = useState("");
   const [alternativeInflow, setAlternativeInflow] = useState("");
   const [alternativeExpense, setAlternativeExpense] = useState("");
@@ -93,6 +114,12 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
 
   function toggleExtraEvent(id: LifeEventId): void {
     setExtraEventIds((current) => current.includes(id)
+      ? current.filter((item) => item !== id)
+      : [...current, id]);
+  }
+
+  function toggleComparedScenario(id: CashScenarioId): void {
+    setComparedScenarioIds((current) => current.includes(id)
       ? current.filter((item) => item !== id)
       : [...current, id]);
   }
@@ -155,20 +182,21 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
   let rows: ReturnType<typeof projectCombinedCashFlow> = [];
   let alternativeRows: ReturnType<typeof projectCashFlow> = [];
   let windowEvents: readonly LifeEvent<CashEventPayload>[] = [];
+  let multiComparison: ReturnType<typeof compareNamedCashScenarios> | undefined;
   let invalid = false;
   let alternativeInvalid = false;
+  const effectiveRefDate = referenceDate ?? toLifeDate(new Date().toISOString().slice(0, 10));
+  let historyBoundary: number | undefined;
   if (expanded && date) {
     try {
       const start = toReplayMonth(Number(date.slice(0, 4)), Number(date.slice(5, 7)));
-      const firstIndex = start.year * 12 + start.month - 1;
-      const last = firstIndex + 5;
-      const through = toReplayMonth(Math.floor(last / 12), last % 12 + 1);
-      const months = Array.from({ length: 6 }, (_, index) => toReplayMonth(Math.floor((firstIndex + index) / 12), (firstIndex + index) % 12 + 1));
-      windowEvents = months.flatMap((month) => cashEventsForMonth(events, personId, month, includePlanned));
+      const window = buildReplayWindow(start, monthCount);
+      historyBoundary = historyBoundaryPointIndex(window.months, effectiveRefDate);
+      windowEvents = window.months.flatMap((month) => cashEventsForMonth(events, personId, month, includePlanned));
       rows = projectCombinedCashFlow({
-        origin: start,
-        viewStart: start,
-        through,
+        origin: window.start,
+        viewStart: window.start,
+        through: window.through,
         opening: parseAmount(opening, true),
         assumption: {
           inflow: parseAmount(inflow, false),
@@ -180,6 +208,10 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
         policy: overlapPolicy,
         extraEventIds: new Set(extraEventIds),
       });
+      const selectedScenarios = saved.scenarios.filter((scenario) => comparedScenarioIds.includes(scenario.id));
+      if (selectedScenarios.length > 0) {
+        multiComparison = compareNamedCashScenarios(selectedScenarios, window.start, monthCount);
+      }
     }
     catch {
       invalid = true;
@@ -187,9 +219,8 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
     if (comparing) {
       try {
         const start = toReplayMonth(Number(date.slice(0, 4)), Number(date.slice(5, 7)));
-        const last = start.year * 12 + start.month - 1 + 5;
-        const through = toReplayMonth(Math.floor(last / 12), last % 12 + 1);
-        alternativeRows = projectCashFlow(start, start, through, parseAmount(alternativeOpening, true), {
+        const window = buildReplayWindow(start, monthCount);
+        alternativeRows = projectCashFlow(window.start, window.start, window.through, parseAmount(alternativeOpening, true), {
           inflow: parseAmount(alternativeInflow, false),
           expense: parseAmount(alternativeExpense, false),
         });
@@ -201,6 +232,13 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
   }
   const hasCompleteChart = rows.length > 0 && rows[0].state.opening !== undefined
     && rows.every(({ state }) => state.closing !== undefined);
+  const chartComparisons = (multiComparison?.series ?? [])
+    .filter((series) => series.closingByMonth.every((value) => value !== undefined))
+    .map((series) => ({
+      id: series.id,
+      label: series.name,
+      balances: [series.opening, ...series.closingByMonth.map((value) => value!)],
+    }));
   let safeOpening;
   let safeInflow;
   let safeExpense;
@@ -224,7 +262,7 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
   }
   const explanation = explainRecurringCashProjection({
     originMonth: date ? date.slice(0, 7) : "",
-    monthCount: 6,
+    monthCount,
     opening: safeOpening,
     recurringInflow: safeInflow,
     recurringExpense: safeExpense,
@@ -236,7 +274,7 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
       {expanded ? "Hide cash flow what-if" : "Try cash flow what-if"}
     </button>
     {expanded && <>
-      <p>Enter an opening balance before the selected month and a constant monthly inflow and expense. By default, recurring assumptions stay separate from timeline cash events to prevent double-counting. Named scenarios store only the recurring assumptions; negative balances indicate a shortfall and no funding is assumed.</p>
+      <p>Enter an opening balance before the selected month and a constant monthly inflow and expense across {monthCount} months. By default, recurring assumptions stay separate from timeline cash events to prevent double-counting. Named scenarios store only the recurring assumptions; negative balances indicate a shortfall and no funding is assumed.</p>
       <div className="life-people__form">
         <label className="life-people__field">Opening balance (€)
           <input type="number" step="0.01" value={opening} onInput={(event) => setOpening(event.currentTarget.value)} />
@@ -257,7 +295,7 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
       </div>
       {overlapPolicy === CashOverlapPolicy.AddExplicitExtraEventsOnly && <div className="life-timeline__view">
         <p>Select only one-off cash events not already covered by your recurring monthly inflow or expenses. Unselected entries are excluded to prevent double-counting.</p>
-        {windowEvents.length === 0 ? <p>No active cash events in these six months.</p> : <ul className="life-people__list">
+        {windowEvents.length === 0 ? <p>No active cash events in these {monthCount} months.</p> : <ul className="life-people__list">
           {windowEvents.map((entry) => <li key={entry.id}>
             <label>
               <input type="checkbox" checked={extraEventIds.includes(entry.id)} onChange={() => toggleExtraEvent(entry.id)} />
@@ -284,38 +322,70 @@ export default function CashFlowPreview({ events, personId, date, onDateChange, 
       {message && <p role="status">{message}</p>}
       {invalid ? <p role="status">Check the date and amounts.</p> : !date ? <p>Choose a view date above.</p>
         : opening === "" || inflow === "" || expense === "" ? <p>Enter all three amounts to calculate a balance.</p>
-          : <>{hasCompleteChart && <CashFlowChart balances={[rows[0].state.opening!, ...rows.map(({ state }) => state.closing!)]} />}
-            <div className="life-monthly__scroll"><table>
-              <thead><tr><th>Month</th><th className="life-monthly__amount">Opening</th><th className="life-monthly__amount">Inflow</th><th className="life-monthly__amount">Expenses</th><th className="life-monthly__amount">Closing</th>{overlapPolicy !== CashOverlapPolicy.KeepSeparate && <th>Overlap rule</th>}</tr></thead>
-              <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
-                <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
-                <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatIntegerEuroCents(state.opening)}</td>
-                <td className="life-monthly__amount">{state.contribution?.inflow === undefined ? "Unknown" : formatIntegerEuroCents(state.contribution.inflow)}</td>
-                <td className="life-monthly__amount">{state.contribution?.expense === undefined ? "Unknown" : formatIntegerEuroCents(state.contribution.expense)}</td>
-                <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
-                {overlapPolicy !== CashOverlapPolicy.KeepSeparate && <td>
-                  <div>{state.contribution?.recurringApplied ? "Recurring applied" : "Recurring replaced by cash events"}</div>
-                  {state.contribution?.includedSources.map((entry) => <div key={entry.id}>
-                    Included: {entry.date} · {entry.payload.title} ({formatIntegerEuroCents(entry.payload.amount)})
-                  </div>)}
-                  {state.contribution?.excludedSources.map((entry) => <div key={entry.id}>
-                    Excluded to avoid overlap: {entry.date} · {entry.payload.title} ({formatIntegerEuroCents(entry.payload.amount)})
-                  </div>)}
-                </td>}
-              </tr>)}</tbody>
-            </table></div>
-            <CalculationExplanationPanel explanation={explanation} summary="Explain cash flow formula and inputs" /></>}
+          : <>{hasCompleteChart && <CashFlowChart
+            balances={[rows[0].state.opening!, ...rows.map(({ state }) => state.closing!)]}
+            historyBoundaryIndex={historyBoundary}
+            horizonLabel={`After ${monthCount} months`}
+            subtitle="based on your assumptions"
+            comparisonSeries={chartComparisons}
+          />}
+          <div className="life-monthly__scroll"><table>
+            <thead><tr><th>Month</th><th className="life-monthly__amount">Opening</th><th className="life-monthly__amount">Inflow</th><th className="life-monthly__amount">Expenses</th><th className="life-monthly__amount">Closing</th>{overlapPolicy !== CashOverlapPolicy.KeepSeparate && <th>Overlap rule</th>}</tr></thead>
+            <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
+              <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
+              <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatIntegerEuroCents(state.opening)}</td>
+              <td className="life-monthly__amount">{state.contribution?.inflow === undefined ? "Unknown" : formatIntegerEuroCents(state.contribution.inflow)}</td>
+              <td className="life-monthly__amount">{state.contribution?.expense === undefined ? "Unknown" : formatIntegerEuroCents(state.contribution.expense)}</td>
+              <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
+              {overlapPolicy !== CashOverlapPolicy.KeepSeparate && <td>
+                <div>{state.contribution?.recurringApplied ? "Recurring applied" : "Recurring replaced by cash events"}</div>
+                {state.contribution?.includedSources.map((entry) => <div key={entry.id}>
+                  Included: {entry.date} · {entry.payload.title} ({formatIntegerEuroCents(entry.payload.amount)})
+                </div>)}
+                {state.contribution?.excludedSources.map((entry) => <div key={entry.id}>
+                  Excluded to avoid overlap: {entry.date} · {entry.payload.title} ({formatIntegerEuroCents(entry.payload.amount)})
+                </div>)}
+              </td>}
+            </tr>)}</tbody>
+          </table></div>
+          <CalculationExplanationPanel explanation={explanation} summary="Explain cash flow formula and inputs" /></>}
       <button type="button" className="ui-btn" aria-expanded={comparing} onClick={() => setComparing((value) => !value)}>
-        {comparing ? "Hide comparison" : "Compare an alternative"}
+        {comparing ? "Hide comparison" : "Compare alternatives and saved scenarios"}
       </button>
       {comparing && <section aria-label="Cash flow comparison">
-        <p>Enter another set of assumptions for the same six months, or load a saved scenario. Changes to the alternative are not saved unless loaded into the first projection and saved.</p>
-        {saved.scenarios.length > 0 && <label className="life-people__field">Load alternative
-          <select value="" onChange={(event) => loadScenario(event.currentTarget.value, true)}>
-            <option value="">Choose a scenario</option>
-            {saved.scenarios.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name} · {scenario.origin}</option>)}
-          </select>
-        </label>}
+        <p>Compare an ad-hoc alternative or select two or more saved scenarios across the same {monthCount}-month window.</p>
+        {saved.scenarios.length > 0 && <>
+          <div className="life-timeline__view">
+            <strong>Overlay saved scenarios</strong>
+            <ul className="life-people__list">
+              {saved.scenarios.map((scenario) => <li key={scenario.id}>
+                <label>
+                  <input type="checkbox" checked={comparedScenarioIds.includes(scenario.id)} onChange={() => toggleComparedScenario(scenario.id)} />
+                  {" "}{scenario.name} · opening {formatIntegerEuroCents(scenario.opening)} · +{formatIntegerEuroCents(scenario.inflow)} / −{formatIntegerEuroCents(scenario.expense)}
+                </label>
+              </li>)}
+            </ul>
+          </div>
+          {multiComparison && multiComparison.series.length > 0 && <div className="life-monthly__scroll"><table>
+            <caption>Multi-scenario closing balances ({monthCount} months)</caption>
+            <thead><tr>
+              <th scope="col">Month</th>
+              {multiComparison.series.map((series) => <th scope="col" className="life-monthly__amount" key={series.id}>{series.name}</th>)}
+            </tr></thead>
+            <tbody>{multiComparison.window.months.map((month, index) => <tr key={month.id}>
+              <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
+              {multiComparison.series.map((series) => <td className="life-monthly__amount" key={series.id}>
+                {series.closingByMonth[index] === undefined ? "Unknown" : formatIntegerEuroCents(series.closingByMonth[index]!)}
+              </td>)}
+            </tr>)}</tbody>
+          </table></div>}
+          <label className="life-people__field">Load ad-hoc alternative
+            <select value="" onChange={(event) => loadScenario(event.currentTarget.value, true)}>
+              <option value="">Choose a scenario</option>
+              {saved.scenarios.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name} · {scenario.origin}</option>)}
+            </select>
+          </label>
+        </>}
         <div className="life-people__form">
           <label className="life-people__field">Alternative opening balance (€)
             <input type="number" step="0.01" value={alternativeOpening} onInput={(event) => setAlternativeOpening(event.currentTarget.value)} />

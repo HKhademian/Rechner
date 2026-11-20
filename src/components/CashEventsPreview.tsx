@@ -10,7 +10,9 @@ import {
   LifeEventStatus,
 } from "#engine/lifeProfile/timeline";
 import {
+  type LifeDate,
   type PersonId,
+  toLifeDate,
 } from "#engine/lifeProfile/person";
 import {
   type CashEventPayload,
@@ -20,6 +22,12 @@ import {
   parseAmount,
   amountText,
 } from "#engine/lifeProfile/cashAmount";
+import {
+  type MonthHorizon,
+  buildReplayWindow,
+  historyBoundaryPointIndex,
+  toMonthHorizon,
+} from "#engine/lifeProfile/monthlyRange";
 import {
   toReplayMonth,
 } from "#engine/lifeProfile/monthlyReplay";
@@ -33,6 +41,7 @@ import {
   formatCashReconciliationNote,
 } from "#utils/cashReconciliationFormat";
 import CalculationExplanationPanel from "./CalculationExplanationPanel";
+import CashFlowChart from "./CashFlowChart";
 import {
   explainEventCashProjection,
 } from "#engine/lifeProfile/calculationExplanation";
@@ -62,12 +71,25 @@ import {
   TimelineRecordStatus,
 } from "#engine/lifeProfile/timelineRecord";
 
-export default function CashEventsPreview({ events, personId, date, includePlanned, onDateChange, onIncludePlannedChange }: { readonly events: readonly LifeEvent<unknown>[];
+export default function CashEventsPreview({
+  events,
+  personId,
+  date,
+  includePlanned,
+  onDateChange,
+  onIncludePlannedChange,
+  monthCount = toMonthHorizon(6),
+  referenceDate,
+}: {
+  readonly events: readonly LifeEvent<unknown>[];
   readonly personId: PersonId;
   readonly date: string;
   readonly includePlanned: boolean;
   readonly onDateChange: (date: string) => void;
-  readonly onIncludePlannedChange: (value: boolean) => void }): JSX.Element {
+  readonly onIncludePlannedChange: (value: boolean) => void;
+  readonly monthCount?: MonthHorizon;
+  readonly referenceDate?: LifeDate;
+}): JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [opening, setOpening] = useState("");
   const [saved, setSaved] = useState<EventProjectionRecord>({ version: 1,
@@ -164,23 +186,27 @@ export default function CashEventsPreview({ events, personId, date, includePlann
   }
   let rows: ReturnType<typeof projectCashEvents> = [];
   let error = false;
+  let historyBoundary: number | undefined;
+  const effectiveRefDate = referenceDate ?? toLifeDate(new Date().toISOString().slice(0, 10));
   if (expanded && date) {
     try {
       const start = toReplayMonth(Number(date.slice(0, 4)), Number(date.slice(5, 7)));
-      const last = start.year * 12 + start.month - 1 + 5;
-      const through = toReplayMonth(Math.floor(last / 12), last % 12 + 1);
-      rows = projectCashEvents(start, start, through, parseAmount(opening, true), events, personId, includePlanned);
+      const window = buildReplayWindow(start, monthCount);
+      historyBoundary = historyBoundaryPointIndex(window.months, effectiveRefDate);
+      rows = projectCashEvents(window.start, window.start, window.through, parseAmount(opening, true), events, personId, includePlanned);
     }
     catch {
       error = true;
     }
   }
+  const hasCompleteChart = rows.length > 0 && rows[0].state.opening !== undefined
+    && rows.every(({ state }) => state.closing !== undefined);
   return <section className="life-monthly" aria-label="Cash events projection">
     <button type="button" className="ui-btn" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
       {expanded ? "Hide cash events projection" : "Project recorded cash events"}
     </button>
     {expanded && <>
-      <p>This preview includes only this person's cash entries from the six displayed months. It excludes the separate recurring what-if assumptions and all unrecorded activity; a month with no entries adds nothing. {includePlanned ? "Open planned entries are included; reconciled planned entries keep their plan history while counting only the linked actual transaction once." : "Planned entries are excluded."} The opening balance is a manual assumption, not a recorded bank balance. Negative balances indicate a shortfall; no funding is assumed.</p>
+      <p>This preview includes only this person's cash entries across the {monthCount} displayed months. It excludes the separate recurring what-if assumptions and all unrecorded activity; a month with no entries adds nothing. {includePlanned ? "Open planned entries are included; reconciled planned entries keep their plan history while counting only the linked actual transaction once." : "Planned entries are excluded."} The opening balance is a manual assumption, not a recorded bank balance. Negative balances indicate a shortfall; no funding is assumed.</p>
       <label className="life-people__field">Opening balance for cash events (€)
         <input type="number" step="0.01" value={opening} onInput={(event) => setOpening(event.currentTarget.value)} />
       </label>
@@ -213,7 +239,13 @@ export default function CashEventsPreview({ events, personId, date, includePlann
         </ul>
       </details>}
       {error ? <p role="status">Check the date, opening amount and cash event totals.</p> : !date || opening.trim() === "" ? <p>Choose a view date and enter an opening balance to calculate this preview.</p>
-        : <><div className="life-monthly__scroll"><table>
+        : <>{hasCompleteChart && <CashFlowChart
+          balances={[rows[0].state.opening!, ...rows.map(({ state }) => state.closing!)]}
+          historyBoundaryIndex={historyBoundary}
+          horizonLabel={`After ${monthCount} months`}
+          subtitle="recorded cash events only"
+        />}
+        <div className="life-monthly__scroll"><table>
           <caption>Cash events only · estimated balance</caption>
           <thead><tr><th scope="col">Month</th><th scope="col">Included sources</th><th scope="col" className="life-monthly__amount">Opening</th><th scope="col" className="life-monthly__amount">Closing</th></tr></thead>
           <tbody>{rows.map(({ month, state }) => {
