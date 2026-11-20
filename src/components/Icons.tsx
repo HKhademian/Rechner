@@ -38,11 +38,29 @@ export const AddActionIcon = ({
   </svg>
 );
 
-export function CashFlowChartGraphic({ points, zeroY }: { readonly points: string;
-  readonly zeroY: number }) {
+export function CashFlowChartGraphic({
+  points,
+  zeroY,
+  historyPoints,
+  projectionPoints,
+  splitX,
+  comparisonLines = [],
+}: {
+  readonly points?: string;
+  readonly zeroY: number;
+  readonly historyPoints?: string;
+  readonly projectionPoints?: string;
+  readonly splitX?: number;
+  readonly comparisonLines?: readonly { readonly id: string;
+    readonly points: string }[];
+}) {
   return <svg viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
     <line x1="12" x2="288" y1={zeroY} y2={zeroY} className="life-monthly__chart-zero" />
-    <polyline points={points} className="life-monthly__chart-line" />
+    {splitX !== undefined && <line x1={splitX} x2={splitX} y1="6" y2="94" className="life-monthly__chart-split" />}
+    {comparisonLines.map((line) => <polyline key={line.id} points={line.points} className="life-monthly__chart-compare" />)}
+    {historyPoints && <polyline points={historyPoints} className="life-monthly__chart-line" />}
+    {projectionPoints && <polyline points={projectionPoints} className="life-monthly__chart-line life-monthly__chart-line--projected" />}
+    {!historyPoints && !projectionPoints && points && <polyline points={points} className="life-monthly__chart-line" />}
   </svg>;
 }
 
