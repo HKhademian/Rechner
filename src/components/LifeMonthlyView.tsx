@@ -12,11 +12,18 @@ import {
   CashDirection,
 } from "#engine/lifeProfile/cashEvent";
 import {
+  reconciledPlannedByActualId,
+} from "#engine/lifeProfile/cashReconciliation";
+import {
   cashEventsForMonth,
+  reconciledPlannedCashEventsForMonth,
 } from "#engine/lifeProfile/cashEventView";
 import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
+import {
+  formatCashReconciliationNote,
+} from "#utils/cashReconciliationFormat";
 import {
   type PersonId,
 } from "#engine/lifeProfile/person";
@@ -76,17 +83,19 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
       error = true;
     }
   }
+  const plannedByActual = reconciledPlannedByActualId(events, personId);
   return <section className="life-monthly" aria-label="Monthly recorded facts">
     <button type="button" className="ui-btn" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
       {expanded ? "Hide monthly view" : "View six months"}
     </button>
     {expanded && <>
-      <p>Recorded facts at each month end, starting with the selected view date. {includePlanned ? "Includes planned events." : "Planned events are excluded."} Cash entries are user-entered and may not be a complete transaction history.</p>
+      <p>Recorded facts at each month end, starting with the selected view date. {includePlanned ? "Includes open planned events." : "Planned events are excluded."} Cash entries are user-entered and may not be a complete transaction history; reconciled planned entries are kept for comparison and counted once.</p>
       {error || !date ? <p>Choose a view date within the supported calendar range.</p> : <div className="life-monthly__scroll">
         <table>
           <thead><tr><th>Month</th><th>Employment</th><th>Residence</th><th>Cash entries</th></tr></thead>
           <tbody>{rows.map(({ month, state }) => {
             const cash = cashEventsForMonth(events, personId, month, includePlanned);
+            const reconciledPlans = reconciledPlannedCashEventsForMonth(events, personId, month);
             return <tr key={month.id}>
               <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
               <td>{state.jobs.length === 0 ? "No job recorded" : state.jobs.map((job) => <div key={job.jobId}>
@@ -97,9 +106,14 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
               </div>)}</td>
               <td>{state.residence.status === ProjectedFactStatus.Known ? state.residence.value?.location
                 : state.residence.status === ProjectedFactStatus.Ambiguous ? "Uncertain" : "Not recorded"}</td>
-              <td>{cash.map((entry) => <div key={entry.id}>
-                {entry.date} · {entry.payload.title} · {entry.status === LifeEventStatus.Actual ? "Happened" : "Planned"} · {entry.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} {formatIntegerEuroCents(entry.payload.amount)} · User entered
-              </div>)}{cash.length === 0 && "No cash entries recorded"}</td>
+              <td>{cash.map((entry) => {
+                const linkedPlan = plannedByActual.get(entry.id);
+                return <div key={entry.id}>
+                  {entry.date} · {entry.payload.title} · {entry.status === LifeEventStatus.Actual ? "Happened" : "Planned"} · {entry.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} {formatIntegerEuroCents(entry.payload.amount)}{linkedPlan ? ` · ${formatCashReconciliationNote(linkedPlan, entry)}` : ""} · User entered
+                </div>;
+              })}{reconciledPlans.map(({ planned, actual }) => <div key={planned.id}>
+                {planned.date} · {planned.payload.title} · Planned {formatIntegerEuroCents(planned.payload.amount)} · Replaced by actual on {actual.date} · Not counted twice
+              </div>)}{cash.length === 0 && reconciledPlans.length === 0 && "No cash entries recorded"}</td>
             </tr>;
           })}</tbody>
         </table>

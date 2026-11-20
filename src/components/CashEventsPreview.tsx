@@ -30,6 +30,15 @@ import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
 import {
+  formatCashReconciliationNote,
+} from "#utils/cashReconciliationFormat";
+import {
+  reconciledPlannedByActualId,
+} from "#engine/lifeProfile/cashReconciliation";
+import {
+  reconciledPlannedCashEventsForMonth,
+} from "#engine/lifeProfile/cashEventView";
+import {
   type EventProjection,
   type EventProjectionRecord,
   EventProjectionStatus,
@@ -77,6 +86,7 @@ export default function CashEventsPreview({ events, personId, date, includePlann
   const selected = saved.projections.find((projection) => projection.id === selectedId);
   const changes = selected ? describeEventChanges(selected, events) : undefined;
   const details = selected ? eventProjectionChangeDetails(selected, events) : undefined;
+  const plannedByActual = reconciledPlannedByActualId(events, personId);
   function describeSource(entry: LifeEvent<CashEventPayload>): string {
     return `${entry.payload.title} · ${entry.date} · ${entry.status === LifeEventStatus.Actual ? "Happened" : "Planned"} · ${entry.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(entry.payload.amount)}`;
   }
@@ -166,7 +176,7 @@ export default function CashEventsPreview({ events, personId, date, includePlann
       {expanded ? "Hide cash events projection" : "Project recorded cash events"}
     </button>
     {expanded && <>
-      <p>This preview includes only this person's cash entries from the six displayed months. It excludes the separate recurring what-if assumptions and all unrecorded activity; a month with no entries adds nothing. {includePlanned ? "Planned entries are included. Update a planned entry when it happens to avoid counting it twice." : "Planned entries are excluded."} The opening balance is a manual assumption, not a recorded bank balance. Negative balances indicate a shortfall; no funding is assumed.</p>
+      <p>This preview includes only this person's cash entries from the six displayed months. It excludes the separate recurring what-if assumptions and all unrecorded activity; a month with no entries adds nothing. {includePlanned ? "Open planned entries are included; reconciled planned entries keep their plan history while counting only the linked actual transaction once." : "Planned entries are excluded."} The opening balance is a manual assumption, not a recorded bank balance. Negative balances indicate a shortfall; no funding is assumed.</p>
       <label className="life-people__field">Opening balance for cash events (€)
         <input type="number" step="0.01" value={opening} onInput={(event) => setOpening(event.currentTarget.value)} />
       </label>
@@ -202,14 +212,22 @@ export default function CashEventsPreview({ events, personId, date, includePlann
         : <div className="life-monthly__scroll"><table>
           <caption>Cash events only · estimated balance</caption>
           <thead><tr><th scope="col">Month</th><th scope="col">Included sources</th><th scope="col" className="life-monthly__amount">Opening</th><th scope="col" className="life-monthly__amount">Closing</th></tr></thead>
-          <tbody>{rows.map(({ month, state }) => <tr key={month.id}>
-            <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
-            <td>{state.contribution?.sources.length ? state.contribution.sources.map((entry) => <div key={entry.id}>
-              {entry.date} · {entry.payload.title} · {entry.status === LifeEventStatus.Actual ? "Happened" : "Planned"} · {entry.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} {formatIntegerEuroCents(entry.payload.amount)} · User entered
-            </div>) : "No entries included"}</td>
-            <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatIntegerEuroCents(state.opening)}</td>
-            <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
-          </tr>)}</tbody>
+          <tbody>{rows.map(({ month, state }) => {
+            const reconciledPlans = reconciledPlannedCashEventsForMonth(events, personId, month);
+            return <tr key={month.id}>
+              <th scope="row">{String(month.month).padStart(2, "0")}/{month.year}</th>
+              <td>{state.contribution?.sources.length ? state.contribution.sources.map((entry) => {
+                const linkedPlan = plannedByActual.get(entry.id);
+                return <div key={entry.id}>
+                  {entry.date} · {entry.payload.title} · {entry.status === LifeEventStatus.Actual ? "Happened" : "Planned"} · {entry.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} {formatIntegerEuroCents(entry.payload.amount)}{linkedPlan ? ` · ${formatCashReconciliationNote(linkedPlan, entry)}` : ""} · User entered
+                </div>;
+              }) : reconciledPlans.length === 0 ? "No entries included" : null}{reconciledPlans.map(({ planned, actual }) => <div key={planned.id}>
+                {planned.date} · {planned.payload.title} · Planned {formatIntegerEuroCents(planned.payload.amount)} · Replaced by actual on {actual.date} · Not counted twice
+              </div>)}</td>
+              <td className="life-monthly__amount">{state.opening === undefined ? "Unknown" : formatIntegerEuroCents(state.opening)}</td>
+              <td className="life-monthly__amount">{state.closing === undefined ? "Unknown" : formatIntegerEuroCents(state.closing)}</td>
+            </tr>;
+          })}</tbody>
         </table></div>}
     </>}
   </section>;

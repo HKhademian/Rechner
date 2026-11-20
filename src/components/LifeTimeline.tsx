@@ -35,12 +35,20 @@ import {
   CashDirection,
 } from "#engine/lifeProfile/cashEvent";
 import {
+  openPlannedCashEvents,
+  reconciledPlannedByActualId,
+  reconcilingActualByPlannedId,
+} from "#engine/lifeProfile/cashReconciliation";
+import {
   parseAmount,
   amountText,
 } from "#engine/lifeProfile/cashAmount";
 import {
   formatIntegerEuroCents,
 } from "#utils/currencyFormat";
+import {
+  formatCashReconciliationNote,
+} from "#utils/cashReconciliationFormat";
 import {
   type SalaryPeriod,
   SalaryPeriod as PayPeriod,
@@ -94,6 +102,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
   const [placeId, setPlaceId] = useState("");
   const [cashAmount, setCashAmount] = useState("");
   const [cashDirection, setCashDirection] = useState<CashDirectionType>(CashDirection.Outflow);
+  const [reconcilesEventId, setReconcilesEventId] = useState("");
   const [date, setDate] = useState("");
   const [datePrecision, setDatePrecision] = useState<DatePrecision>(DatePrecision.Day);
   const [status, setStatus] = useState<LifeEventStatus>(LifeEventStatus.Planned);
@@ -140,6 +149,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     jobs = [];
   }
 
+  const actualByPlanned = reconcilingActualByPlannedId(events);
+  const plannedByActual = reconciledPlannedByActualId(events);
+  const linkablePlans = personId ? openPlannedCashEvents(events, toPersonId(personId), editing) : [];
+
   function sourceLabel(id: LifeEventId | undefined): string {
     const source = events.find((event) => event.id === id);
     return source ? `${source.kind === jobStartedModule.kind ? "job start" : "job change"} · ${source.date ?? "date unknown"}${source.status === LifeEventStatus.Planned ? " · planned" : ""}` : "source unavailable";
@@ -155,7 +168,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     }
     if (!writeTimeline({ version: 2,
       events: next })) {
-      setError("Could not save the timeline. Check the person, linked job changes and your storage.");
+      setError("Could not save the timeline. Check the person, linked job changes, reconciled cash entries and your storage.");
       return false;
     }
     setEvents(next);
@@ -174,6 +187,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
     setPlaceId("");
     setCashAmount("");
     setCashDirection(CashDirection.Outflow);
+    setReconcilesEventId("");
     setDate("");
     setDatePrecision(DatePrecision.Day);
     setStatus(LifeEventStatus.Planned);
@@ -207,7 +221,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             location: title.trim() })
           : isCash ? cashEventModule.parsePayload({ title: title.trim(),
             direction: cashDirection,
-            amount: parseAmount(cashAmount, false) })
+            amount: parseAmount(cashAmount, false),
+            ...(status === LifeEventStatus.Actual && reconcilesEventId ? { reconcilesEventId } : {}) })
             : noteEventModule.parsePayload({ title: title.trim() }) };
       const next = editing ? events.map((entry) => entry.id === editing ? item : entry) : [...events, item];
       if (saveEvents(next)) {
@@ -231,6 +246,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const change = event.kind === jobChangedModule.kind ? jobChangedModule.parsePayload(event.payload) : undefined;
           const move = event.kind === residenceMoveModule.kind ? residenceMoveModule.parsePayload(event.payload) : undefined;
           const cash = event.kind === cashEventModule.kind ? cashEventModule.parsePayload(event.payload) : undefined;
+          const settledActual = cash && event.status === LifeEventStatus.Planned ? actualByPlanned.get(event.id) : undefined;
+          const linkedPlanned = cash && event.status === LifeEventStatus.Actual ? plannedByActual.get(event.id) : undefined;
           const start = change && events.find((entry) => entry.kind === jobStartedModule.kind
             && jobStartedModule.parsePayload(entry.payload).jobId === change.jobId);
           const employer = start ? jobStartedModule.parsePayload(start.payload).employer : undefined;
@@ -238,15 +255,17 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           const pay = job ?? change;
           const person = people.find((entry) => entry.id === event.personId);
           return <li key={event.id}>
-            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
+            <div><strong>{label}</strong><p>{event.date ? `${event.date}${event.date.length === 4 ? " (year only)" : event.date.length === 7 ? " (month only)" : ""}` : "Date unknown"} · {person?.name ?? "Person unavailable"} · {event.status === LifeEventStatus.Planned ? "Planned" : "Happened"}{cash ? ` · ${cash.direction === CashDirection.Inflow ? "Inflow" : "Expense"} ${formatIntegerEuroCents(cash.amount)} · User entered` : ""}{settledActual ? ` · Replaced by actual ${formatIntegerEuroCents(settledActual.payload.amount)} on ${settledActual.date} · Counted once` : ""}{linkedPlanned && cash ? ` · ${formatCashReconciliationNote(linkedPlanned, { ...event,
+              payload: cash })}` : ""}{pay?.gross !== undefined ? ` · ${pay.gross} € / ${pay.grossPeriod === PayPeriod.Monthly ? "month" : "year"} gross rate` : ""}{pay?.weeklyHours !== undefined ? ` · ${pay.weeklyHours} h/week` : ""}</p></div>
             <div className="life-people__actions">
-              {cash && event.status === LifeEventStatus.Planned && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Record ${label} as happened`} onClick={() => {
-                setEditing(event.id);
+              {cash && event.status === LifeEventStatus.Planned && !settledActual && <button className="ui-btn ui-btn--sm" type="button" aria-label={`Record ${label} as happened`} onClick={() => {
+                setEditing(undefined);
                 setPersonId(event.personId);
                 setEntryType(EntryType.Cash);
                 setTitle(cash.title);
                 setCashAmount(amountText(cash.amount));
                 setCashDirection(cash.direction);
+                setReconcilesEventId(event.id);
                 setDate(event.date ?? "");
                 setDatePrecision(DatePrecision.Day);
                 setStatus(LifeEventStatus.Actual);
@@ -258,6 +277,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
                 setTitle(job?.employer ?? move?.location ?? cash?.title ?? payload?.title ?? "");
                 setCashAmount(cash ? amountText(cash.amount) : "");
                 setCashDirection(cash?.direction ?? CashDirection.Outflow);
+                setReconcilesEventId(cash?.reconcilesEventId ?? "");
                 setPlaceId(move?.placeId ?? "");
                 setJobId(pay?.jobId ?? "");
                 setGross(pay?.gross === undefined ? "" : String(pay.gross));
@@ -268,6 +288,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
                 setStatus(event.status);
               }}>Edit</button>}
               <button className="ui-btn ui-btn--sm" type="button" aria-label={`Remove ${label}`} onClick={() => {
+                if (settledActual) {
+                  setError("Unlink or remove the linked actual cash entry before removing this planned entry.");
+                  return;
+                }
                 if (saveEvents(events.filter((entry) => entry.id !== event.id)) && editing === event.id) {
                   resetForm();
                 }
@@ -306,7 +330,10 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
       </div>}
       {people.length === 0 ? <p>Add a person above to start your timeline.</p> : <form className="life-people__form" onSubmit={save}>
         <label className="life-people__field">Person
-          <select required value={personId} onChange={(event) => setPersonId(event.currentTarget.value)}>
+          <select required value={personId} onChange={(event) => {
+            setPersonId(event.currentTarget.value);
+            setReconcilesEventId("");
+          }}>
             <option value="">Choose a person</option>
             {people.map((person) => <option value={person.id} key={person.id}>{person.name}</option>)}
           </select>
@@ -320,6 +347,7 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             }
             setTitle("");
             setJobId("");
+            setReconcilesEventId("");
           }}>
             <option value={EntryType.Note}>Life event</option>
             <option value={EntryType.Job}>Job started</option>
@@ -332,7 +360,8 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           <input required value={title} onInput={(event) => setTitle(event.currentTarget.value)} />
         </label>}
         {entryType === EntryType.Cash && <>
-          {editing && <p>Review the date, amount and status. Saving updates this cash entry rather than adding another.</p>}
+          {reconcilesEventId && !editing && <p>Recording a linked actual transaction preserves the planned entry for comparison while counting only this actual amount once.</p>}
+          {editing && <p>Review the date, amount, status and optional planned link. Saving updates this cash entry.</p>}
           <label className="life-people__field">Cash direction
             <select value={cashDirection} onChange={(event) => setCashDirection(event.currentTarget.value === CashDirection.Inflow ? CashDirection.Inflow : CashDirection.Outflow)}>
               <option value={CashDirection.Outflow}>Expense</option><option value={CashDirection.Inflow}>Inflow</option>
@@ -341,7 +370,15 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
           <label className="life-people__field">Amount (€)
             <input required type="number" min="0.01" step="0.01" value={cashAmount} onInput={(event) => setCashAmount(event.currentTarget.value)} />
           </label>
-          <p>Enter an actual transaction or a planned cash event. It can be included in the cash events projection; it does not change recurring what-if assumptions.</p>
+          {status === LifeEventStatus.Actual && linkablePlans.length > 0 && <label className="life-people__field">Reconciles planned entry (optional)
+            <select value={reconcilesEventId} onChange={(event) => setReconcilesEventId(event.currentTarget.value)}>
+              <option value="">Standalone transaction (not linked)</option>
+              {linkablePlans.map((plan) => <option key={plan.id} value={plan.id}>
+                {plan.date} · {plan.payload.title} · {plan.payload.direction === CashDirection.Inflow ? "Inflow" : "Expense"} {formatIntegerEuroCents(plan.payload.amount)}
+              </option>)}
+            </select>
+          </label>}
+          <p>Enter an actual transaction or a planned cash event. Linking an actual entry to a planned entry keeps both amounts for comparison and counts the transaction once.</p>
         </>}
         {entryType === EntryType.JobChange && <label className="life-people__field">Job
           <select required value={jobId} onChange={(event) => setJobId(event.currentTarget.value)}>
@@ -387,13 +424,19 @@ export default function LifeTimeline({ peopleRevision }: { readonly peopleRevisi
             value={date} onInput={(event) => setDate(event.currentTarget.value)} />
         </label>}
         <label className="life-people__field">Status
-          <select value={status} onChange={(event) => setStatus(toLifeEventStatus(event.currentTarget.value))}>
+          <select value={status} onChange={(event) => {
+            const nextStatus = toLifeEventStatus(event.currentTarget.value);
+            setStatus(nextStatus);
+            if (nextStatus !== LifeEventStatus.Actual) {
+              setReconcilesEventId("");
+            }
+          }}>
             <option value={LifeEventStatus.Planned}>Planned</option>
             <option value={LifeEventStatus.Actual}>Happened</option>
           </select>
         </label>
         <button className="ui-btn ui-btn--primary" type="submit">{editing ? "Save event" : "Add event"}</button>
-        {editing && <button className="ui-btn" type="button" onClick={resetForm}>Cancel</button>}
+        {(editing || reconcilesEventId) && <button className="ui-btn" type="button" onClick={resetForm}>Cancel</button>}
       </form>}
     </>}
   </section>;
