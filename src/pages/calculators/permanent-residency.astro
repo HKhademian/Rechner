@@ -1,0 +1,13 @@
+---
+import PermanentResidencyApp from "#/apps/permanent-residency/App.tsx";
+import {
+  permanentResidencyApp,
+} from "#/apps/permanent-residency/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${permanentResidencyApp.title} | Rechner`}
+  description={permanentResidencyApp.description}
+>
+  <PermanentResidencyApp client:load />
+</BaseDocument>

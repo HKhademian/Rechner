@@ -1,0 +1,13 @@
+---
+import CitizenshipApp from "#/apps/citizenship/App.tsx";
+import {
+  citizenshipApp,
+} from "#/apps/citizenship/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${citizenshipApp.title} | Rechner`}
+  description={citizenshipApp.description}
+>
+  <CitizenshipApp client:load />
+</BaseDocument>

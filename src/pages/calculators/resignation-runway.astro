@@ -1,0 +1,13 @@
+---
+import ResignationRunwayApp from "#/apps/resignation-runway/App.tsx";
+import {
+  resignationRunwayApp,
+} from "#/apps/resignation-runway/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${resignationRunwayApp.title} | Rechner`}
+  description={resignationRunwayApp.description}
+>
+  <ResignationRunwayApp client:load />
+</BaseDocument>
