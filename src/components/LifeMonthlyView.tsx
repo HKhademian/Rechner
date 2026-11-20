@@ -118,7 +118,7 @@ export default function LifeMonthlyView({ events, personId, date, onDateChange, 
           })}</tbody>
         </table>
       </div>}
-      <CashFlowPreview date={date} onDateChange={onDateChange} />
+      <CashFlowPreview key={personId} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} />
       <CashEventsPreview key={personId} events={events} personId={personId} date={date} onDateChange={onDateChange} includePlanned={includePlanned} onIncludePlannedChange={onIncludePlannedChange} />
     </>}
   </section>;
