@@ -18,6 +18,7 @@ import ChildcareTimelinePanel from "#components/ChildcareTimelinePanel";
 import TravelPlannerPanel from "#components/TravelPlannerPanel";
 import TaxSwitchComparisonPanel from "#components/TaxSwitchComparisonPanel";
 import AssetAffordabilityPanel from "#components/AssetAffordabilityPanel";
+import LifePlanningAssistant from "#components/LifePlanningAssistant";
 
 export interface LifeJourneyPanelsProps {
   readonly people: readonly LifePerson[];
@@ -39,6 +40,12 @@ export default function LifeJourneyPanels({
   allowProjection,
 }: LifeJourneyPanelsProps): JSX.Element {
   return <>
+    <LifePlanningAssistant
+      people={people}
+      events={events}
+      date={date}
+      includePlanned={includePlanned}
+    />
     <ResidencyPreparationPanel
       events={events}
       personId={personId}
