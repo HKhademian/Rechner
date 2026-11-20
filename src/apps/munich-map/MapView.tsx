@@ -33,13 +33,11 @@ interface MapViewProps {
   readonly focus?: MapPosition;
   readonly draft?: MapPosition;
   readonly picking: boolean;
-  readonly transitVisible: boolean;
   readonly onPick: (position: MapPosition) => void;
   readonly onSelect: (place: MapPlace) => void;
 }
 
-const transitCredit = "Münchner Verkehrs- und Tarifverbund GmbH (MVV) · 20 Nov 2026 · CC BY";
-const osmCredit = "© OpenStreetMap contributors · Open Database License";
+const osmCredit = "© OpenStreetMap · ODbL";
 
 function point(position: MapPosition): [number, number] {
   return [position[0], position[1]];
@@ -69,7 +67,6 @@ export function MapView({
   focus,
   draft,
   picking,
-  transitVisible,
   onPick,
   onSelect,
 }: MapViewProps) {
@@ -111,16 +108,6 @@ export function MapView({
       instance.current = undefined;
     };
   }, []);
-
-  useEffect(() => {
-    const credits = instance.current?.attributionControl;
-    if (transitVisible) {
-      credits?.addAttribution(transitCredit);
-      return () => {
-        credits?.removeAttribution(transitCredit);
-      };
-    }
-  }, [transitVisible]);
 
   useEffect(() => {
     const view = instance.current;

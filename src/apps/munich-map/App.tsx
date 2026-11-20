@@ -228,7 +228,7 @@ export default function MunichMap() {
             ))}
           </fieldset>
           {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={radius} focus={focus} draft={draft?.position}
-            transitVisible={transitLayers.some((layer) => layers.includes(layer))} picking={picking} onPick={pickPosition} onSelect={selectPlace} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
+            picking={picking} onPick={pickPosition} onSelect={selectPlace} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
           <div class="munich-map-distance">
             <label>Distance from
               <select value={reference ?? ""} onChange={(event) => {
