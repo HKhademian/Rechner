@@ -241,7 +241,21 @@ export function getProjectionProfileForApp(
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.MinijobMidijobFocus];
     case AppId.CommuterAllowance:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.CommuterAllowanceFocus];
+    case AppId.PermanentResidency:
+    case AppId.Citizenship:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.VisaFocus];
+    case AppId.FamilyMilestones:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.ParentalLeaveFocus];
+    case AppId.ChildcarePlanner:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.KitaFocus];
+    case AppId.TaxClassSwitch:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.NetPayFocus];
+    case AppId.AssetAffordability:
+      return FORM_PROJECTION_PROFILES[FormProjectionProfileId.HousingFocus];
     case AppId.ExpensePlanner:
+    case AppId.ResignationRunway:
+    case AppId.TravelPlanner:
+    case AppId.PlanningDashboard:
     case AppId.Catalog:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.FullCatalog];
   }

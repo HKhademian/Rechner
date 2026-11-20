@@ -1665,3 +1665,76 @@ export const ExpensePlannerIcon = ({
     <path d="M13 17h4" />
   </svg>
 );
+
+/** Intention: Represent offline travel readiness and transport mode comparison */
+export const TravelPlannerIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18" />
+    <path d="M12 3a14 14 0 0 1 0 18" />
+    <path d="M12 3a14 14 0 0 0 0 18" />
+  </svg>
+);
+
+/** Intention: Represent German tax class switching (withholding vs. annual joint tax) */
+export const TaxClassSwitchIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M7 7h11l-3-3" />
+    <path d="M17 17H6l3 3" />
+  </svg>
+);
+
+/** Intention: Represent the standalone Life Planning Dashboard and priority trade-offs */
+export const PlanningDashboardIcon = ({
+  size = 18,
+  className = "",
+}: IconProps): JSX.Element => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    class={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3" width="8" height="5" rx="1.5" />
+    <rect x="13" y="10" width="8" height="11" rx="1.5" />
+    <rect x="3" y="13" width="8" height="8" rx="1.5" />
+  </svg>
+);

@@ -33,8 +33,11 @@ import {
   ExpensePlannerIcon,
   HomeAcquisitionIcon,
   PaymentQrCodeIcon,
+  PlanningDashboardIcon,
   SimulatorNavigationIcon,
   SolarEnergyIcon,
+  TaxClassSwitchIcon,
+  TravelPlannerIcon,
   VisaResidenceIcon,
 } from "#components/Icons";
 import {
@@ -61,10 +64,13 @@ const catalogStorage = browserAppStorage(AppId.Catalog);
 function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
   switch (appId) {
     case AppId.ParentalLeave:
+    case AppId.FamilyMilestones:
       return <SimulatorNavigationIcon size={24} />;
     case AppId.GiroCode:
       return <PaymentQrCodeIcon size={24} />;
     case AppId.Visa:
+    case AppId.PermanentResidency:
+    case AppId.Citizenship:
       return <VisaResidenceIcon size={24} />;
     case AppId.CompanyCar:
       return <CompanyCarMobilityIcon size={24} />;
@@ -72,15 +78,24 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
       return <SolarEnergyIcon size={24} />;
     case AppId.Housing:
     case AppId.Mortgage:
+    case AppId.AssetAffordability:
       return <HomeAcquisitionIcon size={24} />;
     case AppId.Kita:
+    case AppId.ChildcarePlanner:
       return <ChildcareKitaIcon size={24} />;
     case AppId.MinijobMidijob:
+    case AppId.ResignationRunway:
       return <EmploymentTransitionIcon size={24} />;
     case AppId.CommuterAllowance:
       return <CommuterAllowanceIcon size={24} />;
     case AppId.ExpensePlanner:
       return <ExpensePlannerIcon size={24} />;
+    case AppId.TravelPlanner:
+      return <TravelPlannerIcon size={24} />;
+    case AppId.TaxClassSwitch:
+      return <TaxClassSwitchIcon size={24} />;
+    case AppId.PlanningDashboard:
+      return <PlanningDashboardIcon size={24} />;
     case AppId.NetPay:
       return <CalculatorNavigationIcon size={24} />;
   }

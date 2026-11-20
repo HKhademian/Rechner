@@ -93,6 +93,18 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
   else if (app?.id === AppId.Visa) {
     defaultLawId = LawId.AufenthG_18g;
   }
+  else if (app?.id === AppId.PermanentResidency) {
+    defaultLawId = LawId.AufenthG_18c;
+  }
+  else if (app?.id === AppId.TaxClassSwitch) {
+    defaultLawId = LawId.EStG_38b;
+  }
+  else if (app?.id === AppId.FamilyMilestones) {
+    defaultLawId = LawId.BEEG_1;
+  }
+  else if (app?.id === AppId.ChildcarePlanner) {
+    defaultLawId = LawId.EStG_10_1_5;
+  }
   else if (app?.id === AppId.CompanyCar) {
     defaultLawId = LawId.EStG_6_1_4;
   }
