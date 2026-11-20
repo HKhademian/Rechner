@@ -17,6 +17,11 @@ import {
   residencePermitModule,
 } from "#engine/lifeProfile/residencePermitEvent";
 import {
+  actualBirthModule,
+  expectedBirthModule,
+  pregnancyStartedModule,
+} from "#engine/lifeProfile/familyEvent";
+import {
   cashEventModule,
 } from "#engine/lifeProfile/cashEvent";
 
@@ -31,5 +36,8 @@ export const lifeEventCatalog = createLifeEventRegistry([
   residencePermitModule,
   residenceInterruptionModule,
   residenceMilestoneModule,
+  pregnancyStartedModule,
+  expectedBirthModule,
+  actualBirthModule,
   cashEventModule,
 ]);
