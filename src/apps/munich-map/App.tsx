@@ -32,7 +32,6 @@ import {
   categoryStyle,
   distanceKm,
   formatPlaceDate,
-  landmarkLayers,
   mapLayers,
   transitLayers,
   munichPlaces,
@@ -56,7 +55,11 @@ import {
 
 const categories = Object.values(MapCategory);
 const eventCategories = categories.filter((item) => !mapLayers.includes(item) && item !== MapCategory.Transit);
-const defaultLayers: readonly MapCategory[] = [...landmarkLayers, MapCategory.Subway, MapCategory.SuburbanRail];
+const defaultLayers: readonly MapCategory[] = [
+  MapCategory.Landmark,
+  MapCategory.Subway,
+  MapCategory.SuburbanRail,
+];
 const resultLimit = 80;
 const personalPins = Object.values(PersonalPin);
 const munichDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin",
