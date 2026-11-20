@@ -19,7 +19,7 @@ import {
 it("limits default release catalog to published calculators while retaining draft definitions", () => {
   assert.deepEqual(
     calculatorApps.map((app) => app.id),
-    [AppId.NetPay, AppId.ParentalLeave, AppId.GiroCode],
+    [AppId.NetPay, AppId.ParentalLeave, AppId.GiroCode, AppId.MunichMap],
   );
   assert.equal(
     calculatorApps.every((app) => app.releaseStatus === CalculatorReleaseStatus.Published),

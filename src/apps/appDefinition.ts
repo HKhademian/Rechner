@@ -6,6 +6,7 @@ import {
 export const AppId = { Catalog: "catalog",
   NetPay: "net-pay",
   ParentalLeave: "parental-leave",
+  MunichMap: "munich-map",
   GiroCode: "girocode",
   Visa: "visa",
   CompanyCar: "company-car",
@@ -81,7 +82,7 @@ export function sitePath(path: string): string {
 }
 
 export function calculatorPath(id: CalculatorAppDefinition["id"]): string {
-  return sitePath(`/calculators/${id}/`);
+  return sitePath(id === AppId.MunichMap ? "/tools/munich-map/" : `/calculators/${id}/`);
 }
 
 /** Canonical base path for the full interactive Unified Life Profile & Cross-Calculator Summary page. */

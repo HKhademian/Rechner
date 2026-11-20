@@ -264,6 +264,7 @@ export function getProjectionProfileForApp(
     case AppId.ResignationRunway:
     case AppId.TravelPlanner:
     case AppId.PlanningDashboard:
+    case AppId.MunichMap:
     case AppId.Catalog:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.FullCatalog];
   }

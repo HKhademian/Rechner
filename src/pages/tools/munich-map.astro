@@ -1,0 +1,14 @@
+---
+import MunichMap from "#/apps/munich-map/App.tsx";
+import {
+  munichMapApp,
+} from "#/apps/munich-map/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${munichMapApp.title} | Rechner`}
+  description={munichMapApp.description}
+  openStreetMapTiles
+>
+  <MunichMap client:load />
+</BaseDocument>

@@ -27,6 +27,7 @@ import {
 import {
   CalculatorNavigationIcon,
   ChildcareKitaIcon,
+  CityMapNavigationIcon,
   CommuterAllowanceIcon,
   CompanyCarMobilityIcon,
   EmploymentTransitionIcon,
@@ -69,6 +70,8 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
     case AppId.KindergeldComparison:
     case AppId.ElterngeldQuick:
       return <SimulatorNavigationIcon size={24} />;
+    case AppId.MunichMap:
+      return <CityMapNavigationIcon size={24} />;
     case AppId.GiroCode:
       return <PaymentQrCodeIcon size={24} />;
     case AppId.Visa:

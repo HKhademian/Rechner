@@ -12,6 +12,10 @@ Rechner brings together clear estimates for German take-home pay and parental-le
 - [**Parental Leave Planner**](https://hkhademian.github.io/Rechner/calculators/parental-leave/) — compare parental-leave, work and household-income scenarios over time.
 - [**SEPA GiroCode Generator**](https://hkhademian.github.io/Rechner/calculators/girocode/) — create EPC069-12 V002 compliant SEPA GiroCode payment codes locally in your browser.
 
+### Everyday tools
+
+- **Munich Map** opens from the Everyday category in the app catalog. Explore markets, venues, landmarks and transit stops, or add your own places and measure straight-line distances from home or work.
+
 ### Designed for clarity
 
 - **See what shapes the estimate.** Results distinguish payroll withholding, standardized benefit calculations, annual tax assessment and cash received.

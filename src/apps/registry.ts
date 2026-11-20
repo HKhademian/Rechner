@@ -56,6 +56,9 @@ import {
   mortgageApp,
 } from "#/apps/mortgage/manifest.ts";
 import {
+  munichMapApp,
+} from "#/apps/munich-map/manifest.ts";
+import {
   mutterschutzApp,
 } from "#/apps/mutterschutz/manifest.ts";
 import {
@@ -97,6 +100,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   netPayApp,
   parentalLeaveApp,
   giroCodeApp,
+  munichMapApp,
   visaApp,
   companyCarApp,
   solarEnergyApp,

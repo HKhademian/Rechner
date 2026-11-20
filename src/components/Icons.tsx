@@ -1738,3 +1738,11 @@ export const PlanningDashboardIcon = ({
     <rect x="3" y="13" width="8" height="8" rx="1.5" />
   </svg>
 );
+
+export function CityMapNavigationIcon({ size = 20, className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15" />
+    </svg>
+  );
+}

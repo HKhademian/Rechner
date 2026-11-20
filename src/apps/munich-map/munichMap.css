@@ -1,0 +1,253 @@
+.munich-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 23rem);
+  align-items: start;
+  gap: 1rem;
+}
+
+.munich-map-main,
+.munich-map-panel {
+  min-width: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+}
+
+.munich-map-frame,
+.munich-map-placeholder {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 26rem;
+  height: min(68vh, 46rem);
+  margin: 0;
+  border-radius: 1rem 1rem 0 0;
+  background: var(--bg-surface-secondary);
+}
+
+.munich-map-placeholder {
+  display: grid;
+  place-items: center;
+}
+
+.munich-map-surface {
+  height: 100%;
+  background: var(--bg-surface-secondary);
+}
+
+.munich-map-surface.is-picking {
+  cursor: crosshair;
+}
+
+.munich-map-center-picker,
+.munich-map-tile-status {
+  position: absolute;
+  z-index: 1000;
+  left: 0.75rem;
+  bottom: 1.65rem;
+}
+
+.munich-map-tile-status {
+  bottom: auto;
+  top: 0.65rem;
+  left: 3.5rem;
+  right: 0.75rem;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.munich-map-pin span,
+.munich-map-category-code {
+  display: grid;
+  place-items: center;
+  flex: 0 0 1.625rem;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 50%;
+  border: 2px solid var(--qr-paper);
+  color: var(--qr-paper);
+  font: 700 12px/1 system-ui, sans-serif;
+}
+
+.munich-map-pin span {
+  box-shadow: var(--shadow-md);
+}
+
+.munich-map-pin:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.munich-map-distance,
+.munich-map-personal {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.munich-map-distance,
+.munich-map-personal-row,
+.munich-map-layers,
+.munich-map-categories,
+.munich-map-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.munich-map-distance {
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.munich-map-personal-row + .munich-map-personal-row {
+  margin-top: 0.5rem;
+}
+
+.munich-map-personal-row > div {
+  flex: 1 0 6rem;
+  overflow-wrap: anywhere;
+}
+
+.munich-map-panel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.munich-map-panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.munich-map-panel h2,
+.munich-map-panel h3,
+.munich-map-panel p,
+.munich-map-personal p {
+  margin: 0;
+}
+
+.munich-map-panel h2 {
+  font-size: 1.15rem;
+}
+
+.munich-map-panel h3 {
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.munich-map-layout label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.munich-map-layout :is(button, select, input:not([type="checkbox"])) {
+  min-height: 2.3rem;
+  padding: 0.35rem 0.6rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.4rem;
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.munich-map-layout button {
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.munich-map-layout button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.munich-map-layout button:hover:enabled,
+.munich-map-layout button[aria-pressed="true"] {
+  background: var(--bg-surface-secondary);
+  border-color: var(--text-secondary);
+}
+
+.munich-map-layout :is(.munich-map-panel-title button, button[type="submit"]) {
+  background: var(--bg-surface-secondary);
+  font-weight: 650;
+}
+
+.munich-map-layers label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.munich-map-editor,
+.munich-map-detail {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  background: var(--bg-surface-secondary);
+  border-radius: 0.55rem;
+  overflow-wrap: anywhere;
+}
+
+.munich-map-panel .munich-map-status:empty {
+  position: absolute;
+}
+
+.munich-map-count,
+.munich-map-schedule,
+.munich-map-personal p,
+.munich-map-results small,
+.munich-map-personal small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.munich-map-personal p {
+  margin-top: 0.7rem;
+}
+
+.munich-map-personal small,
+.munich-map-results small {
+  display: block;
+}
+
+.munich-map-results {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 23rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0.15rem;
+  list-style: none;
+}
+
+.munich-map-results button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 780px) {
+  .munich-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .munich-map-frame,
+  .munich-map-placeholder {
+    height: 52vh;
+    min-height: 19rem;
+  }
+}

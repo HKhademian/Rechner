@@ -2,6 +2,8 @@
 
 Rechner performs calculator computations in your browser. It does not send calculator inputs or results to a Rechner application server. The app sets no cookies and includes no analytics. Its content security policy blocks app API connections; external source links are opened only when you choose them.
 
+Munich Map loads images for the visible map area directly from OpenStreetMap, which receives tile coordinates and ordinary request metadata such as the browser’s IP address. Home and work pins, address labels and personal events follow the same Rechner storage settings as calculator inputs. Address labels are entered manually and stay in the browser. [OpenStreetMap privacy policy](https://osmfoundation.org/wiki/Privacy_Policy)
+
 Each calculator starts in **This page only** mode. You can choose **This tab** to retain inputs for the current browser tab, or explicitly choose **Save on this device** to retain them in that browser profile. Persistent storage requires confirmation. The calculator control describes the selected mode and lets you remove Rechner-owned saved data.
 
 Exported files and text are created in your browser for you to save or share. Treat exports as sensitive if they contain personal financial information. Rechner also caches pages and files from its own site in your browser as you visit them, so previously visited content can work offline. First use still requires a connection.
