@@ -37,7 +37,7 @@ interface MapViewProps {
   readonly onSelect: (place: MapPlace) => void;
 }
 
-const osmCredit = "© OpenStreetMap · ODbL";
+const osmCredit = "© OpenStreetMap";
 
 function point(position: MapPosition): [number, number] {
   return [position[0], position[1]];
