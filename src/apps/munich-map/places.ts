@@ -66,6 +66,12 @@ export function distanceKm(
   return 6371 * 2 * Math.asin(Math.sqrt(Math.min(1, haversine)));
 }
 
+export interface MapFocus {
+  readonly position: MapPosition;
+  readonly minimumZoom?: number;
+  readonly radius?: number;
+}
+
 export type MapPlaceId = Brand<string, "MapPlaceId">;
 
 export function toMapPlaceId(value: string): MapPlaceId {

@@ -21,6 +21,7 @@ import {
 import {
   type MapPlace,
   type MapPosition,
+  type MapFocus,
   MapCategory,
   MUNICH_CENTER,
   PersonalPin,
@@ -32,7 +33,6 @@ import {
   munichPlaces,
   toMapCategory,
   toMapPlaceId,
-  toMapPosition,
   toPersonalPin,
 } from "./places.ts";
 import {
@@ -75,7 +75,8 @@ export default function MunichMap() {
   const [reference, setReference] = useState<PersonalPin>();
   const [radius, setRadius] = useState(0);
   const [selected, setSelected] = useState<MapPlace>();
-  const [focus, setFocus] = useState<MapPosition>();
+  const [focus, setFocus] = useState<MapFocus>();
+  const [showPlaces, setShowPlaces] = useState(true);
   // A draft is either a home/work pin, or a place with an optional existing record.
   const [draft, setDraft] = useState<{ pin?: PersonalPin;
     place?: MapPlace;
@@ -140,7 +141,8 @@ export default function MunichMap() {
 
   const selectPlace = useCallback((place: MapPlace) => {
     setSelected(place);
-    setFocus(toMapPosition(place.position[0], place.position[1]));
+    setFocus({ position: place.position,
+      minimumZoom: 14 });
   }, []);
   const pickPosition = useCallback((position: MapPosition) => {
     setDraft((current) => ({ ...current,
@@ -211,31 +213,40 @@ export default function MunichMap() {
     : undefined;
 
   return (
-    <AppShell currentPath={calculatorPath(AppId.MunichMap)} wide>
-      <PageHeader title="Munich Map" subtitle="Markets, venues and places to go around Munich." />
-      <div class="munich-map-layout">
+    <AppShell currentPath={calculatorPath(AppId.MunichMap)} wide mainClassName="munich-map-page">
+      <PageHeader title="Munich Map" />
+      <div class={`munich-map-layout${showPlaces ? "" : " is-map-only"}`}>
         <section class="munich-map-main" aria-label="Map and distance controls">
-          <fieldset class="munich-map-layers">
-            <legend>Map layers</legend>
-            {mapLayers.map((layer) => (
-              <label key={layer}>
-                <input type="checkbox" checked={layers.includes(layer)} onChange={(event) => {
-                  const { checked } = event.currentTarget;
-                  setLayers((current) => checked ? [...current, layer] : current.filter((item) => item !== layer));
-                }} />
-                {layer}
-              </label>
-            ))}
-          </fieldset>
-          {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={radius} focus={focus} draft={draft?.position}
-            picking={picking} onPick={pickPosition} onSelect={selectPlace} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
+          <div class="munich-map-frame">
+            {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={radius} focus={focus} draft={draft?.position}
+              picking={picking} onPick={pickPosition} onSelect={setSelected} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
+            <div class="munich-map-tools">
+              <details class="munich-map-layer-control">
+                <summary>Map layers</summary>
+                <fieldset class="munich-map-layers" aria-label="Map layers">
+                  {mapLayers.map((layer) => (
+                    <label key={layer}>
+                      <input type="checkbox" checked={layers.includes(layer)} onChange={(event) => {
+                        const { checked } = event.currentTarget;
+                        setLayers((current) => checked ? [...current, layer] : current.filter((item) => item !== layer));
+                      }} />
+                      {layer}
+                    </label>
+                  ))}
+                </fieldset>
+              </details>
+              <button type="button" aria-controls="munich-map-places" aria-expanded={showPlaces}
+                onClick={() => setShowPlaces(!showPlaces)}>{showPlaces ? "Hide places" : "Show places"}</button>
+            </div>
+          </div>
           <div class="munich-map-distance">
             <label>Distance from
               <select value={reference ?? ""} onChange={(event) => {
                 const value = event.currentTarget.value;
                 const pin = value ? toPersonalPin(value) : undefined;
                 setReference(pin);
-                setFocus((pin && data.pins[pin]?.position) || MUNICH_CENTER);
+                setFocus({ position: (pin && data.pins[pin]?.position) || MUNICH_CENTER,
+                  radius });
               }}>
                 <option value="">Marienplatz</option>
                 {personalPins.filter((name) => data.pins[name]).map((name) => <option key={name} value={name}>{name}</option>)}
@@ -243,15 +254,28 @@ export default function MunichMap() {
             </label>
             <label>Straight-line radius
               <select value={radius} onChange={(event) => {
-                setRadius(Number(event.currentTarget.value));
+                const nextRadius = Number(event.currentTarget.value);
+                setRadius(nextRadius);
+                if (nextRadius > 0) {
+                  setFocus({ position: origin,
+                    radius: nextRadius });
+                }
               }}>
                 <option value={0}>Any distance</option>
                 {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
               </select>
             </label>
-            <button type="button" onClick={() => setFocus(toMapPosition(origin[0], origin[1]))}>Center map</button>
+            <button type="button" onClick={() => setFocus({ position: origin,
+              radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>
           </div>
-          <section class="munich-map-personal" aria-label="Personal pins">
+        </section>
+        <aside id="munich-map-places" class="munich-map-panel" aria-label="Places and event filters" hidden={!showPlaces}>
+          <div class="munich-map-panel-title">
+            <h2>Explore Munich</h2>
+            <button type="button" onClick={() => startDraft({})}>Add place</button>
+          </div>
+          <details class="munich-map-personal">
+            <summary>Home &amp; work</summary>
             {personalPins.map((name) => {
               const pin = data.pins[name];
               return (
@@ -261,7 +285,7 @@ export default function MunichMap() {
                     startDraft({ pin: name,
                       position: pin?.position });
                     if (pin) {
-                      setFocus(pin.position);
+                      setFocus({ position: pin.position });
                     }
                   }}>{pin ? `Edit ${name.toLowerCase()}` : `Pin ${name.toLowerCase()}`}</button>
                   {pin && <button type="button" onClick={() => {
@@ -281,13 +305,7 @@ export default function MunichMap() {
               );
             })}
             <p>Personal pins and events use your Rechner storage setting. Address labels are entered manually.</p>
-          </section>
-        </section>
-        <aside class="munich-map-panel" aria-label="Places and event filters">
-          <div class="munich-map-panel-title">
-            <h2>Explore Munich</h2>
-            <button type="button" onClick={() => startDraft({})}>Add place</button>
-          </div>
+          </details>
           {draft && <form class="munich-map-editor" key={draft.pin ?? draft.place?.id ?? "new"} onSubmit={submitDraft}>
             <h3>{draft.pin ? `Pin ${draft.pin.toLowerCase()}` : draft.place ? "Edit place" : "Add a place"}</h3>
             <p>{picking ? "Click the map or use its center to choose a location." : "Location selected."}</p>

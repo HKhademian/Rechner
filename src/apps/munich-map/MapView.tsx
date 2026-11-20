@@ -1,9 +1,11 @@
 import "leaflet/dist/leaflet.css";
 import {
   type Map as LeafletMap,
+  type Marker,
   type LeafletMouseEvent,
   circle,
   divIcon,
+  latLng,
   layerGroup,
   map,
   marker,
@@ -15,7 +17,9 @@ import {
   useState,
 } from "preact/hooks";
 import {
+  type MapFocus,
   type MapPlace,
+  type MapPlaceId,
   type MapPosition,
   MUNICH_CENTER,
   MapCategory,
@@ -30,7 +34,7 @@ interface MapViewProps {
     readonly position: MapPosition }[];
   readonly origin: MapPosition;
   readonly radius: number;
-  readonly focus?: MapPosition;
+  readonly focus?: MapFocus;
   readonly draft?: MapPosition;
   readonly picking: boolean;
   readonly onPick: (position: MapPosition) => void;
@@ -81,7 +85,11 @@ export function MapView({
     const view = map(container.current, {
       center: point(MUNICH_CENTER),
       zoom: 12,
-      scrollWheelZoom: false,
+      zoomSnap: 0.5,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
+      preferCanvas: true,
+      trackResize: false,
     });
     instance.current = view;
     view.attributionControl?.setPrefix(false);
@@ -100,7 +108,7 @@ export function MapView({
       }
     });
     tiles.addTo(view);
-    const resize = new ResizeObserver(() => view.invalidateSize({ pan: false }));
+    const resize = new ResizeObserver(() => view.invalidateSize({ debounceMoveend: true }));
     resize.observe(container.current);
     return () => {
       resize.disconnect();
@@ -114,10 +122,10 @@ export function MapView({
     if (!view) {
       return;
     }
-    const layer = layerGroup().addTo(view);
-    const visiblePlaces = layerGroup().addTo(layer);
+    const visiblePlaces = layerGroup().addTo(view);
+    const markers = new Map<MapPlaceId, Marker>();
     const renderVisiblePlaces = () => {
-      visiblePlaces.clearLayers();
+      const visibleIds = new Set<MapPlaceId>();
       const bounds = view.getBounds().pad(0.1);
       // At city scale, space out the densest layers so rail and event markers stay readable.
       const occupiedCells = new Set<string>();
@@ -135,6 +143,10 @@ export function MapView({
           }
           occupiedCells.add(cell);
         }
+        visibleIds.add(place.id);
+        if (markers.has(place.id)) {
+          continue;
+        }
         const style = categoryStyle[place.category];
         const overlay = mapLayers.includes(place.category);
         const pin = marker(coordinates, {
@@ -142,11 +154,42 @@ export function MapView({
           title: place.title,
           zIndexOffset: overlay ? 0 : 250,
         }).on("click", () => onSelect(place)).addTo(visiblePlaces);
+        pin.bindPopup(() => {
+          const content = document.createElement("div");
+          const title = document.createElement("strong");
+          title.textContent = place.title;
+          content.append(title);
+          if (place.detail) {
+            const detail = document.createElement("div");
+            detail.textContent = place.detail;
+            content.append(detail);
+          }
+          return content;
+        });
+        markers.set(place.id, pin);
         pin.getElement()?.setAttribute("aria-label", place.title);
+      }
+      for (const [id, pin] of markers) {
+        if (!visibleIds.has(id)) {
+          visiblePlaces.removeLayer(pin);
+          markers.delete(id);
+        }
       }
     };
     renderVisiblePlaces();
-    view.on("moveend resize", renderVisiblePlaces);
+    view.on("moveend", renderVisiblePlaces);
+    return () => {
+      view.off("moveend", renderVisiblePlaces);
+      visiblePlaces.remove();
+    };
+  }, [places, onSelect]);
+
+  useEffect(() => {
+    const view = instance.current;
+    if (!view) {
+      return;
+    }
+    const layer = layerGroup().addTo(view);
     for (const pin of pins) {
       marker(point(pin.position), {
         icon: pinStyle(pin.title[0], "var(--qr-ink)"),
@@ -173,14 +216,33 @@ export function MapView({
         interactive: false }).addTo(layer);
     }
     return () => {
-      view.off("moveend resize", renderVisiblePlaces);
       layer.remove();
     };
-  }, [places, pins, origin, radius, draft, onSelect]);
+  }, [pins, origin, radius, draft]);
 
   useEffect(() => {
-    if (focus) {
-      instance.current?.panTo(point(focus));
+    const view = instance.current;
+    if (!view || !focus) {
+      return;
+    }
+    const target = point(focus.position);
+    const animate = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    view.closePopup();
+    if (focus.radius) {
+      const bounds = latLng(target).toBounds(focus.radius * 2000);
+      view.fitBounds(bounds, { paddingTopLeft: [28, 28],
+        paddingBottomRight: [28, 80],
+        maxZoom: 15,
+        animate });
+    }
+    else {
+      const zoom = Math.max(view.getZoom(), focus.minimumZoom ?? 0);
+      if (animate) {
+        view.flyTo(target, zoom, { duration: 0.5 });
+      }
+      else {
+        view.setView(target, zoom, { animate: false });
+      }
     }
   }, [focus]);
 
@@ -197,7 +259,7 @@ export function MapView({
   }, [picking, onPick]);
 
   return (
-    <div class="munich-map-frame">
+    <>
       <div ref={container} class={`munich-map-surface${picking ? " is-picking" : ""}`} aria-label="Interactive Munich map" />
       {tileError && <p class="munich-map-tile-status" role="status">The basemap is unavailable. Pins and the place list are still available.</p>}
       {picking && <button type="button" class="munich-map-center-picker" onClick={() => {
@@ -206,6 +268,6 @@ export function MapView({
           onPick(toMapPosition(center.lat, center.lng));
         }
       }}>Use map center</button>}
-    </div>
+    </>
   );
 }
