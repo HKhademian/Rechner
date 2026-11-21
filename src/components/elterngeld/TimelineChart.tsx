@@ -24,6 +24,19 @@ import {
   TIMELINE_CHART_MODE_OPTIONS,
 } from "#utils/timelineChartControls";
 import {
+  TIMELINE_CHART_SERIES_ORDER,
+  TimelineChartSeriesKey,
+  computeChartYAxisScale,
+  computeStackedBarSegments,
+  computeTooltipLeftPx,
+  createUniformSeriesVisibility,
+  formatCompactXAxisLabel,
+  getMonthActiveSeriesTotals,
+  getMonthSeriesValue,
+  mapClientXToBarIndex,
+  valueToPlotY,
+} from "#utils/timelineChartGeometry";
+import {
   formatEur,
 } from "#utils/currencyFormat";
 import {
@@ -43,8 +56,9 @@ import {
 import {
   type TimelineMonth,
   type ScenarioTimelineResult,
-  toEuroAmount,
+  TimelineChartMode,
   TimelineTimeRangeFilter,
+  toEuroAmount,
   toMonthSimRef,
 } from "#engine/types";
 import "./TimelineChart.css";
@@ -53,77 +67,110 @@ function formatCurrency(amount: number, maximumFractionDigits = 0): string {
   return formatEur(amount || 0, maximumFractionDigits);
 }
 
-/**
- * Toggle Visibility State for Interactive Timeline Chart Series.
- */
-interface VisibleSeriesState {
-  /** Husband's earned take-home salary series. */
-  husbandSalary: boolean;
-  /** Wife's earned take-home salary series. */
-  wifeSalary: boolean;
-  /** Maternity protection benefit series. */
-  mutterschutz: boolean;
-  /** Mother's parental allowance series. */
-  wifeElterngeld: boolean;
-  /** Father's parental allowance series. */
-  husbandElterngeld: boolean;
-  /** Child benefit (Kindergeld) series. */
-  kindergeld: boolean;
-  /** Annual tax reconciliation refund series. */
-  taxRefund: boolean;
-}
-
-/**
- * Interactive Timeline Chart Tooltip Hover State.
- */
 interface TooltipState {
-  /** Monthly ledger snapshot for hovered data point. */
-  month: TimelineMonth;
-  /** Chart SVG container relative X coordinate. */
-  x: number;
-  /** Chart SVG container relative Y coordinate. */
-  y: number;
-  /** Viewport client X coordinate. */
-  clientX: number;
-  /** Viewport client Y coordinate. */
-  clientY: number;
+  readonly index: number;
+  readonly month: TimelineMonth;
+  readonly barCenterSvgX: number;
+  readonly leftPx: number;
 }
 
 interface SeriesMetadata {
-  readonly key: keyof VisibleSeriesState;
+  readonly key: TimelineChartSeriesKey;
   readonly label: string;
   readonly tooltipLabel: string;
-  readonly statutory: string;
   readonly color: string;
   readonly seriesClass: string;
   readonly tooltipToneClass?: string;
-  readonly prefixPlus?: boolean;
 }
+
+const SERIES_META_BY_KEY: Readonly<Record<TimelineChartSeriesKey, SeriesMetadata>> = Object.freeze({
+  [TimelineChartSeriesKey.HusbandSalary]: Object.freeze({
+    key: TimelineChartSeriesKey.HusbandSalary,
+    label: "Husband Salary",
+    tooltipLabel: "Husband Net Salary:",
+    color: "var(--series-salary-husband)",
+    seriesClass: "timeline-chart__series--husband-salary",
+  }),
+  [TimelineChartSeriesKey.WifeSalary]: Object.freeze({
+    key: TimelineChartSeriesKey.WifeSalary,
+    label: "Wife Salary",
+    tooltipLabel: "Wife Net Salary:",
+    color: "var(--series-salary-wife)",
+    seriesClass: "timeline-chart__series--wife-salary",
+  }),
+  [TimelineChartSeriesKey.Mutterschutz]: Object.freeze({
+    key: TimelineChartSeriesKey.Mutterschutz,
+    label: "Maternity (Mutterschutz)",
+    tooltipLabel: "Maternity Pay (MuSchG):",
+    color: "var(--series-mutterschutz)",
+    seriesClass: "timeline-chart__series--mutterschutz",
+  }),
+  [TimelineChartSeriesKey.WifeElterngeld]: Object.freeze({
+    key: TimelineChartSeriesKey.WifeElterngeld,
+    label: "Elterngeld (Mother)",
+    tooltipLabel: "Elterngeld (Mother / §§ 4, 4a BEEG):",
+    color: "var(--series-elterngeld-mother)",
+    seriesClass: "timeline-chart__series--wife-elterngeld",
+    tooltipToneClass: "timeline-chart__tooltip-row--gain",
+  }),
+  [TimelineChartSeriesKey.HusbandElterngeld]: Object.freeze({
+    key: TimelineChartSeriesKey.HusbandElterngeld,
+    label: "Partner Months (Father)",
+    tooltipLabel: "Partner Months (Father / §§ 4, 4b BEEG):",
+    color: "var(--series-elterngeld-father)",
+    seriesClass: "timeline-chart__series--husband-elterngeld",
+    tooltipToneClass: "timeline-chart__tooltip-row--warning",
+  }),
+  [TimelineChartSeriesKey.Kindergeld]: Object.freeze({
+    key: TimelineChartSeriesKey.Kindergeld,
+    label: "Child Benefit (Kindergeld)",
+    tooltipLabel: "Child Benefit (Kindergeld, § 66 EStG):",
+    color: "var(--series-kindergeld)",
+    seriesClass: "timeline-chart__series--kindergeld",
+  }),
+  [TimelineChartSeriesKey.BonusesAndEvents]: Object.freeze({
+    key: TimelineChartSeriesKey.BonusesAndEvents,
+    label: "Bonuses & Events",
+    tooltipLabel: "Bonuses & Special Events:",
+    color: "var(--series-bonuses-events)",
+    seriesClass: "timeline-chart__series--bonuses-events",
+  }),
+  [TimelineChartSeriesKey.TaxRefund]: Object.freeze({
+    key: TimelineChartSeriesKey.TaxRefund,
+    label: "Tax Settlement (Finanzamt)",
+    tooltipLabel: "Tax Settlement (§ 36 EStG):",
+    color: "var(--series-tax-refund)",
+    seriesClass: "timeline-chart__series--tax-refund",
+    tooltipToneClass: "timeline-chart__tooltip-row--gain",
+  }),
+});
+
+const SERIES_META_BOTTOM_TO_TOP: readonly SeriesMetadata[] = Object.freeze(
+  TIMELINE_CHART_SERIES_ORDER.map((key) => SERIES_META_BY_KEY[key]),
+);
+
+const SERIES_META_TOP_TO_BOTTOM: readonly SeriesMetadata[] = Object.freeze(
+  [...SERIES_META_BOTTOM_TO_TOP].reverse(),
+);
+
+const TOOLTIP_WIDTH_PX = 280;
 
 export default function TimelineChart(): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltipState, setTooltipState] = useState<TooltipState | null>(null);
-
-  // Series visibility state for interactive on/off toggling
-  const [visibleSeries, setVisibleSeries] = useState<VisibleSeriesState>({
-    husbandSalary: true,
-    wifeSalary: true,
-    mutterschutz: true,
-    wifeElterngeld: true,
-    husbandElterngeld: true,
-    kindergeld: true,
-    taxRefund: true,
-  });
+  const [visibleSeries, setVisibleSeries] = useState<Record<TimelineChartSeriesKey, boolean>>(
+    () => createUniformSeriesVisibility(true),
+  );
 
   const mode = chartMode.value;
   const filter = timeRangeFilter.value;
+  const isCompareMode = mode === TimelineChartMode.Compare;
 
   const currentData = currentScenarioData.value;
   const aData = scenarioAData.value;
   const bData = scenarioBData.value;
   const cData = scenarioCData.value;
 
-  // Reference the initial baseline ledger salaries, excluding benefits and one-off cash.
   const referenceMonth = bData.months[0];
   const referenceProfile = bData.configuration?.taxProfiles.find(
     (profile) => profile.calendarYear === referenceMonth?.calendarYearNum,
@@ -138,195 +185,144 @@ export default function TimelineChart(): JSX.Element {
     )
   );
 
-  // Toggle single series
-  const toggleSeries = (key: keyof VisibleSeriesState): void => {
+  const toggleSeries = (key: TimelineChartSeriesKey): void => {
     setVisibleSeries((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
 
-  // Toggle all series
-  const setAllSeries = (val: boolean): void => {
-    setVisibleSeries({
-      husbandSalary: val,
-      wifeSalary: val,
-      mutterschutz: val,
-      wifeElterngeld: val,
-      husbandElterngeld: val,
-      kindergeld: val,
-      taxRefund: val,
-    });
+  const setAllSeries = (visible: boolean): void => {
+    setVisibleSeries(createUniformSeriesVisibility(visible));
   };
 
-  // Filter months according to active time range
-  let displayedMonths = currentData.months;
-  if (filter === TimelineTimeRangeFilter.Child1) {
-    displayedMonths = currentData.months.filter((m) => m.month <= 24);
-  }
-  else if (filter === TimelineTimeRangeFilter.Child2) {
-    displayedMonths = currentData.months.filter(
-      (m) => m.month >= 25 && m.month <= 48,
-    );
-  }
-  else if (filter === TimelineTimeRangeFilter.Post) {
-    displayedMonths = currentData.months.filter((m) => m.month >= 49);
-  }
+  // Guarantee strict chronological X-axis order after filtering
+  const filteredMonths =
+    filter === TimelineTimeRangeFilter.Child1
+      ? currentData.months.filter((m) => m.month <= 24)
+      : filter === TimelineTimeRangeFilter.Child2
+        ? currentData.months.filter((m) => m.month >= 25 && m.month <= 48)
+        : filter === TimelineTimeRangeFilter.Post
+          ? currentData.months.filter((m) => m.month >= 49)
+          : currentData.months;
+  const displayedMonths = [...filteredMonths].sort((a, b) => a.month - b.month);
 
-  // Calculate dynamic active sum for each month based on visible series
-  const getMonthActiveTotal = (m: TimelineMonth): number => {
-    let total = 0;
-    if (visibleSeries.husbandSalary) {
-      total += m.husbandSalary || 0;
-    }
-    if (visibleSeries.wifeSalary) {
-      total += m.wifeSalary || 0;
-    }
-    if (visibleSeries.mutterschutz) {
-      total += m.mutterschutz || 0;
-    }
-    if (visibleSeries.wifeElterngeld) {
-      total += m.wifeElterngeld || 0;
-    }
-    if (visibleSeries.husbandElterngeld) {
-      total += m.husbandElterngeld || 0;
-    }
-    if (visibleSeries.kindergeld) {
-      total += m.kindergeld || 0;
-    }
-    if (visibleSeries.taxRefund) {
-      total += m.taxRefund || 0;
-    }
-    return total;
-  };
+  // Build O(1) lookup maps for Compare mode tooltips and curves
+  const aByMonth = new Map(aData.months.map((m) => [m.month, m]));
+  const bByMonth = new Map(bData.months.map((m) => [m.month, m]));
+  const cByMonth = new Map(cData.months.map((m) => [m.month, m]));
 
-  // Dimensions
+  // SVG viewBox geometry
   const svgWidth = 1050;
   const svgHeight = 440;
   const margin = {
-    top: 40,
-    right: 30,
-    bottom: 55,
-    left: 65,
+    top: 36,
+    right: 28,
+    bottom: 54,
+    left: 72,
   };
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
-  // Max scale Y calculation based on active series and modes
-  const maxMonthValue = Math.max(
-    6000,
-    referenceSalary ?? 0,
-    ...displayedMonths.map((m) => getMonthActiveTotal(m)),
-    ...cData.months.map((m) => m.monthlyTotal),
-  );
-  const yMax = Math.max(2000, Math.ceil(maxMonthValue / 1000) * 1000 + 500);
+  // Dynamic Y-axis bounds covering active series (positive + negative) and Compare mode
+  let dataMin = 0;
+  let dataMax = referenceSalary ?? 0;
 
-  // X scale mapping
-  const numBars = displayedMonths.length;
-  const barSlotWidth = plotWidth / numBars;
-  const barWidth = Math.max(6, barSlotWidth * 0.72);
+  if (isCompareMode) {
+    for (const m of displayedMonths) {
+      for (const candidate of [
+        aByMonth.get(m.month)?.monthlyTotal ?? 0,
+        bByMonth.get(m.month)?.monthlyTotal ?? 0,
+        cByMonth.get(m.month)?.monthlyTotal ?? 0,
+      ]) {
+        if (candidate > dataMax) {
+          dataMax = candidate;
+        }
+        if (candidate < dataMin) {
+          dataMin = candidate;
+        }
+      }
+    }
+  }
+  else {
+    for (const m of displayedMonths) {
+      const totals = getMonthActiveSeriesTotals(m, visibleSeries);
+      if (totals.positiveTotal > dataMax) {
+        dataMax = totals.positiveTotal;
+      }
+      if (totals.negativeTotal < dataMin) {
+        dataMin = totals.negativeTotal;
+      }
+      if (mode === TimelineChartMode.Lines) {
+        for (const key of TIMELINE_CHART_SERIES_ORDER) {
+          if (!visibleSeries[key]) {
+            continue;
+          }
+          const val = getMonthSeriesValue(m, key);
+          if (val > dataMax) {
+            dataMax = val;
+          }
+          if (val < dataMin) {
+            dataMin = val;
+          }
+        }
+      }
+    }
+  }
 
-  // Y Scale function
+  const yAxisScale = computeChartYAxisScale(dataMin, dataMax, 5);
+  const { yMin, yMax, ticks: yTicks } = yAxisScale;
   const scaleY = (val: number): number =>
-    plotHeight - (val / yMax) * plotHeight;
+    valueToPlotY(val, yMin, yMax, plotHeight);
+  const zeroLineY = margin.top + scaleY(0);
 
-  // Colors bound to institutional CSS tokens for full light/dark and palette support
-  const colors = {
-    husbandSalary: "var(--series-salary-husband)",
-    wifeSalary: "var(--series-salary-wife)",
-    mutterschutz: "var(--series-mutterschutz)",
-    wifeElterngeld: "var(--series-elterngeld-mother)",
-    husbandElterngeld: "var(--series-elterngeld-father)",
-    kindergeld: "var(--series-kindergeld)",
-    taxRefund: "var(--series-tax-refund)",
-  };
+  // X-axis slot geometry
+  const numBars = displayedMonths.length;
+  const barSlotWidth = numBars > 0 ? plotWidth / numBars : plotWidth;
+  const barWidth = Math.max(4, Math.min(36, barSlotWidth * 0.74));
 
-  const seriesMeta: readonly SeriesMetadata[] = [
-    {
-      key: "husbandSalary",
-      label: "Husband Salary",
-      tooltipLabel: "Husband Net Salary:",
-      statutory: "Gehalt Mann",
-      color: colors.husbandSalary,
-      seriesClass: "timeline-chart__series--husband-salary",
-    },
-    {
-      key: "wifeSalary",
-      label: "Wife Salary",
-      tooltipLabel: "Wife Net Salary:",
-      statutory: "Gehalt Frau",
-      color: colors.wifeSalary,
-      seriesClass: "timeline-chart__series--wife-salary",
-    },
-    {
-      key: "mutterschutz",
-      label: "Maternity (Mutterschutz)",
-      tooltipLabel: "Maternity Pay (MuSchG):",
-      statutory: "MuSchG",
-      color: colors.mutterschutz,
-      seriesClass: "timeline-chart__series--mutterschutz",
-    },
-    {
-      key: "wifeElterngeld",
-      label: "Elterngeld (Mother)",
-      tooltipLabel: "Elterngeld (Mother / §§ 4, 4a BEEG):",
-      statutory: "§§ 4, 4a BEEG",
-      color: colors.wifeElterngeld,
-      seriesClass: "timeline-chart__series--wife-elterngeld",
-      tooltipToneClass: "timeline-chart__tooltip-row--gain",
-    },
-    {
-      key: "husbandElterngeld",
-      label: "Partner Months (Partnermonate)",
-      tooltipLabel: "Partner Months (Partnermonate, § 4 BEEG):",
-      statutory: "§ 4 BEEG",
-      color: colors.husbandElterngeld,
-      seriesClass: "timeline-chart__series--husband-elterngeld",
-      tooltipToneClass: "timeline-chart__tooltip-row--warning",
-    },
-    {
-      key: "kindergeld",
-      label: "Child Benefit (Kindergeld)",
-      tooltipLabel: "Child Benefit (Kindergeld, § 66 EStG):",
-      statutory: "§ 66 EStG",
-      color: colors.kindergeld,
-      seriesClass: "timeline-chart__series--kindergeld",
-      tooltipToneClass: "timeline-chart__tooltip-row--loss",
-    },
-    {
-      key: "taxRefund",
-      label: "Tax Office Refund (Finanzamt)",
-      tooltipLabel: "Tax Office Refund (Finanzamt, § 26b EStG):",
-      statutory: "§ 26b EStG",
-      color: colors.taxRefund,
-      seriesClass: "timeline-chart__series--tax-refund",
-      tooltipToneClass: "timeline-chart__tooltip-row--gain",
-      prefixPlus: true,
-    },
-  ];
-
-  // Handle Mouse Move for Tooltip
+  // ViewBox-accurate pointer hit-testing
   const handleMouseMove = (e: JSX.TargetedMouseEvent<SVGSVGElement>): void => {
-    if (!containerRef.current) {
+    const container = containerRef.current;
+    if (!container || numBars === 0) {
       return;
     }
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left - margin.left;
-    if (mouseX >= 0 && mouseX <= plotWidth) {
-      const idx = Math.min(
-        numBars - 1,
-        Math.max(0, Math.floor(mouseX / barSlotWidth)),
-      );
-      const mData = displayedMonths[idx];
-      setTooltipState({
-        month: mData,
-        x: margin.left + idx * barSlotWidth + barSlotWidth / 2,
-        y: e.clientY - rect.top,
-        clientX: e.clientX,
-        clientY: e.clientY,
-      });
-      hoveredMonth.value = mData.month;
+    const svgRect = e.currentTarget.getBoundingClientRect();
+    const idx = mapClientXToBarIndex({
+      clientX: e.clientX,
+      svgRectLeft: svgRect.left,
+      svgRectWidth: svgRect.width,
+      svgViewBoxWidth: svgWidth,
+      marginLeft: margin.left,
+      plotWidth,
+      barCount: numBars,
+    });
+    if (idx === null) {
+      setTooltipState(null);
+      hoveredMonth.value = null;
+      return;
     }
+    const mData = displayedMonths[idx];
+    const barCenterSvgX = margin.left + (idx + 0.5) * barSlotWidth;
+    const containerRect = container.getBoundingClientRect();
+    const leftPx = computeTooltipLeftPx({
+      barCenterSvgX,
+      svgViewBoxWidth: svgWidth,
+      svgRectLeft: svgRect.left,
+      svgRectWidth: svgRect.width,
+      containerRectLeft: containerRect.left,
+      containerWidth: container.clientWidth,
+      containerScrollLeft: container.scrollLeft,
+      tooltipWidth: TOOLTIP_WIDTH_PX,
+    });
+
+    setTooltipState({
+      index: idx,
+      month: mData,
+      barCenterSvgX,
+      leftPx,
+    });
+    hoveredMonth.value = mData.month;
   };
 
   const handleMouseLeave = (): void => {
@@ -334,73 +330,104 @@ export default function TimelineChart(): JSX.Element {
     hoveredMonth.value = null;
   };
 
-  // Individual Field Line Path Generator
-  const getFieldLinePath = (fieldKey: keyof VisibleSeriesState): string => {
-    if (!visibleSeries[fieldKey]) {
+  // Line Series path generator
+  const getFieldLinePath = (fieldKey: TimelineChartSeriesKey): string => {
+    if (!visibleSeries[fieldKey] || displayedMonths.length === 0) {
       return "";
     }
-    return displayedMonths.reduce((acc, m, i) => {
-      const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-      const val = m[fieldKey] || 0;
-      const y = margin.top + scaleY(val);
-      return `${acc} ${i === 0 ? "M" : "L"} ${x} ${y}`;
-    }, "");
-  };
-
-  // Comparison curves path generator for Compare mode
-  const getComparePath = (scenarioDataset: ScenarioTimelineResult): string => {
-    const subset = scenarioDataset.months.filter((m) =>
-      displayedMonths.some((dm) => dm.month === m.month));
-    if (subset.length === 0) {
-      return "";
-    }
-    return subset.reduce((acc, m, i) => {
-      const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-      const y = margin.top + scaleY(m.monthlyTotal);
-      return `${acc} ${i === 0 ? "M" : "L"} ${x} ${y}`;
-    }, "");
-  };
-
-  // Stacked Area generator for Area mode
-  const getStackedAreaPath = (
-    topFn: (m: TimelineMonth) => number,
-    bottomFn: (m: TimelineMonth) => number,
-  ): string => {
-    if (displayedMonths.length === 0) {
-      return "";
-    }
-    const topPoints = displayedMonths
+    return displayedMonths
       .map((m, i) => {
-        const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-        const y = margin.top + scaleY(topFn(m));
+        const x = margin.left + (i + 0.5) * barSlotWidth;
+        const val = getMonthSeriesValue(m, fieldKey);
+        const y = margin.top + scaleY(val);
         return `${i === 0 ? "M" : "L"} ${x} ${y}`;
       })
       .join(" ");
-
-    const bottomPoints = displayedMonths
-      .slice()
-      .reverse()
-      .map((m, i) => {
-        const originalIdx = displayedMonths.length - 1 - i;
-        const x = margin.left + originalIdx * barSlotWidth + barSlotWidth / 2;
-        const y = margin.top + scaleY(bottomFn(m));
-        return `L ${x} ${y}`;
-      })
-      .join(" ");
-
-    return `${topPoints} ${bottomPoints} Z`;
   };
+
+  // Compare mode curve generator aligned strictly to displayedMonths
+  const getComparePath = (scenarioDataset: ScenarioTimelineResult): string => {
+    const lookup = new Map(scenarioDataset.months.map((m) => [m.month, m]));
+    const points: string[] = [];
+    displayedMonths.forEach((dm, i) => {
+      const m = lookup.get(dm.month);
+      if (!m) {
+        return;
+      }
+      const x = margin.left + (i + 0.5) * barSlotWidth;
+      const y = margin.top + scaleY(m.monthlyTotal);
+      points.push(`${points.length === 0 ? "M" : "L"} ${x} ${y}`);
+    });
+    return points.join(" ");
+  };
+
+  // Stacked Area polygon generator using positive cumulative stacks in canonical order
+  const buildPositiveAreaBands = (): ReadonlyArray<{
+    readonly meta: SeriesMetadata;
+    readonly path: string;
+  }> => {
+    if (displayedMonths.length === 0) {
+      return [];
+    }
+    const cumulativeBottom = displayedMonths.map(() => 0);
+    const bands: Array<{
+      readonly meta: SeriesMetadata;
+      readonly path: string;
+    }> = [];
+
+    for (const meta of SERIES_META_BOTTOM_TO_TOP) {
+      if (!visibleSeries[meta.key]) {
+        continue;
+      }
+      const topValues = displayedMonths.map((m, i) => {
+        const val = Math.max(0, getMonthSeriesValue(m, meta.key));
+        return cumulativeBottom[i] + val;
+      });
+      const hasPositiveArea = topValues.some((top, i) => top > cumulativeBottom[i]);
+      if (hasPositiveArea) {
+        const topEdge = topValues
+          .map((top, i) => {
+            const x = margin.left + (i + 0.5) * barSlotWidth;
+            const y = margin.top + scaleY(top);
+            return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+          })
+          .join(" ");
+        const bottomEdge = cumulativeBottom
+          .slice()
+          .reverse()
+          .map((bottom, revIdx) => {
+            const i = displayedMonths.length - 1 - revIdx;
+            const x = margin.left + (i + 0.5) * barSlotWidth;
+            const y = margin.top + scaleY(bottom);
+            return `L ${x} ${y}`;
+          })
+          .join(" ");
+        bands.push({
+          meta,
+          path: `${topEdge} ${bottomEdge} Z`,
+        });
+      }
+      for (let i = 0; i < displayedMonths.length; i++) {
+        cumulativeBottom[i] = topValues[i];
+      }
+    }
+    return bands;
+  };
+
+  const hoveredCompareA = tooltipState ? aByMonth.get(tooltipState.month.month) : undefined;
+  const hoveredCompareB = tooltipState ? bByMonth.get(tooltipState.month.month) : undefined;
+  const hoveredCompareC = tooltipState ? cByMonth.get(tooltipState.month.month) : undefined;
 
   return (
     <div className="ui-card timeline-chart">
-      {/* Chart Top Header & Controls */}
+      {/* Chart Top Header & View Mode Switcher */}
       <div className="timeline-chart__header">
         <div>
           <h3 className="timeline-chart__title">
             Monthly Cash Inflow &amp; Benefits Timeline ({displayedMonths.length} Months)
           </h3>
           <p className="timeline-chart__subtitle">
-            Monthly net salary, parental benefits, Kindergeld, and tax refunds.
+            Monthly net salary, parental benefits, Kindergeld, bonuses/events, and tax settlements.
           </p>
           {referenceMonth && referenceSalary !== undefined && (
             <div className="timeline-chart__reference">
@@ -433,7 +460,6 @@ export default function TimelineChart(): JSX.Element {
           )}
         </div>
 
-        {/* View Mode Switcher */}
         <SegmentedControl
           compact
           label="Timeline chart view"
@@ -445,52 +471,72 @@ export default function TimelineChart(): JSX.Element {
         />
       </div>
 
-      {/* Series Visibility Toolbar (On/Off Controls) */}
+      {/* Single Unified Interactive Legend / Series Visibility Bar */}
       <div className="timeline-chart__toolbar">
-        <div className="timeline-chart__toggles">
-          <span className="timeline-chart__toggles-label">
-            Series Toggles:
-          </span>
-          {seriesMeta.map((s) => {
-            const isVisible = visibleSeries[s.key];
-            return (
-              <button
-                key={s.key}
-                type="button"
-                aria-pressed={isVisible}
-                onClick={() => toggleSeries(s.key)}
-                className={[
-                  "timeline-chart__series-btn",
-                  s.seriesClass,
-                  isVisible ? "timeline-chart__series-btn--active" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                <span className="timeline-chart__dot" />
-                <span>{s.label}</span>
-                <span className="timeline-chart__state-pill">
-                  {isVisible ? "ON" : "OFF"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {isCompareMode ? (
+          <div className="timeline-chart__compare-key" role="list" aria-label="Scenario comparison legend">
+            <span className="timeline-chart__toggles-label">Scenarios:</span>
+            <span className="timeline-chart__compare-item" role="listitem">
+              <span className="timeline-chart__compare-swatch timeline-chart__compare-swatch--a" />
+              <span>Status Quo (A · No Children)</span>
+            </span>
+            <span className="timeline-chart__compare-item" role="listitem">
+              <span className="timeline-chart__compare-swatch timeline-chart__compare-swatch--b" />
+              <span>Unoptimized Baseline (B)</span>
+            </span>
+            <span className="timeline-chart__compare-item" role="listitem">
+              <span className="timeline-chart__compare-swatch timeline-chart__compare-swatch--c" />
+              <span>Statutory Optimized (C)</span>
+            </span>
+          </div>
+        ) : (
+          <>
+            <div className="timeline-chart__toggles">
+              <span className="timeline-chart__toggles-label">
+                Series:
+              </span>
+              {SERIES_META_BOTTOM_TO_TOP.map((s) => {
+                const isVisible = visibleSeries[s.key];
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    aria-pressed={isVisible}
+                    onClick={() => toggleSeries(s.key)}
+                    className={[
+                      "timeline-chart__series-btn",
+                      s.seriesClass,
+                      isVisible ? "timeline-chart__series-btn--active" : "",
+                    ].filter(Boolean).join(" ")}
+                  >
+                    <span className="timeline-chart__dot" />
+                    <span>{s.label}</span>
+                    <span className="timeline-chart__state-pill">
+                      {isVisible ? "ON" : "OFF"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-        <div className="timeline-chart__toolbar-actions">
-          <Button
-            size={ButtonSize.Sm}
-            variant={ButtonVariant.Tint}
-            onClick={() => setAllSeries(true)}
-          >
-            All On
-          </Button>
-          <Button
-            size={ButtonSize.Sm}
-            variant={ButtonVariant.Secondary}
-            onClick={() => setAllSeries(false)}
-          >
-            All Off
-          </Button>
-        </div>
+            <div className="timeline-chart__toolbar-actions">
+              <Button
+                size={ButtonSize.Sm}
+                variant={ButtonVariant.Tint}
+                onClick={() => setAllSeries(true)}
+              >
+                All On
+              </Button>
+              <Button
+                size={ButtonSize.Sm}
+                variant={ButtonVariant.Secondary}
+                onClick={() => setAllSeries(false)}
+              >
+                All Off
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* SVG Chart Plot Area */}
@@ -501,21 +547,20 @@ export default function TimelineChart(): JSX.Element {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Grid lines (Horizontal Y-Axis) */}
-          {[0, 2000, 4000, 6000, 8000].map((tick) => {
-            if (tick > yMax) {
-              return null;
-            }
+          {/* Dynamic Horizontal Y-Axis Gridlines */}
+          {yTicks.map((tick) => {
             const y = margin.top + scaleY(tick);
+            const isZero = tick === 0;
             return (
-              <g key={tick}>
+              <g key={`y-tick-${tick}`}>
                 <line
                   x1={margin.left}
                   y1={y}
                   x2={svgWidth - margin.right}
                   y2={y}
-                  stroke="var(--chart-grid-stroke)"
-                  strokeDasharray="4 4"
+                  stroke={isZero ? "var(--border-medium)" : "var(--chart-grid-stroke)"}
+                  strokeWidth={isZero ? "1.25" : "1"}
+                  strokeDasharray={isZero ? undefined : "4 4"}
                 />
                 <text
                   x={margin.left - 10}
@@ -525,130 +570,98 @@ export default function TimelineChart(): JSX.Element {
                   fontSize="11"
                   fontFamily="monospace"
                 >
-                  €{tick}
+                  {formatCurrency(tick)}
                 </text>
               </g>
             );
           })}
 
-          {/* Year Background Bands & Vertical Separators */}
+          {/* Year Boundary Vertical Separators */}
           {displayedMonths.map((m, i) => {
-            const isYearStart = m.monthInYear === 1 && m.month !== 1;
+            const isYearStart = i > 0 && m.calendarMonthNum === 1;
             const x = margin.left + i * barSlotWidth;
             return isYearStart ? (
-              <g key={`year-sep-${m.month}`}>
+              <g key={`year-sep-${m.monthId}`}>
                 <line
                   x1={x}
                   y1={margin.top}
                   x2={x}
                   y2={svgHeight - margin.bottom}
                   stroke="var(--border-medium)"
-                  strokeWidth="1.5"
+                  strokeWidth="1.25"
                   strokeDasharray="2 2"
                 />
                 <text
                   x={x + 4}
-                  y={margin.top - 12}
+                  y={margin.top - 10}
                   fill="var(--text-muted)"
                   fontSize="11"
                   fontWeight="700"
                 >
-                  Year {m.year}
+                  {m.calendarYearNum}
                 </text>
               </g>
             ) : null;
           })}
 
-          {/* Render Mode 1: STACKED BAR */}
-          {mode === "stacked_bar" &&
+          {/* Hover Highlight Band & Crosshair (Active Across All Modes) */}
+          {tooltipState && (
+            <g>
+              <rect
+                x={margin.left + tooltipState.index * barSlotWidth}
+                y={margin.top}
+                width={barSlotWidth}
+                height={plotHeight}
+                fill="var(--chart-hover-fill)"
+                rx="2"
+              />
+              <line
+                x1={tooltipState.barCenterSvgX}
+                y1={margin.top}
+                x2={tooltipState.barCenterSvgX}
+                y2={svgHeight - margin.bottom}
+                stroke="var(--color-primary)"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+                opacity="0.65"
+              />
+            </g>
+          )}
+
+          {/* Render Mode 1: STACKED BAR (Exact Conservation & Signed Stacking) */}
+          {mode === TimelineChartMode.StackedBar &&
             displayedMonths.map((m, i) => {
-              const x =
-                margin.left + i * barSlotWidth + (barSlotWidth - barWidth) / 2;
-              const isHovered =
-                tooltipState && tooltipState.month.month === m.month;
-
-              let currentY = 0;
-
-              const segments = [
-                {
-                  key: "husbandSalary",
-                  val: visibleSeries.husbandSalary ? m.husbandSalary : 0,
-                  fill: colors.husbandSalary,
-                },
-                {
-                  key: "wifeSalary",
-                  val: visibleSeries.wifeSalary ? m.wifeSalary : 0,
-                  fill: colors.wifeSalary,
-                },
-                {
-                  key: "mutterschutz",
-                  val: visibleSeries.mutterschutz ? m.mutterschutz : 0,
-                  fill: colors.mutterschutz,
-                },
-                {
-                  key: "wifeElterngeld",
-                  val: visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0,
-                  fill: colors.wifeElterngeld,
-                },
-                {
-                  key: "husbandElterngeld",
-                  val: visibleSeries.husbandElterngeld
-                    ? m.husbandElterngeld
-                    : 0,
-                  fill: colors.husbandElterngeld,
-                },
-                {
-                  key: "kindergeld",
-                  val: visibleSeries.kindergeld ? m.kindergeld : 0,
-                  fill: colors.kindergeld,
-                },
-                {
-                  key: "taxRefund",
-                  val: visibleSeries.taxRefund ? m.taxRefund : 0,
-                  fill: colors.taxRefund,
-                },
-              ];
+              const x = margin.left + i * barSlotWidth + (barSlotWidth - barWidth) / 2;
+              const isHovered = tooltipState !== null && tooltipState.month.month === m.month;
+              const segments = computeStackedBarSegments(
+                m,
+                visibleSeries,
+                yMin,
+                yMax,
+                plotHeight,
+                margin.top,
+              );
 
               return (
                 <g key={m.monthId} opacity={isHovered ? 1 : 0.92}>
-                  {isHovered && (
+                  {segments.map((seg) => (
                     <rect
-                      x={margin.left + i * barSlotWidth}
-                      y={margin.top}
-                      width={barSlotWidth}
-                      height={plotHeight}
-                      fill="var(--chart-hover-fill)"
-                      rx="2"
+                      key={seg.key}
+                      x={x}
+                      y={seg.y}
+                      width={barWidth}
+                      height={seg.height}
+                      fill={SERIES_META_BY_KEY[seg.key].color}
                     />
-                  )}
-                  {segments.map((seg) => {
-                    if (seg.val <= 0) {
-                      return null;
-                    }
-                    const segHeight = (seg.val / yMax) * plotHeight;
-                    const segY = margin.top + scaleY(currentY + seg.val);
-                    currentY += seg.val;
-
-                    return (
-                      <rect
-                        key={seg.key}
-                        x={x}
-                        y={segY}
-                        width={barWidth}
-                        height={Math.max(1, segHeight)}
-                        fill={seg.fill}
-                        rx="1"
-                      />
-                    );
-                  })}
+                  ))}
                 </g>
               );
             })}
 
           {/* Render Mode 2: MULTI-LINE SERIES */}
-          {mode === "lines" && (
+          {mode === TimelineChartMode.Lines && (
             <g>
-              {seriesMeta.map((s) => {
+              {SERIES_META_BOTTOM_TO_TOP.map((s) => {
                 const pathData = getFieldLinePath(s.key);
                 if (!pathData) {
                   return null;
@@ -659,30 +672,28 @@ export default function TimelineChart(): JSX.Element {
                       d={pathData}
                       fill="none"
                       stroke={s.color}
-                      strokeWidth="2.5"
+                      strokeWidth="2.25"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
-                    {/* Points on each month */}
                     {displayedMonths.map((m, i) => {
-                      const val = m[s.key] || 0;
-                      if (val <= 0) {
+                      const val = getMonthSeriesValue(m, s.key);
+                      if (val === 0) {
                         return null;
                       }
-                      const cx =
-                        margin.left + i * barSlotWidth + barSlotWidth / 2;
+                      const cx = margin.left + (i + 0.5) * barSlotWidth;
                       const cy = margin.top + scaleY(val);
                       const isHovered =
-                        tooltipState && tooltipState.month.month === m.month;
+                        tooltipState !== null && tooltipState.month.month === m.month;
                       return (
                         <circle
-                          key={`point-${s.key}-${m.month}`}
+                          key={`point-${s.key}-${m.monthId}`}
                           cx={cx}
                           cy={cy}
-                          r={isHovered ? 4.5 : 2.5}
+                          r={isHovered ? 4.5 : 2}
                           fill={s.color}
                           stroke="var(--bg-surface)"
-                          strokeWidth="1.5"
+                          strokeWidth="1.25"
                         />
                       );
                     })}
@@ -690,13 +701,15 @@ export default function TimelineChart(): JSX.Element {
                 );
               })}
 
-              {/* Active Total Top Trend Line */}
+              {/* Active Net Total Trend Line */}
               <path
-                d={displayedMonths.reduce((acc, m, i) => {
-                  const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-                  const y = margin.top + scaleY(getMonthActiveTotal(m));
-                  return `${acc} ${i === 0 ? "M" : "L"} ${x} ${y}`;
-                }, "")}
+                d={displayedMonths
+                  .map((m, i) => {
+                    const x = margin.left + (i + 0.5) * barSlotWidth;
+                    const y = margin.top + scaleY(getMonthActiveSeriesTotals(m, visibleSeries).netTotal);
+                    return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+                  })
+                  .join(" ")}
                 fill="none"
                 stroke="var(--color-primary)"
                 strokeWidth="2.5"
@@ -705,168 +718,60 @@ export default function TimelineChart(): JSX.Element {
             </g>
           )}
 
-          {/* Render Mode 3: AREA TREND */}
-          {mode === "area" && (
+          {/* Render Mode 3: STACKED AREA TREND */}
+          {mode === TimelineChartMode.Area && (
             <g>
-              {/* Layer 1: Husband Salary */}
-              {visibleSeries.husbandSalary && (
+              {buildPositiveAreaBands().map(({ meta, path }) => (
                 <path
-                  d={getStackedAreaPath(
-                    (m) => m.husbandSalary,
-                    () => 0,
-                  )}
-                  fill={colors.husbandSalary}
+                  key={`area-${meta.key}`}
+                  d={path}
+                  fill={meta.color}
                   opacity="0.85"
                 />
-              )}
-              {/* Layer 2: Wife Salary */}
-              {visibleSeries.wifeSalary && (
-                <path
-                  d={getStackedAreaPath(
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      m.wifeSalary,
-                    (m) => (visibleSeries.husbandSalary ? m.husbandSalary : 0),
-                  )}
-                  fill={colors.wifeSalary}
-                  opacity="0.85"
-                />
-              )}
-              {/* Layer 3: Mutterschutz */}
-              {visibleSeries.mutterschutz && (
-                <path
-                  d={getStackedAreaPath(
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      m.mutterschutz,
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0),
-                  )}
-                  fill={colors.mutterschutz}
-                  opacity="0.85"
-                />
-              )}
-              {/* Layer 4: Wife Elterngeld */}
-              {visibleSeries.wifeElterngeld && (
-                <path
-                  d={getStackedAreaPath(
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      (visibleSeries.mutterschutz ? m.mutterschutz : 0) +
-                      m.wifeElterngeld,
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      (visibleSeries.mutterschutz ? m.mutterschutz : 0),
-                  )}
-                  fill={colors.wifeElterngeld}
-                  opacity="0.85"
-                />
-              )}
-              {/* Layer 5: Husband Elterngeld */}
-              {visibleSeries.husbandElterngeld && (
-                <path
-                  d={getStackedAreaPath(
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      (visibleSeries.mutterschutz ? m.mutterschutz : 0) +
-                      (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0) +
-                      m.husbandElterngeld,
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      (visibleSeries.mutterschutz ? m.mutterschutz : 0) +
-                      (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0),
-                  )}
-                  fill={colors.husbandElterngeld}
-                  opacity="0.85"
-                />
-              )}
-              {/* Layer 6: Kindergeld */}
-              {visibleSeries.kindergeld && (
-                <path
-                  d={getStackedAreaPath(
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      (visibleSeries.mutterschutz ? m.mutterschutz : 0) +
-                      (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0) +
-                      (visibleSeries.husbandElterngeld
-                        ? m.husbandElterngeld
-                        : 0) +
-                      m.kindergeld,
-                    (m) =>
-                      (visibleSeries.husbandSalary ? m.husbandSalary : 0) +
-                      (visibleSeries.wifeSalary ? m.wifeSalary : 0) +
-                      (visibleSeries.mutterschutz ? m.mutterschutz : 0) +
-                      (visibleSeries.wifeElterngeld ? m.wifeElterngeld : 0) +
-                      (visibleSeries.husbandElterngeld
-                        ? m.husbandElterngeld
-                        : 0),
-                  )}
-                  fill={colors.kindergeld}
-                  opacity="0.85"
-                />
-              )}
-              {/* Layer 7: Tax Refund */}
-              {visibleSeries.taxRefund && (
-                <path
-                  d={getStackedAreaPath(
-                    (m) => getMonthActiveTotal(m),
-                    (m) => getMonthActiveTotal(m) - m.taxRefund,
-                  )}
-                  fill={colors.taxRefund}
-                  opacity="0.85"
-                />
-              )}
+              ))}
 
-              {/* Total Line Top Border */}
+              {/* Active Net Total Line Overlay */}
               <path
-                d={displayedMonths.reduce((acc, m, i) => {
-                  const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
-                  const y = margin.top + scaleY(getMonthActiveTotal(m));
-                  return `${acc} ${i === 0 ? "M" : "L"} ${x} ${y}`;
-                }, "")}
+                d={displayedMonths
+                  .map((m, i) => {
+                    const x = margin.left + (i + 0.5) * barSlotWidth;
+                    const y = margin.top + scaleY(getMonthActiveSeriesTotals(m, visibleSeries).netTotal);
+                    return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+                  })
+                  .join(" ")}
                 fill="none"
                 stroke="var(--color-primary)"
-                strokeWidth="2.5"
+                strokeWidth="2.25"
               />
             </g>
           )}
 
           {/* Render Mode 4: COMPARE SCENARIOS OVERLAY */}
-          {mode === "compare" && (
+          {isCompareMode && (
             <g>
-              {/* Scenario A (No Kids) */}
               <path
                 d={getComparePath(aData)}
                 fill="none"
                 stroke="var(--text-muted)"
-                strokeWidth="2.5"
+                strokeWidth="2.25"
                 strokeDasharray="4 4"
               />
-              {/* Scenario B (Unoptimized) */}
               <path
                 d={getComparePath(bData)}
                 fill="none"
                 stroke="var(--color-warning)"
                 strokeWidth="2.5"
               />
-              {/* Scenario C (Fully Optimized) */}
               <path
                 d={getComparePath(cData)}
                 fill="none"
                 stroke="var(--color-gain)"
-                strokeWidth="3.5"
+                strokeWidth="3.25"
               />
             </g>
           )}
 
-          {/* Initial Scenario B salary benchmark; source is available above the chart. */}
+          {/* Reference Salary Benchmark Line */}
           {referenceMonth && referenceSalary !== undefined && (
             <g>
               <line
@@ -875,11 +780,11 @@ export default function TimelineChart(): JSX.Element {
                 x2={svgWidth - margin.right}
                 y2={margin.top + scaleY(referenceSalary)}
                 stroke="var(--border-medium)"
-                strokeWidth="1.5"
+                strokeWidth="1.25"
                 strokeDasharray="6 3"
               />
               <text
-                x={svgWidth - margin.right - 5}
+                x={svgWidth - margin.right - 4}
                 y={margin.top + scaleY(referenceSalary) - 6}
                 fill="var(--text-muted)"
                 fontSize="10"
@@ -891,7 +796,19 @@ export default function TimelineChart(): JSX.Element {
             </g>
           )}
 
-          {/* Bottom X-Axis (Month & Calendar Markers) */}
+          {/* Zero Baseline Emphasized When Negative Values Exist */}
+          {yMin < 0 && (
+            <line
+              x1={margin.left}
+              y1={zeroLineY}
+              x2={svgWidth - margin.right}
+              y2={zeroLineY}
+              stroke="var(--text-muted)"
+              strokeWidth="1.5"
+            />
+          )}
+
+          {/* Bottom X-Axis (Month & Calendar Markers Indexed by Display Position) */}
           <line
             x1={margin.left}
             y1={svgHeight - margin.bottom}
@@ -909,10 +826,14 @@ export default function TimelineChart(): JSX.Element {
                   ? 2
                   : totalCount <= 36
                     ? 3
-                    : 6;
-            const isLabel =
-              m.month === 1 || m.month % step === 0 || m.month === totalCount;
-            const x = margin.left + i * barSlotWidth + barSlotWidth / 2;
+                    : totalCount <= 60
+                      ? 6
+                      : 6;
+            const isFirst = i === 0;
+            const isLast = i === totalCount - 1;
+            const isRegularTick = i % step === 0 && totalCount - 1 - i >= Math.ceil(step / 2);
+            const isLabel = isFirst || isLast || isRegularTick;
+            const x = margin.left + (i + 0.5) * barSlotWidth;
             return isLabel ? (
               <g key={`x-tick-${m.monthId}`}>
                 <line
@@ -924,18 +845,18 @@ export default function TimelineChart(): JSX.Element {
                 />
                 <text
                   x={x}
-                  y={svgHeight - margin.bottom + 15}
+                  y={svgHeight - margin.bottom + 16}
                   textAnchor="middle"
                   fill="var(--text-muted)"
                   fontSize="9"
                   fontFamily="monospace"
                   fontWeight="bold"
                 >
-                  {m.relativeMonthLabel || m.relativeBirthLabel}
+                  {formatCompactXAxisLabel(m)}
                 </text>
                 <text
                   x={x}
-                  y={svgHeight - margin.bottom + 25}
+                  y={svgHeight - margin.bottom + 27}
                   textAnchor="middle"
                   fill="var(--color-primary)"
                   fontSize="7.5"
@@ -948,13 +869,11 @@ export default function TimelineChart(): JSX.Element {
           })}
         </svg>
 
-        {/* Custom Tooltip */}
+        {/* Cursor-Aligned Tooltip (Top-to-Bottom Matching Visual Stack Order) */}
         {tooltipState && (
           <div
             className="timeline-chart__tooltip"
-            style={{
-              left: `${Math.min(svgWidth - 280, Math.max(margin.left, tooltipState.x - 120))}px`,
-            }}
+            style={{ left: `${tooltipState.leftPx}px` }}
           >
             <div className="timeline-chart__tooltip-header">
               <div>
@@ -972,7 +891,11 @@ export default function TimelineChart(): JSX.Element {
                 </div>
               </div>
               <span className="timeline-chart__tooltip-total tabular-nums">
-                {formatCurrency(getMonthActiveTotal(tooltipState.month))}
+                {formatCurrency(
+                  isCompareMode
+                    ? tooltipState.month.monthlyTotal
+                    : getMonthActiveSeriesTotals(tooltipState.month, visibleSeries).netTotal,
+                )}
               </span>
             </div>
 
@@ -982,62 +905,119 @@ export default function TimelineChart(): JSX.Element {
               </div>
             )}
 
-            <div className="timeline-chart__tooltip-status">
-              Status: <strong>{tooltipState.month.taxClassLabel}</strong>
-            </div>
-
-            <div className="timeline-chart__tooltip-list">
-              {seriesMeta.map((series) => {
-                const value = tooltipState.month[series.key];
-                if (!visibleSeries[series.key] || value <= 0) {
-                  return null;
-                }
-                return (
-                  <div
-                    key={series.key}
-                    className={[
-                      "timeline-chart__tooltip-row",
-                      series.seriesClass,
-                      series.tooltipToneClass ?? "",
-                    ].filter(Boolean).join(" ")}
-                  >
+            {isCompareMode ? (
+              <div className="timeline-chart__tooltip-list">
+                {hoveredCompareC && (
+                  <div className="timeline-chart__tooltip-row timeline-chart__tooltip-row--gain">
                     <span className="timeline-chart__tooltip-row-label">
-                      <span className="timeline-chart__dot" />
-                      {series.tooltipLabel}
+                      <span className="timeline-chart__compare-swatch timeline-chart__compare-swatch--c" />
+                      Scenario C (Optimized):
                     </span>
                     <span className="timeline-chart__tooltip-row-val tabular-nums">
-                      {series.prefixPlus ? "+" : ""}
-                      {formatCurrency(value)}
+                      {formatCurrency(hoveredCompareC.monthlyTotal)}
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                )}
+                {hoveredCompareB && (
+                  <div className="timeline-chart__tooltip-row timeline-chart__tooltip-row--warning">
+                    <span className="timeline-chart__tooltip-row-label">
+                      <span className="timeline-chart__compare-swatch timeline-chart__compare-swatch--b" />
+                      Scenario B (Baseline):
+                    </span>
+                    <span className="timeline-chart__tooltip-row-val tabular-nums">
+                      {formatCurrency(hoveredCompareB.monthlyTotal)}
+                    </span>
+                  </div>
+                )}
+                {hoveredCompareA && (
+                  <div className="timeline-chart__tooltip-row">
+                    <span className="timeline-chart__tooltip-row-label">
+                      <span className="timeline-chart__compare-swatch timeline-chart__compare-swatch--a" />
+                      Scenario A (Status Quo):
+                    </span>
+                    <span className="timeline-chart__tooltip-row-val tabular-nums">
+                      {formatCurrency(hoveredCompareA.monthlyTotal)}
+                    </span>
+                  </div>
+                )}
+                {hoveredCompareB && hoveredCompareC && (
+                  <div
+                    className={[
+                      "timeline-chart__tooltip-row",
+                      hoveredCompareC.monthlyTotal - hoveredCompareB.monthlyTotal >= 0
+                        ? "timeline-chart__tooltip-row--gain"
+                        : "timeline-chart__tooltip-row--loss",
+                    ].join(" ")}
+                  >
+                    <span className="timeline-chart__tooltip-row-label">
+                      Δ C vs. B:
+                    </span>
+                    <span className="timeline-chart__tooltip-row-val tabular-nums">
+                      {hoveredCompareC.monthlyTotal - hoveredCompareB.monthlyTotal >= 0 ? "+" : ""}
+                      {formatCurrency(
+                        hoveredCompareC.monthlyTotal - hoveredCompareB.monthlyTotal,
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="timeline-chart__tooltip-status">
+                  Status: <strong>{tooltipState.month.taxClassLabel}</strong>
+                </div>
+
+                <div className="timeline-chart__tooltip-list">
+                  {(() => {
+                    const activeRows = SERIES_META_TOP_TO_BOTTOM.filter((series) => {
+                      if (!visibleSeries[series.key]) {
+                        return false;
+                      }
+                      return getMonthSeriesValue(tooltipState.month, series.key) !== 0;
+                    });
+                    if (activeRows.length === 0) {
+                      return (
+                        <div className="timeline-chart__tooltip-empty">
+                          No visible cashflow series in this month.
+                        </div>
+                      );
+                    }
+                    return activeRows.map((series) => {
+                      const value = getMonthSeriesValue(tooltipState.month, series.key);
+                      const rowToneClass =
+                        value < 0
+                          ? "timeline-chart__tooltip-row--loss"
+                          : series.tooltipToneClass ?? "";
+                      return (
+                        <div
+                          key={series.key}
+                          className={[
+                            "timeline-chart__tooltip-row",
+                            series.seriesClass,
+                            rowToneClass,
+                          ].filter(Boolean).join(" ")}
+                        >
+                          <span className="timeline-chart__tooltip-row-label">
+                            <span className="timeline-chart__dot" />
+                            {series.tooltipLabel}
+                          </span>
+                          <span className="timeline-chart__tooltip-row-val tabular-nums">
+                            {value > 0 &&
+                            (series.key === TimelineChartSeriesKey.TaxRefund ||
+                              series.key === TimelineChartSeriesKey.BonusesAndEvents)
+                              ? "+"
+                              : ""}
+                            {formatCurrency(value)}
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </>
+            )}
           </div>
         )}
-      </div>
-
-      {/* Interactive Legend Bar with Click-to-Toggle Actions */}
-      <div className="timeline-chart__legend">
-        {seriesMeta.map((s) => {
-          const isVisible = visibleSeries[s.key];
-          return (
-            <button
-              key={`legend-${s.key}`}
-              type="button"
-              aria-pressed={isVisible}
-              onClick={() => toggleSeries(s.key)}
-              className={[
-                "timeline-chart__legend-btn",
-                s.seriesClass,
-                isVisible ? "" : "timeline-chart__legend-btn--hidden",
-              ].filter(Boolean).join(" ")}
-            >
-              <span className="timeline-chart__legend-swatch" />
-              <span>{s.label}</span>
-            </button>
-          );
-        })}
       </div>
     </div>
   );
