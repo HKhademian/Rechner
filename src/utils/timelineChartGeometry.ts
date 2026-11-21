@@ -1,21 +1,40 @@
 /**
- * Pure Timeline Chart Geometry, Series Accounting, and Hit-Testing Engine
+ * Elterngeld Domain Adapter for the Abstract `<TimeSeriesChart />` Component
  *
- * Context-unaware pure mathematical projections powering `TimelineChart.tsx`:
- * - Exact accounting decomposition of `MonthlyLedgerEntry.monthlyTotal` into mutually exclusive series
- * - Dynamic Y-axis tick generation supporting arbitrary positive/negative cashflow ranges
- * - Exact non-overlapping stacked bar geometry (positive upward from €0, negative downward from €0)
- * - ViewBox-aware cursor-to-bar hit-testing and container-clamped tooltip positioning
+ * Translates Elterngeld `MonthlyLedgerEntry` (`TimelineMonth`) records and `TimelineChartMode`
+ * enums onto the domain-agnostic `timeSeriesChartEngine` mathematical kernel.
+ * All generic axis, stacking, path, and hit-testing mathematics live in
+ * `src/components/ui/timeSeriesChartEngine.ts`.
  */
 
 import {
+  type ChartYAxisScale,
+  TimeSeriesChartMode,
+  computeChartYAxisScale,
+  computeClampedTooltipLeftPx,
+  computePointSeriesTotals,
+  computeStackedBarSegments as computeGenericStackedBarSegments,
+  mapClientXToSlotIndex,
+  valueToPlotY,
+} from "#/components/ui/timeSeriesChartEngine.ts";
+import {
+  type TimeSeriesChartPoint,
+} from "#/components/ui/timeSeriesChartCore.ts";
+import {
   type EuroAmount,
   type TimelineMonth,
+  TimelineChartMode,
   toEuroAmount,
 } from "#engine/types";
 
+export {
+  type ChartYAxisScale,
+  computeChartYAxisScale,
+  valueToPlotY,
+};
+
 /**
- * Strongly-typed categorical series keys for the monthly cashflow timeline chart (Rule 11).
+ * Strongly-typed categorical series keys for the Elterngeld monthly cashflow timeline chart (Rule 11).
  * Ordered bottom-to-top in stacked bar & stacked area visual layers.
  */
 export const TimelineChartSeriesKey = {
@@ -54,7 +73,7 @@ export function toTimelineChartSeriesKey(
   return value;
 }
 
-/** Canonical bottom-to-top stack order for stacked bar & stacked area charts. */
+/** Canonical bottom-to-top stack order for Elterngeld stacked bar & stacked area charts. */
 export const TIMELINE_CHART_SERIES_ORDER: readonly TimelineChartSeriesKey[] =
   Object.freeze([
     TimelineChartSeriesKey.HusbandSalary,
@@ -70,7 +89,7 @@ export const TIMELINE_CHART_SERIES_ORDER: readonly TimelineChartSeriesKey[] =
 /** Visibility map keyed by `TimelineChartSeriesKey`. */
 export type TimelineChartVisibilityMap = Readonly<Record<TimelineChartSeriesKey, boolean>>;
 
-/** Creates a uniform all-on or all-off series visibility map. */
+/** Creates a uniform all-on or all-off Elterngeld series visibility map. */
 export function createUniformSeriesVisibility(
   visible: boolean,
 ): Record<TimelineChartSeriesKey, boolean> {
@@ -84,6 +103,38 @@ export function createUniformSeriesVisibility(
     [TimelineChartSeriesKey.BonusesAndEvents]: visible,
     [TimelineChartSeriesKey.TaxRefund]: visible,
   };
+}
+
+/** Maps Elterngeld `TimelineChartMode` onto abstract `TimeSeriesChartMode`. */
+export function mapTimelineModeToAbstractMode(
+  mode: TimelineChartMode,
+): TimeSeriesChartMode {
+  switch (mode) {
+    case TimelineChartMode.StackedBar:
+      return TimeSeriesChartMode.StackedBar;
+    case TimelineChartMode.Lines:
+      return TimeSeriesChartMode.Lines;
+    case TimelineChartMode.Area:
+      return TimeSeriesChartMode.Area;
+    case TimelineChartMode.Compare:
+      return TimeSeriesChartMode.Overlay;
+  }
+}
+
+/** Maps abstract `TimeSeriesChartMode` back to Elterngeld `TimelineChartMode`. */
+export function mapAbstractModeToTimelineMode(
+  mode: TimeSeriesChartMode,
+): TimelineChartMode {
+  switch (mode) {
+    case TimeSeriesChartMode.StackedBar:
+      return TimelineChartMode.StackedBar;
+    case TimeSeriesChartMode.Lines:
+      return TimelineChartMode.Lines;
+    case TimeSeriesChartMode.Area:
+      return TimelineChartMode.Area;
+    case TimeSeriesChartMode.Overlay:
+      return TimelineChartMode.Compare;
+  }
 }
 
 /**
@@ -114,6 +165,62 @@ export function getMonthSeriesValue(
   }
 }
 
+/** Formats a compact non-overlapping X-axis month label (e.g. `M1`, `M9`, `M-3`). */
+export function formatCompactXAxisLabel(month: TimelineMonth): string {
+  const raw = month.relativeMonthLabel || month.relativeBirthLabel || `M${month.month}`;
+  const parenIndex = raw.indexOf(" (");
+  return parenIndex > 0 ? raw.slice(0, parenIndex) : raw;
+}
+
+/** Maps an Elterngeld `TimelineMonth` into a domain-agnostic `TimeSeriesChartPoint`. */
+export function mapTimelineMonthToChartPoint(
+  month: TimelineMonth,
+): TimeSeriesChartPoint<TimelineChartSeriesKey, TimelineMonth> {
+  return Object.freeze({
+    id: month.monthId,
+    order: month.month,
+    xLabel: formatCompactXAxisLabel(month),
+    xSubLabel: month.calendarLabel,
+    groupSeparatorLabel:
+      month.calendarMonthNum === 1 ? String(month.calendarYearNum) : undefined,
+    values: Object.freeze({
+      [TimelineChartSeriesKey.HusbandSalary]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.HusbandSalary,
+      ),
+      [TimelineChartSeriesKey.WifeSalary]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.WifeSalary,
+      ),
+      [TimelineChartSeriesKey.Mutterschutz]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.Mutterschutz,
+      ),
+      [TimelineChartSeriesKey.WifeElterngeld]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.WifeElterngeld,
+      ),
+      [TimelineChartSeriesKey.HusbandElterngeld]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.HusbandElterngeld,
+      ),
+      [TimelineChartSeriesKey.Kindergeld]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.Kindergeld,
+      ),
+      [TimelineChartSeriesKey.BonusesAndEvents]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.BonusesAndEvents,
+      ),
+      [TimelineChartSeriesKey.TaxRefund]: getMonthSeriesValue(
+        month,
+        TimelineChartSeriesKey.TaxRefund,
+      ),
+    }),
+    meta: month,
+  });
+}
+
 export interface MonthActiveSeriesTotals {
   readonly netTotal: EuroAmount;
   readonly positiveTotal: EuroAmount;
@@ -125,93 +232,17 @@ export function getMonthActiveSeriesTotals(
   month: TimelineMonth,
   visibility: TimelineChartVisibilityMap,
 ): MonthActiveSeriesTotals {
-  let net = 0;
-  let positive = 0;
-  let negative = 0;
-  for (const key of TIMELINE_CHART_SERIES_ORDER) {
-    if (!visibility[key]) {
-      continue;
-    }
-    const val = getMonthSeriesValue(month, key);
-    net += val;
-    if (val > 0) {
-      positive += val;
-    }
-    else if (val < 0) {
-      negative += val;
-    }
-  }
+  const point = mapTimelineMonthToChartPoint(month);
+  const totals = computePointSeriesTotals(
+    point,
+    TIMELINE_CHART_SERIES_ORDER,
+    visibility,
+  );
   return Object.freeze({
-    netTotal: toEuroAmount(net),
-    positiveTotal: toEuroAmount(positive),
-    negativeTotal: toEuroAmount(negative),
+    netTotal: toEuroAmount(totals.netTotal),
+    positiveTotal: toEuroAmount(totals.positiveTotal),
+    negativeTotal: toEuroAmount(totals.negativeTotal),
   });
-}
-
-export interface ChartYAxisScale {
-  readonly yMin: number;
-  readonly yMax: number;
-  readonly step: number;
-  readonly ticks: readonly number[];
-}
-
-const NICE_STEP_MULTIPLIERS = [1, 2, 2.5, 5, 10] as const;
-
-function pickNiceStep(rawStep: number): number {
-  if (!Number.isFinite(rawStep) || rawStep <= 0) {
-    return 1000;
-  }
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
-  const normalized = rawStep / magnitude;
-  for (const multiplier of NICE_STEP_MULTIPLIERS) {
-    if (normalized <= multiplier) {
-      return multiplier * magnitude;
-    }
-  }
-  return 10 * magnitude;
-}
-
-/**
- * Computes a clean, evenly spaced Y-axis scale covering `[minVal, maxVal]` with `0` guaranteed
- * to land exactly on a grid tick. Never truncates high-value months.
- */
-export function computeChartYAxisScale(
-  minVal: number,
-  maxVal: number,
-  targetTickCount = 5,
-): ChartYAxisScale {
-  const safeMin = Math.min(0, Number.isFinite(minVal) ? minVal : 0);
-  const safeMax = Math.max(2000, Number.isFinite(maxVal) ? maxVal : 2000);
-  const span = Math.max(1000, safeMax - safeMin);
-  const step = Math.max(500, pickNiceStep(span / Math.max(2, targetTickCount)));
-  const yMin = safeMin < 0 ? Math.floor(safeMin / step) * step : 0;
-  const yMax = Math.max(step, Math.ceil(safeMax / step) * step);
-
-  const ticks: number[] = [];
-  for (let tick = yMin; tick <= yMax + 1e-6; tick += step) {
-    ticks.push(Math.round(tick));
-  }
-
-  return Object.freeze({
-    yMin,
-    yMax,
-    step,
-    ticks: Object.freeze(ticks),
-  });
-}
-
-/** Projects a monetary value within `[yMin, yMax]` to SVG plot-local Y (`0` = top, `plotHeight` = bottom). */
-export function valueToPlotY(
-  value: number,
-  yMin: number,
-  yMax: number,
-  plotHeight: number,
-): number {
-  const span = yMax - yMin;
-  if (span <= 0) {
-    return plotHeight;
-  }
-  return plotHeight - ((value - yMin) / span) * plotHeight;
 }
 
 export interface StackedBarSegment {
@@ -223,11 +254,7 @@ export interface StackedBarSegment {
   readonly stackEnd: EuroAmount;
 }
 
-/**
- * Computes exact, gap-free stacked bar rectangles for one month.
- * Positive values stack upward from `€0` in canonical `TIMELINE_CHART_SERIES_ORDER`.
- * Negative values stack downward below `€0` without corrupting the positive total height.
- */
+/** Delegates Elterngeld stacked bar geometry directly to the abstract `timeSeriesChartEngine`. */
 export function computeStackedBarSegments(
   month: TimelineMonth,
   visibility: TimelineChartVisibilityMap,
@@ -236,55 +263,24 @@ export function computeStackedBarSegments(
   plotHeight: number,
   marginTop: number,
 ): readonly StackedBarSegment[] {
-  const segments: StackedBarSegment[] = [];
-  let posCursor = 0;
-  let negCursor = 0;
-
-  for (const key of TIMELINE_CHART_SERIES_ORDER) {
-    if (!visibility[key]) {
-      continue;
-    }
-    const value = getMonthSeriesValue(month, key);
-    if (value === 0) {
-      continue;
-    }
-    if (value > 0) {
-      const start = posCursor;
-      const end = posCursor + value;
-      const topY = marginTop + valueToPlotY(end, yMin, yMax, plotHeight);
-      const bottomY = marginTop + valueToPlotY(start, yMin, yMax, plotHeight);
-      segments.push(
-        Object.freeze({
-          key,
-          value,
-          y: topY,
-          height: Math.max(0, bottomY - topY),
-          stackStart: toEuroAmount(start),
-          stackEnd: toEuroAmount(end),
-        }),
-      );
-      posCursor = end;
-    }
-    else {
-      const start = negCursor;
-      const end = negCursor + value;
-      const topY = marginTop + valueToPlotY(start, yMin, yMax, plotHeight);
-      const bottomY = marginTop + valueToPlotY(end, yMin, yMax, plotHeight);
-      segments.push(
-        Object.freeze({
-          key,
-          value,
-          y: topY,
-          height: Math.max(0, bottomY - topY),
-          stackStart: toEuroAmount(start),
-          stackEnd: toEuroAmount(end),
-        }),
-      );
-      negCursor = end;
-    }
-  }
-
-  return Object.freeze(segments);
+  const point = mapTimelineMonthToChartPoint(month);
+  return computeGenericStackedBarSegments(
+    point,
+    TIMELINE_CHART_SERIES_ORDER,
+    visibility,
+    yMin,
+    yMax,
+    plotHeight,
+    marginTop,
+  ).map((seg) =>
+    Object.freeze({
+      key: seg.key,
+      value: toEuroAmount(seg.value),
+      y: seg.y,
+      height: seg.height,
+      stackStart: toEuroAmount(seg.stackStart),
+      stackEnd: toEuroAmount(seg.stackEnd),
+    }));
 }
 
 export interface ClientXToBarIndexInputs {
@@ -297,27 +293,19 @@ export interface ClientXToBarIndexInputs {
   readonly barCount: number;
 }
 
-/**
- * Converts a pointer `clientX` into the exact hovered bar index by scaling into SVG viewBox coordinates.
- * Returns `null` when the pointer is outside the plot area `[marginLeft, marginLeft + plotWidth]`.
- */
+/** Delegates pointer-to-bar hit-testing to the abstract `timeSeriesChartEngine`. */
 export function mapClientXToBarIndex(
   inputs: Readonly<ClientXToBarIndexInputs>,
 ): number | null {
-  if (inputs.barCount <= 0 || inputs.svgRectWidth <= 0 || inputs.plotWidth <= 0) {
-    return null;
-  }
-  const scaleX = inputs.svgViewBoxWidth / inputs.svgRectWidth;
-  const svgX = (inputs.clientX - inputs.svgRectLeft) * scaleX;
-  const plotX = svgX - inputs.marginLeft;
-  if (plotX < 0 || plotX > inputs.plotWidth) {
-    return null;
-  }
-  const slotWidth = inputs.plotWidth / inputs.barCount;
-  return Math.min(
-    inputs.barCount - 1,
-    Math.max(0, Math.floor(plotX / slotWidth)),
-  );
+  return mapClientXToSlotIndex({
+    clientX: inputs.clientX,
+    svgRectLeft: inputs.svgRectLeft,
+    svgRectWidth: inputs.svgRectWidth,
+    svgViewBoxWidth: inputs.svgViewBoxWidth,
+    marginLeft: inputs.marginLeft,
+    plotWidth: inputs.plotWidth,
+    slotCount: inputs.barCount,
+  });
 }
 
 export interface TooltipPositionInputs {
@@ -332,34 +320,19 @@ export interface TooltipPositionInputs {
   readonly offsetPx?: number;
 }
 
-/**
- * Computes the CSS `left` pixel offset inside `.timeline-chart__plot-wrap` so the tooltip sits cleanly
- * beside the hovered bar (flipping left/right at the viewport edge) at any screen width or scroll position.
- */
+/** Delegates scroll- and viewport-clamped tooltip positioning to the abstract `timeSeriesChartEngine`. */
 export function computeTooltipLeftPx(
   inputs: Readonly<TooltipPositionInputs>,
 ): number {
-  const offset = inputs.offsetPx ?? 14;
-  const barCssX =
-    (inputs.barCenterSvgX / inputs.svgViewBoxWidth) * inputs.svgRectWidth +
-    (inputs.svgRectLeft - inputs.containerRectLeft) +
-    inputs.containerScrollLeft;
-  const visibleLeft = inputs.containerScrollLeft + 8;
-  const visibleRight = Math.max(
-    visibleLeft,
-    inputs.containerScrollLeft + inputs.containerWidth - inputs.tooltipWidth - 8,
-  );
-  const preferRight = barCssX + offset;
-  if (preferRight <= visibleRight) {
-    return Math.round(Math.max(visibleLeft, preferRight));
-  }
-  const preferLeft = barCssX - inputs.tooltipWidth - offset;
-  return Math.round(Math.min(visibleRight, Math.max(visibleLeft, preferLeft)));
-}
-
-/** Formats a compact non-overlapping X-axis month label (e.g. `M1`, `M9`, `M-3`). */
-export function formatCompactXAxisLabel(month: TimelineMonth): string {
-  const raw = month.relativeMonthLabel || month.relativeBirthLabel || `M${month.month}`;
-  const parenIndex = raw.indexOf(" (");
-  return parenIndex > 0 ? raw.slice(0, parenIndex) : raw;
+  return computeClampedTooltipLeftPx({
+    slotCenterSvgX: inputs.barCenterSvgX,
+    svgViewBoxWidth: inputs.svgViewBoxWidth,
+    svgRectLeft: inputs.svgRectLeft,
+    svgRectWidth: inputs.svgRectWidth,
+    containerRectLeft: inputs.containerRectLeft,
+    containerWidth: inputs.containerWidth,
+    containerScrollLeft: inputs.containerScrollLeft,
+    tooltipWidth: inputs.tooltipWidth,
+    offsetPx: inputs.offsetPx,
+  });
 }

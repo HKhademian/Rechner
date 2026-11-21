@@ -1,32 +1,7 @@
-.timeline-chart {
-  padding: var(--space-6);
-  margin-bottom: var(--space-7);
-  position: relative;
-}
-
-.timeline-chart__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.timeline-chart__title {
-  font-family: var(--font-display);
-  font-size: var(--font-size-lg);
-  font-weight: var(--heading-weight);
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: var(--heading-tracking);
-}
-
-.timeline-chart__subtitle {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  margin: var(--space-1) 0 0;
-}
+/* =========================================================================
+   Elterngeld Timeline Chart — Domain Series Color Bindings & Reference Note
+   (Shared chart layout, toolbar, SVG, and tooltip styles live in TimeSeriesChart.css)
+   ========================================================================= */
 
 .timeline-chart__reference {
   font-size: var(--font-size-xs);
@@ -48,198 +23,6 @@
   margin: 0;
 }
 
-.timeline-chart__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-surface-secondary);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--border-subtle);
-  margin-bottom: var(--space-4);
-}
-
-.timeline-chart__toggles {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-.timeline-chart__toggles-label {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.timeline-chart__series-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 3px var(--space-2);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--border-subtle);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
-}
-
-.timeline-chart__series-btn:not(.timeline-chart__series-btn--active) {
-  opacity: 0.62;
-}
-
-.timeline-chart__series-btn--active {
-  border-color: var(--series-color, var(--color-primary));
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-
-.timeline-chart__series-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-.timeline-chart__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background-color: var(--border-medium);
-  flex-shrink: 0;
-}
-
-.timeline-chart__series-btn--active .timeline-chart__dot,
-.timeline-chart__tooltip-row .timeline-chart__dot {
-  background-color: var(--series-color, var(--color-primary));
-}
-
-.timeline-chart__state-pill {
-  font-size: var(--font-size-2xs);
-  padding: 1px var(--space-1);
-  border-radius: 3px;
-  background: var(--border-medium);
-  color: var(--text-inverse);
-  font-weight: 700;
-}
-
-.timeline-chart__series-btn--active .timeline-chart__state-pill {
-  background: var(--series-color, var(--color-primary));
-}
-
-.timeline-chart__toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.timeline-chart__compare-key {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  font-size: var(--font-size-xs);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.timeline-chart__compare-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.timeline-chart__compare-swatch {
-  width: 16px;
-  height: 3px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.timeline-chart__compare-swatch--a {
-  background: var(--text-muted);
-}
-
-.timeline-chart__compare-swatch--b {
-  background: var(--color-warning);
-}
-
-.timeline-chart__compare-swatch--c {
-  background: var(--color-gain);
-}
-
-.timeline-chart__plot-wrap {
-  position: relative;
-  width: 100%;
-  overflow-x: auto;
-}
-
-.timeline-chart__svg {
-  width: 100%;
-  height: auto;
-  min-width: 850px;
-  display: block;
-  cursor: crosshair;
-}
-
-.timeline-chart__tooltip {
-  position: absolute;
-  top: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  padding: var(--space-3) var(--space-4);
-  width: 280px;
-  pointer-events: none;
-  z-index: var(--z-popover);
-  box-shadow: var(--shadow-lg);
-}
-
-.timeline-chart__tooltip-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-3);
-  margin-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: var(--space-1);
-}
-
-.timeline-chart__tooltip-title {
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-}
-
-.timeline-chart__tooltip-calendar {
-  font-size: var(--font-size-xs);
-  color: var(--color-primary);
-  margin-left: var(--space-2);
-  font-weight: 600;
-}
-
-.timeline-chart__tooltip-meta {
-  font-size: var(--font-size-2xs);
-  color: var(--text-muted);
-}
-
-.timeline-chart__tooltip-total {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--color-primary);
-  font-size: var(--font-size-sm);
-  white-space: nowrap;
-}
-
 .timeline-chart__tooltip-event {
   margin-bottom: var(--space-2);
 }
@@ -255,51 +38,19 @@
   font-weight: 600;
 }
 
-.timeline-chart__tooltip-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  font-size: var(--font-size-xs);
+.timeline-chart__compare-swatch--a {
+  --series-color: var(--text-muted);
 }
 
-.timeline-chart__tooltip-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  color: var(--text-secondary);
+.timeline-chart__compare-swatch--b {
+  --series-color: var(--color-warning);
 }
 
-.timeline-chart__tooltip-row--gain {
-  color: var(--color-gain);
+.timeline-chart__compare-swatch--c {
+  --series-color: var(--color-gain);
 }
 
-.timeline-chart__tooltip-row--warning {
-  color: var(--color-warning);
-}
-
-.timeline-chart__tooltip-row--loss {
-  color: var(--color-loss);
-}
-
-.timeline-chart__tooltip-row-label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.timeline-chart__tooltip-row-val {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.timeline-chart__tooltip-empty {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-}
-
-/* Series color bindings — placed last so no base class ever overrides --series-color */
+/* Elterngeld domain categorical series color bindings */
 .timeline-chart__series--husband-salary {
   --series-color: var(--series-salary-husband);
 }
@@ -330,10 +81,4 @@
 
 .timeline-chart__series--tax-refund {
   --series-color: var(--series-tax-refund);
-}
-
-@media (max-width: 640px) {
-  .timeline-chart {
-    padding: var(--space-4);
-  }
 }

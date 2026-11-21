@@ -258,11 +258,12 @@ describe("design system and layout architecture compliance", () => {
     assert.deepEqual(violations, [], `Unauthorized color literals: ${violations.join("\n")}`);
   });
 
-  it("guards persisted island signals with useHydrated in ThemeToggle, ParameterObserverSection, and GiroCodeGenerator", () => {
+  it("guards persisted island signals with useHydrated in ThemeToggle, ParameterObserverSection, GiroCodeGenerator, and TimelineChart", () => {
     const guardedComponents: readonly string[] = [
       "src/components/ThemeToggle.tsx",
       "src/components/parameters/ParameterObserverSection.tsx",
       "src/apps/girocode/GiroCodeGenerator.tsx",
+      "src/components/elterngeld/TimelineChart.tsx",
     ];
 
     for (const filePath of guardedComponents) {
