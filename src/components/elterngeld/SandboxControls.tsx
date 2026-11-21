@@ -104,6 +104,7 @@ import {
   resetToEmptyScenario,
   importSimulationState,
   openExportImportModal,
+  currentScenarioData,
   LEGAL_RULE_LAW_MAP,
   LegalRuleKey,
   activeLegalRuleKey,
@@ -118,12 +119,26 @@ import {
 import {
   getAllMunicipalDaycarePresets,
 } from "#engine/benefits/childcare";
+import {
+  computeAllowanceBudgetSummary,
+  convertAllowanceMonthsOnVariantChange,
+} from "#engine/benefits/allowanceVariant";
+import {
+  DEFAULT_BENEFIT_RULES,
+} from "#engine/config/benefitRules";
+import {
+  DEFAULT_TIMELINE_CONVENTIONS,
+} from "#engine/config/timelineConventions";
+import {
+  buildWorkingHoursSchedulePreview,
+} from "#utils/workingHoursPreview";
 
 import {
   type MonthId,
   type MonthRef,
   type MonthSimRef,
   type CalendarLabel,
+  ElterngeldVariant,
   FederalStateKitaPresetId,
   TaxClass,
   TargetPerson,
@@ -842,6 +857,187 @@ export default function SandboxControls(): JSX.Element {
                             </div>
                           )}
                         </div>
+
+                        {/* Parental Allowance Variant & Duration (§§ 4, 4a BEEG) */}
+                        {(() => {
+                          const activeRules =
+                            currentScenarioData.value.configuration?.benefitRules ??
+                            DEFAULT_BENEFIT_RULES;
+                          const activeConventions =
+                            currentScenarioData.value.configuration?.timelineConventions ??
+                            DEFAULT_TIMELINE_CONVENTIONS;
+                          const budget = computeAllowanceBudgetSummary(
+                            preg,
+                            activeConventions,
+                            activeRules,
+                          );
+                          const motherMonthOptions = Array.from(
+                            { length: Math.max(budget.maxMotherOrdinaryMonths, budget.motherOrdinaryMonths) + 1 },
+                            (_, count) => count,
+                          );
+                          const fatherMonthOptions = Array.from(
+                            { length: Math.max(budget.maxFatherOrdinaryMonths, budget.fatherOrdinaryMonths) + 1 },
+                            (_, count) => count,
+                          );
+                          const handleMotherVariantChange = (
+                            targetVariant: ElterngeldVariant,
+                          ): void => {
+                            const nextBudget = computeAllowanceBudgetSummary(
+                              {
+                                ...preg,
+                                motherAllowanceVariant: targetVariant,
+                                motherAllowanceMonthsCount: toMonthDuration(0),
+                              },
+                              activeConventions,
+                              activeRules,
+                            );
+                            const nextMonths = convertAllowanceMonthsOnVariantChange(
+                              budget.motherOrdinaryMonths,
+                              budget.motherVariant,
+                              targetVariant,
+                              nextBudget.maxMotherOrdinaryMonths,
+                              activeRules,
+                            );
+                            updatePregnancyAction(preg.pregnancyId, {
+                              motherAllowanceVariant: targetVariant,
+                              motherAllowanceMonthsCount: nextMonths,
+                            });
+                          };
+                          const handleFatherVariantChange = (
+                            targetVariant: ElterngeldVariant,
+                          ): void => {
+                            const nextBudget = computeAllowanceBudgetSummary(
+                              {
+                                ...preg,
+                                fatherAllowanceVariant: targetVariant,
+                                fatherPartnerMonthsCount: toMonthDuration(0),
+                              },
+                              activeConventions,
+                              activeRules,
+                            );
+                            const nextMonths = convertAllowanceMonthsOnVariantChange(
+                              budget.fatherOrdinaryMonths,
+                              budget.fatherVariant,
+                              targetVariant,
+                              nextBudget.maxFatherOrdinaryMonths,
+                              activeRules,
+                            );
+                            updatePregnancyAction(preg.pregnancyId, {
+                              fatherAllowanceVariant: targetVariant,
+                              fatherPartnerMonthsCount: nextMonths,
+                            });
+                          };
+                          return (
+                            <div className="sandbox-surface-box sandbox-surface-box--stack">
+                              <div className="sandbox-row--between-xs">
+                                <span>Elterngeld Plan (§§ 4, 4a BEEG)</span>
+                                <strong className="sandbox-val-tab">
+                                  {budget.totalBasisUnits} / {budget.maxFamilyBasisUnits} Basis units
+                                </strong>
+                              </div>
+
+                              <div className="sandbox-grid-2-1">
+                                <div>
+                                  <span className="sandbox-field-label sandbox-field-label--xs">
+                                    Mother variant:
+                                  </span>
+                                  <div className="sandbox-chip-wrap">
+                                    <button
+                                      type="button"
+                                      aria-pressed={budget.motherVariant === ElterngeldVariant.Basis}
+                                      onClick={() => handleMotherVariantChange(ElterngeldVariant.Basis)}
+                                      className={`sandbox-chip-btn ${budget.motherVariant === ElterngeldVariant.Basis ? "sandbox-chip-btn--active-wife" : ""}`}
+                                    >
+                                      Basis (max 1.800 €)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-pressed={budget.motherVariant === ElterngeldVariant.Plus}
+                                      onClick={() => handleMotherVariantChange(ElterngeldVariant.Plus)}
+                                      className={`sandbox-chip-btn ${budget.motherVariant === ElterngeldVariant.Plus ? "sandbox-chip-btn--active-wife" : ""}`}
+                                    >
+                                      Plus (max 900 €)
+                                    </button>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="sandbox-field-label sandbox-field-label--xs">
+                                    Mother mo:
+                                  </label>
+                                  <select
+                                    aria-label={`Child ${preg.childIndex}: mother allowance months`}
+                                    value={budget.motherOrdinaryMonths}
+                                    onChange={(e) => {
+                                      const val = Number(
+                                        (e.target as HTMLSelectElement).value,
+                                      );
+                                      updatePregnancyAction(preg.pregnancyId, {
+                                        motherAllowanceMonthsCount: toMonthDuration(val),
+                                      });
+                                    }}
+                                    className="sandbox-select"
+                                  >
+                                    {motherMonthOptions.map((count) => (
+                                      <option key={`m-eg-${count}`} value={count}>
+                                        {count}M {budget.motherVariant === ElterngeldVariant.Basis ? "Basis" : "Plus"}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="sandbox-grid-2-1">
+                                <div>
+                                  <span className="sandbox-field-label sandbox-field-label--xs">
+                                    Father variant:
+                                  </span>
+                                  <div className="sandbox-chip-wrap">
+                                    <button
+                                      type="button"
+                                      aria-pressed={budget.fatherVariant === ElterngeldVariant.Basis}
+                                      onClick={() => handleFatherVariantChange(ElterngeldVariant.Basis)}
+                                      className={`sandbox-chip-btn ${budget.fatherVariant === ElterngeldVariant.Basis ? "sandbox-chip-btn--active-primary" : ""}`}
+                                    >
+                                      Basis (max 1.800 €)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-pressed={budget.fatherVariant === ElterngeldVariant.Plus}
+                                      onClick={() => handleFatherVariantChange(ElterngeldVariant.Plus)}
+                                      className={`sandbox-chip-btn ${budget.fatherVariant === ElterngeldVariant.Plus ? "sandbox-chip-btn--active-primary" : ""}`}
+                                    >
+                                      Plus (max 900 €)
+                                    </button>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="sandbox-field-label sandbox-field-label--xs">
+                                    Father mo:
+                                  </label>
+                                  <select
+                                    aria-label={`Child ${preg.childIndex}: father allowance months`}
+                                    value={budget.fatherOrdinaryMonths}
+                                    onChange={(e) => {
+                                      const val = Number(
+                                        (e.target as HTMLSelectElement).value,
+                                      );
+                                      updatePregnancyAction(preg.pregnancyId, {
+                                        fatherPartnerMonthsCount: toMonthDuration(val),
+                                      });
+                                    }}
+                                    className="sandbox-select"
+                                  >
+                                    {fatherMonthOptions.map((count) => (
+                                      <option key={`f-eg-${count}`} value={count}>
+                                        {count}M {budget.fatherVariant === ElterngeldVariant.Basis ? "Basis" : "Plus"}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         <div
                           className="sandbox-note sandbox-note--box"
@@ -2165,49 +2361,11 @@ export default function SandboxControls(): JSX.Element {
                   const isWife = whc.targetPerson === TargetPerson.Wife;
                   const isHusband = whc.targetPerson === TargetPerson.Husband;
                   const hours = whc.weeklyHours;
-
-                  // Proportional earnings & benefits estimation
-                  const baselineWifeH = wifeInitialHours.value || 40;
-                  const baselineHusbandH = husbandHours.value || 40;
-                  const wifeRatio =
-                    baselineWifeH > 0 ? hours / baselineWifeH : 0;
-                  const husbandRatio =
-                    baselineHusbandH > 0 ? hours / baselineHusbandH : 0;
-
-                  const ptGross = isWife
-                    ? Math.round(wifeGross.value * wifeRatio)
-                    : Math.round(husbandGross.value * husbandRatio);
-
-                  const ptNet = isWife
-                    ? Math.round(
-                      derivedSpousalSet.value.wifeClass5FullTimeNet *
-                          wifeRatio,
-                    )
-                    : Math.round(
-                      derivedSpousalSet.value.husbandClass3Net * husbandRatio,
-                    );
-
-                  const estimatedEgPlus = isWife
-                    ? hours > 32
-                      ? 0
-                      : Math.min(
-                        900,
-                        Math.max(
-                          150,
-                          Math.round(
-                            Math.max(
-                              0,
-                              derivedSpousalSet.value.wifeClass3FullTimeNet -
-                                  ptNet,
-                            ) * 0.65,
-                          ),
-                        ),
-                      )
-                    : hours >= 24 && hours <= 32
-                      ? 150
-                      : 0;
-
-                  const totalInflow = ptNet + estimatedEgPlus;
+                  const preview = buildWorkingHoursSchedulePreview(
+                    whc,
+                    currentScenarioData.value.months,
+                    salaryPeriod.value,
+                  );
 
                   return (
                     <div
@@ -2405,7 +2563,10 @@ export default function SandboxControls(): JSX.Element {
                           <div
                             className="sandbox-alert-box--primary"
                           >
-                            ℹ Full Parental Leave (0h / week · 100% leave)
+                            <InformationalNoticeIcon size={11} />
+                            <span>
+                              Full Parental Leave (0h / week · 100% leave · Basis or Plus)
+                            </span>
                           </div>
                         ) : (
                           <LawRefLink
@@ -2421,7 +2582,7 @@ export default function SandboxControls(): JSX.Element {
                           >
                             <InformationalNoticeIcon size={11} />
                             <span>
-                              ElterngeldPlus eligible, outside PB corridor
+                              Elterngeld eligible, outside PB corridor
                               (24–32h)
                             </span>
                             <StatutorySectionIcon size={10} />
@@ -2429,73 +2590,96 @@ export default function SandboxControls(): JSX.Element {
                         )}
                       </div>
 
-                      {/* Proportional Salary Preview & Total Inflow */}
+                      {/* Engine-Simulated Effective Month Cash Flow Breakdown */}
                       <div
                         className="sandbox-surface-box sandbox-surface-box--stack"
                       >
-                        <div
-                          className="sandbox-row--between-meta"
-                        >
-                          <span>Proportional Gross:</span>
-                          <strong
-                            className="sandbox-val-tab"
-                          >
-                            {formatCurrency(
-                              salaryPeriod.value === SalaryPeriod.Yearly
-                                ? ptGross * 12
-                                : ptGross,
-                            )}
-                            {salaryPeriod.value === SalaryPeriod.Yearly
-                              ? "/yr"
-                              : "/mo"}
-                          </strong>
-                        </div>
-                        <div
-                          className="sandbox-row--between-meta"
-                        >
-                          <span>Part-Time Net:</span>
-                          <strong
-                            className="sandbox-val-tab"
-                          >
-                            {formatCurrency(
-                              salaryPeriod.value === SalaryPeriod.Yearly
-                                ? ptNet * 12
-                                : ptNet,
-                            )}
-                            {salaryPeriod.value === SalaryPeriod.Yearly
-                              ? "/yr"
-                              : "/mo"}
-                          </strong>
-                        </div>
-                        {isWife && (
-                          <div
-                            className="sandbox-row--between-meta"
-                          >
-                            <span>ElterngeldPlus (+65%):</span>
-                            <strong
-                              className="sandbox-val-tab--gain"
-                            >
-                              +{formatCurrency(estimatedEgPlus)}/mo
-                            </strong>
+                        {!preview.inHorizon ? (
+                          <div className="sandbox-text-muted-2xs">
+                            Effective month exceeds active simulation horizon (
+                            {simulationDurationMonths.value} months).
                           </div>
-                        )}
-                        <div
-                          className="sandbox-row--between-total"
-                        >
-                          <span>Total Inflow:</span>
-                          <span
-                            className="sandbox-val-tab--gain"
-                          >
-                            {formatCurrency(
-                              salaryPeriod.value === SalaryPeriod.Yearly
-                                ? totalInflow * 12
-                                : totalInflow,
+                        ) : (
+                          <>
+                            <div className="sandbox-text-muted-2xs">
+                              Simulated · {preview.calendarLabel} (
+                              {preview.relativeMonthLabel})
+                            </div>
+                            <div
+                              className="sandbox-row--between-meta"
+                            >
+                              <span>
+                                {salaryPeriod.value === SalaryPeriod.Yearly
+                                  ? "Annualized Gross:"
+                                  : "Simulated Gross:"}
+                              </span>
+                              <strong
+                                className="sandbox-val-tab"
+                              >
+                                {preview.grossAmount === undefined
+                                  ? "Manual net mode"
+                                  : `${formatCurrency(preview.grossAmount)}${preview.periodSuffix}`}
+                              </strong>
+                            </div>
+                            <div
+                              className="sandbox-row--between-meta"
+                            >
+                              <span>Take-Home Net:</span>
+                              <strong
+                                className="sandbox-val-tab"
+                              >
+                                {formatCurrency(preview.netAmount)}
+                                {preview.periodSuffix}
+                              </strong>
+                            </div>
+                            {preview.mutterschutzAmount > 0 && (
+                              <div
+                                className="sandbox-row--between-meta"
+                              >
+                                <span>Mutterschutz:</span>
+                                <strong
+                                  className="sandbox-val-tab--primary"
+                                >
+                                  +{formatCurrency(preview.mutterschutzAmount)}
+                                  {preview.periodSuffix}
+                                </strong>
+                              </div>
                             )}
-                            {salaryPeriod.value === SalaryPeriod.Yearly
-                              ? "/yr"
-                              : "/mo"}
-                          </span>
-                        </div>
+                            <div
+                              className="sandbox-row--between-meta"
+                            >
+                              <span>{preview.elterngeldLabel}:</span>
+                              {preview.elterngeldUnavailable ? (
+                                <strong className="sandbox-val-tab--warning-sm">
+                                  Unavailable
+                                </strong>
+                              ) : (
+                                <strong
+                                  className={
+                                    preview.elterngeldAmount > 0
+                                      ? "sandbox-val-tab--gain"
+                                      : "sandbox-val-tab"
+                                  }
+                                >
+                                  {preview.elterngeldAmount > 0 ? "+" : ""}
+                                  {formatCurrency(preview.elterngeldAmount)}
+                                  {preview.periodSuffix}
+                                </strong>
+                              )}
+                            </div>
+                            <div
+                              className="sandbox-row--between-total"
+                            >
+                              <span>Total Inflow:</span>
+                              <span
+                                className="sandbox-val-tab--gain"
+                              >
+                                {formatCurrency(preview.totalInflow)}
+                                {preview.periodSuffix}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
