@@ -6,16 +6,22 @@ import {
 import {
   type ParentalBenefitEntitlementConstants,
   type SiblingBonusConstants,
+  evaluateAllowanceVariantMonthConversionFormula,
+  evaluateAllowanceVariantWeightFormula,
   evaluateChildAllowanceFavorabilityFormula,
   evaluateElterngeldHoursEligibilityFormula,
   evaluateMaternityProtectionBenefitFormula,
+  evaluateOverlapCreditedPaymentFormula,
+  evaluateParentalAllowanceBudgetFormula,
   evaluateParentalBenefitEntitlementFormula,
   evaluateParentalReplacementRateFormula,
   evaluatePartnershipBonusHoursEligibilityFormula,
   evaluateSiblingBonusFormula,
 } from "#engine/formulas/pure/parentalBenefitFormulas";
 import {
+  ElterngeldVariant,
   toEuroAmount,
+  toMonthDuration,
   toNetSalary,
   toPercentageRate,
   toWorkingHours,
@@ -167,5 +173,79 @@ describe("Tier 1 Pure Parental Benefit & Maternity Formulas (context-unaware)", 
     assert.equal(favorable.taxSavingsFromAllowance, 4000);
     assert.equal(favorable.isKinderfreibetragFavorable, true);
     assert.equal(favorable.extraTaxRefund, 892);
+  });
+
+  it("evaluates Basis vs. Plus unit weights, 14-unit family budgets, month conversions, and § 3(2) overlap credit floors", () => {
+    assert.equal(
+      evaluateAllowanceVariantWeightFormula({
+        variant: ElterngeldVariant.Basis,
+        elterngeldPlusFraction: 0.5,
+      }),
+      1,
+    );
+    assert.equal(
+      evaluateAllowanceVariantWeightFormula({
+        variant: ElterngeldVariant.Plus,
+        elterngeldPlusFraction: 0.5,
+      }),
+      0.5,
+    );
+
+    const budget = evaluateParentalAllowanceBudgetFormula({
+      motherVariant: ElterngeldVariant.Basis,
+      fatherVariant: ElterngeldVariant.Basis,
+      motherOrdinaryMonths: toMonthDuration(10),
+      fatherOrdinaryMonths: toMonthDuration(2),
+      maternityPostBirthMonths: toMonthDuration(2),
+      partnershipBonusMonths: toMonthDuration(4),
+      familyBasisMonths: toMonthDuration(12),
+      additionalPartnerBasisMonths: toMonthDuration(2),
+      minimumParentClaimMonths: toMonthDuration(2),
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(budget.maternityBasisUnits, 2);
+    assert.equal(budget.motherBasisUnits, 12);
+    assert.equal(budget.fatherBasisUnits, 2);
+    assert.equal(budget.totalBasisUnits, 14);
+    assert.equal(budget.maxFamilyBasisUnits, 14);
+    assert.equal(budget.maxBasisLifeMonths, 14);
+    assert.equal(budget.isWithinBudget, true);
+
+    assert.equal(
+      evaluateAllowanceVariantMonthConversionFormula({
+        currentMonths: toMonthDuration(12),
+        fromVariant: ElterngeldVariant.Plus,
+        toVariant: ElterngeldVariant.Basis,
+        maxMonthsInTargetVariant: 10,
+        elterngeldPlusFraction: 0.5,
+      }),
+      6,
+    );
+
+    const basisOverlap = evaluateOverlapCreditedPaymentFormula({
+      grossEntitlement: toEuroAmount(1800),
+      overlappingBenefitAmount: toEuroAmount(2000),
+      priorBenefitMonthsInWindow: 0,
+      assessmentWindowMonths: toMonthDuration(12),
+      basisMinimumAmount: toEuroAmount(300),
+      elterngeldPlusFraction: 0.5,
+      variant: ElterngeldVariant.Basis,
+    });
+    assert.equal(basisOverlap.protectedMinimum, 300);
+    assert.equal(basisOverlap.payableAmount, 300);
+    assert.equal(basisOverlap.appliedOffset, 1500);
+
+    const plusOverlap = evaluateOverlapCreditedPaymentFormula({
+      grossEntitlement: toEuroAmount(900),
+      overlappingBenefitAmount: toEuroAmount(2000),
+      priorBenefitMonthsInWindow: 0,
+      assessmentWindowMonths: toMonthDuration(12),
+      basisMinimumAmount: toEuroAmount(300),
+      elterngeldPlusFraction: 0.5,
+      variant: ElterngeldVariant.Plus,
+    });
+    assert.equal(plusOverlap.protectedMinimum, 150);
+    assert.equal(plusOverlap.payableAmount, 150);
+    assert.equal(plusOverlap.appliedOffset, 750);
   });
 });

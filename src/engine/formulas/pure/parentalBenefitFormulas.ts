@@ -1,9 +1,12 @@
 import {
   type EuroAmount,
+  type MonthDuration,
   type NetSalary,
   type PercentageRate,
   type WorkingHours,
+  ElterngeldVariant,
   toEuroAmount,
+  toMonthDuration,
   toNetSalary,
   toPercentageRate,
 } from "#engine/types";
@@ -382,5 +385,215 @@ export function evaluateChildAllowanceFavorabilityFormula(
     taxSavingsFromAllowance,
     isKinderfreibetragFavorable,
     extraTaxRefund,
+  });
+}
+
+/**
+ * Named inputs for mapping an `ElterngeldVariant` to its statutory Basis-month unit weight (§§ 4, 4a BEEG).
+ */
+export interface AllowanceVariantWeightFormulaInputs {
+  readonly variant: ElterngeldVariant;
+  readonly elterngeldPlusFraction: number;
+}
+
+/**
+ * Explicit statutory constants for evaluating BEEG §§ 4, 4a, 4b Basis-unit allowance budgets.
+ */
+export interface ParentalAllowanceBudgetConstants {
+  readonly familyBasisMonths: MonthDuration;
+  readonly additionalPartnerBasisMonths: MonthDuration;
+  readonly minimumParentClaimMonths: MonthDuration;
+  readonly elterngeldPlusFraction: number;
+}
+
+/**
+ * Named inputs for pure BEEG §§ 4, 4a, 4b Basis-unit budget utilization and per-parent capacity math.
+ */
+export interface ParentalAllowanceBudgetFormulaInputs extends ParentalAllowanceBudgetConstants {
+  readonly motherVariant: ElterngeldVariant;
+  readonly fatherVariant: ElterngeldVariant;
+  readonly motherOrdinaryMonths: MonthDuration;
+  readonly fatherOrdinaryMonths: MonthDuration;
+  readonly maternityPostBirthMonths: MonthDuration;
+  readonly partnershipBonusMonths: MonthDuration;
+}
+
+/**
+ * Pure mathematical output of BEEG §§ 4, 4a, 4b Basis-unit allowance budget evaluation.
+ */
+export interface ParentalAllowanceBudgetFormulaResult {
+  readonly motherVariant: ElterngeldVariant;
+  readonly fatherVariant: ElterngeldVariant;
+  readonly motherOrdinaryMonths: MonthDuration;
+  readonly fatherOrdinaryMonths: MonthDuration;
+  readonly motherUnitWeight: number;
+  readonly fatherUnitWeight: number;
+  readonly maternityBasisUnits: number;
+  readonly motherBasisUnits: number;
+  readonly fatherBasisUnits: number;
+  readonly totalBasisUnits: number;
+  readonly maxIndividualBasisUnits: number;
+  readonly maxFamilyBasisUnits: number;
+  readonly maxBasisLifeMonths: number;
+  readonly maxMotherOrdinaryMonths: number;
+  readonly maxFatherOrdinaryMonths: number;
+  readonly isWithinBudget: boolean;
+}
+
+/**
+ * Named inputs for pure Basiselterngeld <-> ElterngeldPlus month conversion clamped to a statutory cap.
+ */
+export interface AllowanceVariantMonthConversionFormulaInputs {
+  readonly currentMonths: MonthDuration;
+  readonly fromVariant: ElterngeldVariant;
+  readonly toVariant: ElterngeldVariant;
+  readonly maxMonthsInTargetVariant: number;
+  readonly elterngeldPlusFraction: number;
+}
+
+/**
+ * Named inputs for § 3 Abs. 2 BEEG overlapping benefit credit and variant-aware protected minimum floor.
+ */
+export interface OverlapCreditedPaymentFormulaInputs {
+  readonly grossEntitlement: EuroAmount;
+  readonly overlappingBenefitAmount: EuroAmount;
+  readonly priorBenefitMonthsInWindow: number;
+  readonly assessmentWindowMonths: MonthDuration;
+  readonly basisMinimumAmount: EuroAmount;
+  readonly elterngeldPlusFraction: number;
+  readonly variant: ElterngeldVariant;
+}
+
+/**
+ * Pure mathematical output of § 3 Abs. 2 BEEG overlap-credited monthly payment evaluation.
+ */
+export interface OverlapCreditedPaymentFormulaResult {
+  readonly protectedMinimum: EuroAmount;
+  readonly overlapCredit: EuroAmount;
+  readonly payableAmount: EuroAmount;
+  readonly appliedOffset: EuroAmount;
+}
+
+/**
+ * Tier 1: Maps Basiselterngeld (1.0 Basis unit/month) vs. ElterngeldPlus (`elterngeldPlusFraction` Basis units/month).
+ */
+export function evaluateAllowanceVariantWeightFormula(
+  inputs: Readonly<AllowanceVariantWeightFormulaInputs>,
+): number {
+  return inputs.variant === ElterngeldVariant.Basis ? 1 : inputs.elterngeldPlusFraction;
+}
+
+/**
+ * Tier 1: Evaluates statutory BEEG §§ 4, 4a, 4b Basis-unit budget utilization and remaining per-parent month caps.
+ */
+export function evaluateParentalAllowanceBudgetFormula(
+  inputs: Readonly<ParentalAllowanceBudgetFormulaInputs>,
+): ParentalAllowanceBudgetFormulaResult {
+  const motherUnitWeight = evaluateAllowanceVariantWeightFormula({
+    variant: inputs.motherVariant,
+    elterngeldPlusFraction: inputs.elterngeldPlusFraction,
+  });
+  const fatherUnitWeight = evaluateAllowanceVariantWeightFormula({
+    variant: inputs.fatherVariant,
+    elterngeldPlusFraction: inputs.elterngeldPlusFraction,
+  });
+
+  const maternityBasisUnits = inputs.maternityPostBirthMonths;
+  const motherBasisUnits = maternityBasisUnits + inputs.motherOrdinaryMonths * motherUnitWeight;
+  const fatherBasisUnits = inputs.fatherOrdinaryMonths * fatherUnitWeight;
+  const totalBasisUnits = motherBasisUnits + fatherBasisUnits;
+
+  const maxIndividualBasisUnits = inputs.familyBasisMonths;
+  const maxBasisLifeMonths = inputs.familyBasisMonths + inputs.additionalPartnerBasisMonths;
+  const hasPartnerClaim =
+    inputs.fatherOrdinaryMonths + inputs.partnershipBonusMonths >= inputs.minimumParentClaimMonths;
+  const maxFamilyBasisUnits =
+    inputs.familyBasisMonths + (hasPartnerClaim ? inputs.additionalPartnerBasisMonths : 0);
+
+  const remainingMotherBasisUnits = Math.max(
+    0,
+    Math.min(
+      maxIndividualBasisUnits - maternityBasisUnits,
+      maxFamilyBasisUnits - maternityBasisUnits - fatherBasisUnits,
+    ),
+  );
+  const remainingFatherBasisUnits = Math.max(
+    0,
+    Math.min(maxIndividualBasisUnits, maxBasisLifeMonths - motherBasisUnits),
+  );
+
+  const maxMotherOrdinaryMonths = Math.floor(remainingMotherBasisUnits / motherUnitWeight);
+  const maxFatherOrdinaryMonths = Math.floor(remainingFatherBasisUnits / fatherUnitWeight);
+  const isWithinBudget =
+    motherBasisUnits <= maxIndividualBasisUnits &&
+    fatherBasisUnits <= maxIndividualBasisUnits &&
+    totalBasisUnits <= maxFamilyBasisUnits;
+
+  return Object.freeze({
+    motherVariant: inputs.motherVariant,
+    fatherVariant: inputs.fatherVariant,
+    motherOrdinaryMonths: inputs.motherOrdinaryMonths,
+    fatherOrdinaryMonths: inputs.fatherOrdinaryMonths,
+    motherUnitWeight,
+    fatherUnitWeight,
+    maternityBasisUnits,
+    motherBasisUnits,
+    fatherBasisUnits,
+    totalBasisUnits,
+    maxIndividualBasisUnits,
+    maxFamilyBasisUnits,
+    maxBasisLifeMonths,
+    maxMotherOrdinaryMonths,
+    maxFatherOrdinaryMonths,
+    isWithinBudget,
+  });
+}
+
+/**
+ * Tier 1: Converts an ordinary allowance month count when switching between Basiselterngeld
+ * and ElterngeldPlus, clamped to the target variant's remaining statutory capacity.
+ */
+export function evaluateAllowanceVariantMonthConversionFormula(
+  inputs: Readonly<AllowanceVariantMonthConversionFormulaInputs>,
+): MonthDuration {
+  if (inputs.fromVariant === inputs.toVariant) {
+    return toMonthDuration(Math.max(0, Math.min(inputs.maxMonthsInTargetVariant, inputs.currentMonths)));
+  }
+  const converted = inputs.toVariant === ElterngeldVariant.Basis
+    ? Math.round(inputs.currentMonths * inputs.elterngeldPlusFraction)
+    : Math.round(inputs.currentMonths / inputs.elterngeldPlusFraction);
+  return toMonthDuration(Math.max(0, Math.min(inputs.maxMonthsInTargetVariant, converted)));
+}
+
+/**
+ * Tier 1: Evaluates § 3 Abs. 2 BEEG overlapping benefit credit and variant-aware protected minimum floor
+ * (€300 for Basiselterngeld, €150 for ElterngeldPlus).
+ */
+export function evaluateOverlapCreditedPaymentFormula(
+  inputs: Readonly<OverlapCreditedPaymentFormulaInputs>,
+): OverlapCreditedPaymentFormulaResult {
+  const unitWeight = evaluateAllowanceVariantWeightFormula({
+    variant: inputs.variant,
+    elterngeldPlusFraction: inputs.elterngeldPlusFraction,
+  });
+  const protectedMinimum = toEuroAmount(inputs.basisMinimumAmount * unitWeight);
+  const uncreditedShare = Math.max(
+    0,
+    1 - inputs.priorBenefitMonthsInWindow / inputs.assessmentWindowMonths,
+  );
+  const overlapCredit = toEuroAmount(inputs.overlappingBenefitAmount * uncreditedShare);
+  const payableAmount = toEuroAmount(
+    Math.max(
+      Math.min(protectedMinimum, inputs.grossEntitlement),
+      inputs.grossEntitlement - overlapCredit,
+    ),
+  );
+  const appliedOffset = toEuroAmount(inputs.grossEntitlement - payableAmount);
+
+  return Object.freeze({
+    protectedMinimum,
+    overlapCredit,
+    payableAmount,
+    appliedOffset,
   });
 }
