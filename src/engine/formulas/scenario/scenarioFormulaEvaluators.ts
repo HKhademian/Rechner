@@ -40,6 +40,7 @@ import {
   type GrossSalary,
   type NetSalary,
   type WorkingHours,
+  ElterngeldVariant,
   toEuroAmount,
 } from "#engine/types";
 
@@ -70,6 +71,7 @@ export interface UserHouseholdStatutoryProfile {
   readonly appliesChildlessCareSurcharge: boolean;
   readonly isDuringMaternityProtection: boolean;
   readonly qualifyingChildAllowanceMonthsCount: number;
+  readonly parentalAllowanceVariant?: ElterngeldVariant;
 }
 
 /**
@@ -199,10 +201,16 @@ export function evaluateHouseholdStatutoryProfile(
     context,
   );
 
+  const allowanceVariant = frozenProfile.parentalAllowanceVariant ?? ElterngeldVariant.Plus;
+  const baseAllowanceForVariant = allowanceVariant === ElterngeldVariant.Basis
+    ? parentalResult.value.basiselterngeld
+    : parentalResult.value.elterngeldPlus;
+
   const siblingResult = evaluateSiblingBonusInContext(
     {
-      baseElterngeldPlus: parentalResult.value.elterngeldPlus,
+      baseElterngeldPlus: baseAllowanceForVariant,
       siblingAgesInMonths: frozenProfile.olderSiblingAgesInMonths,
+      variant: allowanceVariant,
     },
     context,
   );

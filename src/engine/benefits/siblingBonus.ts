@@ -6,6 +6,7 @@
  */
 
 import {
+  evaluateAllowanceVariantWeightFormula,
   evaluateSiblingBonusFormula,
 } from "#engine/formulas/pure/parentalBenefitFormulas";
 import {
@@ -93,13 +94,17 @@ function evaluateWithSiblingAges(
   variant: ElterngeldVariant,
 ): SiblingBonusCalculation {
   const isBasis = variant === ElterngeldVariant.Basis;
+  const variantFraction = evaluateAllowanceVariantWeightFormula({
+    variant,
+    elterngeldPlusFraction: rules.plusFraction.value,
+  });
   const formulaResult = evaluateSiblingBonusFormula({
     baseElterngeldPlus,
     siblingAgesInMonths,
     siblingBonusRate: rules.siblingRate.value,
     siblingMinimumBasisAmount: rules.siblingMinimumBasis.value,
     basisMaximumAmount: rules.basisMaximum.value,
-    elterngeldPlusFraction: isBasis ? 1 : rules.plusFraction.value,
+    elterngeldPlusFraction: variantFraction,
     singleOlderSiblingMaxAgeMonths: rules.siblingAgeLimitMonths.value,
     multipleSiblingsMaxAgeMonths: rules.siblingMultipleAgeLimitMonths.value,
     multipleSiblingsMinimumCount: rules.siblingMultipleMinimumCount.value,

@@ -30,6 +30,10 @@ import {
   DEFAULT_BENEFIT_RULES,
 } from "#engine/config/benefitRules";
 import {
+  evaluateAllowanceVariantWeightFormula,
+  evaluateOverlapCreditedPaymentFormula,
+} from "#engine/formulas/pure/parentalBenefitFormulas";
+import {
   type AllowanceBudgetSummary,
   resolveMotherAllowanceVariant,
   resolveFatherAllowanceVariant,
@@ -105,7 +109,6 @@ export function projectAllowanceSchedule(
   if (p.assumeManualNetIsAssessmentNet !== undefined && typeof p.assumeManualNetIsAssessmentNet !== "boolean") {
     throw new TypeError("The manual assessment assumption must be an explicit boolean.");
   }
-  const minimumPlus = toEuroAmount(rules.basisMinimum.value * rules.plusFraction.value);
   const start = assessmentCalendarMonth(p.startCalendarYear, p.startCalendarMonth);
   const births = batches.pregnancies.map((pregnancy) => ({ pregnancy,
     ordinal: toAssessmentMonthOrdinal(start + pregnancy.calculatedDeliverySimulationMonth - 1) }))
@@ -169,12 +172,16 @@ export function projectAllowanceSchedule(
     const motherVariant = resolveMotherAllowanceVariant(pregnancy);
     const fatherVariant = resolveFatherAllowanceVariant(pregnancy);
     const motherOrdinaryMonths = resolveMotherOrdinaryMonthsCount(pregnancy, conventions, rules);
-    const maxMotherMonths = motherVariant === ElterngeldVariant.Basis
-      ? rules.familyBasisMonths.value
-      : rules.familyBasisMonths.value / rules.plusFraction.value;
-    const maxFatherMonths = fatherVariant === ElterngeldVariant.Basis
-      ? rules.familyBasisMonths.value
-      : rules.familyBasisMonths.value / rules.plusFraction.value;
+    const motherUnitWeight = evaluateAllowanceVariantWeightFormula({
+      variant: motherVariant,
+      elterngeldPlusFraction: rules.plusFraction.value,
+    });
+    const fatherUnitWeight = evaluateAllowanceVariantWeightFormula({
+      variant: fatherVariant,
+      elterngeldPlusFraction: rules.plusFraction.value,
+    });
+    const maxMotherMonths = rules.familyBasisMonths.value / motherUnitWeight;
+    const maxFatherMonths = rules.familyBasisMonths.value / fatherUnitWeight;
     if (!Number.isInteger(motherOrdinaryMonths) || motherOrdinaryMonths < 0 || motherOrdinaryMonths > maxMotherMonths) {
       throw new TypeError("Requested mother allowance months exceed the individual ordinary allowance capacity.");
     }
@@ -318,8 +325,6 @@ export function projectAllowanceSchedule(
     if (mother.size + bonus.size + maternityMonths < rules.minimumParentClaimMonths.value) {
       mother.clear();
     }
-    const motherUnitWeight = motherVariant === ElterngeldVariant.Basis ? 1 : rules.plusFraction.value;
-    const fatherUnitWeight = fatherVariant === ElterngeldVariant.Basis ? 1 : rules.plusFraction.value;
     const motherUnits = maternityMonths + mother.size * motherUnitWeight;
     const fatherUnits = father.size * fatherUnitWeight;
     const reduced = income.filter((month) => {
@@ -429,21 +434,23 @@ export function projectAllowanceSchedule(
         if (uncertainCreditHistory && prior + otherMaternity > 0) {
           unavailable("Prior benefit receipt in the assessment window is unavailable, so the overlap credit cannot be verified."); continue;
         }
-        const credit = toEuroAmount((prior + otherMaternity) * Math.max(0, 1 - priorBenefitMonths / rules.assessmentMonths.value));
-        const protectedMinimum = monthVariant === ElterngeldVariant.Basis
-          ? rules.basisMinimum.value
-          : minimumPlus;
-        const payment = toEuroAmount(Math.max(
-          Math.min(protectedMinimum, sibling.totalElterngeldPlusWithBonus),
-          sibling.totalElterngeldPlusWithBonus - credit,
-        ));
+        const overlapResult = evaluateOverlapCreditedPaymentFormula({
+          grossEntitlement: sibling.totalElterngeldPlusWithBonus,
+          overlappingBenefitAmount: toEuroAmount(prior + otherMaternity),
+          priorBenefitMonthsInWindow: priorBenefitMonths,
+          assessmentWindowMonths: rules.assessmentMonths.value,
+          basisMinimumAmount: rules.basisMinimum.value,
+          elterngeldPlusFraction: rules.plusFraction.value,
+          variant: monthVariant,
+        });
+        const payment = overlapResult.payableAmount;
         row.payments.push(Object.freeze({ pregnancyId: pregnancy.pregnancyId,
           parent: husband ? TargetPerson.Husband : TargetPerson.Wife,
           variant: monthVariant,
           reallocated: husband && moved.has(ordinal),
           partnershipBonus: isBonusMonth,
           grossEntitlement: sibling.totalElterngeldPlusWithBonus,
-          offset: toEuroAmount(sibling.totalElterngeldPlusWithBonus - payment),
+          offset: overlapResult.appliedOffset,
           payment }));
         if (husband) {
           row.husbandElterngeld = toEuroAmount(prior + payment);

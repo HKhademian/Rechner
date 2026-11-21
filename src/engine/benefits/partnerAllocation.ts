@@ -1,4 +1,7 @@
 import {
+  evaluateAllowanceVariantWeightFormula,
+} from "#engine/formulas/pure/parentalBenefitFormulas";
+import {
   type MonthDuration,
   type SimulationMonth,
   type WorkingHours,
@@ -20,9 +23,11 @@ export function validatePartnerMonths(
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
   variant: ElterngeldVariant = ElterngeldVariant.Plus,
 ): void {
-  const maximum = variant === ElterngeldVariant.Basis
-    ? rules.familyBasisMonths.value
-    : rules.familyBasisMonths.value / rules.plusFraction.value;
+  const unitWeight = evaluateAllowanceVariantWeightFormula({
+    variant,
+    elterngeldPlusFraction: rules.plusFraction.value,
+  });
+  const maximum = rules.familyBasisMonths.value / unitWeight;
   if (!Number.isInteger(requested) || requested < 0 || requested > maximum) {
     const label = variant === ElterngeldVariant.Basis ? "Basis" : "Plus";
     throw new TypeError(`Partner ${label} months must be a whole count between 0 and ${maximum}.`);

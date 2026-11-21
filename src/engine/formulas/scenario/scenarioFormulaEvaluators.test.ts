@@ -21,6 +21,7 @@ import {
   ParameterId,
 } from "#engine/parameters/types";
 import {
+  ElterngeldVariant,
   toEuroAmount,
   toFullCalendarYear,
   toGrossSalary,
@@ -151,5 +152,27 @@ describe("Tier 3 User & Scenario Formula Evaluators", () => {
         ),
       /fixed by federal statute/i,
     );
+  });
+
+  it("evaluates Basiselterngeld (€1,800 + 10% sibling bonus = €1,980) on full parental leave through Tier 3 scenario evaluation", () => {
+    const comparison = compareHouseholdStatutoryScenarios(
+      "ElterngeldPlus Part-Time",
+      BASELINE_HOUSEHOLD_PROFILE,
+      { calendarYear: toFullCalendarYear(2026) },
+      {
+        label: "Basiselterngeld Full Parental Leave (0h/wk)",
+        profileOverrides: {
+          parentalAllowanceVariant: ElterngeldVariant.Basis,
+          primaryParentWeeklyHours: toWorkingHours(0),
+          primaryParentPartTimeMonthlyGross: toGrossSalary(0),
+          primaryParentPartTimeMonthlyNet: toNetSalary(0),
+        },
+      },
+    );
+
+    assert.equal(comparison.alternative.parentalBenefitEntitlement.basiselterngeld, 1800);
+    assert.equal(comparison.alternative.siblingBonus.siblingBonusAmount, 180);
+    assert.equal(comparison.alternative.totalMonthlyParentalAllowanceWithBonus, 1980);
+    assert.ok(comparison.deltas.monthlyTotalParentalAllowanceDelta > 0);
   });
 });

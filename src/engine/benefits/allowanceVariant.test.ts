@@ -18,8 +18,12 @@ import {
   toWorkingHours,
 } from "#engine/types";
 import {
+  createStatutoryCalculationContext,
+} from "#engine/formulas/context/statutoryContext";
+import {
   computeAllowanceBudgetSummary,
   convertAllowanceMonthsOnVariantChange,
+  evaluatePregnancyAllowanceBudgetInContext,
   resolveFatherAllowanceVariant,
   resolveMotherAllowanceVariant,
   resolveMotherOrdinaryMonthsCount,
@@ -107,5 +111,22 @@ describe("ElterngeldVariant & Allowance Budget Helpers (BEEG §§ 4, 4a)", () =>
       ),
       14,
     );
+  });
+
+  it("matches Tier 2 context-aware statutory budget evaluation with full audit provenance", () => {
+    const context = createStatutoryCalculationContext({
+      calendarYear: toFullCalendarYear(2026),
+    });
+    const basisPlan: PregnancyAction = {
+      ...basePregnancy,
+      motherAllowanceVariant: ElterngeldVariant.Basis,
+      motherAllowanceMonthsCount: toMonthDuration(10),
+      fatherAllowanceVariant: ElterngeldVariant.Basis,
+      fatherPartnerMonthsCount: toMonthDuration(2),
+    };
+    const direct = computeAllowanceBudgetSummary(basisPlan);
+    const inContext = evaluatePregnancyAllowanceBudgetInContext(basisPlan, context);
+    assert.deepEqual(inContext.value, direct);
+    assert.equal(inContext.audit.governingLawIds.length > 0, true);
   });
 });
