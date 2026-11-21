@@ -28,6 +28,7 @@ import {
   evaluateJointProgressionTaxInContext,
   evaluateJointSplittingTaxInContext,
   evaluateMaternityProtectionInContext,
+  evaluateMonthlyVariantSelectionInContext,
   evaluateMunicipalDaycareFeeInContext,
   evaluateOverlapCreditedPaymentInContext,
   evaluateParentalAllowanceBudgetInContext,
@@ -65,6 +66,7 @@ import {
   computeSolidaritySurcharge,
 } from "#engine/tax/wageTax";
 import {
+  AllowancePlanMode,
   ElterngeldVariant,
   WageTaxZone,
   toCalendarMonth,
@@ -408,5 +410,37 @@ describe("Tier 2 Context-Aware Statutory Evaluators", () => {
     assert.equal(overlapBasis.value.protectedMinimum, 300);
     assert.equal(overlapBasis.value.payableAmount, 300);
     assert.equal(overlapBasis.audit.governingLawIds.includes(LawId.BEEG_3), true);
+
+    const autoBasis = evaluateMonthlyVariantSelectionInContext(
+      {
+        planMode: AllowancePlanMode.Auto,
+        weeklyWorkingHours: toWorkingHours(0),
+        elapsedMonthsSinceBirth: 2,
+        remainingIndividualBasisUnits: 10,
+        remainingFamilyBasisUnits: 10,
+      },
+      context,
+    );
+    assert.equal(autoBasis.value.selectedVariant, ElterngeldVariant.Basis);
+    assert.equal(autoBasis.value.basisUnitsConsumed, 1);
+    assert.equal(autoBasis.audit.formulaId, FormulaId.ParentalMonthlyVariantSelection);
+    assert.equal(autoBasis.audit.governingLawIds.includes(LawId.BEEG_4), true);
+    assert.equal(
+      autoBasis.audit.consumedParameterIds.includes(ParameterId.Benefit_MaximumWeeklyHours),
+      true,
+    );
+
+    const autoPlus = evaluateMonthlyVariantSelectionInContext(
+      {
+        planMode: AllowancePlanMode.Auto,
+        weeklyWorkingHours: toWorkingHours(32),
+        elapsedMonthsSinceBirth: 2,
+        remainingIndividualBasisUnits: 12,
+        remainingFamilyBasisUnits: 14,
+      },
+      context,
+    );
+    assert.equal(autoPlus.value.selectedVariant, ElterngeldVariant.Plus);
+    assert.equal(autoPlus.value.basisUnitsConsumed, 0.5);
   });
 });

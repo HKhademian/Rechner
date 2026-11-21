@@ -27,6 +27,7 @@ import {
 import {
   type ChildAllowanceFavorabilityFormulaResult,
   type MaternityProtectionBenefitFormulaResult,
+  type MonthlyVariantSelectionFormulaResult,
   type OverlapCreditedPaymentFormulaResult,
   type ParentalAllowanceBudgetFormulaResult,
   type ParentalBenefitEntitlementFormulaResult,
@@ -35,6 +36,7 @@ import {
   evaluateAllowanceVariantWeightFormula,
   evaluateChildAllowanceFavorabilityFormula,
   evaluateMaternityProtectionBenefitFormula,
+  evaluateMonthlyVariantSelectionFormula,
   evaluateOverlapCreditedPaymentFormula,
   evaluateParentalAllowanceBudgetFormula,
   evaluateParentalBenefitEntitlementFormula,
@@ -73,6 +75,7 @@ import {
   type PercentageRate,
   type WageTaxZone,
   type WorkingHours,
+  type AllowancePlanMode,
   ElterngeldVariant,
   toEuroAmount,
   toMonthDuration,
@@ -332,6 +335,19 @@ export const STATUTORY_FORMULA_DESCRIPTORS: Readonly<Record<FormulaId, Statutory
     description: "Converts ordinary allowance month counts between Basiselterngeld and ElterngeldPlus within remaining statutory capacity.",
     governingLawIds: Object.freeze([LawId.BEEG_4, LawId.BEEG_4a]),
     consumedParameterIds: Object.freeze([ParameterId.Benefit_PlusFraction]),
+  }),
+  [FormulaId.ParentalMonthlyVariantSelection]: Object.freeze({
+    id: FormulaId.ParentalMonthlyVariantSelection,
+    label: "Monthly Basiselterngeld vs. ElterngeldPlus Selection (§§ 1, 4, 4a BEEG)",
+    domain: FormulaDomain.ParentalAllowance,
+    description: "Selects Basiselterngeld (0h full leave within LM 1–14) or ElterngeldPlus (part-time or post-LM 14) per life-month within statutory Basis-unit budgets.",
+    governingLawIds: Object.freeze([LawId.BEEG_1, LawId.BEEG_4, LawId.BEEG_4a]),
+    consumedParameterIds: Object.freeze([
+      ParameterId.Benefit_FamilyBasisMonths,
+      ParameterId.Benefit_AdditionalPartnerBasisMonths,
+      ParameterId.Benefit_PlusFraction,
+      ParameterId.Benefit_MaximumWeeklyHours,
+    ]),
   }),
   [FormulaId.ParentalOverlapCreditedPayment]: Object.freeze({
     id: FormulaId.ParentalOverlapCreditedPayment,
@@ -1075,6 +1091,47 @@ export function evaluateAllowanceVariantConversionInContext(
       context,
       STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalAllowanceVariantConversion].consumedParameterIds,
       STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalAllowanceVariantConversion].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Selects Basiselterngeld vs. ElterngeldPlus for a single life-month in context
+ * using statutory hours limit, LM 1–14 Basis window, and remaining Basis-unit budgets.
+ */
+export function evaluateMonthlyVariantSelectionInContext(
+  inputs: Readonly<{
+    readonly planMode: AllowancePlanMode;
+    readonly weeklyWorkingHours: WorkingHours;
+    readonly elapsedMonthsSinceBirth: number;
+    readonly remainingIndividualBasisUnits: number;
+    readonly remainingFamilyBasisUnits: number;
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<MonthlyVariantSelectionFormulaResult> {
+  const maxBasisLifeMonths =
+    context.getParameterNumber(ParameterId.Benefit_FamilyBasisMonths) +
+    context.getParameterNumber(ParameterId.Benefit_AdditionalPartnerBasisMonths);
+  const result = evaluateMonthlyVariantSelectionFormula({
+    planMode: inputs.planMode,
+    weeklyWorkingHours: inputs.weeklyWorkingHours,
+    maximumWeeklyHoursLimit: toWorkingHours(
+      context.getParameterNumber(ParameterId.Benefit_MaximumWeeklyHours),
+    ),
+    elapsedMonthsSinceBirth: inputs.elapsedMonthsSinceBirth,
+    maxBasisLifeMonths,
+    remainingIndividualBasisUnits: inputs.remainingIndividualBasisUnits,
+    remainingFamilyBasisUnits: inputs.remainingFamilyBasisUnits,
+    elterngeldPlusFraction: context.getParameterNumber(ParameterId.Benefit_PlusFraction),
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.ParentalMonthlyVariantSelection,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalMonthlyVariantSelection].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalMonthlyVariantSelection].governingLawIds,
     ),
   });
 }

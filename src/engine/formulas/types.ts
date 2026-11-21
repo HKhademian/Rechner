@@ -62,6 +62,7 @@ export const FormulaId = {
   ParentalAllowanceEntitlement: "formula.parentalAllowance.entitlement",
   ParentalAllowanceBudget: "formula.parentalAllowance.budget",
   ParentalAllowanceVariantConversion: "formula.parentalAllowance.variantConversion",
+  ParentalMonthlyVariantSelection: "formula.parentalAllowance.monthlyVariantSelection",
   ParentalOverlapCreditedPayment: "formula.parentalAllowance.overlapCreditedPayment",
   ParentalSiblingBonus: "formula.parentalAllowance.siblingBonus",
   MaternityProtectionBenefit: "formula.maternityProtection.monthlyBenefit",
