@@ -63,6 +63,8 @@ import {
 
 const categories = Object.values(MapCategory);
 const eventCategories = categories.filter((item) => !mapLayers.includes(item) && item !== MapCategory.Transit);
+const christmasPlaces = [...christmasMarkets, ...christmasOutings];
+const munichMarketIds = new Set(christmasMarkets.map(({ id }) => id));
 const resultLimit = 80;
 const travelOptions = [0, 30, 45, 60, 90, 120].map(toTravelMinutes);
 const personalPins = Object.values(PersonalPin);
@@ -76,6 +78,10 @@ function inCategory(
   return place.category === category || place.alsoListedUnder === category;
 }
 
+function localityOf(place: MapPlace): string | undefined {
+  return place.outing?.locality ?? (munichMarketIds.has(place.id) ? "Munich" : undefined);
+}
+
 const initialData: MapData = { pins: {},
   places: [] };
 
@@ -86,6 +92,7 @@ export default function MunichMap() {
   const [today, setToday] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<MapCategory>();
+  const [locality, setLocality] = useState("");
   const [layers, setLayers] = useState<readonly MapCategory[]>([]);
   const [showEventMarkers, setShowEventMarkers] = useState(false);
   const [showPersonalPins, setShowPersonalPins] = useState(false);
@@ -124,12 +131,22 @@ export default function MunichMap() {
   }, []);
 
   const outingsMode = category === MapCategory.ChristmasOuting;
+  const marketsMode = category === MapCategory.ChristmasMarket;
+  const christmasMode = outingsMode || marketsMode;
+  const localities = useMemo(() => {
+    if (!christmasMode || !category) {
+      return [];
+    }
+    const names = christmasPlaces.filter((place) => inCategory(place, category)).map(localityOf);
+    return [...new Set(names.filter((name) => name !== undefined))].sort((a, b) => a.localeCompare(b));
+  }, [category, christmasMode]);
   const activeRadius = outingsMode ? 0 : radius;
   const origin = (reference && data.pins[reference]?.position) || MUNICH_CENTER;
   const places = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
-    return [...munichPlaces, ...christmasMarkets, ...christmasOutings, ...cityPlaces, ...data.places].flatMap((place) => {
-      const searchText = [place.title, place.detail, place.schedule?.venue, place.schedule?.theme, place.outing?.locality].join(" ");
+    return [...munichPlaces, ...christmasPlaces, ...cityPlaces, ...data.places].flatMap((place) => {
+      const name = localityOf(place);
+      const searchText = [place.title, place.detail, place.schedule?.venue, place.schedule?.theme, name].join(" ");
       if (!searchText.toLocaleLowerCase().includes(term)) {
         return [];
       }
@@ -148,13 +165,13 @@ export default function MunichMap() {
       if (mapLayers.includes(place.category)) {
         return layers.includes(place.category) ? [place] : [];
       }
-      return !category || inCategory(place, category) ? [place] : [];
+      return (!category || inCategory(place, category)) && (!christmasMode || !locality || name === locality) ? [place] : [];
     }).map((place) => ({
       place,
       distance: distanceKm(origin, place.position),
     })).filter(({ distance }) => activeRadius === 0 || distance <= activeRadius)
       .sort((left, right) => left.distance - right.distance);
-  }, [cityPlaces, data.places, origin, query, category, layers, activeRadius, outingsMode, travelMode, maxTravel]);
+  }, [cityPlaces, data.places, origin, query, category, locality, layers, activeRadius, christmasMode, outingsMode, travelMode, maxTravel]);
   const markers = useMemo(() => places.map(({ place }) => place).filter((place) =>
     showEventMarkers || !eventCategories.includes(place.category) || place.id === selected?.id), [places, showEventMarkers, selected?.id]);
   const resultPlaces = useMemo(() => {
@@ -181,10 +198,10 @@ export default function MunichMap() {
   }, [resultPlaces]);
 
   useEffect(() => {
-    if (outingsMode) {
+    if (showEventMarkers && christmasMode && activeRadius === 0) {
       fitResults();
     }
-  }, [outingsMode, fitResults]);
+  }, [showEventMarkers, christmasMode, activeRadius, fitResults]);
 
   const pins = useMemo(() => showPersonalPins ? personalPins.flatMap((name) => {
     const pin = data.pins[name];
@@ -193,9 +210,12 @@ export default function MunichMap() {
   }) : [], [showPersonalPins, data.pins]);
 
   function selectCategory(next: MapCategory | undefined) {
+    if (next !== category) {
+      setLocality("");
+    }
     setCategory(next);
     setShowEventMarkers(true);
-    if (outingsMode && next !== MapCategory.ChristmasOuting) {
+    if (christmasMode && next !== MapCategory.ChristmasOuting && next !== MapCategory.ChristmasMarket) {
       setFocus({ position: origin,
         radius,
         zoom: 12 });
@@ -258,6 +278,7 @@ export default function MunichMap() {
         places: [...data.places.filter((item) => item.id !== place.id), place] });
       setQuery("");
       setRadius(0);
+      setLocality("");
       const layer = place.category === MapCategory.Transit ? MapCategory.Subway : place.category;
       if (mapLayers.includes(layer)) {
         setLayers((current) => current.includes(layer) ? current : [...current, layer]);
@@ -368,7 +389,7 @@ export default function MunichMap() {
                     {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
                   </select>
                 </label>
-                {category === MapCategory.ChristmasMarket && radius === 0
+                {marketsMode && radius === 0
                   ? <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit markets</button>
                   : <button type="button" onClick={() => setFocus({ position: origin,
                     radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>}
@@ -446,10 +467,26 @@ export default function MunichMap() {
                 {item ?? "All events"}
               </button>)}
           </div>
+          {christmasMode && (
+            <label>Town or city
+              <select value={locality} onChange={(event) => {
+                const town = event.currentTarget.value;
+                setLocality(town);
+                if (town) {
+                  setQuery("");
+                  setRadius(0);
+                }
+                setShowEventMarkers(true);
+              }}>
+                <option value="">All locations</option>
+                {localities.map((name) => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </label>
+          )}
           <p class="munich-map-count">
             {resultPlaces.length} {outingsMode
               ? (resultPlaces.length === 1 ? "Christmas outing" : "Christmas outings")
-              : category === MapCategory.ChristmasMarket
+              : marketsMode
                 ? (resultPlaces.length === 1 ? "Christmas market" : "Christmas markets")
                 : (resultPlaces.length === 1 ? "place" : "places")}
           </p>
@@ -515,7 +552,7 @@ export default function MunichMap() {
           </ul>
           {resultPlaces.length > resultLimit && <p class="munich-map-count">Showing {resultLimit} places. Search or set a radius to narrow the list.</p>}
           <p class="munich-map-schedule">
-            {category === MapCategory.ChristmasMarket
+            {marketsMode
               ? <a href={munichChristmasMarketGuide}>Munich’s 2026 Christmas market guide</a>
               : <a href="https://www.muenchen.de/veranstaltungen">Munich event calendar</a>}
           </p>
