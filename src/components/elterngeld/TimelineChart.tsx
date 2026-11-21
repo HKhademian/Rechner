@@ -8,12 +8,18 @@ import {
 import {
   Badge,
   BadgeTone,
+} from "#components/ui/Badge";
+import {
   Button,
   ButtonSize,
   ButtonVariant,
+} from "#components/ui/Button";
+import {
   Disclosure,
+} from "#components/ui/Disclosure";
+import {
   SegmentedControl,
-} from "#components/ui";
+} from "#components/ui/SegmentedControl";
 import {
   TIMELINE_CHART_MODE_OPTIONS,
 } from "#utils/timelineChartControls";
