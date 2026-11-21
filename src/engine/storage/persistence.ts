@@ -55,6 +55,7 @@ import {
   TargetPerson,
   FinancialEventCategory,
   AnnualSalariesCount,
+  isElterngeldVariant,
   toSalaryInputMode,
   toSalaryPeriod,
   toAnnualSalariesCount,
@@ -63,6 +64,7 @@ import {
   toTimelineTimeRangeFilter,
   toTaxClass,
   toTargetPerson,
+  toElterngeldVariant,
   toFinancialEventCategory,
   toFederalStateKitaPresetId,
   toPregnancyId,
@@ -639,6 +641,15 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
         fatherPartnerMonthsCount: toMonthDuration(
           Number(pObj.fatherPartnerMonthsCount) || 0,
         ),
+        ...(typeof pObj.motherAllowanceVariant === "string"
+          ? { motherAllowanceVariant: toElterngeldVariant(pObj.motherAllowanceVariant) }
+          : {}),
+        ...(typeof pObj.fatherAllowanceVariant === "string"
+          ? { fatherAllowanceVariant: toElterngeldVariant(pObj.fatherAllowanceVariant) }
+          : {}),
+        ...(pObj.motherAllowanceMonthsCount !== undefined
+          ? { motherAllowanceMonthsCount: toMonthDuration(Number(pObj.motherAllowanceMonthsCount) || 0) }
+          : {}),
       };
     })
     : [];
@@ -1237,9 +1248,30 @@ export function validateAndSanitizePersistedState(
             pObj.fatherPartnerMonthsCount,
             defP?.fatherPartnerMonthsCount ?? 0,
             0,
-            14,
+            24,
           ),
         ),
+        ...(typeof pObj.motherAllowanceVariant === "string" &&
+        isElterngeldVariant(pObj.motherAllowanceVariant)
+          ? { motherAllowanceVariant: toElterngeldVariant(pObj.motherAllowanceVariant) }
+          : defP?.motherAllowanceVariant !== undefined
+            ? { motherAllowanceVariant: defP.motherAllowanceVariant }
+            : {}),
+        ...(typeof pObj.fatherAllowanceVariant === "string" &&
+        isElterngeldVariant(pObj.fatherAllowanceVariant)
+          ? { fatherAllowanceVariant: toElterngeldVariant(pObj.fatherAllowanceVariant) }
+          : defP?.fatherAllowanceVariant !== undefined
+            ? { fatherAllowanceVariant: defP.fatherAllowanceVariant }
+            : {}),
+        ...(pObj.motherAllowanceMonthsCount !== undefined
+          ? {
+            motherAllowanceMonthsCount: toMonthDuration(
+              num(pObj.motherAllowanceMonthsCount, 12, 0, 24),
+            ),
+          }
+          : defP?.motherAllowanceMonthsCount !== undefined
+            ? { motherAllowanceMonthsCount: defP.motherAllowanceMonthsCount }
+            : {}),
       };
     })
     : defaults.customPregnancies;
