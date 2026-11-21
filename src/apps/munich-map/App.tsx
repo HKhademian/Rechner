@@ -52,6 +52,9 @@ import {
   SeasonalPlaceDetails,
 } from "./SeasonalPlaceDetails.tsx";
 import {
+  PlaceDirections,
+} from "./PlaceDirections.tsx";
+import {
   christmasMarkets,
   munichChristmasMarketGuide,
 } from "./christmasMarkets.ts";
@@ -241,11 +244,16 @@ export default function MunichMap() {
     setMessage(saveMapData(next) ? "Map updated." : "Map updated for this visit. Browser storage is unavailable.");
   }
 
-  function startDraft(next: NonNullable<typeof draft>) {
+  const startDraft = useCallback((next: NonNullable<typeof draft>) => {
     setDraft(next);
     setPicking(!next.position);
     setMessage("");
-  }
+  }, []);
+
+  const startHomeDraft = useCallback(() => {
+    setMapOnly(false);
+    startDraft({ pin: PersonalPin.Home });
+  }, [startDraft]);
 
   function submitDraft(event: JSX.TargetedSubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -296,6 +304,7 @@ export default function MunichMap() {
 
   const activePlace = selected && places.find(({ place }) => place.id === selected.id);
   const ownPlace = activePlace && data.places.some((place) => place.id === activePlace.place.id);
+  const homePosition = data.pins[PersonalPin.Home]?.position;
   const activeDate = activePlace && (ownPlace || today && today <= (activePlace.place.endDate ?? activePlace.place.date ?? ""))
     ? formatPlaceDate(activePlace.place)
     : undefined;
@@ -308,7 +317,7 @@ export default function MunichMap() {
         <section class="munich-map-main" aria-label="Map and layers">
           <div class="munich-map-frame">
             {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={activeRadius} focus={focus} draft={draft?.position}
-              picking={picking} onPick={pickPosition} onSelect={setSelected} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
+              home={homePosition} picking={picking} onPick={pickPosition} onSelect={setSelected} onSetHome={startHomeDraft} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
             <div class="munich-map-tools">
               <details class="munich-map-layer-control">
                 <summary>Map layers</summary>
@@ -512,6 +521,7 @@ export default function MunichMap() {
               {activePlace.place.source && <a href={activePlace.place.source} {...externalLinkAttributes}>
                 {activePlace.place.sourceLabel ?? "Official site"}
               </a>}
+              <PlaceDirections home={homePosition} destination={activePlace.place.position} onSetHome={startHomeDraft} />
               {ownPlace && <div class="munich-map-actions">
                 <button type="button" onClick={() => startDraft({ place: activePlace.place,
                   position: activePlace.place.position })}>Edit place</button>

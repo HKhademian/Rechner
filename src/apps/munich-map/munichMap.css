@@ -371,6 +371,26 @@ fieldset.munich-map-layers {
   overflow-wrap: anywhere;
 }
 
+.munich-map-directions {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.munich-map-layout a.munich-map-direction-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.3rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border-medium);
+  border-radius: 0.4rem;
+  background: var(--bg-surface);
+  color: var(--color-primary);
+}
+
+.munich-seasonal-popup > :last-child {
+  margin-top: 0.65rem;
+}
+
 .munich-map-panel .munich-map-status:empty {
   position: absolute;
 }

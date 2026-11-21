@@ -40,6 +40,9 @@ import {
   SeasonalPlaceDetails,
 } from "./SeasonalPlaceDetails.tsx";
 import {
+  PlaceDirections,
+} from "./PlaceDirections.tsx";
+import {
   mapSymbol,
 } from "./mapSymbols.tsx";
 
@@ -51,9 +54,11 @@ interface MapViewProps {
   readonly radius: number;
   readonly focus?: MapFocus;
   readonly draft?: MapPosition;
+  readonly home?: MapPosition;
   readonly picking: boolean;
   readonly onPick: (position: MapPosition) => void;
   readonly onSelect: (place: MapPlace) => void;
+  readonly onSetHome: () => void;
 }
 
 const osmCredit = "© OpenStreetMap";
@@ -90,9 +95,11 @@ export function MapView({
   radius,
   focus,
   draft,
+  home,
   picking,
   onPick,
   onSelect,
+  onSetHome,
 }: MapViewProps) {
   const container = useRef<HTMLDivElement>(null);
   const instance = useRef<LeafletMap>();
@@ -188,29 +195,27 @@ export function MapView({
         }).on("click", () => onSelect(place)).addTo(visiblePlaces);
         pin.bindPopup(() => {
           const content = document.createElement("div");
-          if (venueSchedules) {
-            render(
-              <div class="munich-seasonal-popup">
-                {venueSchedules.map((item) => item.schedule && (
-                  <section key={item.id} aria-label={item.title}>
-                    <strong>{item.title}</strong>
-                    <SeasonalPlaceDetails place={item} schedule={item.schedule} />
-                    {item.source && <a href={item.source} {...externalLinkAttributes}>{item.sourceLabel ?? "Published schedule"}</a>}
-                  </section>
-                ))}
-              </div>,
-              content,
-            );
-            return content;
-          }
-          const title = document.createElement("strong");
-          title.textContent = place.title;
-          content.append(title);
-          if (place.detail) {
-            const detail = document.createElement("div");
-            detail.textContent = place.detail;
-            content.append(detail);
-          }
+          render(
+            <div class="munich-seasonal-popup">
+              {venueSchedules ? venueSchedules.map((item) => item.schedule && (
+                <section key={item.id} aria-label={item.title}>
+                  <strong>{item.title}</strong>
+                  <SeasonalPlaceDetails place={item} schedule={item.schedule} />
+                  {item.source && <a href={item.source} {...externalLinkAttributes}>{item.sourceLabel ?? "Published schedule"}</a>}
+                </section>
+              )) : (
+                <div>
+                  <strong>{place.title}</strong>
+                  {place.detail && <div>{place.detail}</div>}
+                </div>
+              )}
+              <PlaceDirections home={home} destination={place.position} onSetHome={() => {
+                view.closePopup();
+                onSetHome();
+              }} />
+            </div>,
+            content,
+          );
           return content;
         }, { maxHeight: 300,
           maxWidth: 300 });
@@ -230,7 +235,7 @@ export function MapView({
       view.off("moveend", renderVisiblePlaces);
       visiblePlaces.remove();
     };
-  }, [places, onSelect]);
+  }, [places, home, onSelect, onSetHome]);
 
   useEffect(() => {
     const view = instance.current;
