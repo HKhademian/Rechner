@@ -178,8 +178,9 @@ export default function MunichMap() {
     })).filter(({ distance }) => activeRadius === 0 || distance <= activeRadius)
       .sort((left, right) => left.distance - right.distance);
   }, [cityPlaces, data.places, origin, query, category, locality, layers, activeRadius, christmasMode, outingsMode, travelMode, maxTravel]);
+  const selectedEventId = !showEventMarkers && selected && eventCategories.includes(selected.category) ? selected.id : undefined;
   const markers = useMemo(() => places.map(({ place }) => place).filter((place) =>
-    showEventMarkers || !eventCategories.includes(place.category) || place.id === selected?.id), [places, showEventMarkers, selected?.id]);
+    showEventMarkers || !eventCategories.includes(place.category) || place.id === selectedEventId), [places, showEventMarkers, selectedEventId]);
   const resultPlaces = useMemo(() => {
     if (category) {
       const matching = places.filter(({ place }) => inCategory(place, category));
