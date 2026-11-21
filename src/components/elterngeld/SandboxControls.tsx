@@ -299,10 +299,7 @@ export default function SandboxControls(): JSX.Element {
   const endSimMonth = simulationDurationMonths.value;
 
   return (
-    <div
-      className="ui-card"
-      style={{ marginBottom: "28px" }}
-    >
+    <div className="ui-card sandbox-panel">
       <div className="planner-input-header" id="planner-inputs">
         <div>
           <h3>
@@ -328,26 +325,11 @@ export default function SandboxControls(): JSX.Element {
       {isOpen && (
         <div
           id="planner-input-fields"
-          style={{
-            marginTop: "20px",
-            borderTop: "1px solid var(--border-subtle)",
-            paddingTop: "18px",
-          }}
+          className="sandbox-body"
         >
           {/* Quick Presets & Reset Bar */}
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "10px",
-              marginBottom: "20px",
-              background: "var(--bg-surface-secondary)",
-              padding: "10px 14px",
-              borderRadius: "var(--border-radius-sm)",
-              border: "1px solid var(--border-subtle)",
-            }}
+            className="sandbox-toolbar"
           >
             <details className="planner-examples">
               <summary>Example plans</summary>
@@ -414,49 +396,22 @@ export default function SandboxControls(): JSX.Element {
 
           {/* Discrete Batches: Full-Width Rows Layout with Auto-Wrapping Column Entries */}
           <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
+            className="sandbox-batches"
           >
             {/* ======================================================== */}
             {/* BATCH 1: PREGNANCY POSITIVE DECISIONS & MILESTONES */}
             {/* ======================================================== */}
             <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px 18px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-              }}
+              className="sandbox-batch"
             >
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "14px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "10px",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                }}
+                className="sandbox-batch__header"
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    flexWrap: "wrap",
-                  }}
+                  className="sandbox-batch__title-group"
                 >
                   <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: "var(--color-primary)",
-                    }}
+                    className="sandbox-batch__title"
                   >
                     1. Pregnancies &amp; births
                   </span>
@@ -467,19 +422,7 @@ export default function SandboxControls(): JSX.Element {
                     <button
                       type="button"
                       onClick={removeAllPregnancyActions}
-                      style={{
-                        padding: "2px 6px",
-                        background: "none",
-                        border: "1px solid var(--color-loss-border)",
-                        borderRadius: "3px",
-                        color: "var(--color-loss)",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "3px",
-                      }}
+                      className="sandbox-remove-btn sandbox-remove-btn--ghost"
                       title="Remove all pregnancy actions"
                     >
                       <RemoveItemIcon size={10} />
@@ -556,19 +499,7 @@ export default function SandboxControls(): JSX.Element {
                       ),
                     });
                   }}
-                  style={{
-                    padding: "5px 12px",
-                    background: "var(--color-primary-bg)",
-                    color: "var(--color-primary)",
-                    border: "1px solid var(--color-primary-border)",
-                    borderRadius: "var(--border-radius-sm)",
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
+                  className="sandbox-action-btn sandbox-action-btn--primary"
                 >
                   <AddActionIcon size={12} />
                   <span>
@@ -580,27 +511,13 @@ export default function SandboxControls(): JSX.Element {
               {/* Dynamic Pregnancies Auto-Wrapping Columns */}
               {customPregnancies.value.length === 0 ? (
                 <div
-                  style={{
-                    padding: "16px 20px",
-                    background: "var(--bg-surface-secondary)",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px dashed var(--border-subtle)",
-                    color: "var(--text-muted)",
-                    fontSize: "0.78rem",
-                    textAlign: "center",
-                    lineHeight: 1.5,
-                  }}
+                  className="sandbox-empty"
                 >
                   No pregnancies planned yet. Add a pregnancy to see its expected birth and related benefits.
                 </div>
               ) : (
                 <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(310px, 1fr))",
-                    gap: "14px",
-                  }}
+                  className="sandbox-grid"
                 >
                   {customPregnancies.value.map((preg, idx) => {
                     const pSimMonth = preg.positiveTestSimulationMonth;
@@ -610,31 +527,14 @@ export default function SandboxControls(): JSX.Element {
                     return (
                       <div
                         key={preg.pregnancyId || `preg-${idx}`}
-                        style={{
-                          background: "var(--bg-surface-secondary)",
-                          padding: "12px 14px",
-                          borderRadius: "var(--border-radius-sm)",
-                          border: "1px solid var(--border-subtle)",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                        }}
+                        className="sandbox-card"
                       >
                         <div>
                           <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              marginBottom: "8px",
-                            }}
+                            className="sandbox-card__header"
                           >
                             <span
-                              style={{
-                                fontSize: "0.80rem",
-                                fontWeight: 800,
-                                color: "var(--color-loss)",
-                              }}
+                              className="sandbox-card__title-sm"
                             >
                               Child #{preg.childIndex} Pregnancy
                             </span>
@@ -643,19 +543,7 @@ export default function SandboxControls(): JSX.Element {
                               onClick={() =>
                                 removePregnancyAction(preg.pregnancyId)
                               }
-                              style={{
-                                background: "var(--color-loss-bg)",
-                                color: "var(--color-loss)",
-                                border: "1px solid var(--color-loss-border)",
-                                borderRadius: "3px",
-                                padding: "2px 6px",
-                                fontSize: "0.65rem",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px",
-                              }}
+                              className="sandbox-remove-btn"
                             >
                               <RemoveItemIcon size={11} />
                               <span>Remove</span>
@@ -665,21 +553,11 @@ export default function SandboxControls(): JSX.Element {
                           {isFirst ? (
                             <div>
                               <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1fr 1fr",
-                                  gap: "6px",
-                                  marginBottom: "8px",
-                                }}
+                                className="sandbox-grid-2"
                               >
                                 <div>
                                   <label
-                                    style={{
-                                      fontSize: "0.68rem",
-                                      color: "var(--text-muted)",
-                                      display: "block",
-                                      marginBottom: "2px",
-                                    }}
+                                    className="sandbox-field-label"
                                   >
                                     Positive test month
                                   </label>
@@ -707,16 +585,7 @@ export default function SandboxControls(): JSX.Element {
                                         );
                                       setPregnancy1PositiveDate(curY, m);
                                     }}
-                                    style={{
-                                      width: "100%",
-                                      background: "var(--bg-surface)",
-                                      color: "var(--text-primary)",
-                                      border: "1px solid var(--border-subtle)",
-                                      borderRadius: "4px",
-                                      padding: "4px 5px",
-                                      fontSize: "0.72rem",
-                                      fontWeight: 700,
-                                    }}
+                                    className="sandbox-select"
                                   >
                                     {MONTH_NAMES.map((name, mIdx) => (
                                       <option key={mIdx + 1} value={mIdx + 1}>
@@ -727,12 +596,7 @@ export default function SandboxControls(): JSX.Element {
                                 </div>
                                 <div>
                                   <label
-                                    style={{
-                                      fontSize: "0.68rem",
-                                      color: "var(--text-muted)",
-                                      display: "block",
-                                      marginBottom: "2px",
-                                    }}
+                                    className="sandbox-field-label"
                                   >
                                     Positive test year
                                   </label>
@@ -760,16 +624,7 @@ export default function SandboxControls(): JSX.Element {
                                         1;
                                       setPregnancy1PositiveDate(y, curM);
                                     }}
-                                    style={{
-                                      width: "100%",
-                                      background: "var(--bg-surface)",
-                                      color: "var(--text-primary)",
-                                      border: "1px solid var(--border-subtle)",
-                                      borderRadius: "4px",
-                                      padding: "4px 5px",
-                                      fontSize: "0.72rem",
-                                      fontWeight: 700,
-                                    }}
+                                    className="sandbox-select"
                                   >
                                     {[
                                       2024, 2025, 2026, 2027, 2028, 2029, 2030,
@@ -783,18 +638,12 @@ export default function SandboxControls(): JSX.Element {
                                 </div>
                               </div>
                               <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  fontSize: "0.72rem",
-                                  color: "var(--text-secondary)",
-                                  marginBottom: "6px",
-                                }}
+                                className="sandbox-row--between-xs"
                               >
                                 <span>
                                   Positive:{" "}
                                   <strong
-                                    style={{ color: "var(--color-loss)" }}
+                                    className="sandbox-text-loss"
                                   >
                                     {getCalDate(pSimMonth)}
                                   </strong>{" "}
@@ -804,7 +653,7 @@ export default function SandboxControls(): JSX.Element {
                                 <span>
                                   Birth 1:{" "}
                                   <strong
-                                    style={{ color: "var(--color-primary)" }}
+                                    className="sandbox-text-primary"
                                   >
                                     {getCalDate(dSimMonth)}
                                   </strong>{" "}
@@ -816,21 +665,11 @@ export default function SandboxControls(): JSX.Element {
                           ) : (
                             <div>
                               <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1fr 1fr",
-                                  gap: "6px",
-                                  marginBottom: "8px",
-                                }}
+                                className="sandbox-grid-2"
                               >
                                 <div>
                                   <label
-                                    style={{
-                                      fontSize: "0.68rem",
-                                      color: "var(--text-muted)",
-                                      display: "block",
-                                      marginBottom: "2px",
-                                    }}
+                                    className="sandbox-field-label"
                                   >
                                     Positive test month
                                   </label>
@@ -875,16 +714,7 @@ export default function SandboxControls(): JSX.Element {
                                           toSimulationMonth(newDSim),
                                       });
                                     }}
-                                    style={{
-                                      width: "100%",
-                                      background: "var(--bg-surface)",
-                                      color: "var(--text-primary)",
-                                      border: "1px solid var(--border-subtle)",
-                                      borderRadius: "4px",
-                                      padding: "4px 5px",
-                                      fontSize: "0.72rem",
-                                      fontWeight: 700,
-                                    }}
+                                    className="sandbox-select"
                                   >
                                     {MONTH_NAMES.map((name, mIdx) => (
                                       <option key={mIdx + 1} value={mIdx + 1}>
@@ -895,12 +725,7 @@ export default function SandboxControls(): JSX.Element {
                                 </div>
                                 <div>
                                   <label
-                                    style={{
-                                      fontSize: "0.68rem",
-                                      color: "var(--text-muted)",
-                                      display: "block",
-                                      marginBottom: "2px",
-                                    }}
+                                    className="sandbox-field-label"
                                   >
                                     Positive test year
                                   </label>
@@ -945,16 +770,7 @@ export default function SandboxControls(): JSX.Element {
                                           toSimulationMonth(newDSim),
                                       });
                                     }}
-                                    style={{
-                                      width: "100%",
-                                      background: "var(--bg-surface)",
-                                      color: "var(--text-primary)",
-                                      border: "1px solid var(--border-subtle)",
-                                      borderRadius: "4px",
-                                      padding: "4px 5px",
-                                      fontSize: "0.72rem",
-                                      fontWeight: 700,
-                                    }}
+                                    className="sandbox-select"
                                   >
                                     {[
                                       2024, 2025, 2026, 2027, 2028, 2029, 2030,
@@ -968,18 +784,12 @@ export default function SandboxControls(): JSX.Element {
                                 </div>
                               </div>
                               <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  fontSize: "0.72rem",
-                                  color: "var(--text-secondary)",
-                                  marginBottom: "6px",
-                                }}
+                                className="sandbox-row--between-xs"
                               >
                                 <span>
                                   Positive:{" "}
                                   <strong
-                                    style={{ color: "var(--color-loss)" }}
+                                    className="sandbox-text-loss"
                                   >
                                     {getCalDate(pSimMonth)}
                                   </strong>{" "}
@@ -989,7 +799,7 @@ export default function SandboxControls(): JSX.Element {
                                 <span>
                                   Birth #{preg.childIndex}:{" "}
                                   <strong
-                                    style={{ color: "var(--color-primary)" }}
+                                    className="sandbox-text-primary"
                                   >
                                     {getCalDate(dSimMonth)}
                                   </strong>{" "}
@@ -998,21 +808,7 @@ export default function SandboxControls(): JSX.Element {
                                 </span>
                               </div>
                               <div
-                                style={{
-                                  fontSize: "0.66rem",
-                                  color:
-                                    dSimMonth -
-                                      (customPregnancies.value[idx - 1]
-                                        ?.calculatedDeliverySimulationMonth ||
-                                        0) <
-                                    36
-                                      ? "var(--color-gain)"
-                                      : "var(--color-warning)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  marginBottom: "4px",
-                                }}
+                                className={`sandbox-status-line ${dSimMonth - (customPregnancies.value[idx - 1]?.calculatedDeliverySimulationMonth || 0) < 36 ? "sandbox-status-line--gain" : "sandbox-status-line--warning"}`}
                               >
                                 {dSimMonth -
                                   (customPregnancies.value[idx - 1]
@@ -1048,14 +844,7 @@ export default function SandboxControls(): JSX.Element {
                         </div>
 
                         <div
-                          style={{
-                            fontSize: "0.65rem",
-                            color: "var(--text-muted)",
-                            background: "var(--bg-surface)",
-                            padding: "3px 6px",
-                            borderRadius: "3px",
-                            marginTop: "6px",
-                          }}
+                          className="sandbox-note sandbox-note--box"
                         >
                           {isFirst ? (
                             <>
@@ -1084,32 +873,13 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 2: TAX CLASSES & STRATEGY (§ 2b BEEG) */}
             {/* ======================================================== */}
             <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px 18px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-              }}
+              className="sandbox-batch"
             >
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "14px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "10px",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                }}
+                className="sandbox-batch__header"
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    flexWrap: "wrap",
-                  }}
+                  className="sandbox-batch__title-group"
                 >
                   <LawRefLink
                     lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].lawId}
@@ -1118,26 +888,12 @@ export default function SandboxControls(): JSX.Element {
                     onOpen={() => {
                       activeLegalRuleKey.value = LegalRuleKey.BEEG_TaxSwap;
                     }}
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: "var(--color-gain)",
-                      textAlign: "left",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
+                    className="sandbox-batch__title sandbox-batch__title--gain"
                     title="§ 2b BEEG & BEEG § 2c(3) tax optimization rules — Click for quick popup · Ctrl+Click for full page"
                   >
                     <span>2. Tax classes</span>
                     <span
-                      style={{
-                        fontSize: "0.72rem",
-                        textDecoration: "underline",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "2px",
-                      }}
+                      className="sandbox-inline-link"
                     >
                       <span>(§ 2b BEEG)</span>
                       <StatutorySectionIcon size={10} />
@@ -1150,19 +906,7 @@ export default function SandboxControls(): JSX.Element {
                     <button
                       type="button"
                       onClick={removeAllTaxClassSwitchActions}
-                      style={{
-                        padding: "2px 6px",
-                        background: "none",
-                        border: "1px solid var(--color-loss-border)",
-                        borderRadius: "3px",
-                        color: "var(--color-loss)",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "3px",
-                      }}
+                      className="sandbox-remove-btn sandbox-remove-btn--ghost"
                       title="Remove all tax class switch actions"
                     >
                       <RemoveItemIcon size={10} />
@@ -1204,19 +948,7 @@ export default function SandboxControls(): JSX.Element {
                       revertSimulationMonth: toSimulationMonth(delivery),
                     });
                   }}
-                  style={{
-                    padding: "5px 12px",
-                    background: "var(--color-gain-bg)",
-                    color: "var(--color-gain)",
-                    border: "1px solid var(--color-gain-border)",
-                    borderRadius: "var(--border-radius-sm)",
-                    fontSize: "0.74rem",
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
+                  className="sandbox-action-btn sandbox-action-btn--gain"
                 >
                   <AddActionIcon size={12} />
                   <span>
@@ -1228,46 +960,21 @@ export default function SandboxControls(): JSX.Element {
 
               {/* Dynamic Tax Class Switches Auto-Wrapping Columns */}
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
-                  gap: "14px",
-                }}
+                className="sandbox-grid"
               >
                 {/* ENTRY 1: Initial Baseline Tax Class Selection ($M1$ Precondition) */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--color-gain)",
-                        marginBottom: "6px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-card__heading sandbox-card__heading--gain"
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
                       <span>Starting tax classes</span>
                     </div>
                     <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        marginBottom: "6px",
-                      }}
+                      className="sandbox-stack-sm"
                     >
                       <button
                         type="button"
@@ -1275,36 +982,7 @@ export default function SandboxControls(): JSX.Element {
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.III, TaxClass.V, false)
                         }
-                        style={{
-                          padding: "8px 10px",
-                          minHeight: "40px",
-                          borderRadius: "4px",
-                          border:
-                            husbandInitialTaxClass.value === TaxClass.III &&
-                            wifeInitialTaxClass.value === TaxClass.V &&
-                            !useInitialTaxFactor.value
-                              ? "1px solid var(--color-gain)"
-                              : "1px solid var(--border-subtle)",
-                          background:
-                            husbandInitialTaxClass.value === TaxClass.III &&
-                            wifeInitialTaxClass.value === TaxClass.V &&
-                            !useInitialTaxFactor.value
-                              ? "var(--color-gain-bg)"
-                              : "var(--bg-surface)",
-                          color:
-                            husbandInitialTaxClass.value === TaxClass.III &&
-                            wifeInitialTaxClass.value === TaxClass.V &&
-                            !useInitialTaxFactor.value
-                              ? "var(--color-gain)"
-                              : "var(--text-secondary)",
-                          fontSize: "0.70rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
+                        className={`sandbox-choice-btn ${husbandInitialTaxClass.value === TaxClass.III && wifeInitialTaxClass.value === TaxClass.V && !useInitialTaxFactor.value ? "sandbox-choice-btn--active-gain" : ""}`}
                       >
                         <span>Husband: III / Wife: V</span>
                         {husbandInitialTaxClass.value === TaxClass.III &&
@@ -1320,36 +998,7 @@ export default function SandboxControls(): JSX.Element {
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.IV, TaxClass.IV, false)
                         }
-                        style={{
-                          padding: "8px 10px",
-                          minHeight: "40px",
-                          borderRadius: "4px",
-                          border:
-                            husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV &&
-                            !useInitialTaxFactor.value
-                              ? "1px solid var(--color-gain)"
-                              : "1px solid var(--border-subtle)",
-                          background:
-                            husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV &&
-                            !useInitialTaxFactor.value
-                              ? "var(--color-gain-bg)"
-                              : "var(--bg-surface)",
-                          color:
-                            husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV &&
-                            !useInitialTaxFactor.value
-                              ? "var(--color-gain)"
-                              : "var(--text-secondary)",
-                          fontSize: "0.70rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
+                        className={`sandbox-choice-btn ${husbandInitialTaxClass.value === TaxClass.IV && wifeInitialTaxClass.value === TaxClass.IV && !useInitialTaxFactor.value ? "sandbox-choice-btn--active-gain" : ""}`}
                       >
                         <span>Husband: IV / Wife: IV</span>
                         {husbandInitialTaxClass.value === TaxClass.IV &&
@@ -1365,55 +1014,14 @@ export default function SandboxControls(): JSX.Element {
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.IV, TaxClass.IV, true)
                         }
-                        style={{
-                          padding: "8px 10px",
-                          minHeight: "40px",
-                          borderRadius: "4px",
-                          border:
-                            husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV &&
-                            useInitialTaxFactor.value
-                              ? "1px solid var(--color-gain)"
-                              : "1px solid var(--border-subtle)",
-                          background:
-                            husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV &&
-                            useInitialTaxFactor.value
-                              ? "var(--color-gain-bg)"
-                              : "var(--bg-surface)",
-                          color:
-                            husbandInitialTaxClass.value === TaxClass.IV &&
-                            wifeInitialTaxClass.value === TaxClass.IV &&
-                            useInitialTaxFactor.value
-                              ? "var(--color-gain)"
-                              : "var(--text-secondary)",
-                          fontSize: "0.70rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
+                        className={`sandbox-choice-btn ${husbandInitialTaxClass.value === TaxClass.IV && wifeInitialTaxClass.value === TaxClass.IV && useInitialTaxFactor.value ? "sandbox-choice-btn--active-gain" : ""}`}
                       >
                         <span>Husband: IV / Wife: IV + factor (§ 39f)</span>
                         <span
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
+                          className="sandbox-row sandbox-row--tight"
                         >
                           <span
-                            style={{
-                              fontSize: "0.60rem",
-                              background: "var(--bg-surface-secondary)",
-                              padding: "1px 4px",
-                              borderRadius: "3px",
-                              border: "1px solid var(--border-subtle)",
-                              color: "var(--text-muted)",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-badge-mini"
                           >
                             F ={" "}
                             {(derivedSpousalSet.value.taxFactor ?? 1.0).toFixed(
@@ -1434,36 +1042,7 @@ export default function SandboxControls(): JSX.Element {
                         onClick={() =>
                           setInitialTaxClasses(TaxClass.V, TaxClass.III, false)
                         }
-                        style={{
-                          padding: "8px 10px",
-                          minHeight: "40px",
-                          borderRadius: "4px",
-                          border:
-                            husbandInitialTaxClass.value === TaxClass.V &&
-                            wifeInitialTaxClass.value === TaxClass.III &&
-                            !useInitialTaxFactor.value
-                              ? "1px solid var(--color-gain)"
-                              : "1px solid var(--border-subtle)",
-                          background:
-                            husbandInitialTaxClass.value === TaxClass.V &&
-                            wifeInitialTaxClass.value === TaxClass.III &&
-                            !useInitialTaxFactor.value
-                              ? "var(--color-gain-bg)"
-                              : "var(--bg-surface)",
-                          color:
-                            husbandInitialTaxClass.value === TaxClass.V &&
-                            wifeInitialTaxClass.value === TaxClass.III &&
-                            !useInitialTaxFactor.value
-                              ? "var(--color-gain)"
-                              : "var(--text-secondary)",
-                          fontSize: "0.70rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
+                        className={`sandbox-choice-btn ${husbandInitialTaxClass.value === TaxClass.V && wifeInitialTaxClass.value === TaxClass.III && !useInitialTaxFactor.value ? "sandbox-choice-btn--active-gain" : ""}`}
                       >
                         <span>Husband: V / Wife: III</span>
                         {husbandInitialTaxClass.value === TaxClass.V &&
@@ -1475,11 +1054,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
                   </div>
                   <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color: "var(--text-muted)",
-                      marginTop: "4px",
-                    }}
+                    className="sandbox-note"
                   >
                     These are your tax classes before any planned changes.
                   </div>
@@ -1498,35 +1073,14 @@ export default function SandboxControls(): JSX.Element {
                   return (
                     <div
                       key={sw.switchId || `switch-${idx}`}
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        gap: "8px",
-                      }}
+                      className="sandbox-card sandbox-card--spaced"
                     >
                       <div>
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "8px",
-                          }}
+                          className="sandbox-card__header"
                         >
                           <span
-                            style={{
-                              fontSize: "0.78rem",
-                              fontWeight: 800,
-                              color: "var(--color-gain)",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                            }}
+                            className="sandbox-card__title-gain"
                           >
                             <TaxClassSwapMilestoneIcon size={13} />
                             <span>
@@ -1543,19 +1097,7 @@ export default function SandboxControls(): JSX.Element {
                             onClick={() =>
                               removeTaxClassSwitchAction(sw.switchId)
                             }
-                            style={{
-                              background: "var(--color-loss-bg)",
-                              color: "var(--color-loss)",
-                              border: "1px solid var(--color-loss-border)",
-                              borderRadius: "3px",
-                              padding: "2px 6px",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
+                            className="sandbox-remove-btn"
                           >
                             <RemoveItemIcon size={11} />
                           </button>
@@ -1563,12 +1105,7 @@ export default function SandboxControls(): JSX.Element {
 
                         {/* Quick Presets for Target Tax Class Combination */}
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "4px",
-                            marginBottom: "8px",
-                          }}
+                          className="sandbox-grid-2 sandbox-grid-2--tight"
                         >
                           <button
                             type="button"
@@ -1579,32 +1116,7 @@ export default function SandboxControls(): JSX.Element {
                                 targetUseTaxFactor: false,
                               })
                             }
-                            style={{
-                              padding: "4px 6px",
-                              borderRadius: "3px",
-                              border:
-                                targetH === TaxClass.V &&
-                                targetW === TaxClass.III &&
-                                !useFac
-                                  ? "1px solid var(--color-gain)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                targetH === TaxClass.V &&
-                                targetW === TaxClass.III &&
-                                !useFac
-                                  ? "var(--color-gain-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                targetH === TaxClass.V &&
-                                targetW === TaxClass.III &&
-                                !useFac
-                                  ? "var(--color-gain)"
-                                  : "var(--text-secondary)",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              textAlign: "center",
-                            }}
+                            className={`sandbox-choice-btn sandbox-choice-btn--compact ${targetH === TaxClass.V && targetW === TaxClass.III && !useFac ? "sandbox-choice-btn--active-gain" : ""}`}
                           >
                             V / III (Swap Boost)
                           </button>
@@ -1617,32 +1129,7 @@ export default function SandboxControls(): JSX.Element {
                                 targetUseTaxFactor: false,
                               })
                             }
-                            style={{
-                              padding: "4px 6px",
-                              borderRadius: "3px",
-                              border:
-                                targetH === TaxClass.IV &&
-                                targetW === TaxClass.IV &&
-                                !useFac
-                                  ? "1px solid var(--color-gain)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                targetH === TaxClass.IV &&
-                                targetW === TaxClass.IV &&
-                                !useFac
-                                  ? "var(--color-gain-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                targetH === TaxClass.IV &&
-                                targetW === TaxClass.IV &&
-                                !useFac
-                                  ? "var(--color-gain)"
-                                  : "var(--text-secondary)",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              textAlign: "center",
-                            }}
+                            className={`sandbox-choice-btn sandbox-choice-btn--compact ${targetH === TaxClass.IV && targetW === TaxClass.IV && !useFac ? "sandbox-choice-btn--active-gain" : ""}`}
                           >
                             IV / IV (Equal)
                           </button>
@@ -1657,32 +1144,7 @@ export default function SandboxControls(): JSX.Element {
                                   derivedSpousalSet.value.taxFactor,
                               })
                             }
-                            style={{
-                              padding: "4px 6px",
-                              borderRadius: "3px",
-                              border:
-                                targetH === TaxClass.IV &&
-                                targetW === TaxClass.IV &&
-                                useFac
-                                  ? "1px solid var(--color-gain)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                targetH === TaxClass.IV &&
-                                targetW === TaxClass.IV &&
-                                useFac
-                                  ? "var(--color-gain-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                targetH === TaxClass.IV &&
-                                targetW === TaxClass.IV &&
-                                useFac
-                                  ? "var(--color-gain)"
-                                  : "var(--text-secondary)",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              textAlign: "center",
-                            }}
+                            className={`sandbox-choice-btn sandbox-choice-btn--compact ${targetH === TaxClass.IV && targetW === TaxClass.IV && useFac ? "sandbox-choice-btn--active-gain" : ""}`}
                           >
                             IV / IV + Factor (§ 39f)
                           </button>
@@ -1695,32 +1157,7 @@ export default function SandboxControls(): JSX.Element {
                                 targetUseTaxFactor: false,
                               })
                             }
-                            style={{
-                              padding: "4px 6px",
-                              borderRadius: "3px",
-                              border:
-                                targetH === TaxClass.III &&
-                                targetW === TaxClass.V &&
-                                !useFac
-                                  ? "1px solid var(--color-gain)"
-                                  : "1px solid var(--border-subtle)",
-                              background:
-                                targetH === TaxClass.III &&
-                                targetW === TaxClass.V &&
-                                !useFac
-                                  ? "var(--color-gain-bg)"
-                                  : "var(--bg-surface)",
-                              color:
-                                targetH === TaxClass.III &&
-                                targetW === TaxClass.V &&
-                                !useFac
-                                  ? "var(--color-gain)"
-                                  : "var(--text-secondary)",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              textAlign: "center",
-                            }}
+                            className={`sandbox-choice-btn sandbox-choice-btn--compact ${targetH === TaxClass.III && targetW === TaxClass.V && !useFac ? "sandbox-choice-btn--active-gain" : ""}`}
                           >
                             III / V (Standard)
                           </button>
@@ -1728,21 +1165,11 @@ export default function SandboxControls(): JSX.Element {
 
                         {/* Timing Controls */}
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "8px",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-grid-2"
                         >
                           <div>
                             <label
-                              style={{
-                                fontSize: "0.64rem",
-                                color: "var(--text-muted)",
-                                display: "block",
-                                marginBottom: "2px",
-                              }}
+                              className="sandbox-field-label sandbox-field-label--xs"
                             >
                               Effective ({getShortMonthLabel(sMonth)} ·{" "}
                               {getMonthId(sMonth)} · {getMonthSimRef(sMonth)}):
@@ -1768,17 +1195,7 @@ export default function SandboxControls(): JSX.Element {
                                   ),
                                 });
                               }}
-                              style={{
-                                width: "100%",
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "4px 5px",
-                                fontSize: "0.70rem",
-                                fontWeight: 700,
-                                marginBottom: "4px",
-                              }}
+                              className="sandbox-select sandbox-select--spaced"
                             >
                               {Array.from(
                                 {
@@ -1825,17 +1242,10 @@ export default function SandboxControls(): JSX.Element {
                                   ),
                                 });
                               }}
-                              style={{
-                                width: "100%",
-                                accentColor: "var(--color-gain)",
-                              }}
+                              className="sandbox-range sandbox-range--gain"
                             />
                             <div
-                              style={{
-                                fontSize: "0.68rem",
-                                color: "var(--color-gain)",
-                                fontWeight: 700,
-                              }}
+                              className="sandbox-text-gain-xs"
                             >
                               {getMonthSimRef(sMonth)} · {getCalDate(sMonth)} (
                               {getRelativeMonthLabel(sMonth)}) ·{" "}
@@ -1844,12 +1254,7 @@ export default function SandboxControls(): JSX.Element {
                           </div>
                           <div>
                             <label
-                              style={{
-                                fontSize: "0.64rem",
-                                color: "var(--text-muted)",
-                                display: "block",
-                                marginBottom: "2px",
-                              }}
+                              className="sandbox-field-label sandbox-field-label--xs"
                             >
                               Revert ({getShortMonthLabel(rMonth)} ·{" "}
                               {getMonthId(rMonth)} · {getMonthSimRef(rMonth)}):
@@ -1866,17 +1271,7 @@ export default function SandboxControls(): JSX.Element {
                                     toSimulationMonth(newM),
                                 });
                               }}
-                              style={{
-                                width: "100%",
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "4px 5px",
-                                fontSize: "0.70rem",
-                                fontWeight: 700,
-                                marginBottom: "4px",
-                              }}
+                              className="sandbox-select sandbox-select--spaced"
                             >
                               {Array.from(
                                 {
@@ -1914,17 +1309,10 @@ export default function SandboxControls(): JSX.Element {
                                     toSimulationMonth(newM),
                                 });
                               }}
-                              style={{
-                                width: "100%",
-                                accentColor: "var(--color-warning)",
-                              }}
+                              className="sandbox-range sandbox-range--warning"
                             />
                             <div
-                              style={{
-                                fontSize: "0.68rem",
-                                color: "var(--color-warning)",
-                                fontWeight: 700,
-                              }}
+                              className="sandbox-text-warning-xs"
                             >
                               {getMonthSimRef(rMonth)} · {getCalDate(rMonth)} (
                               {getRelativeMonthLabel(rMonth)}) ·{" "}
@@ -1934,13 +1322,7 @@ export default function SandboxControls(): JSX.Element {
                         </div>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.64rem",
-                          color: "var(--text-muted)",
-                          background: "var(--bg-surface)",
-                          padding: "4px 6px",
-                          borderRadius: "3px",
-                        }}
+                        className="sandbox-note sandbox-note--box-flush"
                       >
                         ↳ {sw.statutoryReason}
                       </div>
@@ -1950,28 +1332,11 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* Pure Derived Display: Automatic Tax Swap Take-Home (§ 38b, § 39f EStG) */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "8px",
-                  }}
+                  className="sandbox-card sandbox-card--spaced"
                 >
                   <div>
                     <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--color-gain)",
-                        marginBottom: "3px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-card__heading sandbox-card__heading--gain sandbox-card__heading--tight"
                     >
                       <TaxClassSwapMilestoneIcon size={13} />
                       <span>
@@ -1989,41 +1354,21 @@ export default function SandboxControls(): JSX.Element {
                       </span>
                     </div>
                     <div
-                      style={{
-                        fontSize: "0.64rem",
-                        color: "var(--text-muted)",
-                        marginBottom: "8px",
-                      }}
+                      className="sandbox-note sandbox-note--bottom"
                     >
                       Estimated from the salaries and tax classes in this plan.
                     </div>
 
                     {/* Wife Optimized Class III FT Net */}
                     <div
-                      style={{
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--color-gain-border)",
-                        borderRadius: "5px",
-                        padding: "6px 8px",
-                        marginBottom: "6px",
-                      }}
+                      className="sandbox-surface-box sandbox-surface-box--gain"
                     >
                       <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.70rem",
-                          color: "var(--text-secondary)",
-                          marginBottom: "2px",
-                        }}
+                        className="sandbox-row--between-xs"
                       >
                         <span>Wife in class III:</span>
                         <strong
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            color: "var(--color-gain)",
-                            fontSize: "0.76rem",
-                          }}
+                          className="sandbox-val-tab--gain-sm"
                         >
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
@@ -2037,12 +1382,7 @@ export default function SandboxControls(): JSX.Element {
                         </strong>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.62rem",
-                          color: "var(--text-muted)",
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}
+                        className="sandbox-row--between-muted"
                       >
                         <span>Baseline in Class V:</span>
                         <span>
@@ -2058,12 +1398,7 @@ export default function SandboxControls(): JSX.Element {
                         </span>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.62rem",
-                          color: "var(--color-gain)",
-                          fontWeight: 600,
-                          marginTop: "2px",
-                        }}
+                        className="sandbox-text-gain-note"
                       >
                         ↳ +
                         {formatCurrency(
@@ -2076,30 +1411,14 @@ export default function SandboxControls(): JSX.Element {
 
                     {/* Husband Class V Net during Swap */}
                     <div
-                      style={{
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--color-warning-border)",
-                        borderRadius: "5px",
-                        padding: "6px 8px",
-                        marginBottom: "6px",
-                      }}
+                      className="sandbox-surface-box sandbox-surface-box--warning"
                     >
                       <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.70rem",
-                          color: "var(--text-secondary)",
-                          marginBottom: "2px",
-                        }}
+                        className="sandbox-row--between-xs"
                       >
                         <span>Husband in Class V (During Swap):</span>
                         <strong
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            color: "var(--color-warning)",
-                            fontSize: "0.76rem",
-                          }}
+                          className="sandbox-val-tab--warning-sm"
                         >
                           {formatCurrency(
                             salaryPeriod.value === SalaryPeriod.Yearly
@@ -2112,12 +1431,7 @@ export default function SandboxControls(): JSX.Element {
                         </strong>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.62rem",
-                          color: "var(--text-muted)",
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}
+                        className="sandbox-row--between-muted"
                       >
                         <span>Baseline in Class III:</span>
                         <span>
@@ -2135,30 +1449,14 @@ export default function SandboxControls(): JSX.Element {
 
                     {/* Class IV Equal vs Class IV + Factor Reference */}
                     <div
-                      style={{
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--border-subtle)",
-                        borderRadius: "5px",
-                        padding: "6px 8px",
-                      }}
+                      className="sandbox-surface-box sandbox-surface-box--flush"
                     >
                       <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          fontSize: "0.68rem",
-                          color: "var(--text-secondary)",
-                          marginBottom: "3px",
-                        }}
+                        className="sandbox-row--between-xs"
                       >
                         <span>Class IV / IV (Standard Equal):</span>
                         <span
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontWeight: 700,
-                            fontSize: "0.70rem",
-                          }}
+                          className="sandbox-val-tab--bold"
                         >
                           H:{" "}
                           {formatCurrency(
@@ -2171,13 +1469,7 @@ export default function SandboxControls(): JSX.Element {
                         </span>
                       </div>
                       <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          fontSize: "0.68rem",
-                          color: "var(--color-gain)",
-                        }}
+                        className="sandbox-row--between-gain"
                       >
                         <span>
                           Class IV + Factor (
@@ -2192,10 +1484,7 @@ export default function SandboxControls(): JSX.Element {
                           ):
                         </span>
                         <strong
-                          style={{
-                            fontVariantNumeric: "tabular-nums",
-                            fontSize: "0.72rem",
-                          }}
+                          className="sandbox-val-tab"
                         >
                           H:{" "}
                           {formatCurrency(
@@ -2212,25 +1501,13 @@ export default function SandboxControls(): JSX.Element {
 
                   {/* Net Family Monthly Shift */}
                   <div
-                    style={{
-                      background: "var(--bg-surface)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "5px",
-                      padding: "5px 8px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      fontSize: "0.66rem",
-                    }}
+                    className="sandbox-surface-box sandbox-surface-box--row"
                   >
-                    <span style={{ color: "var(--text-secondary)" }}>
+                    <span className="sandbox-text-secondary">
                       Combined Net Shift (Swap vs III/V):
                     </span>
                     <strong
-                      style={{
-                        fontVariantNumeric: "tabular-nums",
-                        color: "var(--text-primary)",
-                      }}
+                      className="sandbox-val-tab--ink"
                     >
                       {formatCurrency(
                         derivedSpousalSet.value.husbandClass5Net +
@@ -2249,39 +1526,16 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 3: SALARIES, WORKING TIMES & CAREER PROGRESSION */}
             {/* ======================================================== */}
             <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px 18px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-              }}
+              className="sandbox-batch"
             >
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "14px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "10px",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                }}
+                className="sandbox-batch__header"
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    flexWrap: "wrap",
-                  }}
+                  className="sandbox-batch__title-group"
                 >
                   <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: "var(--color-warning)",
-                    }}
+                    className="sandbox-batch__title sandbox-batch__title--warning"
                   >
                     3. Pay &amp; working hours
                   </span>
@@ -2291,9 +1545,7 @@ export default function SandboxControls(): JSX.Element {
                   </span>
                 </div>
 
-                <div style={{ display: "flex",
-                  gap: "8px",
-                  flexWrap: "wrap" }}>
+                <div className="sandbox-row sandbox-row--wrap">
                   {/* Add Working Hours Adjustment Button */}
                   <button
                     type="button"
@@ -2333,20 +1585,7 @@ export default function SandboxControls(): JSX.Element {
                             : "Wife Post-Birth Part-Time Return",
                       });
                     }}
-                    style={{
-                      padding: "5px 12px",
-                      background: "var(--color-primary-bg)",
-                      color: "var(--color-primary)",
-                      border:
-                        "1px solid var(--color-primary-border, var(--border-subtle))",
-                      borderRadius: "var(--border-radius-sm)",
-                      fontSize: "0.74rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
+                    className="sandbox-action-btn sandbox-action-btn--primary"
                   >
                     <AddActionIcon size={12} />
                     <span>+ Add Working Time Change</span>
@@ -2368,19 +1607,7 @@ export default function SandboxControls(): JSX.Element {
                       });
                       requestAnimationFrame(() => document.getElementById(`salary-change-${raiseId}-method`)?.focus());
                     }}
-                    style={{
-                      padding: "5px 12px",
-                      background: "var(--color-warning-bg)",
-                      color: "var(--color-warning)",
-                      border: "1px solid var(--color-warning-border)",
-                      borderRadius: "var(--border-radius-sm)",
-                      fontSize: "0.74rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
+                    className="sandbox-action-btn sandbox-action-btn--warning"
                   >
                     <AddActionIcon size={12} />
                     <span>+ Add Salary Change / Promotion</span>
@@ -2390,41 +1617,17 @@ export default function SandboxControls(): JSX.Element {
 
               {/* Dynamic Salaries & Career Controls Grid: Columns with Auto-Wrap */}
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
-                  gap: "14px",
-                }}
+                className="sandbox-grid sandbox-grid--compact"
               >
                 {/* ENTRY 1: Salary Cadence Switcher */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "6px",
-                    }}
+                    className="sandbox-card__header"
                   >
                     <span
-                      style={{
-                        fontSize: "0.76rem",
-                        color: "var(--text-secondary)",
-                        fontWeight: 700,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                      }}
+                      className="sandbox-inline-icon--secondary-sm"
                     >
                       <SimulationPeriodIcon size={12} />
                       <span>Salary Cadence Mode:</span>
@@ -2448,10 +1651,7 @@ export default function SandboxControls(): JSX.Element {
                     ]}
                   />
                   <div
-                    style={{
-                      fontSize: "0.65rem",
-                      color: "var(--text-muted)",
-                    }}
+                    className="sandbox-note sandbox-note--flush"
                   >
                     Controls slider units across husband and wife salaries.
                   </div>
@@ -2459,33 +1659,17 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 2: PRIMARY HUSBAND GROSS COMPENSATION & WORKING TIMES */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--color-primary)",
-                        marginBottom: "6px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-card__heading"
                     >
                       <EmploymentCompensationIcon size={13} />
                       <span>Husband Gross Compensation</span>
                     </div>
                     {/* Gross Amount */}
-                    <div style={{ marginBottom: "10px" }}>
+                    <div className="sandbox-mb-3">
                       <NumberField
                         compact
                         id="sim-husband-gross"
@@ -2520,7 +1704,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
 
                     {/* Husband Working Hours */}
-                    <div style={{ marginBottom: "10px" }}>
+                    <div className="sandbox-mb-3">
                       <NumberField
                         compact
                         id="sim-husband-hours"
@@ -2549,8 +1733,8 @@ export default function SandboxControls(): JSX.Element {
                     </div>
 
                     {/* Husband Annual Salaries Count & Bonus Distribution */}
-                    <div style={{ marginBottom: "8px" }}>
-                      <div style={{ marginBottom: "4px" }}>
+                    <div className="sandbox-mb-2">
+                      <div className="sandbox-mb-1">
                         <SegmentedControl
                           compact
                           fullWidth
@@ -2574,32 +1758,15 @@ export default function SandboxControls(): JSX.Element {
                       {husbandSalariesCount.value ===
                         AnnualSalariesCount.Thirteen && (
                         <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "2px",
-                            padding: "4px 6px",
-                            background: "var(--bg-surface)",
-                            borderRadius: "3px",
-                            border: "1px solid var(--border-subtle)",
-                            marginTop: "3px",
-                          }}
+                          className="sandbox-surface-box sandbox-surface-box--stack"
                         >
                           <div
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.60rem",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-text-muted-2xs"
                           >
                             13th Salary Distribution Ratio:
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              flexWrap: "wrap",
-                            }}
+                            className="sandbox-chip-wrap"
                           >
                             {[
                               {
@@ -2625,25 +1792,7 @@ export default function SandboxControls(): JSX.Element {
                                 onClick={() =>
                                   setHusbandBonusPreset(preset.val)
                                 }
-                                style={{
-                                  padding: "1px 4px",
-                                  fontSize: "0.58rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "1px solid var(--color-primary)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "var(--color-primary-bg)"
-                                      : "transparent",
-                                  color:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "var(--color-primary)"
-                                      : "var(--text-secondary)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
+                                className={`sandbox-chip-btn ${husbandBonusPreset.value === preset.val ? "sandbox-chip-btn--active-primary" : ""}`}
                               >
                                 {preset.label}
                               </button>
@@ -2655,32 +1804,15 @@ export default function SandboxControls(): JSX.Element {
                       {husbandSalariesCount.value ===
                         AnnualSalariesCount.Fourteen && (
                         <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "2px",
-                            padding: "4px 6px",
-                            background: "var(--bg-surface)",
-                            borderRadius: "3px",
-                            border: "1px solid var(--border-subtle)",
-                            marginTop: "3px",
-                          }}
+                          className="sandbox-surface-box sandbox-surface-box--stack"
                         >
                           <div
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.60rem",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-text-muted-2xs"
                           >
                             14th Salary Distribution:
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              flexWrap: "wrap",
-                            }}
+                            className="sandbox-chip-wrap"
                           >
                             {[
                               {
@@ -2698,25 +1830,7 @@ export default function SandboxControls(): JSX.Element {
                                 onClick={() =>
                                   setHusbandBonusPreset(preset.val)
                                 }
-                                style={{
-                                  padding: "1px 4px",
-                                  fontSize: "0.58rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "1px solid var(--color-primary)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "var(--color-primary-bg)"
-                                      : "transparent",
-                                  color:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "var(--color-primary)"
-                                      : "var(--text-secondary)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
+                                className={`sandbox-chip-btn ${husbandBonusPreset.value === preset.val ? "sandbox-chip-btn--active-primary" : ""}`}
                               >
                                 {preset.label}
                               </button>
@@ -2728,32 +1842,15 @@ export default function SandboxControls(): JSX.Element {
                       {husbandSalariesCount.value ===
                         AnnualSalariesCount.Fifteen && (
                         <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "2px",
-                            padding: "4px 6px",
-                            background: "var(--bg-surface)",
-                            borderRadius: "3px",
-                            border: "1px solid var(--border-subtle)",
-                            marginTop: "3px",
-                          }}
+                          className="sandbox-surface-box sandbox-surface-box--stack"
                         >
                           <div
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.60rem",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-text-muted-2xs"
                           >
                             15th Salary Distribution:
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              flexWrap: "wrap",
-                            }}
+                            className="sandbox-chip-wrap"
                           >
                             {[
                               {
@@ -2771,25 +1868,7 @@ export default function SandboxControls(): JSX.Element {
                                 onClick={() =>
                                   setHusbandBonusPreset(preset.val)
                                 }
-                                style={{
-                                  padding: "1px 4px",
-                                  fontSize: "0.58rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "1px solid var(--color-primary)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "var(--color-primary-bg)"
-                                      : "transparent",
-                                  color:
-                                    husbandBonusPreset.value === preset.val
-                                      ? "var(--color-primary)"
-                                      : "var(--text-secondary)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
+                                className={`sandbox-chip-btn ${husbandBonusPreset.value === preset.val ? "sandbox-chip-btn--active-primary" : ""}`}
                               >
                                 {preset.label}
                               </button>
@@ -2802,13 +1881,7 @@ export default function SandboxControls(): JSX.Element {
 
                   {/* Husband Tax Class Badges */}
                   <div
-                    style={{
-                      display: "flex",
-                      gap: "4px",
-                      fontSize: "0.66rem",
-                      flexWrap: "wrap",
-                      marginTop: "4px",
-                    }}
+                    className="sandbox-chip-wrap--top"
                   >
                     <span className="badge-brand">
                       Class III:{" "}
@@ -2845,33 +1918,17 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 3: WIFE FULL-TIME PRE-PREGNANCY COMPENSATION & WORKING TIMES */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--series-salary-wife)",
-                        marginBottom: "6px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-card__heading sandbox-card__heading--wife"
                     >
                       <EmploymentCompensationIcon size={13} />
                       <span>Wife Pre-Pregnancy Full-Time Compensation</span>
                     </div>
                     {/* Full-Time Gross Amount */}
-                    <div style={{ marginBottom: "10px" }}>
+                    <div className="sandbox-mb-3">
                       <NumberField
                         compact
                         id="sim-wife-gross"
@@ -2906,7 +1963,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
 
                     {/* Wife Pre-Pregnancy Hours */}
-                    <div style={{ marginBottom: "10px" }}>
+                    <div className="sandbox-mb-3">
                       <NumberField
                         compact
                         id="sim-wife-hours"
@@ -2935,8 +1992,8 @@ export default function SandboxControls(): JSX.Element {
                     </div>
 
                     {/* Wife Annual Salaries Count & Bonus Distribution */}
-                    <div style={{ marginBottom: "8px" }}>
-                      <div style={{ marginBottom: "4px" }}>
+                    <div className="sandbox-mb-2">
+                      <div className="sandbox-mb-1">
                         <SegmentedControl
                           compact
                           fullWidth
@@ -2960,32 +2017,15 @@ export default function SandboxControls(): JSX.Element {
                       {wifeSalariesCount.value ===
                         AnnualSalariesCount.Thirteen && (
                         <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "2px",
-                            padding: "4px 6px",
-                            background: "var(--bg-surface)",
-                            borderRadius: "3px",
-                            border: "1px solid var(--border-subtle)",
-                            marginTop: "3px",
-                          }}
+                          className="sandbox-surface-box sandbox-surface-box--stack"
                         >
                           <div
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.60rem",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-text-muted-2xs"
                           >
                             13th Salary Distribution Ratio:
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              flexWrap: "wrap",
-                            }}
+                            className="sandbox-chip-wrap"
                           >
                             {[
                               {
@@ -3009,25 +2049,7 @@ export default function SandboxControls(): JSX.Element {
                                 key={`w-preset-${preset.val}`}
                                 type="button"
                                 onClick={() => setWifeBonusPreset(preset.val)}
-                                style={{
-                                  padding: "1px 4px",
-                                  fontSize: "0.58rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "1px solid var(--series-salary-wife)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "var(--color-primary-bg)"
-                                      : "transparent",
-                                  color:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "var(--series-salary-wife)"
-                                      : "var(--text-secondary)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
+                                className={`sandbox-chip-btn ${wifeBonusPreset.value === preset.val ? "sandbox-chip-btn--active-wife" : ""}`}
                               >
                                 {preset.label}
                               </button>
@@ -3039,32 +2061,15 @@ export default function SandboxControls(): JSX.Element {
                       {wifeSalariesCount.value ===
                         AnnualSalariesCount.Fourteen && (
                         <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "2px",
-                            padding: "4px 6px",
-                            background: "var(--bg-surface)",
-                            borderRadius: "3px",
-                            border: "1px solid var(--border-subtle)",
-                            marginTop: "3px",
-                          }}
+                          className="sandbox-surface-box sandbox-surface-box--stack"
                         >
                           <div
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.60rem",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-text-muted-2xs"
                           >
                             14th Salary Distribution:
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              flexWrap: "wrap",
-                            }}
+                            className="sandbox-chip-wrap"
                           >
                             {[
                               {
@@ -3080,25 +2085,7 @@ export default function SandboxControls(): JSX.Element {
                                 key={`w-preset-${preset.val}`}
                                 type="button"
                                 onClick={() => setWifeBonusPreset(preset.val)}
-                                style={{
-                                  padding: "1px 4px",
-                                  fontSize: "0.58rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "1px solid var(--series-salary-wife)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "var(--color-primary-bg)"
-                                      : "transparent",
-                                  color:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "var(--series-salary-wife)"
-                                      : "var(--text-secondary)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
+                                className={`sandbox-chip-btn ${wifeBonusPreset.value === preset.val ? "sandbox-chip-btn--active-wife" : ""}`}
                               >
                                 {preset.label}
                               </button>
@@ -3110,32 +2097,15 @@ export default function SandboxControls(): JSX.Element {
                       {wifeSalariesCount.value ===
                         AnnualSalariesCount.Fifteen && (
                         <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "2px",
-                            padding: "4px 6px",
-                            background: "var(--bg-surface)",
-                            borderRadius: "3px",
-                            border: "1px solid var(--border-subtle)",
-                            marginTop: "3px",
-                          }}
+                          className="sandbox-surface-box sandbox-surface-box--stack"
                         >
                           <div
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.60rem",
-                              fontWeight: 600,
-                            }}
+                            className="sandbox-text-muted-2xs"
                           >
                             15th Salary Distribution:
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              gap: "3px",
-                              flexWrap: "wrap",
-                            }}
+                            className="sandbox-chip-wrap"
                           >
                             {[
                               {
@@ -3151,25 +2121,7 @@ export default function SandboxControls(): JSX.Element {
                                 key={`w-preset-${preset.val}`}
                                 type="button"
                                 onClick={() => setWifeBonusPreset(preset.val)}
-                                style={{
-                                  padding: "1px 4px",
-                                  fontSize: "0.58rem",
-                                  borderRadius: "3px",
-                                  border:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "1px solid var(--series-salary-wife)"
-                                      : "1px solid var(--border-subtle)",
-                                  background:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "var(--color-primary-bg)"
-                                      : "transparent",
-                                  color:
-                                    wifeBonusPreset.value === preset.val
-                                      ? "var(--series-salary-wife)"
-                                      : "var(--text-secondary)",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
+                                className={`sandbox-chip-btn ${wifeBonusPreset.value === preset.val ? "sandbox-chip-btn--active-wife" : ""}`}
                               >
                                 {preset.label}
                               </button>
@@ -3182,13 +2134,7 @@ export default function SandboxControls(): JSX.Element {
 
                   {/* Wife FT Tax Class Badges */}
                   <div
-                    style={{
-                      display: "flex",
-                      gap: "4px",
-                      fontSize: "0.66rem",
-                      flexWrap: "wrap",
-                      marginTop: "4px",
-                    }}
+                    className="sandbox-chip-wrap--top"
                   >
                     <span className="badge-warning">
                       Class V:{" "}
@@ -3266,44 +2212,15 @@ export default function SandboxControls(): JSX.Element {
                   return (
                     <div
                       key={whc.changeId || `hours-change-${idx}`}
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: isWife
-                          ? "1px solid var(--series-mutterschutz)"
-                          : isHusband
-                            ? "1px solid var(--color-primary-border)"
-                            : "1px solid var(--border-subtle)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        gap: "8px",
-                      }}
+                      className={`sandbox-card sandbox-card--spaced ${isWife ? "sandbox-card--wife" : isHusband ? "sandbox-card--husband" : ""}`}
                     >
                       <div>
                         {/* Header: Title & Delete Button */}
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-card__header"
                         >
                           <span
-                            style={{
-                              fontSize: "0.78rem",
-                              fontWeight: 800,
-                              color: isWife
-                                ? "var(--series-mutterschutz)"
-                                : isHusband
-                                  ? "var(--color-primary)"
-                                  : "var(--series-salary-wife)",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "5px",
-                            }}
+                            className={`sandbox-card__title-person ${isWife ? "sandbox-card__title-person--wife" : isHusband ? "sandbox-card__title-person--husband" : ""}`}
                           >
                             <ChildBirthMilestoneIcon size={13} />
                             <span>
@@ -3316,19 +2233,7 @@ export default function SandboxControls(): JSX.Element {
                             onClick={() =>
                               removeWorkingHoursChangeAction(whc.changeId)
                             }
-                            style={{
-                              background: "var(--color-loss-bg)",
-                              color: "var(--color-loss)",
-                              border: "1px solid var(--color-loss-border)",
-                              borderRadius: "3px",
-                              padding: "2px 6px",
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
+                            className="sandbox-remove-btn"
                           >
                             <RemoveItemIcon size={11} />
                           </button>
@@ -3336,21 +2241,11 @@ export default function SandboxControls(): JSX.Element {
 
                         {/* Target Person & Effective Month Selectors */}
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "6px",
-                            marginBottom: "8px",
-                          }}
+                          className="sandbox-grid-2"
                         >
                           <div>
                             <label
-                              style={{
-                                display: "block",
-                                fontSize: "0.65rem",
-                                color: "var(--text-muted)",
-                                marginBottom: "2px",
-                              }}
+                              className="sandbox-field-label sandbox-field-label--xs"
                             >
                               Person:
                             </label>
@@ -3362,15 +2257,7 @@ export default function SandboxControls(): JSX.Element {
                                     .value as TargetPerson,
                                 });
                               }}
-                              style={{
-                                width: "100%",
-                                padding: "4px 6px",
-                                fontSize: "0.72rem",
-                                borderRadius: "4px",
-                                border: "1px solid var(--border-subtle)",
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                              }}
+                              className="sandbox-input sandbox-input--regular"
                             >
                               <option value={TargetPerson.Wife}>
                                 Wife (Mother)
@@ -3385,12 +2272,7 @@ export default function SandboxControls(): JSX.Element {
                           </div>
                           <div>
                             <label
-                              style={{
-                                display: "block",
-                                fontSize: "0.65rem",
-                                color: "var(--text-muted)",
-                                marginBottom: "2px",
-                              }}
+                              className="sandbox-field-label sandbox-field-label--xs"
                             >
                               Effective Date:
                             </label>
@@ -3416,15 +2298,7 @@ export default function SandboxControls(): JSX.Element {
                                     toFullCalendarYear(calY),
                                 });
                               }}
-                              style={{
-                                width: "100%",
-                                padding: "4px 6px",
-                                fontSize: "0.72rem",
-                                borderRadius: "4px",
-                                border: "1px solid var(--border-subtle)",
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                              }}
+                              className="sandbox-input sandbox-input--regular"
                             >
                               {Array.from(
                                 {
@@ -3445,7 +2319,7 @@ export default function SandboxControls(): JSX.Element {
                         </div>
 
                         {/* Working Hours Exact Input & Slider */}
-                        <div style={{ marginBottom: "8px" }}>
+                        <div className="sandbox-mb-2">
                           <NumberField
                             compact
                             id={`sim-whc-${whc.changeId}`}
@@ -3483,7 +2357,7 @@ export default function SandboxControls(): JSX.Element {
                         </div>
 
                         {/* Reason input */}
-                        <div style={{ marginBottom: "6px" }}>
+                        <div className="sandbox-mb-2">
                           <input
                             type="text"
                             value={whc.reason}
@@ -3493,36 +2367,14 @@ export default function SandboxControls(): JSX.Element {
                                 reason: (e.target as HTMLInputElement).value,
                               });
                             }}
-                            style={{
-                              width: "100%",
-                              padding: "4px 6px",
-                              fontSize: "0.68rem",
-                              borderRadius: "4px",
-                              border: "1px solid var(--border-subtle)",
-                              background: "var(--bg-surface)",
-                              color: "var(--text-primary)",
-                            }}
+                            className="sandbox-input sandbox-input--regular"
                           />
                         </div>
 
                         {/* Statutory Corridor Validation Indicator */}
                         {hours > 32 ? (
                           <div
-                            style={{
-                              width: "100%",
-                              textAlign: "left",
-                              fontSize: "0.65rem",
-                              color: "var(--color-loss)",
-                              background: "var(--color-loss-bg)",
-                              padding: "3px 5px",
-                              borderRadius: "4px",
-                              marginTop: "4px",
-                              fontWeight: 600,
-                              border: "1px solid var(--color-loss-border)",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
+                            className="sandbox-alert-btn sandbox-alert-btn--loss"
                           >
                             <StatutoryLimitationWarningIcon size={11} />
                             <span>
@@ -3540,21 +2392,7 @@ export default function SandboxControls(): JSX.Element {
                               activeLegalRuleKey.value =
                                 LegalRuleKey.BEEG_PartnershipBonus;
                             }}
-                            style={{
-                              width: "100%",
-                              textAlign: "left",
-                              fontSize: "0.65rem",
-                              color: "var(--color-gain)",
-                              background: "var(--color-gain-bg)",
-                              padding: "3px 5px",
-                              borderRadius: "4px",
-                              marginTop: "4px",
-                              fontWeight: 600,
-                              border: "1px solid var(--color-gain-border)",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
+                            className="sandbox-alert-btn sandbox-alert-btn--gain"
                             title="§ 4b BEEG Partnership Bonus rules and worked example — Click for quick popup · Ctrl+Click for full page"
                           >
                             <EligibilityConfirmedIcon size={11} />
@@ -3565,14 +2403,7 @@ export default function SandboxControls(): JSX.Element {
                           </LawRefLink>
                         ) : hours === 0 ? (
                           <div
-                            style={{
-                              fontSize: "0.65rem",
-                              color: "var(--color-primary)",
-                              background: "var(--color-primary-bg)",
-                              padding: "3px 5px",
-                              borderRadius: "4px",
-                              marginTop: "4px",
-                            }}
+                            className="sandbox-alert-box--primary"
                           >
                             ℹ Full Parental Leave (0h / week · 100% leave)
                           </div>
@@ -3585,21 +2416,7 @@ export default function SandboxControls(): JSX.Element {
                               activeLegalRuleKey.value =
                                 LegalRuleKey.BEEG_PartnershipBonus;
                             }}
-                            style={{
-                              width: "100%",
-                              textAlign: "left",
-                              fontSize: "0.65rem",
-                              color: "var(--color-warning)",
-                              background: "var(--color-warning-bg)",
-                              padding: "3px 5px",
-                              borderRadius: "4px",
-                              marginTop: "4px",
-                              fontWeight: 600,
-                              border: "1px solid var(--color-warning-border)",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
+                            className="sandbox-alert-btn sandbox-alert-btn--warning"
                             title="§ 4b BEEG corridor requirements — Click for quick popup · Ctrl+Click for full page"
                           >
                             <InformationalNoticeIcon size={11} />
@@ -3614,27 +2431,14 @@ export default function SandboxControls(): JSX.Element {
 
                       {/* Proportional Salary Preview & Total Inflow */}
                       <div
-                        style={{
-                          background: "var(--bg-surface)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "5px",
-                          padding: "5px 7px",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "2px",
-                        }}
+                        className="sandbox-surface-box sandbox-surface-box--stack"
                       >
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "0.66rem",
-                            color: "var(--text-secondary)",
-                          }}
+                          className="sandbox-row--between-meta"
                         >
                           <span>Proportional Gross:</span>
                           <strong
-                            style={{ fontVariantNumeric: "tabular-nums" }}
+                            className="sandbox-val-tab"
                           >
                             {formatCurrency(
                               salaryPeriod.value === SalaryPeriod.Yearly
@@ -3647,16 +2451,11 @@ export default function SandboxControls(): JSX.Element {
                           </strong>
                         </div>
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "0.66rem",
-                            color: "var(--text-secondary)",
-                          }}
+                          className="sandbox-row--between-meta"
                         >
                           <span>Part-Time Net:</span>
                           <strong
-                            style={{ fontVariantNumeric: "tabular-nums" }}
+                            className="sandbox-val-tab"
                           >
                             {formatCurrency(
                               salaryPeriod.value === SalaryPeriod.Yearly
@@ -3670,41 +2469,22 @@ export default function SandboxControls(): JSX.Element {
                         </div>
                         {isWife && (
                           <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              fontSize: "0.66rem",
-                              color: "var(--text-secondary)",
-                            }}
+                            className="sandbox-row--between-meta"
                           >
                             <span>ElterngeldPlus (+65%):</span>
                             <strong
-                              style={{
-                                color: "var(--color-gain)",
-                                fontVariantNumeric: "tabular-nums",
-                              }}
+                              className="sandbox-val-tab--gain"
                             >
                               +{formatCurrency(estimatedEgPlus)}/mo
                             </strong>
                           </div>
                         )}
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "0.68rem",
-                            color: "var(--text-primary)",
-                            borderTop: "1px solid var(--border-subtle)",
-                            paddingTop: "2px",
-                            fontWeight: 700,
-                          }}
+                          className="sandbox-row--between-total"
                         >
                           <span>Total Inflow:</span>
                           <span
-                            style={{
-                              color: "var(--color-gain)",
-                              fontVariantNumeric: "tabular-nums",
-                            }}
+                            className="sandbox-val-tab--gain"
                           >
                             {formatCurrency(
                               salaryPeriod.value === SalaryPeriod.Yearly
@@ -3732,39 +2512,16 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 4: FINANCIAL EVENTS, RECURRING INFLOWS & COSTS */}
             {/* ======================================================== */}
             <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px 18px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-              }}
+              className="sandbox-batch"
             >
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "14px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "10px",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                }}
+                className="sandbox-batch__header"
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    flexWrap: "wrap",
-                  }}
+                  className="sandbox-batch__title-group"
                 >
                   <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: "var(--color-primary)",
-                    }}
+                    className="sandbox-batch__title"
                   >
                     4. Other income &amp; costs
                   </span>
@@ -3774,9 +2531,7 @@ export default function SandboxControls(): JSX.Element {
                 </div>
 
                 {/* Add Cost and Inflow Buttons */}
-                <div style={{ display: "flex",
-                  gap: "8px",
-                  flexWrap: "wrap" }}>
+                <div className="sandbox-row sandbox-row--wrap">
                   <button
                     type="button"
                     onClick={() => {
@@ -3806,20 +2561,7 @@ export default function SandboxControls(): JSX.Element {
                           "Custom family nursery or childcare expense",
                       });
                     }}
-                    style={{
-                      padding: "5px 10px",
-                      background: "var(--color-loss-bg)",
-                      color: "var(--color-loss)",
-                      border: "1px solid var(--color-loss-border)",
-                      borderRadius: "4px",
-                      fontSize: "0.72rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                    }}
+                    className="sandbox-action-btn sandbox-action-btn--loss"
                   >
                     <AddActionIcon size={12} />
                     <span>Add Cost (-1.000 €)</span>
@@ -3853,20 +2595,7 @@ export default function SandboxControls(): JSX.Element {
                         description: "Special employer bonus or one-off grant",
                       });
                     }}
-                    style={{
-                      padding: "5px 10px",
-                      background: "var(--color-gain-bg)",
-                      color: "var(--color-gain)",
-                      border: "1px solid var(--color-gain-border)",
-                      borderRadius: "4px",
-                      fontSize: "0.72rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                    }}
+                    className="sandbox-action-btn sandbox-action-btn--gain"
                   >
                     <AddActionIcon size={12} />
                     <span>Add Inflow (+1.500 €)</span>
@@ -3876,35 +2605,15 @@ export default function SandboxControls(): JSX.Element {
 
               {/* Dynamic Financial Events Auto-Wrapping Columns */}
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
-                  gap: "14px",
-                }}
+                className="sandbox-grid"
               >
                 {/* ENTRY 1: Standing Recurring Inflows (13th Month, Bonus, Capital Returns) */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--series-elterngeld-mother)",
-                        marginBottom: "6px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-card__heading sandbox-card__heading--mother"
                     >
                       <FinancialInflowIcon size={13} />
                       <span>Standing Recurring Inflow Channels</span>
@@ -3912,32 +2621,15 @@ export default function SandboxControls(): JSX.Element {
 
                     {/* Extra Salaries & Bonus Summary Badge */}
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "6px",
-                        padding: "4px 8px",
-                        background: "var(--bg-surface)",
-                        borderRadius: "var(--border-radius-xs)",
-                        border: "1px solid var(--border-subtle)",
-                      }}
+                      className="sandbox-surface-box sandbox-surface-box--header-row"
                     >
                       <span
-                        style={{
-                          fontSize: "0.68rem",
-                          color: "var(--text-secondary)",
-                          fontWeight: 600,
-                        }}
+                        className="sandbox-text-secondary-sm"
                       >
                         13th-15th Salaries:
                       </span>
                       <span
-                        style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          color: "var(--color-primary)",
-                        }}
+                        className="sandbox-text-primary-xs"
                       >
                         Husband: {husbandSalariesCount.value}x | Wife:{" "}
                         {wifeSalariesCount.value}x
@@ -3945,7 +2637,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
 
                     {/* Annual Performance Bonus */}
-                    <div style={{ marginBottom: "8px" }}>
+                    <div className="sandbox-mb-2">
                       <NumberField
                         compact
                         id="sim-annual-bonus"
@@ -3961,18 +2653,10 @@ export default function SandboxControls(): JSX.Element {
                       />
                       {annualBonusGross.value > 0 && (
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginTop: "2px",
-                          }}
+                          className="sandbox-row--between-top"
                         >
                           <span
-                            style={{
-                              fontSize: "0.64rem",
-                              color: "var(--text-muted)",
-                            }}
+                            className="sandbox-note sandbox-note--flush"
                           >
                             Payout Month:
                           </span>
@@ -3983,14 +2667,7 @@ export default function SandboxControls(): JSX.Element {
                                 Number((e.target as HTMLSelectElement).value),
                               );
                             }}
-                            style={{
-                              background: "var(--bg-surface)",
-                              color: "var(--text-primary)",
-                              border: "1px solid var(--border-subtle)",
-                              borderRadius: "3px",
-                              padding: "1px 4px",
-                              fontSize: "0.66rem",
-                            }}
+                            className="sandbox-select sandbox-input--tiny-select"
                           >
                             {MONTH_NAMES.map((mName, idx) => (
                               <option
@@ -4023,11 +2700,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
                   </div>
                   <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color: "var(--text-muted)",
-                      marginTop: "4px",
-                    }}
+                    className="sandbox-note"
                   >
                     Examples include dividends, rent, and ETF income (
                     <LawRefLink lawId={LawId.EStG_20} />
@@ -4043,73 +2716,30 @@ export default function SandboxControls(): JSX.Element {
                   return (
                     <div
                       key={fe.eventId || `fe-${idx}`}
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: isCost
-                          ? "1px solid var(--color-loss-border)"
-                          : "1px solid var(--color-gain-border)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
+                      className={`sandbox-card ${isCost ? "sandbox-card--loss" : "sandbox-card--gain"}`}
                     >
                       <div>
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-card__header"
                         >
                           <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                            }}
+                            className="sandbox-row"
                           >
-                            <span
-                              className={isCost ? "badge-loss" : "badge-gain"}
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "3px",
-                              }}
-                            >
+                            <span className={`${isCost ? "badge-loss" : "badge-gain"} sandbox-inline-icon`}>
                               <FinancialInflowIcon size={11} />
                               <span>{isCost ? "COST" : "INFLOW"}</span>
                             </span>
                             <span
-                              style={{
-                                fontSize: "0.76rem",
-                                fontWeight: 800,
-                                color: isCost
-                                  ? "var(--color-loss)"
-                                  : "var(--color-gain)",
-                              }}
+                              className={`sandbox-card__title-event ${isCost ? "sandbox-card__title-event--loss" : ""}`}
                             >
                               {fe.title}
                             </span>
                           </div>
                           <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                            }}
+                            className="sandbox-row"
                           >
                             <span
-                              style={{
-                                fontVariantNumeric: "tabular-nums",
-                                fontWeight: 800,
-                                fontSize: "0.80rem",
-                                color: isCost
-                                  ? "var(--color-loss)"
-                                  : "var(--color-gain)",
-                              }}
+                              className={`sandbox-card__amount ${isCost ? "sandbox-card__amount--loss" : ""}`}
                             >
                               {formatCurrency(fe.amount)}
                             </span>
@@ -4118,41 +2748,19 @@ export default function SandboxControls(): JSX.Element {
                               onClick={() =>
                                 removeFinancialEventAction(fe.eventId)
                               }
-                              style={{
-                                background: "var(--color-loss-bg)",
-                                color: "var(--color-loss)",
-                                border: "1px solid var(--color-loss-border)",
-                                borderRadius: "3px",
-                                padding: "2px 6px",
-                                fontSize: "0.65rem",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
+                              className="sandbox-remove-btn"
                             >
                               <RemoveItemIcon size={11} />
                             </button>
                           </div>
                         </div>
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "0.72rem",
-                            color: "var(--text-secondary)",
-                            marginBottom: "4px",
-                          }}
+                          className="sandbox-row--between-xs"
                         >
                           <span>
                             Effective:{" "}
                             <strong
-                              style={{
-                                color: isCost
-                                  ? "var(--color-loss)"
-                                  : "var(--color-gain)",
-                              }}
+                              className={isCost ? "sandbox-text-loss" : "sandbox-text-gain"}
                             >
                               {getMonthSimRef(sMonth)} · {getCalDate(sMonth)}
                             </strong>{" "}
@@ -4160,24 +2768,14 @@ export default function SandboxControls(): JSX.Element {
                             {getMonthId(sMonth)}
                           </span>
                           <span
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.66rem",
-                            }}
+                            className="sandbox-text-muted-xs"
                           >
                             {fe.category}
                           </span>
                         </div>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
-                          background: "var(--bg-surface)",
-                          padding: "4px 6px",
-                          borderRadius: "3px",
-                          marginTop: "6px",
-                        }}
+                        className="sandbox-note sandbox-note--box"
                       >
                         {fe.description}
                       </div>
@@ -4191,51 +2789,22 @@ export default function SandboxControls(): JSX.Element {
             {/* BATCH 0: PREEXISTING CONDITIONS & SIMULATION PARAMETERS */}
             {/* ======================================================== */}
             <div
-              style={{
-                background: "var(--bg-surface)",
-                padding: "16px 18px",
-                borderRadius: "var(--border-radius)",
-                border: "1px solid var(--border-subtle)",
-              }}
+              className="sandbox-batch"
             >
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "14px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  paddingBottom: "10px",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                }}
+                className="sandbox-batch__header"
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
+                  className="sandbox-batch__title-row"
                 >
                   <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: "var(--color-primary)",
-                    }}
+                    className="sandbox-batch__title"
                   >
                     Starting conditions &amp; forecast period
                   </span>
                 </div>
                 <span
-                  style={{
-                    fontSize: "0.70rem",
-                    color: "var(--text-muted)",
-                    background: "var(--bg-surface-secondary)",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    fontWeight: 600,
-                  }}
+                  className="sandbox-batch__pill"
                 >
                   Start: {getCalDate(1)} ({getRelativeMonthLabel(1)}) ·{" "}
                   {getMonthId(1)} ({simulationDurationMonths.value}M)
@@ -4258,51 +2827,24 @@ export default function SandboxControls(): JSX.Element {
               <PayrollPersonalInputs id="simulator-wife" options={wifePayrollOptions} showLocation />
               {/* Entries Grid: Columns with Auto-Wrap */}
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
-                  gap: "14px",
-                }}
+                className="sandbox-grid sandbox-grid--compact"
               >
                 {/* ENTRY 1: Simulation Start Date & Horizon */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                        marginBottom: "6px",
-                      }}
+                      className="sandbox-row--between-sm"
                     >
                       <span
-                        style={{
-                          color: "var(--text-secondary)",
-                          fontWeight: 700,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                        }}
+                        className="sandbox-inline-icon--secondary"
                       >
                         <SimulationPeriodIcon size={12} />
                         <span>Sim Start &amp; Horizon:</span>
                       </span>
                       <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-primary)",
-                        }}
+                        className="sandbox-val-tab--primary"
                       >
                         {getCalDate(1)} ({getRelativeMonthLabel(1)}) ·{" "}
                         {getMonthId(1)} → {getCalDate(endSimMonth)} (
@@ -4312,12 +2854,7 @@ export default function SandboxControls(): JSX.Element {
                       </span>
                     </div>
                     <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "2fr 1fr",
-                        gap: "6px",
-                        marginBottom: "8px",
-                      }}
+                      className="sandbox-grid-2-1"
                     >
                       <select
                         aria-label="Forecast start month"
@@ -4327,14 +2864,7 @@ export default function SandboxControls(): JSX.Element {
                             Number((e.target as HTMLSelectElement).value),
                           );
                         }}
-                        style={{
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "4px 6px",
-                          fontSize: "0.74rem",
-                        }}
+                        className="sandbox-input sandbox-input--inline"
                       >
                         {MONTH_NAMES.map((name, idx) => (
                           <option key={`start-m-${idx + 1}`} value={idx + 1}>
@@ -4350,14 +2880,7 @@ export default function SandboxControls(): JSX.Element {
                             Number((e.target as HTMLSelectElement).value),
                           );
                         }}
-                        style={{
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "4px 6px",
-                          fontSize: "0.74rem",
-                        }}
+                        className="sandbox-input sandbox-input--inline"
                       >
                         {[
                           2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032,
@@ -4371,11 +2894,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
                   </div>
                   <div
-                    style={{
-                      display: "flex",
-                      gap: "4px",
-                      flexWrap: "wrap",
-                    }}
+                    className="sandbox-chip-wrap"
                   >
                     {[12, 24, 36, 48, 60, 72, 84, 96, 100, 108, 120].map(
                       (dur) => (
@@ -4388,26 +2907,7 @@ export default function SandboxControls(): JSX.Element {
                             simulationDurationMonths.value =
                               toMonthDuration(dur);
                           }}
-                          style={{
-                            padding: "8px 10px",
-                            minHeight: "40px",
-                            borderRadius: "3px",
-                            border:
-                              simulationDurationMonths.value === dur
-                                ? "1px solid var(--color-primary)"
-                                : "1px solid var(--border-subtle)",
-                            background:
-                              simulationDurationMonths.value === dur
-                                ? "var(--color-primary)"
-                                : "var(--bg-surface)",
-                            color:
-                              simulationDurationMonths.value === dur
-                                ? "var(--text-inverse)"
-                                : "var(--text-secondary)",
-                            fontSize: "0.68rem",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                          }}
+                          className={`sandbox-duration-btn ${simulationDurationMonths.value === dur ? "sandbox-duration-btn--active" : ""}`}
                         >
                           {dur}M
                         </button>
@@ -4418,43 +2918,17 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 2: Preconditions Baseline Summary Card */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--color-primary)",
-                        marginBottom: "6px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-card__heading"
                     >
                       <InformationalNoticeIcon size={13} />
                       <span>Conditions at simulation start</span>
                     </div>
                     <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "3px",
-                        fontSize: "0.68rem",
-                        color: "var(--text-secondary)",
-                        background: "var(--bg-surface)",
-                        padding: "6px 8px",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-subtle)",
-                      }}
+                      className="sandbox-surface-box sandbox-surface-box--summary"
                     >
                       <div>
                         <strong>Husband:</strong>{" "}
@@ -4475,11 +2949,7 @@ export default function SandboxControls(): JSX.Element {
                     </div>
                   </div>
                   <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color: "var(--text-muted)",
-                      marginTop: "6px",
-                    }}
+                    className="sandbox-note"
                   >
                     Values at the start of the forecast.
                     Defaults to 0 if unreported.
@@ -4488,24 +2958,11 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 3: Kindergeld Rate */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                        marginBottom: "4px",
-                      }}
+                      className="sandbox-row--between-sm-tight"
                     >
                       <LawRefLink
                         lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.EStG_Kindergeld].lawId}
@@ -4514,27 +2971,12 @@ export default function SandboxControls(): JSX.Element {
                         onOpen={() => {
                           activeLegalRuleKey.value = LegalRuleKey.EStG_Kindergeld;
                         }}
-                        style={{
-                          color: "var(--text-secondary)",
-                          fontSize: "0.74rem",
-                          fontWeight: 700,
-                          textAlign: "left",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
+                        className="sandbox-law-heading"
                         title="§ 66 EStG Kindergeld legal rule & example — Click for quick popup · Ctrl+Click for full page"
                       >
                         <span>Kindergeld</span>
                         <span
-                          style={{
-                            color: "var(--color-primary)",
-                            textDecoration: "underline",
-                            fontSize: "0.72rem",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "2px",
-                          }}
+                          className="sandbox-inline-link sandbox-inline-link--primary"
                         >
                           <span>(§ 66 EStG)</span>
                           <StatutorySectionIcon size={10} />
@@ -4542,11 +2984,7 @@ export default function SandboxControls(): JSX.Element {
                         :
                       </LawRefLink>
                       <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-loss)",
-                        }}
+                        className="sandbox-val-tab--loss"
                       >
                         {formatCurrency(kindergeldPerChild.value)} / mo
                       </span>
@@ -4565,11 +3003,7 @@ export default function SandboxControls(): JSX.Element {
                     />
                   </div>
                   <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color: "var(--text-muted)",
-                      marginTop: "4px",
-                    }}
+                    className="sandbox-note"
                   >
                     ↳ Reconciled in tax return (
                     <LawRefLink
@@ -4582,15 +3016,7 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 4: Deductions Breakdown */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <button
@@ -4598,38 +3024,16 @@ export default function SandboxControls(): JSX.Element {
                       onClick={() =>
                         setShowDeductionsBreakdown(!showDeductionsBreakdown)
                       }
-                      style={{
-                        width: "100%",
-                        padding: "4px 6px",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-subtle)",
-                        background: "var(--bg-surface)",
-                        color: "var(--text-secondary)",
-                        fontSize: "0.70rem",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "6px",
-                      }}
+                      className="sandbox-disclosure-btn"
                     >
                       <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          fontWeight: 700,
-                        }}
+                        className="sandbox-inline-icon--bold"
                       >
                         <SimulatorNavigationIcon size={12} />
                         <span>Tax &amp; Social Deductions</span>
                       </span>
                       <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "3px",
-                        }}
+                        className="sandbox-inline-icon"
                       >
                         {showDeductionsBreakdown ? (
                           <>
@@ -4647,21 +3051,10 @@ export default function SandboxControls(): JSX.Element {
 
                     {showDeductionsBreakdown ? (
                       <div
-                        style={{
-                          background: "var(--bg-surface)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "6px 8px",
-                          fontSize: "0.66rem",
-                          color: "var(--text-secondary)",
-                        }}
+                        className="sandbox-surface-box sandbox-surface-box--detail"
                       >
                         <div
-                          style={{
-                            fontWeight: 700,
-                            color: "var(--color-primary)",
-                            marginBottom: "2px",
-                          }}
+                          className="sandbox-text-primary-label"
                         >
                           Husband (Class III):{" "}
                           {formatCurrency(
@@ -4681,13 +3074,7 @@ export default function SandboxControls(): JSX.Element {
                           %)
                         </div>
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "2px",
-                            marginBottom: "4px",
-                            fontSize: "0.64rem",
-                          }}
+                          className="sandbox-grid-2 sandbox-grid-2--mini"
                         >
                           <span>
                             • Social:{" "}
@@ -4711,11 +3098,7 @@ export default function SandboxControls(): JSX.Element {
                           </span>
                         </div>
                         <div
-                          style={{
-                            fontWeight: 700,
-                            color: "var(--series-salary-wife)",
-                            marginBottom: "2px",
-                          }}
+                          className="sandbox-text-wife-label"
                         >
                           Wife FT (Class V):{" "}
                           {formatCurrency(
@@ -4735,12 +3118,7 @@ export default function SandboxControls(): JSX.Element {
                           %)
                         </div>
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "2px",
-                            fontSize: "0.64rem",
-                          }}
+                          className="sandbox-grid-2 sandbox-grid-2--mini-flush"
                         >
                           <span>
                             • Social:{" "}
@@ -4766,11 +3144,7 @@ export default function SandboxControls(): JSX.Element {
                       </div>
                     ) : (
                       <div
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
-                          padding: "2px 0",
-                        }}
+                        className="sandbox-note sandbox-note--padded"
                       >
                         View granular statutory social insurance (BBG) and wage
                         tax allocations.
@@ -4781,55 +3155,27 @@ export default function SandboxControls(): JSX.Element {
 
                 {/* ENTRY 5: Prior Living Children (Pre-Simulation) */}
                 <div
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    padding: "12px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
+                  className="sandbox-card"
                 >
                   <div>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        fontSize: "0.76rem",
-                        marginBottom: "6px",
-                      }}
+                      className="sandbox-row--between-sm"
                     >
                       <span
-                        style={{
-                          color: "var(--text-secondary)",
-                          fontWeight: 700,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                        }}
+                        className="sandbox-inline-icon--secondary"
                       >
                         <ChildBirthMilestoneIcon size={12} />
                         <span>Children before the plan:</span>
                       </span>
                       <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 700,
-                          color: "var(--color-primary)",
-                        }}
+                        className="sandbox-val-tab--primary"
                       >
                         {existingChildrenCount.value}{" "}
                         {existingChildrenCount.value === 1 ? "child" : "children"}
                       </span>
                     </div>
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="sandbox-row"
                     >
                       <button
                         type="button"
@@ -4838,18 +3184,7 @@ export default function SandboxControls(): JSX.Element {
                         }
                         disabled={existingChildrenCount.value <= 0}
                         aria-label="Decrease prior living children"
-                        style={{
-                          padding: "4px 10px",
-                          borderRadius: "4px",
-                          border: "1px solid var(--border-subtle)",
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          fontWeight: 700,
-                          cursor:
-                            existingChildrenCount.value <= 0
-                              ? "not-allowed"
-                              : "pointer",
-                        }}
+                        className="sandbox-stepper-btn"
                       >
                         -
                       </button>
@@ -4864,18 +3199,7 @@ export default function SandboxControls(): JSX.Element {
                             Number((e.target as HTMLInputElement).value),
                           )
                         }
-                        style={{
-                          flex: 1,
-                          textAlign: "center",
-                          fontVariantNumeric: "tabular-nums",
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-subtle)",
-                          borderRadius: "4px",
-                          padding: "4px 6px",
-                          fontSize: "0.76rem",
-                          fontWeight: 700,
-                        }}
+                        className="sandbox-input sandbox-input--counter"
                       />
                       <button
                         type="button"
@@ -4884,33 +3208,14 @@ export default function SandboxControls(): JSX.Element {
                         }
                         disabled={existingChildrenCount.value >= 10}
                         aria-label="Increase prior living children"
-                        style={{
-                          padding: "4px 10px",
-                          borderRadius: "4px",
-                          border: "1px solid var(--border-subtle)",
-                          background: "var(--bg-surface)",
-                          color: "var(--text-primary)",
-                          fontWeight: 700,
-                          cursor:
-                            existingChildrenCount.value >= 10
-                              ? "not-allowed"
-                              : "pointer",
-                        }}
+                        className="sandbox-stepper-btn"
                       >
                         +
                       </button>
                     </div>
                   </div>
                   <div
-                    style={{
-                      fontSize: "0.64rem",
-                      color:
-                        existingChildrenCount.value > 0
-                          ? "var(--color-warning)"
-                          : "var(--text-muted)",
-                      marginTop: "6px",
-                      lineHeight: 1.4,
-                    }}
+                    className={`sandbox-note sandbox-note--md ${existingChildrenCount.value > 0 ? "sandbox-note--warning" : ""}`}
                   >
                     {existingChildrenCount.value > 0 ? (
                       <>
@@ -4938,35 +3243,14 @@ export default function SandboxControls(): JSX.Element {
                       : undefined;
                   return (
                     <div
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
+                      className="sandbox-card"
                     >
                       <div>
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontSize: "0.76rem",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-row--between-sm"
                         >
                           <label
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              color: "var(--text-secondary)",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                            }}
+                            className="sandbox-check-label"
                           >
                             <input
                               id="kita-enabled-toggle"
@@ -4997,16 +3281,7 @@ export default function SandboxControls(): JSX.Element {
                               ),
                             })
                           }
-                          style={{
-                            width: "100%",
-                            background: "var(--bg-surface)",
-                            color: "var(--text-primary)",
-                            border: "1px solid var(--border-subtle)",
-                            borderRadius: "4px",
-                            padding: "4px 6px",
-                            fontSize: "0.72rem",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-select sandbox-select--regular sandbox-select--spaced-md"
                         >
                           {presets.map((preset) => (
                             <option key={preset.id} value={preset.id}>
@@ -5020,16 +3295,9 @@ export default function SandboxControls(): JSX.Element {
 
                         {kita.presetId === FederalStateKitaPresetId.Custom && (
                           <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              gap: "6px",
-                              marginBottom: "6px",
-                              fontSize: "0.70rem",
-                            }}
+                            className="sandbox-row--between-field"
                           >
-                            <span style={{ color: "var(--text-secondary)" }}>
+                            <span className="sandbox-text-secondary">
                               Fee / Child / Mo (EUR):
                             </span>
                             <input
@@ -5047,36 +3315,16 @@ export default function SandboxControls(): JSX.Element {
                                   ),
                                 })
                               }
-                              style={{
-                                width: "90px",
-                                textAlign: "right",
-                                fontVariantNumeric: "tabular-nums",
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "3px 6px",
-                                fontSize: "0.72rem",
-                              }}
+                              className="sandbox-input sandbox-input--compact-num"
                             />
                           </div>
                         )}
 
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "6px",
-                            fontSize: "0.68rem",
-                          }}
+                          className="sandbox-grid-2 sandbox-grid-2--flush"
                         >
                           <label
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "2px",
-                              color: "var(--text-muted)",
-                            }}
+                            className="sandbox-stack-xs"
                           >
                             <span>Entry Age (months)</span>
                             <input
@@ -5093,24 +3341,11 @@ export default function SandboxControls(): JSX.Element {
                                   ),
                                 })
                               }
-                              style={{
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "3px 6px",
-                                fontSize: "0.72rem",
-                                fontVariantNumeric: "tabular-nums",
-                              }}
+                              className="sandbox-input sandbox-input--inline"
                             />
                           </label>
                           <label
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "2px",
-                              color: "var(--text-muted)",
-                            }}
+                            className="sandbox-stack-xs"
                           >
                             <span>End Age (months)</span>
                             <input
@@ -5127,26 +3362,13 @@ export default function SandboxControls(): JSX.Element {
                                   ),
                                 })
                               }
-                              style={{
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "3px 6px",
-                                fontSize: "0.72rem",
-                                fontVariantNumeric: "tabular-nums",
-                              }}
+                              className="sandbox-input sandbox-input--inline"
                             />
                           </label>
                         </div>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.64rem",
-                          color: "var(--text-muted)",
-                          marginTop: "6px",
-                          lineHeight: 1.4,
-                        }}
+                        className="sandbox-note sandbox-note--md"
                       >
                         ↳ Illustrative municipal reference schedule (not statutory federal rates).{" "}
                         {selectedPreset
@@ -5181,31 +3403,14 @@ export default function SandboxControls(): JSX.Element {
                   );
                   return (
                     <div
-                      style={{
-                        background: "var(--bg-surface-secondary)",
-                        padding: "12px 14px",
-                        borderRadius: "var(--border-radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
+                      className="sandbox-card"
                     >
                       <div>
                         <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontSize: "0.76rem",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-row--between-sm"
                         >
                           <span
-                            style={{
-                              color: "var(--text-secondary)",
-                              fontWeight: 700,
-                            }}
+                            className="sandbox-text-secondary-bold"
                           >
                             Inflation &amp; Purchasing Power
                           </span>
@@ -5216,21 +3421,10 @@ export default function SandboxControls(): JSX.Element {
                         </div>
 
                         <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr 1fr",
-                            gap: "6px",
-                            fontSize: "0.66rem",
-                            marginBottom: "6px",
-                          }}
+                          className="sandbox-grid-3"
                         >
                           <label
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "2px",
-                              color: "var(--text-muted)",
-                            }}
+                            className="sandbox-stack-xs"
                           >
                             <span>CPI Infl. (%/yr)</span>
                             <input
@@ -5253,24 +3447,11 @@ export default function SandboxControls(): JSX.Element {
                                   pct / 100,
                                 );
                               }}
-                              style={{
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "3px 5px",
-                                fontSize: "0.72rem",
-                                fontVariantNumeric: "tabular-nums",
-                              }}
+                              className="sandbox-input sandbox-input--inline"
                             />
                           </label>
                           <label
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "2px",
-                              color: "var(--text-muted)",
-                            }}
+                            className="sandbox-stack-xs"
                           >
                             <span>Wage Gr. (%/yr)</span>
                             <input
@@ -5293,24 +3474,11 @@ export default function SandboxControls(): JSX.Element {
                                   pct / 100,
                                 );
                               }}
-                              style={{
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "3px 5px",
-                                fontSize: "0.72rem",
-                                fontVariantNumeric: "tabular-nums",
-                              }}
+                              className="sandbox-input sandbox-input--inline"
                             />
                           </label>
                           <label
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "2px",
-                              color: "var(--text-muted)",
-                            }}
+                            className="sandbox-stack-xs"
                           >
                             <span>Bracket (%/yr)</span>
                             <input
@@ -5334,29 +3502,13 @@ export default function SandboxControls(): JSX.Element {
                                   pct / 100,
                                 );
                               }}
-                              style={{
-                                background: "var(--bg-surface)",
-                                color: "var(--text-primary)",
-                                border: "1px solid var(--border-subtle)",
-                                borderRadius: "4px",
-                                padding: "3px 5px",
-                                fontSize: "0.72rem",
-                                fontVariantNumeric: "tabular-nums",
-                              }}
+                              className="sandbox-input sandbox-input--inline"
                             />
                           </label>
                         </div>
 
                         <label
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            fontSize: "0.68rem",
-                            color: "var(--text-secondary)",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                          }}
+                          className="sandbox-check-label sandbox-check-label--sm"
                         >
                           <input
                             id="index-future-brackets-toggle"
@@ -5374,12 +3526,7 @@ export default function SandboxControls(): JSX.Element {
                         </label>
                       </div>
                       <div
-                        style={{
-                          fontSize: "0.64rem",
-                          color: "var(--text-muted)",
-                          marginTop: "6px",
-                          lineHeight: 1.4,
-                        }}
+                        className="sandbox-note sandbox-note--md"
                       >
                         ↳ Discounts future cash flows to Month-1 purchasing power. Published statutory tax years stay unmodified.
                       </div>
