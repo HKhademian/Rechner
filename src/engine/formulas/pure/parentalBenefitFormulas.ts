@@ -4,6 +4,7 @@ import {
   type NetSalary,
   type PercentageRate,
   type WorkingHours,
+  AllowancePlanMode,
   ElterngeldVariant,
   toEuroAmount,
   toMonthDuration,
@@ -595,5 +596,109 @@ export function evaluateOverlapCreditedPaymentFormula(
     overlapCredit,
     payableAmount,
     appliedOffset,
+  });
+}
+
+/**
+ * Named inputs for selecting the statutory parental allowance variant for a single life-month
+ * under §§ 1, 4, 4a BEEG given working hours, life-month offset, and remaining Basis-unit budgets.
+ */
+export interface MonthlyVariantSelectionFormulaInputs {
+  readonly planMode: AllowancePlanMode;
+  readonly weeklyWorkingHours: WorkingHours;
+  readonly maximumWeeklyHoursLimit: WorkingHours;
+  readonly elapsedMonthsSinceBirth: number;
+  readonly maxBasisLifeMonths: number;
+  readonly remainingIndividualBasisUnits: number;
+  readonly remainingFamilyBasisUnits: number;
+  readonly elterngeldPlusFraction: number;
+}
+
+/**
+ * Pure mathematical output of monthly parental allowance variant selection (§§ 1, 4, 4a BEEG).
+ */
+export interface MonthlyVariantSelectionFormulaResult {
+  readonly selectedVariant: ElterngeldVariant | null;
+  readonly basisUnitsConsumed: number;
+  readonly isHoursEligible: boolean;
+  readonly isWithinBasisWindow: boolean;
+}
+
+/**
+ * Tier 1: Selects Basiselterngeld (1.0 Basis unit, LM 1–14) vs. ElterngeldPlus (`elterngeldPlusFraction`
+ * Basis units) for a single life-month according to plan mode (`Auto`, `Basis`, or `Plus`),
+ * § 1 Abs. 6 BEEG weekly hours cap, and remaining individual/family Basis-unit budgets.
+ */
+export function evaluateMonthlyVariantSelectionFormula(
+  inputs: Readonly<MonthlyVariantSelectionFormulaInputs>,
+): MonthlyVariantSelectionFormulaResult {
+  const isHoursEligible = evaluateElterngeldHoursEligibilityFormula({
+    weeklyWorkingHours: inputs.weeklyWorkingHours,
+    maximumWeeklyHoursLimit: inputs.maximumWeeklyHoursLimit,
+  });
+  const isWithinBasisWindow =
+    inputs.elapsedMonthsSinceBirth >= 0 &&
+    inputs.elapsedMonthsSinceBirth < inputs.maxBasisLifeMonths;
+  const availableUnits = Math.max(
+    0,
+    Math.min(inputs.remainingIndividualBasisUnits, inputs.remainingFamilyBasisUnits),
+  );
+  const epsilon = 1e-9;
+
+  if (
+    !isHoursEligible ||
+    inputs.elapsedMonthsSinceBirth < 0 ||
+    availableUnits + epsilon < inputs.elterngeldPlusFraction
+  ) {
+    return Object.freeze({
+      selectedVariant: null,
+      basisUnitsConsumed: 0,
+      isHoursEligible,
+      isWithinBasisWindow,
+    });
+  }
+
+  if (inputs.planMode === AllowancePlanMode.Basis) {
+    if (isWithinBasisWindow && availableUnits + epsilon >= 1) {
+      return Object.freeze({
+        selectedVariant: ElterngeldVariant.Basis,
+        basisUnitsConsumed: 1,
+        isHoursEligible,
+        isWithinBasisWindow,
+      });
+    }
+    return Object.freeze({
+      selectedVariant: null,
+      basisUnitsConsumed: 0,
+      isHoursEligible,
+      isWithinBasisWindow,
+    });
+  }
+
+  if (inputs.planMode === AllowancePlanMode.Plus) {
+    return Object.freeze({
+      selectedVariant: ElterngeldVariant.Plus,
+      basisUnitsConsumed: inputs.elterngeldPlusFraction,
+      isHoursEligible,
+      isWithinBasisWindow,
+    });
+  }
+
+  // AllowancePlanMode.Auto: prefer Basiselterngeld on full parental leave (0h/wk) within LM 1–14,
+  // falling back to ElterngeldPlus when past LM 14, on partial 0.5-unit remainder, or when working part-time.
+  if (inputs.weeklyWorkingHours === 0 && isWithinBasisWindow && availableUnits + epsilon >= 1) {
+    return Object.freeze({
+      selectedVariant: ElterngeldVariant.Basis,
+      basisUnitsConsumed: 1,
+      isHoursEligible,
+      isWithinBasisWindow,
+    });
+  }
+
+  return Object.freeze({
+    selectedVariant: ElterngeldVariant.Plus,
+    basisUnitsConsumed: inputs.elterngeldPlusFraction,
+    isHoursEligible,
+    isWithinBasisWindow,
   });
 }

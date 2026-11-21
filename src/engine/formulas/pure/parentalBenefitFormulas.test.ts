@@ -11,6 +11,7 @@ import {
   evaluateChildAllowanceFavorabilityFormula,
   evaluateElterngeldHoursEligibilityFormula,
   evaluateMaternityProtectionBenefitFormula,
+  evaluateMonthlyVariantSelectionFormula,
   evaluateOverlapCreditedPaymentFormula,
   evaluateParentalAllowanceBudgetFormula,
   evaluateParentalBenefitEntitlementFormula,
@@ -19,6 +20,7 @@ import {
   evaluateSiblingBonusFormula,
 } from "#engine/formulas/pure/parentalBenefitFormulas";
 import {
+  AllowancePlanMode,
   ElterngeldVariant,
   toEuroAmount,
   toMonthDuration,
@@ -247,5 +249,93 @@ describe("Tier 1 Pure Parental Benefit & Maternity Formulas (context-unaware)", 
     assert.equal(plusOverlap.protectedMinimum, 150);
     assert.equal(plusOverlap.payableAmount, 150);
     assert.equal(plusOverlap.appliedOffset, 750);
+  });
+
+  it("selects Basiselterngeld at 0h and ElterngeldPlus on part-time months under AllowancePlanMode.Auto", () => {
+    const autoFullLeave = evaluateMonthlyVariantSelectionFormula({
+      planMode: AllowancePlanMode.Auto,
+      weeklyWorkingHours: toWorkingHours(0),
+      maximumWeeklyHoursLimit: toWorkingHours(32),
+      elapsedMonthsSinceBirth: 2,
+      maxBasisLifeMonths: 14,
+      remainingIndividualBasisUnits: 10,
+      remainingFamilyBasisUnits: 10,
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(autoFullLeave.selectedVariant, ElterngeldVariant.Basis);
+    assert.equal(autoFullLeave.basisUnitsConsumed, 1);
+    assert.equal(autoFullLeave.isHoursEligible, true);
+    assert.equal(autoFullLeave.isWithinBasisWindow, true);
+
+    const autoPartTime = evaluateMonthlyVariantSelectionFormula({
+      planMode: AllowancePlanMode.Auto,
+      weeklyWorkingHours: toWorkingHours(24),
+      maximumWeeklyHoursLimit: toWorkingHours(32),
+      elapsedMonthsSinceBirth: 2,
+      maxBasisLifeMonths: 14,
+      remainingIndividualBasisUnits: 10,
+      remainingFamilyBasisUnits: 10,
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(autoPartTime.selectedVariant, ElterngeldVariant.Plus);
+    assert.equal(autoPartTime.basisUnitsConsumed, 0.5);
+
+    // Past life-month 14 (elapsedMonthsSinceBirth = 14 -> LM 15): Auto falls back to Plus
+    const autoAfterBasisWindow = evaluateMonthlyVariantSelectionFormula({
+      planMode: AllowancePlanMode.Auto,
+      weeklyWorkingHours: toWorkingHours(0),
+      maximumWeeklyHoursLimit: toWorkingHours(32),
+      elapsedMonthsSinceBirth: 14,
+      maxBasisLifeMonths: 14,
+      remainingIndividualBasisUnits: 4,
+      remainingFamilyBasisUnits: 4,
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(autoAfterBasisWindow.selectedVariant, ElterngeldVariant.Plus);
+    assert.equal(autoAfterBasisWindow.basisUnitsConsumed, 0.5);
+    assert.equal(autoAfterBasisWindow.isWithinBasisWindow, false);
+
+    // Half Basis-unit remainder: Auto falls back to Plus
+    const autoHalfRemainder = evaluateMonthlyVariantSelectionFormula({
+      planMode: AllowancePlanMode.Auto,
+      weeklyWorkingHours: toWorkingHours(0),
+      maximumWeeklyHoursLimit: toWorkingHours(32),
+      elapsedMonthsSinceBirth: 11,
+      maxBasisLifeMonths: 14,
+      remainingIndividualBasisUnits: 0.5,
+      remainingFamilyBasisUnits: 2,
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(autoHalfRemainder.selectedVariant, ElterngeldVariant.Plus);
+    assert.equal(autoHalfRemainder.basisUnitsConsumed, 0.5);
+
+    // Explicit Basis past LM 14 -> null (statutory § 4 Abs. 1 Satz 2 BEEG cap)
+    const basisAfterWindow = evaluateMonthlyVariantSelectionFormula({
+      planMode: AllowancePlanMode.Basis,
+      weeklyWorkingHours: toWorkingHours(0),
+      maximumWeeklyHoursLimit: toWorkingHours(32),
+      elapsedMonthsSinceBirth: 14,
+      maxBasisLifeMonths: 14,
+      remainingIndividualBasisUnits: 4,
+      remainingFamilyBasisUnits: 4,
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(basisAfterWindow.selectedVariant, null);
+    assert.equal(basisAfterWindow.basisUnitsConsumed, 0);
+
+    // >32h/week -> disqualified under § 1 Abs. 6 BEEG
+    const disqualified = evaluateMonthlyVariantSelectionFormula({
+      planMode: AllowancePlanMode.Auto,
+      weeklyWorkingHours: toWorkingHours(40),
+      maximumWeeklyHoursLimit: toWorkingHours(32),
+      elapsedMonthsSinceBirth: 2,
+      maxBasisLifeMonths: 14,
+      remainingIndividualBasisUnits: 10,
+      remainingFamilyBasisUnits: 10,
+      elterngeldPlusFraction: 0.5,
+    });
+    assert.equal(disqualified.selectedVariant, null);
+    assert.equal(disqualified.basisUnitsConsumed, 0);
+    assert.equal(disqualified.isHoursEligible, false);
   });
 });
