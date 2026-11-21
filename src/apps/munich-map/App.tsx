@@ -317,7 +317,7 @@ export default function MunichMap() {
       <div class="munich-map-layout">
         <section class="munich-map-main" aria-label="Map and layers">
           <div class="munich-map-frame">
-            {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={activeRadius} focus={focus} draft={draft?.position}
+            {MapView ? <MapView places={markers} layers={layers} pins={pins} origin={origin} radius={activeRadius} focus={focus} draft={draft?.position}
               home={homePosition} picking={picking} onPick={pickPosition} onSelect={setSelected} onSetHome={startHomeDraft} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
             <div class="munich-map-tools">
               <details class="munich-map-layer-control">

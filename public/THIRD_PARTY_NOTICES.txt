@@ -177,3 +177,10 @@ Creative Commons Attribution (CC BY). MVV Gesamt GTFS feed, version
 20261102, retrieved 2026-11-20. Filtered to Munich and aggregated by station.
 https://www.mvv-muenchen.de/fahrplanauskunft/fuer-entwickler/opendata/index.html
 Dataset: data/munich-transit.json
+
+U-Bahn, S-Bahn, and tram route geometry from the BBBike Munich OpenStreetMap
+extract dated 2026-11-14. Shared tracks grouped by line and simplified.
+© OpenStreetMap contributors — Open Database License 1.0
+https://opendatacommons.org/licenses/odbl/1-0/
+https://download.bbbike.org/osm/bbbike/Muenchen/
+Dataset: data/munich-transit-routes.json

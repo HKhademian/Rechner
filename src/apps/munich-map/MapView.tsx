@@ -14,6 +14,8 @@ import {
   layerGroup,
   map,
   marker,
+  polyline,
+  svg,
   tileLayer,
 } from "leaflet";
 import {
@@ -33,6 +35,7 @@ import {
   MapCategory,
   categoryStyle,
   mapLayers,
+  railLayers,
   toMapPosition,
 } from "./places.ts";
 
@@ -48,6 +51,7 @@ import {
 
 interface MapViewProps {
   readonly places: readonly MapPlace[];
+  readonly layers: readonly MapCategory[];
   readonly pins: readonly { readonly title: string;
     readonly position: MapPosition }[];
   readonly origin: MapPosition;
@@ -90,6 +94,7 @@ function pinStyle(
 
 export function MapView({
   places,
+  layers,
   pins,
   origin,
   radius,
@@ -104,6 +109,8 @@ export function MapView({
   const container = useRef<HTMLDivElement>(null);
   const instance = useRef<LeafletMap>();
   const [tileError, setTileError] = useState(false);
+  const [routeError, setRouteError] = useState(false);
+  const showTransitRoutes = railLayers.some((mode) => layers.includes(mode));
 
   useEffect(() => {
     if (!container.current) {
@@ -143,6 +150,41 @@ export function MapView({
       instance.current = undefined;
     };
   }, []);
+
+  useEffect(() => {
+    const view = instance.current;
+    if (!view || !showTransitRoutes) {
+      return;
+    }
+    const routeLayer = layerGroup().addTo(view);
+    const renderer = svg();
+    void import("./transitRoutes.ts").then(({ transitRoutes }) => {
+      if (!view.hasLayer(routeLayer)) {
+        return;
+      }
+      setRouteError(false);
+      for (const route of transitRoutes.filter(({ category }) => layers.includes(category))) {
+        const tram = route.category === MapCategory.Tram;
+        const name = `${route.category} ${route.lines.join(" · ")}`;
+        const track = polyline(route.paths.map((path) => path.map(point)), {
+          renderer,
+          color: categoryStyle[route.category].color,
+          weight: tram ? 3 : 4,
+          opacity: 0.85,
+          dashArray: tram ? "6 4" : undefined,
+        }).bindTooltip(name, { sticky: true }).addTo(routeLayer);
+        track.getElement()?.setAttribute("data-transit-mode", route.category);
+      }
+    }).catch(() => {
+      if (view.hasLayer(routeLayer)) {
+        setRouteError(true);
+      }
+    });
+    return () => {
+      routeLayer.remove();
+      renderer.remove();
+    };
+  }, [layers, showTransitRoutes]);
 
   useEffect(() => {
     const view = instance.current;
@@ -323,6 +365,7 @@ export function MapView({
     <>
       <div ref={container} class={`munich-map-surface${picking ? " is-picking" : ""}`} aria-label="Interactive Munich map" />
       {tileError && <p class="munich-map-tile-status" role="status">The basemap is unavailable. Pins and the place list are still available.</p>}
+      {!tileError && routeError && showTransitRoutes && <p class="munich-map-tile-status" role="status">Transit lines are unavailable. Stops are still shown.</p>}
       {picking && <button type="button" class="munich-map-center-picker" onClick={() => {
         const center = instance.current?.getCenter().wrap();
         if (center) {

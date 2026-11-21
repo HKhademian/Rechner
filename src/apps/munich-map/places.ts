@@ -165,7 +165,8 @@ export function formatPlaceDate(place: MapPlace): string | undefined {
 }
 
 export const landmarkLayers = [MapCategory.Landmark, MapCategory.Church, MapCategory.Cemetery] as const;
-export const transitLayers = [MapCategory.Subway, MapCategory.SuburbanRail, MapCategory.Tram, MapCategory.Bus] as const;
+export const railLayers = [MapCategory.Subway, MapCategory.SuburbanRail, MapCategory.Tram] as const;
+export const transitLayers = [...railLayers, MapCategory.Bus] as const;
 export const mapLayers: readonly MapCategory[] = [...landmarkLayers, ...transitLayers];
 
 export const MUNICH_CENTER = toMapPosition(48.1374, 11.5755);
