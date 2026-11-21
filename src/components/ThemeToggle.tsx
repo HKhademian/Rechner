@@ -1,8 +1,4 @@
 import "./Navigation.css";
-import {
-  useEffect,
-  useRef,
-} from "preact/hooks";
 import type {
   JSX,
 } from "preact";
@@ -12,6 +8,10 @@ import {
   SystemThemeIcon,
   ThemePaletteIcon,
 } from "#components/Icons";
+import {
+  PopoverAlign,
+  PopoverMenu,
+} from "#components/ui/PopoverMenu";
 import {
   type SegmentedOption,
   SegmentedControl,
@@ -73,123 +73,91 @@ function renderModeIcon(mode: ThemeMode): JSX.Element {
 }
 
 /**
- * Global appearance switcher combining Light/Dark/Auto mode, switchable minimal
- * design styles (Swiss, Editorial, Utility), and curated institutional palettes.
+ * Global appearance switcher combining switchable minimal design styles (Swiss,
+ * Editorial, Utility), Light/Dark/Auto mode, and curated institutional palettes.
  */
 export default function ThemeToggle(): JSX.Element {
   const hydrated = useHydrated();
   const mode = hydrated ? activeThemeMode.value : DEFAULT_APPEARANCE_SETTINGS.mode;
   const palette = hydrated ? activeThemePalette.value : DEFAULT_APPEARANCE_SETTINGS.palette;
   const style = hydrated ? activeThemeStyle.value : DEFAULT_APPEARANCE_SETTINGS.style;
-  const detailsRef = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    const closeWhenOutside = (event: Event): void => {
-      if (!(event.target instanceof Node)) {
-        return;
-      }
-      const details = detailsRef.current;
-      if (details?.open && !details.contains(event.target)) {
-        details.open = false;
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent): void => {
-      if (event.key !== "Escape") {
-        return;
-      }
-      const details = detailsRef.current;
-      if (details?.open) {
-        details.open = false;
-        details.querySelector("summary")?.focus();
-      }
-    };
-
-    document.addEventListener("pointerdown", closeWhenOutside);
-    document.addEventListener("focusin", closeWhenOutside);
-    document.addEventListener("keydown", closeOnEscape);
-
-    return () => {
-      document.removeEventListener("pointerdown", closeWhenOutside);
-      document.removeEventListener("focusin", closeWhenOutside);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, []);
 
   const handlePaletteSelect = (nextPalette: ThemePalette): void => {
     setThemePalette(nextPalette);
   };
 
   return (
-    <details ref={detailsRef} className="theme-switcher">
-      <summary aria-label="Appearance, design style, and color theme">
-        <span
-          className={`theme-switcher__swatch theme-switcher__swatch--${palette}`}
-          aria-hidden="true"
+    <PopoverMenu
+      className="theme-switcher"
+      panelClassName="theme-switcher__panel"
+      align={PopoverAlign.Right}
+      summaryAriaLabel="Appearance, design style, and color theme"
+      panelAriaLabel="Appearance, design style, and color palette settings"
+      summary={(
+        <>
+          <span
+            className={`theme-switcher__swatch theme-switcher__swatch--${palette}`}
+            aria-hidden="true"
+          />
+          {renderModeIcon(mode)}
+          <span className="theme-switcher__summary-label">Appearance</span>
+        </>
+      )}
+    >
+      <div className="theme-switcher__section">
+        <div className="theme-switcher__section-title">
+          <ThemePaletteIcon size={14} />
+          <span>Design Style</span>
+        </div>
+        <SegmentedControl
+          label="Design style"
+          value={style}
+          options={STYLE_OPTIONS}
+          onChange={setThemeStyle}
+          compact
+          fullWidth
         />
-        {renderModeIcon(mode)}
-        <span className="theme-switcher__summary-label">Appearance</span>
-      </summary>
+      </div>
 
-      <div
-        className="theme-switcher__panel"
-        role="region"
-        aria-label="Appearance, design style, and color palette settings"
-      >
-        <div className="theme-switcher__section">
-          <div className="theme-switcher__section-title">
-            <ThemePaletteIcon size={14} />
-            <span>Design Style</span>
-          </div>
-          <SegmentedControl
-            label="Design style"
-            value={style}
-            options={STYLE_OPTIONS}
-            onChange={setThemeStyle}
-            compact
-            fullWidth
-          />
+      <div className="theme-switcher__section">
+        <div className="theme-switcher__section-title">
+          <span>Color Mode</span>
         </div>
+        <SegmentedControl
+          label="Color mode"
+          value={mode}
+          options={MODE_OPTIONS}
+          onChange={setThemeMode}
+          compact
+          fullWidth
+        />
+      </div>
 
-        <div className="theme-switcher__section">
-          <div className="theme-switcher__section-title">
-            <span>Color Mode</span>
-          </div>
-          <SegmentedControl
-            label="Color mode"
-            value={mode}
-            options={MODE_OPTIONS}
-            onChange={setThemeMode}
-            compact
-            fullWidth
-          />
+      <div className="theme-switcher__section">
+        <div className="theme-switcher__section-title">
+          <span>Palette</span>
         </div>
-
-        <div className="theme-switcher__section">
-          <div className="theme-switcher__section-title">
-            <span>Palette</span>
-          </div>
-          <div className="theme-switcher__palettes" role="group" aria-label="Color palette">
-            {THEME_PALETTE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className="theme-switcher__palette-btn"
-                aria-pressed={option.value === palette}
-                onClick={() => handlePaletteSelect(option.value)}
-              >
-                <span
-                  className={`theme-switcher__swatch theme-switcher__swatch--${option.value}`}
-                  aria-hidden="true"
-                />
-                <span className="theme-switcher__palette-text">
-                  <span className="theme-switcher__palette-name">{option.label}</span>
-                  <span className="theme-switcher__palette-desc">{option.description}</span>
-                </span>
-              </button>
-            ))}
-          </div>
+        <div className="theme-switcher__palettes" role="group" aria-label="Color palette">
+          {THEME_PALETTE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className="theme-switcher__palette-btn"
+              aria-pressed={option.value === palette}
+              onClick={() => handlePaletteSelect(option.value)}
+            >
+              <span
+                className={`theme-switcher__swatch theme-switcher__swatch--${option.value}`}
+                aria-hidden="true"
+              />
+              <span className="theme-switcher__palette-text">
+                <span className="theme-switcher__palette-name">{option.label}</span>
+                <span className="theme-switcher__palette-desc">{option.description}</span>
+              </span>
+            </button>
+          ))}
         </div>
       </div>
-    </details>
+    </PopoverMenu>
   );
 }

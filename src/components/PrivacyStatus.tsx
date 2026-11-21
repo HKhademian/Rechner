@@ -17,6 +17,15 @@ import {
   PrivacyShieldIcon,
 } from "#components/Icons";
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from "#components/ui/Button";
+import {
+  PopoverAlign,
+  PopoverMenu,
+} from "#components/ui/PopoverMenu";
+import {
   type BackupImportPreview,
   clearAllData,
   exportAllData,
@@ -36,12 +45,11 @@ export const OfflineState = {
 type OfflineState = (typeof OfflineState)[keyof typeof OfflineState];
 const showOfflineSection = false;
 
-/** Compact privacy and offline controls in one popup. */
+/** Compact privacy, storage, and local backup controls in one popover. */
 export default function PrivacyStatus(): JSX.Element {
   const [offlineState, setOfflineState] = useState<OfflineState>(OfflineState.Checking);
   const [dataNotice, setDataNotice] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
-  const detailsRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
     const updateConnection = (): void => {
@@ -55,32 +63,10 @@ export default function PrivacyStatus(): JSX.Element {
         setOfflineState(OfflineState.Limited);
       }
     };
-    const closeWhenOutside = (event: Event): void => {
-      if (!(event.target instanceof Node)) {
-        return;
-      }
-      const details = detailsRef.current;
-      if (details?.open && !details.contains(event.target)) {
-        details.open = false;
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent): void => {
-      if (event.key !== "Escape") {
-        return;
-      }
-      const details = detailsRef.current;
-      if (details?.open) {
-        details.open = false;
-        details.querySelector("summary")?.focus();
-      }
-    };
 
     updateConnection();
     window.addEventListener("online", updateConnection);
     window.addEventListener("offline", updateConnection);
-    document.addEventListener("pointerdown", closeWhenOutside);
-    document.addEventListener("focusin", closeWhenOutside);
-    document.addEventListener("keydown", closeOnEscape);
     navigator.serviceWorker?.addEventListener("controllerchange", updateConnection);
 
     if ("serviceWorker" in navigator) {
@@ -92,9 +78,6 @@ export default function PrivacyStatus(): JSX.Element {
     return () => {
       window.removeEventListener("online", updateConnection);
       window.removeEventListener("offline", updateConnection);
-      document.removeEventListener("pointerdown", closeWhenOutside);
-      document.removeEventListener("focusin", closeWhenOutside);
-      document.removeEventListener("keydown", closeOnEscape);
       navigator.serviceWorker?.removeEventListener("controllerchange", updateConnection);
     };
   }, []);
@@ -140,8 +123,10 @@ export default function PrivacyStatus(): JSX.Element {
     }
   };
 
-  const [pendingBackup, setPendingBackup] = useState<{ readonly raw: string;
-    readonly preview: BackupImportPreview } | undefined>();
+  const [pendingBackup, setPendingBackup] = useState<{
+    readonly raw: string;
+    readonly preview: BackupImportPreview;
+  } | undefined>();
   const importData = async (event: Event): Promise<void> => {
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement) || !input.files?.[0]) {
@@ -157,8 +142,10 @@ export default function PrivacyStatus(): JSX.Element {
         setDataNotice(preview.error ?? "Could not import this backup. Check the file and browser storage.");
         return;
       }
-      setPendingBackup({ raw: contents,
-        preview });
+      setPendingBackup({
+        raw: contents,
+        preview,
+      });
       setDataNotice("");
     }
     catch {
@@ -206,41 +193,76 @@ export default function PrivacyStatus(): JSX.Element {
             ? "cache worker active"
             : "checking";
 
-  return <details className="privacy-status" ref={detailsRef}>
-    <summary aria-label="Privacy and offline settings">
-      <PrivacyShieldIcon className="privacy-status__icon" size={16} />
-      <span>Offline</span>
-    </summary>
-    <div className="privacy-status__panel">
-      <p className="privacy-status__assurance">No tracking · No cookies · No profiling</p>
-      <p>Calculations stay in your browser · no data server</p>
+  return (
+    <PopoverMenu
+      className="privacy-status"
+      panelClassName="privacy-status__panel"
+      align={PopoverAlign.Right}
+      summaryAriaLabel="Privacy and offline settings"
+      panelAriaLabel="Privacy, storage mode, and backup controls"
+      summary={(
+        <>
+          <PrivacyShieldIcon className="privacy-status__icon" size={15} />
+          <span className="privacy-status__summary-label">Privacy</span>
+        </>
+      )}
+    >
+      <p className="privacy-status__assurance">No tracking · No cookies · Local only</p>
+      <p>Calculations stay in your browser with no data server.</p>
       <StorageModeControl />
       <div className="privacy-status__data-actions" role="group" aria-label="Manage all calculator data">
-        <button type="button" onClick={clearData} aria-label="Clear all data" title="Clear all data"><DeleteActionIcon size={16} /><span>Clear</span></button>
-        <button type="button" onClick={exportData} title="Export all data"><ExportDataIcon size={16} /><span>Export all</span></button>
-        <button type="button" onClick={() => fileRef.current?.click()} title="Import a backup"><ImportDataIcon size={16} /><span>Import</span></button>
+        <Button size={ButtonSize.Sm} variant={ButtonVariant.Danger} onClick={clearData} ariaLabel="Clear all data" title="Clear all data">
+          <DeleteActionIcon size={14} />
+          <span>Clear</span>
+        </Button>
+        <Button size={ButtonSize.Sm} onClick={exportData} title="Export all data">
+          <ExportDataIcon size={14} />
+          <span>Export</span>
+        </Button>
+        <Button size={ButtonSize.Sm} onClick={() => fileRef.current?.click()} title="Import a backup">
+          <ImportDataIcon size={14} />
+          <span>Import</span>
+        </Button>
         <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importData} />
       </div>
-      {pendingBackup && <div role="region" aria-label="Backup import preview">
-        <p><strong>Backup preview:</strong> {pendingBackup.preview.incomingKeyCount} entries ({pendingBackup.preview.overwrittenKeyCount} will overwrite existing data, {pendingBackup.preview.preservedKeyCount} preserved from current browser).</p>
-        <p>People: +{pendingBackup.preview.peopleDiff.added} / ~{pendingBackup.preview.peopleDiff.changed} / −{pendingBackup.preview.peopleDiff.removed} · Timeline: +{pendingBackup.preview.timelineDiff.added} / ~{pendingBackup.preview.timelineDiff.changed} / −{pendingBackup.preview.timelineDiff.removed}</p>
-        {pendingBackup.preview.duplicatePersonNames.length > 0 && <p role="status">Duplicate person names in backup: {pendingBackup.preview.duplicatePersonNames.join(", ")}</p>}
-        {pendingBackup.preview.incomingTimelineConflicts > 0 && <p role="status">Incoming timeline has {pendingBackup.preview.incomingTimelineConflicts} conflicts or ambiguities to review after import.</p>}
-        <div className="privacy-status__data-actions">
-          <button type="button" onClick={confirmImport}>Confirm import</button>
-          <button type="button" onClick={() => setPendingBackup(undefined)}>Cancel</button>
+      {pendingBackup && (
+        <div role="region" aria-label="Backup import preview" className="privacy-status__preview">
+          <p>
+            <strong>Backup preview:</strong> {pendingBackup.preview.incomingKeyCount} entries ({pendingBackup.preview.overwrittenKeyCount} overwrite, {pendingBackup.preview.preservedKeyCount} preserved).
+          </p>
+          <p>
+            People: +{pendingBackup.preview.peopleDiff.added} / ~{pendingBackup.preview.peopleDiff.changed} / −{pendingBackup.preview.peopleDiff.removed} · Timeline: +{pendingBackup.preview.timelineDiff.added} / ~{pendingBackup.preview.timelineDiff.changed} / −{pendingBackup.preview.timelineDiff.removed}
+          </p>
+          {pendingBackup.preview.duplicatePersonNames.length > 0 && (
+            <p role="status">Duplicate person names in backup: {pendingBackup.preview.duplicatePersonNames.join(", ")}</p>
+          )}
+          {pendingBackup.preview.incomingTimelineConflicts > 0 && (
+            <p role="status">Incoming timeline has {pendingBackup.preview.incomingTimelineConflicts} conflicts or ambiguities to review after import.</p>
+          )}
+          <div className="privacy-status__data-actions">
+            <Button size={ButtonSize.Sm} variant={ButtonVariant.Primary} onClick={confirmImport}>Confirm import</Button>
+            <Button size={ButtonSize.Sm} variant={ButtonVariant.Ghost} onClick={() => setPendingBackup(undefined)}>Cancel</Button>
+          </div>
         </div>
-      </div>}
+      )}
       {dataNotice && <p role="status">{dataNotice}</p>}
-      {showOfflineSection && <div className="privacy-status__offline">
-        <p className="privacy-status__offline-status">
-          <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
-          <span>Offline cache · {offlineLabel} · first visit online</span>
-        </p>
-        <button className="privacy-status__offline-action" type="button" onClick={prepareOffline} disabled={offlineState === OfflineState.Preparing || offlineState === OfflineState.Offline}>
-          {offlineState === OfflineState.Preparing ? "Preparing…" : offlineState === OfflineState.Prepared ? "Offline ready" : "Prepare offline"}
-        </button>
-      </div>}
-    </div>
-  </details>;
+      {showOfflineSection && (
+        <div className="privacy-status__offline">
+          <p className="privacy-status__offline-status">
+            <span className={`privacy-status__dot privacy-status__dot--${offlineState}`} aria-hidden="true" />
+            <span>Offline cache · {offlineLabel} · first visit online</span>
+          </p>
+          <Button
+            size={ButtonSize.Sm}
+            variant={ButtonVariant.Tint}
+            className="privacy-status__offline-action"
+            onClick={prepareOffline}
+            disabled={offlineState === OfflineState.Preparing || offlineState === OfflineState.Offline}
+          >
+            {offlineState === OfflineState.Preparing ? "Preparing…" : offlineState === OfflineState.Prepared ? "Offline ready" : "Prepare offline"}
+          </Button>
+        </div>
+      )}
+    </PopoverMenu>
+  );
 }

@@ -37,6 +37,7 @@ import {
   PlanningDashboardIcon,
   SimulatorNavigationIcon,
   SolarEnergyIcon,
+  StepTransitionIcon,
   TaxClassSwitchIcon,
   TravelPlannerIcon,
   VisaResidenceIcon,
@@ -45,8 +46,22 @@ import {
   AppShell,
 } from "#components/ui/AppShell";
 import {
+  Badge,
+  BadgeTone,
+} from "#components/ui/Badge";
+import {
+  Button,
+  ButtonVariant,
+} from "#components/ui/Button";
+import {
+  EmptyState,
+} from "#components/ui/EmptyState";
+import {
   PageHeader,
 } from "#components/ui/PageHeader";
+import {
+  Pagination,
+} from "#components/ui/Pagination";
 import {
   SegmentedControl,
 } from "#components/ui/SegmentedControl";
@@ -69,50 +84,50 @@ function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
     case AppId.Mutterschutz:
     case AppId.KindergeldComparison:
     case AppId.ElterngeldQuick:
-      return <SimulatorNavigationIcon size={24} />;
+      return <SimulatorNavigationIcon size={20} />;
     case AppId.MunichMap:
-      return <CityMapNavigationIcon size={24} />;
+      return <CityMapNavigationIcon size={20} />;
     case AppId.GiroCode:
-      return <PaymentQrCodeIcon size={24} />;
+      return <PaymentQrCodeIcon size={20} />;
     case AppId.Visa:
     case AppId.PermanentResidency:
     case AppId.Citizenship:
-      return <VisaResidenceIcon size={24} />;
+      return <VisaResidenceIcon size={20} />;
     case AppId.CompanyCar:
-      return <CompanyCarMobilityIcon size={24} />;
+      return <CompanyCarMobilityIcon size={20} />;
     case AppId.SolarEnergy:
-      return <SolarEnergyIcon size={24} />;
+      return <SolarEnergyIcon size={20} />;
     case AppId.Housing:
     case AppId.Mortgage:
     case AppId.AssetAffordability:
-      return <HomeAcquisitionIcon size={24} />;
+      return <HomeAcquisitionIcon size={20} />;
     case AppId.Kita:
     case AppId.ChildcarePlanner:
-      return <ChildcareKitaIcon size={24} />;
+      return <ChildcareKitaIcon size={20} />;
     case AppId.MinijobMidijob:
     case AppId.ResignationRunway:
     case AppId.SalaryRaise:
-      return <EmploymentTransitionIcon size={24} />;
+      return <EmploymentTransitionIcon size={20} />;
     case AppId.CommuterAllowance:
-      return <CommuterAllowanceIcon size={24} />;
+      return <CommuterAllowanceIcon size={20} />;
     case AppId.ExpensePlanner:
     case AppId.CashReconciliation:
-      return <ExpensePlannerIcon size={24} />;
+      return <ExpensePlannerIcon size={20} />;
     case AppId.TravelPlanner:
-      return <TravelPlannerIcon size={24} />;
+      return <TravelPlannerIcon size={20} />;
     case AppId.TaxClassSwitch:
     case AppId.ProgressionTax:
     case AppId.KalteProgression:
     case AppId.AgeRelief:
-      return <TaxClassSwitchIcon size={24} />;
+      return <TaxClassSwitchIcon size={20} />;
     case AppId.PlanningDashboard:
-      return <PlanningDashboardIcon size={24} />;
+      return <PlanningDashboardIcon size={20} />;
     case AppId.NetPay:
-      return <CalculatorNavigationIcon size={24} />;
+      return <CalculatorNavigationIcon size={20} />;
   }
 }
 
-/** The marketplace imports manifests, never a calculator entry or financial store. */
+/** Minimal local-first calculator directory; imports manifests only, never calculator entries or stores. */
 export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize = CATALOG_PAGE_SIZE }: {
   apps?: readonly CalculatorAppDefinition[];
   pageSize?: number;
@@ -137,7 +152,6 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
     ).total
     : 0;
 
-  // URL state makes searches, category choices, and opt-in demo visibility bookmarkable.
   useEffect(() => {
     const readLocation = (): void => {
       const parameters = new URLSearchParams(window.location.search);
@@ -223,99 +237,127 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
     update("", undefined, 1);
     search.current?.focus();
   };
+
   return (
     <AppShell currentPath="/" mainClassName="calculator-catalog">
-      <PageHeader title="Life in Germany, calculated." />
+      <PageHeader
+        title="Life in Germany, calculated."
+        subtitle="Private, local-first calculators grounded in German statutory formulas."
+      />
 
-      <form className="ui-card calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
-        <TextField
-          id="calculator-search"
-          inputRef={search}
-          type="search"
-          label="Find a calculator"
-          placeholder="Salary, Netto, Elterngeld, GiroCode"
-          ariaControls="calculator-results"
-          className="calculator-catalog__search-field"
-          value={query.value}
-          onChange={(nextValue) => update(nextValue, category.value, 1, showDemos.value, true)}
-        />
+      <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <div className="calculator-catalog__category-filter">
-          <span>Category</span>
           <SegmentedControl
             label="Filter by category"
             value={category.value ?? "__all__"}
             onChange={(selected) => update(query.value, selected === "__all__" ? undefined : toCalculatorCategory(String(selected)), 1)}
             options={[
-              { value: "__all__",
-                label: "All" },
-              ...categories.map((item) => ({ value: item,
-                label: item })),
+              {
+                value: "__all__",
+                label: "All",
+              },
+              ...categories.map((item) => ({
+                value: item,
+                label: item,
+              })),
             ]}
           />
         </div>
-        {demoCount > 0 && (
-          <div className="calculator-catalog__demo-toggle">
-            <ToggleSwitch
-              id="calculator-show-demos"
-              label={`Include demo tools (${demoCount})`}
-              plain
-              checked={showDemos.value}
-              onChange={toggleDemos}
-            />
-          </div>
-        )}
-        {(query.value || category.value) && <button type="button" className="ui-btn" onClick={clear}>Clear filters</button>}
+        <div className="calculator-catalog__search-wrap">
+          <TextField
+            id="calculator-search"
+            inputRef={search}
+            type="search"
+            label="Find a calculator"
+            placeholder="Search salary, Elterngeld, housing…"
+            ariaControls="calculator-results"
+            className="calculator-catalog__search-field"
+            compact
+            value={query.value}
+            onChange={(nextValue) => update(nextValue, category.value, 1, showDemos.value, true)}
+          />
+          {(query.value || category.value) && (
+            <Button variant={ButtonVariant.Ghost} onClick={clear}>Clear</Button>
+          )}
+        </div>
       </form>
 
       <section id="calculator-results" ref={results} tabIndex={-1} aria-labelledby="catalog-results-heading">
         <div className="calculator-catalog__results-heading">
-          <h2 id="catalog-results-heading">Calculators</h2>
-          <p role="status" aria-live="polite">
-            {page.total} {page.total === 1 ? "tool" : "tools"}
-            {!showDemos.value && demoCount > 0 ? ` · ${demoCount} demo hidden` : ""}
-            {page.pages > 1 ? ` · Page ${page.page} of ${page.pages}` : ""}
-          </p>
-        </div>
-        <div className="calculator-catalog__grid">
-          {page.items.map((app) => <article key={app.id} className="ui-card calculator-catalog__card">
-            <div className="calculator-catalog__card-top">
-              <span className="calculator-catalog__icon" aria-hidden="true">{renderAppIcon(app.id)}</span>
-              <span className="calculator-catalog__card-badges">
-                {app.releaseStatus === CalculatorReleaseStatus.Draft && (
-                  <span className="badge-warning calculator-catalog__demo-badge">Demo</span>
-                )}
-                <span className="calculator-catalog__category">{app.category}</span>
-              </span>
-            </div>
-            <h3>{app.title}</h3>
-            <p>{app.description}</p>
-            <ul>{app.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
-            <a href={calculatorPath(app.id)} className="ui-btn ui-btn--primary calculator-catalog__open" aria-label={`Open ${app.title}`}>Open</a>
-          </article>)}
-        </div>
-        {page.total === 0 && (
-          <div className="ui-card calculator-catalog__empty">
-            <h3>No matching calculators</h3>
-            <p>
-              {hiddenDemoMatchCount > 0
-                ? `${hiddenDemoMatchCount} matching demo ${hiddenDemoMatchCount === 1 ? "tool is" : "tools are"} currently hidden.`
-                : "Try another keyword or clear filters."}
+          <div className="calculator-catalog__results-meta">
+            <h2 id="catalog-results-heading">Calculators</h2>
+            <p role="status" aria-live="polite">
+              {page.total} {page.total === 1 ? "tool" : "tools"}
+              {!showDemos.value && demoCount > 0 ? ` · ${demoCount} demos hidden` : ""}
+              {page.pages > 1 ? ` · Page ${page.page} of ${page.pages}` : ""}
             </p>
-            <div className="calculator-catalog__empty-actions">
-              {hiddenDemoMatchCount > 0 && (
-                <button type="button" className="ui-btn ui-btn--tint" onClick={() => toggleDemos(true)}>
-                  Show demo tools
-                </button>
-              )}
-              <button type="button" className="ui-btn" onClick={clear}>Show all</button>
-            </div>
           </div>
+          {demoCount > 0 && (
+            <div className="calculator-catalog__demo-toggle">
+              <ToggleSwitch
+                id="calculator-show-demos"
+                label={`Show demos (${demoCount})`}
+                plain
+                checked={showDemos.value}
+                onChange={toggleDemos}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="calculator-catalog__grid">
+          {page.items.map((app) => (
+            <a
+              key={app.id}
+              href={calculatorPath(app.id)}
+              className="ui-card ui-card--interactive calculator-catalog__card"
+              aria-label={`Open ${app.title}`}
+            >
+              <div className="calculator-catalog__card-top">
+                <span className="calculator-catalog__icon" aria-hidden="true">{renderAppIcon(app.id)}</span>
+                <span className="calculator-catalog__card-badges">
+                  {app.releaseStatus === CalculatorReleaseStatus.Draft && (
+                    <Badge tone={BadgeTone.Warning} className="calculator-catalog__demo-badge">Demo</Badge>
+                  )}
+                  <span className="calculator-catalog__category">{app.category}</span>
+                  <span className="calculator-catalog__arrow" aria-hidden="true">
+                    <StepTransitionIcon size={14} />
+                  </span>
+                </span>
+              </div>
+              <h3 className="calculator-catalog__card-title">{app.title}</h3>
+              <p className="calculator-catalog__card-desc">{app.description}</p>
+            </a>
+          ))}
+        </div>
+
+        {page.total === 0 && (
+          <EmptyState
+            title="No matching calculators"
+            description={
+              hiddenDemoMatchCount > 0
+                ? `${hiddenDemoMatchCount} matching demo ${hiddenDemoMatchCount === 1 ? "tool is" : "tools are"} currently hidden.`
+                : "Try another keyword or clear filters."
+            }
+            actions={(
+              <>
+                {hiddenDemoMatchCount > 0 && (
+                  <Button variant={ButtonVariant.Tint} onClick={() => toggleDemos(true)}>
+                    Show demo tools
+                  </Button>
+                )}
+                <Button onClick={clear}>Show all</Button>
+              </>
+            )}
+          />
         )}
-        {page.pages > 1 && <nav className="calculator-catalog__pagination" aria-label="Calculator catalog pages">
-          <button type="button" className="ui-btn" disabled={page.page === 1} onClick={() => changePage(page.page - 1)}>Previous</button>
-          {Array.from({ length: page.pages }, (_, index) => <button key={index} type="button" className={page.page === index + 1 ? "ui-btn ui-btn--tint" : "ui-btn"} aria-label={`Page ${index + 1}`} aria-current={page.page === index + 1 ? "page" : undefined} onClick={() => changePage(index + 1)}>{index + 1}</button>)}
-          <button type="button" className="ui-btn" disabled={page.page === page.pages} onClick={() => changePage(page.page + 1)}>Next</button>
-        </nav>}
+
+        <Pagination
+          page={page.page}
+          totalPages={page.pages}
+          ariaLabel="Calculator catalog pages"
+          onChange={changePage}
+        />
       </section>
     </AppShell>
   );
