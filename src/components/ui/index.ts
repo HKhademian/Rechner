@@ -3,10 +3,58 @@ export {
   AppShell,
 } from "#components/ui/AppShell";
 export {
+  type BadgeProps,
+  Badge,
+  BadgeTone,
+  badgeClassName,
+} from "#components/ui/Badge";
+export {
+  type ButtonProps,
+  type LinkButtonProps,
+  Button,
+  ButtonSize,
+  ButtonType,
+  ButtonVariant,
+  LinkButton,
+  buttonClassName,
+} from "#components/ui/Button";
+export {
+  type CalculatorWorkspaceProps,
+  type FieldGroupProps,
+  type FieldRowProps,
+  type LawReferenceBarProps,
+  CalculatorWorkspace,
+  FieldGroup,
+  FieldRow,
+  LawReferenceBar,
+} from "#components/ui/CalculatorWorkspace";
+export {
+  type CardHeaderProps,
+  type CardProps,
+  Card,
+  CardElement,
+  CardHeader,
+  CardPadding,
+} from "#components/ui/Card";
+export {
   type ChoiceSelectProps,
   type SelectOption,
   ChoiceSelect,
 } from "#components/ui/ChoiceSelect";
+export {
+  type DataTableColumn,
+  type DataTableProps,
+  DataColumnAlign,
+  DataTable,
+} from "#components/ui/DataTable";
+export {
+  type DisclosureProps,
+  Disclosure,
+} from "#components/ui/Disclosure";
+export {
+  type EmptyStateProps,
+  EmptyState,
+} from "#components/ui/EmptyState";
 export {
   type MetricBreakdownItem,
   type MetricCardProps,
@@ -29,6 +77,15 @@ export {
   type PageHeaderProps,
   PageHeader,
 } from "#components/ui/PageHeader";
+export {
+  type PaginationProps,
+  Pagination,
+} from "#components/ui/Pagination";
+export {
+  type PopoverMenuProps,
+  PopoverAlign,
+  PopoverMenu,
+} from "#components/ui/PopoverMenu";
 export {
   type SegmentedControlProps,
   type SegmentedOption,

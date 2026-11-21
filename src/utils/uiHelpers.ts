@@ -73,6 +73,65 @@ export function modalDialogCardClassName(
   return `ui-modal__card ui-modal__card--${size}`;
 }
 
+/** Visual prominence variants for institutional action buttons. */
+export const ButtonVariant = {
+  Primary: "primary",
+  Secondary: "secondary",
+  Tint: "tint",
+  Ghost: "ghost",
+  Danger: "danger",
+} as const;
+export type ButtonVariant = (typeof ButtonVariant)[keyof typeof ButtonVariant];
+
+/** Button size presets aligned with shared control-height tokens. */
+export const ButtonSize = {
+  Sm: "sm",
+  Md: "md",
+} as const;
+export type ButtonSize = (typeof ButtonSize)[keyof typeof ButtonSize];
+
+/** HTML button type values. */
+export const ButtonType = {
+  Button: "button",
+  Submit: "submit",
+  Reset: "reset",
+} as const;
+export type ButtonType = (typeof ButtonType)[keyof typeof ButtonType];
+
+/** Builds canonical `.ui-btn` class list from variant and size enums. */
+export function buttonClassName(
+  variant: ButtonVariant = ButtonVariant.Secondary,
+  size: ButtonSize = ButtonSize.Md,
+  className = "",
+): string {
+  return [
+    "ui-btn",
+    variant !== ButtonVariant.Secondary ? `ui-btn--${variant}` : "",
+    size === ButtonSize.Sm ? "ui-btn--sm" : "",
+    className.trim(),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Semantic tone variants for compact status and category badges. */
+export const BadgeTone = {
+  Neutral: "neutral",
+  Brand: "brand",
+  Gain: "gain",
+  Warning: "warning",
+  Loss: "loss",
+} as const;
+export type BadgeTone = (typeof BadgeTone)[keyof typeof BadgeTone];
+
+/** Builds canonical badge class list for the selected semantic tone. */
+export function badgeClassName(
+  tone: BadgeTone = BadgeTone.Neutral,
+  className = "",
+): string {
+  return [`badge-${tone}`, className.trim()].filter(Boolean).join(" ");
+}
+
 /** Builds deterministic CSS classes for the shared `AppShell` `<main>` container. */
 export function appShellMainClassName(
   wide = false,

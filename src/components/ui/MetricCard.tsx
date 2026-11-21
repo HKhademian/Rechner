@@ -44,7 +44,7 @@ export function MetricCard({
   return (
     <article
       className={metricToneClass(tone, highlight)}
-      style={accentColor ? { borderLeftColor: accentColor } : undefined}
+      style={accentColor ? { borderTopColor: accentColor } : undefined}
     >
       <div className="ui-metric-card__label">{label}</div>
       {subtitle && <p className="ui-metric-card__subtitle">{subtitle}</p>}
