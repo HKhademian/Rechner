@@ -5,8 +5,11 @@ import {
 } from "node:test";
 import {
   type PregnancyAction,
+  AllowancePlanMode,
   ElterngeldVariant,
+  isAllowancePlanMode,
   isElterngeldVariant,
+  toAllowancePlanMode,
   toCalendarMonth,
   toChildIndex,
   toElterngeldVariant,
@@ -24,7 +27,9 @@ import {
   computeAllowanceBudgetSummary,
   convertAllowanceMonthsOnVariantChange,
   evaluatePregnancyAllowanceBudgetInContext,
+  resolveFatherAllowancePlanMode,
   resolveFatherAllowanceVariant,
+  resolveMotherAllowancePlanMode,
   resolveMotherAllowanceVariant,
   resolveMotherOrdinaryMonthsCount,
 } from "#engine/benefits/allowanceVariant";
@@ -43,18 +48,27 @@ const basePregnancy: PregnancyAction = {
 };
 
 describe("ElterngeldVariant & Allowance Budget Helpers (BEEG §§ 4, 4a)", () => {
-  it("validates ElterngeldVariant values and rejects raw invalid strings", () => {
+  it("validates ElterngeldVariant and AllowancePlanMode values and rejects raw invalid strings", () => {
     assert.equal(isElterngeldVariant("BASIS"), true);
     assert.equal(isElterngeldVariant("PLUS"), true);
     assert.equal(isElterngeldVariant("basis"), false);
     assert.equal(toElterngeldVariant("BASIS"), ElterngeldVariant.Basis);
     assert.equal(toElterngeldVariant("PLUS"), ElterngeldVariant.Plus);
     assert.throws(() => toElterngeldVariant("INVALID"), TypeError);
+
+    assert.equal(isAllowancePlanMode("AUTO"), true);
+    assert.equal(isAllowancePlanMode("BASIS"), true);
+    assert.equal(isAllowancePlanMode("PLUS"), true);
+    assert.equal(isAllowancePlanMode("auto"), false);
+    assert.equal(toAllowancePlanMode("AUTO"), AllowancePlanMode.Auto);
+    assert.throws(() => toAllowancePlanMode("INVALID"), TypeError);
   });
 
-  it("defaults legacy pregnancies to ElterngeldPlus and converts default months for Basis", () => {
+  it("defaults legacy pregnancies to ElterngeldPlus and resolves explicit Auto/Basis/Plus plan modes", () => {
     assert.equal(resolveMotherAllowanceVariant(basePregnancy), ElterngeldVariant.Plus);
     assert.equal(resolveFatherAllowanceVariant(basePregnancy), ElterngeldVariant.Plus);
+    assert.equal(resolveMotherAllowancePlanMode(basePregnancy), AllowancePlanMode.Plus);
+    assert.equal(resolveFatherAllowancePlanMode(basePregnancy), AllowancePlanMode.Plus);
     assert.equal(resolveMotherOrdinaryMonthsCount(basePregnancy), 12);
 
     const basisPregnancy: PregnancyAction = {
@@ -62,7 +76,16 @@ describe("ElterngeldVariant & Allowance Budget Helpers (BEEG §§ 4, 4a)", () =>
       motherAllowanceVariant: ElterngeldVariant.Basis,
     };
     assert.equal(resolveMotherAllowanceVariant(basisPregnancy), ElterngeldVariant.Basis);
+    assert.equal(resolveMotherAllowancePlanMode(basisPregnancy), AllowancePlanMode.Basis);
     assert.equal(resolveMotherOrdinaryMonthsCount(basisPregnancy), 6);
+
+    const autoPregnancy: PregnancyAction = {
+      ...basePregnancy,
+      motherAllowancePlanMode: AllowancePlanMode.Auto,
+      fatherAllowancePlanMode: AllowancePlanMode.Auto,
+    };
+    assert.equal(resolveMotherAllowancePlanMode(autoPregnancy), AllowancePlanMode.Auto);
+    assert.equal(resolveFatherAllowancePlanMode(autoPregnancy), AllowancePlanMode.Auto);
   });
 
   it("computes exact 14-unit family budget for 2 MuSchG + 10 Mother Basis + 2 Father Basis", () => {

@@ -8,6 +8,7 @@ import {
 import {
   type ScenarioActionBatches,
   type PregnancyAction,
+  AllowancePlanMode,
   ElterngeldVariant,
   ScenarioId,
   SalaryInputMode,
@@ -35,6 +36,9 @@ import {
 import {
   buildIncomeSchedule,
 } from "#engine/simulator/incomeSchedule";
+import {
+  runScenarioBatches,
+} from "#engine/simulator/timelineGenerator";
 import {
   projectAllowanceSchedule,
 } from "#engine/benefits/allowanceSchedule";
@@ -392,5 +396,108 @@ it("applies the § 2a Abs. 1 BEEG Basiselterngeld sibling bonus cap (€1,980/mo
   // Month 32 (life-month 3 of Child 2, Child 1 is 15 months old < 36): €1,800 + 10% = €1,980
   assert.equal(result.months.get(at(32))?.hasSiblingBonus, true);
   assert.equal(result.months.get(at(32))?.wifeElterngeld, 1980);
+});
+
+it("gives Mother Basiselterngeld at 0h under Auto mode even while Father works 32h on ElterngeldPlus", () => {
+  const autoBatches: ScenarioActionBatches = {
+    ...switched(9),
+    preexisting: {
+      ...base.preexisting,
+      wifeGross: toGrossSalary(5000),
+      husbandGross: toGrossSalary(6000),
+      husbandWeeklyHours: toWorkingHours(32),
+    },
+    pregnancies: [
+      {
+        ...pregnancy,
+        motherPostBirthPartTimeHours: toWorkingHours(0),
+        motherAllowancePlanMode: AllowancePlanMode.Auto,
+        fatherAllowancePlanMode: AllowancePlanMode.Auto,
+        fatherPartnerMonthsCount: toMonthDuration(4),
+      },
+    ],
+  };
+
+  const result = project(autoBatches);
+  // Month 19 (LM 3) through Month 28 (LM 12): Mother is 0h/wk -> 10 Basiselterngeld months (€1,800/mo, NOT €900/mo Plus!)
+  assert.equal(result.months.get(at(19))?.wifeElterngeld, 1800);
+  assert.equal(
+    result.months.get(at(19))?.payments.find((p) => p.parent === TargetPerson.Wife)?.variant,
+    ElterngeldVariant.Basis,
+  );
+  assert.equal(result.months.get(at(28))?.wifeElterngeld, 1800);
+  assert.equal(result.months.get(at(29))?.wifeElterngeld, 0);
+
+  // Father works 32h/wk (0 income loss) -> 4 ElterngeldPlus partner months at €150/mo (2 Basis units); never forces Mother into Plus
+  assert.equal(result.months.get(at(19))?.husbandElterngeld, 150);
+  assert.equal(
+    result.months.get(at(19))?.payments.find((p) => p.parent === TargetPerson.Husband)?.variant,
+    ElterngeldVariant.Plus,
+  );
+  assert.equal(result.months.get(at(22))?.husbandElterngeld, 150);
+  assert.equal(result.months.get(at(23))?.husbandElterngeld, 0);
+
+  const motherAudit = result.assessments.find((a) => a.parent === TargetPerson.Wife)!;
+  assert.equal(motherAudit.planMode, AllowancePlanMode.Auto);
+  assert.equal(motherAudit.ordinaryClaimMonths.length, 10);
+
+  // End-to-end timeline phaseLabel reflects Basiselterngeld accurately (never falsely "EGPlus")
+  const timeline = runScenarioBatches(autoBatches);
+  const sim19 = timeline.months.find((entry) => entry.month === 19)!;
+  const sim29 = timeline.months.find((entry) => entry.month === 29)!;
+  assert.equal(sim19.wifeElterngeld, 1800);
+  assert.equal(sim19.phaseLabel, "Child 1 Basiselterngeld (Mother)");
+  assert.equal(sim29.wifeElterngeld, 0);
+  assert.equal(sim29.phaseLabel, "Family Part-Time (Post-Leave)");
+});
+
+it("mixes Basiselterngeld (0h) and ElterngeldPlus (24h) automatically within the 12/14 Basis-unit budget", () => {
+  const mixedBatches: ScenarioActionBatches = {
+    ...switched(9),
+    preexisting: {
+      ...base.preexisting,
+      wifeGross: toGrossSalary(5000),
+      husbandGross: toGrossSalary(6000),
+      husbandWeeklyHours: toWorkingHours(32),
+    },
+    pregnancies: [
+      {
+        ...pregnancy,
+        motherPostBirthPartTimeHours: toWorkingHours(0),
+        motherAllowancePlanMode: AllowancePlanMode.Auto,
+        fatherAllowancePlanMode: AllowancePlanMode.Auto,
+        fatherPartnerMonthsCount: toMonthDuration(4),
+      },
+    ],
+    workingHoursChanges: [
+      {
+        changeId: toHoursChangeId("MOTHER-RETURN-24H-LM9"),
+        effectiveSimulationMonth: toSimulationMonth(25), // birth=17, LM3=19 -> 6 months at 0h (19..24), then 24h from 25
+        effectiveCalendarMonth: toCalendarMonth(1),
+        effectiveCalendarYear: toFullCalendarYear(2028),
+        targetPerson: TargetPerson.Wife,
+        weeklyHours: toWorkingHours(24),
+        reason: "Return to 24h part-time after 6 Basis months",
+      },
+    ],
+  };
+
+  const timeline = runScenarioBatches(mixedBatches);
+  // Months 19..24 (6 months at 0h): 6 Basiselterngeld months (6 Basis units)
+  for (let m = 19; m <= 24; m++) {
+    const entry = timeline.months.find((row) => row.month === m)!;
+    assert.equal(entry.wifeElterngeld, 1800, `Month ${m} should pay full €1,800 Basiselterngeld`);
+    assert.equal(entry.phaseLabel, "Child 1 Basiselterngeld (Mother)");
+  }
+  // Remaining individual budget = 12 - 2 (MuSchG) - 6 (Basis) = 4 Basis units -> 8 ElterngeldPlus months (25..32)
+  for (let m = 25; m <= 32; m++) {
+    const entry = timeline.months.find((row) => row.month === m)!;
+    assert.ok(entry.wifeElterngeld > 0 && entry.wifeElterngeld <= 900, `Month ${m} should pay ElterngeldPlus`);
+    assert.equal(entry.phaseLabel, "Child 1 EGPlus (Mother)");
+  }
+  // Months 33..36 (both parents work 24h & 32h): Partnerschaftsbonus kicks in automatically right after ordinary months
+  const sim33 = timeline.months.find((row) => row.month === 33)!;
+  assert.equal(sim33.isPartnerschaftsbonus, true);
+  assert.equal(sim33.phaseLabel, "Partnerschaftsbonus (Both Parents)");
 });
 

@@ -73,6 +73,7 @@ import {
   type CalendarLabel,
   type MonthDuration,
   type SalaryBonusSlot,
+  AllowancePlanMode,
   ElterngeldVariant,
   TargetPerson,
   SalaryInputMode,
@@ -135,6 +136,7 @@ import {
 } from "#engine/config/benefitRules";
 import {
   resolveFatherAllowanceVariant,
+  resolveMotherAllowancePlanMode,
   resolveMotherOrdinaryMonthsCount,
 } from "#engine/benefits/allowanceVariant";
 import {
@@ -322,13 +324,17 @@ function generateScenario(
   const calendarYearEnd = Math.floor(visibleEnd / 12) * 12 + 11;
   const forecastEnd = toAssessmentMonthOrdinal(Math.max(calendarYearEnd, ...pregnancies
     .filter((pregnancy) => pregnancy.calculatedDeliverySimulationMonth <= duration)
-    .map((pregnancy) => startOrdinal + pregnancy.calculatedDeliverySimulationMonth - 1 +
-      conventions.maternityPostBirthMonths.value +
-      Math.max(
-        resolveMotherOrdinaryMonthsCount(pregnancy, conventions, benefitRules),
-        pregnancy.fatherPartnerMonthsCount,
-      ) +
-      conventions.partnershipBonusMonths.value - 1)));
+    .map((pregnancy) => {
+      const motherPlanMode = resolveMotherAllowancePlanMode(pregnancy);
+      const maxMotherOrdinarySpan = motherPlanMode === AllowancePlanMode.Auto
+        ? (pregnancy.motherAllowanceMonthsCount ??
+          Math.floor(benefitRules.familyBasisMonths.value / benefitRules.plusFraction.value))
+        : resolveMotherOrdinaryMonthsCount(pregnancy, conventions, benefitRules);
+      return startOrdinal + pregnancy.calculatedDeliverySimulationMonth - 1 +
+        conventions.maternityPostBirthMonths.value +
+        Math.max(maxMotherOrdinarySpan, pregnancy.fatherPartnerMonthsCount) +
+        conventions.partnershipBonusMonths.value - 1;
+    })));
   const incomeSchedule = buildIncomeSchedule(batches, forecastEnd, conventions);
   const allowanceSchedule = projectAllowanceSchedule(batches, incomeSchedule, visibleEnd, conventions, incomeEligibility);
 
@@ -453,8 +459,80 @@ function generateScenario(
       husbandPayroll, wifePayroll } = income;
     const { wifeElterngeld, husbandElterngeld, hasSiblingBonus, isPartnerschaftsbonus } = allowance;
     const kindergeld = toEuroAmount(income.children * kgRate);
-    const phaseLabel = isPartnerschaftsbonus
-      ? "Partnerschaftsbonus (Both Parents)" : income.phaseLabel;
+    let phaseLabel = isPartnerschaftsbonus
+      ? "Partnerschaftsbonus (Both Parents)"
+      : income.phaseLabel;
+    if (!isPartnerschaftsbonus && !isMutterschutz) {
+      const motherOrdinaryPayments = allowance.payments.filter(
+        (payment) =>
+          payment.parent === TargetPerson.Wife &&
+          !payment.partnershipBonus &&
+          payment.payment > 0,
+      );
+      const fatherOrdinaryPayments = allowance.payments.filter(
+        (payment) =>
+          payment.parent === TargetPerson.Husband &&
+          !payment.partnershipBonus &&
+          payment.payment > 0,
+      );
+      const resolveLatestChildIndex = (
+        payments: readonly (typeof allowance.payments)[number][],
+      ): number => {
+        let latest = 1;
+        for (const payment of payments) {
+          const matched = orderedPregnancies.find(
+            (pregnancy) => pregnancy.pregnancyId === payment.pregnancyId,
+          );
+          if (matched && matched.childIndex >= latest) {
+            latest = matched.childIndex;
+          }
+        }
+        return latest;
+      };
+      if (motherOrdinaryPayments.length > 0) {
+        const hasBasis = motherOrdinaryPayments.some(
+          (payment) => payment.variant === ElterngeldVariant.Basis,
+        );
+        const hasPlus = motherOrdinaryPayments.some(
+          (payment) => payment.variant === ElterngeldVariant.Plus,
+        );
+        const variantLabel = hasBasis && hasPlus
+          ? "Basiselterngeld + EGPlus"
+          : hasBasis
+            ? "Basiselterngeld"
+            : "EGPlus";
+        phaseLabel = `Child ${resolveLatestChildIndex(motherOrdinaryPayments)} ${variantLabel} (Mother)`;
+      }
+      else if (
+        allowance.available &&
+        (income.phaseLabel.includes("EGPlus (Mother)") ||
+          income.phaseLabel.includes("Basiselterngeld (Mother)"))
+      ) {
+        const latestDelivered = orderedPregnancies
+          .filter((pregnancy) => m >= pregnancy.calculatedDeliverySimulationMonth)
+          .at(-1);
+        if (fatherOrdinaryPayments.length > 0) {
+          const fatherHasBasis = fatherOrdinaryPayments.some(
+            (payment) => payment.variant === ElterngeldVariant.Basis,
+          );
+          const fatherHasPlus = fatherOrdinaryPayments.some(
+            (payment) => payment.variant === ElterngeldVariant.Plus,
+          );
+          const fatherVariantLabel = fatherHasBasis && fatherHasPlus
+            ? "Basiselterngeld + EGPlus"
+            : fatherHasBasis
+              ? "Basiselterngeld"
+              : "EGPlus";
+          phaseLabel = `Child ${resolveLatestChildIndex(fatherOrdinaryPayments)} ${fatherVariantLabel} (Father)`;
+        }
+        else if (
+          latestDelivered !== undefined &&
+          resolveMotherAllowancePlanMode(latestDelivered) === AllowancePlanMode.Auto
+        ) {
+          phaseLabel = "Family Part-Time (Post-Leave)";
+        }
+      }
+    }
     const classLabel = (taxClass: TaxClass) => taxClass === TaxClass.IV && income.useFactor
       ? `IV(F=${income.factor})` : taxClass;
     const taxClassLabel = `H: ${classLabel(income.husbandClass)} | W: ${classLabel(income.wifeClass)}`;

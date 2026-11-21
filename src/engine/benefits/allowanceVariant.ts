@@ -25,6 +25,7 @@ import {
 import {
   type MonthDuration,
   type PregnancyAction,
+  AllowancePlanMode,
   ElterngeldVariant,
   toMonthDuration,
 } from "#engine/types";
@@ -39,10 +40,42 @@ import {
 
 export type AllowanceBudgetSummary = ParentalAllowanceBudgetFormulaResult;
 
+/** Resolves the mother's ordinary parental allowance plan mode (defaults to Plus for legacy payloads). */
+export function resolveMotherAllowancePlanMode(
+  pregnancy: PregnancyAction,
+): AllowancePlanMode {
+  if (pregnancy.motherAllowancePlanMode !== undefined) {
+    return pregnancy.motherAllowancePlanMode;
+  }
+  if (pregnancy.motherAllowanceVariant === ElterngeldVariant.Basis) {
+    return AllowancePlanMode.Basis;
+  }
+  return AllowancePlanMode.Plus;
+}
+
+/** Resolves the father's ordinary parental allowance plan mode (defaults to Plus for legacy payloads). */
+export function resolveFatherAllowancePlanMode(
+  pregnancy: PregnancyAction,
+): AllowancePlanMode {
+  if (pregnancy.fatherAllowancePlanMode !== undefined) {
+    return pregnancy.fatherAllowancePlanMode;
+  }
+  if (pregnancy.fatherAllowanceVariant === ElterngeldVariant.Basis) {
+    return AllowancePlanMode.Basis;
+  }
+  return AllowancePlanMode.Plus;
+}
+
 /** Resolves the mother's ordinary parental allowance variant (defaults to ElterngeldPlus). */
 export function resolveMotherAllowanceVariant(
   pregnancy: PregnancyAction,
 ): ElterngeldVariant {
+  if (pregnancy.motherAllowancePlanMode === AllowancePlanMode.Basis) {
+    return ElterngeldVariant.Basis;
+  }
+  if (pregnancy.motherAllowancePlanMode === AllowancePlanMode.Plus) {
+    return ElterngeldVariant.Plus;
+  }
   return pregnancy.motherAllowanceVariant ?? ElterngeldVariant.Plus;
 }
 
@@ -50,6 +83,12 @@ export function resolveMotherAllowanceVariant(
 export function resolveFatherAllowanceVariant(
   pregnancy: PregnancyAction,
 ): ElterngeldVariant {
+  if (pregnancy.fatherAllowancePlanMode === AllowancePlanMode.Basis) {
+    return ElterngeldVariant.Basis;
+  }
+  if (pregnancy.fatherAllowancePlanMode === AllowancePlanMode.Plus) {
+    return ElterngeldVariant.Plus;
+  }
   return pregnancy.fatherAllowanceVariant ?? ElterngeldVariant.Plus;
 }
 

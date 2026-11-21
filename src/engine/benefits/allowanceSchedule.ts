@@ -11,6 +11,7 @@ import {
   type NetSalary,
   type GrossSalary,
   type FullCalendarYear,
+  AllowancePlanMode,
   ElterngeldVariant,
   SalaryInputMode,
   TargetPerson,
@@ -31,10 +32,13 @@ import {
 } from "#engine/config/benefitRules";
 import {
   evaluateAllowanceVariantWeightFormula,
+  evaluateMonthlyVariantSelectionFormula,
   evaluateOverlapCreditedPaymentFormula,
 } from "#engine/formulas/pure/parentalBenefitFormulas";
 import {
   type AllowanceBudgetSummary,
+  resolveMotherAllowancePlanMode,
+  resolveFatherAllowancePlanMode,
   resolveMotherAllowanceVariant,
   resolveFatherAllowanceVariant,
   resolveMotherOrdinaryMonthsCount,
@@ -55,7 +59,6 @@ import {
 } from "#engine/benefits/standardizedNet";
 import {
   computeElterngeldBenefits,
-  isElterngeldHoursEligible,
   isPartnerschaftsbonusEligible,
 } from "#engine/benefits/elterngeldPlus";
 import {
@@ -73,6 +76,8 @@ import {
 
 export {
   type AllowanceBudgetSummary,
+  resolveMotherAllowancePlanMode,
+  resolveFatherAllowancePlanMode,
   resolveMotherAllowanceVariant,
   resolveFatherAllowanceVariant,
   resolveMotherOrdinaryMonthsCount,
@@ -169,20 +174,31 @@ export function projectAllowanceSchedule(
     if (incomeEligibility && !eligibility) {
       throw new TypeError("Every visible birth needs an income-eligibility assessment.");
     }
+    const motherPlanMode = resolveMotherAllowancePlanMode(pregnancy);
+    const fatherPlanMode = resolveFatherAllowancePlanMode(pregnancy);
     const motherVariant = resolveMotherAllowanceVariant(pregnancy);
     const fatherVariant = resolveFatherAllowanceVariant(pregnancy);
     const motherOrdinaryMonths = resolveMotherOrdinaryMonthsCount(pregnancy, conventions, rules);
-    const motherUnitWeight = evaluateAllowanceVariantWeightFormula({
-      variant: motherVariant,
-      elterngeldPlusFraction: rules.plusFraction.value,
-    });
-    const fatherUnitWeight = evaluateAllowanceVariantWeightFormula({
-      variant: fatherVariant,
-      elterngeldPlusFraction: rules.plusFraction.value,
-    });
-    const maxMotherMonths = rules.familyBasisMonths.value / motherUnitWeight;
-    const maxFatherMonths = rules.familyBasisMonths.value / fatherUnitWeight;
-    if (!Number.isInteger(motherOrdinaryMonths) || motherOrdinaryMonths < 0 || motherOrdinaryMonths > maxMotherMonths) {
+    const maxIndividualBasisUnits = rules.familyBasisMonths.value;
+    const maxBasisLifeMonths = rules.familyBasisMonths.value + rules.additionalPartnerBasisMonths.value;
+    const maxPlusMonths = Math.floor(maxIndividualBasisUnits / rules.plusFraction.value);
+    const maxMotherMonths = motherPlanMode === AllowancePlanMode.Basis
+      ? maxIndividualBasisUnits
+      : maxPlusMonths;
+    const maxFatherMonths = fatherPlanMode === AllowancePlanMode.Basis
+      ? maxIndividualBasisUnits
+      : maxPlusMonths;
+    if (motherPlanMode === AllowancePlanMode.Auto) {
+      if (
+        pregnancy.motherAllowanceMonthsCount !== undefined &&
+        (!Number.isInteger(pregnancy.motherAllowanceMonthsCount) ||
+          pregnancy.motherAllowanceMonthsCount < 0 ||
+          pregnancy.motherAllowanceMonthsCount > maxMotherMonths)
+      ) {
+        throw new TypeError("Requested mother allowance months exceed the individual ordinary allowance capacity.");
+      }
+    }
+    else if (!Number.isInteger(motherOrdinaryMonths) || motherOrdinaryMonths < 0 || motherOrdinaryMonths > maxMotherMonths) {
       throw new TypeError("Requested mother allowance months exceed the individual ordinary allowance capacity.");
     }
     if (!Number.isInteger(pregnancy.fatherPartnerMonthsCount) || pregnancy.fatherPartnerMonthsCount < 0 ||
@@ -272,39 +288,274 @@ export function projectAllowanceSchedule(
     const h = prepare(true);
     const w = prepare(false);
     const first = birth.ordinal + conventions.maternityPostBirthMonths.value;
-    const ordinaryLength = Math.max(motherOrdinaryMonths, pregnancy.fatherPartnerMonthsCount);
-    const bonusStart = first + ordinaryLength;
-    const end = bonusStart + bonusLength - 1;
-    const mother = new Set<AssessmentMonthOrdinal>();
-    const father = new Set<AssessmentMonthOrdinal>();
-    const moved = new Set<AssessmentMonthOrdinal>();
-    const maxBasisLifeMonths = rules.familyBasisMonths.value + rules.additionalPartnerBasisMonths.value;
-    const withinVariantWindow = (ordinal: AssessmentMonthOrdinal, variant: ElterngeldVariant): boolean =>
-      variant === ElterngeldVariant.Plus || ordinal - birth.ordinal < maxBasisLifeMonths;
-    for (let value = first; value < first + ordinaryLength; value++) {
-      const ordinal = toAssessmentMonthOrdinal(value);
-      const month = at(ordinal);
-      if (value < first + motherOrdinaryMonths && withinVariantWindow(ordinal, motherVariant) && isElterngeldHoursEligible(month.wifeHours, rules)) {
-        mother.add(ordinal);
+    const maternityMonths = income.filter((month) => month.ordinal >= birth.ordinal &&
+      month.maternityPregnancyId === pregnancy.pregnancyId && month.mutterschutz > 0).length;
+    const mother = new Map<AssessmentMonthOrdinal, ElterngeldVariant>();
+    const father = new Map<AssessmentMonthOrdinal, ElterngeldVariant>();
+    const moved = new Map<AssessmentMonthOrdinal, ElterngeldVariant>();
+    const sumPlanBasisUnits = (
+      plan: ReadonlyMap<AssessmentMonthOrdinal, ElterngeldVariant>,
+    ): number => {
+      let total = 0;
+      for (const variant of plan.values()) {
+        total += evaluateAllowanceVariantWeightFormula({
+          variant,
+          elterngeldPlusFraction: rules.plusFraction.value,
+        });
       }
-      if (value < first + pregnancy.fatherPartnerMonthsCount && withinVariantWindow(ordinal, fatherVariant) && isElterngeldHoursEligible(month.husbandHours, rules)) {
-        father.add(ordinal);
+      return total;
+    };
+    const countReducedMonths = (limitOrdinal: AssessmentMonthOrdinal): number => income.filter((month) => {
+      if (month.ordinal < birth.ordinal || month.ordinal > limitOrdinal) {
+        return false;
+      }
+      const husbandReduced = h.window.averageRegularGross !== undefined && (month.husbandPayroll?.monthlyGross ?? 0) < h.window.averageRegularGross;
+      const wifeReduced = w.window.averageRegularGross !== undefined && (month.wifePayroll?.monthlyGross ?? 0) < w.window.averageRegularGross;
+      const manualReduced = !grossMode && ((h.net !== undefined && (month.husbandNets[h.characteristics.taxClass] ?? h.net) < h.net) ||
+        (w.net !== undefined && (month.wifeNets[w.characteristics.taxClass] ?? w.net) < w.net));
+      return husbandReduced || wifeReduced || manualReduced;
+    }).length;
+    const hasAutoMode =
+      motherPlanMode === AllowancePlanMode.Auto ||
+      fatherPlanMode === AllowancePlanMode.Auto;
+    const ordinaryLength = Math.max(motherOrdinaryMonths, pregnancy.fatherPartnerMonthsCount);
+
+    if (!hasAutoMode) {
+      for (let value = first; value < first + ordinaryLength; value++) {
+        const ordinal = toAssessmentMonthOrdinal(value);
+        const month = at(ordinal);
+        if (value < first + motherOrdinaryMonths) {
+          const motherPick = evaluateMonthlyVariantSelectionFormula({
+            planMode: motherPlanMode,
+            weeklyWorkingHours: month.wifeHours,
+            maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+            elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+            maxBasisLifeMonths,
+            remainingIndividualBasisUnits: maxIndividualBasisUnits,
+            remainingFamilyBasisUnits: maxBasisLifeMonths,
+            elterngeldPlusFraction: rules.plusFraction.value,
+          });
+          if (motherPick.selectedVariant !== null) {
+            mother.set(ordinal, motherPick.selectedVariant);
+          }
+        }
+        if (value < first + pregnancy.fatherPartnerMonthsCount) {
+          const fatherPick = evaluateMonthlyVariantSelectionFormula({
+            planMode: fatherPlanMode,
+            weeklyWorkingHours: month.husbandHours,
+            maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+            elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+            maxBasisLifeMonths,
+            remainingIndividualBasisUnits: maxIndividualBasisUnits,
+            remainingFamilyBasisUnits: maxBasisLifeMonths,
+            elterngeldPlusFraction: rules.plusFraction.value,
+          });
+          if (fatherPick.selectedVariant !== null) {
+            father.set(ordinal, fatherPick.selectedVariant);
+          }
+        }
       }
     }
+    else {
+      const motherMaxMonths = motherPlanMode === AllowancePlanMode.Auto
+        ? (pregnancy.motherAllowanceMonthsCount ?? maxPlusMonths)
+        : motherOrdinaryMonths;
+      const fatherMaxMonths = pregnancy.fatherPartnerMonthsCount;
+      const maxScanOrdinal = toAssessmentMonthOrdinal(
+        first + Math.max(motherMaxMonths, fatherMaxMonths) + bonusLength - 1,
+      );
+      const hasProjectedReduction =
+        countReducedMonths(maxScanOrdinal) >= rules.minimumParentClaimMonths.value;
+
+      if (motherPlanMode === AllowancePlanMode.Auto) {
+        const projectedPartnerClaim =
+          fatherMaxMonths + bonusLength >= rules.minimumParentClaimMonths.value;
+        const initialFamilyCap =
+          maxIndividualBasisUnits +
+          (projectedPartnerClaim && hasProjectedReduction
+            ? rules.additionalPartnerBasisMonths.value
+            : 0);
+        let fatherUnitsUsed = 0;
+        for (let value = first; value < first + fatherMaxMonths; value++) {
+          const ordinal = toAssessmentMonthOrdinal(value);
+          if (fatherPlanMode === AllowancePlanMode.Auto && !byMonth.has(ordinal)) {
+            break;
+          }
+          const month = at(ordinal);
+          const fatherPick = evaluateMonthlyVariantSelectionFormula({
+            planMode: fatherPlanMode,
+            weeklyWorkingHours: month.husbandHours,
+            maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+            elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+            maxBasisLifeMonths,
+            remainingIndividualBasisUnits:
+              fatherPlanMode === AllowancePlanMode.Auto
+                ? Math.max(0, maxIndividualBasisUnits - fatherUnitsUsed)
+                : maxIndividualBasisUnits,
+            remainingFamilyBasisUnits:
+              fatherPlanMode === AllowancePlanMode.Auto
+                ? Math.max(0, initialFamilyCap - maternityMonths - fatherUnitsUsed)
+                : maxBasisLifeMonths,
+            elterngeldPlusFraction: rules.plusFraction.value,
+          });
+          if (fatherPick.selectedVariant !== null) {
+            father.set(ordinal, fatherPick.selectedVariant);
+            fatherUnitsUsed += fatherPick.basisUnitsConsumed;
+          }
+        }
+        const partnerClaimConfirmed =
+          father.size + bonusLength >= rules.minimumParentClaimMonths.value;
+        const motherFamilyCap =
+          maxIndividualBasisUnits +
+          (partnerClaimConfirmed && hasProjectedReduction
+            ? rules.additionalPartnerBasisMonths.value
+            : 0);
+        let motherIndividualRemaining = Math.max(0, maxIndividualBasisUnits - maternityMonths);
+        let motherFamilyRemaining = Math.max(
+          0,
+          motherFamilyCap - maternityMonths - fatherUnitsUsed,
+        );
+        for (let value = first; value < first + maxPlusMonths; value++) {
+          if (mother.size >= motherMaxMonths) {
+            break;
+          }
+          const ordinal = toAssessmentMonthOrdinal(value);
+          if (!byMonth.has(ordinal)) {
+            break;
+          }
+          const month = at(ordinal);
+          const motherPick = evaluateMonthlyVariantSelectionFormula({
+            planMode: AllowancePlanMode.Auto,
+            weeklyWorkingHours: month.wifeHours,
+            maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+            elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+            maxBasisLifeMonths,
+            remainingIndividualBasisUnits: motherIndividualRemaining,
+            remainingFamilyBasisUnits: motherFamilyRemaining,
+            elterngeldPlusFraction: rules.plusFraction.value,
+          });
+          if (motherPick.selectedVariant !== null) {
+            mother.set(ordinal, motherPick.selectedVariant);
+            motherIndividualRemaining = Math.max(
+              0,
+              motherIndividualRemaining - motherPick.basisUnitsConsumed,
+            );
+            motherFamilyRemaining = Math.max(
+              0,
+              motherFamilyRemaining - motherPick.basisUnitsConsumed,
+            );
+          }
+          else if (
+            Math.min(motherIndividualRemaining, motherFamilyRemaining) + 1e-9 <
+            rules.plusFraction.value
+          ) {
+            break;
+          }
+        }
+      }
+      else {
+        // Explicit mother mode + Auto father mode: allocate mother first, then fit father within remaining statutory budget.
+        for (let value = first; value < first + motherOrdinaryMonths; value++) {
+          const ordinal = toAssessmentMonthOrdinal(value);
+          const month = at(ordinal);
+          const motherPick = evaluateMonthlyVariantSelectionFormula({
+            planMode: motherPlanMode,
+            weeklyWorkingHours: month.wifeHours,
+            maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+            elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+            maxBasisLifeMonths,
+            remainingIndividualBasisUnits: maxIndividualBasisUnits,
+            remainingFamilyBasisUnits: maxBasisLifeMonths,
+            elterngeldPlusFraction: rules.plusFraction.value,
+          });
+          if (motherPick.selectedVariant !== null) {
+            mother.set(ordinal, motherPick.selectedVariant);
+          }
+        }
+        const motherUnitsUsed = maternityMonths + sumPlanBasisUnits(mother);
+        const projectedFamilyCap =
+          maxIndividualBasisUnits +
+          (mother.size + bonusLength + maternityMonths >= rules.minimumParentClaimMonths.value &&
+          fatherMaxMonths + bonusLength >= rules.minimumParentClaimMonths.value &&
+          hasProjectedReduction
+            ? rules.additionalPartnerBasisMonths.value
+            : 0);
+        let fatherIndividualRemaining: number = maxIndividualBasisUnits;
+        let fatherFamilyRemaining = Math.max(0, projectedFamilyCap - motherUnitsUsed);
+        for (let value = first; value < first + fatherMaxMonths; value++) {
+          const ordinal = toAssessmentMonthOrdinal(value);
+          if (!byMonth.has(ordinal)) {
+            break;
+          }
+          const month = at(ordinal);
+          const fatherPick = evaluateMonthlyVariantSelectionFormula({
+            planMode: AllowancePlanMode.Auto,
+            weeklyWorkingHours: month.husbandHours,
+            maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+            elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+            maxBasisLifeMonths,
+            remainingIndividualBasisUnits: fatherIndividualRemaining,
+            remainingFamilyBasisUnits: fatherFamilyRemaining,
+            elterngeldPlusFraction: rules.plusFraction.value,
+          });
+          if (fatherPick.selectedVariant !== null) {
+            father.set(ordinal, fatherPick.selectedVariant);
+            fatherIndividualRemaining = Math.max(
+              0,
+              fatherIndividualRemaining - fatherPick.basisUnitsConsumed,
+            );
+            fatherFamilyRemaining = Math.max(
+              0,
+              fatherFamilyRemaining - fatherPick.basisUnitsConsumed,
+            );
+          }
+          else if (
+            Math.min(fatherIndividualRemaining, fatherFamilyRemaining) + 1e-9 <
+            rules.plusFraction.value
+          ) {
+            break;
+          }
+        }
+      }
+    }
+
     // Reallocate only still-unfilled requested father months; never invent extra payments.
-    for (const ordinal of mother) {
+    for (const [ordinal, motherVariantForMonth] of mother) {
       const month = at(ordinal);
       if (month.isMutterschutz && month.maternityPregnancyId !== pregnancy.pregnancyId &&
-        !father.has(ordinal) && father.size < pregnancy.fatherPartnerMonthsCount &&
-        withinVariantWindow(ordinal, fatherVariant) && isElterngeldHoursEligible(month.husbandHours, rules)) {
-        mother.delete(ordinal); father.add(ordinal); moved.add(ordinal);
+        !father.has(ordinal) && father.size < pregnancy.fatherPartnerMonthsCount) {
+        const fatherPick = evaluateMonthlyVariantSelectionFormula({
+          planMode: fatherPlanMode,
+          weeklyWorkingHours: month.husbandHours,
+          maximumWeeklyHoursLimit: rules.maximumWeeklyHours.value,
+          elapsedMonthsSinceBirth: ordinal - birth.ordinal,
+          maxBasisLifeMonths,
+          remainingIndividualBasisUnits: maxIndividualBasisUnits,
+          remainingFamilyBasisUnits: maxBasisLifeMonths,
+          elterngeldPlusFraction: rules.plusFraction.value,
+        });
+        if (fatherPick.selectedVariant !== null) {
+          mother.delete(ordinal);
+          father.set(ordinal, fatherPick.selectedVariant);
+          moved.set(ordinal, motherVariantForMonth);
+        }
       }
     }
+    const lastOrdinaryOrdinal = Math.max(
+      first - 1,
+      ...mother.keys(),
+      ...father.keys(),
+    );
+    const bonusStart = hasAutoMode ? lastOrdinaryOrdinal + 1 : first + ordinaryLength;
+    const end = bonusStart + bonusLength - 1;
     const bonus = new Set<AssessmentMonthOrdinal>();
     let run: AssessmentMonthOrdinal[] = [];
     const runs: AssessmentMonthOrdinal[][] = [];
     for (let value = bonusStart; value <= end; value++) {
       const ordinal = toAssessmentMonthOrdinal(value);
+      if (hasAutoMode && !byMonth.has(ordinal)) {
+        break;
+      }
       const month = at(ordinal);
       if (isPartnerschaftsbonusEligible(month.wifeHours, month.husbandHours, rules)) {
         run.push(ordinal);
@@ -317,40 +568,31 @@ export function projectAllowanceSchedule(
       runs.push(run);
     }
     (runs.find((months) => months.length >= rules.partnershipMinimumMonths.value) ?? []).forEach((ordinal) => bonus.add(ordinal));
-    const maternityMonths = income.filter((month) => month.ordinal >= birth.ordinal &&
-      month.maternityPregnancyId === pregnancy.pregnancyId && month.mutterschutz > 0).length;
     if (father.size + bonus.size < rules.minimumParentClaimMonths.value) {
-      father.clear(); moved.forEach((ordinal) => mother.add(ordinal));
+      father.clear();
+      moved.forEach((variantForMonth, ordinal) => mother.set(ordinal, variantForMonth));
     }
     if (mother.size + bonus.size + maternityMonths < rules.minimumParentClaimMonths.value) {
       mother.clear();
     }
-    const motherUnits = maternityMonths + mother.size * motherUnitWeight;
-    const fatherUnits = father.size * fatherUnitWeight;
-    const reduced = income.filter((month) => {
-      if (month.ordinal < birth.ordinal || month.ordinal > end) {
-        return false;
-      }
-      const husbandReduced = h.window.averageRegularGross !== undefined && (month.husbandPayroll?.monthlyGross ?? 0) < h.window.averageRegularGross;
-      const wifeReduced = w.window.averageRegularGross !== undefined && (month.wifePayroll?.monthlyGross ?? 0) < w.window.averageRegularGross;
-      const manualReduced = !grossMode && ((h.net !== undefined && (month.husbandNets[h.characteristics.taxClass] ?? h.net) < h.net) ||
-        (w.net !== undefined && (month.wifeNets[w.characteristics.taxClass] ?? w.net) < w.net));
-      return husbandReduced || wifeReduced || manualReduced;
-    });
+    const motherUnits = maternityMonths + sumPlanBasisUnits(mother);
+    const fatherUnits = sumPlanBasisUnits(father);
+    const reducedCount = countReducedMonths(toAssessmentMonthOrdinal(end));
     const bothClaim = father.size + bonus.size >= rules.minimumParentClaimMonths.value &&
       mother.size + bonus.size + maternityMonths >= rules.minimumParentClaimMonths.value;
-    const familyBudget = rules.familyBasisMonths.value + (bothClaim && reduced.length >= rules.minimumParentClaimMonths.value ? rules.additionalPartnerBasisMonths.value : 0);
-    if (motherUnits > rules.familyBasisMonths.value || fatherUnits > rules.familyBasisMonths.value || motherUnits + fatherUnits > familyBudget) {
+    const familyBudget = rules.familyBasisMonths.value + (bothClaim && reducedCount >= rules.minimumParentClaimMonths.value ? rules.additionalPartnerBasisMonths.value : 0);
+    if (motherUnits > rules.familyBasisMonths.value + 1e-9 || fatherUnits > rules.familyBasisMonths.value + 1e-9 || motherUnits + fatherUnits > familyBudget + 1e-9) {
       throw new TypeError("Planned ordinary allowance months exceed the verified individual or family budget.");
     }
 
     const payParent = (
       husband: boolean,
       prepared: typeof h,
-      ordinary: Set<AssessmentMonthOrdinal>,
+      ordinary: ReadonlyMap<AssessmentMonthOrdinal, ElterngeldVariant>,
       parentVariant: ElterngeldVariant,
+      planMode: AllowancePlanMode,
     ) => {
-      const planned = [...new Set([...ordinary, ...bonus])].sort((a, b) => a - b);
+      const planned = [...new Set([...ordinary.keys(), ...bonus])].sort((a, b) => a - b);
       const notes = prepared.notes;
       const classNet = (month: IncomeMonth) => (husband ? month.husbandNets : month.wifeNets)[prepared.characteristics.taxClass];
       const gross = (month: IncomeMonth) => (husband ? month.husbandPayroll : month.wifePayroll)?.monthlyGross;
@@ -419,7 +661,9 @@ export function projectAllowanceSchedule(
           rules,
         );
         const isBonusMonth = bonus.has(ordinal);
-        const monthVariant = isBonusMonth ? ElterngeldVariant.Plus : parentVariant;
+        const monthVariant = isBonusMonth
+          ? ElterngeldVariant.Plus
+          : (ordinary.get(ordinal) ?? parentVariant);
         const baseAllowance = monthVariant === ElterngeldVariant.Basis
           ? entitlement.basiselterngeld
           : entitlement.elterngeldPlus;
@@ -465,10 +709,17 @@ export function projectAllowanceSchedule(
         }
       }
       notes.forEach((note) => allAssumptions.add(note));
+      const ordinaryVariants = [...ordinary.values()];
+      const resolvedAuditVariant = ordinaryVariants.length === 0
+        ? parentVariant
+        : ordinaryVariants.some((variant) => variant === ElterngeldVariant.Basis)
+          ? ElterngeldVariant.Basis
+          : ElterngeldVariant.Plus;
       assessments.push(Object.freeze({ incomeEligibility: eligibility,
         pregnancyId: pregnancy.pregnancyId,
         parent: husband ? TargetPerson.Husband : TargetPerson.Wife,
-        variant: parentVariant,
+        variant: resolvedAuditVariant,
+        planMode,
         birthMonthId: monthId(birth.ordinal),
         incomeMode: grossMode ? SalaryInputMode.Gross : SalaryInputMode.Net,
         taxClass: prepared.characteristics.taxClass,
@@ -478,7 +729,7 @@ export function projectAllowanceSchedule(
         selectedMonths: Object.freeze(prepared.window.records.map((record) => monthId(record.ordinal))),
         excludedMonths: Object.freeze(prepared.window.excluded.map((record) => monthId(record.ordinal))),
         assumedMonths: Object.freeze(prepared.window.assumed.map(monthId)),
-        ordinaryClaimMonths: Object.freeze([...ordinary].sort((a, b) => a - b).map(monthId)),
+        ordinaryClaimMonths: Object.freeze([...ordinary.keys()].sort((a, b) => a - b).map(monthId)),
         partnershipClaimMonths: Object.freeze([...bonus].map(monthId)),
         available,
         required: planned.some((ordinal) => ordinal <= visibleEnd),
@@ -486,8 +737,8 @@ export function projectAllowanceSchedule(
         reason,
         assumptions: Object.freeze([...notes]) }));
     };
-    payParent(true, h, father, fatherVariant);
-    payParent(false, w, mother, motherVariant);
+    payParent(true, h, father, fatherVariant, fatherPlanMode);
+    payParent(false, w, mother, motherVariant, motherPlanMode);
   }
   const months: ReadonlyMap<AssessmentMonthOrdinal, ProjectedBenefitMonth> = new Map([...result].map(([ordinal, row]) =>
     [ordinal, Object.freeze({ ...row,

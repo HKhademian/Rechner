@@ -31,6 +31,7 @@ import {
   clearStorage,
 } from "#engine/storage/persistence";
 import {
+  AllowancePlanMode,
   ElterngeldVariant,
   TargetPerson,
   SalaryInputMode,
@@ -566,7 +567,7 @@ it("persists, validates, and sanitizes existingChildrenCount, childcarePlan, and
   assert.equal(sanitized.childcarePlan?.endAgeMonths, 48);
 });
 
-it("persists and sanitizes pregnancy Basiselterngeld vs. ElterngeldPlus settings across round-trips", () => {
+it("persists and sanitizes pregnancy Basiselterngeld, ElterngeldPlus, and Auto plan-mode settings across round-trips", () => {
   const base = getTestPersistedState();
   const payload: ElterngeldPersistedState = {
     ...base,
@@ -575,8 +576,10 @@ it("persists and sanitizes pregnancy Basiselterngeld vs. ElterngeldPlus settings
         ? {
           ...pregnancy,
           motherAllowanceVariant: ElterngeldVariant.Basis,
+          motherAllowancePlanMode: AllowancePlanMode.Auto,
           motherAllowanceMonthsCount: toMonthDuration(10),
           fatherAllowanceVariant: ElterngeldVariant.Basis,
+          fatherAllowancePlanMode: AllowancePlanMode.Auto,
           fatherPartnerMonthsCount: toMonthDuration(2),
         }
         : pregnancy),
@@ -588,8 +591,10 @@ it("persists and sanitizes pregnancy Basiselterngeld vs. ElterngeldPlus settings
     deserializeState(serializeState(payload)),
   ]) {
     assert.equal(parsed.customPregnancies[0]?.motherAllowanceVariant, ElterngeldVariant.Basis);
+    assert.equal(parsed.customPregnancies[0]?.motherAllowancePlanMode, AllowancePlanMode.Auto);
     assert.equal(parsed.customPregnancies[0]?.motherAllowanceMonthsCount, 10);
     assert.equal(parsed.customPregnancies[0]?.fatherAllowanceVariant, ElterngeldVariant.Basis);
+    assert.equal(parsed.customPregnancies[0]?.fatherAllowancePlanMode, AllowancePlanMode.Auto);
     assert.equal(parsed.customPregnancies[0]?.fatherPartnerMonthsCount, 2);
   }
 });

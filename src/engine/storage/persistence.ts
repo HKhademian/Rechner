@@ -55,6 +55,7 @@ import {
   TargetPerson,
   FinancialEventCategory,
   AnnualSalariesCount,
+  isAllowancePlanMode,
   isElterngeldVariant,
   toSalaryInputMode,
   toSalaryPeriod,
@@ -64,6 +65,7 @@ import {
   toTimelineTimeRangeFilter,
   toTaxClass,
   toTargetPerson,
+  toAllowancePlanMode,
   toElterngeldVariant,
   toFinancialEventCategory,
   toFederalStateKitaPresetId,
@@ -646,6 +648,12 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
           : {}),
         ...(typeof pObj.fatherAllowanceVariant === "string"
           ? { fatherAllowanceVariant: toElterngeldVariant(pObj.fatherAllowanceVariant) }
+          : {}),
+        ...(typeof pObj.motherAllowancePlanMode === "string"
+          ? { motherAllowancePlanMode: toAllowancePlanMode(pObj.motherAllowancePlanMode) }
+          : {}),
+        ...(typeof pObj.fatherAllowancePlanMode === "string"
+          ? { fatherAllowancePlanMode: toAllowancePlanMode(pObj.fatherAllowancePlanMode) }
           : {}),
         ...(pObj.motherAllowanceMonthsCount !== undefined
           ? { motherAllowanceMonthsCount: toMonthDuration(Number(pObj.motherAllowanceMonthsCount) || 0) }
@@ -1262,6 +1270,18 @@ export function validateAndSanitizePersistedState(
           ? { fatherAllowanceVariant: toElterngeldVariant(pObj.fatherAllowanceVariant) }
           : defP?.fatherAllowanceVariant !== undefined
             ? { fatherAllowanceVariant: defP.fatherAllowanceVariant }
+            : {}),
+        ...(typeof pObj.motherAllowancePlanMode === "string" &&
+        isAllowancePlanMode(pObj.motherAllowancePlanMode)
+          ? { motherAllowancePlanMode: toAllowancePlanMode(pObj.motherAllowancePlanMode) }
+          : defP?.motherAllowancePlanMode !== undefined
+            ? { motherAllowancePlanMode: defP.motherAllowancePlanMode }
+            : {}),
+        ...(typeof pObj.fatherAllowancePlanMode === "string" &&
+        isAllowancePlanMode(pObj.fatherAllowancePlanMode)
+          ? { fatherAllowancePlanMode: toAllowancePlanMode(pObj.fatherAllowancePlanMode) }
+          : defP?.fatherAllowancePlanMode !== undefined
+            ? { fatherAllowancePlanMode: defP.fatherAllowancePlanMode }
             : {}),
         ...(pObj.motherAllowanceMonthsCount !== undefined
           ? {
