@@ -6,23 +6,26 @@ import {
 import {
   ThemeMode,
   ThemePalette,
+  ThemeStyle,
 } from "#engine/types";
 import {
   APPEARANCE_STORAGE_KEY,
   DEFAULT_APPEARANCE_SETTINGS,
   LEGACY_APPEARANCE_KEYS,
   THEME_PALETTE_OPTIONS,
+  THEME_STYLE_OPTIONS,
   parseAppearanceSettings,
   resolveEffectiveTheme,
   serializeAppearanceSettings,
 } from "#utils/themeConfig";
 
 describe("Theme Configuration Helpers", () => {
-  it("defines shared appearance key, defaults, legacy keys, and all 4 palette options", () => {
+  it("defines shared appearance key, defaults, legacy keys, 4 palettes, and 3 design styles", () => {
     assert.equal(APPEARANCE_STORAGE_KEY, "rechner:shared:appearance:v1");
     assert.deepEqual(DEFAULT_APPEARANCE_SETTINGS, {
       mode: ThemeMode.Light,
       palette: ThemePalette.Cobalt,
+      style: ThemeStyle.Swiss,
     });
     assert.ok(LEGACY_APPEARANCE_KEYS.includes("german_calc_theme_mode"));
     assert.deepEqual(
@@ -32,6 +35,14 @@ describe("Theme Configuration Helpers", () => {
         ThemePalette.Forest,
         ThemePalette.Indigo,
         ThemePalette.Stone,
+      ],
+    );
+    assert.deepEqual(
+      THEME_STYLE_OPTIONS.map((option) => option.value),
+      [
+        ThemeStyle.Swiss,
+        ThemeStyle.Editorial,
+        ThemeStyle.Utility,
       ],
     );
   });
@@ -49,10 +60,12 @@ describe("Theme Configuration Helpers", () => {
     const serialized = serializeAppearanceSettings({
       mode: ThemeMode.Dark,
       palette: ThemePalette.Forest,
+      style: ThemeStyle.Editorial,
     });
     assert.deepEqual(parseAppearanceSettings(serialized), {
       mode: ThemeMode.Dark,
       palette: ThemePalette.Forest,
+      style: ThemeStyle.Editorial,
     });
   });
 
@@ -60,10 +73,12 @@ describe("Theme Configuration Helpers", () => {
     assert.deepEqual(parseAppearanceSettings("dark"), {
       mode: ThemeMode.Dark,
       palette: ThemePalette.Cobalt,
+      style: ThemeStyle.Swiss,
     });
     assert.deepEqual(parseAppearanceSettings("system"), {
       mode: ThemeMode.System,
       palette: ThemePalette.Cobalt,
+      style: ThemeStyle.Swiss,
     });
     const envelope = JSON.stringify({
       format: "rechner-storage-value",
@@ -73,6 +88,7 @@ describe("Theme Configuration Helpers", () => {
     assert.deepEqual(parseAppearanceSettings(envelope), {
       mode: ThemeMode.Dark,
       palette: ThemePalette.Cobalt,
+      style: ThemeStyle.Swiss,
     });
   });
 
@@ -80,17 +96,26 @@ describe("Theme Configuration Helpers", () => {
     assert.deepEqual(parseAppearanceSettings(JSON.stringify({ palette: "indigo" })), {
       mode: ThemeMode.Light,
       palette: ThemePalette.Indigo,
+      style: ThemeStyle.Swiss,
+    });
+    assert.deepEqual(parseAppearanceSettings(JSON.stringify({ style: "utility" })), {
+      mode: ThemeMode.Light,
+      palette: ThemePalette.Cobalt,
+      style: ThemeStyle.Utility,
     });
     assert.deepEqual(parseAppearanceSettings(JSON.stringify({ mode: "dark",
-      palette: "unknown" })), {
+      palette: "unknown",
+      style: "brutalist" })), {
       mode: ThemeMode.Dark,
       palette: ThemePalette.Cobalt,
+      style: ThemeStyle.Swiss,
     });
     assert.equal(parseAppearanceSettings(null), null);
     assert.equal(parseAppearanceSettings(""), null);
     assert.equal(parseAppearanceSettings("not-json-or-mode"), null);
     assert.equal(parseAppearanceSettings("[]"), null);
     assert.equal(parseAppearanceSettings(JSON.stringify({ mode: "neon",
-      palette: "pink" })), null);
+      palette: "pink",
+      style: "comic" })), null);
   });
 });

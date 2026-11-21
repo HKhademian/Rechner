@@ -63,6 +63,7 @@ import {
   toTimelineTimeRangeFilter,
   toThemeMode,
   toThemePalette,
+  toThemeStyle,
   toActionCategory,
   toActionType,
   toTargetPerson,
@@ -99,6 +100,7 @@ import {
   TimelineTimeRangeFilter,
   ThemeMode,
   ThemePalette,
+  ThemeStyle,
   TransactionType,
   TransactionDirection,
   SpecialEventType,
@@ -1104,7 +1106,7 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       );
     });
 
-    it("ThemeMode and ThemePalette: validates color modes and curated palettes", () => {
+    it("ThemeMode, ThemePalette, and ThemeStyle: validates modes, palettes, and minimal design styles", () => {
       assert.equal(toThemeMode("light"), ThemeMode.Light);
       assert.equal(toThemeMode("dark"), ThemeMode.Dark);
       assert.equal(toThemeMode("system"), ThemeMode.System);
@@ -1115,6 +1117,11 @@ describe("Strongly-Typed Domain Types & Constructors", () => {
       assert.equal(toThemePalette("indigo"), ThemePalette.Indigo);
       assert.equal(toThemePalette("stone"), ThemePalette.Stone);
       assert.throws(() => toThemePalette("neon"), TypeError);
+
+      assert.equal(toThemeStyle("swiss"), ThemeStyle.Swiss);
+      assert.equal(toThemeStyle("editorial"), ThemeStyle.Editorial);
+      assert.equal(toThemeStyle("utility"), ThemeStyle.Utility);
+      assert.throws(() => toThemeStyle("brutalist"), TypeError);
     });
   });
 });

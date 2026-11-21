@@ -6,6 +6,7 @@ import {
   APPEARANCE_STORAGE_KEY,
   LEGACY_APPEARANCE_KEYS,
   THEME_PALETTE_OPTIONS,
+  THEME_STYLE_OPTIONS,
 } from "#utils/themeConfig";
 import "#styles/global.css";
 
@@ -22,11 +23,12 @@ const {
 } = Astro.props;
 
 const paletteIds = THEME_PALETTE_OPTIONS.map((option) => option.value);
+const styleIds = THEME_STYLE_OPTIONS.map((option) => option.value);
 const storageModeKey = "rechner:privacy:storage-mode:v1";
 const csp =
   `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:${openStreetMapTiles ? " https://tile.openstreetmap.org" : ""}; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'`;
 ---
-<html lang="en" data-theme="light" data-palette="cobalt">
+<html lang="en" data-theme="light" data-palette="cobalt" data-style="swiss">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href={sitePath("/favicon.svg")} />
@@ -41,6 +43,7 @@ const csp =
         appearanceKey: APPEARANCE_STORAGE_KEY,
         legacyKeys: LEGACY_APPEARANCE_KEYS,
         paletteIds,
+        styleIds,
         storageModeKey,
       }}
     >
@@ -83,8 +86,11 @@ const csp =
       }
       const trimmed = raw.trim();
       if (trimmed === "light" || trimmed === "dark" || trimmed === "system") {
-        return { mode: trimmed,
-          palette: null };
+        return {
+          mode: trimmed,
+          palette: null,
+          style: null,
+        };
       }
       try {
         const parsed = JSON.parse(trimmed);
@@ -97,6 +103,7 @@ const csp =
         return {
           mode: typeof parsed.mode === "string" ? parsed.mode : null,
           palette: typeof parsed.palette === "string" ? parsed.palette : null,
+          style: typeof parsed.style === "string" ? parsed.style : null,
         };
       }
       catch {
@@ -127,6 +134,10 @@ const csp =
       resolved && resolved.palette && paletteIds.includes(resolved.palette)
         ? resolved.palette
         : "cobalt";
+    const style =
+      resolved && resolved.style && styleIds.includes(resolved.style)
+        ? resolved.style
+        : "swiss";
     const prefersDark =
       typeof window.matchMedia === "function" &&
             window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -134,6 +145,7 @@ const csp =
       mode === "dark" || (mode === "system" && prefersDark) ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", effectiveTheme);
     document.documentElement.setAttribute("data-palette", palette);
+    document.documentElement.setAttribute("data-style", style);
   }
   catch {
     // Ignore pre-paint appearance bootstrap failures.

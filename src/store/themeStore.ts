@@ -8,6 +8,7 @@ import {
 } from "#engine/storage/appStorage";
 import {
   type ThemePalette,
+  type ThemeStyle,
   ThemeMode,
 } from "#engine/types";
 import {
@@ -54,6 +55,9 @@ export const activeThemeMode = signal<ThemeMode>(initialAppearance.mode);
 /** Reactive signal tracking the active institutional color palette site-wide. */
 export const activeThemePalette = signal<ThemePalette>(initialAppearance.palette);
 
+/** Reactive signal tracking the active minimal visual design style site-wide. */
+export const activeThemeStyle = signal<ThemeStyle>(initialAppearance.style);
+
 function persistCurrentAppearance(settings: AppearanceSettings): void {
   const storage = browserWebStorageForCurrentMode();
   if (!storage) {
@@ -68,11 +72,13 @@ function persistCurrentAppearance(settings: AppearanceSettings): void {
 }
 
 /**
- * Applies the effective theme ("light" | "dark") and selected palette to the root document element.
+ * Applies the effective theme ("light" | "dark"), selected palette, and minimal visual style
+ * to the root document element.
  */
 export function applyThemeToDocument(
   mode: ThemeMode,
   palette: ThemePalette = activeThemePalette.value,
+  style: ThemeStyle = activeThemeStyle.value,
 ): void {
   if (typeof document === "undefined") {
     return;
@@ -86,6 +92,7 @@ export function applyThemeToDocument(
   const root = document.documentElement;
   root.setAttribute("data-theme", effectiveTheme);
   root.setAttribute("data-palette", palette);
+  root.setAttribute("data-style", style);
 }
 
 /**
@@ -97,8 +104,9 @@ export function setThemeMode(newMode: ThemeMode): void {
   persistCurrentAppearance({
     mode: newMode,
     palette: activeThemePalette.value,
+    style: activeThemeStyle.value,
   });
-  applyThemeToDocument(newMode, activeThemePalette.value);
+  applyThemeToDocument(newMode, activeThemePalette.value, activeThemeStyle.value);
 }
 
 /**
@@ -110,18 +118,35 @@ export function setThemePalette(newPalette: ThemePalette): void {
   persistCurrentAppearance({
     mode: activeThemeMode.value,
     palette: newPalette,
+    style: activeThemeStyle.value,
   });
-  applyThemeToDocument(activeThemeMode.value, newPalette);
+  applyThemeToDocument(activeThemeMode.value, newPalette, activeThemeStyle.value);
 }
 
-/** Resets shared theme mode and palette to defaults and clears shared appearance keys. */
+/**
+ * Updates the active minimal visual design style site-wide, persists it under the active
+ * Privacy `StorageMode`, and updates the document attributes.
+ */
+export function setThemeStyle(newStyle: ThemeStyle): void {
+  activeThemeStyle.value = newStyle;
+  persistCurrentAppearance({
+    mode: activeThemeMode.value,
+    palette: activeThemePalette.value,
+    style: newStyle,
+  });
+  applyThemeToDocument(activeThemeMode.value, activeThemePalette.value, newStyle);
+}
+
+/** Resets shared theme mode, palette, and style to defaults and clears shared appearance keys. */
 export function resetAppearance(): void {
   activeThemeMode.value = DEFAULT_APPEARANCE_SETTINGS.mode;
   activeThemePalette.value = DEFAULT_APPEARANCE_SETTINGS.palette;
+  activeThemeStyle.value = DEFAULT_APPEARANCE_SETTINGS.style;
   clearSharedBrowserKey(APPEARANCE_STORAGE_KEY);
   applyThemeToDocument(
     DEFAULT_APPEARANCE_SETTINGS.mode,
     DEFAULT_APPEARANCE_SETTINGS.palette,
+    DEFAULT_APPEARANCE_SETTINGS.style,
   );
 }
 
@@ -130,22 +155,35 @@ export function reloadAppearanceFromStorage(): void {
   const reloaded = readInitialAppearanceSettings();
   activeThemeMode.value = reloaded.mode;
   activeThemePalette.value = reloaded.palette;
-  applyThemeToDocument(reloaded.mode, reloaded.palette);
+  activeThemeStyle.value = reloaded.style;
+  applyThemeToDocument(reloaded.mode, reloaded.palette, reloaded.style);
 }
 
 // Client-side initialization, system change listener, and cross-tab synchronization
 if (typeof window !== "undefined") {
-  applyThemeToDocument(activeThemeMode.value, activeThemePalette.value);
+  applyThemeToDocument(
+    activeThemeMode.value,
+    activeThemePalette.value,
+    activeThemeStyle.value,
+  );
 
   effect(() => {
-    applyThemeToDocument(activeThemeMode.value, activeThemePalette.value);
+    applyThemeToDocument(
+      activeThemeMode.value,
+      activeThemePalette.value,
+      activeThemeStyle.value,
+    );
   });
 
   if (typeof window.matchMedia === "function") {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     mediaQuery.addEventListener("change", () => {
       if (activeThemeMode.value === ThemeMode.System) {
-        applyThemeToDocument(ThemeMode.System, activeThemePalette.value);
+        applyThemeToDocument(
+          ThemeMode.System,
+          activeThemePalette.value,
+          activeThemeStyle.value,
+        );
       }
     });
   }

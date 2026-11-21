@@ -1,8 +1,10 @@
 import {
   ThemeMode,
   ThemePalette,
+  ThemeStyle,
   toThemeMode,
   toThemePalette,
+  toThemeStyle,
 } from "#engine/types";
 
 export const APPEARANCE_STORAGE_KEY = "rechner:shared:appearance:v1";
@@ -18,11 +20,13 @@ export const LEGACY_APPEARANCE_KEYS = [
 export interface AppearanceSettings {
   readonly mode: ThemeMode;
   readonly palette: ThemePalette;
+  readonly style: ThemeStyle;
 }
 
 export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
   mode: ThemeMode.Light,
   palette: ThemePalette.Cobalt,
+  style: ThemeStyle.Swiss,
 };
 
 export interface ThemePaletteOption {
@@ -54,6 +58,30 @@ export const THEME_PALETTE_OPTIONS: readonly ThemePaletteOption[] = [
   },
 ] as const;
 
+export interface ThemeStyleOption {
+  readonly value: ThemeStyle;
+  readonly label: string;
+  readonly description: string;
+}
+
+export const THEME_STYLE_OPTIONS: readonly ThemeStyleOption[] = [
+  {
+    value: ThemeStyle.Swiss,
+    label: "Swiss",
+    description: "Crisp borders & tight precision",
+  },
+  {
+    value: ThemeStyle.Editorial,
+    label: "Editorial",
+    description: "Warm paper & serif poise",
+  },
+  {
+    value: ThemeStyle.Utility,
+    label: "Utility",
+    description: "Soft fills & calm simplicity",
+  },
+] as const;
+
 /** Resolves the effective DOM `data-theme` value ("light" or "dark") from a `ThemeMode`. */
 export function resolveEffectiveTheme(
   mode: ThemeMode,
@@ -68,11 +96,12 @@ export function resolveEffectiveTheme(
   return "light";
 }
 
-/** Serializes shared theme mode and palette settings for browser storage. */
+/** Serializes shared theme mode, palette, and visual style settings for browser storage. */
 export function serializeAppearanceSettings(settings: AppearanceSettings): string {
   return JSON.stringify({
     mode: settings.mode,
     palette: settings.palette,
+    style: settings.style,
   });
 }
 
@@ -100,6 +129,18 @@ function tryParsePalette(value: unknown): ThemePalette | null {
   }
 }
 
+function tryParseStyle(value: unknown): ThemeStyle | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  try {
+    return toThemeStyle(value);
+  }
+  catch {
+    return null;
+  }
+}
+
 /**
  * Parses stored appearance settings from the shared JSON format, a bare legacy theme string
  * ("light" | "dark" | "system"), or a versioned `rechner-storage-value` envelope.
@@ -118,6 +159,7 @@ export function parseAppearanceSettings(raw: string | null): AppearanceSettings 
     return {
       mode: bareMode,
       palette: DEFAULT_APPEARANCE_SETTINGS.palette,
+      style: DEFAULT_APPEARANCE_SETTINGS.style,
     };
   }
 
@@ -143,12 +185,14 @@ export function parseAppearanceSettings(raw: string | null): AppearanceSettings 
 
   const mode = tryParseMode(candidate.mode);
   const palette = tryParsePalette(candidate.palette);
-  if (mode === null && palette === null) {
+  const style = tryParseStyle(candidate.style);
+  if (mode === null && palette === null && style === null) {
     return null;
   }
 
   return {
     mode: mode ?? DEFAULT_APPEARANCE_SETTINGS.mode,
     palette: palette ?? DEFAULT_APPEARANCE_SETTINGS.palette,
+    style: style ?? DEFAULT_APPEARANCE_SETTINGS.style,
   };
 }

@@ -457,6 +457,28 @@ export function toThemePalette(val: string): ThemePalette {
   return val as ThemePalette;
 }
 
+/** Switchable minimal visual design styles applied site-wide orthogonal to theme mode and palette. */
+export const ThemeStyle = {
+  Swiss: "swiss",
+  Editorial: "editorial",
+  Utility: "utility",
+} as const;
+export type ThemeStyle = (typeof ThemeStyle)[keyof typeof ThemeStyle];
+
+/**
+ * Validates and casts an arbitrary string into a strongly-typed `ThemeStyle`.
+ * @throws {TypeError} if input does not match a valid `ThemeStyle` member.
+ */
+export function toThemeStyle(val: string): ThemeStyle {
+  const values: string[] = Object.values(ThemeStyle);
+  if (!values.includes(val)) {
+    throw new TypeError(
+      `Invalid ThemeStyle: ${val}. Expected one of: ${values.join(", ")}.`,
+    );
+  }
+  return val as ThemeStyle;
+}
+
 /** User input mode for salary specifications (Gross pre-tax vs Net take-home). */
 export const SalaryInputMode = {
   Gross: "GROSS",

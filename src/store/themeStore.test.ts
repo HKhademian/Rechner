@@ -28,14 +28,17 @@ describe("Global Theme Store", () => {
         addEventListener: () => {},
       };
       const store = await import("#store/themeStore");
-      const { ThemeMode, ThemePalette } = await import("#engine/types");
+      const { ThemeMode, ThemePalette, ThemeStyle } = await import("#engine/types");
       assert.equal(attrs.get("data-theme"), "light");
       assert.equal(attrs.get("data-palette"), "cobalt");
+      assert.equal(attrs.get("data-style"), "swiss");
 
       store.setThemeMode(ThemeMode.Dark);
       store.setThemePalette(ThemePalette.Forest);
+      store.setThemeStyle(ThemeStyle.Editorial);
       assert.equal(attrs.get("data-theme"), "dark");
       assert.equal(attrs.get("data-palette"), "forest");
+      assert.equal(attrs.get("data-style"), "editorial");
 
       store.setThemeMode(ThemeMode.System);
       assert.equal(attrs.get("data-theme"), "light");
@@ -48,8 +51,10 @@ describe("Global Theme Store", () => {
       store.resetAppearance();
       assert.equal(store.activeThemeMode.value, ThemeMode.Light);
       assert.equal(store.activeThemePalette.value, ThemePalette.Cobalt);
+      assert.equal(store.activeThemeStyle.value, ThemeStyle.Swiss);
       assert.equal(attrs.get("data-theme"), "light");
       assert.equal(attrs.get("data-palette"), "cobalt");
+      assert.equal(attrs.get("data-style"), "swiss");
     `;
     assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], {
       cwd: process.cwd(),
@@ -73,7 +78,7 @@ describe("Global Theme Store", () => {
 
       const storageMod = await import("#engine/storage/appStorage");
       const store = await import("#store/themeStore");
-      const { ThemeMode, ThemePalette } = await import("#engine/types");
+      const { ThemeMode, ThemePalette, ThemeStyle } = await import("#engine/types");
       const { APPEARANCE_STORAGE_KEY } = await import("#utils/themeConfig");
 
       // Memory mode keeps selection in memory without writing browser storage
@@ -85,10 +90,15 @@ describe("Global Theme Store", () => {
       // Session mode persists to sessionStorage only
       assert.equal(storageMod.setStorageMode(storageMod.StorageMode.Session), true);
       store.setThemePalette(ThemePalette.Indigo);
+      store.setThemeStyle(ThemeStyle.Utility);
       assert.equal(localMap.has(APPEARANCE_STORAGE_KEY), false);
       assert.equal(
         JSON.parse(sessionMap.get(APPEARANCE_STORAGE_KEY)).palette,
         ThemePalette.Indigo,
+      );
+      assert.equal(
+        JSON.parse(sessionMap.get(APPEARANCE_STORAGE_KEY)).style,
+        ThemeStyle.Utility,
       );
 
       // Persistent mode persists to localStorage and reloads on storage updates
@@ -99,10 +109,11 @@ describe("Global Theme Store", () => {
         ThemePalette.Stone,
       );
 
-      localMap.set(APPEARANCE_STORAGE_KEY, JSON.stringify({ mode: "light", palette: "forest" }));
+      localMap.set(APPEARANCE_STORAGE_KEY, JSON.stringify({ mode: "light", palette: "forest", style: "editorial" }));
       store.reloadAppearanceFromStorage();
       assert.equal(store.activeThemeMode.value, ThemeMode.Light);
       assert.equal(store.activeThemePalette.value, ThemePalette.Forest);
+      assert.equal(store.activeThemeStyle.value, ThemeStyle.Editorial);
 
       store.resetAppearance();
       assert.equal(localMap.has(APPEARANCE_STORAGE_KEY), false);
@@ -130,11 +141,12 @@ describe("Global Theme Store", () => {
       globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
       const store = await import("#store/themeStore");
-      const { ThemeMode, ThemePalette } = await import("#engine/types");
+      const { ThemeMode, ThemePalette, ThemeStyle } = await import("#engine/types");
       const { APPEARANCE_STORAGE_KEY } = await import("#utils/themeConfig");
 
       assert.equal(store.activeThemeMode.value, ThemeMode.Dark);
       assert.equal(store.activeThemePalette.value, ThemePalette.Cobalt);
+      assert.equal(store.activeThemeStyle.value, ThemeStyle.Swiss);
       assert.equal(localMap.has(APPEARANCE_STORAGE_KEY), false);
     `;
     assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], {
