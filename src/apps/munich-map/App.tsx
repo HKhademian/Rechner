@@ -19,6 +19,9 @@ import {
   PageHeader,
 } from "#components/ui/PageHeader";
 import {
+  externalLinkAttributes,
+} from "#utils/uiHelpers";
+import {
   type MapPlace,
   type MapPosition,
   type MapFocus,
@@ -506,7 +509,7 @@ export default function MunichMap() {
                   {activePlace.place.detail && <p>{activePlace.place.detail}</p>}
                 </>
               )}
-              {activePlace.place.source && <a href={activePlace.place.source}>
+              {activePlace.place.source && <a href={activePlace.place.source} {...externalLinkAttributes}>
                 {activePlace.place.sourceLabel ?? "Official site"}
               </a>}
               {ownPlace && <div class="munich-map-actions">
@@ -553,8 +556,8 @@ export default function MunichMap() {
           {resultPlaces.length > resultLimit && <p class="munich-map-count">Showing {resultLimit} places. Search or set a radius to narrow the list.</p>}
           <p class="munich-map-schedule">
             {marketsMode
-              ? <a href={munichChristmasMarketGuide}>Munich’s 2026 Christmas market guide</a>
-              : <a href="https://www.muenchen.de/veranstaltungen">Munich event calendar</a>}
+              ? <a href={munichChristmasMarketGuide} {...externalLinkAttributes}>Munich’s 2026 Christmas market guide</a>
+              : <a href="https://www.muenchen.de/veranstaltungen" {...externalLinkAttributes}>Munich event calendar</a>}
           </p>
         </aside>
       </div>

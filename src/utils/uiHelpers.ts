@@ -5,6 +5,12 @@ import {
   calculatorPath,
 } from "#/apps/appDefinition.ts";
 
+export const externalLinkAttributes = {
+  target: "_blank",
+  rel: "noopener noreferrer nofollow",
+  referrerPolicy: "no-referrer",
+} as const;
+
 export const BannerTone = {
   Info: "info",
   Success: "success",

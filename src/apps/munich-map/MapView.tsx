@@ -22,6 +22,9 @@ import {
   useState,
 } from "preact/hooks";
 import {
+  externalLinkAttributes,
+} from "#utils/uiHelpers";
+import {
   type MapFocus,
   type MapPlace,
   type MapPlaceId,
@@ -192,7 +195,7 @@ export function MapView({
                   <section key={item.id} aria-label={item.title}>
                     <strong>{item.title}</strong>
                     <SeasonalPlaceDetails place={item} schedule={item.schedule} />
-                    {item.source && <a href={item.source}>{item.sourceLabel ?? "Published schedule"}</a>}
+                    {item.source && <a href={item.source} {...externalLinkAttributes}>{item.sourceLabel ?? "Published schedule"}</a>}
                   </section>
                 ))}
               </div>,

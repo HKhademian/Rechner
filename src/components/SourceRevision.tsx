@@ -7,6 +7,9 @@ import {
 import {
   buildInfo,
 } from "#data/buildInfo";
+import {
+  externalLinkAttributes,
+} from "#utils/uiHelpers";
 import "./SourceRevision.css";
 
 const sourceCommitUrl = `https://github.com/${buildInfo.repository}/commit/${buildInfo.commit}`;
@@ -28,9 +31,9 @@ export default function SourceRevision({ note }: SourceRevisionProps): JSX.Eleme
             <span className="source-revision__sep" aria-hidden="true">·</span>
           </>
         )}
-        <a href={licenseUrl} target="_blank" rel="noopener noreferrer">Personal Use License</a>
+        <a href={licenseUrl} {...externalLinkAttributes}>Personal Use License</a>
         <span className="source-revision__sep" aria-hidden="true">·</span>
-        <a href={termsUrl} target="_blank" rel="noopener noreferrer">Use Terms</a>
+        <a href={termsUrl} {...externalLinkAttributes}>Use Terms</a>
         <span className="source-revision__sep" aria-hidden="true">·</span>
         <a href={sitePath("/THIRD_PARTY_NOTICES.txt")} target="_blank" rel="noopener noreferrer">Third-party notices</a>
       </div>
@@ -39,8 +42,7 @@ export default function SourceRevision({ note }: SourceRevisionProps): JSX.Eleme
         className="source-revision__hash"
         title={`Commit ${buildInfo.commit}`}
         aria-label={`Source commit ${buildInfo.shortCommit}`}
-        target="_blank"
-        rel="noopener noreferrer"
+        {...externalLinkAttributes}
       >
         <code>{buildInfo.shortCommit}</code>
       </a>

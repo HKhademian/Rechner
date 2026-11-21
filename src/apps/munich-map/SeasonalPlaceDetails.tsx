@@ -1,4 +1,7 @@
 import {
+  externalLinkAttributes,
+} from "#utils/uiHelpers";
+import {
   type MapPlace,
   type SeasonalSchedule,
   MapCategory,
@@ -50,7 +53,7 @@ export function SeasonalPlaceDetails({ place, schedule }: {
         const journey = outing[mode];
         return journey && (
           <p key={mode}>
-            <a href={journey.source}>
+            <a href={journey.source} {...externalLinkAttributes}>
               About {formatTravelMinutes(journey.minutes)} by {mode === OutingTravelMode.Drive ? "car" : "train"}
             </a>
             {journey.from ? ` from ${journey.from}` : " from Munich"}
