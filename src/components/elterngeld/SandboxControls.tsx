@@ -121,6 +121,8 @@ import {
 } from "#engine/benefits/childcare";
 import {
   evaluatePregnancyAllowanceBudgetInContext,
+  resolveFatherAllowancePlanMode,
+  resolveMotherAllowancePlanMode,
 } from "#engine/benefits/allowanceVariant";
 import {
   evaluateAllowanceVariantConversionInContext,
@@ -134,6 +136,7 @@ import {
   type MonthRef,
   type MonthSimRef,
   type CalendarLabel,
+  AllowancePlanMode,
   ElterngeldVariant,
   FederalStateKitaPresetId,
   TaxClass,
@@ -508,6 +511,8 @@ export default function SandboxControls(): JSX.Element {
                         defs.customPregnancies[0]?.fatherPartnerMonthsCount ??
                           4,
                       ),
+                      motherAllowancePlanMode: AllowancePlanMode.Auto,
+                      fatherAllowancePlanMode: AllowancePlanMode.Auto,
                     });
                   }}
                   className="sandbox-action-btn sandbox-action-btn--primary"
@@ -857,24 +862,96 @@ export default function SandboxControls(): JSX.Element {
                         {/* Parental Allowance Variant & Duration (§§ 4, 4a BEEG) */}
                         {(() => {
                           const statutoryContext = activeStatutoryContext.value;
+                          const motherPlanMode = resolveMotherAllowancePlanMode(preg);
+                          const fatherPlanMode = resolveFatherAllowancePlanMode(preg);
+                          const isAutoActive =
+                            motherPlanMode === AllowancePlanMode.Auto ||
+                            fatherPlanMode === AllowancePlanMode.Auto;
                           const budget = evaluatePregnancyAllowanceBudgetInContext(
                             preg,
                             statutoryContext,
                           ).value;
                           const motherMonthOptions = Array.from(
-                            { length: Math.max(budget.maxMotherOrdinaryMonths, budget.motherOrdinaryMonths) + 1 },
+                            {
+                              length:
+                                Math.max(
+                                  motherPlanMode === AllowancePlanMode.Auto ? 24 : budget.maxMotherOrdinaryMonths,
+                                  budget.motherOrdinaryMonths,
+                                  preg.motherAllowanceMonthsCount ?? 0,
+                                ) + 1,
+                            },
                             (_, count) => count,
                           );
                           const fatherMonthOptions = Array.from(
-                            { length: Math.max(budget.maxFatherOrdinaryMonths, budget.fatherOrdinaryMonths) + 1 },
+                            {
+                              length:
+                                Math.max(
+                                  fatherPlanMode === AllowancePlanMode.Auto ? 24 : budget.maxFatherOrdinaryMonths,
+                                  budget.fatherOrdinaryMonths,
+                                ) + 1,
+                            },
                             (_, count) => count,
                           );
-                          const handleMotherVariantChange = (
-                            targetVariant: ElterngeldVariant,
+                          const simulatedSummary = (() => {
+                            if (!isAutoActive) {
+                              return null;
+                            }
+                            let mBasis = 0;
+                            let mPlus = 0;
+                            let fBasis = 0;
+                            let fPlus = 0;
+                            for (const monthEntry of currentScenarioData.value.months) {
+                              for (const payment of monthEntry.benefitPayments ?? []) {
+                                if (payment.pregnancyId !== preg.pregnancyId || payment.partnershipBonus || payment.payment <= 0) {
+                                  continue;
+                                }
+                                if (payment.parent === TargetPerson.Wife) {
+                                  if (payment.variant === ElterngeldVariant.Basis) {
+                                    mBasis += 1;
+                                  }
+                                  else {
+                                    mPlus += 1;
+                                  }
+                                }
+                                else if (payment.parent === TargetPerson.Husband) {
+                                  if (payment.variant === ElterngeldVariant.Basis) {
+                                    fBasis += 1;
+                                  }
+                                  else {
+                                    fPlus += 1;
+                                  }
+                                }
+                              }
+                            }
+                            const formatSide = (basisCount: number, plusCount: number): string => {
+                              const parts: string[] = [];
+                              if (basisCount > 0) {
+                                parts.push(`${basisCount}M Basis`);
+                              }
+                              if (plusCount > 0) {
+                                parts.push(`${plusCount}M Plus`);
+                              }
+                              return parts.length > 0 ? parts.join(" + ") : "0M";
+                            };
+                            return `M: ${formatSide(mBasis, mPlus)} · F: ${formatSide(fBasis, fPlus)}`;
+                          })();
+                          const handleMotherPlanChange = (
+                            targetMode: AllowancePlanMode,
                           ): void => {
+                            if (targetMode === AllowancePlanMode.Auto) {
+                              updatePregnancyAction(preg.pregnancyId, {
+                                motherAllowancePlanMode: AllowancePlanMode.Auto,
+                                motherAllowanceMonthsCount: undefined,
+                              });
+                              return;
+                            }
+                            const targetVariant = targetMode === AllowancePlanMode.Basis
+                              ? ElterngeldVariant.Basis
+                              : ElterngeldVariant.Plus;
                             const nextBudget = evaluatePregnancyAllowanceBudgetInContext(
                               {
                                 ...preg,
+                                motherAllowancePlanMode: targetMode,
                                 motherAllowanceVariant: targetVariant,
                                 motherAllowanceMonthsCount: toMonthDuration(0),
                               },
@@ -890,16 +967,27 @@ export default function SandboxControls(): JSX.Element {
                               statutoryContext,
                             ).value;
                             updatePregnancyAction(preg.pregnancyId, {
+                              motherAllowancePlanMode: targetMode,
                               motherAllowanceVariant: targetVariant,
                               motherAllowanceMonthsCount: nextMonths,
                             });
                           };
-                          const handleFatherVariantChange = (
-                            targetVariant: ElterngeldVariant,
+                          const handleFatherPlanChange = (
+                            targetMode: AllowancePlanMode,
                           ): void => {
+                            if (targetMode === AllowancePlanMode.Auto) {
+                              updatePregnancyAction(preg.pregnancyId, {
+                                fatherAllowancePlanMode: AllowancePlanMode.Auto,
+                              });
+                              return;
+                            }
+                            const targetVariant = targetMode === AllowancePlanMode.Basis
+                              ? ElterngeldVariant.Basis
+                              : ElterngeldVariant.Plus;
                             const nextBudget = evaluatePregnancyAllowanceBudgetInContext(
                               {
                                 ...preg,
+                                fatherAllowancePlanMode: targetMode,
                                 fatherAllowanceVariant: targetVariant,
                                 fatherPartnerMonthsCount: toMonthDuration(0),
                               },
@@ -915,6 +1003,7 @@ export default function SandboxControls(): JSX.Element {
                               statutoryContext,
                             ).value;
                             updatePregnancyAction(preg.pregnancyId, {
+                              fatherAllowancePlanMode: targetMode,
                               fatherAllowanceVariant: targetVariant,
                               fatherPartnerMonthsCount: nextMonths,
                             });
@@ -924,29 +1013,37 @@ export default function SandboxControls(): JSX.Element {
                               <div className="sandbox-row--between-xs">
                                 <span>Elterngeld Plan (§§ 4, 4a BEEG)</span>
                                 <strong className="sandbox-val-tab">
-                                  {budget.totalBasisUnits} / {budget.maxFamilyBasisUnits} Basis units
+                                  {simulatedSummary ?? `${budget.totalBasisUnits} / ${budget.maxFamilyBasisUnits} Basis units`}
                                 </strong>
                               </div>
 
                               <div className="sandbox-grid-2-1">
                                 <div>
                                   <span className="sandbox-field-label sandbox-field-label--xs">
-                                    Mother variant:
+                                    Mother mode:
                                   </span>
                                   <div className="sandbox-chip-wrap">
                                     <button
                                       type="button"
-                                      aria-pressed={budget.motherVariant === ElterngeldVariant.Basis}
-                                      onClick={() => handleMotherVariantChange(ElterngeldVariant.Basis)}
-                                      className={`sandbox-chip-btn ${budget.motherVariant === ElterngeldVariant.Basis ? "sandbox-chip-btn--active-wife" : ""}`}
+                                      aria-pressed={motherPlanMode === AllowancePlanMode.Auto}
+                                      onClick={() => handleMotherPlanChange(AllowancePlanMode.Auto)}
+                                      className={`sandbox-chip-btn ${motherPlanMode === AllowancePlanMode.Auto ? "sandbox-chip-btn--active-wife" : ""}`}
+                                    >
+                                      Auto (0h Basis / PT Plus)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-pressed={motherPlanMode === AllowancePlanMode.Basis}
+                                      onClick={() => handleMotherPlanChange(AllowancePlanMode.Basis)}
+                                      className={`sandbox-chip-btn ${motherPlanMode === AllowancePlanMode.Basis ? "sandbox-chip-btn--active-wife" : ""}`}
                                     >
                                       Basis (max 1.800 €)
                                     </button>
                                     <button
                                       type="button"
-                                      aria-pressed={budget.motherVariant === ElterngeldVariant.Plus}
-                                      onClick={() => handleMotherVariantChange(ElterngeldVariant.Plus)}
-                                      className={`sandbox-chip-btn ${budget.motherVariant === ElterngeldVariant.Plus ? "sandbox-chip-btn--active-wife" : ""}`}
+                                      aria-pressed={motherPlanMode === AllowancePlanMode.Plus}
+                                      onClick={() => handleMotherPlanChange(AllowancePlanMode.Plus)}
+                                      className={`sandbox-chip-btn ${motherPlanMode === AllowancePlanMode.Plus ? "sandbox-chip-btn--active-wife" : ""}`}
                                     >
                                       Plus (max 900 €)
                                     </button>
@@ -958,20 +1055,26 @@ export default function SandboxControls(): JSX.Element {
                                   </label>
                                   <select
                                     aria-label={`Child ${preg.childIndex}: mother allowance months`}
-                                    value={budget.motherOrdinaryMonths}
+                                    value={
+                                      motherPlanMode === AllowancePlanMode.Auto
+                                        ? (preg.motherAllowanceMonthsCount ?? "")
+                                        : budget.motherOrdinaryMonths
+                                    }
                                     onChange={(e) => {
-                                      const val = Number(
-                                        (e.target as HTMLSelectElement).value,
-                                      );
+                                      const raw = (e.target as HTMLSelectElement).value;
                                       updatePregnancyAction(preg.pregnancyId, {
-                                        motherAllowanceMonthsCount: toMonthDuration(val),
+                                        motherAllowanceMonthsCount:
+                                          raw === "" ? undefined : toMonthDuration(Number(raw)),
                                       });
                                     }}
                                     className="sandbox-select"
                                   >
+                                    {motherPlanMode === AllowancePlanMode.Auto && (
+                                      <option value="">Auto (full budget)</option>
+                                    )}
                                     {motherMonthOptions.map((count) => (
                                       <option key={`m-eg-${count}`} value={count}>
-                                        {count}M {budget.motherVariant === ElterngeldVariant.Basis ? "Basis" : "Plus"}
+                                        {count}M {motherPlanMode === AllowancePlanMode.Auto ? "max" : motherPlanMode === AllowancePlanMode.Basis ? "Basis" : "Plus"}
                                       </option>
                                     ))}
                                   </select>
@@ -981,22 +1084,30 @@ export default function SandboxControls(): JSX.Element {
                               <div className="sandbox-grid-2-1">
                                 <div>
                                   <span className="sandbox-field-label sandbox-field-label--xs">
-                                    Father variant:
+                                    Father mode:
                                   </span>
                                   <div className="sandbox-chip-wrap">
                                     <button
                                       type="button"
-                                      aria-pressed={budget.fatherVariant === ElterngeldVariant.Basis}
-                                      onClick={() => handleFatherVariantChange(ElterngeldVariant.Basis)}
-                                      className={`sandbox-chip-btn ${budget.fatherVariant === ElterngeldVariant.Basis ? "sandbox-chip-btn--active-primary" : ""}`}
+                                      aria-pressed={fatherPlanMode === AllowancePlanMode.Auto}
+                                      onClick={() => handleFatherPlanChange(AllowancePlanMode.Auto)}
+                                      className={`sandbox-chip-btn ${fatherPlanMode === AllowancePlanMode.Auto ? "sandbox-chip-btn--active-primary" : ""}`}
+                                    >
+                                      Auto (0h Basis / PT Plus)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-pressed={fatherPlanMode === AllowancePlanMode.Basis}
+                                      onClick={() => handleFatherPlanChange(AllowancePlanMode.Basis)}
+                                      className={`sandbox-chip-btn ${fatherPlanMode === AllowancePlanMode.Basis ? "sandbox-chip-btn--active-primary" : ""}`}
                                     >
                                       Basis (max 1.800 €)
                                     </button>
                                     <button
                                       type="button"
-                                      aria-pressed={budget.fatherVariant === ElterngeldVariant.Plus}
-                                      onClick={() => handleFatherVariantChange(ElterngeldVariant.Plus)}
-                                      className={`sandbox-chip-btn ${budget.fatherVariant === ElterngeldVariant.Plus ? "sandbox-chip-btn--active-primary" : ""}`}
+                                      aria-pressed={fatherPlanMode === AllowancePlanMode.Plus}
+                                      onClick={() => handleFatherPlanChange(AllowancePlanMode.Plus)}
+                                      className={`sandbox-chip-btn ${fatherPlanMode === AllowancePlanMode.Plus ? "sandbox-chip-btn--active-primary" : ""}`}
                                     >
                                       Plus (max 900 €)
                                     </button>
@@ -1021,7 +1132,7 @@ export default function SandboxControls(): JSX.Element {
                                   >
                                     {fatherMonthOptions.map((count) => (
                                       <option key={`f-eg-${count}`} value={count}>
-                                        {count}M {budget.fatherVariant === ElterngeldVariant.Basis ? "Basis" : "Plus"}
+                                        {count}M {fatherPlanMode === AllowancePlanMode.Auto ? "Auto" : fatherPlanMode === AllowancePlanMode.Basis ? "Basis" : "Plus"}
                                       </option>
                                     ))}
                                   </select>
@@ -2502,6 +2613,31 @@ export default function SandboxControls(): JSX.Element {
                               if (isWife && idx === 0) {
                                 setWifePostBirthHours(newHours);
                               }
+                              if (newHours === 0) {
+                                for (const preg of customPregnancies.value) {
+                                  const patch: Partial<{
+                                    motherAllowancePlanMode: AllowancePlanMode;
+                                    fatherAllowancePlanMode: AllowancePlanMode;
+                                  }> = {};
+                                  if (
+                                    !isHusband &&
+                                    preg.motherAllowancePlanMode === undefined &&
+                                    preg.motherAllowanceVariant === undefined
+                                  ) {
+                                    patch.motherAllowancePlanMode = AllowancePlanMode.Auto;
+                                  }
+                                  if (
+                                    !isWife &&
+                                    preg.fatherAllowancePlanMode === undefined &&
+                                    preg.fatherAllowanceVariant === undefined
+                                  ) {
+                                    patch.fatherAllowancePlanMode = AllowancePlanMode.Auto;
+                                  }
+                                  if (Object.keys(patch).length > 0) {
+                                    updatePregnancyAction(preg.pregnancyId, patch);
+                                  }
+                                }
+                              }
                             }}
                           />
                         </div>
@@ -2552,13 +2688,50 @@ export default function SandboxControls(): JSX.Element {
                             <StatutorySectionIcon size={10} />
                           </LawRefLink>
                         ) : hours === 0 ? (
-                          <div
-                            className="sandbox-alert-box--primary"
-                          >
-                            <InformationalNoticeIcon size={11} />
-                            <span>
-                              Full Parental Leave (0h / week · 100% leave · Basis or Plus)
-                            </span>
+                          <div className="sandbox-stack-sm">
+                            <div
+                              className="sandbox-alert-box--primary"
+                            >
+                              <InformationalNoticeIcon size={11} />
+                              <span>
+                                Full Parental Leave (0h / week · 100% leave · Basis or Plus)
+                              </span>
+                            </div>
+                            {preview.inHorizon &&
+                              preview.hasOrdinaryPlusPayment &&
+                              !preview.hasBasisPayment && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const targets = preview.activeOrdinaryPregnancyId
+                                    ? customPregnancies.value.filter(
+                                      (preg) => preg.pregnancyId === preview.activeOrdinaryPregnancyId,
+                                    )
+                                    : customPregnancies.value;
+                                  for (const preg of targets) {
+                                    updatePregnancyAction(preg.pregnancyId, {
+                                      ...(!isHusband
+                                        ? {
+                                          motherAllowancePlanMode: AllowancePlanMode.Auto,
+                                          motherAllowanceMonthsCount: undefined,
+                                        }
+                                        : {}),
+                                      ...(!isWife
+                                        ? {
+                                          fatherAllowancePlanMode: AllowancePlanMode.Auto,
+                                        }
+                                        : {}),
+                                    });
+                                  }
+                                }}
+                                className="sandbox-alert-btn sandbox-alert-btn--warning"
+                              >
+                                <StatutoryLimitationWarningIcon size={11} />
+                                <span>
+                                  0h leave is on ElterngeldPlus — Switch to Auto (Basiselterngeld up to 1.800 €/mo)
+                                </span>
+                              </button>
+                            )}
                           </div>
                         ) : (
                           <LawRefLink

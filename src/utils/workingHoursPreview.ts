@@ -11,6 +11,7 @@ import {
   type EuroAmount,
   type MonthRef,
   type MonthlyLedgerEntry,
+  type PregnancyId,
   type SimulationMonth,
   type WorkingHoursChangeAction,
   ElterngeldVariant,
@@ -39,6 +40,10 @@ export interface SimulatedWorkingHoursPreview {
   readonly elterngeldAmount: EuroAmount;
   readonly elterngeldLabel: string;
   readonly elterngeldUnavailable: boolean;
+  readonly hasBasisPayment: boolean;
+  readonly hasPlusPayment: boolean;
+  readonly hasOrdinaryPlusPayment: boolean;
+  readonly activeOrdinaryPregnancyId?: PregnancyId;
   readonly totalInflow: EuroAmount;
 }
 
@@ -104,6 +109,13 @@ export function buildWorkingHoursSchedulePreview(
   const hasPlus = personPayments.some(
     (payment) => payment.variant === ElterngeldVariant.Plus,
   );
+  const ordinaryPayments = personPayments.filter(
+    (payment) => !payment.partnershipBonus && payment.payment > 0,
+  );
+  const hasOrdinaryPlusPayment = ordinaryPayments.some(
+    (payment) => payment.variant === ElterngeldVariant.Plus,
+  );
+  const activeOrdinaryPregnancyId = ordinaryPayments[0]?.pregnancyId;
   const allPartnershipBonus =
     personPayments.length > 0 &&
     personPayments.every((payment) => payment.partnershipBonus);
@@ -137,6 +149,10 @@ export function buildWorkingHoursSchedulePreview(
     elterngeldAmount: toEuroAmount(rawElterngeld * periodMultiplier),
     elterngeldLabel,
     elterngeldUnavailable,
+    hasBasisPayment: hasBasis,
+    hasPlusPayment: hasPlus,
+    hasOrdinaryPlusPayment,
+    activeOrdinaryPregnancyId,
     totalInflow: toEuroAmount(
       (rawNet + rawMutterschutz + rawElterngeld) * periodMultiplier,
     ),

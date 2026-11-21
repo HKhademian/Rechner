@@ -124,6 +124,10 @@ describe("buildWorkingHoursSchedulePreview (Engine-Backed Preview)", () => {
     assert.equal(preview.grossAmount, 0);
     assert.equal(preview.netAmount, 0);
     assert.equal(preview.elterngeldLabel, "ElterngeldPlus");
+    assert.equal(preview.hasBasisPayment, false);
+    assert.equal(preview.hasPlusPayment, true);
+    assert.equal(preview.hasOrdinaryPlusPayment, true);
+    assert.equal(preview.activeOrdinaryPregnancyId, toPregnancyId("PREG-PREVIEW-1"));
     assert.equal(preview.elterngeldAmount, ledgerMonth.wifeElterngeld);
     assert.equal(preview.elterngeldAmount, 724.48);
     assert.equal(preview.totalInflow, 724.48);
@@ -158,6 +162,8 @@ describe("buildWorkingHoursSchedulePreview (Engine-Backed Preview)", () => {
     assert.equal(preview.grossAmount, 0);
     assert.equal(preview.netAmount, 0);
     assert.equal(preview.elterngeldLabel, "Basiselterngeld");
+    assert.equal(preview.hasBasisPayment, true);
+    assert.equal(preview.hasOrdinaryPlusPayment, false);
     assert.equal(preview.elterngeldAmount, 1800);
     assert.equal(preview.totalInflow, 1800);
   });
