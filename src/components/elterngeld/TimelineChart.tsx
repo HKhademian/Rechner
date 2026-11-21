@@ -268,9 +268,9 @@ export default function TimelineChart(): JSX.Element {
     },
     {
       key: "wifeElterngeld",
-      label: "ElterngeldPlus (Mother)",
-      tooltipLabel: "ElterngeldPlus (Mother / § 4 BEEG):",
-      statutory: "§ 4 BEEG",
+      label: "Elterngeld (Mother)",
+      tooltipLabel: "Elterngeld (Mother / §§ 4, 4a BEEG):",
+      statutory: "§§ 4, 4a BEEG",
       color: colors.wifeElterngeld,
       seriesClass: "timeline-chart__series--wife-elterngeld",
       tooltipToneClass: "timeline-chart__tooltip-row--gain",

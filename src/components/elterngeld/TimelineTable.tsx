@@ -306,7 +306,7 @@ export default function TimelineTable(): JSX.Element {
               </th>
               <th>
                 <div>
-                  <span>ElterngeldPlus </span>
+                  <span>Elterngeld </span>
                   <LawRefLink
                     lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_SyntheticNet].lawId}
                     groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_SyntheticNet].groupId}
@@ -315,9 +315,9 @@ export default function TimelineTable(): JSX.Element {
                     onOpen={() => {
                       activeLegalRuleKey.value = LegalRuleKey.BEEG_SyntheticNet;
                     }}
-                    title="§ 4 BEEG statutory rule and example — Click for quick popup · Ctrl+Click for full page"
+                    title="§§ 4, 4a BEEG statutory rules (Basiselterngeld & ElterngeldPlus) — Click for quick popup · Ctrl+Click for full page"
                   >
-                    <span>(§ 4 BEEG)</span>
+                    <span>(§§ 4, 4a BEEG)</span>
                     <StatutorySectionIcon size={10} />
                   </LawRefLink>
                 </div>
