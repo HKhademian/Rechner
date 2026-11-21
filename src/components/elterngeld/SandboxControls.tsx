@@ -120,15 +120,11 @@ import {
   getAllMunicipalDaycarePresets,
 } from "#engine/benefits/childcare";
 import {
-  computeAllowanceBudgetSummary,
-  convertAllowanceMonthsOnVariantChange,
+  evaluatePregnancyAllowanceBudgetInContext,
 } from "#engine/benefits/allowanceVariant";
 import {
-  DEFAULT_BENEFIT_RULES,
-} from "#engine/config/benefitRules";
-import {
-  DEFAULT_TIMELINE_CONVENTIONS,
-} from "#engine/config/timelineConventions";
+  evaluateAllowanceVariantConversionInContext,
+} from "#engine/formulas/context/statutoryEvaluators";
 import {
   buildWorkingHoursSchedulePreview,
 } from "#utils/workingHoursPreview";
@@ -860,17 +856,11 @@ export default function SandboxControls(): JSX.Element {
 
                         {/* Parental Allowance Variant & Duration (§§ 4, 4a BEEG) */}
                         {(() => {
-                          const activeRules =
-                            currentScenarioData.value.configuration?.benefitRules ??
-                            DEFAULT_BENEFIT_RULES;
-                          const activeConventions =
-                            currentScenarioData.value.configuration?.timelineConventions ??
-                            DEFAULT_TIMELINE_CONVENTIONS;
-                          const budget = computeAllowanceBudgetSummary(
+                          const statutoryContext = activeStatutoryContext.value;
+                          const budget = evaluatePregnancyAllowanceBudgetInContext(
                             preg,
-                            activeConventions,
-                            activeRules,
-                          );
+                            statutoryContext,
+                          ).value;
                           const motherMonthOptions = Array.from(
                             { length: Math.max(budget.maxMotherOrdinaryMonths, budget.motherOrdinaryMonths) + 1 },
                             (_, count) => count,
@@ -882,22 +872,23 @@ export default function SandboxControls(): JSX.Element {
                           const handleMotherVariantChange = (
                             targetVariant: ElterngeldVariant,
                           ): void => {
-                            const nextBudget = computeAllowanceBudgetSummary(
+                            const nextBudget = evaluatePregnancyAllowanceBudgetInContext(
                               {
                                 ...preg,
                                 motherAllowanceVariant: targetVariant,
                                 motherAllowanceMonthsCount: toMonthDuration(0),
                               },
-                              activeConventions,
-                              activeRules,
-                            );
-                            const nextMonths = convertAllowanceMonthsOnVariantChange(
-                              budget.motherOrdinaryMonths,
-                              budget.motherVariant,
-                              targetVariant,
-                              nextBudget.maxMotherOrdinaryMonths,
-                              activeRules,
-                            );
+                              statutoryContext,
+                            ).value;
+                            const nextMonths = evaluateAllowanceVariantConversionInContext(
+                              {
+                                currentMonths: budget.motherOrdinaryMonths,
+                                fromVariant: budget.motherVariant,
+                                toVariant: targetVariant,
+                                maxMonthsInTargetVariant: nextBudget.maxMotherOrdinaryMonths,
+                              },
+                              statutoryContext,
+                            ).value;
                             updatePregnancyAction(preg.pregnancyId, {
                               motherAllowanceVariant: targetVariant,
                               motherAllowanceMonthsCount: nextMonths,
@@ -906,22 +897,23 @@ export default function SandboxControls(): JSX.Element {
                           const handleFatherVariantChange = (
                             targetVariant: ElterngeldVariant,
                           ): void => {
-                            const nextBudget = computeAllowanceBudgetSummary(
+                            const nextBudget = evaluatePregnancyAllowanceBudgetInContext(
                               {
                                 ...preg,
                                 fatherAllowanceVariant: targetVariant,
                                 fatherPartnerMonthsCount: toMonthDuration(0),
                               },
-                              activeConventions,
-                              activeRules,
-                            );
-                            const nextMonths = convertAllowanceMonthsOnVariantChange(
-                              budget.fatherOrdinaryMonths,
-                              budget.fatherVariant,
-                              targetVariant,
-                              nextBudget.maxFatherOrdinaryMonths,
-                              activeRules,
-                            );
+                              statutoryContext,
+                            ).value;
+                            const nextMonths = evaluateAllowanceVariantConversionInContext(
+                              {
+                                currentMonths: budget.fatherOrdinaryMonths,
+                                fromVariant: budget.fatherVariant,
+                                toVariant: targetVariant,
+                                maxMonthsInTargetVariant: nextBudget.maxFatherOrdinaryMonths,
+                              },
+                              statutoryContext,
+                            ).value;
                             updatePregnancyAction(preg.pregnancyId, {
                               fatherAllowanceVariant: targetVariant,
                               fatherPartnerMonthsCount: nextMonths,
