@@ -102,6 +102,29 @@ export {
   TextField,
 } from "#components/ui/TextField";
 export {
+  type TimeSeriesChartHoverContext,
+  type TimeSeriesChartModeOption,
+  type TimeSeriesChartPoint,
+  type TimeSeriesChartProps,
+  TimeSeriesChart,
+} from "#components/ui/TimeSeriesChart";
+export {
+  type ChartAreaBand,
+  type ChartBarSegment,
+  type ChartDataPoint,
+  type ChartDimensions,
+  type ChartOverlaySeries,
+  type ChartReferenceLine,
+  type ChartSeriesDefinition,
+  type ChartYAxisScale,
+  type PointSeriesTotals,
+  DEFAULT_CHART_DIMENSIONS,
+  TimeSeriesChartMode,
+  TimeSeriesTone,
+  isTimeSeriesChartMode,
+  toTimeSeriesChartMode,
+} from "#/components/ui/timeSeriesChartEngine.ts";
+export {
   type ToggleSwitchProps,
   ToggleSwitch,
 } from "#components/ui/ToggleSwitch";

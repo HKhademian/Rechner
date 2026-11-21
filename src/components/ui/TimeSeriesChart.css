@@ -1,0 +1,277 @@
+/* =========================================================================
+   Abstract Reusable Time-Series Chart Component — Institutional Design Tokens
+   ========================================================================= */
+
+.ui-chart {
+  padding: var(--space-6);
+  margin-bottom: var(--space-7);
+  position: relative;
+}
+
+.ui-chart__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.ui-chart__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--heading-weight);
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--heading-tracking);
+}
+
+.ui-chart__subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.ui-chart__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface-secondary);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-4);
+}
+
+.ui-chart__toggles {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.ui-chart__toggles-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ui-chart__series-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-chart__series-btn:not(.ui-chart__series-btn--active) {
+  opacity: 0.62;
+}
+
+.ui-chart__series-btn--active {
+  border-color: var(--series-color, var(--color-primary));
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-chart__series-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ui-chart__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background-color: var(--border-medium);
+  flex-shrink: 0;
+}
+
+.ui-chart__series-btn--active .ui-chart__dot,
+.ui-chart__tooltip-row .ui-chart__dot {
+  background-color: var(--series-color, var(--color-primary));
+}
+
+.ui-chart__state-pill {
+  font-size: var(--font-size-2xs);
+  padding: 1px var(--space-1);
+  border-radius: 3px;
+  background: var(--border-medium);
+  color: var(--text-inverse);
+  font-weight: 700;
+}
+
+.ui-chart__series-btn--active .ui-chart__state-pill {
+  background: var(--series-color, var(--color-primary));
+}
+
+.ui-chart__toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-chart__overlay-key {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ui-chart__overlay-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-chart__overlay-swatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--series-color, var(--color-primary));
+  flex-shrink: 0;
+}
+
+.ui-chart__plot-wrap {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ui-chart__plot-stage {
+  width: 100%;
+  min-height: 360px;
+  border-radius: var(--radius-control);
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.ui-chart__svg {
+  width: 100%;
+  height: auto;
+  min-width: 850px;
+  display: block;
+  cursor: crosshair;
+}
+
+.ui-chart__tooltip {
+  position: absolute;
+  top: var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  width: 280px;
+  pointer-events: none;
+  z-index: var(--z-popover);
+  box-shadow: var(--shadow-lg);
+}
+
+.ui-chart__tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--space-1);
+}
+
+.ui-chart__tooltip-title {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.ui-chart__tooltip-sublabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  margin-left: var(--space-2);
+  font-weight: 600;
+}
+
+.ui-chart__tooltip-meta {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+}
+
+.ui-chart__tooltip-total {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.ui-chart__tooltip-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.ui-chart__tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.ui-chart__tooltip-row--positive {
+  color: var(--color-gain);
+}
+
+.ui-chart__tooltip-row--warning {
+  color: var(--color-warning);
+}
+
+.ui-chart__tooltip-row--negative {
+  color: var(--color-loss);
+}
+
+.ui-chart__tooltip-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ui-chart__tooltip-row-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ui-chart__tooltip-empty {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .ui-chart {
+    padding: var(--space-4);
+  }
+}
