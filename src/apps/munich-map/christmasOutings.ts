@@ -437,22 +437,25 @@ const outings: readonly OutingEntry[] = [
   },
 ];
 
-export const christmasOutings: readonly MapPlace[] = outings.map((entry) => ({
-  id: toMapPlaceId(entry.id),
-  category: MapCategory.ChristmasOuting,
-  alsoListedUnder: entry.alsoListedUnder,
-  title: entry.title,
-  position: toMapPosition(...entry.coordinates),
-  detail: entry.detail,
-  date: toLifeDate(entry.starts),
-  endDate: entry.ends ? toLifeDate(entry.ends) : undefined,
-  source: entry.source,
-  sourceLabel: "Published program",
-  schedule: {
-    venue: entry.venue,
-    theme: entry.theme,
-    hours: entry.hours,
-    exceptions: entry.exceptions,
-  },
-  outing: entry.location,
-}));
+export const christmasOutings: readonly MapPlace[] = outings.map((entry) => {
+  const isMarket = entry.alsoListedUnder === MapCategory.ChristmasMarket;
+  return {
+    id: toMapPlaceId(entry.id),
+    category: isMarket ? MapCategory.ChristmasMarket : MapCategory.ChristmasOuting,
+    alsoListedUnder: isMarket ? MapCategory.ChristmasOuting : entry.alsoListedUnder,
+    title: entry.title,
+    position: toMapPosition(...entry.coordinates),
+    detail: entry.detail,
+    date: toLifeDate(entry.starts),
+    endDate: entry.ends ? toLifeDate(entry.ends) : undefined,
+    source: entry.source,
+    sourceLabel: "Published program",
+    schedule: {
+      venue: entry.venue,
+      theme: entry.theme,
+      hours: entry.hours,
+      exceptions: entry.exceptions,
+    },
+    outing: entry.location,
+  };
+});
