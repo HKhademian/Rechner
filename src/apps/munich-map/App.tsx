@@ -305,7 +305,7 @@ export default function MunichMap() {
       shellClassName={mapOnly ? "munich-map-shell is-map-only" : "munich-map-shell"}>
       <PageHeader title="Munich Map" />
       <div class="munich-map-layout">
-        <section class="munich-map-main" aria-label="Map and distance controls">
+        <section class="munich-map-main" aria-label="Map and layers">
           <div class="munich-map-frame">
             {MapView ? <MapView places={markers} pins={pins} origin={origin} radius={activeRadius} focus={focus} draft={draft?.position}
               picking={picking} onPick={pickPosition} onSelect={setSelected} /> : <p class="munich-map-placeholder" role="status">{mapFailed ? "The interactive map could not be loaded." : "Loading map…"}</p>}
@@ -346,58 +346,6 @@ export default function MunichMap() {
                   onClick={() => setMapOnly(true)}>Map</button>
               </div>
             </div>
-          </div>
-          <div class="munich-map-distance">
-            {outingsMode ? (
-              <>
-                <label>Travel by
-                  <select value={travelMode} onChange={(event) => setTravelMode(toOutingTravelMode(event.currentTarget.value))}>
-                    <option value={OutingTravelMode.Drive}>Car</option>
-                    <option value={OutingTravelMode.Train}>Train</option>
-                  </select>
-                </label>
-                <label>From Munich
-                  <select value={maxTravel} onChange={(event) => setMaxTravel(toTravelMinutes(Number(event.currentTarget.value)))}>
-                    {travelOptions.map((minutes) => (
-                      <option key={minutes} value={minutes}>{minutes ? `About ${formatTravelMinutes(minutes)} or less` : "Munich only"}</option>
-                    ))}
-                  </select>
-                </label>
-                <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit outings</button>
-              </>
-            ) : (
-              <>
-                <label>Distance from
-                  <select value={reference ?? ""} onChange={(event) => {
-                    const value = event.currentTarget.value;
-                    const pin = value ? toPersonalPin(value) : undefined;
-                    setReference(pin);
-                    setFocus({ position: (pin && data.pins[pin]?.position) || MUNICH_CENTER,
-                      radius });
-                  }}>
-                    <option value="">Marienplatz</option>
-                    {personalPins.filter((name) => data.pins[name]).map((name) => <option key={name} value={name}>{name}</option>)}
-                  </select>
-                </label>
-                <label>Straight-line radius
-                  <select value={radius} onChange={(event) => {
-                    const nextRadius = Number(event.currentTarget.value);
-                    setRadius(nextRadius);
-                    if (nextRadius > 0) {
-                      setFocus({ position: origin,
-                        radius: nextRadius });
-                    }
-                  }}>
-                    <option value={0}>Any distance</option>
-                    {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
-                  </select>
-                </label>
-                {marketsMode && radius === 0
-                  ? <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit markets</button>
-                  : <button type="button" onClick={() => setFocus({ position: origin,
-                    radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>}
-              </>
-            )}
           </div>
         </section>
         <aside id="munich-map-places" class="munich-map-panel" aria-label="Places and event filters" hidden={mapOnly}>
@@ -486,6 +434,58 @@ export default function MunichMap() {
               </select>
             </label>
           )}
+          <div class="munich-map-distance" role="group" aria-label={outingsMode ? "Travel filters" : "Distance filters"}>
+            {outingsMode ? (
+              <>
+                <label>Travel by
+                  <select value={travelMode} onChange={(event) => setTravelMode(toOutingTravelMode(event.currentTarget.value))}>
+                    <option value={OutingTravelMode.Drive}>Car</option>
+                    <option value={OutingTravelMode.Train}>Train</option>
+                  </select>
+                </label>
+                <label>From Munich
+                  <select value={maxTravel} onChange={(event) => setMaxTravel(toTravelMinutes(Number(event.currentTarget.value)))}>
+                    {travelOptions.map((minutes) => (
+                      <option key={minutes} value={minutes}>{minutes ? `About ${formatTravelMinutes(minutes)} or less` : "Munich only"}</option>
+                    ))}
+                  </select>
+                </label>
+                <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit outings</button>
+              </>
+            ) : (
+              <>
+                <label>Distance from
+                  <select value={reference ?? ""} onChange={(event) => {
+                    const value = event.currentTarget.value;
+                    const pin = value ? toPersonalPin(value) : undefined;
+                    setReference(pin);
+                    setFocus({ position: (pin && data.pins[pin]?.position) || MUNICH_CENTER,
+                      radius });
+                  }}>
+                    <option value="">Marienplatz</option>
+                    {personalPins.filter((name) => data.pins[name]).map((name) => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </label>
+                <label>Straight-line radius
+                  <select value={radius} onChange={(event) => {
+                    const nextRadius = Number(event.currentTarget.value);
+                    setRadius(nextRadius);
+                    if (nextRadius > 0) {
+                      setFocus({ position: origin,
+                        radius: nextRadius });
+                    }
+                  }}>
+                    <option value={0}>Any distance</option>
+                    {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
+                  </select>
+                </label>
+                {marketsMode && radius === 0
+                  ? <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit markets</button>
+                  : <button type="button" onClick={() => setFocus({ position: origin,
+                    radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>}
+              </>
+            )}
+          </div>
           <p class="munich-map-count">
             {resultPlaces.length} {outingsMode
               ? (resultPlaces.length === 1 ? "Christmas outing" : "Christmas outings")
