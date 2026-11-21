@@ -184,6 +184,9 @@ export default function MunichMap() {
   const resultPlaces = useMemo(() => {
     if (category) {
       const matching = places.filter(({ place }) => inCategory(place, category));
+      if (category === MapCategory.LocalChristmasEvent) {
+        return matching.sort((left, right) => (left.place.date ?? "").localeCompare(right.place.date ?? ""));
+      }
       return outingsMode ? matching.sort((left, right) =>
         (left.place.outing?.[travelMode]?.minutes ?? 0) - (right.place.outing?.[travelMode]?.minutes ?? 0)) : matching;
     }
@@ -566,7 +569,13 @@ export default function MunichMap() {
           </ul>
           {resultPlaces.length > resultLimit && <p class="munich-map-count">Showing {resultLimit} places. Search or set a radius to narrow the list.</p>}
           <p class="munich-map-schedule">
-            {marketsMode
+            {category === MapCategory.LocalChristmasEvent ? (
+              <>
+                <a href="https://rausgegangen.de/muenchen/" {...externalLinkAttributes}>Rausgegangen München</a>
+                {" · "}
+                <a href="https://www.in-muenchen.de/events" {...externalLinkAttributes}>IN München events</a>
+              </>
+            ) : marketsMode
               ? <a href={munichChristmasMarketGuide} {...externalLinkAttributes}>Munich’s 2026 Christmas market guide</a>
               : <a href="https://www.muenchen.de/veranstaltungen" {...externalLinkAttributes}>Munich event calendar</a>}
           </p>

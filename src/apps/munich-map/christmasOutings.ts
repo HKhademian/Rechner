@@ -81,6 +81,71 @@ const garchingBuergerhaus = [48.2503, 11.6503] as const;
 // Rounded reference journeys to the destination city, excluding the last leg to the venue.
 const outings: readonly OutingEntry[] = [
   {
+    id: "gans-cash-christmas",
+    title: "The Spirit of J.R. Cash – Christmas Edition",
+    coordinates: [48.1233, 11.5251],
+    location: munich,
+    venue: "Café Gans am Wasser, Westpark",
+    starts: "2026-12-06",
+    theme: "Christmas country concert",
+    detail: "Johnny Cash and June Carter tribute by Mike Hühn and Brigitte Wiedenmann.",
+    hours: [["6 Dec", "15:00–17:00"]],
+    source: "https://www.gansamwasser.de/kulturprogramm/programm-dezember/",
+    alsoListedUnder: MapCategory.LocalChristmasEvent,
+  },
+  {
+    id: "gans-malis-christmas",
+    title: "Malis Swing Connection",
+    coordinates: [48.1233, 11.5251],
+    location: munich,
+    venue: "Café Gans am Wasser, Westpark",
+    starts: "2026-12-20",
+    theme: "Advent swing and jazz",
+    detail: "A live swing and jazz set during the café’s Winterzauber.",
+    hours: [["20 Dec", "15:15–17:00"]],
+    source: "https://www.gansamwasser.de/kulturprogramm/programm-dezember/",
+    alsoListedUnder: MapCategory.LocalChristmasEvent,
+  },
+  {
+    id: "alte-utting-nikolaus",
+    title: "Nikolaus auf der Alten Utting",
+    coordinates: [48.1205, 11.5488],
+    location: munich,
+    venue: "Alte Utting, Lagerhausstraße 15, Sendling",
+    starts: "2026-12-06",
+    theme: "Family St. Nicholas visit",
+    detail: "St. Nicholas hands out sweets. A short story in the red tent is scheduled for around 16:30.",
+    hours: [["6 Dec", "15:30–17:00"]],
+    source: "https://alte-utting.de/programm/",
+    alsoListedUnder: MapCategory.LocalChristmasEvent,
+  },
+  {
+    id: "unterfahrt-home-for-christmas",
+    title: "Lisa Wahlandt – Home for Christmas",
+    coordinates: [48.1354, 11.6011],
+    location: munich,
+    venue: "Jazzclub Unterfahrt, Einsteinstraße 42, Haidhausen",
+    starts: "2026-12-19",
+    theme: "Christmas jazz quartet",
+    detail: "Lisa Wahlandt and her quartet reinterpret Christmas songs. Advance tickets via the club.",
+    hours: [["19 Dec", "20:30"]],
+    source: "https://unterfahrt.de/programm-detail.php?dateID=11730",
+    alsoListedUnder: MapCategory.LocalChristmasEvent,
+  },
+  {
+    id: "unterfahrt-christmas-jam",
+    title: "Christmas Jam with Guido May",
+    coordinates: [48.1354, 11.6011],
+    location: munich,
+    venue: "Jazzclub Unterfahrt, Einsteinstraße 42, Haidhausen",
+    starts: "2026-12-24",
+    theme: "Christmas Eve jazz jam",
+    detail: "A swing and jazz session led by drummer Guido May. Advance tickets via the club.",
+    hours: [["24 Dec", "20:30"]],
+    source: "https://unterfahrt.de/programm-detail.php?dateID=11735",
+    alsoListedUnder: MapCategory.LocalChristmasEvent,
+  },
+  {
     id: "munich-krampus-parade",
     title: "Munich Krampus Parade",
     coordinates: [48.1385, 11.5738],
@@ -438,11 +503,13 @@ const outings: readonly OutingEntry[] = [
 ];
 
 export const christmasOutings: readonly MapPlace[] = outings.map((entry) => {
-  const isMarket = entry.alsoListedUnder === MapCategory.ChristmasMarket;
+  const category = entry.alsoListedUnder === MapCategory.ChristmasMarket || entry.alsoListedUnder === MapCategory.LocalChristmasEvent
+    ? entry.alsoListedUnder
+    : MapCategory.ChristmasOuting;
   return {
     id: toMapPlaceId(entry.id),
-    category: isMarket ? MapCategory.ChristmasMarket : MapCategory.ChristmasOuting,
-    alsoListedUnder: isMarket ? MapCategory.ChristmasOuting : entry.alsoListedUnder,
+    category,
+    alsoListedUnder: category === MapCategory.ChristmasOuting ? entry.alsoListedUnder : MapCategory.ChristmasOuting,
     title: entry.title,
     position: toMapPosition(...entry.coordinates),
     detail: entry.detail,

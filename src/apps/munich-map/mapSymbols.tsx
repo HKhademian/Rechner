@@ -14,6 +14,7 @@ export function seasonalSymbol(
   switch (category) {
     case MapCategory.ChristmasMarket:
       return <ChristmasMarketIcon size={size} />;
+    case MapCategory.LocalChristmasEvent:
     case MapCategory.ChristmasOuting:
       return <ChristmasOutingIcon size={size} />;
     default:
