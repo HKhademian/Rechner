@@ -380,6 +380,41 @@ export function toElterngeldVariant(
   return value;
 }
 
+/** Statutory parental allowance planning mode for ordinary claim months (§§ 4, 4a BEEG). */
+export const AllowancePlanMode = {
+  /** Uses Basiselterngeld (up to €1,800/mo) on 0h full leave within LM 1–14, and ElterngeldPlus (up to €900/mo) during part-time work (>0h..32h). */
+  Auto: "AUTO",
+  /** Forces Basiselterngeld (1.0 Basis unit/month, LM 1–14) across ordinary claim months. */
+  Basis: "BASIS",
+  /** Forces ElterngeldPlus (0.5 Basis units/month) across ordinary claim months. */
+  Plus: "PLUS",
+} as const;
+export type AllowancePlanMode =
+  (typeof AllowancePlanMode)[keyof typeof AllowancePlanMode];
+
+const ALLOWANCE_PLAN_MODE_SET: ReadonlySet<string> = new Set<string>(
+  Object.values(AllowancePlanMode),
+);
+
+/** Runtime type guard validating an `AllowancePlanMode`. */
+export function isAllowancePlanMode(
+  value: string,
+): value is AllowancePlanMode {
+  return ALLOWANCE_PLAN_MODE_SET.has(value);
+}
+
+/** Validated runtime constructor for `AllowancePlanMode` (Rule 11). */
+export function toAllowancePlanMode(
+  value: string,
+): AllowancePlanMode {
+  if (!isAllowancePlanMode(value)) {
+    throw new TypeError(
+      `Invalid AllowancePlanMode: "${value}". Expected one of: ${Object.values(AllowancePlanMode).join(", ")}.`,
+    );
+  }
+  return value;
+}
+
 /** Cash flow movement direction in double-entry bookkeeping ledger. */
 export const TransactionDirection = {
   Inflow: "INFLOW",
@@ -1865,6 +1900,7 @@ export interface BenefitAssessmentAudit {
   readonly pregnancyId: PregnancyId;
   readonly parent: TargetPerson;
   readonly variant?: ElterngeldVariant;
+  readonly planMode?: AllowancePlanMode;
   readonly birthMonthId: MonthId;
   readonly incomeMode: SalaryInputMode;
   readonly taxClass: TaxClass;
@@ -2272,6 +2308,10 @@ export interface PregnancyAction {
   readonly motherAllowanceVariant?: ElterngeldVariant;
   /** Optional father's ordinary parental allowance variant (§ 4 Basiselterngeld vs. § 4a ElterngeldPlus; defaults to Plus). */
   readonly fatherAllowanceVariant?: ElterngeldVariant;
+  /** Optional mother's ordinary parental allowance planning mode (Auto = Basis at 0h / Plus on part-time, Basis, or Plus). */
+  readonly motherAllowancePlanMode?: AllowancePlanMode;
+  /** Optional father's ordinary parental allowance planning mode (Auto = Basis at 0h / Plus on part-time, Basis, or Plus). */
+  readonly fatherAllowancePlanMode?: AllowancePlanMode;
   /** Optional explicit mother ordinary allowance duration in months of the selected variant (defaults to timeline convention). */
   readonly motherAllowanceMonthsCount?: MonthDuration;
 }
