@@ -1,19 +1,25 @@
+import type {
+  JSX,
+} from "preact";
 import {
+  useState,
+  useRef,
+} from "preact/hooks";
+import {
+  Badge,
+  BadgeTone,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Disclosure,
   SegmentedControl,
-} from "#components/ui/SegmentedControl";
+} from "#components/ui";
 import {
   TIMELINE_CHART_MODE_OPTIONS,
 } from "#utils/timelineChartControls";
 import {
   formatEur,
 } from "#utils/currencyFormat";
-import type {
-  JSX, 
-} from "preact";
-import {
-  useState,
-  useRef,
-} from "preact/hooks";
 import {
   chartMode,
   timeRangeFilter,
@@ -35,6 +41,7 @@ import {
   TimelineTimeRangeFilter,
   toMonthSimRef,
 } from "#engine/types";
+import "./TimelineChart.css";
 
 function formatCurrency(amount: number, maximumFractionDigits = 0): string {
   return formatEur(amount || 0, maximumFractionDigits);
@@ -76,6 +83,17 @@ interface TooltipState {
   clientY: number;
 }
 
+interface SeriesMetadata {
+  readonly key: keyof VisibleSeriesState;
+  readonly label: string;
+  readonly tooltipLabel: string;
+  readonly statutory: string;
+  readonly color: string;
+  readonly seriesClass: string;
+  readonly tooltipToneClass?: string;
+  readonly prefixPlus?: boolean;
+}
+
 export default function TimelineChart(): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltipState, setTooltipState] = useState<TooltipState | null>(null);
@@ -101,12 +119,18 @@ export default function TimelineChart(): JSX.Element {
 
   // Reference the initial baseline ledger salaries, excluding benefits and one-off cash.
   const referenceMonth = bData.months[0];
-  const referenceProfile = bData.configuration?.taxProfiles.find((profile) => profile.calendarYear === referenceMonth?.calendarYearNum);
+  const referenceProfile = bData.configuration?.taxProfiles.find(
+    (profile) => profile.calendarYear === referenceMonth?.calendarYearNum,
+  );
   const referenceSalary = referenceMonth
     ? toEuroAmount(referenceMonth.husbandSalary + referenceMonth.wifeSalary)
     : undefined;
-  const referenceProvisional = referenceMonth !== undefined && (!referenceMonth.payroll ||
-    [referenceMonth.payroll.husband, referenceMonth.payroll.wife].some((payroll) => payroll.payrollLimitations.length > 0));
+  const referenceProvisional = referenceMonth !== undefined && (
+    !referenceMonth.payroll ||
+    [referenceMonth.payroll.husband, referenceMonth.payroll.wife].some(
+      (payroll) => payroll.payrollLimitations.length > 0,
+    )
+  );
 
   // Toggle single series
   const toggleSeries = (key: keyof VisibleSeriesState): void => {
@@ -173,10 +197,12 @@ export default function TimelineChart(): JSX.Element {
   // Dimensions
   const svgWidth = 1050;
   const svgHeight = 440;
-  const margin = { top: 40,
+  const margin = {
+    top: 40,
     right: 30,
     bottom: 55,
-    left: 65 };
+    left: 65,
+  };
   const plotWidth = svgWidth - margin.left - margin.right;
   const plotHeight = svgHeight - margin.top - margin.bottom;
 
@@ -209,53 +235,67 @@ export default function TimelineChart(): JSX.Element {
     taxRefund: "var(--series-tax-refund)",
   };
 
-  const seriesMeta: {
-    key: keyof VisibleSeriesState;
-    label: string;
-    statutory: string;
-    color: string;
-  }[] = [
+  const seriesMeta: readonly SeriesMetadata[] = [
     {
       key: "husbandSalary",
       label: "Husband Salary",
+      tooltipLabel: "Husband Net Salary:",
       statutory: "Gehalt Mann",
       color: colors.husbandSalary,
+      seriesClass: "timeline-chart__series--husband-salary",
     },
     {
       key: "wifeSalary",
       label: "Wife Salary",
+      tooltipLabel: "Wife Net Salary:",
       statutory: "Gehalt Frau",
       color: colors.wifeSalary,
+      seriesClass: "timeline-chart__series--wife-salary",
     },
     {
       key: "mutterschutz",
       label: "Maternity (Mutterschutz)",
+      tooltipLabel: "Maternity Pay (MuSchG):",
       statutory: "MuSchG",
       color: colors.mutterschutz,
+      seriesClass: "timeline-chart__series--mutterschutz",
     },
     {
       key: "wifeElterngeld",
       label: "ElterngeldPlus (Mother)",
+      tooltipLabel: "ElterngeldPlus (Mother / § 4 BEEG):",
       statutory: "§ 4 BEEG",
       color: colors.wifeElterngeld,
+      seriesClass: "timeline-chart__series--wife-elterngeld",
+      tooltipToneClass: "timeline-chart__tooltip-row--gain",
     },
     {
       key: "husbandElterngeld",
       label: "Partner Months (Partnermonate)",
+      tooltipLabel: "Partner Months (Partnermonate, § 4 BEEG):",
       statutory: "§ 4 BEEG",
       color: colors.husbandElterngeld,
+      seriesClass: "timeline-chart__series--husband-elterngeld",
+      tooltipToneClass: "timeline-chart__tooltip-row--warning",
     },
     {
       key: "kindergeld",
       label: "Child Benefit (Kindergeld)",
+      tooltipLabel: "Child Benefit (Kindergeld, § 66 EStG):",
       statutory: "§ 66 EStG",
       color: colors.kindergeld,
+      seriesClass: "timeline-chart__series--kindergeld",
+      tooltipToneClass: "timeline-chart__tooltip-row--loss",
     },
     {
       key: "taxRefund",
       label: "Tax Office Refund (Finanzamt)",
+      tooltipLabel: "Tax Office Refund (Finanzamt, § 26b EStG):",
       statutory: "§ 26b EStG",
       color: colors.taxRefund,
+      seriesClass: "timeline-chart__series--tax-refund",
+      tooltipToneClass: "timeline-chart__tooltip-row--gain",
+      prefixPlus: true,
     },
   ];
 
@@ -346,73 +386,43 @@ export default function TimelineChart(): JSX.Element {
   };
 
   return (
-    <div
-      className="ui-card"
-      style={{ padding: "24px",
-        marginBottom: "28px",
-        position: "relative" }}
-    >
+    <div className="ui-card timeline-chart">
       {/* Chart Top Header & Controls */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "12px",
-          marginBottom: "18px",
-        }}
-      >
+      <div className="timeline-chart__header">
         <div>
-          <h3
-            style={{
-              fontSize: "1.2rem",
-              fontWeight: 800,
-              color: "var(--text-primary)",
-              margin: 0,
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h3 className="timeline-chart__title">
             Monthly Cash Inflow &amp; Benefits Timeline ({displayedMonths.length} Months)
           </h3>
-          <p
-            style={{
-              fontSize: "0.8rem",
-              color: "var(--text-muted)",
-              margin: "3px 0 0 0",
-            }}
-          >
+          <p className="timeline-chart__subtitle">
             Monthly net salary, parental benefits, Kindergeld, and tax refunds.
           </p>
           {referenceMonth && referenceSalary !== undefined && (
-            <div style={{ fontSize: "0.8rem",
-              color: "var(--text-secondary)",
-              margin: "8px 0 0" }}>
-              <p style={{ margin: "0 0 6px" }}>
+            <div className="timeline-chart__reference">
+              <p className="timeline-chart__reference-line">
                 Salary reference: {formatCurrency(referenceSalary, 2)} / month · Scenario B, {referenceMonth.calendarLabel}.
                 {" "}Initial net salaries only; later pay, benefits and one-off cash may differ.
                 {referenceProvisional && " Provisional payroll estimate."}
               </p>
-              <details>
-                <summary style={{ cursor: "pointer",
-                  color: "var(--color-primary)" }}>Inspect reference source</summary>
-                <p>Scenario B ledger · {referenceMonth.monthId} · {referenceMonth.taxClassLabel}</p>
-                <p className="tabular-nums">
-                  Husband {formatCurrency(referenceMonth.husbandSalary, 2)} + wife {formatCurrency(referenceMonth.wifeSalary, 2)} = {formatCurrency(referenceSalary, 2)}.
-                  {" "}Benefits, bonuses and annual tax settlements are excluded from this salary benchmark.
-                </p>
-                {referenceProfile && (
-                  <p>
-                    <LawRefLink
-                      lawId={LawId.BMF_PAP}
-                      groupId={LawGroupId.EStG_PayrollWithholding}
-                      label={`Official payroll rules · ${referenceProfile.sourceYear}`}
-                    />
-                    {referenceProfile.projected && ` · Projected to ${referenceProfile.calendarYear}`}
-                    {referenceProvisional && " · Provisional values based on your supplied inputs."}
+              <Disclosure title="Inspect reference source" subtle>
+                <div className="timeline-chart__reference-details">
+                  <p>Scenario B ledger · {referenceMonth.monthId} · {referenceMonth.taxClassLabel}</p>
+                  <p className="tabular-nums">
+                    Husband {formatCurrency(referenceMonth.husbandSalary, 2)} + wife {formatCurrency(referenceMonth.wifeSalary, 2)} = {formatCurrency(referenceSalary, 2)}.
+                    {" "}Benefits, bonuses and annual tax settlements are excluded from this salary benchmark.
                   </p>
-                )}
-              </details>
+                  {referenceProfile && (
+                    <p>
+                      <LawRefLink
+                        lawId={LawId.BMF_PAP}
+                        groupId={LawGroupId.EStG_PayrollWithholding}
+                        label={`Official payroll rules · ${referenceProfile.sourceYear}`}
+                      />
+                      {referenceProfile.projected && ` · Projected to ${referenceProfile.calendarYear}`}
+                      {referenceProvisional && " · Provisional values based on your supplied inputs."}
+                    </p>
+                  )}
+                </div>
+              </Disclosure>
             </div>
           )}
         </div>
@@ -430,37 +440,9 @@ export default function TimelineChart(): JSX.Element {
       </div>
 
       {/* Series Visibility Toolbar (On/Off Controls) */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "8px",
-          padding: "10px 14px",
-          background: "var(--bg-surface-secondary)",
-          borderRadius: "var(--border-radius-sm)",
-          border: "1px solid var(--border-subtle)",
-          marginBottom: "16px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexWrap: "wrap",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
-            }}
-          >
+      <div className="timeline-chart__toolbar">
+        <div className="timeline-chart__toggles">
+          <span className="timeline-chart__toggles-label">
             Series Toggles:
           </span>
           {seriesMeta.map((s) => {
@@ -471,47 +453,15 @@ export default function TimelineChart(): JSX.Element {
                 type="button"
                 aria-pressed={isVisible}
                 onClick={() => toggleSeries(s.key)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "4px 10px",
-                  borderRadius: "4px",
-                  border: isVisible
-                    ? `1px solid ${s.color}`
-                    : "1px solid var(--border-subtle)",
-                  background: isVisible ? "var(--bg-surface)" : "transparent",
-                  color: isVisible
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
-                  fontSize: "0.74rem",
-                  fontWeight: isVisible ? 600 : 400,
-                  cursor: "pointer",
-                  boxShadow: isVisible ? "var(--shadow-sm)" : "none",
-                  transition: "all 0.15s ease",
-                }}
+                className={[
+                  "timeline-chart__series-btn",
+                  s.seriesClass,
+                  isVisible ? "timeline-chart__series-btn--active" : "",
+                ].filter(Boolean).join(" ")}
               >
-                <span
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    backgroundColor: isVisible
-                      ? s.color
-                      : "var(--border-medium)",
-                  }}
-                ></span>
+                <span className="timeline-chart__dot" />
                 <span>{s.label}</span>
-                <span
-                  style={{
-                    fontSize: "0.66rem",
-                    padding: "0 4px",
-                    borderRadius: "2px",
-                    background: isVisible ? s.color : "var(--border-medium)",
-                    color: "var(--text-inverse)",
-                    fontWeight: 700,
-                  }}
-                >
+                <span className="timeline-chart__state-pill">
                   {isVisible ? "ON" : "OFF"}
                 </span>
               </button>
@@ -519,41 +469,29 @@ export default function TimelineChart(): JSX.Element {
           })}
         </div>
 
-        <div style={{ display: "flex",
-          alignItems: "center",
-          gap: "6px" }}>
-          <button
-            type="button"
-            className="ui-btn ui-btn--sm ui-btn--tint"
+        <div className="timeline-chart__toolbar-actions">
+          <Button
+            size={ButtonSize.Sm}
+            variant={ButtonVariant.Tint}
             onClick={() => setAllSeries(true)}
           >
             All On
-          </button>
-          <button
-            type="button"
-            className="ui-btn ui-btn--sm"
+          </Button>
+          <Button
+            size={ButtonSize.Sm}
+            variant={ButtonVariant.Secondary}
             onClick={() => setAllSeries(false)}
           >
             All Off
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* SVG Chart Plot Area */}
-      <div
-        ref={containerRef}
-        style={{ position: "relative",
-          width: "100%",
-          overflowX: "auto" }}
-      >
+      <div ref={containerRef} className="timeline-chart__plot-wrap">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          style={{
-            width: "100%",
-            height: "auto",
-            minWidth: "850px",
-            display: "block",
-          }}
+          className="timeline-chart__svg"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -1007,342 +945,74 @@ export default function TimelineChart(): JSX.Element {
         {/* Custom Tooltip */}
         {tooltipState && (
           <div
+            className="timeline-chart__tooltip"
             style={{
-              position: "absolute",
               left: `${Math.min(svgWidth - 280, Math.max(margin.left, tooltipState.x - 120))}px`,
-              top: "20px",
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: "var(--border-radius-sm)",
-              padding: "12px 16px",
-              minWidth: "250px",
-              pointerEvents: "none",
-              zIndex: 30,
-              boxShadow: "var(--shadow-lg)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "6px",
-                borderBottom: "1px solid var(--border-subtle)",
-                paddingBottom: "4px",
-              }}
-            >
+            <div className="timeline-chart__tooltip-header">
               <div>
-                <span
-                  style={{
-                    fontWeight: 800,
-                    fontSize: "0.88rem",
-                    color: "var(--text-primary)",
-                  }}
-                >
+                <span className="timeline-chart__tooltip-title">
                   {tooltipState.month.relativeMonthLabel ||
                     tooltipState.month.relativeBirthLabel}
                 </span>
-                <span
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--color-primary)",
-                    marginLeft: "6px",
-                    fontWeight: 600,
-                  }}
-                >
-                  ({tooltipState.month.calendarLabel}) ·{" "}
-                  {tooltipState.month.monthId}
+                <span className="timeline-chart__tooltip-calendar">
+                  ({tooltipState.month.calendarLabel}) · {tooltipState.month.monthId}
                 </span>
-                <div
-                  style={{ fontSize: "0.68rem",
-                    color: "var(--text-muted)" }}
-                >
+                <div className="timeline-chart__tooltip-meta">
                   {tooltipState.month.monthSimRef ||
                     toMonthSimRef(tooltipState.month.month)}{" "}
                   · Year {tooltipState.month.year}
                 </div>
               </div>
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  fontWeight: 800,
-                  color: "var(--color-primary)",
-                  fontSize: "0.95rem",
-                }}
-              >
+              <span className="timeline-chart__tooltip-total tabular-nums">
                 {formatCurrency(getMonthActiveTotal(tooltipState.month))}
               </span>
             </div>
 
             {tooltipState.month.eventTag && (
-              <div className="badge-brand" style={{ marginBottom: "8px" }}>
-                {tooltipState.month.eventTag}
+              <div className="timeline-chart__tooltip-event">
+                <Badge tone={BadgeTone.Brand}>{tooltipState.month.eventTag}</Badge>
               </div>
             )}
 
-            <div
-              style={{
-                fontSize: "0.72rem",
-                color: "var(--text-muted)",
-                marginBottom: "6px",
-              }}
-            >
-              Status:{" "}
-              <span style={{ color: "var(--text-primary)",
-                fontWeight: 600 }}>
-                {tooltipState.month.taxClassLabel}
-              </span>
+            <div className="timeline-chart__tooltip-status">
+              Status: <strong>{tooltipState.month.taxClassLabel}</strong>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "3px",
-                fontSize: "0.75rem",
-              }}
-            >
-              {visibleSeries.husbandSalary &&
-                tooltipState.month.husbandSalary > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
+            <div className="timeline-chart__tooltip-list">
+              {seriesMeta.map((series) => {
+                const value = tooltipState.month[series.key];
+                if (!visibleSeries[series.key] || value <= 0) {
+                  return null;
+                }
+                return (
+                  <div
+                    key={series.key}
+                    className={[
+                      "timeline-chart__tooltip-row",
+                      series.seriesClass,
+                      series.tooltipToneClass ?? "",
+                    ].filter(Boolean).join(" ")}
                   >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.husbandSalary,
-                      }}
-                    ></span>
-                    Husband Net Salary:
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.husbandSalary)}
-                  </span>
-                </div>
-              )}
-              {visibleSeries.wifeSalary &&
-                tooltipState.month.wifeSalary > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.wifeSalary,
-                      }}
-                    ></span>
-                    Wife Net Salary:
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.wifeSalary)}
-                  </span>
-                </div>
-              )}
-              {visibleSeries.mutterschutz &&
-                tooltipState.month.mutterschutz > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.mutterschutz,
-                      }}
-                    ></span>
-                    Maternity Pay (MuSchG):
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.mutterschutz)}
-                  </span>
-                </div>
-              )}
-              {visibleSeries.wifeElterngeld &&
-                tooltipState.month.wifeElterngeld > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--color-gain)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.wifeElterngeld,
-                      }}
-                    ></span>
-                    ElterngeldPlus (Mother / § 4 BEEG):
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.wifeElterngeld)}
-                  </span>
-                </div>
-              )}
-              {visibleSeries.husbandElterngeld &&
-                tooltipState.month.husbandElterngeld > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--color-warning)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.husbandElterngeld,
-                      }}
-                    ></span>
-                    Partner Months (Partnermonate, § 4 BEEG):
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.husbandElterngeld)}
-                  </span>
-                </div>
-              )}
-              {visibleSeries.kindergeld &&
-                tooltipState.month.kindergeld > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--color-loss)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.kindergeld,
-                      }}
-                    ></span>
-                    Child Benefit (Kindergeld, § 66 EStG):
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    {formatCurrency(tooltipState.month.kindergeld)}
-                  </span>
-                </div>
-              )}
-              {visibleSeries.taxRefund && tooltipState.month.taxRefund > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--color-gain)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: colors.taxRefund,
-                      }}
-                    ></span>
-                    Tax Office Refund (Finanzamt, § 26b EStG):
-                  </span>
-                  <span style={{ fontFamily: "monospace",
-                    fontWeight: 600 }}>
-                    +{formatCurrency(tooltipState.month.taxRefund)}
-                  </span>
-                </div>
-              )}
+                    <span className="timeline-chart__tooltip-row-label">
+                      <span className="timeline-chart__dot" />
+                      {series.tooltipLabel}
+                    </span>
+                    <span className="timeline-chart__tooltip-row-val tabular-nums">
+                      {series.prefixPlus ? "+" : ""}
+                      {formatCurrency(value)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
       {/* Interactive Legend Bar with Click-to-Toggle Actions */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexWrap: "wrap",
-          gap: "14px",
-          marginTop: "18px",
-          fontSize: "0.78rem",
-          color: "var(--text-secondary)",
-        }}
-      >
+      <div className="timeline-chart__legend">
         {seriesMeta.map((s) => {
           const isVisible = visibleSeries[s.key];
           return (
@@ -1351,27 +1021,13 @@ export default function TimelineChart(): JSX.Element {
               type="button"
               aria-pressed={isVisible}
               onClick={() => toggleSeries(s.key)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                background: "transparent",
-                border: "none",
-                color: isVisible ? "var(--text-primary)" : "var(--text-muted)",
-                cursor: "pointer",
-                opacity: isVisible ? 1 : 0.45,
-                transition: "opacity 0.15s ease",
-                textDecoration: isVisible ? "none" : "line-through",
-              }}
+              className={[
+                "timeline-chart__legend-btn",
+                s.seriesClass,
+                isVisible ? "" : "timeline-chart__legend-btn--hidden",
+              ].filter(Boolean).join(" ")}
             >
-              <span
-                style={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "3px",
-                  background: s.color,
-                }}
-              ></span>
+              <span className="timeline-chart__legend-swatch" />
               <span>{s.label}</span>
             </button>
           );
