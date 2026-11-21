@@ -24,17 +24,19 @@ import {
   type MapFocus,
   MapCategory,
   MUNICH_CENTER,
+  OutingTravelMode,
   PersonalPin,
   categoryStyle,
   distanceKm,
-  formatDriveMinutes,
+  formatTravelMinutes,
   formatPlaceDate,
   mapLayers,
   transitLayers,
   munichPlaces,
-  toDriveMinutes,
+  toTravelMinutes,
   toMapCategory,
   toMapPlaceId,
+  toOutingTravelMode,
   toPersonalPin,
 } from "./places.ts";
 import {
@@ -67,7 +69,7 @@ const defaultLayers: readonly MapCategory[] = [
   MapCategory.SuburbanRail,
 ];
 const resultLimit = 80;
-const driveOptions = [0, 30, 45, 60, 90, 120].map(toDriveMinutes);
+const travelOptions = [0, 30, 45, 60, 90, 120].map(toTravelMinutes);
 const personalPins = Object.values(PersonalPin);
 const munichDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin",
   dateStyle: "short" });
@@ -93,7 +95,8 @@ export default function MunichMap() {
   const [cityPlaces, setCityPlaces] = useState<readonly MapPlace[]>([]);
   const [reference, setReference] = useState<PersonalPin>();
   const [radius, setRadius] = useState(0);
-  const [maxDrive, setMaxDrive] = useState(toDriveMinutes(120));
+  const [travelMode, setTravelMode] = useState<OutingTravelMode>(OutingTravelMode.Drive);
+  const [maxTravel, setMaxTravel] = useState(toTravelMinutes(120));
   const [selected, setSelected] = useState<MapPlace>();
   const [focus, setFocus] = useState<MapFocus>();
   const [mapOnly, setMapOnly] = useState(false);
@@ -133,7 +136,8 @@ export default function MunichMap() {
       if (!searchText.toLocaleLowerCase().includes(term)) {
         return [];
       }
-      if (outingsMode && place.outing?.drive && place.outing.drive.minutes > maxDrive) {
+      const journey = place.outing?.[travelMode];
+      if (outingsMode && (place.outing?.drive || place.outing?.train) && (!journey || journey.minutes > maxTravel)) {
         return [];
       }
       if (place.modes) {
@@ -153,19 +157,19 @@ export default function MunichMap() {
       distance: distanceKm(origin, place.position),
     })).filter(({ distance }) => activeRadius === 0 || distance <= activeRadius)
       .sort((left, right) => left.distance - right.distance);
-  }, [cityPlaces, data.places, origin, query, category, layers, activeRadius, outingsMode, maxDrive]);
+  }, [cityPlaces, data.places, origin, query, category, layers, activeRadius, outingsMode, travelMode, maxTravel]);
   const markers = useMemo(() => places.map(({ place }) => place), [places]);
   const resultPlaces = useMemo(() => {
     if (category) {
       const matching = places.filter(({ place }) => inCategory(place, category));
       return outingsMode ? matching.sort((left, right) =>
-        (left.place.outing?.drive?.minutes ?? 0) - (right.place.outing?.drive?.minutes ?? 0)) : matching;
+        (left.place.outing?.[travelMode]?.minutes ?? 0) - (right.place.outing?.[travelMode]?.minutes ?? 0)) : matching;
     }
     return [
       ...places.filter(({ place }) => eventCategories.includes(place.category)),
       ...places.filter(({ place }) => !eventCategories.includes(place.category)),
     ];
-  }, [category, outingsMode, places]);
+  }, [category, outingsMode, places, travelMode]);
   const listedPlaces = resultPlaces.slice(0, resultLimit);
 
   const fitResults = useCallback(() => {
@@ -307,10 +311,16 @@ export default function MunichMap() {
           <div class="munich-map-distance">
             {outingsMode ? (
               <>
-                <label>Drive from Munich
-                  <select value={maxDrive} onChange={(event) => setMaxDrive(toDriveMinutes(Number(event.currentTarget.value)))}>
-                    {driveOptions.map((minutes) => (
-                      <option key={minutes} value={minutes}>{minutes ? `About ${formatDriveMinutes(minutes)} or less` : "Munich only"}</option>
+                <label>Travel by
+                  <select value={travelMode} onChange={(event) => setTravelMode(toOutingTravelMode(event.currentTarget.value))}>
+                    <option value={OutingTravelMode.Drive}>Car</option>
+                    <option value={OutingTravelMode.Train}>Train</option>
+                  </select>
+                </label>
+                <label>From Munich
+                  <select value={maxTravel} onChange={(event) => setMaxTravel(toTravelMinutes(Number(event.currentTarget.value)))}>
+                    {travelOptions.map((minutes) => (
+                      <option key={minutes} value={minutes}>{minutes ? `About ${formatTravelMinutes(minutes)} or less` : "Munich only"}</option>
                     ))}
                   </select>
                 </label>
@@ -428,7 +438,13 @@ export default function MunichMap() {
                 ? (resultPlaces.length === 1 ? "Christmas market" : "Christmas markets")
                 : (resultPlaces.length === 1 ? "place" : "places")}
           </p>
-          {outingsMode && <p class="munich-map-count">Approximate one-way drives from Munich. Allow extra time for traffic, parking and transfers.</p>}
+          {outingsMode && (
+            <p class="munich-map-count">
+              {travelMode === OutingTravelMode.Train
+                ? "Approximate one-way station-to-station times. Check trains for your date and allow time to reach the venue."
+                : "Approximate one-way drives from Munich. Allow extra time for traffic, parking and transfers."}
+            </p>
+          )}
           {activePlace && (
             <section class="munich-map-detail" aria-label="Selected place">
               <h3>{activePlace.place.title}</h3>
@@ -460,6 +476,10 @@ export default function MunichMap() {
           <ul class="munich-map-results">
             {listedPlaces.map(({ place, distance }) => {
               const style = categoryStyle[place.category];
+              const journey = place.outing?.[travelMode];
+              const distanceLabel = journey
+                ? `~${formatTravelMinutes(journey.minutes)}${journey.transfer ? ` + ${journey.transfer.label}` : ""}`
+                : place.outing && !place.outing.drive && !place.outing.train ? "In Munich" : `${distance.toFixed(1)} km`;
               return (
                 <li key={place.id}>
                   <button type="button" aria-pressed={selected?.id === place.id} onClick={() => selectPlace(place)}>
@@ -472,9 +492,7 @@ export default function MunichMap() {
                         ? [place.outing?.locality, formatPlaceDate(place), place.schedule.theme].filter(Boolean).join(" · ")
                         : place.category}</small>
                     </span>
-                    <span>{place.outing
-                      ? (place.outing.drive ? `~${formatDriveMinutes(place.outing.drive.minutes)}${place.outing.drive.transfer ? " + ferry" : ""}` : "In Munich")
-                      : `${distance.toFixed(1)} km`}</span>
+                    <span>{distanceLabel}</span>
                   </button>
                 </li>
               );

@@ -3,10 +3,11 @@ import {
 } from "#engine/lifeProfile/person";
 import {
   type MapPlace,
+  type OutingJourney,
   type OutingLocation,
   type SeasonalSchedule,
   MapCategory,
-  toDriveMinutes,
+  toTravelMinutes,
   toMapPlaceId,
   toMapPosition,
 } from "./places.ts";
@@ -28,13 +29,21 @@ const munich = { locality: "Munich" };
 function regionalStop(
   locality: string,
   routeDestination: string,
-  minutes: number,
+  drive: number,
+  train: number,
+  railDetails?: Partial<Omit<OutingJourney, "minutes">>,
 ): OutingLocation {
   return {
     locality,
     drive: {
-      minutes: toDriveMinutes(minutes),
+      minutes: toTravelMinutes(drive),
       source: `https://maps.adac.de/routenplaner/route-von-muenchen-nach-${routeDestination}`,
+    },
+    train: {
+      minutes: toTravelMinutes(train),
+      source: `https://www.bahn.de/reisen/view/verbindung/muenchen/${routeDestination}.shtml`,
+      from: "München Hbf",
+      ...railDetails,
     },
   };
 }
@@ -42,21 +51,25 @@ function regionalStop(
 function nearbyStop(
   locality: string,
   routeDestination: string,
-  minutes: number,
+  drive: number,
+  train: number,
+  from = "München Hbf",
 ): OutingLocation {
+  const source = `https://www.rome2rio.com/s/Munich/${routeDestination}`;
   return {
     locality,
-    drive: {
-      minutes: toDriveMinutes(minutes),
-      source: `https://www.rome2rio.com/s/Munich/${routeDestination}`,
-    },
+    drive: { minutes: toTravelMinutes(drive),
+      source },
+    train: { minutes: toTravelMinutes(train),
+      source,
+      from },
   };
 }
 
-const dachau = nearbyStop("Dachau", "Dachau", 25);
-const fuerstenfeldbruck = nearbyStop("Fürstenfeldbruck", "F%C3%BCrstenfeldbruck", 30);
+const dachau = nearbyStop("Dachau", "Dachau", 25, 15);
+const fuerstenfeldbruck = nearbyStop("Fürstenfeldbruck", "F%C3%BCrstenfeldbruck", 30, 35, "Marienplatz");
 
-// Drive times are rounded one-way city-to-city planning estimates from Munich.
+// Rounded reference journeys to the destination city, excluding the last leg to the venue.
 const outings: readonly OutingEntry[] = [
   {
     id: "munich-krampus-parade",
@@ -99,7 +112,7 @@ const outings: readonly OutingEntry[] = [
     id: "augsburger-engelesspiel",
     title: "Augsburger Engelesspiel",
     coordinates: [48.3688, 10.8984],
-    location: regionalStop("Augsburg", "augsburg", 70),
+    location: regionalStop("Augsburg", "augsburg", 70, 30),
     venue: "Rathausplatz",
     starts: "2026-11-23",
     ends: "2026-12-23",
@@ -112,7 +125,7 @@ const outings: readonly OutingEntry[] = [
     id: "domspatzen-regensburg",
     title: "Weihnachten mit den Regensburger Domspatzen",
     coordinates: [48.9989, 12.0957],
-    location: regionalStop("Regensburg", "regensburg", 90),
+    location: regionalStop("Regensburg", "regensburg", 90, 85),
     venue: "Audimax, Universität Regensburg",
     starts: "2026-12-04",
     theme: "Choral concert",
@@ -125,7 +138,7 @@ const outings: readonly OutingEntry[] = [
     id: "nuernberger-sternenhaus",
     title: "Kindererlebnis Sternenhaus",
     coordinates: [49.4543, 11.0775],
-    location: regionalStop("Nuremberg", "nuernberg", 120),
+    location: regionalStop("Nuremberg", "nuernberg", 120, 100),
     venue: "Sternenhaus, Nuremberg Old Town",
     starts: "2026-11-28",
     ends: "2026-12-23",
@@ -138,7 +151,7 @@ const outings: readonly OutingEntry[] = [
     id: "salzburger-adventsingen",
     title: "Salzburger Adventsingen",
     coordinates: [47.7986, 13.0417],
-    location: regionalStop("Salzburg, Austria", "salzburg", 115),
+    location: regionalStop("Salzburg, Austria", "salzburg", 115, 105),
     venue: "Großes Festspielhaus",
     starts: "2026-11-27",
     ends: "2026-12-13",
@@ -152,7 +165,7 @@ const outings: readonly OutingEntry[] = [
     id: "ingolstaedter-weihnachtscircus",
     title: "Ingolstädter Weihnachtscircus",
     coordinates: [48.7702, 11.4342],
-    location: regionalStop("Ingolstadt", "ingolstadt", 65),
+    location: regionalStop("Ingolstadt", "ingolstadt", 65, 35),
     venue: "Volksfestplatz",
     starts: "2026-12-18",
     ends: "2027-01-10",
@@ -165,7 +178,7 @@ const outings: readonly OutingEntry[] = [
     id: "rosenheimer-weihnachtscircus",
     title: "Rosenheimer Weihnachtscircus",
     coordinates: [47.8605, 12.1211],
-    location: regionalStop("Rosenheim", "rosenheim", 60),
+    location: regionalStop("Rosenheim", "rosenheim", 60, 40),
     venue: "Loretowiese",
     starts: "2026-12-15",
     ends: "2027-01-10",
@@ -178,7 +191,9 @@ const outings: readonly OutingEntry[] = [
     id: "bad-toelz-knabenchor",
     title: "Tölzer Knabenchor Christmas Concert",
     coordinates: [47.7609, 11.5499],
-    location: regionalStop("Bad Tölz", "bad-toelz", 60),
+    location: regionalStop("Bad Tölz", "bad-toelz", 60, 55, {
+      source: "https://www.brb.de/de/fahrplaene/linienuebersicht-fahrplaene/linie/rb-56",
+    }),
     venue: "Kurhaus Bad Tölz, Ludwigstraße 25",
     starts: "2026-12-26",
     theme: "Christmas choral concert",
@@ -191,7 +206,9 @@ const outings: readonly OutingEntry[] = [
     id: "kufstein-fortress-christmas",
     title: "Weihnachtszauber auf der Festung Kufstein",
     coordinates: [47.5830, 12.1688],
-    location: regionalStop("Kufstein, Austria", "kufstein", 80),
+    location: regionalStop("Kufstein, Austria", "kufstein", 80, 80, {
+      source: "https://www.brb.de/de/fahrplaene/linienuebersicht-fahrplaene/linie/rb-54",
+    }),
     venue: "Festung Kufstein",
     starts: "2026-11-28",
     ends: "2026-12-20",
@@ -209,9 +226,17 @@ const outings: readonly OutingEntry[] = [
     location: {
       locality: "Fraueninsel, Chiemsee",
       drive: {
-        minutes: toDriveMinutes(55),
+        minutes: toTravelMinutes(55),
         source: "https://www.rome2rio.com/s/Munich/Prien-am-Chiemsee",
-        transfer: "Drive to Prien, then take the ferry",
+        transfer: { label: "ferry",
+          instructions: "Drive to Prien, then take the ferry" },
+      },
+      train: {
+        minutes: toTravelMinutes(50),
+        source: "https://www.rome2rio.com/s/Munich/Prien-am-Chiemsee",
+        from: "München Ost",
+        transfer: { label: "ferry",
+          instructions: "Take the train to Prien, then connect to the ferry" },
       },
     },
     venue: "Village lanes around Frauenwörth Abbey",
@@ -267,7 +292,7 @@ const outings: readonly OutingEntry[] = [
     id: "starnberger-christkindlmarkt",
     title: "Starnberger Christkindlmarkt",
     coordinates: [48.0017, 11.3402],
-    location: nearbyStop("Starnberg", "Starnberg", 25),
+    location: nearbyStop("Starnberg", "Starnberg", 25, 20),
     venue: "Kirchplatz",
     starts: "2026-12-03",
     ends: "2026-12-06",
@@ -281,7 +306,7 @@ const outings: readonly OutingEntry[] = [
     id: "freisinger-caritativer-christkindlmarkt",
     title: "Caritativer Christkindlmarkt Freising",
     coordinates: [48.4006, 11.7435],
-    location: nearbyStop("Freising", "Freising", 35),
+    location: nearbyStop("Freising", "Freising", 35, 25),
     venue: "Marienplatz, Freising",
     starts: "2026-12-13",
     theme: "Charity Christmas market",
@@ -289,6 +314,50 @@ const outings: readonly OutingEntry[] = [
     hours: [["13 Dec", "See the city’s event listing"]],
     source: "https://veranstaltungen-tourismus.freising.de/freising/48-caritativer-christkindlmarkt-eea9b14ed92b0390b948bbd58da493a42.html",
     alsoListedUnder: MapCategory.ChristmasMarket,
+  },
+  {
+    id: "ulmer-muenster-christmas-concert",
+    title: "The Story of Christmas at Ulm Minster",
+    coordinates: [48.3985, 9.9920],
+    location: regionalStop("Ulm", "ulm", 105, 70),
+    venue: "Ulmer Münster, Münsterplatz",
+    starts: "2026-12-26",
+    theme: "Saxophone and organ concert",
+    detail: "Saxophone and organ in Ulm Minster on 26 December. Tickets are required.",
+    hours: [["26 Dec", "11:30"]],
+    source: "https://www.ulmer-muenster.de/b/weihnachtskonzert-46779180",
+    alsoListedUnder: MapCategory.Concert,
+  },
+  {
+    id: "christmas-garden-stuttgart",
+    title: "Christmas Garden Stuttgart",
+    coordinates: [48.8040, 9.2050],
+    location: regionalStop("Stuttgart", "stuttgart", 150, 115, {
+      transfer: { label: "Stadtbahn",
+        instructions: "Take the Stadtbahn from the city center to Wilhelma" },
+    }),
+    venue: "Wilhelma, Neckartalstraße",
+    starts: "2026-11-18",
+    ends: "2027-01-16",
+    theme: "Evening light trail",
+    detail: "A ticketed walk through outdoor light installations and music in the Wilhelma gardens.",
+    hours: [["Daily", "17:00–21:30"]],
+    exceptions: [["24 and 31 Dec", "Closed"], ["Last entry", "20:00"]],
+    source: "https://www.christmas-garden.de/stuttgart/besuch/",
+  },
+  {
+    id: "lumagica-innsbruck",
+    title: "LUMAGICA Innsbruck",
+    coordinates: [47.2695, 11.3972],
+    location: regionalStop("Innsbruck, Austria", "innsbruck", 130, 115),
+    venue: "Hofgarten, entrance by Tiroler Landestheater",
+    starts: "2026-11-13",
+    ends: "2027-01-31",
+    theme: "Outdoor light art",
+    detail: "A ticketed light-art walk through Innsbruck’s Hofgarten.",
+    hours: [["Through 17 Jan", "Daily 17:00–20:30"], ["From 18 Jan", "Thu–Sun 17:00–20:30"]],
+    exceptions: [["24 Dec", "Closed"], ["Last entry", "19:00"]],
+    source: "https://lumagica.com/de/standorte/innsbruck",
   },
 ];
 

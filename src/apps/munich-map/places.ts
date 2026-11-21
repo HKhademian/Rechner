@@ -84,25 +84,44 @@ export function toMapPlaceId(value: string): MapPlaceId {
   return value as MapPlaceId;
 }
 
-export type DriveMinutes = Brand<number, "DriveMinutes">;
+export type TravelMinutes = Brand<number, "TravelMinutes">;
 
-export function toDriveMinutes(value: number): DriveMinutes {
+export function toTravelMinutes(value: number): TravelMinutes {
   if (!Number.isInteger(value) || value < 0 || value > 1440) {
-    throw new TypeError("Drive time must be a whole number of minutes between 0 and 1440.");
+    throw new TypeError("Travel time must be a whole number of minutes between 0 and 1440.");
   }
-  return value as DriveMinutes;
+  return value as TravelMinutes;
 }
 
-export interface OutingLocation {
-  readonly locality: string;
-  readonly drive?: {
-    readonly minutes: DriveMinutes;
-    readonly source: string;
-    readonly transfer?: string;
+export const OutingTravelMode = {
+  Drive: "drive",
+  Train: "train",
+} as const;
+export type OutingTravelMode = (typeof OutingTravelMode)[keyof typeof OutingTravelMode];
+
+export function toOutingTravelMode(value: string): OutingTravelMode {
+  const mode = Object.values(OutingTravelMode).find((entry) => entry === value);
+  if (!mode) {
+    throw new TypeError(`Unknown outing travel mode: ${value}`);
+  }
+  return mode;
+}
+
+export interface OutingJourney {
+  readonly minutes: TravelMinutes;
+  readonly source: string;
+  readonly from?: string;
+  readonly transfer?: {
+    readonly label: string;
+    readonly instructions: string;
   };
 }
 
-export function formatDriveMinutes(minutes: DriveMinutes): string {
+export type OutingLocation = {
+  readonly locality: string;
+} & Readonly<Partial<Record<OutingTravelMode, OutingJourney>>>;
+
+export function formatTravelMinutes(minutes: TravelMinutes): string {
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
   return [hours ? `${hours} h` : "", remainder || !hours ? `${remainder} min` : ""].filter(Boolean).join(" ");

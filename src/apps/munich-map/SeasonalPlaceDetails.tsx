@@ -2,7 +2,8 @@ import {
   type MapPlace,
   type SeasonalSchedule,
   MapCategory,
-  formatDriveMinutes,
+  OutingTravelMode,
+  formatTravelMinutes,
   formatPlaceDate,
 } from "./places.ts";
 
@@ -23,7 +24,7 @@ export function SeasonalPlaceDetails({ place, schedule }: {
   readonly place: MapPlace;
   readonly schedule: SeasonalSchedule;
 }) {
-  const drive = place.outing?.drive;
+  const { outing } = place;
   const scheduleLabel = place.category === MapCategory.ChristmasMarket || place.alsoListedUnder === MapCategory.ChristmasMarket
     ? "Opening hours"
     : "Event times";
@@ -45,12 +46,18 @@ export function SeasonalPlaceDetails({ place, schedule }: {
           </>
         )}
       </section>
-      {drive && (
-        <p>
-          <a href={drive.source}>About {formatDriveMinutes(drive.minutes)} from Munich</a> by car
-          {drive.transfer && ` · ${drive.transfer}`}
-        </p>
-      )}
+      {outing && Object.values(OutingTravelMode).map((mode) => {
+        const journey = outing[mode];
+        return journey && (
+          <p key={mode}>
+            <a href={journey.source}>
+              About {formatTravelMinutes(journey.minutes)} by {mode === OutingTravelMode.Drive ? "car" : "train"}
+            </a>
+            {journey.from ? ` from ${journey.from}` : " from Munich"}
+            {journey.transfer && ` · ${journey.transfer.instructions}`}
+          </p>
+        );
+      })}
     </div>
   );
 }
