@@ -17,6 +17,7 @@ import {
 } from "#engine/formulas/context/statutoryContext";
 import {
   STATUTORY_FORMULA_DESCRIPTORS,
+  evaluateAllowanceVariantConversionInContext,
   evaluateAnnualIncomeTaxInContext,
   evaluateBenefitTransitionContributionBaseInContext,
   evaluateChildAllowanceFavorabilityInContext,
@@ -28,6 +29,8 @@ import {
   evaluateJointSplittingTaxInContext,
   evaluateMaternityProtectionInContext,
   evaluateMunicipalDaycareFeeInContext,
+  evaluateOverlapCreditedPaymentInContext,
+  evaluateParentalAllowanceBudgetInContext,
   evaluateParentalBenefitEntitlementInContext,
   evaluateParentalReplacementRateInContext,
   evaluatePartnershipBonusHoursInContext,
@@ -62,12 +65,14 @@ import {
   computeSolidaritySurcharge,
 } from "#engine/tax/wageTax";
 import {
+  ElterngeldVariant,
   WageTaxZone,
   toCalendarMonth,
   toChildIndex,
   toEuroAmount,
   toFullCalendarYear,
   toGrossSalary,
+  toMonthDuration,
   toNetSalary,
   toPercentageRate,
   toSimulationMonth,
@@ -344,5 +349,64 @@ describe("Tier 2 Context-Aware Statutory Evaluators", () => {
     );
     assert.ok(indexedBrackets.value.basicAllowance > 12096);
     assert.equal(indexedBrackets.audit.governingLawIds.includes(LawId.InflG), true);
+  });
+
+  it("evaluates Basiselterngeld vs. ElterngeldPlus budgets, conversions, sibling bonus, and § 3(2) overlap floors in context", () => {
+    const context = createStatutoryCalculationContext({
+      calendarYear: toFullCalendarYear(2026),
+    });
+
+    const basisSibling = evaluateSiblingBonusInContext(
+      {
+        baseElterngeldPlus: toEuroAmount(1800),
+        siblingAgesInMonths: [18],
+        variant: ElterngeldVariant.Basis,
+      },
+      context,
+    );
+    assert.equal(basisSibling.value.siblingBonusAmount, 180);
+    assert.equal(basisSibling.value.totalElterngeldPlusWithBonus, 1980);
+    assert.equal(basisSibling.audit.governingLawIds.includes(LawId.BEEG_4), true);
+
+    const budget = evaluateParentalAllowanceBudgetInContext(
+      {
+        motherVariant: ElterngeldVariant.Basis,
+        fatherVariant: ElterngeldVariant.Basis,
+        motherOrdinaryMonths: toMonthDuration(10),
+        fatherOrdinaryMonths: toMonthDuration(2),
+      },
+      context,
+    );
+    assert.equal(budget.value.totalBasisUnits, 14);
+    assert.equal(budget.value.maxFamilyBasisUnits, 14);
+    assert.equal(budget.value.isWithinBudget, true);
+    assert.equal(budget.audit.tier, CalculationTier.ContextAwareStatutoryEvaluator);
+    assert.equal(budget.audit.governingLawIds.includes(LawId.BEEG_4), true);
+    assert.equal(budget.audit.consumedParameterIds.includes(ParameterId.Benefit_FamilyBasisMonths), true);
+
+    const converted = evaluateAllowanceVariantConversionInContext(
+      {
+        currentMonths: toMonthDuration(12),
+        fromVariant: ElterngeldVariant.Plus,
+        toVariant: ElterngeldVariant.Basis,
+        maxMonthsInTargetVariant: 10,
+      },
+      context,
+    );
+    assert.equal(converted.value, 6);
+    assert.equal(converted.audit.governingLawIds.includes(LawId.BEEG_4a), true);
+
+    const overlapBasis = evaluateOverlapCreditedPaymentInContext(
+      {
+        grossEntitlement: toEuroAmount(1800),
+        overlappingBenefitAmount: toEuroAmount(2000),
+        priorBenefitMonthsInWindow: 0,
+        variant: ElterngeldVariant.Basis,
+      },
+      context,
+    );
+    assert.equal(overlapBasis.value.protectedMinimum, 300);
+    assert.equal(overlapBasis.value.payableAmount, 300);
+    assert.equal(overlapBasis.audit.governingLawIds.includes(LawId.BEEG_3), true);
   });
 });

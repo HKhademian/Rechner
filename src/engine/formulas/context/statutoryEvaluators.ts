@@ -27,10 +27,16 @@ import {
 import {
   type ChildAllowanceFavorabilityFormulaResult,
   type MaternityProtectionBenefitFormulaResult,
+  type OverlapCreditedPaymentFormulaResult,
+  type ParentalAllowanceBudgetFormulaResult,
   type ParentalBenefitEntitlementFormulaResult,
   type SiblingBonusFormulaResult,
+  evaluateAllowanceVariantMonthConversionFormula,
+  evaluateAllowanceVariantWeightFormula,
   evaluateChildAllowanceFavorabilityFormula,
   evaluateMaternityProtectionBenefitFormula,
+  evaluateOverlapCreditedPaymentFormula,
+  evaluateParentalAllowanceBudgetFormula,
   evaluateParentalBenefitEntitlementFormula,
   evaluateParentalReplacementRateFormula,
   evaluatePartnershipBonusHoursEligibilityFormula,
@@ -62,11 +68,14 @@ import {
 import {
   type EuroAmount,
   type GrossSalary,
+  type MonthDuration,
   type NetSalary,
   type PercentageRate,
   type WageTaxZone,
   type WorkingHours,
+  ElterngeldVariant,
   toEuroAmount,
+  toMonthDuration,
   toNetSalary,
   toWorkingHours,
 } from "#engine/types";
@@ -295,18 +304,53 @@ export const STATUTORY_FORMULA_DESCRIPTORS: Readonly<Record<FormulaId, Statutory
   }),
   [FormulaId.ParentalAllowanceEntitlement]: Object.freeze({
     id: FormulaId.ParentalAllowanceEntitlement,
-    label: "Parental Allowance Entitlement (§§ 2, 4a BEEG)",
+    label: "Parental Allowance Entitlement (§§ 2, 4, 4a BEEG)",
     domain: FormulaDomain.ParentalAllowance,
     description: "Computes Basiselterngeld and ElterngeldPlus floors, personal ceilings, and caps.",
     governingLawIds: Object.freeze([LawId.BEEG_1, LawId.BEEG_2, LawId.BEEG_4, LawId.BEEG_4a]),
     consumedParameterIds: PARENTAL_ENTITLEMENT_PARAMETER_IDS,
   }),
+  [FormulaId.ParentalAllowanceBudget]: Object.freeze({
+    id: FormulaId.ParentalAllowanceBudget,
+    label: "Parental Allowance Basis-Unit Budget (§§ 4, 4a, 4b BEEG)",
+    domain: FormulaDomain.ParentalAllowance,
+    description: "Evaluates statutory individual (12 Basis units) and family (12/14 Basis units) allowance budgets across Mutterschutz, Basiselterngeld, and ElterngeldPlus.",
+    governingLawIds: Object.freeze([LawId.BEEG_4, LawId.BEEG_4a, LawId.BEEG_4b, LawId.MuSchG_3]),
+    consumedParameterIds: Object.freeze([
+      ParameterId.Benefit_FamilyBasisMonths,
+      ParameterId.Benefit_AdditionalPartnerBasisMonths,
+      ParameterId.Benefit_MinimumParentClaimMonths,
+      ParameterId.Benefit_PlusFraction,
+      ParameterId.Convention_MaternityPostBirthMonths,
+      ParameterId.Convention_PartnershipBonusMonths,
+    ]),
+  }),
+  [FormulaId.ParentalAllowanceVariantConversion]: Object.freeze({
+    id: FormulaId.ParentalAllowanceVariantConversion,
+    label: "Basiselterngeld / ElterngeldPlus Month Conversion (§§ 4, 4a BEEG)",
+    domain: FormulaDomain.ParentalAllowance,
+    description: "Converts ordinary allowance month counts between Basiselterngeld and ElterngeldPlus within remaining statutory capacity.",
+    governingLawIds: Object.freeze([LawId.BEEG_4, LawId.BEEG_4a]),
+    consumedParameterIds: Object.freeze([ParameterId.Benefit_PlusFraction]),
+  }),
+  [FormulaId.ParentalOverlapCreditedPayment]: Object.freeze({
+    id: FormulaId.ParentalOverlapCreditedPayment,
+    label: "Overlapping Benefit Credit & Protected Floor (§ 3 Abs. 2 BEEG)",
+    domain: FormulaDomain.ParentalAllowance,
+    description: "Applies § 3 Abs. 2 BEEG overlap credit while preserving the statutory protected minimum (€300 Basis / €150 Plus).",
+    governingLawIds: Object.freeze([LawId.BEEG_3, LawId.BEEG_4, LawId.BEEG_4a]),
+    consumedParameterIds: Object.freeze([
+      ParameterId.Benefit_AssessmentMonths,
+      ParameterId.Benefit_BasisMinimum,
+      ParameterId.Benefit_PlusFraction,
+    ]),
+  }),
   [FormulaId.ParentalSiblingBonus]: Object.freeze({
     id: FormulaId.ParentalSiblingBonus,
     label: "Sibling Bonus / Geschwisterbonus (§ 2a BEEG)",
     domain: FormulaDomain.ParentalAllowance,
-    description: "Evaluates 10% or €37.50 minimum Plus sibling bonus subject to age thresholds.",
-    governingLawIds: Object.freeze([LawId.BEEG_2a, LawId.BEEG_4a]),
+    description: "Evaluates 10% sibling bonus (€75 min / €1,980 max Basis; €37.50 min / €990 max Plus) subject to age thresholds.",
+    governingLawIds: Object.freeze([LawId.BEEG_2a, LawId.BEEG_4, LawId.BEEG_4a]),
     consumedParameterIds: Object.freeze([
       ParameterId.Benefit_SiblingRate,
       ParameterId.Benefit_SiblingMinimumBasis,
@@ -921,22 +965,27 @@ export function evaluateParentalBenefitEntitlementInContext(
 }
 
 /**
- * Tier 2: Evaluates § 2a BEEG Geschwisterbonus from context.
+ * Tier 2: Evaluates § 2a BEEG Geschwisterbonus (Basiselterngeld or ElterngeldPlus) from context.
  */
 export function evaluateSiblingBonusInContext(
   inputs: Readonly<{
     readonly baseElterngeldPlus: EuroAmount;
     readonly siblingAgesInMonths: readonly number[];
+    readonly variant?: ElterngeldVariant;
   }>,
   context: StatutoryCalculationContext,
 ): FormulaEvaluationResult<SiblingBonusFormulaResult> {
+  const variantFraction = evaluateAllowanceVariantWeightFormula({
+    variant: inputs.variant ?? ElterngeldVariant.Plus,
+    elterngeldPlusFraction: context.getParameterNumber(ParameterId.Benefit_PlusFraction),
+  });
   const result = evaluateSiblingBonusFormula({
     baseElterngeldPlus: inputs.baseElterngeldPlus,
     siblingAgesInMonths: inputs.siblingAgesInMonths,
     siblingBonusRate: context.getParameterPercentageRate(ParameterId.Benefit_SiblingRate),
     siblingMinimumBasisAmount: context.getParameterEuroAmount(ParameterId.Benefit_SiblingMinimumBasis),
     basisMaximumAmount: context.getParameterEuroAmount(ParameterId.Benefit_BasisMaximum),
-    elterngeldPlusFraction: context.getParameterNumber(ParameterId.Benefit_PlusFraction),
+    elterngeldPlusFraction: variantFraction,
     singleOlderSiblingMaxAgeMonths: context.getParameterNumber(ParameterId.Benefit_SiblingAgeLimitMonths),
     multipleSiblingsMaxAgeMonths: context.getParameterNumber(ParameterId.Benefit_SiblingMultipleAgeLimitMonths),
     multipleSiblingsMinimumCount: context.getParameterNumber(ParameterId.Benefit_SiblingMultipleMinimumCount),
@@ -949,6 +998,116 @@ export function evaluateSiblingBonusInContext(
       context,
       STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalSiblingBonus].consumedParameterIds,
       STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalSiblingBonus].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Evaluates statutory BEEG §§ 4, 4a, 4b Basis-unit allowance budget utilization and caps from context.
+ */
+export function evaluateParentalAllowanceBudgetInContext(
+  inputs: Readonly<{
+    readonly motherVariant: ElterngeldVariant;
+    readonly fatherVariant: ElterngeldVariant;
+    readonly motherOrdinaryMonths: MonthDuration;
+    readonly fatherOrdinaryMonths: MonthDuration;
+    readonly maternityPostBirthMonths?: MonthDuration;
+    readonly partnershipBonusMonths?: MonthDuration;
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<ParentalAllowanceBudgetFormulaResult> {
+  const result = evaluateParentalAllowanceBudgetFormula({
+    motherVariant: inputs.motherVariant,
+    fatherVariant: inputs.fatherVariant,
+    motherOrdinaryMonths: inputs.motherOrdinaryMonths,
+    fatherOrdinaryMonths: inputs.fatherOrdinaryMonths,
+    maternityPostBirthMonths:
+      inputs.maternityPostBirthMonths ??
+      toMonthDuration(context.getParameterNumber(ParameterId.Convention_MaternityPostBirthMonths)),
+    partnershipBonusMonths:
+      inputs.partnershipBonusMonths ??
+      toMonthDuration(context.getParameterNumber(ParameterId.Convention_PartnershipBonusMonths)),
+    familyBasisMonths: toMonthDuration(context.getParameterNumber(ParameterId.Benefit_FamilyBasisMonths)),
+    additionalPartnerBasisMonths: toMonthDuration(
+      context.getParameterNumber(ParameterId.Benefit_AdditionalPartnerBasisMonths),
+    ),
+    minimumParentClaimMonths: toMonthDuration(
+      context.getParameterNumber(ParameterId.Benefit_MinimumParentClaimMonths),
+    ),
+    elterngeldPlusFraction: context.getParameterNumber(ParameterId.Benefit_PlusFraction),
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.ParentalAllowanceBudget,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalAllowanceBudget].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalAllowanceBudget].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Converts an ordinary allowance month count across Basiselterngeld / ElterngeldPlus using context.
+ */
+export function evaluateAllowanceVariantConversionInContext(
+  inputs: Readonly<{
+    readonly currentMonths: MonthDuration;
+    readonly fromVariant: ElterngeldVariant;
+    readonly toVariant: ElterngeldVariant;
+    readonly maxMonthsInTargetVariant: number;
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<MonthDuration> {
+  const result = evaluateAllowanceVariantMonthConversionFormula({
+    currentMonths: inputs.currentMonths,
+    fromVariant: inputs.fromVariant,
+    toVariant: inputs.toVariant,
+    maxMonthsInTargetVariant: inputs.maxMonthsInTargetVariant,
+    elterngeldPlusFraction: context.getParameterNumber(ParameterId.Benefit_PlusFraction),
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.ParentalAllowanceVariantConversion,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalAllowanceVariantConversion].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalAllowanceVariantConversion].governingLawIds,
+    ),
+  });
+}
+
+/**
+ * Tier 2: Evaluates § 3 Abs. 2 BEEG overlapping benefit credit and variant-aware protected floor from context.
+ */
+export function evaluateOverlapCreditedPaymentInContext(
+  inputs: Readonly<{
+    readonly grossEntitlement: EuroAmount;
+    readonly overlappingBenefitAmount: EuroAmount;
+    readonly priorBenefitMonthsInWindow: number;
+    readonly variant: ElterngeldVariant;
+  }>,
+  context: StatutoryCalculationContext,
+): FormulaEvaluationResult<OverlapCreditedPaymentFormulaResult> {
+  const result = evaluateOverlapCreditedPaymentFormula({
+    grossEntitlement: inputs.grossEntitlement,
+    overlappingBenefitAmount: inputs.overlappingBenefitAmount,
+    priorBenefitMonthsInWindow: inputs.priorBenefitMonthsInWindow,
+    assessmentWindowMonths: toMonthDuration(context.getParameterNumber(ParameterId.Benefit_AssessmentMonths)),
+    basisMinimumAmount: context.getParameterEuroAmount(ParameterId.Benefit_BasisMinimum),
+    elterngeldPlusFraction: context.getParameterNumber(ParameterId.Benefit_PlusFraction),
+    variant: inputs.variant,
+  });
+  return Object.freeze({
+    value: result,
+    audit: buildFormulaEvaluationAudit(
+      FormulaId.ParentalOverlapCreditedPayment,
+      CalculationTier.ContextAwareStatutoryEvaluator,
+      context,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalOverlapCreditedPayment].consumedParameterIds,
+      STATUTORY_FORMULA_DESCRIPTORS[FormulaId.ParentalOverlapCreditedPayment].governingLawIds,
     ),
   });
 }
