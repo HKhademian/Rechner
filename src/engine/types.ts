@@ -336,6 +336,8 @@ export const TransactionType = {
   SalaryBonus15th: "SALARY_BONUS_15TH",
   SalaryBonusSpecial: "SALARY_BONUS_SPECIAL",
   BenefitMutterschutz: "BENEFIT_MUTTERSCHUTZ",
+  BenefitBasiselterngeldMother: "BENEFIT_BASISELTERNGELD_MOTHER",
+  BenefitBasiselterngeldFather: "BENEFIT_BASISELTERNGELD_FATHER",
   BenefitElterngeldPlusMother: "BENEFIT_ELTERNGELD_PLUS_MOTHER",
   BenefitElterngeldPlusFather: "BENEFIT_ELTERNGELD_PLUS_FATHER",
   BenefitPartnerschaftsbonus: "BENEFIT_PARTNERSCHAFTSBONUS",
@@ -346,6 +348,37 @@ export const TransactionType = {
 } as const;
 export type TransactionType =
   (typeof TransactionType)[keyof typeof TransactionType];
+
+/** Statutory parental allowance payment variant (§ 4 Basiselterngeld vs. § 4a ElterngeldPlus). */
+export const ElterngeldVariant = {
+  Basis: "BASIS",
+  Plus: "PLUS",
+} as const;
+export type ElterngeldVariant =
+  (typeof ElterngeldVariant)[keyof typeof ElterngeldVariant];
+
+const ELTERNGELD_VARIANT_SET: ReadonlySet<string> = new Set<string>(
+  Object.values(ElterngeldVariant),
+);
+
+/** Runtime type guard validating an `ElterngeldVariant`. */
+export function isElterngeldVariant(
+  value: string,
+): value is ElterngeldVariant {
+  return ELTERNGELD_VARIANT_SET.has(value);
+}
+
+/** Validated runtime constructor for `ElterngeldVariant` (Rule 11). */
+export function toElterngeldVariant(
+  value: string,
+): ElterngeldVariant {
+  if (!isElterngeldVariant(value)) {
+    throw new TypeError(
+      `Invalid ElterngeldVariant: "${value}". Expected one of: ${Object.values(ElterngeldVariant).join(", ")}.`,
+    );
+  }
+  return value;
+}
 
 /** Cash flow movement direction in double-entry bookkeeping ledger. */
 export const TransactionDirection = {
@@ -1831,6 +1864,7 @@ export interface BenefitAssessmentAudit {
   readonly incomeEligibility?: ReturnType<typeof assessCoupleBenefitIncome>;
   readonly pregnancyId: PregnancyId;
   readonly parent: TargetPerson;
+  readonly variant?: ElterngeldVariant;
   readonly birthMonthId: MonthId;
   readonly incomeMode: SalaryInputMode;
   readonly taxClass: TaxClass;
@@ -1853,6 +1887,7 @@ export interface BenefitPaymentAudit {
   readonly reallocated?: boolean;
   readonly pregnancyId: PregnancyId;
   readonly parent: TargetPerson;
+  readonly variant: ElterngeldVariant;
   readonly partnershipBonus: boolean;
   readonly grossEntitlement: EuroAmount;
   readonly offset: EuroAmount;
@@ -2231,8 +2266,14 @@ export interface PregnancyAction {
   readonly motherPostBirthPartTimeClass5Net: NetSalary;
   /** Mother's part-time monthly net take-home salary in Tax Class III in EUR. */
   readonly motherPostBirthPartTimeClass3Net: NetSalary;
-  /** Ordinary father's Plus payment months (legacy default four); excludes partnership-bonus months. */
+  /** Ordinary father's payment months (in father's selected variant; legacy default four Plus months); excludes partnership-bonus months. */
   readonly fatherPartnerMonthsCount: MonthDuration;
+  /** Optional mother's ordinary parental allowance variant (§ 4 Basiselterngeld vs. § 4a ElterngeldPlus; defaults to Plus). */
+  readonly motherAllowanceVariant?: ElterngeldVariant;
+  /** Optional father's ordinary parental allowance variant (§ 4 Basiselterngeld vs. § 4a ElterngeldPlus; defaults to Plus). */
+  readonly fatherAllowanceVariant?: ElterngeldVariant;
+  /** Optional explicit mother ordinary allowance duration in months of the selected variant (defaults to timeline convention). */
+  readonly motherAllowanceMonthsCount?: MonthDuration;
 }
 
 /**
