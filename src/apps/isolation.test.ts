@@ -75,11 +75,14 @@ it("appearance preferences are shared across app routes while calculator state s
       const theme = await import("#store/themeStore");
       assert.equal(theme.activeThemeMode.value, "dark");
       assert.equal(theme.activeThemePalette.value, "cobalt");
+      assert.equal(theme.activeThemeStyle.value, "swiss");
       theme.setThemeMode("light");
       theme.setThemePalette("forest");
+      theme.setThemeStyle("editorial");
       assert.deepEqual(JSON.parse(values.get("rechner:shared:appearance:v1")), {
         mode: "light",
         palette: "forest",
+        style: "editorial",
       });
       assert.equal(values.get("german_calc_theme_mode"), "dark");
       assert.ok(
@@ -114,6 +117,7 @@ it("girocode boot stores drafts only under its own namespace and updates shared 
     assert.deepEqual(JSON.parse(values.get("rechner:shared:appearance:v1")), {
       mode: "dark",
       palette: "cobalt",
+      style: "swiss",
     });
     const keysAddedByGiroCode = [...values.keys()].filter(key => !keysBeforeBoot.has(key));
     assert.ok(keysAddedByGiroCode.length >= 2);

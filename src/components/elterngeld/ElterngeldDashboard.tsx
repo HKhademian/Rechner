@@ -47,6 +47,11 @@ import {
   AppShell,
 } from "#components/ui/AppShell";
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from "#components/ui/Button";
+import {
   PageHeader,
 } from "#components/ui/PageHeader";
 import {
@@ -93,17 +98,17 @@ export default function ElterngeldDashboard(): JSX.Element {
         eyebrow="Parental Leave · BEEG & EStG"
         title="Parental Leave Planner"
         subtitle="Start with your household and planned leave below, then compare the calculated results."
-        actions={
-          <button
-            type="button"
-            className="ui-btn ui-btn--tint"
+        actions={(
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
             onClick={syncParentalLeaveFromLifeProfile}
             title="Populate annual gross salaries, partner income, existing children, start year, and regional Kita preset from the Unified Life Profile"
           >
             <SyncProfileActionIcon size={14} />
             <span>Sync Life Profile</span>
-          </button>
-        }
+          </Button>
+        )}
         metaLabel="Planning period"
         meta={[
           {
