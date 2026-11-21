@@ -14,6 +14,7 @@ import {
 import ts from "typescript";
 import {
   THEME_PALETTE_OPTIONS,
+  THEME_STYLE_OPTIONS,
 } from "#utils/themeConfig";
 
 const ROUTE_COMPONENTS: readonly string[] = [
@@ -127,7 +128,7 @@ describe("design system and layout architecture compliance", () => {
     }
   });
 
-  it("defines full light, dark, typography, and 4 palette token sets in global.css with zero undefined CSS variables", () => {
+  it("defines full light, dark, typography, spacing, z-index, 4 palette, and 3 style token sets in global.css with zero undefined CSS variables", () => {
     const globalCss = readFileSync("src/styles/global.css", "utf8");
 
     assert.equal(globalCss.includes("[data-theme=\"light\"]"), true);
@@ -135,8 +136,9 @@ describe("design system and layout architecture compliance", () => {
     assert.equal(globalCss.includes("color-scheme: light;"), true);
     assert.equal(globalCss.includes("color-scheme: dark;"), true);
 
-    const requiredTypographyTokens = [
+    const requiredTokens = [
       "--font-family:",
+      "--font-display:",
       "--font-mono:",
       "--font-size-2xs:",
       "--font-size-xs:",
@@ -154,9 +156,32 @@ describe("design system and layout architecture compliance", () => {
       "--font-weight-extrabold:",
       "--line-height-tight:",
       "--line-height-normal:",
+      "--space-1:",
+      "--space-2:",
+      "--space-3:",
+      "--space-4:",
+      "--space-5:",
+      "--space-6:",
+      "--space-8:",
+      "--container-default:",
+      "--container-wide:",
+      "--control-height-sm:",
+      "--control-height-md:",
+      "--control-height-lg:",
+      "--z-sticky:",
+      "--z-header:",
+      "--z-popover:",
+      "--z-modal:",
+      "--radius-card:",
+      "--radius-control:",
+      "--radius-pill:",
+      "--shadow-card:",
+      "--bg-input:",
+      "--border-input:",
+      "prefers-reduced-motion",
     ];
-    for (const token of requiredTypographyTokens) {
-      assert.equal(globalCss.includes(token), true, `Missing typography token ${token}`);
+    for (const token of requiredTokens) {
+      assert.equal(globalCss.includes(token), true, `Missing design token ${token}`);
     }
 
     for (const option of THEME_PALETTE_OPTIONS) {
@@ -169,6 +194,19 @@ describe("design system and layout architecture compliance", () => {
         globalCss.includes(`[data-theme="dark"][data-palette="${option.value}"]`),
         true,
         `Missing dark mode palette selector for ${option.value}`,
+      );
+    }
+
+    for (const option of THEME_STYLE_OPTIONS) {
+      assert.equal(
+        globalCss.includes(`[data-style="${option.value}"]`),
+        true,
+        `Missing style selector for ${option.value}`,
+      );
+      assert.equal(
+        globalCss.includes(`[data-theme="dark"][data-style="${option.value}"]`),
+        true,
+        `Missing dark mode style selector for ${option.value}`,
       );
     }
 
@@ -364,8 +402,11 @@ describe("design system and layout architecture compliance", () => {
       assert.ok(listedPackages.length >= 5, "Expected third-party notices to list installed packages");
 
       for (const listedPkg of listedPackages) {
+        const installed =
+          existsSync(join("node_modules", listedPkg, "package.json")) ||
+          existsSync(join("node_modules", listedPkg.toLowerCase(), "package.json"));
         assert.equal(
-          existsSync(join("node_modules", listedPkg, "package.json")),
+          installed,
           true,
           `Notice package ${listedPkg} must be installed in node_modules`,
         );

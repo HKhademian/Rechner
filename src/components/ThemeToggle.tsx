@@ -18,13 +18,16 @@ import {
 } from "#components/ui/SegmentedControl";
 import {
   type ThemePalette,
+  type ThemeStyle,
   ThemeMode,
 } from "#engine/types";
 import {
   activeThemeMode,
   activeThemePalette,
+  activeThemeStyle,
   setThemeMode,
   setThemePalette,
+  setThemeStyle,
 } from "#store/themeStore";
 import {
   useHydrated,
@@ -32,6 +35,7 @@ import {
 import {
   DEFAULT_APPEARANCE_SETTINGS,
   THEME_PALETTE_OPTIONS,
+  THEME_STYLE_OPTIONS,
 } from "#utils/themeConfig";
 
 const MODE_OPTIONS: readonly SegmentedOption<ThemeMode>[] = [
@@ -52,6 +56,12 @@ const MODE_OPTIONS: readonly SegmentedOption<ThemeMode>[] = [
   },
 ];
 
+const STYLE_OPTIONS: readonly SegmentedOption<ThemeStyle>[] = THEME_STYLE_OPTIONS.map((option) => ({
+  value: option.value,
+  label: option.label,
+  title: option.description,
+}));
+
 function renderModeIcon(mode: ThemeMode): JSX.Element {
   if (mode === ThemeMode.Dark) {
     return <DarkThemeIcon size={14} />;
@@ -63,13 +73,14 @@ function renderModeIcon(mode: ThemeMode): JSX.Element {
 }
 
 /**
- * Global appearance switcher combining Light/Dark/Auto mode with curated
- * institutional color palettes synced across all Rechner routes.
+ * Global appearance switcher combining Light/Dark/Auto mode, switchable minimal
+ * design styles (Swiss, Editorial, Utility), and curated institutional palettes.
  */
 export default function ThemeToggle(): JSX.Element {
   const hydrated = useHydrated();
   const mode = hydrated ? activeThemeMode.value : DEFAULT_APPEARANCE_SETTINGS.mode;
   const palette = hydrated ? activeThemePalette.value : DEFAULT_APPEARANCE_SETTINGS.palette;
+  const style = hydrated ? activeThemeStyle.value : DEFAULT_APPEARANCE_SETTINGS.style;
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -110,23 +121,37 @@ export default function ThemeToggle(): JSX.Element {
 
   return (
     <details ref={detailsRef} className="theme-switcher">
-      <summary aria-label="Appearance and color theme">
+      <summary aria-label="Appearance, design style, and color theme">
         <span
           className={`theme-switcher__swatch theme-switcher__swatch--${palette}`}
           aria-hidden="true"
         />
         {renderModeIcon(mode)}
-        <span className="theme-switcher__summary-label">Theme</span>
+        <span className="theme-switcher__summary-label">Appearance</span>
       </summary>
 
       <div
         className="theme-switcher__panel"
         role="region"
-        aria-label="Theme and color palette settings"
+        aria-label="Appearance, design style, and color palette settings"
       >
         <div className="theme-switcher__section">
           <div className="theme-switcher__section-title">
             <ThemePaletteIcon size={14} />
+            <span>Design Style</span>
+          </div>
+          <SegmentedControl
+            label="Design style"
+            value={style}
+            options={STYLE_OPTIONS}
+            onChange={setThemeStyle}
+            compact
+            fullWidth
+          />
+        </div>
+
+        <div className="theme-switcher__section">
+          <div className="theme-switcher__section-title">
             <span>Color Mode</span>
           </div>
           <SegmentedControl
