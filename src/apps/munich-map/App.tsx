@@ -63,11 +63,6 @@ import {
 
 const categories = Object.values(MapCategory);
 const eventCategories = categories.filter((item) => !mapLayers.includes(item) && item !== MapCategory.Transit);
-const defaultLayers: readonly MapCategory[] = [
-  MapCategory.Landmark,
-  MapCategory.Subway,
-  MapCategory.SuburbanRail,
-];
 const resultLimit = 80;
 const travelOptions = [0, 30, 45, 60, 90, 120].map(toTravelMinutes);
 const personalPins = Object.values(PersonalPin);
@@ -91,7 +86,9 @@ export default function MunichMap() {
   const [today, setToday] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<MapCategory>();
-  const [layers, setLayers] = useState<readonly MapCategory[]>(defaultLayers);
+  const [layers, setLayers] = useState<readonly MapCategory[]>([]);
+  const [showEventMarkers, setShowEventMarkers] = useState(false);
+  const [showPersonalPins, setShowPersonalPins] = useState(false);
   const [cityPlaces, setCityPlaces] = useState<readonly MapPlace[]>([]);
   const [reference, setReference] = useState<PersonalPin>();
   const [radius, setRadius] = useState(0);
@@ -158,7 +155,8 @@ export default function MunichMap() {
     })).filter(({ distance }) => activeRadius === 0 || distance <= activeRadius)
       .sort((left, right) => left.distance - right.distance);
   }, [cityPlaces, data.places, origin, query, category, layers, activeRadius, outingsMode, travelMode, maxTravel]);
-  const markers = useMemo(() => places.map(({ place }) => place), [places]);
+  const markers = useMemo(() => places.map(({ place }) => place).filter((place) =>
+    showEventMarkers || !eventCategories.includes(place.category) || place.id === selected?.id), [places, showEventMarkers, selected?.id]);
   const resultPlaces = useMemo(() => {
     if (category) {
       const matching = places.filter(({ place }) => inCategory(place, category));
@@ -188,14 +186,15 @@ export default function MunichMap() {
     }
   }, [outingsMode, fitResults]);
 
-  const pins = useMemo(() => personalPins.flatMap((name) => {
+  const pins = useMemo(() => showPersonalPins ? personalPins.flatMap((name) => {
     const pin = data.pins[name];
     return pin ? [{ title: name,
       position: pin.position }] : [];
-  }), [data.pins]);
+  }) : [], [showPersonalPins, data.pins]);
 
   function selectCategory(next: MapCategory | undefined) {
     setCategory(next);
+    setShowEventMarkers(true);
     if (outingsMode && next !== MapCategory.ChristmasOuting) {
       setFocus({ position: origin,
         radius,
@@ -239,6 +238,7 @@ export default function MunichMap() {
             address: String(fields.get("address") ?? "").trim(),
           } } });
       setReference(draft.pin);
+      setShowPersonalPins(true);
     }
     else {
       const title = String(fields.get("title") ?? "").trim();
@@ -289,6 +289,21 @@ export default function MunichMap() {
               <details class="munich-map-layer-control">
                 <summary>Map layers</summary>
                 <fieldset class="munich-map-layers" aria-label="Map layers">
+                  <label>
+                    <input type="checkbox" checked={showEventMarkers} onChange={(event) => {
+                      const { checked } = event.currentTarget;
+                      setShowEventMarkers(checked);
+                      if (!checked && selected && eventCategories.includes(selected.category)) {
+                        setSelected(undefined);
+                      }
+                    }} />
+                    Event markers
+                  </label>
+                  <label>
+                    <input type="checkbox" checked={showPersonalPins}
+                      onChange={(event) => setShowPersonalPins(event.currentTarget.checked)} />
+                    Home &amp; work pins
+                  </label>
                   {mapLayers.map((layer) => (
                     <label key={layer}>
                       <input type="checkbox" checked={layers.includes(layer)} onChange={(event) => {
