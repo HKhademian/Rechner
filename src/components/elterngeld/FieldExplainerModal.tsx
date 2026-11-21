@@ -1,8 +1,9 @@
+import "./ElterngeldPanels.css";
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
-  type FieldExplanation, 
+  type FieldExplanation,
 } from "#engine/explanation/timelineExplainer";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
@@ -43,101 +44,30 @@ export default function FieldExplainerModal({
       title={explanation.fieldTitle}
       size={ModalDialogSize.Medium}
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-        }}
-      >
-
-        {/* Formatted Value & Variance */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            background: "var(--bg-surface-secondary)",
-            padding: "12px 16px",
-            borderRadius: "var(--border-radius)",
-            border: "1px solid var(--border-subtle)",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.84rem",
-              color: "var(--text-secondary)",
-              fontWeight: 600,
-            }}
-          >
-            Active Value:
-          </span>
-          <div style={{ textAlign: "right" }}>
-            <span
-              style={{
-                fontSize: "1.35rem",
-                fontVariantNumeric: "tabular-nums",
-                fontWeight: 800,
-                color: "var(--color-primary)",
-              }}
-            >
+      <div className="eg-modal-stack">
+        <div className="eg-modal-highlight">
+          <span className="eg-modal-highlight__label">Active Value:</span>
+          <div className="eg-modal-highlight__values">
+            <span className="eg-modal-highlight__figure">
               {explanation.valueFormatted}
             </span>
             {explanation.diffVsBFormatted && (
-              <div
-                style={{
-                  fontSize: "0.74rem",
-                  color: "var(--color-gain)",
-                  fontWeight: 700,
-                }}
-              >
+              <div className="eg-modal-highlight__diff">
                 {explanation.diffVsBFormatted}
               </div>
             )}
           </div>
         </div>
 
-        {/* Contributing Factors & Input Parameters */}
-        {explanation.contributingFactors &&
-          explanation.contributingFactors.length > 0 && (
+        {explanation.contributingFactors && explanation.contributingFactors.length > 0 && (
           <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                marginBottom: "8px",
-              }}
-            >
+            <div className="eg-modal-section-label">
               Contributing Factors &amp; Baseline Inputs
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "8px",
-              }}
-            >
+            <div className="eg-modal-factors">
               {explanation.contributingFactors.map((f, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--border-radius-sm)",
-                    padding: "8px 12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--text-muted)",
-                    }}
-                  >
+                <div key={i} className="eg-modal-factor">
+                  <span className="eg-modal-factor__name">
                     {f.lawId ? (
                       <LawRefLink
                         lawId={f.lawId}
@@ -147,25 +77,9 @@ export default function FieldExplainerModal({
                       />
                     ) : f.name}
                   </span>
-                  <span
-                    style={{
-                      fontSize: "0.86rem",
-                      fontWeight: 700,
-                      color: "var(--text-primary)",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {f.value}
-                  </span>
+                  <span className="eg-modal-factor__value">{f.value}</span>
                   {f.description && (
-                    <span
-                      style={{
-                        fontSize: "0.66rem",
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {f.description}
-                    </span>
+                    <span className="eg-modal-factor__desc">{f.description}</span>
                   )}
                 </div>
               ))}
@@ -173,83 +87,22 @@ export default function FieldExplainerModal({
           </div>
         )}
 
-        {/* Step-by-Step Calculation Breakdown */}
-        {explanation.calculationSteps &&
-          explanation.calculationSteps.length > 0 && (
+        {explanation.calculationSteps && explanation.calculationSteps.length > 0 && (
           <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                marginBottom: "8px",
-              }}
-            >
+            <div className="eg-modal-section-label">
               Step-by-Step Mathematical Derivation
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-              }}
-            >
+            <div className="eg-modal-list">
               {explanation.calculationSteps.map((step, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: "var(--bg-surface-secondary)",
-                    borderLeft: "3px solid var(--color-primary)",
-                    padding: "8px 12px",
-                    borderRadius: "0 6px 6px 0",
-                    borderTop: "1px solid var(--border-subtle)",
-                    borderRight: "1px solid var(--border-subtle)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "0.78rem",
-                        fontWeight: 600,
-                        color: "var(--text-primary)",
-                      }}
-                    >
+                <div key={idx} className="eg-modal-step">
+                  <div className="eg-modal-step__head">
+                    <span className="eg-modal-step__desc">
                       Step {step.stepNumber}: {step.description}
                     </span>
-                    <span
-                      style={{
-                        fontSize: "0.84rem",
-                        fontWeight: 700,
-                        color: "var(--color-primary)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {step.result}
-                    </span>
+                    <span className="eg-modal-step__result">{step.result}</span>
                   </div>
                   {step.formula && (
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "var(--text-muted)",
-                        fontVariantNumeric: "tabular-nums",
-                        background: "var(--bg-surface)",
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-subtle)",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {step.formula}
-                    </div>
+                    <div className="eg-modal-step__formula">{step.formula}</div>
                   )}
                 </div>
               ))}
@@ -257,66 +110,25 @@ export default function FieldExplainerModal({
           </div>
         )}
 
-        {/* Narrative Description & Rationale */}
         <div>
-          <div
-            style={{
-              fontSize: "0.78rem",
-              fontWeight: 700,
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              marginBottom: "6px",
-            }}
-          >
+          <div className="eg-modal-section-label">
             Statutory &amp; Economic Context
           </div>
-          <div
-            style={{
-              fontSize: "0.84rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-              background: "var(--bg-surface-secondary)",
-              padding: "12px 14px",
-              borderRadius: "var(--border-radius-sm)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          >
-            {explanation.explanation}
-          </div>
+          <div className="eg-modal-note">{explanation.explanation}</div>
         </div>
 
-        {/* Action Link: Open Statutory Reference Popup or Ctrl+Click Full Law Page */}
         {explanation.legalRuleKey && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              paddingTop: "8px",
-              borderTop: "1px solid var(--border-subtle)",
-            }}
-          >
+          <div className="eg-modal-footer-action">
             <LawRefLink
               lawId={LEGAL_RULE_LAW_MAP[explanation.legalRuleKey].lawId}
               groupId={LEGAL_RULE_LAW_MAP[explanation.legalRuleKey].groupId}
               variant="plain"
+              className="ui-btn ui-btn--tint ui-btn--sm"
               onOpen={() => {
                 if (explanation.legalRuleKey) {
                   activeLegalRuleKey.value = explanation.legalRuleKey;
                 }
                 onClose();
-              }}
-              style={{
-                background: "var(--color-primary-bg)",
-                border: "1px solid var(--color-primary-border)",
-                color: "var(--color-primary)",
-                padding: "8px 16px",
-                borderRadius: "var(--border-radius-sm)",
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                transition: "var(--transition)",
               }}
             >
               <span>Open Statutory Reference Popup</span>

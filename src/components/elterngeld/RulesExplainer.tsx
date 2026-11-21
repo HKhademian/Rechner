@@ -1,3 +1,4 @@
+import "./ElterngeldPanels.css";
 import {
   formatEurOrUnavailable,
 } from "#utils/currencyFormat";
@@ -248,98 +249,31 @@ export default function RulesExplainer(): JSX.Element {
   const currentGroup = getLawGroupEntry(currentMapping.groupId);
 
   return (
-    <div
-      id="statutory-legal-framework"
-      className="ui-card"
-      style={{
-        padding: "26px",
-        marginTop: "36px",
-        marginBottom: "28px",
-        border: "1px solid var(--border-subtle)",
-        boxShadow: "var(--shadow-md)",
-        scrollMarginTop: "24px",
-      }}
-    >
-      {/* Header Banner */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "12px",
-          marginBottom: "20px",
-          borderBottom: "1px solid var(--border-subtle)",
-          paddingBottom: "16px",
-        }}
-      >
-        <div style={{ display: "flex",
-          alignItems: "center",
-          gap: "12px" }}>
-          <div
-            style={{
-              background: "var(--color-primary-bg)",
-              padding: "10px",
-              borderRadius: "var(--border-radius-sm)",
-              color: "var(--color-primary)",
-              border: "1px solid var(--color-primary-border)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <LegalStatuteDocumentationIcon size={24} />
+    <div id="statutory-legal-framework" className="ui-card eg-rules">
+      <div className="eg-rules__header">
+        <div className="eg-rules__title-wrap">
+          <div className="eg-rules__icon">
+            <LegalStatuteDocumentationIcon size={22} />
           </div>
           <div>
-            <h3
-              style={{
-                fontSize: "1.35rem",
-                fontWeight: 800,
-                color: "var(--text-primary)",
-                margin: 0,
-                letterSpacing: "-0.02em",
-              }}
-            >
+            <h3 className="eg-rules__title">
               Statutory Legal Framework &amp; Judicial Precedents
             </h3>
-            <p
-              style={{
-                fontSize: "0.82rem",
-                color: "var(--text-muted)",
-                margin: "3px 0 0 0",
-              }}
-            >
+            <p className="eg-rules__subtitle">
               Source-linked BEEG, MuSchG and EStG references for the supported
               planning model, with actual scenario audit values.
             </p>
           </div>
         </div>
 
-        <div
-          className="badge-brand"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-          }}
-        >
+        <span className="badge-brand">
           <StatutorySectionIcon size={13} />
           <span>{rules.length} Statutory Modules Active</span>
-        </div>
+        </span>
       </div>
 
-      {/* Main Grid: Sidebar Rule Selector + Detailed Rule Viewer */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(260px, 340px) 1fr",
-          gap: "24px",
-        }}
-      >
-        {/* Left: Interactive Rule List */}
-        <div style={{ display: "flex",
-          flexDirection: "column",
-          gap: "8px" }}>
+      <div className="eg-rules__layout">
+        <div className="eg-rules__nav">
           {rules.map((rule) => {
             const isSelected = rule.key === currentRule.key;
             return (
@@ -350,132 +284,26 @@ export default function RulesExplainer(): JSX.Element {
                   activeLegalRuleKey.value = rule.key;
                 }}
                 type="button"
-                style={{
-                  textAlign: "left",
-                  padding: "12px 14px",
-                  borderRadius: "var(--border-radius-sm)",
-                  border: "1px solid",
-                  borderColor: isSelected
-                    ? "var(--color-primary)"
-                    : "var(--border-subtle)",
-                  background: isSelected
-                    ? "var(--color-primary-bg)"
-                    : "var(--bg-surface)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  borderLeft: isSelected
-                    ? "4px solid var(--color-primary)"
-                    : "1px solid var(--border-subtle)",
-                  boxShadow: isSelected ? "var(--shadow-sm)" : "none",
-                }}
+                className={`eg-rules__nav-btn${isSelected ? " is-selected" : ""}`}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "0.84rem",
-                      fontWeight: isSelected ? 800 : 600,
-                      color: isSelected
-                        ? "var(--color-primary)"
-                        : "var(--text-primary)",
-                    }}
-                  >
-                    {rule.title}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.68rem",
-                      padding: "1px 6px",
-                      borderRadius: "4px",
-                      background: isSelected
-                        ? "var(--color-primary)"
-                        : "var(--bg-surface-secondary)",
-                      color: isSelected ? "var(--text-inverse)" : "var(--text-muted)",
-                      border: "1px solid var(--border-subtle)",
-                      fontFamily: "monospace",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {rule.tag}
-                  </span>
+                <div className="eg-rules__nav-top">
+                  <span className="eg-rules__nav-title">{rule.title}</span>
+                  <span className="eg-rules__nav-tag">{rule.tag}</span>
                 </div>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: isSelected
-                      ? "var(--color-primary)"
-                      : "var(--text-muted)",
-                    marginTop: "4px",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {rule.lawRef}
-                </div>
+                <div className="eg-rules__nav-ref">{rule.lawRef}</div>
               </button>
             );
           })}
         </div>
 
-        {/* Right: Rich Interactive Document Pane */}
-        <div
-          style={{
-            background: "var(--bg-surface)",
-            padding: "24px",
-            borderRadius: "var(--border-radius)",
-            border: "1px solid var(--border-subtle)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-          }}
-        >
-          {/* Header of Active Rule */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              borderBottom: "1px solid var(--border-subtle)",
-              paddingBottom: "14px",
-            }}
-          >
+        <div className="eg-rules__pane">
+          <div className="eg-rules__pane-head">
             <div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "4px",
-                }}
-              >
+              <div className="eg-rules__pane-title-row">
                 <span className="badge-brand">{currentRule.tag}</span>
-                <h4
-                  style={{
-                    fontSize: "1.2rem",
-                    fontWeight: 800,
-                    color: "var(--text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  {currentRule.title}
-                </h4>
+                <h4 className="eg-rules__pane-title">{currentRule.title}</h4>
               </div>
-              <div
-                style={{
-                  fontSize: "0.80rem",
-                  color: "var(--color-primary)",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                }}
-              >
+              <div className="eg-rules__authority">
                 <span>Statutory Authority:</span>
                 <LawRefLink
                   lawId={currentMapping.lawId}
@@ -489,39 +317,11 @@ export default function RulesExplainer(): JSX.Element {
             <span className="badge-gain">Active in Simulator</span>
           </div>
 
-          {/* 0. Group Benefit / Anti-Benefit Overview */}
           {(currentGroup.benefit || currentGroup.antiBenefit) && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: "10px",
-              }}
-            >
+            <div className="eg-rules__callouts">
               {currentGroup.benefit && (
-                <div
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: "var(--border-radius-sm)",
-                    background: "var(--color-gain-bg)",
-                    border: "1px solid var(--color-gain-border)",
-                    fontSize: "0.78rem",
-                    lineHeight: 1.45,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      fontWeight: 800,
-                      fontSize: "0.70rem",
-                      textTransform: "uppercase",
-                      color: "var(--color-gain)",
-                      marginBottom: "4px",
-                    }}
-                  >
+                <div className="eg-rules__callout eg-rules__callout--gain">
+                  <div className="eg-rules__callout-head">
                     <LawBenefitAdvantageIcon size={13} />
                     <span>Benefit</span>
                   </div>
@@ -529,29 +329,8 @@ export default function RulesExplainer(): JSX.Element {
                 </div>
               )}
               {currentGroup.antiBenefit && (
-                <div
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: "var(--border-radius-sm)",
-                    background: "var(--color-warning-bg)",
-                    border: "1px solid var(--color-warning-border)",
-                    fontSize: "0.78rem",
-                    lineHeight: 1.45,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      fontWeight: 800,
-                      fontSize: "0.70rem",
-                      textTransform: "uppercase",
-                      color: "var(--color-warning)",
-                      marginBottom: "4px",
-                    }}
-                  >
+                <div className="eg-rules__callout eg-rules__callout--warn">
+                  <div className="eg-rules__callout-head">
                     <LawAntiBenefitCaveatIcon size={13} />
                     <span>Caveat / Anti-Benefit</span>
                   </div>
@@ -561,119 +340,36 @@ export default function RulesExplainer(): JSX.Element {
             </div>
           )}
 
-          {/* 1. Legal Overview & Statutory Mandate */}
           <div>
-            <div
-              style={{
-                fontSize: "0.76rem",
-                fontWeight: 800,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "6px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
+            <div className="eg-rules__section-heading">
               <LegalStatuteDocumentationIcon size={14} />
               <span>Statutory Mandate &amp; Legal Rule</span>
             </div>
-            <div
-              style={{
-                fontSize: "0.86rem",
-                lineHeight: 1.6,
-                color: "var(--text-secondary)",
-              }}
-            >
-              {currentRule.statutoryText}
-            </div>
+            <div className="eg-rules__prose">{currentRule.statutoryText}</div>
           </div>
 
-          {/* 2. Concrete Worked Calculation Example */}
           <div>
-            <div
-              style={{
-                fontSize: "0.76rem",
-                fontWeight: 800,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "6px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
+            <div className="eg-rules__section-heading">
               <OptimizationInsightIcon size={14} />
               <span>Real-World Simulation Example</span>
             </div>
-            {currentRule.example}
+            <div className="eg-rules__prose">{currentRule.example}</div>
           </div>
 
-          {/* 3. Typed Law Reference Popup Triggers */}
-          <div
-            style={{
-              borderTop: "1px solid var(--border-subtle)",
-              paddingTop: "14px",
-              marginTop: "6px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "0.76rem",
-                fontWeight: 800,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "8px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
+          <div className="eg-rules__links-section">
+            <div className="eg-rules__section-heading">
               <CitationReferenceIcon size={14} />
               <span>Statutory Sections &amp; External Official Sources</span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-              }}
-            >
+            <div className="eg-rules__link-list">
               {currentRule.links.map((link) => (
-                <div
-                  key={link.lawId}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: "8px",
-                    padding: "8px 12px",
-                    borderRadius: "var(--border-radius-sm)",
-                    background: "var(--bg-surface-secondary)",
-                    border: "1px solid var(--border-subtle)",
-                    fontSize: "0.78rem",
-                  }}
-                >
-                  <div>
-                    <LawRefLink
-                      lawId={link.lawId}
-                      groupId={currentGroup.id}
-                      label={link.label}
-                    />
-                    <div
-                      style={{
-                        fontSize: "0.70rem",
-                        color: "var(--text-muted)",
-                        marginTop: "2px",
-                      }}
-                    >
-                      {link.description}
-                    </div>
-                  </div>
+                <div key={link.lawId} className="eg-rules__link-item">
+                  <LawRefLink
+                    lawId={link.lawId}
+                    groupId={currentGroup.id}
+                    label={link.label}
+                  />
+                  <div className="eg-rules__link-desc">{link.description}</div>
                 </div>
               ))}
             </div>

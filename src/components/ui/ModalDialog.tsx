@@ -24,6 +24,7 @@ export {
 export interface ModalDialogProps {
   readonly open: boolean;
   readonly onClose: () => void;
+  readonly id?: string;
   readonly title: ComponentChildren;
   readonly subtitle?: ComponentChildren;
   readonly eyebrow?: ComponentChildren;
@@ -39,6 +40,7 @@ export interface ModalDialogProps {
 export function ModalDialog({
   open,
   onClose,
+  id,
   title,
   subtitle,
   eyebrow,
@@ -84,6 +86,7 @@ export function ModalDialog({
 
   return (
     <div
+      id={id}
       className="ui-modal__backdrop"
       role="dialog"
       aria-modal="true"

@@ -1,3 +1,4 @@
+import "./ElterngeldPanels.css";
 import {
   formatEur,
 } from "#utils/currencyFormat";
@@ -35,7 +36,6 @@ export default function KpiScorecard(): JSX.Element {
   const totalWifeSalary = current.months.reduce((acc, m) => acc + m.wifeSalary, 0);
   const isGainNegative = metrics.gainCvsB < 0;
   const gainTone = isGainNegative ? MetricTone.Loss : MetricTone.Gain;
-  const gainColor = isGainNegative ? "var(--color-loss)" : "var(--color-gain)";
   const percentGainCvsB = bSummary.grandTotal === 0
     ? undefined
     : ((metrics.gainCvsB / Math.abs(bSummary.grandTotal)) * 100).toFixed(1);
@@ -71,14 +71,7 @@ export default function KpiScorecard(): JSX.Element {
   ];
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: "20px",
-        marginBottom: "28px",
-      }}
-    >
+    <div className="eg-kpi-grid">
       <CalculationStatus result={current} />
 
       <MetricCard
@@ -137,17 +130,8 @@ export default function KpiScorecard(): JSX.Element {
           },
         ]}
         footer={
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "6px",
-            }}
-          >
-            <span style={{ color: gainColor,
-              fontWeight: 700 }}>
+          <div className="eg-kpi-footer">
+            <span className={`eg-kpi-delta ${isGainNegative ? "eg-kpi-delta--loss" : "eg-kpi-delta--gain"}`}>
               {percentGainCvsB === undefined
                 ? "Percentage unavailable for a zero baseline"
                 : `${Number(percentGainCvsB) > 0 ? "+" : ""}${percentGainCvsB}% cash-flow difference`}
@@ -156,17 +140,9 @@ export default function KpiScorecard(): JSX.Element {
               lawId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].lawId}
               groupId={LEGAL_RULE_LAW_MAP[LegalRuleKey.BEEG_TaxSwap].groupId}
               variant="plain"
+              className="eg-kpi-law-link"
               onOpen={() => {
                 activeLegalRuleKey.value = LegalRuleKey.BEEG_TaxSwap;
-              }}
-              style={{
-                color: "var(--color-primary)",
-                textDecoration: "underline",
-                fontSize: "0.72rem",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
               }}
               title="View § 2b BEEG legal basis and strategy — Click for quick popup · Ctrl+Click for full page"
             >

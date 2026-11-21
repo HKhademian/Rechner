@@ -1,11 +1,12 @@
+import "./ElterngeldPanels.css";
 import type {
-  JSX, 
+  JSX,
 } from "preact";
 import {
-  type RowExplanation, 
+  type RowExplanation,
 } from "#engine/explanation/timelineExplainer";
 import {
-  ExplainerRowType, 
+  ExplainerRowType,
 } from "#engine/types";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
@@ -18,6 +19,10 @@ import {
   FinancialInflowIcon,
   StepTransitionIcon,
 } from "#components/Icons";
+import {
+  Badge,
+  BadgeTone,
+} from "#components/ui/Badge";
 import {
   ModalDialog,
   ModalDialogSize,
@@ -43,33 +48,19 @@ export default function RowExplainerModal({
 
   const isMonth = explanation.rowType === ExplainerRowType.Month;
   const isAction = explanation.rowType === ExplainerRowType.Action;
+  const badgeTone = isMonth
+    ? BadgeTone.Brand
+    : isAction
+      ? BadgeTone.Warning
+      : BadgeTone.Gain;
 
   return (
     <ModalDialog
       open
       onClose={onClose}
       eyebrow={(
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <span
-            className={
-              isMonth
-                ? "badge-brand"
-                : isAction
-                  ? "badge-warning"
-                  : "badge-gain"
-            }
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "5px",
-            }}
-          >
+        <span className="eg-modal-eyebrow">
+          <Badge tone={badgeTone}>
             {isMonth ? (
               <>
                 <SimulationPeriodIcon size={12} />
@@ -86,16 +77,8 @@ export default function RowExplainerModal({
                 <span>Fiscal Event</span>
               </>
             )}
-          </span>
-          <span
-            style={{
-              fontSize: "0.74rem",
-              color: "var(--text-muted)",
-              fontWeight: 600,
-              textTransform: "none",
-              letterSpacing: "normal",
-            }}
-          >
+          </Badge>
+          <span className="eg-modal-eyebrow__phase">
             {explanation.phaseOrCategory}
           </span>
         </span>
@@ -104,129 +87,38 @@ export default function RowExplainerModal({
       subtitle={explanation.subtitle}
       size={ModalDialogSize.Medium}
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-        }}
-      >
-
-        {/* Summary Description */}
-        <div
-          style={{
-            fontSize: "0.84rem",
-            color: "var(--text-secondary)",
-            lineHeight: 1.5,
-            background: "var(--bg-surface-secondary)",
-            padding: "12px 14px",
-            borderRadius: "var(--border-radius-sm)",
-            border: "1px solid var(--border-subtle)",
-          }}
-        >
+      <div className="eg-modal-stack">
+        <div className="eg-modal-note">
           {explanation.summaryDescription}
         </div>
 
-        {/* Breakdown Items List */}
         {explanation.streams && explanation.streams.length > 0 && (
           <div>
-            <div
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                marginBottom: "8px",
-              }}
-            >
+            <div className="eg-modal-section-label">
               Cash Flow Stream Decomposition
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-              }}
-            >
+            <div className="eg-modal-list">
               {explanation.streams.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "var(--bg-surface-secondary)",
-                    padding: "8px 12px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "0.82rem",
-                      color: "var(--text-primary)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.88rem",
-                      fontWeight: 700,
-                      color: "var(--text-primary)",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {item.valueFormatted}
-                  </span>
+                <div key={idx} className="eg-modal-stream-row">
+                  <span className="eg-modal-stream-row__label">{item.label}</span>
+                  <span className="eg-modal-stream-row__value">{item.valueFormatted}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Net Inflow Summary & Variance */}
         {explanation.totalNetInflowFormatted && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              background: "var(--color-gain-bg)",
-              padding: "12px 16px",
-              borderRadius: "var(--border-radius)",
-              border: "1px solid var(--color-gain-border)",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "0.86rem",
-                color: "var(--color-gain)",
-                fontWeight: 700,
-              }}
-            >
+          <div className="eg-modal-highlight eg-modal-highlight--gain">
+            <span className="eg-modal-highlight__label">
               Total Net Cash Inflow for this Period:
             </span>
-            <div style={{ textAlign: "right" }}>
-              <span
-                style={{
-                  fontSize: "1.35rem",
-                  fontVariantNumeric: "tabular-nums",
-                  fontWeight: 800,
-                  color: "var(--color-gain)",
-                }}
-              >
+            <div className="eg-modal-highlight__values">
+              <span className="eg-modal-highlight__figure">
                 {explanation.totalNetInflowFormatted}
               </span>
               {explanation.diffVsBFormatted && (
-                <div
-                  style={{
-                    fontSize: "0.74rem",
-                    color: "var(--color-gain)",
-                    fontWeight: 700,
-                  }}
-                >
+                <div className="eg-modal-highlight__diff">
                   {explanation.diffVsBFormatted} vs Scenario B
                 </div>
               )}
@@ -234,38 +126,18 @@ export default function RowExplainerModal({
           </div>
         )}
 
-        {/* Action Link: Open Statutory Reference Popup or Ctrl+Click Full Law Page */}
         {explanation.legalRuleKey && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              paddingTop: "8px",
-              borderTop: "1px solid var(--border-subtle)",
-            }}
-          >
+          <div className="eg-modal-footer-action">
             <LawRefLink
               lawId={LEGAL_RULE_LAW_MAP[explanation.legalRuleKey].lawId}
               groupId={LEGAL_RULE_LAW_MAP[explanation.legalRuleKey].groupId}
               variant="plain"
+              className="ui-btn ui-btn--tint ui-btn--sm"
               onOpen={() => {
                 if (explanation.legalRuleKey) {
                   activeLegalRuleKey.value = explanation.legalRuleKey;
                 }
                 onClose();
-              }}
-              style={{
-                background: "var(--color-primary-bg)",
-                border: "1px solid var(--color-primary-border)",
-                color: "var(--color-primary)",
-                padding: "8px 16px",
-                borderRadius: "var(--border-radius-sm)",
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                transition: "var(--transition)",
               }}
             >
               <span>Open Statutory Reference Popup</span>

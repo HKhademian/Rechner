@@ -1,9 +1,14 @@
+import "./ElterngeldPanels.css";
 import {
   formatEur,
 } from "#utils/currencyFormat";
 import {
-  useState, 
+  useEffect,
+  useState,
 } from "preact/hooks";
+import type {
+  JSX,
+} from "preact";
 import {
   isExportImportModalOpen,
   exportImportActiveTab,
@@ -27,10 +32,9 @@ import {
   ScenarioId,
 } from "#engine/types";
 import {
-  type ElterngeldPersistedState, 
+  type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 import {
-  ImportDataIcon,
   JsonExportIcon,
   PdfExportIcon,
   TextReportIcon,
@@ -40,76 +44,105 @@ import {
   UploadFileIcon,
   DownloadFileIcon,
   ClipboardCopyIcon,
-  CloseIcon,
   CheckmarkIcon,
   WarningIcon,
 } from "#components/Icons";
+import {
+  Badge,
+  BadgeTone,
+} from "#components/ui/Badge";
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from "#components/ui/Button";
+import {
+  ModalDialog,
+  ModalDialogSize,
+} from "#components/ui/ModalDialog";
+import {
+  type SegmentedOption,
+  SegmentedControl,
+} from "#components/ui/SegmentedControl";
+import {
+  BannerTone,
+  StatusBanner,
+} from "#components/ui/StatusBanner";
 
-export function DataExportImportModal() {
+const ExportImportTab = {
+  Export: "export",
+  Import: "import",
+} as const;
+type ExportImportTab = (typeof ExportImportTab)[keyof typeof ExportImportTab];
+
+const TAB_OPTIONS: readonly SegmentedOption<ExportImportTab>[] = [
+  {
+    value: ExportImportTab.Export,
+    label: "Export Data & Reports",
+  },
+  {
+    value: ExportImportTab.Import,
+    label: "Import & Restore",
+  },
+];
+
+export function DataExportImportModal(): JSX.Element | null {
   const isOpen = isExportImportModalOpen.value;
-  if (!isOpen) {
-    return null;
-  }
-
-  const [activeTab, setActiveTab] = useState<"export" | "import">(
-    exportImportActiveTab.value,
+  const [activeTab, setActiveTab] = useState<ExportImportTab>(
+    exportImportActiveTab.value === "import" ? ExportImportTab.Import : ExportImportTab.Export,
   );
   const [pastedJson, setPastedJson] = useState<string>("");
   const [importResult, setImportResult] =
     useState<ImportValidationResult<ElterngeldPersistedState> | null>(null);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const [importSuccessMessage, setImportSuccessMessage] = useState<
-    string | null
-  >(null);
+  const [importSuccessMessage, setImportSuccessMessage] = useState<string | null>(null);
 
-  const handleJsonChange = (text: string) => {
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(
+        exportImportActiveTab.value === "import" ? ExportImportTab.Import : ExportImportTab.Export,
+      );
+    }
+  }, [isOpen]);
+
+  const handleJsonChange = (text: string): void => {
     setPastedJson(text);
     setImportSuccessMessage(null);
     if (!text.trim()) {
       setImportResult(null);
       return;
     }
-    const res = importStateFromJson(text);
-    setImportResult(res);
+    setImportResult(importStateFromJson(text));
   };
 
-  const handleFileDrop = (e: DragEvent) => {
+  const readFileText = (file: File): void => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result;
+      if (typeof text === "string") {
+        handleJsonChange(text);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleFileDrop = (e: DragEvent): void => {
     e.preventDefault();
     setIsDragOver(false);
-    if (
-      e.dataTransfer &&
-      e.dataTransfer.files &&
-      e.dataTransfer.files.length > 0
-    ) {
-      const file = e.dataTransfer.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result;
-        if (typeof text === "string") {
-          handleJsonChange(text);
-        }
-      };
-      reader.readAsText(file);
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      readFileText(e.dataTransfer.files[0]);
     }
   };
 
-  const handleFileInputChange = (e: Event) => {
+  const handleFileInputChange = (e: Event): void => {
     const input = e.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result;
-        if (typeof text === "string") {
-          handleJsonChange(text);
-        }
-      };
-      reader.readAsText(file);
+      readFileText(input.files[0]);
     }
   };
 
-  const handleCopyJson = async () => {
+  const handleCopyJson = async (): Promise<void> => {
     const jsonStr = exportStateToJson(getCurrentPersistedState());
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -119,11 +152,11 @@ export function DataExportImportModal() {
       }
     }
     catch {
-      // Fallback
+      // Ignore clipboard write errors
     }
   };
 
-  const handlePasteJson = async () => {
+  const handlePasteJson = async (): Promise<void> => {
     try {
       const text = await navigator.clipboard.readText();
       handleJsonChange(text);
@@ -133,12 +166,10 @@ export function DataExportImportModal() {
     }
   };
 
-  const handleExecuteImport = () => {
+  const handleExecuteImport = (): void => {
     if (importResult && importResult.success) {
       importSimulationState(importResult.state);
-      setImportSuccessMessage(
-        "Simulation state successfully imported and fully hydrated!",
-      );
+      setImportSuccessMessage("Simulation state imported and restored.");
       setTimeout(() => {
         closeExportImportModal();
       }, 1200);
@@ -146,1205 +177,280 @@ export function DataExportImportModal() {
   };
 
   return (
-    <div
+    <ModalDialog
+      open={isOpen}
+      onClose={closeExportImportModal}
       id="data-export-import-modal"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "var(--bg-backdrop)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-        animation: "fadeIn 0.15s ease-out",
-      }}
-      onClick={closeExportImportModal}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        style={{
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--border-radius-lg)",
-          maxWidth: "880px",
-          width: "100%",
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          boxShadow: "var(--shadow-lg)",
-          color: "var(--text-primary)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div
-          style={{
-            padding: "18px 24px",
-            borderBottom: "1px solid var(--border-subtle)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "var(--bg-surface-secondary)",
-          }}
-        >
-          <div style={{ display: "flex",
-            alignItems: "center",
-            gap: "12px" }}>
-            <div
-              style={{
-                padding: "8px",
-                borderRadius: "var(--border-radius-sm)",
-                background: "var(--color-primary-bg)",
-                color: "var(--color-primary)",
-                border: "1px solid var(--color-primary-border)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <ImportDataIcon size={20} />
-            </div>
-            <div>
-              <h2
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 800,
-                  color: "var(--text-primary)",
-                  margin: 0,
-                }}
-              >
-                Simulation Data Portability &amp; Audit Reports
-              </h2>
-              <p
-                style={{
-                  fontSize: "0.76rem",
-                  color: "var(--text-muted)",
-                  margin: "2px 0 0 0",
-                }}
-              >
-                Save a backup or restore it later. Your data stays in this browser.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={closeExportImportModal}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text-muted)",
-              cursor: "pointer",
-              padding: "6px",
-              borderRadius: "4px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            title="Close modal"
-          >
-            <CloseIcon size={18} />
-          </button>
-        </div>
-
-        {/* Tab Navigation */}
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            padding: "12px 24px 0 24px",
-            borderBottom: "1px solid var(--border-subtle)",
-            background: "var(--bg-surface)",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setActiveTab("export")}
-            style={{
-              padding: "8px 16px",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              border: "none",
-              borderBottom:
-                activeTab === "export"
-                  ? "2px solid var(--color-primary)"
-                  : "2px solid transparent",
-              background:
-                activeTab === "export"
-                  ? "var(--bg-surface-secondary)"
-                  : "transparent",
-              color:
-                activeTab === "export"
-                  ? "var(--color-primary)"
-                  : "var(--text-secondary)",
-              borderTopLeftRadius: "6px",
-              borderTopRightRadius: "6px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <DownloadFileIcon size={14} />
-            <span>Export Data &amp; Reports</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("import")}
-            style={{
-              padding: "8px 16px",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              border: "none",
-              borderBottom:
-                activeTab === "import"
-                  ? "2px solid var(--color-primary)"
-                  : "2px solid transparent",
-              background:
-                activeTab === "import"
-                  ? "var(--bg-surface-secondary)"
-                  : "transparent",
-              color:
-                activeTab === "import"
-                  ? "var(--color-primary)"
-                  : "var(--text-secondary)",
-              borderTopLeftRadius: "6px",
-              borderTopRightRadius: "6px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <UploadFileIcon size={14} />
-            <span>Import &amp; Restore Simulation</span>
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div
-          style={{
-            padding: "24px",
-            overflowY: "auto",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-          }}
-        >
-          {activeTab === "export" ? (
-            <div
-              style={{ display: "flex",
-                flexDirection: "column",
-                gap: "18px" }}
-            >
-              {/* Primary 4 Export Cards Grid */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
-                  gap: "14px",
-                }}
-              >
-                {/* 1. Full ZIP Bundle */}
-                <div
-                  style={{
-                    padding: "16px",
-                    borderRadius: "var(--border-radius)",
-                    border: "1px solid var(--color-primary-border)",
-                    background: "var(--bg-surface-secondary)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <div style={{ color: "var(--color-primary)" }}>
-                          <ZipExportIcon size={20} />
-                        </div>
-                        <strong
-                          style={{
-                            fontSize: "0.95rem",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          Multi-Format ZIP Bundle
-                        </strong>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          background: "var(--color-primary-bg)",
-                          color: "var(--color-primary)",
-                          border: "1px solid var(--color-primary-border)",
-                        }}
-                      >
-                        Complete Archive
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.76rem",
-                        color: "var(--text-secondary)",
-                        margin: 0,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Bundles JSON configuration, plaintext audit report, and
-                      CSV monthly ledgers for Scenarios A, B, and C into a
-                      standalone pure TypeScript ZIP archive.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={exportSimulationZip}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "6px",
-                      border: "none",
-                      background: "var(--color-primary)",
-                      color: "var(--text-inverse)",
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                      boxShadow: "var(--shadow-sm)",
-                    }}
-                  >
-                    <DownloadFileIcon size={14} />
-                    Download ZIP Archive (.zip)
-                  </button>
-                </div>
-
-                {/* 2. JSON State Envelope */}
-                <div
-                  style={{
-                    padding: "16px",
-                    borderRadius: "var(--border-radius)",
-                    border: "1px solid var(--border-subtle)",
-                    background: "var(--bg-surface-secondary)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <div style={{ color: "var(--color-gain)" }}>
-                          <JsonExportIcon size={20} />
-                        </div>
-                        <strong
-                          style={{
-                            fontSize: "0.95rem",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          JSON State Envelope
-                        </strong>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          background: "var(--color-gain-bg)",
-                          color: "var(--color-gain)",
-                          border: "1px solid var(--color-gain-border)",
-                        }}
-                      >
-                        Machine Readable
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.76rem",
-                        color: "var(--text-secondary)",
-                        margin: 0,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Full machine-readable state export containing all Batches
-                      0–4 parameters, nominal types, and preconditions for
-                      backup and instant re-importing.
-                    </p>
-                  </div>
-                  <div style={{ display: "flex",
-                    gap: "8px" }}>
-                    <button
-                      type="button"
-                      onClick={exportSimulationJson}
-                      style={{
-                        flex: 1,
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        border: "none",
-                        background: "var(--color-gain)",
-                        color: "var(--text-inverse)",
-                        fontSize: "0.78rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "6px",
-                      }}
-                    >
-                      <DownloadFileIcon size={14} />
-                      Download JSON
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCopyJson}
-                      style={{
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        border: "1px solid var(--border-subtle)",
-                        background: "var(--bg-surface)",
-                        color: "var(--text-primary)",
-                        fontSize: "0.78rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "6px",
-                      }}
-                      title="Copy JSON directly to clipboard"
-                    >
-                      {copySuccess ? (
-                        <CheckmarkIcon size={14} className="text-emerald-400" />
-                      ) : (
-                        <ClipboardCopyIcon size={14} />
-                      )}
-                      {copySuccess ? "Copied!" : "Copy"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* 3. Text / Markdown Audit Report */}
-                <div
-                  style={{
-                    padding: "16px",
-                    borderRadius: "var(--border-radius)",
-                    border: "1px solid var(--border-subtle)",
-                    background: "var(--bg-surface-secondary)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <div style={{ color: "var(--series-mutterschutz)" }}>
-                          <TextReportIcon size={20} />
-                        </div>
-                        <strong
-                          style={{
-                            fontSize: "0.95rem",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          Financial Audit Report
-                        </strong>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          background: "var(--bg-surface)",
-                          color: "var(--text-secondary)",
-                          border: "1px solid var(--border-subtle)",
-                        }}
-                      >
-                        Plaintext / Markdown
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.76rem",
-                        color: "var(--text-secondary)",
-                        margin: 0,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Executive audit report with household starting profile,
-                      scenario comparison matrix, 5-year annual schedule,
-                      milestone logs, and statutory citations.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={exportSimulationText}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--border-subtle)",
-                      background: "var(--bg-surface)",
-                      color: "var(--text-primary)",
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <DownloadFileIcon size={14} />
-                    Download Text Report (.txt)
-                  </button>
-                </div>
-
-                {/* 4. Executive Printable PDF View */}
-                <div
-                  style={{
-                    padding: "16px",
-                    borderRadius: "var(--border-radius)",
-                    border: "1px solid var(--border-subtle)",
-                    background: "var(--bg-surface-secondary)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <div style={{ color: "var(--color-warning)" }}>
-                          <PdfExportIcon size={20} />
-                        </div>
-                        <strong
-                          style={{
-                            fontSize: "0.95rem",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          Printable Executive PDF
-                        </strong>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          background: "var(--color-warning-bg)",
-                          color: "var(--color-warning)",
-                          border: "1px solid var(--color-warning-border)",
-                        }}
-                      >
-                        Browser Print
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.76rem",
-                        color: "var(--text-secondary)",
-                        margin: 0,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Opens an executive print-formatted report in a clean
-                      window and triggers the browser system print dialog for
-                      direct &quot;Save as PDF&quot;.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={printSimulationReport}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--border-subtle)",
-                      background: "var(--bg-surface)",
-                      color: "var(--text-primary)",
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <PrintReportIcon size={14} />
-                    Print / Save as PDF
-                  </button>
-                </div>
-              </div>
-
-              {/* Individual Scenario CSV Downloads */}
-              <div
-                style={{
-                  padding: "14px 16px",
-                  borderRadius: "var(--border-radius)",
-                  border: "1px solid var(--border-subtle)",
-                  background: "var(--bg-surface-secondary)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <CsvExportIcon size={16} />
-                  <span
-                    style={{
-                      fontSize: "0.78rem",
-                      fontWeight: 700,
-                      color: "var(--text-secondary)",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Export Individual Scenario CSV Ledgers (Excel / Numbers)
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: "8px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => exportSimulationCsv(ScenarioId.A)}
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      border: "1px solid var(--border-subtle)",
-                      background: "var(--bg-surface)",
-                      color: "var(--text-secondary)",
-                      fontSize: "0.74rem",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <DownloadFileIcon size={12} />
-                    Scenario A (Baseline)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => exportSimulationCsv(ScenarioId.B)}
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      border: "1px solid var(--border-subtle)",
-                      background: "var(--bg-surface)",
-                      color: "var(--text-secondary)",
-                      fontSize: "0.74rem",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <DownloadFileIcon size={12} />
-                    Scenario B (Tax Swap)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => exportSimulationCsv(ScenarioId.C)}
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      border: "1px solid var(--color-primary-border)",
-                      background: "var(--color-primary-bg)",
-                      color: "var(--color-primary)",
-                      fontSize: "0.74rem",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <DownloadFileIcon size={12} />
-                    Scenario C (Maximum Strategy)
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div
-              style={{ display: "flex",
-                flexDirection: "column",
-                gap: "16px" }}
-            >
-              {/* Dropzone */}
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragOver(true);
-                }}
-                onDragLeave={() => setIsDragOver(false)}
-                onDrop={handleFileDrop}
-                style={{
-                  padding: "24px",
-                  border: isDragOver
-                    ? "2px dashed var(--color-primary)"
-                    : "2px dashed var(--border-subtle)",
-                  borderRadius: "var(--border-radius)",
-                  background: isDragOver
-                    ? "var(--color-primary-bg)"
-                    : "var(--bg-surface-secondary)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <div
-                  style={{ color: "var(--text-muted)",
-                    marginBottom: "8px" }}
-                >
-                  <UploadFileIcon size={28} />
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    color: "var(--text-primary)",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Drag &amp; drop a simulator{" "}
-                  <code style={{ color: "var(--color-primary)" }}>.json</code>{" "}
-                  file here
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.74rem",
-                    color: "var(--text-muted)",
-                    marginBottom: "12px",
-                  }}
-                >
-                  or select a file from your computer
-                </div>
-                <label
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--border-subtle)",
-                    background: "var(--bg-surface)",
-                    color: "var(--text-primary)",
-                    fontSize: "0.74rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <UploadFileIcon size={13} />
-                  Choose File
-                  <input
-                    type="file"
-                    accept=".json,application/json"
-                    style={{ display: "none" }}
-                    onChange={handleFileInputChange}
-                  />
-                </label>
-              </div>
-
-              {/* Direct Paste Area */}
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "0.76rem",
-                      fontWeight: 700,
-                      color: "var(--text-secondary)",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Paste JSON
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handlePasteJson}
-                    style={{
-                      padding: "4px 8px",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--border-radius-sm)",
-                      background: "var(--bg-surface)",
-                      color: "var(--color-primary)",
-                      fontSize: "0.72rem",
-                      fontWeight: 650,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Paste from clipboard
-                  </button>
-                  {importResult && (
-                    <span
-                      style={{
-                        fontSize: "0.70rem",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                        fontWeight: 700,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        background: importResult.success
-                          ? "var(--color-gain-bg)"
-                          : "var(--color-loss-bg)",
-                        color: importResult.success
-                          ? "var(--color-gain)"
-                          : "var(--color-loss)",
-                        border: importResult.success
-                          ? "1px solid var(--color-gain-border)"
-                          : "1px solid var(--color-loss-border)",
-                      }}
-                    >
-                      {importResult.success ? (
-                        <>
-                          <CheckmarkIcon size={12} />
-                          Valid Simulation State
-                        </>
-                      ) : (
-                        <>
-                          <WarningIcon size={12} />
-                          Invalid JSON
-                        </>
-                      )}
-                    </span>
-                  )}
-                </div>
-                <textarea
-                  value={pastedJson}
-                  onInput={(e) =>
-                    handleJsonChange((e.target as HTMLTextAreaElement).value)
-                  }
-                  placeholder='Paste JSON simulation state envelope here (e.g. { "simulationState": { ... } })...'
-                  rows={5}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    fontSize: "0.74rem",
-                    fontFamily: "monospace",
-                    background: "var(--bg-surface-secondary)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--border-radius-sm)",
-                    color: "var(--text-primary)",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              {/* Pre-Import Inspection Preview Card */}
-              {importResult && importResult.success && (
-                <div
-                  style={{
-                    padding: "14px 16px",
-                    borderRadius: "var(--border-radius)",
-                    border: "1px solid var(--color-gain-border)",
-                    background: "var(--color-gain-bg)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "0.76rem",
-                        fontWeight: 800,
-                        color: "var(--color-gain)",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Detected Simulation Parameters
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.70rem",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      {importResult.state.simulationDurationMonths} Months
-                      Horizon
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(180px, 1fr))",
-                      gap: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: "4px",
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "0.68rem",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        Husband Gross
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.85rem",
-                          fontWeight: 800,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {formatEur(importResult.state.husbandGross)}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.66rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        Class{" "}
-                        {importResult.state.husbandInitialTaxClass ?? "III"}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: "4px",
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "0.68rem",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        Wife Gross
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.85rem",
-                          fontWeight: 800,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {formatEur(importResult.state.wifeGross)}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.66rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        Class {importResult.state.wifeInitialTaxClass ?? "V"}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: "4px",
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "0.68rem",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        Batches Config
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.85rem",
-                          fontWeight: 800,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {importResult.state.customPregnancies.length} Children
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.66rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        {importResult.state.customTaxClassSwitches.length} Swaps
-                        · {importResult.state.customSalaryRaises.length} Raises
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: "4px",
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--border-subtle)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "0.68rem",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        Dynamic Actions
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.85rem",
-                          fontWeight: 800,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {importResult.state.customWorkingHoursChanges?.length ||
-                          0}{" "}
-                        Hours
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.66rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        {importResult.state.customFinancialEvents?.length || 0}{" "}
-                        Events
-                      </div>
-                    </div>
-                  </div>
-
-                  {importResult.warnings &&
-                    importResult.warnings.length > 0 && (
-                    <div
-                      style={{
-                        padding: "6px 8px",
-                        borderRadius: "4px",
-                        background: "var(--color-warning-bg)",
-                        border: "1px solid var(--color-warning-border)",
-                        fontSize: "0.70rem",
-                        color: "var(--color-warning)",
-                      }}
-                    >
-                      <strong>Adjustments:</strong>{" "}
-                      {importResult.warnings.join(", ")}
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleExecuteImport}
-                    style={{
-                      padding: "10px 16px",
-                      borderRadius: "6px",
-                      border: "none",
-                      background: "var(--color-gain)",
-                      color: "var(--text-inverse)",
-                      fontSize: "0.82rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                      marginTop: "4px",
-                    }}
-                  >
-                    <CheckmarkIcon size={16} />
-                    Apply &amp; Hydrate Simulation State
-                  </button>
-                </div>
-              )}
-
-              {/* Error Message */}
-              {importResult && !importResult.success && (
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--color-loss-border)",
-                    background: "var(--color-loss-bg)",
-                    color: "var(--color-loss)",
-                    fontSize: "0.74rem",
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "6px",
-                  }}
-                >
-                  <WarningIcon size={15} />
-                  <div>
-                    <strong>Validation Error:</strong> {importResult.error}
-                  </div>
-                </div>
-              )}
-
-              {/* Success Toast */}
-              {importSuccessMessage && (
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "var(--border-radius-sm)",
-                    border: "1px solid var(--color-gain-border)",
-                    background: "var(--color-gain-bg)",
-                    color: "var(--color-gain)",
-                    fontSize: "0.74rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <CheckmarkIcon size={15} />
-                  <span>{importSuccessMessage}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Modal Footer */}
-        <div
-          style={{
-            padding: "12px 24px",
-            borderTop: "1px solid var(--border-subtle)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "var(--bg-surface-secondary)",
-            fontSize: "0.72rem",
-            color: "var(--text-muted)",
-          }}
-        >
-          <span>
+      eyebrow="Local Backup & Audit Reports"
+      title="Simulation Data Portability"
+      subtitle="Save a backup or restore it later. Your data stays in this browser."
+      size={ModalDialogSize.Large}
+      footer={(
+        <>
+          <span className="eg-modal-footer-meta">
             {APPLICATION_NAME} · v{EXPORT_SCHEMA_VERSION}.0
           </span>
-          <button
-            type="button"
-            onClick={closeExportImportModal}
-            style={{
-              padding: "5px 14px",
-              borderRadius: "4px",
-              border: "1px solid var(--border-subtle)",
-              background: "var(--bg-surface)",
-              color: "var(--text-secondary)",
-              fontSize: "0.74rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
+          <Button size={ButtonSize.Sm} onClick={closeExportImportModal}>
             Close
-          </button>
-        </div>
+          </Button>
+        </>
+      )}
+    >
+      <div className="eg-export-tabs">
+        <SegmentedControl
+          label="Export or import simulation data"
+          value={activeTab}
+          options={TAB_OPTIONS}
+          onChange={setActiveTab}
+          fullWidth
+        />
       </div>
-    </div>
+
+      {activeTab === ExportImportTab.Export ? (
+        <div className="eg-modal-stack">
+          <div className="eg-export-grid">
+            <div className="eg-export-card eg-export-card--featured">
+              <div>
+                <div className="eg-export-card__head">
+                  <div className="eg-export-card__title">
+                    <span className="eg-export-card__icon--primary">
+                      <ZipExportIcon size={18} />
+                    </span>
+                    <span>Multi-Format ZIP Bundle</span>
+                  </div>
+                  <Badge tone={BadgeTone.Brand}>Complete Archive</Badge>
+                </div>
+                <p className="eg-export-card__desc">
+                  Bundles JSON configuration, plaintext audit report, and CSV monthly ledgers for Scenarios A, B, and C.
+                </p>
+              </div>
+              <Button variant={ButtonVariant.Primary} size={ButtonSize.Sm} onClick={exportSimulationZip}>
+                <DownloadFileIcon size={14} />
+                <span>Download ZIP (.zip)</span>
+              </Button>
+            </div>
+
+            <div className="eg-export-card">
+              <div>
+                <div className="eg-export-card__head">
+                  <div className="eg-export-card__title">
+                    <span className="eg-export-card__icon--gain">
+                      <JsonExportIcon size={18} />
+                    </span>
+                    <span>JSON State Envelope</span>
+                  </div>
+                  <Badge tone={BadgeTone.Gain}>Machine Readable</Badge>
+                </div>
+                <p className="eg-export-card__desc">
+                  Full state export containing all Batches 0–4 parameters for backup and instant re-importing.
+                </p>
+              </div>
+              <div className="eg-export-card__actions">
+                <Button variant={ButtonVariant.Tint} size={ButtonSize.Sm} onClick={exportSimulationJson}>
+                  <DownloadFileIcon size={14} />
+                  <span>Download JSON</span>
+                </Button>
+                <Button size={ButtonSize.Sm} onClick={handleCopyJson} title="Copy JSON directly to clipboard">
+                  {copySuccess ? <CheckmarkIcon size={14} /> : <ClipboardCopyIcon size={14} />}
+                  <span>{copySuccess ? "Copied" : "Copy"}</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="eg-export-card">
+              <div>
+                <div className="eg-export-card__head">
+                  <div className="eg-export-card__title">
+                    <span className="eg-export-card__icon--info">
+                      <TextReportIcon size={18} />
+                    </span>
+                    <span>Financial Audit Report</span>
+                  </div>
+                  <Badge tone={BadgeTone.Neutral}>Plaintext</Badge>
+                </div>
+                <p className="eg-export-card__desc">
+                  Executive audit report with household profile, scenario comparison matrix, annual schedule, and statutory citations.
+                </p>
+              </div>
+              <Button size={ButtonSize.Sm} onClick={exportSimulationText}>
+                <DownloadFileIcon size={14} />
+                <span>Download Text Report (.txt)</span>
+              </Button>
+            </div>
+
+            <div className="eg-export-card">
+              <div>
+                <div className="eg-export-card__head">
+                  <div className="eg-export-card__title">
+                    <span className="eg-export-card__icon--warn">
+                      <PdfExportIcon size={18} />
+                    </span>
+                    <span>Printable Executive PDF</span>
+                  </div>
+                  <Badge tone={BadgeTone.Warning}>Browser Print</Badge>
+                </div>
+                <p className="eg-export-card__desc">
+                  Opens a print-formatted report window and triggers the system print dialog for direct &quot;Save as PDF&quot;.
+                </p>
+              </div>
+              <Button size={ButtonSize.Sm} onClick={printSimulationReport}>
+                <PrintReportIcon size={14} />
+                <span>Print / Save as PDF</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="eg-csv-box">
+            <div className="eg-csv-box__head">
+              <CsvExportIcon size={15} />
+              <span>Export Individual Scenario CSV Ledgers (Excel / Numbers)</span>
+            </div>
+            <div className="eg-csv-box__grid">
+              <Button size={ButtonSize.Sm} onClick={() => exportSimulationCsv(ScenarioId.A)}>
+                <DownloadFileIcon size={12} />
+                <span>Scenario A (Baseline)</span>
+              </Button>
+              <Button size={ButtonSize.Sm} onClick={() => exportSimulationCsv(ScenarioId.B)}>
+                <DownloadFileIcon size={12} />
+                <span>Scenario B (Tax Swap)</span>
+              </Button>
+              <Button size={ButtonSize.Sm} variant={ButtonVariant.Tint} onClick={() => exportSimulationCsv(ScenarioId.C)}>
+                <DownloadFileIcon size={12} />
+                <span>Scenario C (Maximum Strategy)</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="eg-modal-stack">
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleFileDrop}
+            className={`eg-dropzone${isDragOver ? " is-drag-over" : ""}`}
+          >
+            <div className="eg-dropzone__icon">
+              <UploadFileIcon size={26} />
+            </div>
+            <div className="eg-dropzone__title">
+              Drag &amp; drop a simulator <code>.json</code> file here
+            </div>
+            <div className="eg-dropzone__hint">
+              or select a file from your computer
+            </div>
+            <label className="ui-btn ui-btn--sm">
+              <UploadFileIcon size={13} />
+              <span>Choose File</span>
+              <input
+                type="file"
+                accept=".json,application/json"
+                className="eg-dropzone__file-input"
+                onChange={handleFileInputChange}
+              />
+            </label>
+          </div>
+
+          <div>
+            <div className="eg-paste-head">
+              <label className="eg-paste-label" htmlFor="eg-paste-json">Paste JSON</label>
+              <div className="eg-paste-actions">
+                <Button size={ButtonSize.Sm} variant={ButtonVariant.Ghost} onClick={handlePasteJson}>
+                  Paste from clipboard
+                </Button>
+                {importResult && (
+                  <Badge tone={importResult.success ? BadgeTone.Gain : BadgeTone.Loss}>
+                    {importResult.success ? (
+                      <>
+                        <CheckmarkIcon size={12} />
+                        <span>Valid State</span>
+                      </>
+                    ) : (
+                      <>
+                        <WarningIcon size={12} />
+                        <span>Invalid JSON</span>
+                      </>
+                    )}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <textarea
+              id="eg-paste-json"
+              className="eg-paste-textarea"
+              value={pastedJson}
+              onInput={(e) => handleJsonChange((e.target as HTMLTextAreaElement).value)}
+              placeholder='Paste JSON simulation state envelope here (e.g. { "simulationState": { ... } })...'
+              rows={5}
+            />
+          </div>
+
+          {importResult && importResult.success && (
+            <div className="eg-import-preview">
+              <div className="eg-import-preview__head">
+                <span className="eg-import-preview__title">Detected Simulation Parameters</span>
+                <span className="eg-import-preview__horizon">
+                  {importResult.state.simulationDurationMonths} Months Horizon
+                </span>
+              </div>
+
+              <div className="eg-import-preview__grid">
+                <div className="eg-import-stat">
+                  <div className="eg-import-stat__label">Husband Gross</div>
+                  <div className="eg-import-stat__value">{formatEur(importResult.state.husbandGross)}</div>
+                  <div className="eg-import-stat__sub">Class {importResult.state.husbandInitialTaxClass ?? "III"}</div>
+                </div>
+                <div className="eg-import-stat">
+                  <div className="eg-import-stat__label">Wife Gross</div>
+                  <div className="eg-import-stat__value">{formatEur(importResult.state.wifeGross)}</div>
+                  <div className="eg-import-stat__sub">Class {importResult.state.wifeInitialTaxClass ?? "V"}</div>
+                </div>
+                <div className="eg-import-stat">
+                  <div className="eg-import-stat__label">Batches Config</div>
+                  <div className="eg-import-stat__value">{importResult.state.customPregnancies.length} Children</div>
+                  <div className="eg-import-stat__sub">
+                    {importResult.state.customTaxClassSwitches.length} Swaps · {importResult.state.customSalaryRaises.length} Raises
+                  </div>
+                </div>
+                <div className="eg-import-stat">
+                  <div className="eg-import-stat__label">Dynamic Actions</div>
+                  <div className="eg-import-stat__value">
+                    {importResult.state.customWorkingHoursChanges?.length || 0} Hours
+                  </div>
+                  <div className="eg-import-stat__sub">
+                    {importResult.state.customFinancialEvents?.length || 0} Events
+                  </div>
+                </div>
+              </div>
+
+              {importResult.warnings && importResult.warnings.length > 0 && (
+                <StatusBanner tone={BannerTone.Warning} compact title="Adjustments">
+                  {importResult.warnings.join(", ")}
+                </StatusBanner>
+              )}
+
+              <Button variant={ButtonVariant.Primary} onClick={handleExecuteImport}>
+                <CheckmarkIcon size={15} />
+                <span>Apply &amp; Restore Simulation State</span>
+              </Button>
+            </div>
+          )}
+
+          {importResult && !importResult.success && (
+            <StatusBanner tone={BannerTone.Danger} compact title="Validation Error">
+              {importResult.error}
+            </StatusBanner>
+          )}
+
+          {importSuccessMessage && (
+            <StatusBanner tone={BannerTone.Success} compact>
+              {importSuccessMessage}
+            </StatusBanner>
+          )}
+        </div>
+      )}
+    </ModalDialog>
   );
 }
