@@ -67,7 +67,7 @@ const defaultLayers: readonly MapCategory[] = [
   MapCategory.SuburbanRail,
 ];
 const resultLimit = 80;
-const driveOptions = [0, 60, 90, 120].map(toDriveMinutes);
+const driveOptions = [0, 30, 45, 60, 90, 120].map(toDriveMinutes);
 const personalPins = Object.values(PersonalPin);
 const munichDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin",
   dateStyle: "short" });
@@ -168,7 +168,7 @@ export default function MunichMap() {
   }, [category, outingsMode, places]);
   const listedPlaces = resultPlaces.slice(0, resultLimit);
 
-  const fitOutings = useCallback(() => {
+  const fitResults = useCallback(() => {
     if (resultPlaces.length > 0) {
       setFocus({
         position: resultPlaces[0].place.position,
@@ -180,9 +180,9 @@ export default function MunichMap() {
 
   useEffect(() => {
     if (outingsMode) {
-      fitOutings();
+      fitResults();
     }
-  }, [outingsMode, fitOutings]);
+  }, [outingsMode, fitResults]);
 
   const pins = useMemo(() => personalPins.flatMap((name) => {
     const pin = data.pins[name];
@@ -314,7 +314,7 @@ export default function MunichMap() {
                     ))}
                   </select>
                 </label>
-                <button type="button" onClick={fitOutings} disabled={!resultPlaces.length}>Fit outings</button>
+                <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit outings</button>
               </>
             ) : (
               <>
@@ -343,8 +343,10 @@ export default function MunichMap() {
                     {[1, 2, 5, 10, 20].map((km) => <option key={km} value={km}>{km} km</option>)}
                   </select>
                 </label>
-                <button type="button" onClick={() => setFocus({ position: origin,
-                  radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>
+                {category === MapCategory.ChristmasMarket && radius === 0
+                  ? <button type="button" onClick={fitResults} disabled={!resultPlaces.length}>Fit markets</button>
+                  : <button type="button" onClick={() => setFocus({ position: origin,
+                    radius })}>{radius > 0 ? "Fit radius" : "Center map"}</button>}
               </>
             )}
           </div>

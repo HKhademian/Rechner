@@ -39,6 +39,23 @@ function regionalStop(
   };
 }
 
+function nearbyStop(
+  locality: string,
+  routeDestination: string,
+  minutes: number,
+): OutingLocation {
+  return {
+    locality,
+    drive: {
+      minutes: toDriveMinutes(minutes),
+      source: `https://www.rome2rio.com/s/Munich/${routeDestination}`,
+    },
+  };
+}
+
+const dachau = nearbyStop("Dachau", "Dachau", 25);
+const fuerstenfeldbruck = nearbyStop("Fürstenfeldbruck", "F%C3%BCrstenfeldbruck", 30);
+
 // Drive times are rounded one-way city-to-city planning estimates from Munich.
 const outings: readonly OutingEntry[] = [
   {
@@ -204,6 +221,73 @@ const outings: readonly OutingEntry[] = [
     detail: "A Christmas market on two long weekends on the island. Check the return ferry timetable before leaving.",
     hours: [["26 Nov and 3 Dec", "15:00–20:00"], ["27–29 Nov and 4–6 Dec", "12:00–20:00"]],
     source: "https://fraueninsel-christkindlmarkt.de/der-markt-2026/",
+    alsoListedUnder: MapCategory.ChristmasMarket,
+  },
+  {
+    id: "dachauer-christkindlmarkt",
+    title: "Dachauer Christkindlmarkt",
+    coordinates: [48.2594, 11.4341],
+    location: dachau,
+    venue: "Rathausplatz, Dachau Altstadt",
+    starts: "2026-11-20",
+    ends: "2026-12-23",
+    theme: "Old-town market and town hall Advent calendar",
+    detail: "Market stalls and music in front of the town hall. The decorated Rathaus façade doubles as a large Advent calendar.",
+    hours: [["Mon–Fri", "15:00–20:30"], ["Sat–Sun", "12:00–20:30"]],
+    source: "https://www.dachau.de/dachauer-christkindlmarkt/",
+    alsoListedUnder: MapCategory.ChristmasMarket,
+  },
+  {
+    id: "advent-in-fuerstenfeld",
+    title: "Advent in Fürstenfeld",
+    coordinates: [48.1706, 11.2488],
+    location: fuerstenfeldbruck,
+    venue: "Stadtsaalhof and Tenne, Kloster Fürstenfeld",
+    starts: "2026-11-27",
+    ends: "2026-12-06",
+    theme: "Monastery courtyards, crafts and music",
+    detail: "Two weekends of artisan stalls, choirs, and children's activities in the former monastery grounds.",
+    hours: [["27 Nov and 4 Dec", "14:00–20:00"], ["28–29 Nov and 5–6 Dec", "12:00–20:00"]],
+    source: "https://adventinfuerstenfeld.de/programm/",
+    alsoListedUnder: MapCategory.ChristmasMarket,
+  },
+  {
+    id: "pettersson-feiert-weihnachten",
+    title: "Pettersson feiert Weihnachten",
+    coordinates: [48.1706, 11.2488],
+    location: fuerstenfeldbruck,
+    venue: "Stadtsaal, Veranstaltungsforum Fürstenfeld",
+    starts: "2026-11-29",
+    theme: "Children’s Christmas theatre",
+    detail: "A family theatre production about Pettersson and Findus getting ready for Christmas. Tickets are required.",
+    hours: [["29 Nov", "14:00"]],
+    source: "https://www.fuerstenfeld.de/programmdetail/event/20261129_pettersson_feiert_weihnachten",
+  },
+  {
+    id: "starnberger-christkindlmarkt",
+    title: "Starnberger Christkindlmarkt",
+    coordinates: [48.0017, 11.3402],
+    location: nearbyStop("Starnberg", "Starnberg", 25),
+    venue: "Kirchplatz",
+    starts: "2026-12-03",
+    ends: "2026-12-06",
+    theme: "Lakeside town market with live music",
+    detail: "Four days of crafts, brass bands and live music, with weekend activities for children.",
+    hours: [["3 Dec", "16:00–21:00"], ["4 Dec", "14:00–21:00"], ["5 Dec", "12:00–21:00"], ["6 Dec", "12:00–20:00"]],
+    source: "https://www.starnberg.de/buergerservice-verwaltung/aktuelles/news/starnberger-christkindlmarkt-vom-3-bis-6-dezember-2026",
+    alsoListedUnder: MapCategory.ChristmasMarket,
+  },
+  {
+    id: "freisinger-caritativer-christkindlmarkt",
+    title: "Caritativer Christkindlmarkt Freising",
+    coordinates: [48.4006, 11.7435],
+    location: nearbyStop("Freising", "Freising", 35),
+    venue: "Marienplatz, Freising",
+    starts: "2026-12-13",
+    theme: "Charity Christmas market",
+    detail: "Local nonprofits sell handmade decorations, baked goods and small gifts to raise money for charitable causes.",
+    hours: [["13 Dec", "See the city’s event listing"]],
+    source: "https://veranstaltungen-tourismus.freising.de/freising/48-caritativer-christkindlmarkt-eea9b14ed92b0390b948bbd58da493a42.html",
     alsoListedUnder: MapCategory.ChristmasMarket,
   },
 ];
