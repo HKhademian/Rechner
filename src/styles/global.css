@@ -73,6 +73,7 @@
   --series-elterngeld-mother: #059669;
   --series-elterngeld-father: #0d9488;
   --series-kindergeld: #d97706;
+  --series-bonuses-events: #7c3aed;
   --series-tax-refund: #0891b2;
   --chart-grid-stroke: rgba(148, 163, 184, 0.28);
   --chart-hover-fill: var(--color-primary-bg);
@@ -223,6 +224,7 @@
   --series-elterngeld-mother: #34d399;
   --series-elterngeld-father: #2dd4bf;
   --series-kindergeld: #fbbf24;
+  --series-bonuses-events: #a78bfa;
   --series-tax-refund: #22d3ee;
   --chart-grid-stroke: rgba(148, 163, 184, 0.18);
   --chart-hover-fill: var(--color-primary-bg);
