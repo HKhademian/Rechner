@@ -1,0 +1,129 @@
+.net-results__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.net-results__person {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+}
+
+.net-results__person-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+}
+
+.net-results__period-label {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+}
+
+.net-results__gross {
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.net-results__group-label {
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.net-results__group-label--first {
+  margin-top: 0;
+}
+
+.net-results__loss {
+  color: var(--color-loss);
+}
+
+.net-results__person-net {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.net-results__gain {
+  color: var(--color-gain);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.net-results__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--color-gain-border);
+  border-radius: var(--radius-card);
+  background: var(--color-gain-bg);
+}
+
+.net-results__total-sub {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+}
+
+.net-results__total-amount {
+  align-self: center;
+  font-weight: var(--font-weight-extrabold);
+}
+
+.net-results__ratio {
+  margin-top: var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.net-results__ratio strong {
+  color: var(--text-primary);
+}
+
+.payroll-personal__stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.payroll-personal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-3);
+}
+
+.tax-settings {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.tax-settings__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+}

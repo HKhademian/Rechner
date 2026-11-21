@@ -1,3 +1,4 @@
+import "./ResultsDisplay.css";
 import {
   type JSX,
 } from "preact";
@@ -9,6 +10,9 @@ import OptionalNumberInput from "#components/OptionalNumberInput";
 import {
   ChoiceSelect,
 } from "#components/ui/ChoiceSelect";
+import {
+  Disclosure,
+} from "#components/ui/Disclosure";
 import {
   ToggleSwitch,
 } from "#components/ui/ToggleSwitch";
@@ -38,15 +42,10 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
     });
   };
   return (
-    <details>
-      <summary>{summaryLabel}</summary>
-      <div style={{ display: "grid",
-        gap: "12px",
-        marginTop: "10px" }}>
+    <Disclosure title={summaryLabel} subtle>
+      <div className="payroll-personal__stack">
         <p className="ui-field__hint">Blank fields use the published average insurer rate and defaults.</p>
-        <div style={{ display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-          gap: "12px" }}>
+        <div className="payroll-personal__grid">
           <OptionalNumberInput
             id={`${id}-insurer`}
             label="Insurer total Zusatzbeitrag"
@@ -100,8 +99,7 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
           <LawRefLink lawId={LawId.SGB11_55} label="Care contribution rules (§ 55 SGB XI)" />
         </p>
         {showLocation && (
-          <div style={{ display: "grid",
-            gap: "12px" }}>
+          <div className="payroll-personal__stack">
             <ToggleSwitch
               id={`${id}-saxony`}
               topicId="care-insurance"
@@ -143,6 +141,6 @@ export default function PayrollPersonalInputs({ id, options, showLocation = fals
           </div>
         )}
       </div>
-    </details>
+    </Disclosure>
   );
 }

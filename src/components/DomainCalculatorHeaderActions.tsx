@@ -2,7 +2,6 @@ import {
   type JSX,
 } from "preact";
 import {
-  useEffect,
   useState,
 } from "preact/hooks";
 import {
@@ -13,6 +12,14 @@ import {
   ResetDefaultsIcon,
   SyncProfileActionIcon,
 } from "#components/Icons";
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from "#components/ui/Button";
+import {
+  useHydrated,
+} from "#/components/ui/useHydrated.ts";
 import {
   unifiedLifeProfile,
 } from "#store/lifeProfileStore";
@@ -25,9 +32,8 @@ export interface DomainCalculatorHeaderActionsProps {
 }
 
 /**
- * Standardized "Sync Life Profile" + "Reset Defaults" header action bar for Track 3 calculators.
- * Provides consistent button labeling matching Net Pay, Parental Leave, and `/profile/`,
- * plus immediate accessible confirmation feedback when synced.
+ * Standardized minimal "Sync Life Profile" + "Reset" header action bar for domain calculators.
+ * Keeps utility actions visually calm so primary results remain the focal point.
  */
 export default function DomainCalculatorHeaderActions({
   onSyncLifeProfile,
@@ -35,13 +41,11 @@ export default function DomainCalculatorHeaderActions({
   syncTooltip,
   inactiveInLifeProfileMessage,
 }: DomainCalculatorHeaderActionsProps): JSX.Element {
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useHydrated();
   const [syncNotice, setSyncNotice] = useState<{
     readonly message: string;
     readonly isWarning: boolean;
   } | null>(null);
-
-  useEffect(() => setHydrated(true), []);
 
   const handleSync = (): void => {
     onSyncLifeProfile();
@@ -67,25 +71,25 @@ export default function DomainCalculatorHeaderActions({
   return (
     <div className="domain-calc-header__actions-group">
       <div className="domain-calc-header__actions">
-        <button
-          type="button"
-          className="ui-btn ui-btn--tint"
-          disabled={!hydrated}
-          onClick={handleSync}
-          title={syncTooltip}
-        >
-          <SyncProfileActionIcon size={15} />
-          <span>Sync Life Profile</span>
-        </button>
-        <button
-          type="button"
-          className="ui-btn"
+        <Button
+          variant={ButtonVariant.Ghost}
+          size={ButtonSize.Sm}
           disabled={!hydrated}
           onClick={handleReset}
         >
           <ResetDefaultsIcon size={14} />
           <span>Reset</span>
-        </button>
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          disabled={!hydrated}
+          onClick={handleSync}
+          title={syncTooltip}
+        >
+          <SyncProfileActionIcon size={14} />
+          <span>Sync Life Profile</span>
+        </Button>
       </div>
       {syncNotice && (
         <p

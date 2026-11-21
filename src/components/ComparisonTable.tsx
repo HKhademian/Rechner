@@ -507,14 +507,7 @@ export function ComparisonTableContent(): JSX.Element {
     const cells: JSX.Element[] = [
       <td
         key="current"
-        class="tabular-nums"
-        style={{
-          padding: "12px",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          color: "var(--color-gain)",
-          minWidth: "220px",
-        }}
+        className="tabular-nums comparison-cell comparison-cell--hero comparison-cell--live-gain"
       >
         <strong className="comparison-hero-value">{format(liveNet)}</strong>
         <span className="comparison-hero-sub">
@@ -535,14 +528,7 @@ export function ComparisonTableContent(): JSX.Element {
       cells.push(
         <td
           key={scenario.id}
-          class="tabular-nums"
-          style={{
-            padding: "12px",
-            borderBottom: "1px solid var(--border-subtle)",
-            minWidth: "220px",
-            color: isActive ? "var(--color-primary)" : "var(--text-primary)",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
+          className={`tabular-nums comparison-cell comparison-cell--hero${isActive ? " comparison-cell--active" : ""}`}
         >
           <strong className="comparison-hero-value">{format(savedNet)}</strong>
           <span className="comparison-hero-sub">
@@ -555,20 +541,8 @@ export function ComparisonTableContent(): JSX.Element {
     });
 
     return (
-      <tr class="comparison-row">
-        <td
-          style={{
-            padding: "12px",
-            fontWeight: 700,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-primary)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-          }}
-        >
+      <tr className="comparison-row">
+        <td className="comparison-label-cell comparison-label-cell--hero">
           {rowLabel}
         </td>
         {cells}
@@ -581,12 +555,7 @@ export function ComparisonTableContent(): JSX.Element {
     const cells: JSX.Element[] = [
       <td
         key="current"
-        style={{
-          padding: "8px 12px",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          minWidth: "220px",
-        }}
+        className="comparison-cell comparison-cell--live"
       >
         <span className="badge-neutral">Live baseline</span>
       </td>,
@@ -609,13 +578,7 @@ export function ComparisonTableContent(): JSX.Element {
       cells.push(
         <td
           key={scenario.id}
-          class="tabular-nums"
-          style={{
-            padding: "8px 12px",
-            borderBottom: "1px solid var(--border-subtle)",
-            minWidth: "220px",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
+          className={`tabular-nums comparison-cell${isActive ? " comparison-cell--active-tint" : ""}`}
         >
           <span className={deltaClass}>
             {formatSignedEurDelta(diff, liveNet > 0 ? liveNet : undefined)}
@@ -625,20 +588,8 @@ export function ComparisonTableContent(): JSX.Element {
     });
 
     return (
-      <tr class="comparison-row">
-        <td
-          style={{
-            padding: "8px 12px",
-            fontWeight: 600,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-secondary)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-          }}
-        >
+      <tr className="comparison-row">
+        <td className="comparison-label-cell">
           Net Difference vs Live
         </td>
         {cells}
@@ -693,20 +644,10 @@ export function ComparisonTableContent(): JSX.Element {
     cells.push(
       <td
         key="current"
-        class="tabular-nums"
-        style={{
-          padding: "8px 12px",
-          fontWeight: "bold",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          minWidth: "220px",
-          color: "var(--color-gain)",
-        }}
+        className="tabular-nums comparison-cell comparison-cell--bold comparison-cell--live-gain"
       >
         {format(current.val)}{" "}
-        <span style={{ fontSize: "0.8rem",
-          color: "var(--text-muted)",
-          fontWeight: "normal" }}>
+        <span className="comparison-cell__hint">
           {current.hint}
         </span>
       </td>,
@@ -722,20 +663,10 @@ export function ComparisonTableContent(): JSX.Element {
       cells.push(
         <td
           key={scenario.id}
-          class="tabular-nums"
-          style={{
-            padding: "8px 12px",
-            fontWeight: "bold",
-            borderBottom: "1px solid var(--border-subtle)",
-            minWidth: "220px",
-            color: isActive ? "var(--color-primary)" : "var(--text-primary)",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
+          className={`tabular-nums comparison-cell comparison-cell--bold${isActive ? " comparison-cell--active" : ""}`}
         >
           {format(saved.val)}{" "}
-          <span style={{ fontSize: "0.8rem",
-            color: "var(--text-muted)",
-            fontWeight: "normal" }}>
+          <span className="comparison-cell__hint">
             {saved.hint}
           </span>
         </td>,
@@ -743,20 +674,8 @@ export function ComparisonTableContent(): JSX.Element {
     });
 
     return (
-      <tr class="comparison-row">
-        <td
-          style={{
-            padding: "8px 12px",
-            fontWeight: 600,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-secondary)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-          }}
-        >
+      <tr className="comparison-row">
+        <td className="comparison-label-cell">
           Net Per Paycheck
         </td>
         {cells}
@@ -788,21 +707,10 @@ export function ComparisonTableContent(): JSX.Element {
     cells.push(
       <td
         key="current"
-        class="tabular-nums"
-        style={{
-          padding: "8px 12px",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          minWidth: "220px",
-          color: "var(--color-gain)",
-          fontWeight: 600,
-        }}
+        className="tabular-nums comparison-cell comparison-cell--semibold comparison-cell--live-gain"
       >
         {format(currentVal)}{" "}
-        <span style={{ fontSize: "0.8rem",
-          color: "var(--text-muted)" }}>
-          / mo
-        </span>
+        <span className="comparison-cell__hint">/ mo</span>
       </td>,
     );
 
@@ -817,43 +725,19 @@ export function ComparisonTableContent(): JSX.Element {
       cells.push(
         <td
           key={scenario.id}
-          class="tabular-nums"
-          style={{
-            padding: "8px 12px",
-            borderBottom: "1px solid var(--border-subtle)",
-            minWidth: "220px",
-            color: "var(--text-primary)",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
+          className={`tabular-nums comparison-cell${isActive ? " comparison-cell--active-tint" : ""}`}
         >
           {format(savedVal)}{" "}
-          <span style={{ fontSize: "0.8rem",
-            color: "var(--text-muted)" }}>
-            / mo
-          </span>
+          <span className="comparison-cell__hint">/ mo</span>
         </td>,
       );
     });
 
     return (
-      <tr class="comparison-row">
-        <td
-          style={{
-            padding: "8px 12px",
-            fontWeight: 500,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-muted)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-          }}
-        >
+      <tr className="comparison-row">
+        <td className="comparison-label-cell comparison-label-cell--muted">
           Avg. Monthly Net{" "}
-          <span style={{ fontSize: "0.75rem",
-            color: "var(--text-muted)",
-            marginLeft: "4px" }}>
+          <span className="comparison-cell__hint comparison-cell__hint--spaced">
             (Yearly / 12)
           </span>
         </td>
@@ -883,14 +767,7 @@ export function ComparisonTableContent(): JSX.Element {
     cells.push(
       <td
         key="current"
-        class="tabular-nums"
-        style={{
-          padding: "8px 12px",
-          fontWeight: isHeader ? "bold" : "normal",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          minWidth: "220px",
-        }}
+        className={`tabular-nums comparison-cell comparison-cell--live${isHeader ? " comparison-cell--bold" : ""}`}
       >
         {format(currentVal)}
       </td>,
@@ -915,14 +792,7 @@ export function ComparisonTableContent(): JSX.Element {
       cells.push(
         <td
           key={scenario.id}
-          class="tabular-nums"
-          style={{
-            padding: "8px 12px",
-            fontWeight: isHeader ? "bold" : "normal",
-            borderBottom: "1px solid var(--border-subtle)",
-            minWidth: "220px",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
+          className={`tabular-nums comparison-cell${isHeader ? " comparison-cell--bold" : ""}${isActive ? " comparison-cell--active-tint" : ""}`}
         >
           {format(savedVal)}
         </td>,
@@ -930,20 +800,8 @@ export function ComparisonTableContent(): JSX.Element {
     });
 
     return (
-      <tr class="comparison-row">
-        <td
-          style={{
-            padding: "8px 12px",
-            fontWeight: 600,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-primary)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-          }}
-        >
+      <tr className="comparison-row">
+        <td className="comparison-label-cell">
           {label}
         </td>
         {cells}
@@ -975,13 +833,7 @@ export function ComparisonTableContent(): JSX.Element {
     const cells: JSX.Element[] = [
       <td
         key={`current-${liveImportRevision.value}`}
-        style={{
-          padding: "8px 12px",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--color-gain-bg)",
-          color: "var(--text-primary)",
-          fontSize: "0.9rem",
-        }}
+        className="comparison-cell comparison-cell--live"
       >
         {liveIncluded ? (
           <>
@@ -1057,13 +909,7 @@ export function ComparisonTableContent(): JSX.Element {
       cells.push(
         <td
           key={scenario.id}
-          style={{
-            padding: "8px 12px",
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-secondary)",
-            fontSize: "0.9rem",
-            background: isActive ? "var(--color-primary-bg)" : "transparent",
-          }}
+          className={`comparison-cell comparison-cell--input-saved${isActive ? " comparison-cell--active-tint" : ""}`}
         >
           {content}
           {included && liveIsGross && <div><small>{salaryUnit(viewMode)}</small></div>}
@@ -1080,21 +926,8 @@ export function ComparisonTableContent(): JSX.Element {
     });
 
     return (
-      <tr class="comparison-row" key={fieldKey}>
-        <td
-          style={{
-            padding: "8px 12px",
-            fontWeight: 500,
-            borderBottom: "1px solid var(--border-subtle)",
-            color: "var(--text-muted)",
-            position: "sticky",
-            left: 0,
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            borderRight: "2px solid var(--border-subtle)",
-            fontSize: "0.9rem",
-          }}
-        >
+      <tr className="comparison-row" key={fieldKey}>
+        <td className="comparison-label-cell comparison-label-cell--input">
           {label}
           {(fieldKey === "taxBracket" || fieldKey === "partnerTaxBracket") && <TopicHelp id="tax-class" />}
           {fieldKey === "assessmentMode" && <TopicHelp id="joint-assessment" />}
@@ -1192,18 +1025,13 @@ export function ComparisonTableContent(): JSX.Element {
         <p className="comparison-scroll-hint">Swipe horizontally to see saved scenarios.</p>
       )}
       <div className="ui-card comparison-table-card">
-        <div className="comparison-scroll" style={{ overflowX: "auto" }}>
+        <div className="comparison-scroll">
           <table
             id="household-comparison-table"
             className="comparison-matrix"
             aria-label="Live and saved household calculations"
             style={{
-              tableLayout: "fixed",
-              width: "100%",
               minWidth: `calc(var(--comparison-label-width) + ${savedScenarios.value.length + 1} * var(--comparison-value-width))`,
-              borderCollapse: "separate",
-              borderSpacing: 0,
-              textAlign: "left",
             }}
           >
             <colgroup>
@@ -1212,32 +1040,9 @@ export function ComparisonTableContent(): JSX.Element {
             </colgroup>
             <thead>
               <tr>
-                <th
-                  style={{
-                    padding: "16px",
-                    borderBottom: "2px solid var(--border-subtle)",
-                    position: "sticky",
-                    left: 0,
-                    top: 0,
-                    background: "var(--bg-surface)",
-                    zIndex: 20,
-                    borderRight: "2px solid var(--border-subtle)",
-                  }}
-                >
-                  Field
-                </th>
+                <th className="comparison-th-field">Field</th>
 
-                <th
-                  style={{
-                    padding: "16px",
-                    borderBottom: "2px solid var(--color-gain)",
-                    background: "var(--color-gain-bg)",
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 15,
-                    borderTop: "2px solid var(--color-gain)",
-                  }}
-                >
+                <th className="comparison-th-live">
                   <div className="comparison-live-header">
                     <span>Live</span>
                     <div className="comparison-live-header__actions">
@@ -1274,24 +1079,11 @@ export function ComparisonTableContent(): JSX.Element {
                   return (
                     <th
                       key={scenario.id}
-                      style={{
-                        padding: "16px",
-                        borderBottom: `2px solid ${isActive ? "var(--color-primary)" : "var(--border-subtle)"}`,
-                        position: "sticky",
-                        top: 0,
-                        background: isActive ? "var(--color-primary-bg)" : "var(--bg-surface)",
-                        zIndex: 15,
-                        borderTop: isActive ? "2px solid var(--color-primary)" : "none",
-                      }}
+                      className={`comparison-th-scenario${isActive ? " is-active" : ""}`}
                     >
-                      <div style={{ display: "flex",
-                        flexDirection: "column",
-                        gap: "10px" }}>
-                        <div style={{ display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "start",
-                          gap: "8px" }}>
-                          <div style={{ flex: 1 }}>
+                      <div className="comparison-scenario-head">
+                        <div className="comparison-scenario-head__top">
+                          <div className="comparison-scenario-head__meta">
                             <input
                               type="text"
                               value={isActive && scenarioDraft.value ? scenarioDraft.value.title : scenario.title}
@@ -1303,19 +1095,7 @@ export function ComparisonTableContent(): JSX.Element {
                                   );
                                 }
                               }}
-                              style={{
-                                background: "transparent",
-                                border: "1px solid transparent",
-                                color: isActive ? "var(--color-primary)" : "var(--text-primary)",
-                                fontSize: "1.05rem",
-                                fontWeight: "bold",
-                                width: "100%",
-                                padding: "2px 4px",
-                                borderRadius: "4px",
-                                outline: "none",
-                                transition: "0.2s",
-                                pointerEvents: isActive ? "auto" : "none",
-                              }}
+                              className={`comparison-scenario-head__title${isActive ? " is-active" : ""}`}
                               title={isActive ? "Edit title" : scenario.title}
                             />
                             {(isActive || scenario.description) && (
@@ -1331,44 +1111,19 @@ export function ComparisonTableContent(): JSX.Element {
                                     );
                                   }
                                 }}
-                                style={{
-                                  background: "transparent",
-                                  border: "1px solid transparent",
-                                  color: "var(--text-muted)",
-                                  fontSize: "0.8rem",
-                                  fontWeight: "normal",
-                                  width: "100%",
-                                  padding: "2px 4px",
-                                  borderRadius: "4px",
-                                  outline: "none",
-                                  transition: "0.2s",
-                                  pointerEvents: isActive ? "auto" : "none",
-                                }}
+                                className={`comparison-scenario-head__desc${isActive ? " is-active" : ""}`}
                                 title={isActive ? "Edit description" : scenario.description}
                               />
                             )}
                           </div>
 
-                          <div style={{ display: "flex",
-                            gap: "4px" }}>
+                          <div className="comparison-scenario-head__icons">
                             {!isActive && (
                               <>
                                 <button
                                   type="button"
                                   onClick={() => loadScenario(scenario.id)}
-                                  style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    color: "var(--color-gain)",
-                                    cursor: "pointer",
-                                    padding: "4px",
-                                    borderRadius: "4px",
-                                    flexShrink: 0,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    opacity: 0.8,
-                                  }}
+                                  className="comparison-icon-btn comparison-icon-btn--gain"
                                   title="Load into Live Calculator"
                                 >
                                   <ExportDataIcon />
@@ -1376,19 +1131,7 @@ export function ComparisonTableContent(): JSX.Element {
                                 <button
                                   type="button"
                                   onClick={() => editScenario(scenario.id)}
-                                  style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    color: "var(--color-primary)",
-                                    cursor: "pointer",
-                                    padding: "4px",
-                                    borderRadius: "4px",
-                                    flexShrink: 0,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    opacity: 0.8,
-                                  }}
+                                  className="comparison-icon-btn comparison-icon-btn--primary"
                                   title="Edit Scenario"
                                 >
                                   <EditSettingsIcon />
@@ -1398,19 +1141,7 @@ export function ComparisonTableContent(): JSX.Element {
                             <button
                               type="button"
                               onClick={() => deleteScenario(scenario.id)}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                color: "var(--color-loss)",
-                                cursor: "pointer",
-                                padding: "4px",
-                                borderRadius: "4px",
-                                flexShrink: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                opacity: 0.7,
-                              }}
+                              className="comparison-icon-btn comparison-icon-btn--loss"
                               title="Delete Scenario"
                             >
                               <RemoveItemIcon />
@@ -1420,28 +1151,13 @@ export function ComparisonTableContent(): JSX.Element {
 
                         {isActive && hasUnsavedScenarioChanges.value && <small role="status">Unsaved changes</small>}
                         {isActive && (
-                          <div style={{ display: "flex",
-                            gap: "5px" }}>
+                          <div className="comparison-draft-actions">
                             <button
                               type="button"
                               aria-label={`${scenario.title}: Save changes`}
                               onClick={saveDraft}
                               disabled={hasInvalidSaved(scenario.id) || !hasUnsavedScenarioChanges.value}
-                              style={{
-                                background: "var(--color-primary)",
-                                color: "var(--text-inverse)",
-                                border: "none",
-                                padding: "6px 8px",
-                                borderRadius: "4px",
-                                fontWeight: "bold",
-                                cursor: "pointer",
-                                width: "44px",
-                                minHeight: "44px",
-                                flexShrink: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
+                              className="comparison-draft-btn comparison-draft-btn--save"
                               title={hasInvalidSaved(scenario.id) ? "Complete or correct scenario inputs before saving" : "Save changes to scenario"}
                             >
                               <SaveConfigurationIcon />
@@ -1450,20 +1166,7 @@ export function ComparisonTableContent(): JSX.Element {
                               type="button"
                               aria-label={`${scenario.title}: Cancel editing`}
                               onClick={cancelEdit}
-                              style={{
-                                background: "transparent",
-                                color: "var(--text-secondary)",
-                                border: "1px solid var(--border-subtle)",
-                                padding: "6px 8px",
-                                borderRadius: "4px",
-                                fontWeight: "bold",
-                                cursor: "pointer",
-                                width: "44px",
-                                minHeight: "44px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
+                              className="comparison-draft-btn comparison-draft-btn--cancel"
                               title="Cancel editing"
                             >
                               <DismissIcon />

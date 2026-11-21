@@ -1,5 +1,13 @@
+import "./ResultsDisplay.css";
 import OptionalNumberInput from "#components/OptionalNumberInput";
 import LawRefLink from "#components/laws/LawRefLink";
+import {
+  Button,
+  ButtonSize,
+} from "#components/ui/Button";
+import {
+  Disclosure,
+} from "#components/ui/Disclosure";
 import {
   SegmentedControl,
 } from "#components/ui/SegmentedControl";
@@ -30,14 +38,8 @@ import {
 export default function TaxSettings({ onValidityChange }: { onValidityChange?: (valid: boolean) => void }): JSX.Element {
   const taxKeys = Object.keys(TAX_KEY_TO_PARAMETER_ID) as readonly (keyof TaxParameters)[];
   return (
-    <section style={{ marginTop: "12px",
-      display: "grid",
-      gap: "12px" }}>
-      <div style={{ display: "flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "8px" }}>
+    <section className="tax-settings">
+      <div className="tax-settings__bar">
         <div id="payrollYear" className="ui-field">
           <span className="ui-field__label">Tax year</span>
           <SegmentedControl
@@ -53,9 +55,9 @@ export default function TaxSettings({ onValidityChange }: { onValidityChange?: (
             }))}
           />
         </div>
-        <button type="button" className="ui-btn" onClick={resetConfig}>
+        <Button size={ButtonSize.Sm} onClick={resetConfig}>
           Latest year
-        </button>
+        </Button>
       </div>
       <OptionalNumberInput
         id="payrollFactor"
@@ -69,8 +71,7 @@ export default function TaxSettings({ onValidityChange }: { onValidityChange?: (
         }}
         onValidityChange={onValidityChange}
       />
-      <details>
-        <summary>Rates and sources</summary>
+      <Disclosure title="Rates and sources" subtle>
         <dl>
           {taxKeys.map((key) => {
             const parameter = selectedTaxRules.value.parameters[key];
@@ -87,7 +88,7 @@ export default function TaxSettings({ onValidityChange }: { onValidityChange?: (
             );
           })}
         </dl>
-      </details>
+      </Disclosure>
     </section>
   );
 }
