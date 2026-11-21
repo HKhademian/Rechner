@@ -8,6 +8,7 @@ import {
   type TaxClass,
   type GrossToNetBreakdown,
   type PregnancyId,
+  ElterngeldVariant,
   TaxClass as Classes,
   TargetPerson,
   SalaryInputMode,
@@ -21,6 +22,10 @@ import {
   toCalendarMonth,
   toTaxFactor,
 } from "#engine/types";
+import {
+  resolveMotherAllowanceVariant,
+  resolveMotherOrdinaryMonthsCount,
+} from "#engine/benefits/allowanceVariant";
 import {
   validateSalaryReplacement,
 } from "#engine/simulator/salaryChange";
@@ -322,13 +327,18 @@ export function evaluateIncomeMonth(
     phaseLabel = `${index < maternity.calculatedDeliverySimulationMonth ? "Pre-Birth" : "Post-Birth"} Mutterschutz (Child ${maternity.childIndex})`;
   }
   else if (delivered) {
-    const end = delivered.calculatedDeliverySimulationMonth + conventions.maternityPostBirthMonths.value + conventions.motherOrdinaryPlusMonths.value;
-    if (index < end) {
+    const motherVariant = resolveMotherAllowanceVariant(delivered);
+    const motherOrdinaryMonths = resolveMotherOrdinaryMonthsCount(delivered, conventions, benefits);
+    const ordinaryLength = Math.max(motherOrdinaryMonths, delivered.fatherPartnerMonthsCount);
+    const motherEnd = delivered.calculatedDeliverySimulationMonth + conventions.maternityPostBirthMonths.value + motherOrdinaryMonths;
+    const bonusStart = delivered.calculatedDeliverySimulationMonth + conventions.maternityPostBirthMonths.value + ordinaryLength;
+    if (index < motherEnd) {
+      const variantLabel = motherVariant === ElterngeldVariant.Basis ? "Basiselterngeld" : "EGPlus";
       phaseLabel = paidWifeHours > benefits.maximumWeeklyHours.value
         ? `Child ${delivered.childIndex} Post-Leave (Hours >${benefits.maximumWeeklyHours.value}h: No EG § 1 BEEG)`
-        : `Child ${delivered.childIndex} EGPlus (Mother)`;
+        : `Child ${delivered.childIndex} ${variantLabel} (Mother)`;
     }
-    else if (index < end + conventions.partnershipBonusMonths.value) {
+    else if (index >= bonusStart && index < bonusStart + conventions.partnershipBonusMonths.value) {
       phaseLabel = `Child ${delivered.childIndex} Partnership Bonus Planning Window`;
     }
   }

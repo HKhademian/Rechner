@@ -23,6 +23,7 @@ import {
   type EuroAmount,
   ScenarioId,
   TargetPerson,
+  ElterngeldVariant,
   ActionType,
   ActionCategory,
   SpecialEventType,
@@ -512,16 +513,23 @@ export function getFieldExplanation(
       const entitlement = payments.reduce((sum, payment) => sum + payment.grossEntitlement, 0);
       const offset = payments.reduce((sum, payment) => sum + payment.offset, 0);
       const unavailable = m.benefitAssessmentAvailable === false;
+      const hasBasis = payments.some((payment) => payment.variant === ElterngeldVariant.Basis);
+      const hasPlus = payments.some((payment) => payment.variant === ElterngeldVariant.Plus);
+      const variantLabel = hasBasis && hasPlus
+        ? "Basiselterngeld & ElterngeldPlus"
+        : hasBasis
+          ? "Basiselterngeld"
+          : "ElterngeldPlus";
       return {
         fieldKey: husband ? ExplanationFieldKey.HusbandElterngeld : ExplanationFieldKey.WifeElterngeld,
-        fieldTitle: `${husband ? "Father's" : "Mother's"} ElterngeldPlus`,
+        fieldTitle: `${husband ? "Father's" : "Mother's"} ${variantLabel}`,
         valueFormatted: unavailable && payments.length === 0 ? "Unavailable" : formatCurrency(amount),
         derivationFormula: `${formatCurrency(entitlement)} - ${formatCurrency(offset)} = ${formatCurrency(amount)}`,
         explanation: unavailable ? `Assessment data is incomplete. ${(m.unavailableReasons ?? []).join(" ")}`
-          : "Each parent's frozen pre-birth standardized net and average positive earnings across the Plus claim period determine entitlement. Personal ceilings, hours, sibling eligibility, claim budgets and overlap credits apply. Assessment history and assumptions are shown above the scorecard; a scenario label never chooses the assessment class.",
+          : "Each parent's frozen pre-birth standardized net and average positive earnings across the claim period determine entitlement under Basiselterngeld (§ 4 BEEG, up to €1,800/mo) or ElterngeldPlus (§ 4a BEEG, up to €900/mo). Personal ceilings, hours, sibling eligibility, claim budgets and overlap credits apply. Assessment history and assumptions are shown above the scorecard; a scenario label never chooses the assessment class.",
         contributingFactors: [
           { name: "Parent's claim cohorts",
-            value: payments.map((payment) => payment.pregnancyId).join(", ") || "None" },
+            value: payments.map((payment) => `${payment.pregnancyId} (${payment.variant === ElterngeldVariant.Basis ? "Basis" : payment.partnershipBonus ? "PB Plus" : "Plus"})`).join(", ") || "None" },
           { name: "Entitlement before overlap credits",
             value: formatCurrency(entitlement) },
           { name: "Overlap credits",

@@ -73,6 +73,8 @@ import {
   type CalendarLabel,
   type MonthDuration,
   type SalaryBonusSlot,
+  ElterngeldVariant,
+  TargetPerson,
   SalaryInputMode,
   TaxClass,
   SimulationStrategy,
@@ -131,6 +133,10 @@ import {
   DEFAULT_BENEFIT_RULES,
   toSourceUrl,
 } from "#engine/config/benefitRules";
+import {
+  resolveFatherAllowanceVariant,
+  resolveMotherOrdinaryMonthsCount,
+} from "#engine/benefits/allowanceVariant";
 import {
   validatePartnerMonths,
 } from "#engine/benefits/partnerAllocation";
@@ -302,10 +308,14 @@ function generateScenario(
   const kgRate = preexisting.kindergeldPerChild;
   const kindergeldSource = toSourceUrl("https://www.gesetze-im-internet.de/estg/__66.html");
   const benefitRules = preexisting.benefitRules ?? DEFAULT_BENEFIT_RULES;
-  for (const pregnancy of pregnancies) {
-    validatePartnerMonths(pregnancy.fatherPartnerMonthsCount, benefitRules);
-  }
   const conventions = preexisting.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS;
+  for (const pregnancy of pregnancies) {
+    validatePartnerMonths(
+      pregnancy.fatherPartnerMonthsCount,
+      benefitRules,
+      resolveFatherAllowanceVariant(pregnancy),
+    );
+  }
   const startOrdinal = assessmentCalendarMonth(startYear, startMonth);
   const visibleEnd = toAssessmentMonthOrdinal(startOrdinal + duration - 1);
   // Finish the calendar tax year and each visible birth's averaging period beyond the displayed ledger.
@@ -314,7 +324,10 @@ function generateScenario(
     .filter((pregnancy) => pregnancy.calculatedDeliverySimulationMonth <= duration)
     .map((pregnancy) => startOrdinal + pregnancy.calculatedDeliverySimulationMonth - 1 +
       conventions.maternityPostBirthMonths.value +
-      Math.max(conventions.motherOrdinaryPlusMonths.value, pregnancy.fatherPartnerMonthsCount) +
+      Math.max(
+        resolveMotherOrdinaryMonthsCount(pregnancy, conventions, benefitRules),
+        pregnancy.fatherPartnerMonthsCount,
+      ) +
       conventions.partnershipBonusMonths.value - 1)));
   const incomeSchedule = buildIncomeSchedule(batches, forecastEnd, conventions);
   const allowanceSchedule = projectAllowanceSchedule(batches, incomeSchedule, visibleEnd, conventions, incomeEligibility);
@@ -912,19 +925,32 @@ function generateScenario(
       );
     }
 
+    const monthAllowance = allowanceSchedule.months.get(incomeSchedule[i].ordinal)!;
     if (rm.wifeElterngeld > 0) {
+      const wifePayments = monthAllowance.payments.filter(
+        (payment) => payment.parent === TargetPerson.Wife,
+      );
+      const isWifeBasis =
+        wifePayments.length > 0 &&
+        wifePayments.every((payment) => payment.variant === ElterngeldVariant.Basis);
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-WIFE-ELTERNGELD`,
           monthId: rm.monthId,
           month: rm.month,
           year,
-          type: TransactionType.BenefitElterngeldPlusMother,
+          type: isWifeBasis
+            ? TransactionType.BenefitBasiselterngeldMother
+            : TransactionType.BenefitElterngeldPlusMother,
           direction: TransactionDirection.Inflow,
           amount: rm.wifeElterngeld,
-          statutoryCitation: "BEEG § 4a (ElterngeldPlus)",
+          statutoryCitation: isWifeBasis
+            ? "BEEG § 4 (Basiselterngeld)"
+            : "BEEG § 4a (ElterngeldPlus)",
           taxClassLabel: rm.taxClassLabel,
-          description: `ElterngeldPlus (Mother) - ${rm.calendarLabel}`,
+          description: isWifeBasis
+            ? `Basiselterngeld (Mother) - ${rm.calendarLabel}`
+            : `ElterngeldPlus (Mother) - ${rm.calendarLabel}`,
           auditTrail:
             "Statutory Parental Allowance with synthetic net evaluation",
         }),
@@ -932,6 +958,13 @@ function generateScenario(
     }
 
     if (rm.husbandElterngeld > 0) {
+      const husbandPayments = monthAllowance.payments.filter(
+        (payment) => payment.parent === TargetPerson.Husband,
+      );
+      const isHusbandBasis =
+        !rm.isPartnerschaftsbonus &&
+        husbandPayments.length > 0 &&
+        husbandPayments.every((payment) => payment.variant === ElterngeldVariant.Basis);
       txs.push(
         createTransaction({
           transactionId: `TX-${rm.monthId}-HUSBAND-ELTERNGELD`,
@@ -940,14 +973,23 @@ function generateScenario(
           year,
           type: rm.isPartnerschaftsbonus
             ? TransactionType.BenefitPartnerschaftsbonus
-            : TransactionType.BenefitElterngeldPlusFather,
+            : isHusbandBasis
+              ? TransactionType.BenefitBasiselterngeldFather
+              : TransactionType.BenefitElterngeldPlusFather,
           direction: TransactionDirection.Inflow,
           amount: rm.husbandElterngeld,
-          statutoryCitation: "BEEG § 4b (Partnermonate / Partnerschaftsbonus)",
+          statutoryCitation: rm.isPartnerschaftsbonus
+            ? "BEEG § 4b (Partnermonate / Partnerschaftsbonus)"
+            : isHusbandBasis
+              ? "BEEG § 4 (Basiselterngeld Partnermonate)"
+              : "BEEG § 4b (Partnermonate / Partnerschaftsbonus)",
           taxClassLabel: rm.taxClassLabel,
-          description: `Partner Months / Partnerschaftsbonus (Father) - ${rm.calendarLabel}`,
-          auditTrail:
-            "Monthly partner allowance while working concurrent part-time",
+          description: isHusbandBasis
+            ? `Basiselterngeld Partner Months (Father) - ${rm.calendarLabel}`
+            : `Partner Months / Partnerschaftsbonus (Father) - ${rm.calendarLabel}`,
+          auditTrail: isHusbandBasis
+            ? "Monthly Basiselterngeld partner allowance (§ 4 BEEG)"
+            : "Monthly partner allowance while working concurrent part-time",
         }),
       );
     }

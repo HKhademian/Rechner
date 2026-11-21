@@ -8,6 +8,7 @@ import {
 import {
   type ScenarioActionBatches,
   type PregnancyAction,
+  ElterngeldVariant,
   ScenarioId,
   SalaryInputMode,
   TaxClass,
@@ -259,3 +260,137 @@ it("withholds denied and unknown claims without treating denied benefits as excl
   const selected = later.assessments.find((assessment) => assessment.pregnancyId === second.pregnancyId && assessment.parent === TargetPerson.Wife)!;
   assert.deepEqual(selected.excludedMonths, ["M07.2029"]); // Maternity only; no denied older benefits.
 });
+
+it("models Basiselterngeld up to €1,800/mo on full parental leave and enforces the 14-unit statutory budget", () => {
+  const highEarner: ScenarioActionBatches = {
+    ...switched(9),
+    preexisting: {
+      ...base.preexisting,
+      wifeGross: toGrossSalary(5000),
+      husbandGross: toGrossSalary(6000),
+    },
+    pregnancies: [
+      {
+        ...pregnancy,
+        motherAllowanceVariant: ElterngeldVariant.Basis,
+        motherAllowanceMonthsCount: toMonthDuration(10),
+        fatherAllowanceVariant: ElterngeldVariant.Basis,
+        fatherPartnerMonthsCount: toMonthDuration(2),
+      },
+    ],
+    workingHoursChanges: [
+      {
+        changeId: toHoursChangeId("FATHER-FULL-LEAVE-BASIS"),
+        effectiveSimulationMonth: toSimulationMonth(19),
+        effectiveCalendarMonth: toCalendarMonth(7),
+        effectiveCalendarYear: toFullCalendarYear(2027),
+        targetPerson: TargetPerson.Husband,
+        weeklyHours: toWorkingHours(0),
+        reason: "Father 2M Basiselterngeld leave",
+      },
+      {
+        changeId: toHoursChangeId("FATHER-RETURN-PB"),
+        effectiveSimulationMonth: toSimulationMonth(21),
+        effectiveCalendarMonth: toCalendarMonth(9),
+        effectiveCalendarYear: toFullCalendarYear(2027),
+        targetPerson: TargetPerson.Husband,
+        weeklyHours: toWorkingHours(28),
+        reason: "Return to part-time",
+      },
+      {
+        changeId: toHoursChangeId("MOTHER-RETURN-PB"),
+        effectiveSimulationMonth: toSimulationMonth(29),
+        effectiveCalendarMonth: toCalendarMonth(5),
+        effectiveCalendarYear: toFullCalendarYear(2028),
+        targetPerson: TargetPerson.Wife,
+        weeklyHours: toWorkingHours(28),
+        reason: "Mother joins Partnerschaftsbonus",
+      },
+    ],
+  };
+  const result = project(highEarner);
+  // Month 19 (life-month 3): both mother and father receive €1,800 Basiselterngeld at 0h/wk
+  assert.equal(result.months.get(at(19))?.wifeElterngeld, 1800);
+  assert.equal(result.months.get(at(19))?.husbandElterngeld, 1800);
+  assert.equal(
+    result.months.get(at(19))?.payments.find((p) => p.parent === TargetPerson.Wife)?.variant,
+    ElterngeldVariant.Basis,
+  );
+  assert.equal(
+    result.months.get(at(19))?.payments.find((p) => p.parent === TargetPerson.Husband)?.variant,
+    ElterngeldVariant.Basis,
+  );
+  // Month 28 (life-month 12) is mother's 10th Basis month; Month 29 enters Partnerschaftsbonus (always Plus!)
+  assert.equal(result.months.get(at(28))?.wifeElterngeld, 1800);
+  assert.equal(result.months.get(at(29))?.isPartnerschaftsbonus, true);
+  assert.equal(
+    result.months.get(at(29))?.payments.find((p) => p.parent === TargetPerson.Wife)?.variant,
+    ElterngeldVariant.Plus,
+  );
+
+  // Mid-earner mother (€3,000 gross -> €2,229.17 BEEG net): Basis = 1448.96 (2x Plus 724.48)
+  const midEarner = project({
+    ...switched(9),
+    pregnancies: [
+      {
+        ...pregnancy,
+        motherAllowanceVariant: ElterngeldVariant.Basis,
+        motherAllowanceMonthsCount: toMonthDuration(10),
+        fatherPartnerMonthsCount: toMonthDuration(4),
+      },
+    ],
+  });
+  assert.equal(midEarner.months.get(at(19))?.wifeElterngeld, 1448.96);
+
+  // Exceeding 14 Basis units (2 MuSchG + 10 Mother Basis + 3 Father Basis = 15) must throw
+  assert.throws(
+    () =>
+      project({
+        ...highEarner,
+        pregnancies: [
+          {
+            ...pregnancy,
+            motherAllowanceVariant: ElterngeldVariant.Basis,
+            motherAllowanceMonthsCount: toMonthDuration(10),
+            fatherAllowanceVariant: ElterngeldVariant.Basis,
+            fatherPartnerMonthsCount: toMonthDuration(3),
+          },
+        ],
+      }),
+    /individual or family budget/,
+  );
+});
+
+it("applies the § 2a Abs. 1 BEEG Basiselterngeld sibling bonus cap (€1,980/mo) for a second child", () => {
+  const twoChildrenBasis: ScenarioActionBatches = {
+    ...switched(9),
+    preexisting: {
+      ...base.preexisting,
+      wifeGross: toGrossSalary(5000),
+      husbandGross: toGrossSalary(5000),
+    },
+    pregnancies: [
+      {
+        ...pregnancy,
+        motherAllowanceVariant: ElterngeldVariant.Basis,
+        motherAllowanceMonthsCount: toMonthDuration(10),
+        fatherPartnerMonthsCount: toMonthDuration(0),
+      },
+      {
+        ...pregnancy,
+        pregnancyId: toPregnancyId("PREG-BASIS-CHILD-2"),
+        childIndex: toChildIndex(2),
+        positiveTestSimulationMonth: toSimulationMonth(22),
+        calculatedDeliverySimulationMonth: toSimulationMonth(30),
+        motherAllowanceVariant: ElterngeldVariant.Basis,
+        motherAllowanceMonthsCount: toMonthDuration(10),
+        fatherPartnerMonthsCount: toMonthDuration(0),
+      },
+    ],
+  };
+  const result = project(twoChildrenBasis, 50);
+  // Month 32 (life-month 3 of Child 2, Child 1 is 15 months old < 36): €1,800 + 10% = €1,980
+  assert.equal(result.months.get(at(32))?.hasSiblingBonus, true);
+  assert.equal(result.months.get(at(32))?.wifeElterngeld, 1980);
+});
+

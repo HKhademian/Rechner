@@ -11,6 +11,7 @@ import {
   type NetSalary,
   type GrossSalary,
   type FullCalendarYear,
+  ElterngeldVariant,
   SalaryInputMode,
   TargetPerson,
   toEuroAmount,
@@ -28,6 +29,13 @@ import {
 import {
   DEFAULT_BENEFIT_RULES,
 } from "#engine/config/benefitRules";
+import {
+  type AllowanceBudgetSummary,
+  resolveMotherAllowanceVariant,
+  resolveFatherAllowanceVariant,
+  resolveMotherOrdinaryMonthsCount,
+  computeAllowanceBudgetSummary,
+} from "#engine/benefits/allowanceVariant";
 import {
   type AssessmentHistoryMonth,
   type AssessmentMonthOrdinal,
@@ -58,6 +66,14 @@ import {
 import {
   getEmploymentThresholds,
 } from "#engine/tax/employmentThresholds";
+
+export {
+  type AllowanceBudgetSummary,
+  resolveMotherAllowanceVariant,
+  resolveFatherAllowanceVariant,
+  resolveMotherOrdinaryMonthsCount,
+  computeAllowanceBudgetSummary,
+};
 
 type IncomeMonth = IncomeScheduleMonth & { readonly mutterschutz: EuroAmount;
   readonly assumptions: readonly string[] };
@@ -150,9 +166,21 @@ export function projectAllowanceSchedule(
     if (incomeEligibility && !eligibility) {
       throw new TypeError("Every visible birth needs an income-eligibility assessment.");
     }
+    const motherVariant = resolveMotherAllowanceVariant(pregnancy);
+    const fatherVariant = resolveFatherAllowanceVariant(pregnancy);
+    const motherOrdinaryMonths = resolveMotherOrdinaryMonthsCount(pregnancy, conventions, rules);
+    const maxMotherMonths = motherVariant === ElterngeldVariant.Basis
+      ? rules.familyBasisMonths.value
+      : rules.familyBasisMonths.value / rules.plusFraction.value;
+    const maxFatherMonths = fatherVariant === ElterngeldVariant.Basis
+      ? rules.familyBasisMonths.value
+      : rules.familyBasisMonths.value / rules.plusFraction.value;
+    if (!Number.isInteger(motherOrdinaryMonths) || motherOrdinaryMonths < 0 || motherOrdinaryMonths > maxMotherMonths) {
+      throw new TypeError("Requested mother allowance months exceed the individual ordinary allowance capacity.");
+    }
     if (!Number.isInteger(pregnancy.fatherPartnerMonthsCount) || pregnancy.fatherPartnerMonthsCount < 0 ||
-      pregnancy.fatherPartnerMonthsCount > rules.familyBasisMonths.value / rules.plusFraction.value) {
-      throw new TypeError("Requested father Plus months exceed the individual ordinary allowance capacity.");
+      pregnancy.fatherPartnerMonthsCount > maxFatherMonths) {
+      throw new TypeError("Requested father allowance months exceed the individual ordinary allowance capacity.");
     }
     const birthYear = toFullCalendarYear(Math.floor(birth.ordinal / 12));
     const prepare = (husband: boolean) => {
@@ -237,19 +265,22 @@ export function projectAllowanceSchedule(
     const h = prepare(true);
     const w = prepare(false);
     const first = birth.ordinal + conventions.maternityPostBirthMonths.value;
-    const ordinaryLength = Math.max(conventions.motherOrdinaryPlusMonths.value, pregnancy.fatherPartnerMonthsCount);
+    const ordinaryLength = Math.max(motherOrdinaryMonths, pregnancy.fatherPartnerMonthsCount);
     const bonusStart = first + ordinaryLength;
     const end = bonusStart + bonusLength - 1;
     const mother = new Set<AssessmentMonthOrdinal>();
     const father = new Set<AssessmentMonthOrdinal>();
     const moved = new Set<AssessmentMonthOrdinal>();
+    const maxBasisLifeMonths = rules.familyBasisMonths.value + rules.additionalPartnerBasisMonths.value;
+    const withinVariantWindow = (ordinal: AssessmentMonthOrdinal, variant: ElterngeldVariant): boolean =>
+      variant === ElterngeldVariant.Plus || ordinal - birth.ordinal < maxBasisLifeMonths;
     for (let value = first; value < first + ordinaryLength; value++) {
       const ordinal = toAssessmentMonthOrdinal(value);
       const month = at(ordinal);
-      if (value < first + conventions.motherOrdinaryPlusMonths.value && isElterngeldHoursEligible(month.wifeHours, rules)) {
+      if (value < first + motherOrdinaryMonths && withinVariantWindow(ordinal, motherVariant) && isElterngeldHoursEligible(month.wifeHours, rules)) {
         mother.add(ordinal);
       }
-      if (value < first + pregnancy.fatherPartnerMonthsCount && isElterngeldHoursEligible(month.husbandHours, rules)) {
+      if (value < first + pregnancy.fatherPartnerMonthsCount && withinVariantWindow(ordinal, fatherVariant) && isElterngeldHoursEligible(month.husbandHours, rules)) {
         father.add(ordinal);
       }
     }
@@ -257,7 +288,8 @@ export function projectAllowanceSchedule(
     for (const ordinal of mother) {
       const month = at(ordinal);
       if (month.isMutterschutz && month.maternityPregnancyId !== pregnancy.pregnancyId &&
-        !father.has(ordinal) && father.size < pregnancy.fatherPartnerMonthsCount && isElterngeldHoursEligible(month.husbandHours, rules)) {
+        !father.has(ordinal) && father.size < pregnancy.fatherPartnerMonthsCount &&
+        withinVariantWindow(ordinal, fatherVariant) && isElterngeldHoursEligible(month.husbandHours, rules)) {
         mother.delete(ordinal); father.add(ordinal); moved.add(ordinal);
       }
     }
@@ -286,8 +318,10 @@ export function projectAllowanceSchedule(
     if (mother.size + bonus.size + maternityMonths < rules.minimumParentClaimMonths.value) {
       mother.clear();
     }
-    const motherUnits = maternityMonths + mother.size * rules.plusFraction.value;
-    const fatherUnits = father.size * rules.plusFraction.value;
+    const motherUnitWeight = motherVariant === ElterngeldVariant.Basis ? 1 : rules.plusFraction.value;
+    const fatherUnitWeight = fatherVariant === ElterngeldVariant.Basis ? 1 : rules.plusFraction.value;
+    const motherUnits = maternityMonths + mother.size * motherUnitWeight;
+    const fatherUnits = father.size * fatherUnitWeight;
     const reduced = income.filter((month) => {
       if (month.ordinal < birth.ordinal || month.ordinal > end) {
         return false;
@@ -305,7 +339,12 @@ export function projectAllowanceSchedule(
       throw new TypeError("Planned ordinary allowance months exceed the verified individual or family budget.");
     }
 
-    const payParent = (husband: boolean, prepared: typeof h, ordinary: Set<AssessmentMonthOrdinal>) => {
+    const payParent = (
+      husband: boolean,
+      prepared: typeof h,
+      ordinary: Set<AssessmentMonthOrdinal>,
+      parentVariant: ElterngeldVariant,
+    ) => {
       const planned = [...new Set([...ordinary, ...bonus])].sort((a, b) => a - b);
       const notes = prepared.notes;
       const classNet = (month: IncomeMonth) => (husband ? month.husbandNets : month.wifeNets)[prepared.characteristics.taxClass];
@@ -374,9 +413,14 @@ export function projectAllowanceSchedule(
           husband ? month.husbandHours : month.wifeHours,
           rules,
         );
+        const isBonusMonth = bonus.has(ordinal);
+        const monthVariant = isBonusMonth ? ElterngeldVariant.Plus : parentVariant;
+        const baseAllowance = monthVariant === ElterngeldVariant.Basis
+          ? entitlement.basiselterngeld
+          : entitlement.elterngeldPlus;
         const ages = births.filter((other) => other.pregnancy.pregnancyId !== pregnancy.pregnancyId && other.ordinal <= ordinal)
           .map((other) => toSiblingAgeMonths(ordinal - other.ordinal));
-        const sibling = computeSiblingBonusForAges(entitlement.elterngeldPlus, ages, rules);
+        const sibling = computeSiblingBonusForAges(baseAllowance, ages, rules, monthVariant);
         if (!sibling.isEligible && p.existingChildrenCount > 0) {
           unavailable("Preexisting child ages are required to determine their sibling-bonus eligibility."); continue;
         }
@@ -386,14 +430,18 @@ export function projectAllowanceSchedule(
           unavailable("Prior benefit receipt in the assessment window is unavailable, so the overlap credit cannot be verified."); continue;
         }
         const credit = toEuroAmount((prior + otherMaternity) * Math.max(0, 1 - priorBenefitMonths / rules.assessmentMonths.value));
+        const protectedMinimum = monthVariant === ElterngeldVariant.Basis
+          ? rules.basisMinimum.value
+          : minimumPlus;
         const payment = toEuroAmount(Math.max(
-          Math.min(minimumPlus, sibling.totalElterngeldPlusWithBonus),
+          Math.min(protectedMinimum, sibling.totalElterngeldPlusWithBonus),
           sibling.totalElterngeldPlusWithBonus - credit,
         ));
         row.payments.push(Object.freeze({ pregnancyId: pregnancy.pregnancyId,
           parent: husband ? TargetPerson.Husband : TargetPerson.Wife,
+          variant: monthVariant,
           reallocated: husband && moved.has(ordinal),
-          partnershipBonus: bonus.has(ordinal),
+          partnershipBonus: isBonusMonth,
           grossEntitlement: sibling.totalElterngeldPlusWithBonus,
           offset: toEuroAmount(sibling.totalElterngeldPlusWithBonus - payment),
           payment }));
@@ -404,7 +452,7 @@ export function projectAllowanceSchedule(
           row.wifeElterngeld = toEuroAmount(prior + payment);
         }
         row.hasSiblingBonus ||= sibling.isEligible;
-        row.isPartnerschaftsbonus ||= bonus.has(ordinal);
+        row.isPartnerschaftsbonus ||= isBonusMonth;
         if (payment > 0 && ordinal - birth.ordinal < rules.olderBenefitExclusionLifeMonths.value) {
           (husband ? exclusionsH : exclusionsW).add(ordinal);
         }
@@ -413,6 +461,7 @@ export function projectAllowanceSchedule(
       assessments.push(Object.freeze({ incomeEligibility: eligibility,
         pregnancyId: pregnancy.pregnancyId,
         parent: husband ? TargetPerson.Husband : TargetPerson.Wife,
+        variant: parentVariant,
         birthMonthId: monthId(birth.ordinal),
         incomeMode: grossMode ? SalaryInputMode.Gross : SalaryInputMode.Net,
         taxClass: prepared.characteristics.taxClass,
@@ -430,8 +479,8 @@ export function projectAllowanceSchedule(
         reason,
         assumptions: Object.freeze([...notes]) }));
     };
-    payParent(true, h, father);
-    payParent(false, w, mother);
+    payParent(true, h, father, fatherVariant);
+    payParent(false, w, mother, motherVariant);
   }
   const months: ReadonlyMap<AssessmentMonthOrdinal, ProjectedBenefitMonth> = new Map([...result].map(([ordinal, row]) =>
     [ordinal, Object.freeze({ ...row,

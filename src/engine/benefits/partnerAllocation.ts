@@ -2,6 +2,7 @@ import {
   type MonthDuration,
   type SimulationMonth,
   type WorkingHours,
+  ElterngeldVariant,
 } from "#engine/types";
 import {
   type BenefitRules,
@@ -12,15 +13,19 @@ import {
 } from "#engine/benefits/elterngeldPlus";
 
 /** Count validation only: the cohort projector checks the combined parent minimum and family budget.
- * Partner counts in saved scenarios denote Plus payments, not Basis equivalents.
+ * Partner counts denote months in the selected allowance variant (defaults to ElterngeldPlus).
  */
 export function validatePartnerMonths(
   requested: MonthDuration,
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+  variant: ElterngeldVariant = ElterngeldVariant.Plus,
 ): void {
-  const maximum = rules.familyBasisMonths.value / rules.plusFraction.value;
+  const maximum = variant === ElterngeldVariant.Basis
+    ? rules.familyBasisMonths.value
+    : rules.familyBasisMonths.value / rules.plusFraction.value;
   if (!Number.isInteger(requested) || requested < 0 || requested > maximum) {
-    throw new TypeError(`Partner Plus months must be a whole count between 0 and ${maximum}.`);
+    const label = variant === ElterngeldVariant.Basis ? "Basis" : "Plus";
+    throw new TypeError(`Partner ${label} months must be a whole count between 0 and ${maximum}.`);
   }
 }
 
@@ -31,8 +36,9 @@ export function isOrdinaryPartnerPaymentMonth(
   requested: MonthDuration,
   weeklyHours: WorkingHours,
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+  variant: ElterngeldVariant = ElterngeldVariant.Plus,
 ): boolean {
-  validatePartnerMonths(requested, rules);
+  validatePartnerMonths(requested, rules, variant);
   const elapsed = month - firstPaymentMonth;
   return elapsed >= 0 && elapsed < requested && isElterngeldHoursEligible(weeklyHours, rules);
 }

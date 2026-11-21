@@ -12,6 +12,7 @@ import {
   type Brand,
   type SimulationMonth,
   type EuroAmount,
+  ElterngeldVariant,
 } from "#engine/types";
 import {
   type BenefitRules,
@@ -25,11 +26,11 @@ import {
 export interface SiblingBonusCalculation {
   /** True through the month in which the older sibling reaches the configured age limit. */
   readonly isEligible: boolean;
-  /** Baseline ElterngeldPlus amount before bonus addition in EUR. */
+  /** Baseline parental allowance amount before bonus addition in EUR. */
   readonly baseElterngeldPlus: EuroAmount;
-  /** Sibling addition actually payable, with the Plus minimum under § 4a(2). */
+  /** Sibling addition actually payable (€75 min for Basis under § 2a, €37.50 min for Plus under § 4a(2)). */
   readonly siblingBonusAmount: EuroAmount;
-  /** Total Plus benefit including the increase to its ordinary maximum under § 2a. */
+  /** Total parental allowance including the sibling bonus up to the variant statutory maximum (§ 2a BEEG). */
   readonly totalElterngeldPlusWithBonus: EuroAmount;
   /** Current calculated age of older sibling in elapsed months. */
   readonly olderChildAgeInMonths: number;
@@ -45,9 +46,10 @@ export function computeSiblingBonus(
   olderChildBirthMonth: SimulationMonth,
   currentMonth: SimulationMonth,
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+  variant: ElterngeldVariant = ElterngeldVariant.Plus,
 ): SiblingBonusCalculation {
   const olderChildAgeInMonths = currentMonth - olderChildBirthMonth;
-  return evaluateWithSiblingAges(baseElterngeldPlus, [olderChildAgeInMonths], rules);
+  return evaluateWithSiblingAges(baseElterngeldPlus, [olderChildAgeInMonths], rules, variant);
 }
 
 /** All other household children count, including a younger sibling born during the claim. */
@@ -56,11 +58,13 @@ export function computeHouseholdSiblingBonus(
   siblingBirthMonths: readonly SimulationMonth[],
   currentMonth: SimulationMonth,
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+  variant: ElterngeldVariant = ElterngeldVariant.Plus,
 ): SiblingBonusCalculation {
   return computeSiblingBonusForAges(
     baseElterngeldPlus,
     siblingBirthMonths.filter((birth) => birth <= currentMonth).map((birth) => toSiblingAgeMonths(currentMonth - birth)),
     rules,
+    variant,
   );
 }
 
@@ -77,22 +81,25 @@ export function computeSiblingBonusForAges(
   baseElterngeldPlus: EuroAmount,
   ages: readonly SiblingAgeMonths[],
   rules: BenefitRules = DEFAULT_BENEFIT_RULES,
+  variant: ElterngeldVariant = ElterngeldVariant.Plus,
 ): SiblingBonusCalculation {
-  return evaluateWithSiblingAges(baseElterngeldPlus, ages, rules);
+  return evaluateWithSiblingAges(baseElterngeldPlus, ages, rules, variant);
 }
 
 function evaluateWithSiblingAges(
   baseElterngeldPlus: EuroAmount,
   siblingAgesInMonths: readonly number[],
   rules: BenefitRules,
+  variant: ElterngeldVariant,
 ): SiblingBonusCalculation {
+  const isBasis = variant === ElterngeldVariant.Basis;
   const formulaResult = evaluateSiblingBonusFormula({
     baseElterngeldPlus,
     siblingAgesInMonths,
     siblingBonusRate: rules.siblingRate.value,
     siblingMinimumBasisAmount: rules.siblingMinimumBasis.value,
     basisMaximumAmount: rules.basisMaximum.value,
-    elterngeldPlusFraction: rules.plusFraction.value,
+    elterngeldPlusFraction: isBasis ? 1 : rules.plusFraction.value,
     singleOlderSiblingMaxAgeMonths: rules.siblingAgeLimitMonths.value,
     multipleSiblingsMaxAgeMonths: rules.siblingMultipleAgeLimitMonths.value,
     multipleSiblingsMinimumCount: rules.siblingMultipleMinimumCount.value,
@@ -105,7 +112,9 @@ function evaluateWithSiblingAges(
     totalElterngeldPlusWithBonus: formulaResult.totalElterngeldPlusWithBonus,
     olderChildAgeInMonths: formulaResult.youngestQualifyingAgeInMonths,
     statutoryCitation: formulaResult.isEligible
-      ? "BEEG § 2a & § 4a Abs. 2 (Geschwisterbonus für ElterngeldPlus)"
+      ? isBasis
+        ? "BEEG § 2a Abs. 1 (Geschwisterbonus für Basiselterngeld)"
+        : "BEEG § 2a & § 4a Abs. 2 (Geschwisterbonus für ElterngeldPlus)"
       : "BEEG § 2a (No underlying entitlement or no qualifying sibling)",
   };
 }
