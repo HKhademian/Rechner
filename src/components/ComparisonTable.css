@@ -62,7 +62,7 @@
 .comparison-matrix tr > :first-child:not([colspan]) {
   position: sticky;
   left: 0;
-  z-index: 10;
+  z-index: var(--z-sticky);
   background: var(--bg-surface);
   border-right: 2px solid var(--border-subtle);
   overflow-wrap: anywhere;
@@ -228,7 +228,7 @@
   font-weight: 600;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .comparison-mobile-toggle {
     display: block;
     min-height: 40px;
@@ -300,7 +300,7 @@
   display: none;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .comparison-scroll-hint {
     display: block;
     color: var(--text-secondary);

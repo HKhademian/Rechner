@@ -687,7 +687,7 @@
   color: var(--color-primary);
 }
 
-@media (max-width: 920px) {
+@media (max-width: 900px) {
   .law-page-layout {
     grid-template-columns: 1fr;
   }

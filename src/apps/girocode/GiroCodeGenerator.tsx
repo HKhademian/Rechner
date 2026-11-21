@@ -708,7 +708,7 @@ export default function GiroCodeGenerator(): JSX.Element {
         size={ModalDialogSize.Compact}
         closeLabel="Close enlarged GiroCode"
         footer={
-          <div className="girocode-modal__footer" style={{ width: "100%" }}>
+          <div className="girocode-modal__footer">
             <span className="girocode-mono">{build.ibanValidation.spaced}</span>
             <span className="girocode-modal__amount">{build.amountValidation.formattedDisplay}</span>
           </div>

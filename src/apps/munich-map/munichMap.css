@@ -432,7 +432,7 @@ fieldset.munich-map-layers {
   font-variant-numeric: tabular-nums;
 }
 
-@media (min-width: 781px) {
+@media (min-width: 901px) {
   .munich-map-layout {
     height: max(34rem, calc(100dvh - 8rem));
   }
@@ -446,10 +446,11 @@ fieldset.munich-map-layers {
 
   .munich-map-frame {
     flex: 1;
+    border-radius: var(--radius-card);
   }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 900px) {
   .munich-map-layout {
     grid-template-columns: minmax(0, 1fr);
   }

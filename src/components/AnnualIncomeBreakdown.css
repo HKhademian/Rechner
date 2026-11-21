@@ -162,7 +162,7 @@
   font-weight: 600;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .annual-income__partners {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -173,10 +173,10 @@
 }
 
 .annual-income__result {
-  margin: 18px 0;
-  padding: 18px;
+  margin: var(--space-5) 0;
+  padding: var(--space-5);
   border: 1px solid var(--color-primary-border);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-card);
   background: var(--color-primary-bg);
 }
 

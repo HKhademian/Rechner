@@ -413,4 +413,113 @@ describe("design system and layout architecture compliance", () => {
       }
     }
   });
+
+  it("exports all shared UI primitives from src/components/ui/index.ts", () => {
+    const barrel = readFileSync("src/components/ui/index.ts", "utf8");
+    const requiredExports: readonly string[] = [
+      "AppShell",
+      "Badge",
+      "Button",
+      "CalculatorWorkspace",
+      "Card",
+      "CardHeader",
+      "ChoiceSelect",
+      "DataTable",
+      "Disclosure",
+      "EmptyState",
+      "FieldGroup",
+      "FieldRow",
+      "LawReferenceBar",
+      "LinkButton",
+      "MetricCard",
+      "ModalDialog",
+      "NumberField",
+      "PageHeader",
+      "Pagination",
+      "PopoverMenu",
+      "SegmentedControl",
+      "StatusBanner",
+      "ToggleSwitch",
+    ];
+
+    for (const symbol of requiredExports) {
+      assert.equal(
+        barrel.includes(symbol),
+        true,
+        `src/components/ui/index.ts must export ${symbol}`,
+      );
+    }
+  });
+
+  it("uses only canonical responsive breakpoints (640px, 900px/901px, 1180px) across all CSS files", () => {
+    const allowedBreakpoints = new Set(["640px", "900px", "901px", "1180px"]);
+    const cssFiles = walkFiles("src", [".css"]);
+    const violations: string[] = [];
+
+    for (const file of cssFiles) {
+      const content = readFileSync(file, "utf8");
+      const matches = content.matchAll(/@media\s*\([^)]*(?:min|max)-width:\s*(\d+px)[^)]*\)/g);
+      for (const match of matches) {
+        const bp = match[1];
+        if (!allowedBreakpoints.has(bp)) {
+          violations.push(`${file}: non-canonical breakpoint ${bp}`);
+        }
+      }
+    }
+
+    assert.deepEqual(violations, [], `Non-canonical breakpoints found:\n${violations.join("\n")}`);
+  });
+
+  it("uses --z-* tokens instead of hardcoded z-index integers across UI CSS files", () => {
+    const cssFiles = walkFiles("src", [".css"]);
+    const leafletPaneExemptFiles = new Set(["src/apps/munich-map/munichMap.css"]);
+    const violations: string[] = [];
+
+    for (const file of cssFiles) {
+      if (leafletPaneExemptFiles.has(file)) {
+        continue;
+      }
+      const lines = readFileSync(file, "utf8").split("\n");
+      lines.forEach((line, index) => {
+        const match = line.match(/z-index:\s*([^;]+);/);
+        if (match) {
+          const val = match[1].trim();
+          const isZToken = /^var\(--z-[a-z]+\)$/.test(val);
+          if (!isZToken) {
+            violations.push(`${file}:${index + 1}: hardcoded z-index "${val}"`);
+          }
+        }
+      });
+    }
+
+    assert.deepEqual(violations, [], `Hardcoded z-index values found:\n${violations.join("\n")}`);
+  });
+
+  it("restricts inline style={{ ... }} in TSX strictly to runtime-dynamic allowlist files", () => {
+    const dynamicStyleAllowlist = new Set([
+      "src/components/Icons.tsx",
+      "src/components/ComparisonTable.tsx",
+      "src/components/elterngeld/TimelineChart.tsx",
+      "src/apps/munich-map/App.tsx",
+    ]);
+    const tsxFiles = walkFiles("src", [".tsx"]);
+    const violations: string[] = [];
+    let totalInlineStyles = 0;
+
+    for (const file of tsxFiles) {
+      const content = readFileSync(file, "utf8");
+      const matches = content.match(/style=\{\{/g) ?? [];
+      totalInlineStyles += matches.length;
+      if (matches.length > 0 && !dynamicStyleAllowlist.has(file)) {
+        violations.push(`${file}: ${matches.length} unauthorized inline style={{ occurrences`);
+      }
+    }
+
+    assert.deepEqual(violations, [], `Unauthorized inline styles:\n${violations.join("\n")}`);
+    assert.ok(
+      totalInlineStyles <= 4,
+      `Expected <= 4 runtime-dynamic inline styles across src/, found ${totalInlineStyles}`,
+    );
+  });
 });
+

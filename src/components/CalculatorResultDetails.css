@@ -47,7 +47,7 @@
   max-height: calc(100dvh - 32px);
   padding: 0;
   border: 1px solid var(--border-medium);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-card);
   background: var(--bg-surface);
   color: var(--text-primary);
   box-shadow: var(--shadow-sm);
@@ -62,7 +62,7 @@
 .calculator-result-dialog__header {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-base);
   display: flex;
   justify-content: space-between;
   align-items: start;
