@@ -106,32 +106,43 @@
 }
 
 .calculator-navigation__tools-panel {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-2);
-  width: min(320px, calc(100vw - 32px));
+  width: min(340px, calc(100vw - 32px));
   padding: var(--space-2);
   box-sizing: border-box;
 }
 
+.calculator-navigation__tools-top {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
 .calculator-navigation__ref-panel {
-  display: grid;
-  gap: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: min(300px, calc(100vw - 32px));
   padding: var(--space-2);
   box-sizing: border-box;
 }
 
 .calculator-navigation__tools-search input {
+  width: 100%;
   min-height: var(--control-height-sm);
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
+  box-sizing: border-box;
 }
 
 .calculator-navigation__tools-list {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 2px;
-  max-height: 60vh;
+  max-height: min(60vh, 420px);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .calculator-navigation__tools-empty {
@@ -143,9 +154,10 @@
 }
 
 a.calculator-navigation__tool-item {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
   gap: 2px;
-  min-height: 0;
   padding: var(--space-2) 10px;
   border-radius: var(--radius-control);
   color: var(--text-primary);
@@ -164,7 +176,7 @@ a.calculator-navigation__tool-item[aria-current="page"] {
 
 .calculator-navigation__tool-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
 }
@@ -172,14 +184,18 @@ a.calculator-navigation__tool-item[aria-current="page"] {
 .calculator-navigation__tool-title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  min-width: 0;
 }
 
 .calculator-navigation__tool-meta {
   font-size: var(--font-size-2xs);
   color: var(--text-muted);
+  line-height: var(--line-height-snug);
 }
 
 .calculator-navigation__tool-badge {
+  flex-shrink: 0;
   font-size: var(--font-size-2xs);
   padding: 1px 6px;
 }

@@ -170,18 +170,16 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
 
           <div id="navigation-menu" className={`calculator-navigation__menu${menuOpen ? " is-open" : ""}`}>
             <nav aria-label="Main navigation" className="calculator-navigation__links">
-              <a href={sitePath("/")} aria-current={home ? "page" : undefined}>Calculators</a>
-
               <PopoverMenu
                 className="calculator-navigation__tools"
                 panelClassName="calculator-navigation__tools-panel"
                 align={PopoverAlign.Left}
-                summaryClassName={app ? "is-active" : undefined}
-                summaryAriaLabel="Switch calculator tool"
+                summaryClassName={home || app ? "is-active" : undefined}
+                summaryAriaLabel="Calculators and tool switcher"
                 panelAriaLabel="Calculators and planning tools"
                 summary={(
                   <>
-                    <span>{app ? app.title : "Switch tool"}</span>
+                    <span>{app ? app.title : "Calculators"}</span>
                     {app?.releaseStatus === CalculatorReleaseStatus.Draft && (
                       <Badge tone={BadgeTone.Warning} className="calculator-navigation__tool-badge">Demo</Badge>
                     )}
@@ -189,11 +187,22 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
                   </>
                 )}
               >
+                <div className="calculator-navigation__tools-top">
+                  <a
+                    href={sitePath("/")}
+                    className="calculator-navigation__tool-item calculator-navigation__tool-item--all"
+                    aria-current={home ? "page" : undefined}
+                  >
+                    <span className="calculator-navigation__tool-title">All Calculators</span>
+                    <span className="calculator-navigation__tool-meta">Browse catalog &amp; filter by category</span>
+                  </a>
+                </div>
+
                 <div className="calculator-navigation__tools-search">
                   <input
                     type="search"
                     value={toolFilter}
-                    placeholder="Filter tools…"
+                    placeholder="Filter calculators…"
                     aria-label="Filter calculator tools"
                     onInput={(event) => setToolFilter(event.currentTarget.value)}
                   />
@@ -216,7 +225,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
                     </a>
                   ))}
                   {visibleTools.length === 0 && (
-                    <p className="calculator-navigation__tools-empty">No matching tools</p>
+                    <p className="calculator-navigation__tools-empty">No matching calculators</p>
                   )}
                 </div>
               </PopoverMenu>
