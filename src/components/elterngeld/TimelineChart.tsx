@@ -28,6 +28,8 @@ import {
 } from "#utils/timelineChartControls";
 import {
   TimelineChartSeriesKey,
+  classifySpecialEventSeriesKey,
+  getActiveTimelineSeriesKeys,
   getMonthSeriesValue,
   mapAbstractModeToTimelineMode,
   mapTimelineModeToAbstractMode,
@@ -62,74 +64,106 @@ function formatCurrency(amount: number, maximumFractionDigits = 0): string {
   return formatEur(amount || 0, maximumFractionDigits);
 }
 
-const ELTERNGELD_SERIES_DEFINITIONS: readonly ChartSeriesDefinition<TimelineChartSeriesKey>[] =
-  Object.freeze([
-    Object.freeze({
-      key: TimelineChartSeriesKey.HusbandSalary,
-      label: "Husband Salary",
-      tooltipLabel: "Husband Net Salary:",
-      color: "var(--series-salary-husband)",
-      seriesClass: "timeline-chart__series--husband-salary",
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.WifeSalary,
-      label: "Wife Salary",
-      tooltipLabel: "Wife Net Salary:",
-      color: "var(--series-salary-wife)",
-      seriesClass: "timeline-chart__series--wife-salary",
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.Mutterschutz,
-      label: "Maternity (Mutterschutz)",
-      tooltipLabel: "Maternity Pay (MuSchG):",
-      color: "var(--series-mutterschutz)",
-      seriesClass: "timeline-chart__series--mutterschutz",
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.WifeElterngeld,
-      label: "Elterngeld (Mother)",
-      tooltipLabel: "Elterngeld (Mother / §§ 4, 4a BEEG):",
-      color: "var(--series-elterngeld-mother)",
-      seriesClass: "timeline-chart__series--wife-elterngeld",
-      tooltipTone: TimeSeriesTone.Positive,
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.HusbandElterngeld,
-      label: "Partner Months (Father)",
-      tooltipLabel: "Partner Months (Father / §§ 4, 4b BEEG):",
-      color: "var(--series-elterngeld-father)",
-      seriesClass: "timeline-chart__series--husband-elterngeld",
-      tooltipTone: TimeSeriesTone.Warning,
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.Kindergeld,
-      label: "Child Benefit (Kindergeld)",
-      tooltipLabel: "Child Benefit (Kindergeld, § 66 EStG):",
-      color: "var(--series-kindergeld)",
-      seriesClass: "timeline-chart__series--kindergeld",
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.BonusesAndEvents,
-      label: "Bonuses & Events",
-      tooltipLabel: "Bonuses & Special Events:",
-      color: "var(--series-bonuses-events)",
-      seriesClass: "timeline-chart__series--bonuses-events",
-      showPositiveSign: true,
-    }),
-    Object.freeze({
-      key: TimelineChartSeriesKey.TaxRefund,
-      label: "Tax Settlement (Finanzamt)",
-      tooltipLabel: "Tax Settlement (§ 36 EStG):",
-      color: "var(--series-tax-refund)",
-      seriesClass: "timeline-chart__series--tax-refund",
-      tooltipTone: TimeSeriesTone.Positive,
-      showPositiveSign: true,
-    }),
-  ]);
-
-const ELTERNGELD_SERIES_TOP_TO_BOTTOM = Object.freeze(
-  [...ELTERNGELD_SERIES_DEFINITIONS].reverse(),
-);
+const ELTERNGELD_SERIES_BY_KEY: Readonly<
+  Record<TimelineChartSeriesKey, ChartSeriesDefinition<TimelineChartSeriesKey>>
+> = Object.freeze({
+  [TimelineChartSeriesKey.HusbandSalary]: Object.freeze({
+    key: TimelineChartSeriesKey.HusbandSalary,
+    label: "Husband Salary",
+    tooltipLabel: "Husband Net Salary:",
+    color: "var(--series-salary-husband)",
+    seriesClass: "timeline-chart__series--husband-salary",
+  }),
+  [TimelineChartSeriesKey.WifeSalary]: Object.freeze({
+    key: TimelineChartSeriesKey.WifeSalary,
+    label: "Wife Salary",
+    tooltipLabel: "Wife Net Salary:",
+    color: "var(--series-salary-wife)",
+    seriesClass: "timeline-chart__series--wife-salary",
+  }),
+  [TimelineChartSeriesKey.Mutterschutz]: Object.freeze({
+    key: TimelineChartSeriesKey.Mutterschutz,
+    label: "Maternity (Mutterschutz)",
+    tooltipLabel: "Maternity Pay (MuSchG):",
+    color: "var(--series-mutterschutz)",
+    seriesClass: "timeline-chart__series--mutterschutz",
+  }),
+  [TimelineChartSeriesKey.WifeElterngeld]: Object.freeze({
+    key: TimelineChartSeriesKey.WifeElterngeld,
+    label: "Elterngeld (Mother)",
+    tooltipLabel: "Elterngeld (Mother / §§ 4, 4a BEEG):",
+    color: "var(--series-elterngeld-mother)",
+    seriesClass: "timeline-chart__series--wife-elterngeld",
+    tooltipTone: TimeSeriesTone.Positive,
+  }),
+  [TimelineChartSeriesKey.HusbandElterngeld]: Object.freeze({
+    key: TimelineChartSeriesKey.HusbandElterngeld,
+    label: "Partner Months (Father)",
+    tooltipLabel: "Partner Months (Father / §§ 4, 4b BEEG):",
+    color: "var(--series-elterngeld-father)",
+    seriesClass: "timeline-chart__series--husband-elterngeld",
+    tooltipTone: TimeSeriesTone.Warning,
+  }),
+  [TimelineChartSeriesKey.Kindergeld]: Object.freeze({
+    key: TimelineChartSeriesKey.Kindergeld,
+    label: "Child Benefit (Kindergeld)",
+    tooltipLabel: "Child Benefit (Kindergeld, § 66 EStG):",
+    color: "var(--series-kindergeld)",
+    seriesClass: "timeline-chart__series--kindergeld",
+  }),
+  [TimelineChartSeriesKey.SalaryBonuses]: Object.freeze({
+    key: TimelineChartSeriesKey.SalaryBonuses,
+    label: "Salary Bonuses (13th+ / Annual)",
+    tooltipLabel: "Salary Bonuses (13th+ / Annual):",
+    color: "var(--series-salary-bonuses)",
+    seriesClass: "timeline-chart__series--salary-bonuses",
+    tooltipTone: TimeSeriesTone.Positive,
+    showPositiveSign: true,
+  }),
+  [TimelineChartSeriesKey.InvestmentReturns]: Object.freeze({
+    key: TimelineChartSeriesKey.InvestmentReturns,
+    label: "Investment Returns",
+    tooltipLabel: "Investment Returns (§ 20 EStG):",
+    color: "var(--series-investment-returns)",
+    seriesClass: "timeline-chart__series--investment-returns",
+    tooltipTone: TimeSeriesTone.Positive,
+    showPositiveSign: true,
+  }),
+  [TimelineChartSeriesKey.CustomIncome]: Object.freeze({
+    key: TimelineChartSeriesKey.CustomIncome,
+    label: "One-Off Income / Grants",
+    tooltipLabel: "One-Off Income / Grants:",
+    color: "var(--series-custom-income)",
+    seriesClass: "timeline-chart__series--custom-income",
+    tooltipTone: TimeSeriesTone.Positive,
+    showPositiveSign: true,
+  }),
+  [TimelineChartSeriesKey.TaxRefund]: Object.freeze({
+    key: TimelineChartSeriesKey.TaxRefund,
+    label: "Tax Settlement (Finanzamt)",
+    tooltipLabel: "Tax Settlement (§ 36 EStG):",
+    color: "var(--series-tax-refund)",
+    seriesClass: "timeline-chart__series--tax-refund",
+    tooltipTone: TimeSeriesTone.Positive,
+    showPositiveSign: true,
+  }),
+  [TimelineChartSeriesKey.DaycareFees]: Object.freeze({
+    key: TimelineChartSeriesKey.DaycareFees,
+    label: "Daycare / Kita Fees",
+    tooltipLabel: "Daycare / Kita Fees:",
+    color: "var(--series-daycare-fees)",
+    seriesClass: "timeline-chart__series--daycare-fees",
+    tooltipTone: TimeSeriesTone.Negative,
+  }),
+  [TimelineChartSeriesKey.CustomCosts]: Object.freeze({
+    key: TimelineChartSeriesKey.CustomCosts,
+    label: "One-Off Costs / Expenses",
+    tooltipLabel: "One-Off Costs / Expenses:",
+    color: "var(--series-custom-costs)",
+    seriesClass: "timeline-chart__series--custom-costs",
+    tooltipTone: TimeSeriesTone.Negative,
+  }),
+});
 
 const ABSTRACT_MODE_OPTIONS: readonly TimeSeriesChartModeOption[] = Object.freeze(
   TIMELINE_CHART_MODE_OPTIONS.map((option) =>
@@ -148,7 +182,9 @@ const ScenarioOverlayKey = {
 export default function TimelineChart(): JSX.Element {
   const hydrated = useHydrated();
 
-  const activeTimelineMode = hydrated ? chartMode.value : mapAbstractModeToTimelineMode(TimeSeriesChartMode.StackedBar);
+  const activeTimelineMode = hydrated
+    ? chartMode.value
+    : mapAbstractModeToTimelineMode(TimeSeriesChartMode.StackedBar);
   const abstractMode = mapTimelineModeToAbstractMode(activeTimelineMode);
   const filter = hydrated ? timeRangeFilter.value : TimelineTimeRangeFilter.All;
 
@@ -169,6 +205,13 @@ export default function TimelineChart(): JSX.Element {
 
   const displayedMonths = [...filteredMonths].sort((a, b) => a.month - b.month);
   const chartPoints = displayedMonths.map(mapTimelineMonthToChartPoint);
+
+  // Core 7 series always visible in legend + any active granular bonus/event series
+  const activeSeriesKeys = getActiveTimelineSeriesKeys(displayedMonths);
+  const activeSeriesDefinitions = activeSeriesKeys.map(
+    (key) => ELTERNGELD_SERIES_BY_KEY[key],
+  );
+  const activeSeriesTopToBottom = [...activeSeriesDefinitions].reverse();
 
   const aByMonth = new Map(aData.months.map((m) => [m.month, m]));
   const bByMonth = new Map(bData.months.map((m) => [m.month, m]));
@@ -266,6 +309,11 @@ export default function TimelineChart(): JSX.Element {
     const compareB = bByMonth.get(month.month);
     const compareC = cByMonth.get(month.month);
 
+    const visibleSubEvents = month.specialEvents.filter((event) => {
+      const key = classifySpecialEventSeriesKey(event);
+      return key !== null && Boolean(context.visibleSeries[key]);
+    });
+
     return (
       <>
         <div className="ui-chart__tooltip-header">
@@ -351,7 +399,7 @@ export default function TimelineChart(): JSX.Element {
 
             <div className="ui-chart__tooltip-list">
               {(() => {
-                const activeRows = ELTERNGELD_SERIES_TOP_TO_BOTTOM.filter((seriesDef) => {
+                const activeRows = activeSeriesTopToBottom.filter((seriesDef) => {
                   if (!context.visibleSeries[seriesDef.key]) {
                     return false;
                   }
@@ -396,6 +444,23 @@ export default function TimelineChart(): JSX.Element {
                 });
               })()}
             </div>
+
+            {visibleSubEvents.length > 0 && (
+              <div className="timeline-chart__tooltip-subevents">
+                {visibleSubEvents.map((event) => (
+                  <div
+                    key={event.eventId}
+                    className="timeline-chart__tooltip-subevent-row"
+                  >
+                    <span>↳ {event.title}</span>
+                    <span className="tabular-nums">
+                      {event.amount > 0 ? "+" : ""}
+                      {formatCurrency(event.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </>
@@ -409,7 +474,7 @@ export default function TimelineChart(): JSX.Element {
           ? `Monthly Cash Inflow & Benefits Timeline (${displayedMonths.length} Months)`
           : "Monthly Cash Inflow & Benefits Timeline"
       }
-      subtitle="Monthly net salary, parental benefits, Kindergeld, bonuses/events, and tax settlements."
+      subtitle="Monthly net salaries, parental benefits, Kindergeld, salary bonuses, daycare fees, one-off events, and tax settlements."
       headerAside={referenceAside}
       mode={abstractMode}
       modeOptions={ABSTRACT_MODE_OPTIONS}
@@ -417,7 +482,7 @@ export default function TimelineChart(): JSX.Element {
       onModeChange={(nextMode) => {
         chartMode.value = mapAbstractModeToTimelineMode(nextMode);
       }}
-      series={ELTERNGELD_SERIES_DEFINITIONS}
+      series={activeSeriesDefinitions}
       points={chartPoints}
       overlaySeries={overlaySeries}
       overlayLegendLabel="Scenarios:"
