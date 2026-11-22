@@ -115,6 +115,24 @@ export function removeLifeEvent(eventId: string): void {
   persistPlan(next);
 }
 
+export function updateLifeEventMonth(eventId: string, nextMonth: SimulationMonth): void {
+  const prev = lifeWorkbenchPlan.peek();
+  const clamped = toSimulationMonth(
+    Math.max(1, Math.min(prev.baseline.horizonMonths, Math.trunc(nextMonth))),
+  );
+  const next: LifePlanInput = Object.freeze({
+    ...prev,
+    events: Object.freeze(
+      prev.events
+        .map((ev) => (ev.id === eventId ? Object.freeze({ ...ev,
+          effectiveMonth: clamped }) : ev))
+        .sort((a, b) => a.effectiveMonth - b.effectiveMonth),
+    ),
+  });
+  lifeWorkbenchPlan.value = next;
+  persistPlan(next);
+}
+
 export function applyLifePreset(id: LifePlannerPresetId): void {
   const next = buildLifePlannerPreset(id);
   batch(() => {

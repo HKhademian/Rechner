@@ -8,32 +8,88 @@ import {
 import {
   Badge,
   BadgeTone,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from "#/components/ui/index.ts";
+import {
+  ExportDataIcon,
+} from "#components/Icons";
 import {
   formatEur,
 } from "#utils/currencyFormat";
 import {
   displayedActiveScenarioResult,
 } from "#/apps/life-planner/store/lifeWorkbenchSimulation.ts";
+import {
+  openLifeExportImport,
+} from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
 /**
- * Full-width Monthly Ledger with Rule 13 action milestone rows above effective months
+ * Full-width Monthly Ledger with year filter, milestone-only toggle, Rule 13 action rows,
  * and expandable double-entry TaxBucket transaction audit rows.
  */
 export function LifeLedgerTab(): JSX.Element {
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [milestonesOnly, setMilestonesOnly] = useState(false);
+
   const active = displayedActiveScenarioResult.value;
+  const years = [...new Set(active.months.map((m) => m.calendarYear))];
+
+  const visibleMonths = active.months.filter((row) => {
+    if (selectedYear !== null && row.calendarYear !== selectedYear) {
+      return false;
+    }
+    if (milestonesOnly && row.actionMilestones.length === 0 && row.taxRefundOrRepayment === 0) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <section className="lpw-card">
       <div className="lpw-card__header">
         <div>
-          <h2 className="lpw-card__title">Monthly Ledger ({active.months.length} Months)</h2>
+          <h2 className="lpw-card__title">Monthly Ledger ({visibleMonths.length} / {active.months.length} Months)</h2>
           <p className="lpw-hint">
             Click any month row to inspect double-entry payroll, tax buckets, benefits, and asset transactions.
           </p>
         </div>
-        <Badge tone={BadgeTone.Brand}>{active.scenarioKey}</Badge>
+        <div className="lpw-actions-row">
+          <div className="lpw-disaster-chips" role="group" aria-label="Filter ledger by year">
+            <button
+              type="button"
+              className={`lpw-chip${selectedYear === null ? " lpw-chip--active" : ""}`}
+              onClick={() => setSelectedYear(null)}
+            >
+              All Years
+            </button>
+            {years.map((yr) => (
+              <button
+                key={yr}
+                type="button"
+                className={`lpw-chip${selectedYear === yr ? " lpw-chip--active" : ""}`}
+                onClick={() => setSelectedYear(yr)}
+              >
+                {yr}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className={`lpw-chip${milestonesOnly ? " lpw-chip--active" : ""}`}
+            onClick={() => setMilestonesOnly(!milestonesOnly)}
+          >
+            Events &amp; Tax Only
+          </button>
+
+          <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={openLifeExportImport}>
+            <ExportDataIcon size={12} />
+            <span>CSV / JSON</span>
+          </Button>
+        </div>
       </div>
 
       <div className="lpw-table-wrap">
@@ -53,7 +109,7 @@ export function LifeLedgerTab(): JSX.Element {
             </tr>
           </thead>
           <tbody>
-            {active.months.map((row) => {
+            {visibleMonths.map((row) => {
               const isExpanded = expandedMonth === row.month;
               const salaries = row.primaryNetSalary + row.partnerNetSalary;
               return (
