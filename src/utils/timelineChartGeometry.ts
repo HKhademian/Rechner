@@ -3,8 +3,9 @@
  *
  * Translates Elterngeld `MonthlyLedgerEntry` (`TimelineMonth`) records and `TimelineChartMode`
  * enums onto the domain-agnostic `timeSeriesChartEngine` mathematical kernel.
- * All generic axis, stacking, path, and hit-testing mathematics live in
- * `src/components/ui/timeSeriesChartEngine.ts`.
+ * Decomposes monthly cash flows into 12 mutually exclusive, transparent sources so
+ * bonuses, investment returns, daycare fees, one-off grants, and one-off expenses
+ * are never conflated into a single ambiguous bucket.
  */
 
 import {
@@ -22,7 +23,10 @@ import {
 } from "#/components/ui/timeSeriesChartCore.ts";
 import {
   type EuroAmount,
+  type SpecialEventItem,
   type TimelineMonth,
+  SpecialEventCategory,
+  SpecialEventType,
   TimelineChartMode,
   toEuroAmount,
 } from "#engine/types";
@@ -44,8 +48,12 @@ export const TimelineChartSeriesKey = {
   WifeElterngeld: "wifeElterngeld",
   HusbandElterngeld: "husbandElterngeld",
   Kindergeld: "kindergeld",
-  BonusesAndEvents: "bonusesAndEvents",
+  SalaryBonuses: "salaryBonuses",
+  InvestmentReturns: "investmentReturns",
+  CustomIncome: "customIncome",
   TaxRefund: "taxRefund",
+  DaycareFees: "daycareFees",
+  CustomCosts: "customCosts",
 } as const;
 export type TimelineChartSeriesKey =
   (typeof TimelineChartSeriesKey)[keyof typeof TimelineChartSeriesKey];
@@ -82,9 +90,24 @@ export const TIMELINE_CHART_SERIES_ORDER: readonly TimelineChartSeriesKey[] =
     TimelineChartSeriesKey.WifeElterngeld,
     TimelineChartSeriesKey.HusbandElterngeld,
     TimelineChartSeriesKey.Kindergeld,
-    TimelineChartSeriesKey.BonusesAndEvents,
+    TimelineChartSeriesKey.SalaryBonuses,
+    TimelineChartSeriesKey.InvestmentReturns,
+    TimelineChartSeriesKey.CustomIncome,
     TimelineChartSeriesKey.TaxRefund,
+    TimelineChartSeriesKey.DaycareFees,
+    TimelineChartSeriesKey.CustomCosts,
   ]);
+
+/** Core series always displayed in the Elterngeld chart legend. */
+const CORE_TIMELINE_SERIES_KEYS: ReadonlySet<TimelineChartSeriesKey> = new Set([
+  TimelineChartSeriesKey.HusbandSalary,
+  TimelineChartSeriesKey.WifeSalary,
+  TimelineChartSeriesKey.Mutterschutz,
+  TimelineChartSeriesKey.WifeElterngeld,
+  TimelineChartSeriesKey.HusbandElterngeld,
+  TimelineChartSeriesKey.Kindergeld,
+  TimelineChartSeriesKey.TaxRefund,
+]);
 
 /** Visibility map keyed by `TimelineChartSeriesKey`. */
 export type TimelineChartVisibilityMap = Readonly<Record<TimelineChartSeriesKey, boolean>>;
@@ -100,8 +123,12 @@ export function createUniformSeriesVisibility(
     [TimelineChartSeriesKey.WifeElterngeld]: visible,
     [TimelineChartSeriesKey.HusbandElterngeld]: visible,
     [TimelineChartSeriesKey.Kindergeld]: visible,
-    [TimelineChartSeriesKey.BonusesAndEvents]: visible,
+    [TimelineChartSeriesKey.SalaryBonuses]: visible,
+    [TimelineChartSeriesKey.InvestmentReturns]: visible,
+    [TimelineChartSeriesKey.CustomIncome]: visible,
     [TimelineChartSeriesKey.TaxRefund]: visible,
+    [TimelineChartSeriesKey.DaycareFees]: visible,
+    [TimelineChartSeriesKey.CustomCosts]: visible,
   };
 }
 
@@ -138,8 +165,103 @@ export function mapAbstractModeToTimelineMode(
 }
 
 /**
+ * Classifies a non-tax `SpecialEventItem` into its exact mutually exclusive chart series bucket.
+ * Returns `null` for annual tax settlements (`SpecialEventType.TaxReturn`), which are tracked
+ * directly via `TimelineChartSeriesKey.TaxRefund`.
+ */
+export function classifySpecialEventSeriesKey(
+  event: SpecialEventItem,
+): TimelineChartSeriesKey | null {
+  if (event.type === SpecialEventType.TaxReturn || event.amount === 0) {
+    return null;
+  }
+  if (
+    event.type === SpecialEventType.Bonus40 ||
+    event.type === SpecialEventType.Bonus60 ||
+    event.category === SpecialEventCategory.ThirteenthSalary ||
+    event.category === SpecialEventCategory.FourteenthSalary ||
+    event.category === SpecialEventCategory.FifteenthSalary ||
+    event.category === SpecialEventCategory.SalaryBonus ||
+    (event.category === SpecialEventCategory.CareerBonus && event.amount > 0)
+  ) {
+    return TimelineChartSeriesKey.SalaryBonuses;
+  }
+  if (event.category === SpecialEventCategory.InvestmentReturn && event.amount > 0) {
+    return TimelineChartSeriesKey.InvestmentReturns;
+  }
+  if (event.category === SpecialEventCategory.ChildcareFees && event.amount < 0) {
+    return TimelineChartSeriesKey.DaycareFees;
+  }
+  return event.amount > 0
+    ? TimelineChartSeriesKey.CustomIncome
+    : TimelineChartSeriesKey.CustomCosts;
+}
+
+export interface MonthSpecialEventBreakdown {
+  readonly salaryBonuses: EuroAmount;
+  readonly investmentReturns: EuroAmount;
+  readonly customIncome: EuroAmount;
+  readonly daycareFees: EuroAmount;
+  readonly customCosts: EuroAmount;
+}
+
+/**
+ * Decomposes all non-tax special events of a ledger month into 5 mutually exclusive buckets.
+ * Always satisfies:
+ * `salaryBonuses + investmentReturns + customIncome + daycareFees + customCosts + taxRefund === specialEventsTotal`.
+ */
+export function decomposeMonthSpecialEvents(
+  month: TimelineMonth,
+): MonthSpecialEventBreakdown {
+  let salaryBonuses = 0;
+  let investmentReturns = 0;
+  let customIncome = 0;
+  let daycareFees = 0;
+  let customCosts = 0;
+
+  if (month.specialEvents.length > 0) {
+    for (const event of month.specialEvents) {
+      const bucket = classifySpecialEventSeriesKey(event);
+      if (bucket === TimelineChartSeriesKey.SalaryBonuses) {
+        salaryBonuses += event.amount;
+      }
+      else if (bucket === TimelineChartSeriesKey.InvestmentReturns) {
+        investmentReturns += event.amount;
+      }
+      else if (bucket === TimelineChartSeriesKey.CustomIncome) {
+        customIncome += event.amount;
+      }
+      else if (bucket === TimelineChartSeriesKey.DaycareFees) {
+        daycareFees += event.amount;
+      }
+      else if (bucket === TimelineChartSeriesKey.CustomCosts) {
+        customCosts += event.amount;
+      }
+    }
+  }
+  else {
+    salaryBonuses = month.specialBonusTotal;
+    const residual = month.specialEventsTotal - month.taxRefund - salaryBonuses;
+    if (residual > 0) {
+      customIncome = residual;
+    }
+    else if (residual < 0) {
+      customCosts = residual;
+    }
+  }
+
+  return Object.freeze({
+    salaryBonuses: toEuroAmount(salaryBonuses),
+    investmentReturns: toEuroAmount(investmentReturns),
+    customIncome: toEuroAmount(customIncome),
+    daycareFees: toEuroAmount(daycareFees),
+    customCosts: toEuroAmount(customCosts),
+  });
+}
+
+/**
  * Extracts the exact signed EUR amount for a single series key from a ledger month.
- * Across all 8 keys, the sum equals `month.monthlyTotal` to the exact cent.
+ * Across all 12 keys, the sum equals `month.monthlyTotal` to the exact cent.
  */
 export function getMonthSeriesValue(
   month: TimelineMonth,
@@ -158,11 +280,53 @@ export function getMonthSeriesValue(
       return month.husbandElterngeld;
     case TimelineChartSeriesKey.Kindergeld:
       return month.kindergeld;
-    case TimelineChartSeriesKey.BonusesAndEvents:
-      return toEuroAmount(month.specialEventsTotal - month.taxRefund);
+    case TimelineChartSeriesKey.SalaryBonuses:
+      return decomposeMonthSpecialEvents(month).salaryBonuses;
+    case TimelineChartSeriesKey.InvestmentReturns:
+      return decomposeMonthSpecialEvents(month).investmentReturns;
+    case TimelineChartSeriesKey.CustomIncome:
+      return decomposeMonthSpecialEvents(month).customIncome;
     case TimelineChartSeriesKey.TaxRefund:
       return month.taxRefund;
+    case TimelineChartSeriesKey.DaycareFees:
+      return decomposeMonthSpecialEvents(month).daycareFees;
+    case TimelineChartSeriesKey.CustomCosts:
+      return decomposeMonthSpecialEvents(month).customCosts;
   }
+}
+
+/**
+ * Returns the canonical ordered subset of series keys to display in the legend:
+ * always includes the 7 core income/benefit/tax series plus any granular bonus/event
+ * series that actually carries a non-zero value in at least one displayed month.
+ */
+export function getActiveTimelineSeriesKeys(
+  months: readonly TimelineMonth[],
+): readonly TimelineChartSeriesKey[] {
+  const nonZeroOptional = new Set<TimelineChartSeriesKey>();
+  for (const month of months) {
+    const breakdown = decomposeMonthSpecialEvents(month);
+    if (breakdown.salaryBonuses !== 0) {
+      nonZeroOptional.add(TimelineChartSeriesKey.SalaryBonuses);
+    }
+    if (breakdown.investmentReturns !== 0) {
+      nonZeroOptional.add(TimelineChartSeriesKey.InvestmentReturns);
+    }
+    if (breakdown.customIncome !== 0) {
+      nonZeroOptional.add(TimelineChartSeriesKey.CustomIncome);
+    }
+    if (breakdown.daycareFees !== 0) {
+      nonZeroOptional.add(TimelineChartSeriesKey.DaycareFees);
+    }
+    if (breakdown.customCosts !== 0) {
+      nonZeroOptional.add(TimelineChartSeriesKey.CustomCosts);
+    }
+  }
+  return Object.freeze(
+    TIMELINE_CHART_SERIES_ORDER.filter(
+      (key) => CORE_TIMELINE_SERIES_KEYS.has(key) || nonZeroOptional.has(key),
+    ),
+  );
 }
 
 /** Formats a compact non-overlapping X-axis month label (e.g. `M1`, `M9`, `M-3`). */
@@ -176,6 +340,7 @@ export function formatCompactXAxisLabel(month: TimelineMonth): string {
 export function mapTimelineMonthToChartPoint(
   month: TimelineMonth,
 ): TimeSeriesChartPoint<TimelineChartSeriesKey, TimelineMonth> {
+  const breakdown = decomposeMonthSpecialEvents(month);
   return Object.freeze({
     id: month.monthId,
     order: month.month,
@@ -184,38 +349,18 @@ export function mapTimelineMonthToChartPoint(
     groupSeparatorLabel:
       month.calendarMonthNum === 1 ? String(month.calendarYearNum) : undefined,
     values: Object.freeze({
-      [TimelineChartSeriesKey.HusbandSalary]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.HusbandSalary,
-      ),
-      [TimelineChartSeriesKey.WifeSalary]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.WifeSalary,
-      ),
-      [TimelineChartSeriesKey.Mutterschutz]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.Mutterschutz,
-      ),
-      [TimelineChartSeriesKey.WifeElterngeld]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.WifeElterngeld,
-      ),
-      [TimelineChartSeriesKey.HusbandElterngeld]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.HusbandElterngeld,
-      ),
-      [TimelineChartSeriesKey.Kindergeld]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.Kindergeld,
-      ),
-      [TimelineChartSeriesKey.BonusesAndEvents]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.BonusesAndEvents,
-      ),
-      [TimelineChartSeriesKey.TaxRefund]: getMonthSeriesValue(
-        month,
-        TimelineChartSeriesKey.TaxRefund,
-      ),
+      [TimelineChartSeriesKey.HusbandSalary]: month.husbandSalary,
+      [TimelineChartSeriesKey.WifeSalary]: month.wifeSalary,
+      [TimelineChartSeriesKey.Mutterschutz]: month.mutterschutz,
+      [TimelineChartSeriesKey.WifeElterngeld]: month.wifeElterngeld,
+      [TimelineChartSeriesKey.HusbandElterngeld]: month.husbandElterngeld,
+      [TimelineChartSeriesKey.Kindergeld]: month.kindergeld,
+      [TimelineChartSeriesKey.SalaryBonuses]: breakdown.salaryBonuses,
+      [TimelineChartSeriesKey.InvestmentReturns]: breakdown.investmentReturns,
+      [TimelineChartSeriesKey.CustomIncome]: breakdown.customIncome,
+      [TimelineChartSeriesKey.TaxRefund]: month.taxRefund,
+      [TimelineChartSeriesKey.DaycareFees]: breakdown.daycareFees,
+      [TimelineChartSeriesKey.CustomCosts]: breakdown.customCosts,
     }),
     meta: month,
   });

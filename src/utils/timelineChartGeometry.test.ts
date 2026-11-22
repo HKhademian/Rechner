@@ -5,6 +5,7 @@ import {
 } from "node:test";
 import {
   type ScenarioActionBatches,
+  FederalStateKitaPresetId,
   FinancialEventCategory,
   SalaryInputMode,
   ScenarioId,
@@ -33,6 +34,7 @@ import {
   computeTooltipLeftPx,
   createUniformSeriesVisibility,
   formatCompactXAxisLabel,
+  getActiveTimelineSeriesKeys,
   getMonthActiveSeriesTotals,
   getMonthSeriesValue,
   isTimelineChartSeriesKey,
@@ -54,7 +56,7 @@ describe("timelineChartGeometry (Pure Chart Math & Hit-Testing)", () => {
     assert.throws(() => toTimelineChartSeriesKey("unknown"), TypeError);
   });
 
-  it("conserves exact monthlyTotal across all 8 series including bonuses, custom costs, and tax settlements", () => {
+  it("conserves exact monthlyTotal across all 12 granular series without conflating bonuses, investments, daycare, grants, or costs", () => {
     const batches: ScenarioActionBatches = {
       scenarioKey: ScenarioId.C,
       preexisting: {
@@ -63,6 +65,14 @@ describe("timelineChartGeometry (Pure Chart Math & Hit-Testing)", () => {
         husbandGross: toGrossSalary(4500),
         wifeGross: toGrossSalary(3200),
         enable13thSalary: true,
+        investmentReturnMonthly: toEuroAmount(250),
+        childcarePlan: {
+          enabled: true,
+          presetId: FederalStateKitaPresetId.Custom,
+          customMonthlyFeePerChild: toEuroAmount(350),
+          startAgeMonths: 12,
+          endAgeMonths: 72,
+        },
         simulationDurationMonths: toMonthDuration(36),
       },
       pregnancies: [
@@ -95,13 +105,23 @@ describe("timelineChartGeometry (Pure Chart Math & Hit-Testing)", () => {
       financialEvents: [
         {
           eventId: toFinancialEventId("FEVENT-CHART-COST-1"),
-          effectiveSimulationMonth: toSimulationMonth(16),
-          effectiveCalendarMonth: toCalendarMonth(4),
-          effectiveCalendarYear: toFullCalendarYear(2027),
+          effectiveSimulationMonth: toSimulationMonth(29), // May 2028 (also has 40% vacation bonus + Kita fee!)
+          effectiveCalendarMonth: toCalendarMonth(5),
+          effectiveCalendarYear: toFullCalendarYear(2028),
           title: "Baby Equipment",
           amount: toEuroAmount(-1500),
           category: FinancialEventCategory.BabyEquipment,
           description: "Stroller and crib",
+        },
+        {
+          eventId: toFinancialEventId("FEVENT-CHART-GRANT-1"),
+          effectiveSimulationMonth: toSimulationMonth(29),
+          effectiveCalendarMonth: toCalendarMonth(5),
+          effectiveCalendarYear: toFullCalendarYear(2028),
+          title: "Family Grant",
+          amount: toEuroAmount(500),
+          category: FinancialEventCategory.HealthcareFamily,
+          description: "State family grant",
         },
       ],
     };
@@ -134,16 +154,50 @@ describe("timelineChartGeometry (Pure Chart Math & Hit-Testing)", () => {
         );
       }
 
-      // Negative cost month (month 16: -€1,500) must stack cleanly below €0 baseline
-      if (month.month === 16) {
-        assert.equal(getMonthSeriesValue(month, TimelineChartSeriesKey.BonusesAndEvents), -1500);
+      // Month 29 (05.2028) simultaneously has: 13th-salary vacation bonus (+), investment return (+250),
+      // one-off grant (+500), Kita fee (-350), and Baby Equipment (-1,500) — each in its own bucket!
+      if (month.month === 29) {
+        assert.ok(getMonthSeriesValue(month, TimelineChartSeriesKey.SalaryBonuses) > 0);
+        assert.equal(getMonthSeriesValue(month, TimelineChartSeriesKey.InvestmentReturns), 250);
+        assert.equal(getMonthSeriesValue(month, TimelineChartSeriesKey.CustomIncome), 500);
+        assert.equal(getMonthSeriesValue(month, TimelineChartSeriesKey.DaycareFees), -350);
+        assert.equal(getMonthSeriesValue(month, TimelineChartSeriesKey.CustomCosts), -1500);
+
         const negSegs = segments.filter((seg) => seg.value < 0);
-        assert.equal(negSegs.length, 1);
+        assert.deepEqual(negSegs.map((s) => s.key), [
+          TimelineChartSeriesKey.DaycareFees,
+          TimelineChartSeriesKey.CustomCosts,
+        ]);
         const zeroY = 40 + valueToPlotY(0, scale.yMin, scale.yMax, 345);
         assert.ok(Math.abs(negSegs[0].y - zeroY) < 1e-6);
-        assert.ok(negSegs[0].height > 0);
+        assert.ok(Math.abs(negSegs[1].y - (negSegs[0].y + negSegs[0].height)) < 1e-6);
       }
     }
+
+    const activeKeys = getActiveTimelineSeriesKeys(result.months);
+    assert.equal(activeKeys.includes(TimelineChartSeriesKey.SalaryBonuses), true);
+    assert.equal(activeKeys.includes(TimelineChartSeriesKey.InvestmentReturns), true);
+    assert.equal(activeKeys.includes(TimelineChartSeriesKey.CustomIncome), true);
+    assert.equal(activeKeys.includes(TimelineChartSeriesKey.DaycareFees), true);
+    assert.equal(activeKeys.includes(TimelineChartSeriesKey.CustomCosts), true);
+
+    // A baseline plan without optional events omits unused optional buckets from the active legend
+    const minimalResult = runScenarioBatches({
+      ...batches,
+      preexisting: {
+        ...batches.preexisting,
+        enable13thSalary: false,
+        investmentReturnMonthly: toEuroAmount(0),
+        childcarePlan: undefined,
+      },
+      financialEvents: [],
+    });
+    const minimalActiveKeys = getActiveTimelineSeriesKeys(minimalResult.months);
+    assert.equal(minimalActiveKeys.includes(TimelineChartSeriesKey.SalaryBonuses), false);
+    assert.equal(minimalActiveKeys.includes(TimelineChartSeriesKey.InvestmentReturns), false);
+    assert.equal(minimalActiveKeys.includes(TimelineChartSeriesKey.DaycareFees), false);
+    assert.equal(minimalActiveKeys.includes(TimelineChartSeriesKey.CustomIncome), false);
+    assert.equal(minimalActiveKeys.includes(TimelineChartSeriesKey.CustomCosts), false);
   });
 
   it("scales Y-axis dynamically above €8,000 and below €0 with €0 always on a grid tick", () => {
