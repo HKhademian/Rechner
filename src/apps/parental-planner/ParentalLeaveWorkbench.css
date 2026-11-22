@@ -1528,6 +1528,67 @@
   background: var(--bg-surface);
 }
 
+/* Chart series toggle & compare swatch color bindings (consumed by TimeSeriesChart) */
+.plw-compare-swatch--a {
+  --series-color: var(--text-muted);
+}
+
+.plw-compare-swatch--b {
+  --series-color: var(--color-warning);
+}
+
+.plw-compare-swatch--c {
+  --series-color: var(--color-gain);
+}
+
+.plw-series--husband-salary {
+  --series-color: var(--series-salary-husband);
+}
+
+.plw-series--wife-salary {
+  --series-color: var(--series-salary-wife);
+}
+
+.plw-series--mutterschutz {
+  --series-color: var(--series-mutterschutz);
+}
+
+.plw-series--wife-elterngeld {
+  --series-color: var(--series-elterngeld-mother);
+}
+
+.plw-series--husband-elterngeld {
+  --series-color: var(--series-elterngeld-father);
+}
+
+.plw-series--kindergeld {
+  --series-color: var(--series-kindergeld);
+}
+
+.plw-series--salary-bonuses {
+  --series-color: var(--series-salary-bonuses);
+}
+
+.plw-series--investment-returns {
+  --series-color: var(--series-investment-returns);
+}
+
+.plw-series--custom-income {
+  --series-color: var(--series-custom-income);
+}
+
+.plw-series--tax-refund {
+  --series-color: var(--series-tax-refund);
+}
+
+.plw-series--daycare-fees {
+  --series-color: var(--series-daycare-fees);
+}
+
+.plw-series--custom-costs {
+  --series-color: var(--series-custom-costs);
+}
+
 /* Unified Hairline-Divided 4-Metric Scorecard (inside OverviewTab) */
 .plw-scorecard {
   display: grid;
