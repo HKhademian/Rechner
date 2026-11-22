@@ -23,10 +23,14 @@ import {
   commitmentStressDeltaEur,
   disasterTriggerMonth,
   lifeWorkbenchPlan,
+  useCustomDisasterMode,
 } from "#/apps/life-planner/store/lifeWorkbenchState.ts";
 import {
   displayedLifeBundle,
 } from "#/apps/life-planner/store/lifeWorkbenchSimulation.ts";
+import {
+  openCustomDisasterModal,
+} from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
 /**
  * Contextual Life Disaster & Commitment Affordability Bar.
@@ -34,6 +38,7 @@ import {
  */
 export function DisasterControlBar(): JSX.Element {
   const presetId = activeDisasterPresetId.value;
+  const isCustom = useCustomDisasterMode.value;
   const trigger = disasterTriggerMonth.value;
   const delta = commitmentStressDeltaEur.value;
   const horizon = lifeWorkbenchPlan.value.baseline.horizonMonths;
@@ -63,15 +68,23 @@ export function DisasterControlBar(): JSX.Element {
             <button
               key={preset.id}
               type="button"
-              className={`lpw-chip${presetId === preset.id ? " lpw-chip--active" : ""}`}
+              className={`lpw-chip${!isCustom && presetId === preset.id ? " lpw-chip--active" : ""}`}
               title={preset.description}
               onClick={() => {
+                useCustomDisasterMode.value = false;
                 activeDisasterPresetId.value = preset.id;
               }}
             >
               {preset.shortLabel}
             </button>
           ))}
+          <button
+            type="button"
+            className={`lpw-chip${isCustom ? " lpw-chip--active" : ""}`}
+            onClick={openCustomDisasterModal}
+          >
+            Custom / Matrix…
+          </button>
         </div>
 
         <div className="lpw-slider-group">

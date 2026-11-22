@@ -18,8 +18,10 @@ import {
 import {
   activeDisasterPresetId,
   commitmentStressDeltaEur,
+  customDisasterShocks,
   disasterTriggerMonth,
   lifeWorkbenchPlan,
+  useCustomDisasterMode,
 } from "#/apps/life-planner/store/lifeWorkbenchState.ts";
 import {
   applyLifeWorkbenchDampening,
@@ -42,11 +44,13 @@ export const lifePendingChanges = signal<number>(0);
 function evaluateBundleSnapshot(): LifeWorkbenchBundle {
   const rawPlan = lifeWorkbenchPlan.peek();
   const effectivePlan = applyLifeWorkbenchDampening(rawPlan, lifeWorkbenchDampening.peek());
+  const isCustom = useCustomDisasterMode.peek();
+  const customList = customDisasterShocks.peek();
   const presetId = activeDisasterPresetId.peek();
   const trigger = disasterTriggerMonth.peek();
   const delta = commitmentStressDeltaEur.peek();
   const preset = DISASTER_PRESETS.find((p) => p.id === presetId) ?? DISASTER_PRESETS[0];
-  const shocks = preset.buildShocks(trigger);
+  const shocks = isCustom && customList.length > 0 ? customList : preset.buildShocks(trigger);
   return evaluateLifeWorkbenchBundle(effectivePlan, shocks, delta);
 }
 
@@ -70,6 +74,8 @@ effect(() => {
   void lifeWorkbenchPlan.value;
   void lifeWorkbenchDampening.value;
   void activeDisasterPresetId.value;
+  void useCustomDisasterMode.value;
+  void customDisasterShocks.value;
   void disasterTriggerMonth.value;
   void commitmentStressDeltaEur.value;
   if (isFirstEffectRun) {

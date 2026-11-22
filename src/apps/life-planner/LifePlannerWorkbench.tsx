@@ -72,6 +72,9 @@ import {
   LifeExportImportModal,
 } from "#/apps/life-planner/modals/LifeExportImportModal.tsx";
 import {
+  CustomDisasterModal,
+} from "#/apps/life-planner/modals/CustomDisasterModal.tsx";
+import {
   LifeScenarioSwitcherBar,
 } from "#/apps/life-planner/results/LifeScenarioSwitcherBar.tsx";
 import {
@@ -383,6 +386,7 @@ export default function LifePlannerWorkbench(): JSX.Element {
       <LifePlanInputsDrawer />
       <LifeEventComposerModal />
       <LifeExportImportModal />
+      <CustomDisasterModal />
     </AppShell>
   );
 }

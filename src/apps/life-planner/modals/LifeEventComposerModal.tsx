@@ -44,12 +44,14 @@ import {
 import {
   addLifeEvent,
   lifeWorkbenchPlan,
+  updateLifeEvent,
 } from "#/apps/life-planner/store/lifeWorkbenchState.ts";
 import {
   flushLifeWorkbenchCalculations,
 } from "#/apps/life-planner/store/lifeWorkbenchSimulation.ts";
 import {
   closeLifeEventComposer,
+  editingLifeEventId,
   lifeEventComposerOpen,
 } from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
@@ -128,8 +130,11 @@ const COMPOSER_EVENT_OPTIONS: readonly {
 /** Interactive multi-domain Life Event Composer modal. */
 export function LifeEventComposerModal(): JSX.Element | null {
   const open = lifeEventComposerOpen.value;
-  const horizon = lifeWorkbenchPlan.value.baseline.horizonMonths;
-  const hasPartner = Boolean(lifeWorkbenchPlan.value.baseline.partner);
+  const editId = editingLifeEventId.value;
+  const plan = lifeWorkbenchPlan.value;
+  const horizon = plan.baseline.horizonMonths;
+  const hasPartner = Boolean(plan.baseline.partner);
+  const existingEvent = editId ? plan.events.find((e) => e.id === editId) : undefined;
 
   const [kind, setKind] = useState<LifeEventKind>(LifeEventKind.SalaryRaise);
   const [title, setTitle] = useState("Salary Raise (+8%)");
@@ -148,6 +153,91 @@ export function LifeEventComposerModal(): JSX.Element | null {
   const [milestoneKind, setMilestoneKind] = useState<ResidencyMilestoneKind>(
     ResidencyMilestoneKind.PermanentResidency18c,
   );
+
+  useEffect(() => {
+    if (!open || !existingEvent) {
+      return;
+    }
+    setKind(existingEvent.kind);
+    setTitle(existingEvent.title);
+    setEffectiveMonth(existingEvent.effectiveMonth);
+    switch (existingEvent.kind) {
+      case LifeEventKind.SalaryRaise:
+        setPersonKey(existingEvent.personKey);
+        setAmountPrimary(Math.round(existingEvent.percentageIncrease * 1000) / 10);
+        break;
+      case LifeEventKind.BonusSchedule:
+        setPersonKey(existingEvent.personKey);
+        setAmountPrimary(existingEvent.grossBonusAmount);
+        break;
+      case LifeEventKind.JobChange:
+        setPersonKey(existingEvent.personKey);
+        setAmountPrimary(existingEvent.newMonthlyGross);
+        setAmountSecondary(existingEvent.newWeeklyHours);
+        break;
+      case LifeEventKind.JobEnd:
+        setPersonKey(existingEvent.personKey);
+        setJobEndCause(existingEvent.cause);
+        setAmountPrimary(existingEvent.unemploymentMonths);
+        setAmountSecondary(existingEvent.severanceGross ?? 0);
+        break;
+      case LifeEventKind.CompanyCar:
+        setPersonKey(existingEvent.personKey);
+        setAmountPrimary(existingEvent.listPriceGross);
+        setPowertrain(existingEvent.powertrain);
+        setAmountSecondary(existingEvent.oneWayCommuteKm);
+        break;
+      case LifeEventKind.CommuterProfile:
+        setPersonKey(existingEvent.personKey);
+        setAmountPrimary(existingEvent.oneWayDistanceKm);
+        setAmountSecondary(existingEvent.workDaysPerYear);
+        setAmountTertiary(existingEvent.homeOfficeDaysPerYear);
+        break;
+      case LifeEventKind.ChildBirth:
+        setPersonKey(existingEvent.parentOnLeave);
+        setLeaveMode(existingEvent.leaveMode);
+        setAmountPrimary(existingEvent.leaveMonths);
+        setAmountSecondary(existingEvent.partnerLeaveMonths);
+        break;
+      case LifeEventKind.ChildcareFee:
+        setAmountPrimary(existingEvent.monthlyFee);
+        setAmountSecondary(existingEvent.durationMonths);
+        break;
+      case LifeEventKind.RentChange:
+        setAmountPrimary(existingEvent.newMonthlyRent);
+        break;
+      case LifeEventKind.HomePurchase:
+        setAmountPrimary(existingEvent.purchasePrice);
+        setAmountSecondary(existingEvent.downPayment);
+        setAmountTertiary(Math.round(existingEvent.annualInterestRate * 1000) / 10);
+        break;
+      case LifeEventKind.SolarPvInstallation:
+        setAmountPrimary(existingEvent.upfrontCapex);
+        setAmountSecondary(existingEvent.monthlyElectricitySavings + existingEvent.monthlyFeedInRevenue);
+        break;
+      case LifeEventKind.TaxClassSwitch:
+        setPrimaryTaxClass(existingEvent.primaryTaxClass);
+        if (existingEvent.partnerTaxClass) {
+          setPartnerTaxClass(existingEvent.partnerTaxClass);
+        }
+        break;
+      case LifeEventKind.DeductibleExpenses:
+        setAmountPrimary(existingEvent.sonderausgabenAnnual);
+        setAmountSecondary(existingEvent.householdServicesLaborAnnual);
+        break;
+      case LifeEventKind.TravelTrip:
+        setAmountPrimary(existingEvent.totalCost);
+        break;
+      case LifeEventKind.OneOffCashflow:
+        setAmountPrimary(existingEvent.signedAmount);
+        break;
+      case LifeEventKind.ResidencyMilestone:
+        setMilestoneKind(existingEvent.milestoneKind);
+        break;
+      default:
+        break;
+    }
+  }, [open, existingEvent]);
 
   useEffect(() => {
     if (!open || typeof document === "undefined") {
@@ -232,7 +322,7 @@ export function LifeEventComposerModal(): JSX.Element | null {
   };
 
   const handleSubmit = (): void => {
-    const id = toLifeEventId(`USER-${Date.now()}`);
+    const id = existingEvent ? existingEvent.id : toLifeEventId(`USER-${Date.now()}`);
     const month = toSimulationMonth(Math.max(1, Math.min(horizon, Math.trunc(effectiveMonth))));
     const cleanTitle = title.trim() || "Life Event";
     let event: LifeSimulatorEvent;
@@ -438,7 +528,12 @@ export function LifeEventComposerModal(): JSX.Element | null {
         break;
     }
 
-    addLifeEvent(event);
+    if (existingEvent) {
+      updateLifeEvent(event);
+    }
+    else {
+      addLifeEvent(event);
+    }
     flushLifeWorkbenchCalculations();
     closeLifeEventComposer();
   };
@@ -448,7 +543,7 @@ export function LifeEventComposerModal(): JSX.Element | null {
       className="lpw-modal-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="Add Life Event"
+      aria-label={existingEvent ? "Edit Life Event" : "Add Life Event"}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           closeLifeEventComposer();
@@ -457,7 +552,7 @@ export function LifeEventComposerModal(): JSX.Element | null {
     >
       <div className="lpw-modal">
         <div className="lpw-drawer__header">
-          <h2 className="lpw-drawer__title">Add Life Event</h2>
+          <h2 className="lpw-drawer__title">{existingEvent ? "Edit Life Event" : "Add Life Event"}</h2>
           <Button
             size={ButtonSize.Sm}
             variant={ButtonVariant.Ghost}
@@ -946,7 +1041,7 @@ export function LifeEventComposerModal(): JSX.Element | null {
           </Button>
           <Button size={ButtonSize.Sm} variant={ButtonVariant.Primary} onClick={handleSubmit}>
             <AddActionIcon size={13} />
-            <span>Add to Timeline</span>
+            <span>{existingEvent ? "Save Changes" : "Add to Timeline"}</span>
           </Button>
         </div>
       </div>

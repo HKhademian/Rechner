@@ -58,7 +58,9 @@ export const activeLifeChartMode = signal<LifeChartMode>(LifeChartMode.LiquidCas
 export const lifeDrawerOpen = signal<boolean>(false);
 export const lifeDrawerSection = signal<LifeDrawerSection>(LifeDrawerSection.All);
 export const lifeEventComposerOpen = signal<boolean>(false);
+export const editingLifeEventId = signal<string | null>(null);
 export const lifeExportImportOpen = signal<boolean>(false);
+export const customDisasterModalOpen = signal<boolean>(false);
 
 export function openLifeInputsDrawer(section: LifeDrawerSection = LifeDrawerSection.All): void {
   lifeDrawerSection.value = section;
@@ -70,11 +72,18 @@ export function closeLifeInputsDrawer(): void {
 }
 
 export function openLifeEventComposer(): void {
+  editingLifeEventId.value = null;
+  lifeEventComposerOpen.value = true;
+}
+
+export function openLifeEventEditor(eventId: string): void {
+  editingLifeEventId.value = eventId;
   lifeEventComposerOpen.value = true;
 }
 
 export function closeLifeEventComposer(): void {
   lifeEventComposerOpen.value = false;
+  editingLifeEventId.value = null;
 }
 
 export function openLifeExportImport(): void {
@@ -83,4 +92,12 @@ export function openLifeExportImport(): void {
 
 export function closeLifeExportImport(): void {
   lifeExportImportOpen.value = false;
+}
+
+export function openCustomDisasterModal(): void {
+  customDisasterModalOpen.value = true;
+}
+
+export function closeCustomDisasterModal(): void {
+  customDisasterModalOpen.value = false;
 }

@@ -12,6 +12,7 @@ import {
 import {
   AddActionIcon,
   DismissIcon,
+  EditSettingsIcon,
   RemoveItemIcon,
 } from "#components/Icons";
 import {
@@ -45,6 +46,7 @@ import {
   closeLifeInputsDrawer,
   lifeDrawerOpen,
   openLifeEventComposer,
+  openLifeEventEditor,
 } from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
 function parseNonNegative(raw: string): number {
@@ -804,14 +806,27 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
                       {" · "}
                       {ev.title}
                     </span>
-                    <Button
-                      size={ButtonSize.Sm}
-                      variant={ButtonVariant.Ghost}
-                      onClick={() => removeLifeEvent(ev.id)}
-                      aria-label={`Remove ${ev.title}`}
-                    >
-                      <RemoveItemIcon size={13} />
-                    </Button>
+                    <span>
+                      <Button
+                        size={ButtonSize.Sm}
+                        variant={ButtonVariant.Ghost}
+                        onClick={() => {
+                          closeLifeInputsDrawer();
+                          openLifeEventEditor(ev.id);
+                        }}
+                        aria-label={`Edit ${ev.title}`}
+                      >
+                        <EditSettingsIcon size={13} />
+                      </Button>
+                      <Button
+                        size={ButtonSize.Sm}
+                        variant={ButtonVariant.Ghost}
+                        onClick={() => removeLifeEvent(ev.id)}
+                        aria-label={`Remove ${ev.title}`}
+                      >
+                        <RemoveItemIcon size={13} />
+                      </Button>
+                    </span>
                   </div>
                 ))}
               </div>

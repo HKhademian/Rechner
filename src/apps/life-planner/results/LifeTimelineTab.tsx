@@ -13,6 +13,7 @@ import {
 } from "#/components/ui/index.ts";
 import {
   AddActionIcon,
+  EditSettingsIcon,
   RemoveItemIcon,
 } from "#components/Icons";
 import {
@@ -28,6 +29,7 @@ import {
 } from "#/apps/life-planner/store/lifeWorkbenchState.ts";
 import {
   openLifeEventComposer,
+  openLifeEventEditor,
 } from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
 /** Chronological multi-domain Life Event Timeline tab with domain filters & inline month shifting. */
@@ -90,7 +92,7 @@ export function LifeTimelineTab(): JSX.Element {
                 <th>Event</th>
                 <th>Type</th>
                 <th className="lpw-num">Timing</th>
-                <th className="lpw-num">Remove</th>
+                <th className="lpw-num">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -121,6 +123,14 @@ export function LifeTimelineTab(): JSX.Element {
                     </Button>
                   </td>
                   <td className="lpw-num">
+                    <Button
+                      size={ButtonSize.Sm}
+                      variant={ButtonVariant.Ghost}
+                      onClick={() => openLifeEventEditor(ev.id)}
+                      aria-label={`Edit ${ev.title}`}
+                    >
+                      <EditSettingsIcon size={13} />
+                    </Button>
                     <Button
                       size={ButtonSize.Sm}
                       variant={ButtonVariant.Ghost}
