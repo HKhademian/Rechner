@@ -41,10 +41,15 @@ import {
 } from "#/apps/mortgage/MortgageLedgerPanel.tsx";
 import {
   type Kfw300Preset,
+  type RegionalMortgageScenario,
   DEFAULT_KFW_300_PRESET,
+  DEFAULT_REGIONAL_SCENARIO,
   KFW_300_PRESETS,
+  KFW_300_RATES_AS_OF,
+  MUNICH_SCENARIO_PRESETS,
   buildCombinedMortgageSchedule,
   buildTermSensitivityPoints,
+  calculateBlendedAnnualRate,
 } from "#/apps/mortgage/mortgageSchedule.ts";
 import OptionalNumberInput from "#components/OptionalNumberInput";
 import {
@@ -130,17 +135,17 @@ const KFW_QUICK_AMOUNTS = [
     label: "€220k (5+ / QNG)" },
 ] as const;
 
-const DEFAULT_PROPERTY_PRICE = 480000;
-const DEFAULT_SAVINGS = 100000;
-const DEFAULT_CLOSING_COSTS = 57936;
-const DEFAULT_BANK_PRINCIPAL = 267936;
-const DEFAULT_KFW_PRINCIPAL = 170000;
-const DEFAULT_BANK_INTEREST = 3.6;
-const DEFAULT_BANK_REPAYMENT = 2;
-const DEFAULT_HORIZON_YEARS = 15;
-const DEFAULT_INCOME = 5500;
-const DEFAULT_EXPENSES = 2200;
-const DEFAULT_HOUSING_COSTS = 450;
+const DEFAULT_PROPERTY_PRICE = DEFAULT_REGIONAL_SCENARIO.propertyPrice;
+const DEFAULT_SAVINGS = DEFAULT_REGIONAL_SCENARIO.savings;
+const DEFAULT_CLOSING_COSTS = DEFAULT_REGIONAL_SCENARIO.closingCosts;
+const DEFAULT_BANK_PRINCIPAL = DEFAULT_REGIONAL_SCENARIO.bankPrincipal;
+const DEFAULT_KFW_PRINCIPAL = DEFAULT_REGIONAL_SCENARIO.kfwPrincipal;
+const DEFAULT_BANK_INTEREST = DEFAULT_REGIONAL_SCENARIO.bankInterest;
+const DEFAULT_BANK_REPAYMENT = DEFAULT_REGIONAL_SCENARIO.bankRepayment;
+const DEFAULT_HORIZON_YEARS = DEFAULT_REGIONAL_SCENARIO.horizonYears;
+const DEFAULT_INCOME = DEFAULT_REGIONAL_SCENARIO.netIncome;
+const DEFAULT_EXPENSES = DEFAULT_REGIONAL_SCENARIO.expenses;
+const DEFAULT_HOUSING_COSTS = DEFAULT_REGIONAL_SCENARIO.housingCosts;
 
 export default function MortgageCalculator(): JSX.Element {
   const [principal, setPrincipal] = useState(DEFAULT_BANK_PRINCIPAL);
@@ -209,6 +214,29 @@ export default function MortgageCalculator(): JSX.Element {
     setKfwUsingIllustrativeRate(true);
   };
 
+  const applyRegionalScenario = (scenario: RegionalMortgageScenario): void => {
+    const preset = KFW_300_PRESETS.find((p) => p.id === scenario.kfwPresetId) ?? DEFAULT_KFW_300_PRESET;
+    setPrincipal(scenario.bankPrincipal);
+    setInterest(scenario.bankInterest);
+    setRepayment(scenario.bankRepayment);
+    setBankMode(BankPaymentMode.InitialRepayment);
+    setExtraPayment(0);
+    setPropertyPrice(scenario.propertyPrice);
+    setSavings(scenario.savings);
+    setClosingCosts(scenario.closingCosts);
+    setKfwPrincipal(scenario.kfwPrincipal);
+    setKfwInterest(preset.illustrativeRatePercent);
+    setKfwTerm(preset.termYears);
+    setKfwGrace(preset.graceYears);
+    setMethod(preset.method);
+    setKfwUsingIllustrativeRate(true);
+    setYears(scenario.horizonYears);
+    setIncome(scenario.netIncome);
+    setExpenses(scenario.expenses);
+    setHousingCosts(scenario.housingCosts);
+    setTransferred(false);
+  };
+
   const handleKfwPrincipalChange = (nextPrincipal: number): void => {
     setKfwPrincipal(nextPrincipal);
     if (nextPrincipal > 0) {
@@ -226,26 +254,7 @@ export default function MortgageCalculator(): JSX.Element {
   };
 
   const resetDefaults = (): void => {
-    setPrincipal(DEFAULT_BANK_PRINCIPAL);
-    setInterest(DEFAULT_BANK_INTEREST);
-    setRepayment(DEFAULT_BANK_REPAYMENT);
-    setBankMode(BankPaymentMode.InitialRepayment);
-    setBankTerm(30);
-    setExtraPayment(0);
-    setPropertyPrice(DEFAULT_PROPERTY_PRICE);
-    setSavings(DEFAULT_SAVINGS);
-    setClosingCosts(DEFAULT_CLOSING_COSTS);
-    setKfwPrincipal(DEFAULT_KFW_PRINCIPAL);
-    setKfwInterest(DEFAULT_KFW_300_PRESET.illustrativeRatePercent);
-    setKfwTerm(DEFAULT_KFW_300_PRESET.termYears);
-    setKfwGrace(DEFAULT_KFW_300_PRESET.graceYears);
-    setMethod(DEFAULT_KFW_300_PRESET.method);
-    setKfwUsingIllustrativeRate(true);
-    setYears(DEFAULT_HORIZON_YEARS);
-    setIncome(DEFAULT_INCOME);
-    setExpenses(DEFAULT_EXPENSES);
-    setHousingCosts(DEFAULT_HOUSING_COSTS);
-    setTransferred(false);
+    applyRegionalScenario(DEFAULT_REGIONAL_SCENARIO);
   };
 
   useEffect(() => {
@@ -385,10 +394,22 @@ export default function MortgageCalculator(): JSX.Element {
     ? estimateAffordability(toEuroAmount(income), toEuroAmount(expenses), toEuroAmount(housingCosts), toEuroAmount(afterGrace))
     : null;
   const combinedInterest = bank.interestPaid + (kfw?.interestPaid ?? 0);
+  const blendedRate = calculateBlendedAnnualRate(
+    bankPrincipal,
+    bankRate,
+    toEuroAmount(kfwPrincipal),
+    kfwTerms ? kfwTerms.annualInterest : null,
+  );
 
   const activePresetId = kfwPrincipal > 0
     ? KFW_300_PRESETS.find((p) => p.termYears === kfwTerm && p.graceYears === (kfwGrace ?? 0) && p.method === method)?.id
     : undefined;
+  const activeScenarioId = MUNICH_SCENARIO_PRESETS.find(
+    (s) => s.propertyPrice === propertyPrice
+      && s.bankPrincipal === principal
+      && s.kfwPrincipal === kfwPrincipal
+      && s.kfwPresetId === activePresetId,
+  )?.id;
 
   return (
     <AppShell currentPath={calculatorPath(AppId.Mortgage)} wide>
@@ -512,6 +533,22 @@ export default function MortgageCalculator(): JSX.Element {
           </div>
         </div>
 
+        {/* Regional Target Comparison Bar (Munich & Surrounding Towns, Bavaria 3.5% GrESt) */}
+        <div className="mw-quick-presets" role="group" aria-label="Munich and surrounding towns comparison presets">
+          <span className="mw-quick-presets__label">Munich Benchmarks:</span>
+          {MUNICH_SCENARIO_PRESETS.map((scenario) => (
+            <button
+              key={scenario.id}
+              type="button"
+              title={scenario.description}
+              className={`mortgage-chip${activeScenarioId === scenario.id ? " mortgage-chip--active" : ""}`}
+              onClick={() => applyRegionalScenario(scenario)}
+            >
+              {scenario.shortLabel}
+            </button>
+          ))}
+        </div>
+
         {/* Status Banners */}
         {hasInvalidFields && (
           <StatusBanner tone={BannerTone.Warning} title="Some inputs need attention">
@@ -530,7 +567,7 @@ export default function MortgageCalculator(): JSX.Element {
             )}
           >
             {kfwPrincipal > 0
-              ? `Bank loan (${formatEur(principal)}) and KfW 300 loan (${formatEur(kfwPrincipal)}) transferred with editable illustrative KfW 300 defaults.`
+              ? `Bank loan (${formatEur(principal)}) and KfW 300 loan (${formatEur(kfwPrincipal)}) transferred with KfW 300 reference defaults (${KFW_300_RATES_AS_OF}).`
               : `Bank loan (${formatEur(principal)}) and purchase costs transferred from your Home Purchase Planner.`}
           </StatusBanner>
         )}
@@ -538,7 +575,7 @@ export default function MortgageCalculator(): JSX.Element {
         {kfwPrincipal > 0 && kfwUsingIllustrativeRate && (
           <StatusBanner
             tone={BannerTone.Warning}
-            title={`Using illustrative KfW 300 rate (${kfwInterest?.toFixed(2)}% nominal, ${kfwTerm}y term, ${method === LoanMethod.Balloon ? "balloon" : `${kfwGrace}y grace`})`}
+            title={`Using KfW 300 reference rate as of ${KFW_300_RATES_AS_OF} (${kfwInterest?.toFixed(2)}% p.a., ${kfwTerm}y term, ${method === LoanMethod.Balloon ? "balloon" : `${kfwGrace}y grace`})`}
             actions={(
               <>
                 <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={() => openDrawer(DrawerSection.Kfw)}>
@@ -548,7 +585,7 @@ export default function MortgageCalculator(): JSX.Element {
               </>
             )}
           >
-            KfW 300 interest rates change periodically and are typically fixed for 10 years. Replace the nominal rate with your actual bank offer.
+            Official KfW 300 rates are fixed for 10 years max and update with capital markets (Nov 2026: 0.01% for 4–10y, 0.51% for 11–25y, 0.78% for 26–35y, 0.93% balloon). Replace with your bank offer.
           </StatusBanner>
         )}
 
@@ -557,7 +594,9 @@ export default function MortgageCalculator(): JSX.Element {
           <MetricCard
             label="Total Borrowed"
             value={formatEurWhole(totalDebt)}
-            subtitle={`Bank ${formatEurWhole(principal)} + KfW ${formatEurWhole(kfwPrincipal)}`}
+            subtitle={blendedRate !== null && kfwPrincipal > 0
+              ? `Blended ${(blendedRate * 100).toFixed(2)}% (vs. ${interest.toFixed(2)}% bank)`
+              : `Bank ${formatEurWhole(principal)} + KfW ${formatEurWhole(kfwPrincipal)}`}
             tone={MetricTone.Primary}
           />
           <MetricCard

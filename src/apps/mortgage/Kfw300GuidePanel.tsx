@@ -5,6 +5,9 @@ import {
   AppId,
   calculatorPath,
 } from "#/apps/appDefinition.ts";
+import {
+  KFW_300_RATES_AS_OF,
+} from "#/apps/mortgage/mortgageSchedule.ts";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
   LawId,
@@ -17,7 +20,7 @@ export interface Kfw300GuidePanelProps {
 
 /**
  * Concrete inline reference explaining KfW 300 eligibility, income ceilings,
- * loan caps, repayment structures, and the exact calculation formulas used.
+ * loan caps, Nov 2026 rate & term tiers, key contract rules, and Munich/Bavaria context.
  */
 export function Kfw300GuidePanel({
   context,
@@ -26,9 +29,9 @@ export function Kfw300GuidePanel({
     <section className="ui-card mortgage-results kfw-guide" aria-labelledby="kfw-guide-heading">
       <div className="mortgage-section-header">
         <div>
-          <h2 id="kfw-guide-heading">How KfW 300 Works &amp; Calculation Reference</h2>
+          <h2 id="kfw-guide-heading">KfW 300 Official Rules, Rate Tiers &amp; Munich Benchmark</h2>
           <p className="mortgage-muted">
-            KfW 300 (<em>Wohneigentum für Familien</em>) is a subsidized <strong>loan</strong> (not a grant) for families building or buying a new, owner-occupied climate-friendly home (EH 40).
+            KfW 300 (<em>Wohneigentum für Familien – Neubau</em>) is a subsidized <strong>loan</strong> (not a grant) for families building or first-buying (within 12 months of <em>Bauabnahme</em>) an owner-occupied EH 40 climate-friendly home.
           </p>
         </div>
         <LawRefLink lawId={LawId.KfW_300} label="Official KfW 300 reference" />
@@ -36,13 +39,10 @@ export function Kfw300GuidePanel({
 
       <div className="kfw-guide-grid">
         <div className="kfw-guide-block">
-          <h3>1. Eligibility &amp; Income Ceiling (zvE)</h3>
-          <p>
-            You need at least <strong>1 minor child</strong> in the household, an owner-occupied <strong>EH 40 new build</strong> (or qualifying first purchase), and no existing residential property in Germany.
-          </p>
+          <h3>1. Income Ceiling (zvE) &amp; Maximum Loan Caps</h3>
           <p>
             <strong>Income limit formula:</strong>{" "}
-            <code>€90,000 + (children − 1) × €10,000</code> based on the <strong>2-year average household taxable income (zvE)</strong> from the 2nd and 3rd calendar years before application (e.g. 2023 &amp; 2024 tax assessments for a 2026 application).
+            <code>€90,000 + (children − 1) × €10,000</code> using the <strong>2-year average household taxable income (zvE)</strong> from your official <em>Einkommensteuerbescheid</em> for the 2nd and 3rd calendar years before application (e.g. 2023 &amp; 2024 assessments for a 2026 application). Because <em>zvE</em> is after deductions, many Munich households with €110k–€130k gross still qualify.
           </p>
           <table className="domain-calc-table kfw-guide-table">
             <thead>
@@ -86,26 +86,76 @@ export function Kfw300GuidePanel({
               </tr>
             </tbody>
           </table>
+
+          <h3>2. Official Term, Grace &amp; Rate Tiers (as of {KFW_300_RATES_AS_OF})</h3>
+          <table className="domain-calc-table kfw-guide-table">
+            <thead>
+              <tr>
+                <th>Loan Type &amp; Term</th>
+                <th>Fixed Period</th>
+                <th>Interest-Only</th>
+                <th className="num">Ref. Rate p.a.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Annuity · 4–10 yrs</td>
+                <td>10 yrs</td>
+                <td>1–2 yrs</td>
+                <td className="num">0.01%</td>
+              </tr>
+              <tr>
+                <td>Annuity · 11–25 yrs</td>
+                <td>10 yrs</td>
+                <td>1–3 yrs</td>
+                <td className="num">0.51%</td>
+              </tr>
+              <tr>
+                <td>Annuity · 26–35 yrs</td>
+                <td>10 yrs</td>
+                <td>1–5 yrs</td>
+                <td className="num">0.78%</td>
+              </tr>
+              <tr>
+                <td>Endfällig (Balloon) · 4–10 yrs</td>
+                <td>4–10 yrs</td>
+                <td>Full term</td>
+                <td className="num">0.93%</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div className="kfw-guide-block">
-          <h3>2. Repayment Options &amp; Simulator Formulas</h3>
+          <h3>3. Key Eligibility, Contract &amp; Fee Rules</h3>
           <ul className="kfw-guide-list">
             <li>
-              <strong>Annuity with interest-only startup (Tilgungsfreie Anlaufjahre):</strong>{" "}
-              Typical terms are 10, 20, 25, or 35 years with 1–5 interest-only years. During grace years you pay only monthly interest (<code>Principal × Rate / 12</code>); afterwards, the full principal is amortized over the remaining <code>(Term − Grace) × 12</code> months.
+              <strong>Strict first-time &amp; owner-occupancy rules:</strong>{" "}
+              At least 1 child under 18 at application, ≥ 50% co-ownership, <strong>0% prior residential property</strong> in Germany (any inherited share disqualifies), and no prior <em>Baukindergeld</em> (KfW 424). No German citizenship required—only residence and tax assessments.
             </li>
             <li>
-              <strong>Lump-sum / Balloon (Endfälliges Darlehen):</strong>{" "}
-              Usually up to 10 years. Monthly payments cover interest only, and 100% of the principal is due as a lump sum at maturity.
+              <strong>Apply BEFORE signing contracts:</strong>{" "}
+              Submit via your financing partner bank with the dena energy expert&apos;s <em>Bestätigung zum Antrag (BzA)</em> before signing purchase/construction contracts (unless a valid <em>aufschiebende Bedingung</em> clause is included upfront).
+            </li>
+            <li>
+              <strong>No partial prepayments (Sondertilgung):</strong>{" "}
+              Unscheduled partial repayments are not allowed on KfW 300; full early payoff incurs a prepayment penalty (<em>Vorfälligkeitsentschädigung</em>).
+            </li>
+            <li>
+              <strong>Disbursement &amp; commitment fee (Bereitstellungsprovision):</strong>{" "}
+              100% payout, 12 months free draw-down (extendable +24 months), then <strong>0.15%/month</strong> commitment fee from month 13 on undrawn funds.
             </li>
             <li>
               <strong>10-year fixed-rate period (Zinsbindung):</strong>{" "}
-              KfW typically fixes the interest rate for 10 years, after which a follow-up rate applies. This simulator keeps your entered rate constant over the selected horizon so you can compare scenarios cleanly.
+              Subsidized KfW rates apply for the first 10 years only; any remaining balance at year 10 is refinanced at prevailing market rates (flagged as a Year 10 milestone in the ledger).
             </li>
             <li>
-              <strong>Illustrative defaults:</strong>{" "}
-              Because KfW updates interest rates frequently, the simulator pre-fills editable illustrative defaults (e.g. 1.50% nominal, 35 yr term, 5 yr grace) so charts and ledgers work immediately. Replace the rate with your actual KfW offer from your financing bank.
+              <strong>Heating &amp; sister programs:</strong>{" "}
+              Requires EH 40 + lifecycle CO₂ limits and <strong>no oil, gas, or biomass heating</strong>. Combinable with <strong>KfW 124</strong> (up to €100k) and commercial bank loans. For <strong>existing (used) homes</strong>, use sister program <strong>KfW 308 (Jung kauft Alt)</strong> (€140k / €160k / €180k by children).
+            </li>
+            <li>
+              <strong>Munich &amp; Umland impact:</strong>{" "}
+              In Bavaria (3.5% <em>Grunderwerbsteuer</em>), pairing €170k–€220k KfW 300 at 0.01%–0.78% with a 3.60% bank mortgage cuts the blended rate by ~0.7–1.0 percentage points and can save €45k–€60k+ in interest over the 10-year fixed period.
             </li>
           </ul>
           <p className="mortgage-muted">
@@ -116,7 +166,7 @@ export function Kfw300GuidePanel({
               </>
             ) : (
               <>
-                Ready to inspect month-by-month Bank + KfW payments, grace-period step-ups, and charts?{" "}
+                Ready to compare Munich City vs. Umland scenarios, monthly Bank + KfW payments, and charts?{" "}
                 <a href={calculatorPath(AppId.Mortgage)}>Open the Mortgage Simulator</a>.
               </>
             )}
