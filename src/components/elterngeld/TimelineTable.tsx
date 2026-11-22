@@ -36,7 +36,6 @@ import {
   SimulationStrategy,
   ActiveStrategyView,
   toCalendarYear,
-  toMonthSimRef,
 } from "#engine/types";
 import {
   ExportDataIcon,
@@ -489,7 +488,7 @@ export default function TimelineTable(): JSX.Element {
                                 ↳ {act.relativeMonthLabel || m.relativeMonthLabel || act.relativeBirthLabel} Event
                               </div>
                               <div className="eg-ledger__month-meta">
-                                ({m.calendarLabel}) · {act.monthId}
+                                {m.calendarLabel}
                               </div>
                             </div>
                             <button
@@ -593,7 +592,7 @@ export default function TimelineTable(): JSX.Element {
                                 {isCost ? "Cost" : "Event"}
                               </div>
                               <div className="eg-ledger__month-meta">
-                                ({ev.calendarLabel}) · {ev.monthId}
+                                {ev.calendarLabel}
                               </div>
                             </div>
                             <button
@@ -736,11 +735,8 @@ export default function TimelineTable(): JSX.Element {
                             {m.relativeMonthLabel || m.relativeBirthLabel}
                           </span>
                           <span className="eg-ledger__month-cal">
-                            ({m.calendarLabel})
+                            {m.calendarLabel}
                           </span>
-                        </div>
-                        <div className="eg-ledger__month-meta">
-                          {m.monthId} · {m.monthSimRef || toMonthSimRef(m.month)} · Y{m.year}
                         </div>
                       </div>
                       <button

@@ -56,7 +56,6 @@ import {
   type TimelineMonth,
   TimelineTimeRangeFilter,
   toEuroAmount,
-  toMonthSimRef,
 } from "#engine/types";
 import "./TimelineChart.css";
 
@@ -273,7 +272,7 @@ export default function TimelineChart(): JSX.Element {
         <Disclosure title="Inspect reference source" subtle>
           <div className="timeline-chart__reference-details">
             <p>
-              Scenario B ledger · {referenceMonth.monthId} · {referenceMonth.taxClassLabel}
+              Scenario B ledger · {referenceMonth.relativeMonthLabel || referenceMonth.relativeBirthLabel} ({referenceMonth.calendarLabel}) · {referenceMonth.taxClassLabel}
             </p>
             <p className="tabular-nums">
               Husband {formatCurrency(referenceMonth.husbandSalary, 2)} + wife{" "}
@@ -322,10 +321,10 @@ export default function TimelineChart(): JSX.Element {
               {month.relativeMonthLabel || month.relativeBirthLabel}
             </span>
             <span className="ui-chart__tooltip-sublabel">
-              ({month.calendarLabel}) · {month.monthId}
+              {month.calendarLabel}
             </span>
             <div className="ui-chart__tooltip-meta">
-              {month.monthSimRef || toMonthSimRef(month.month)} · Year {month.year}
+              {month.daySplit ? month.daySplit.summaryLabel : month.taxClassLabel}
             </div>
           </div>
           <span className="ui-chart__tooltip-total tabular-nums">

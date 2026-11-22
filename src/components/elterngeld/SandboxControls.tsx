@@ -136,9 +136,7 @@ import {
 } from "#utils/workingHoursPreview";
 
 import {
-  type MonthId,
   type MonthRef,
-  type MonthSimRef,
   type CalendarLabel,
   AllowancePlanMode,
   DaycareBookingHoursTier,
@@ -169,9 +167,7 @@ import {
   toRaiseId,
   toHoursChangeId,
   toFinancialEventId,
-  toMonthId,
   toMonthRef,
-  toMonthSimRef,
   toCalendarLabel,
 } from "#engine/types";
 import {
@@ -240,19 +236,6 @@ export default function SandboxControls(): JSX.Element {
     const m = (totalElapsed % 12) + 1;
     const y = startCalendarYear.value + Math.floor(totalElapsed / 12);
     return toCalendarLabel(m, y);
-  };
-
-  // Helper to compute statutory absolute MonthId (e.g. M09.2027)
-  const getMonthId = (simMonth: number): MonthId => {
-    const totalElapsed = startCalendarMonth.value - 1 + (simMonth - 1);
-    const m = (totalElapsed % 12) + 1;
-    const y = startCalendarYear.value + Math.floor(totalElapsed / 12);
-    return toMonthId(m, y);
-  };
-
-  // Helper to compute simulation start-relative reference (e.g. Sim1, Sim21, Sim60)
-  const getMonthSimRef = (simMonth: number): MonthSimRef => {
-    return toMonthSimRef(simMonth);
   };
 
   // Helper to compute pregnancy-relative month label (e.g. M-8, M1 (Pregnancy Positive), M9 (Birth 1), ..., Birth N)
@@ -673,20 +656,18 @@ export default function SandboxControls(): JSX.Element {
                                   <strong
                                     className="sandbox-text-loss"
                                   >
-                                    {getCalDate(pSimMonth)}
+                                    {getRelativeMonthLabel(pSimMonth)}
                                   </strong>{" "}
-                                  ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
-                                  {getMonthId(pSimMonth)}
+                                  ({getCalDate(pSimMonth)})
                                 </span>
                                 <span>
                                   Birth 1:{" "}
                                   <strong
                                     className="sandbox-text-primary"
                                   >
-                                    {getCalDate(dSimMonth)}
+                                    {getRelativeMonthLabel(dSimMonth)}
                                   </strong>{" "}
-                                  ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
-                                  {getMonthId(dSimMonth)}
+                                  ({preg.expectedDueDate ? formatGermanDate(preg.expectedDueDate) : getCalDate(dSimMonth)})
                                 </span>
                               </div>
                             </div>
@@ -819,20 +800,18 @@ export default function SandboxControls(): JSX.Element {
                                   <strong
                                     className="sandbox-text-loss"
                                   >
-                                    {getCalDate(pSimMonth)}
+                                    {getRelativeMonthLabel(pSimMonth)}
                                   </strong>{" "}
-                                  ({getRelativeMonthLabel(pSimMonth)}) ·{" "}
-                                  {getMonthId(pSimMonth)}
+                                  ({getCalDate(pSimMonth)})
                                 </span>
                                 <span>
                                   Birth #{preg.childIndex}:{" "}
                                   <strong
                                     className="sandbox-text-primary"
                                   >
-                                    {getCalDate(dSimMonth)}
+                                    {getRelativeMonthLabel(dSimMonth)}
                                   </strong>{" "}
-                                  ({getRelativeMonthLabel(dSimMonth)}) ·{" "}
-                                  {getMonthId(dSimMonth)}
+                                  ({preg.expectedDueDate ? formatGermanDate(preg.expectedDueDate) : getCalDate(dSimMonth)})
                                 </span>
                               </div>
                               <div
@@ -1297,7 +1276,7 @@ export default function SandboxControls(): JSX.Element {
                         >
                           {isFirst ? (
                             <>
-                              ↳ Sim Start:{" "}
+                              ↳ Forecast Start:{" "}
                               <strong>{String(startCalendarMonth.value).padStart(2, "0")}.{startCalendarYear.value}</strong> (
                               {Math.max(0, (preg.positiveTestCalendarYear - startCalendarYear.value) * 12 + preg.positiveTestCalendarMonth - startCalendarMonth.value)}M planning
                               before pregnancy)
@@ -3249,10 +3228,8 @@ export default function SandboxControls(): JSX.Element {
                             <strong
                               className={isCost ? "sandbox-text-loss" : "sandbox-text-gain"}
                             >
-                              {getMonthSimRef(sMonth)} · {getCalDate(sMonth)}
-                            </strong>{" "}
-                            ({getRelativeMonthLabel(sMonth)}) ·{" "}
-                            {getMonthId(sMonth)}
+                              {getRelativeMonthLabel(sMonth)} · {getCalDate(sMonth)}
+                            </strong>
                           </span>
                           <span
                             className="sandbox-text-muted-xs"
@@ -3293,8 +3270,7 @@ export default function SandboxControls(): JSX.Element {
                 <span
                   className="sandbox-batch__pill"
                 >
-                  Start: {getCalDate(1)} ({getRelativeMonthLabel(1)}) ·{" "}
-                  {getMonthId(1)} ({simulationDurationMonths.value}M)
+                  Start: {getRelativeMonthLabel(1)} ({getCalDate(1)}) · {simulationDurationMonths.value}M
                 </span>
               </div>
 
@@ -3316,7 +3292,7 @@ export default function SandboxControls(): JSX.Element {
               <div
                 className="sandbox-grid sandbox-grid--compact"
               >
-                {/* ENTRY 1: Simulation Start Date & Horizon */}
+                {/* ENTRY 1: Forecast Start Date & Horizon */}
                 <div
                   className="sandbox-card"
                 >
@@ -3328,16 +3304,14 @@ export default function SandboxControls(): JSX.Element {
                         className="sandbox-inline-icon--secondary"
                       >
                         <SimulationPeriodIcon size={12} />
-                        <span>Sim Start &amp; Horizon:</span>
+                        <span>Forecast Period &amp; Horizon:</span>
                       </span>
                       <span
                         className="sandbox-val-tab--primary"
                       >
-                        {getCalDate(1)} ({getRelativeMonthLabel(1)}) ·{" "}
-                        {getMonthId(1)} → {getCalDate(endSimMonth)} (
-                        {getRelativeMonthLabel(endSimMonth)}) ·{" "}
-                        {getMonthId(endSimMonth)} (
-                        {simulationDurationMonths.value}M)
+                        {getRelativeMonthLabel(1)} ({getCalDate(1)}) →{" "}
+                        {getRelativeMonthLabel(endSimMonth)} ({getCalDate(endSimMonth)}) ·{" "}
+                        {simulationDurationMonths.value}M
                       </span>
                     </div>
                     <div

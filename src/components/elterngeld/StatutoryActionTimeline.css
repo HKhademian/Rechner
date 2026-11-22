@@ -172,7 +172,7 @@
 
 .sat-item {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-columns: 155px minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-card);

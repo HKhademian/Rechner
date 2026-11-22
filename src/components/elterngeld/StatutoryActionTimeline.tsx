@@ -21,6 +21,7 @@ import {
 import {
   buildIsoDate,
   diffCalendarDays,
+  parseIsoDateParts,
 } from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
   type StatutoryDeadlineItem,
@@ -181,6 +182,17 @@ export default function StatutoryActionTimeline(): JSX.Element | null {
     });
   });
 
+  const firstPreg = sortedPregs[0];
+  const firstPosOrdinal =
+    firstPreg.positiveTestCalendarYear * 12 + (firstPreg.positiveTestCalendarMonth - 1);
+  const formatRelativeMx = (iso: IsoCalendarDate): string => {
+    const parts = parseIsoDateParts(iso);
+    const ord = parts.year * 12 + (parts.month - 1);
+    const diff = ord - firstPosOrdinal;
+    const mx = diff < 0 ? diff : diff + 1;
+    return `M${mx}`;
+  };
+
   const allDeadlines = analyses
     .flatMap((a) => a.deadlines)
     .sort((a, b) => diffCalendarDays(b.targetDate, a.targetDate));
@@ -204,8 +216,9 @@ export default function StatutoryActionTimeline(): JSX.Element | null {
             Statutory Filing Deadlines, Switches &amp; Vacation Days
           </h2>
           <p className="sat-header__subtitle">
-            Exact German submission windows for ELSTER tax switches, Mutterschutz, Elternzeit,
-            part-time notices, Elterngeld, Kindergeld, and § 17 BEEG vacation preservation.
+            Exact German submission windows indexed by pregnancy-relative month (M1 = Child #1
+            positive test) and absolute calendar date for ELSTER switches, Mutterschutz,
+            Elternzeit, part-time notices, Elterngeld, Kindergeld, and § 17 BEEG vacation.
           </p>
         </div>
 
@@ -333,7 +346,9 @@ export default function StatutoryActionTimeline(): JSX.Element | null {
               }`}
             >
               <div className="sat-item__date-col tabular-nums">
-                <span className="sat-item__date">{formatGermanDate(item.targetDate)}</span>
+                <span className="sat-item__date">
+                  {formatRelativeMx(item.targetDate)} · {formatGermanDate(item.targetDate)}
+                </span>
                 {item.windowStartDate && item.windowEndDate && (
                   <span className="sat-item__window">
                     Window: {formatGermanDate(item.windowStartDate)} –{" "}
