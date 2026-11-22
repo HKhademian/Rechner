@@ -2,6 +2,9 @@ import type {
   JSX,
 } from "preact";
 import {
+  useState,
+} from "preact/hooks";
+import {
   WikiRefKind,
   WikiRefLink,
 } from "#/components/ui/index.ts";
@@ -16,75 +19,101 @@ import {
   TaxSwitchDiagnosticStatus,
 } from "#engine/formulas/pure/parentalPlanDiagnostics";
 import {
+  workbenchState,
+} from "#/apps/parental-planner/store/workbenchState.ts";
+import {
+  displayedWorkbenchCurrentScenario,
   displayedWorkbenchDiagnostics,
+  workbenchLastCalcDurationMs,
 } from "#/apps/parental-planner/store/workbenchSimulation.ts";
 
-/** Soft-tinted 3-card Plan Diagnostics Strip matching the approved prototype sketch. */
+/** Whisper-quiet 1-line statutory diagnostics & collapsible Audit bar (Concept A). */
 export function PlanDiagnosticsStrip(): JSX.Element {
+  const [auditOpen, setAuditOpen] = useState(false);
+  const s = workbenchState.value;
   const diag = displayedWorkbenchDiagnostics.value;
+  const current = displayedWorkbenchCurrentScenario.value;
+  const durationMs = workbenchLastCalcDurationMs.value;
 
-  const capModifier = diag.incomeCap.status === PlanCapDiagnosticStatus.OverCap
-    ? "plw-diag-card--danger"
+  const capTone = diag.incomeCap.status === PlanCapDiagnosticStatus.OverCap
+    ? "plw-diag-bar__mark--loss"
     : diag.incomeCap.status === PlanCapDiagnosticStatus.NearCap ||
         diag.incomeCap.status === PlanCapDiagnosticStatus.UnknownZvE
-      ? "plw-diag-card--warn"
-      : "plw-diag-card--ok";
+      ? "plw-diag-bar__mark--warn"
+      : "plw-diag-bar__mark--ok";
 
-  const capIcon = diag.incomeCap.status === PlanCapDiagnosticStatus.OverCap
-    ? "!"
-    : diag.incomeCap.status === PlanCapDiagnosticStatus.NearCap ||
-        diag.incomeCap.status === PlanCapDiagnosticStatus.UnknownZvE
-      ? "!"
-      : "✓";
+  const capMark = diag.incomeCap.status === PlanCapDiagnosticStatus.Eligible ? "✓" : "!";
 
-  const switchModifier = diag.taxSwitch.status === TaxSwitchDiagnosticStatus.OptimalLead
-    ? "plw-diag-card--ok"
+  const switchTone = diag.taxSwitch.status === TaxSwitchDiagnosticStatus.OptimalLead
+    ? "plw-diag-bar__mark--ok"
     : diag.taxSwitch.status === TaxSwitchDiagnosticStatus.ShortLead ||
         diag.taxSwitch.status === TaxSwitchDiagnosticStatus.OpportunityAvailable
-      ? "plw-diag-card--warn"
-      : "";
+      ? "plw-diag-bar__mark--warn"
+      : "plw-diag-bar__mark--muted";
 
-  const switchIcon = diag.taxSwitch.status === TaxSwitchDiagnosticStatus.OptimalLead ? "✓" : "!";
+  const switchMark = diag.taxSwitch.status === TaxSwitchDiagnosticStatus.OptimalLead ? "✓" : "!";
+
+  const profiles = current.configuration?.taxProfiles ?? [];
+  const projectedYears = profiles.filter((p) => p.projected).map((p) => p.calendarYear);
 
   return (
-    <section className="plw-diag-grid" aria-label="Plan diagnostics">
-      <div className={`plw-diag-card ${capModifier}`}>
-        <span className="plw-diag-card__icon" aria-hidden="true">{capIcon}</span>
-        <div>
-          <div className="plw-diag-card__title">
-            Income Cap (
-            <WikiRefLink target={{ kind: WikiRefKind.Law,
-              id: LawId.BEEG_1 }}>§ 1 Abs. 8 BEEG</WikiRefLink>
-            )
-          </div>
-          <p className="plw-diag-card__detail">{diag.incomeCap.headline}</p>
+    <section className="plw-diag-bar-wrap" aria-label="Plan diagnostics and audit status">
+      <div className="plw-diag-bar">
+        <div className="plw-diag-bar__items">
+          <span className="plw-diag-bar__item">
+            <strong className={capTone} aria-hidden="true">{capMark}</strong>
+            <span>
+              Income Cap (
+              <WikiRefLink target={{ kind: WikiRefKind.Law,
+                id: LawId.BEEG_1 }}>§ 1 Abs. 8 BEEG</WikiRefLink>
+              ): {diag.incomeCap.headline}
+            </span>
+          </span>
+
+          <span className="plw-diag-bar__item">
+            <strong className={switchTone} aria-hidden="true">{switchMark}</strong>
+            <span>
+              Lead Window (
+              <WikiRefLink target={{ kind: WikiRefKind.Law,
+                id: LawId.BEEG_2b }}>§ 2b BEEG</WikiRefLink>
+              ): {diag.taxSwitch.headline}
+            </span>
+          </span>
+
+          <span className="plw-diag-bar__item">
+            <strong className="plw-diag-bar__mark--brand" aria-hidden="true">§</strong>
+            <span>
+              <WikiRefLink target={{ kind: WikiRefKind.Formula,
+                id: FormulaId.ParentalAllowanceEntitlement }}>Elterngeld Formula</WikiRefLink>
+              : {diag.allowanceRate.headline}
+            </span>
+          </span>
         </div>
+
+        <button
+          type="button"
+          className="plw-diag-bar__audit"
+          aria-expanded={auditOpen}
+          onClick={() => setAuditOpen(!auditOpen)}
+        >
+          Audit ✓{durationMs !== null ? ` ${durationMs} ms` : ""} {auditOpen ? "▴" : "▾"}
+        </button>
       </div>
 
-      <div className={`plw-diag-card ${switchModifier}`}>
-        <span className="plw-diag-card__icon" aria-hidden="true">{switchIcon}</span>
-        <div>
-          <div className="plw-diag-card__title">
-            Tax-Switch Lead Window (
-            <WikiRefLink target={{ kind: WikiRefKind.Law,
-              id: LawId.BEEG_2b }}>§ 2b BEEG</WikiRefLink>
-            )
+      {auditOpen && (
+        <div className="plw-audit-panel">
+          <div className="plw-audit-panel__item">
+            <strong>Benefits:</strong> BEEG §§ 1–4b + {current.months.length}M ledger
           </div>
-          <p className="plw-diag-card__detail">{diag.taxSwitch.headline}</p>
-        </div>
-      </div>
-
-      <div className="plw-diag-card">
-        <span className="plw-diag-card__icon plw-diag-card__icon--brand" aria-hidden="true">§</span>
-        <div>
-          <div className="plw-diag-card__title">
-            Monthly{" "}
-            <WikiRefLink target={{ kind: WikiRefKind.Formula,
-              id: FormulaId.ParentalAllowanceEntitlement }}>Elterngeld Formula</WikiRefLink>
+          <div className="plw-audit-panel__item">
+            <strong>Payroll:</strong> Official {profiles[0]?.sourceYear ?? s.startCalendarYear} PAP
+            {projectedYears.length > 0 ? ` (${projectedYears.join(", ")} projected)` : ""}
           </div>
-          <p className="plw-diag-card__detail">{diag.allowanceRate.headline}</p>
+          <div className="plw-audit-panel__item">
+            <strong>Annual Tax:</strong> EStG §§ 26b, 32b ({(current.assumptions ?? []).length} audit notes)
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

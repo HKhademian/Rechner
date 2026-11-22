@@ -3,6 +3,8 @@ import type {
   JSX,
 } from "preact";
 import {
+  useEffect,
+  useRef,
   useState,
 } from "preact/hooks";
 import {
@@ -14,14 +16,15 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  PageHeader,
   useHydrated,
 } from "#/components/ui/index.ts";
 import {
+  CheckmarkIcon,
+  ChevronDownIcon,
   ClearFormIcon,
   ExportDataIcon,
   ParameterSlidersIcon,
-  SamplePresetIcon,
+  SyncProfileActionIcon,
 } from "#components/Icons";
 import {
   AppId,
@@ -30,20 +33,14 @@ import {
 import {
   WORKBENCH_PRESETS,
   WorkbenchPresetId,
-  toWorkbenchPresetId,
 } from "#engine/simulator/workbenchPresets";
 import {
   StatutoryDeadlineSeverity,
-  toSimulationMonth,
 } from "#engine/types";
-import {
-  simMonthToCalendarDate,
-} from "#engine/simulator/calendarNavigation";
 import {
   applyWorkbenchPreset,
   clearWorkbenchPlan,
   syncWorkbenchFromLifeProfile,
-  workbenchState,
 } from "#/apps/parental-planner/store/workbenchState.ts";
 import {
   flushWorkbenchCalculations,
@@ -81,12 +78,6 @@ import {
   ScenarioSwitcherBar,
 } from "#/apps/parental-planner/results/ScenarioSwitcherBar.tsx";
 import {
-  WorkbenchKpiStrip,
-} from "#/apps/parental-planner/results/WorkbenchKpiStrip.tsx";
-import {
-  PlanDiagnosticsStrip,
-} from "#/apps/parental-planner/results/PlanDiagnosticsStrip.tsx";
-import {
   OverviewTab,
 } from "#/apps/parental-planner/results/OverviewTab.tsx";
 import {
@@ -109,13 +100,42 @@ import {
 const CURRENT_PATH = calculatorPath(AppId.ParentalPlanner);
 
 /**
- * Parental Planner — Full-Screen Analysis Canvas with Slide-Over Plan Inputs Drawer,
- * Live Scenario Comparator & Non-Destructive Dampening Switches, and Inline Wiki Cross-Links.
+ * Parental Planner — Concept A Quiet Command Header + Full-Screen Analysis Canvas.
+ * Two ultra-slim hairline rows (~110px chrome) keep the Overview chart & Monthly Ledger
+ * immediately above the fold, with slide-over Plan Inputs and non-destructive Scenario Levers.
  */
 export default function ParentalLeaveWorkbench(): JSX.Element {
   const hydrated = useHydrated();
   const [selectedPreset, setSelectedPreset] = useState<WorkbenchPresetId>(WorkbenchPresetId.ClassicOneChild);
+  const [planMenuOpen, setPlanMenuOpen] = useState(false);
+  const planMenuRef = useRef<HTMLDivElement>(null);
   const tab = activeWorkbenchTab.value;
+
+  useEffect(() => {
+    if (!planMenuOpen || typeof document === "undefined") {
+      return undefined;
+    }
+    const handlePointerDown = (event: Event): void => {
+      if (
+        event.target instanceof Node &&
+        planMenuRef.current &&
+        !planMenuRef.current.contains(event.target)
+      ) {
+        setPlanMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setPlanMenuOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [planMenuOpen]);
 
   const deadlineWarningCount = hydrated
     ? evaluateWorkbenchDeadlines()
@@ -123,95 +143,132 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
       .filter((d) => d.severity === StatutoryDeadlineSeverity.Warning).length
     : 0;
 
-  const handlePresetChange = (value: string): void => {
-    const id = toWorkbenchPresetId(value);
+  const handleSelectPreset = (id: WorkbenchPresetId): void => {
     setSelectedPreset(id);
+    setPlanMenuOpen(false);
     applyWorkbenchPreset(id);
     flushWorkbenchCalculations();
   };
 
   const handleSyncProfile = (): void => {
+    setPlanMenuOpen(false);
     syncWorkbenchFromLifeProfile();
     flushWorkbenchCalculations();
   };
 
   const handleClear = (): void => {
     setSelectedPreset(WorkbenchPresetId.BlankPlan);
+    setPlanMenuOpen(false);
     clearWorkbenchPlan();
     flushWorkbenchCalculations();
   };
 
-  const s = workbenchState.value;
-  const endCal = simMonthToCalendarDate(
-    toSimulationMonth(s.simulationDurationMonths),
-    s.startCalendarYear,
-    s.startCalendarMonth,
-  );
-  const horizonEyebrow = `Parental Leave · BEEG & EStG · ${String(s.startCalendarMonth).padStart(2, "0")}.${s.startCalendarYear} – ${String(endCal.calendarMonth).padStart(2, "0")}.${endCal.calendarYear} · ${s.simulationDurationMonths} months`;
+  const handleOpenExportImport = (): void => {
+    setPlanMenuOpen(false);
+    openWorkbenchExportImport(ExportImportMode.Export);
+  };
 
   return (
     <AppShell currentPath={CURRENT_PATH} wide>
-      <PageHeader
-        eyebrow={horizonEyebrow}
-        title="Parental Planner"
-        subtitle="Full-screen overview, chart, and monthly ledger with live scenario comparison and lever dampening. Open Plan Inputs whenever you want to adjust household figures."
-        actions={(
-          <div className="plw-header-controls">
-            <Button
-              size={ButtonSize.Sm}
-              variant={ButtonVariant.Primary}
-              onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.All)}
-            >
-              <ParameterSlidersIcon size={13} />
-              <span>Edit Plan</span>
-            </Button>
-            <label htmlFor="plw-preset-picker" className="plw-inline-control__label">
-              <SamplePresetIcon size={13} />
-            </label>
-            <select
-              id="plw-preset-picker"
-              className="plw-preset-select"
-              aria-label="Load starter template"
-              value={selectedPreset}
-              onChange={(event) => handlePresetChange(event.currentTarget.value)}
-            >
-              {WORKBENCH_PRESETS.map((preset) => (
-                <option key={preset.id} value={preset.id}>{preset.name}</option>
-              ))}
-            </select>
-            <Button size={ButtonSize.Sm} variant={ButtonVariant.Ghost} onClick={handleClear}>
-              <ClearFormIcon size={13} />
-              <span>Clear</span>
-            </Button>
-            <Button size={ButtonSize.Sm} variant={ButtonVariant.Ghost} onClick={handleSyncProfile}>
-              Sync Life Profile
-            </Button>
-            <Button
-              size={ButtonSize.Sm}
-              variant={ButtonVariant.Tint}
-              onClick={() => openWorkbenchExportImport(ExportImportMode.Export)}
-            >
-              <ExportDataIcon size={13} />
-              <span>Export / Import</span>
-            </Button>
-          </div>
-        )}
-      />
-
       {hydrated ? (
         <div className="plw-layout plw-layout--fullscreen">
-          <PlanSummaryStrip />
-          <ScenarioSwitcherBar />
-          <WorkbenchKpiStrip />
-          <PlanDiagnosticsStrip />
+          {/* Row 1: Quiet Command Header */}
+          <header className="plw-command-header">
+            <div className="plw-command-header__lead">
+              <h1 className="plw-command-header__title">Parental Planner</h1>
+              <PlanSummaryStrip />
+            </div>
 
-          <section className="plw-workspace-card" aria-label="Analysis workspace">
-            <div className="plw-tabs" role="tablist" aria-label="Workbench analysis views">
+            <div className="plw-command-header__actions">
+              <Button
+                size={ButtonSize.Sm}
+                variant={ButtonVariant.Primary}
+                onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.All)}
+              >
+                <ParameterSlidersIcon size={13} />
+                <span>Edit Plan</span>
+              </Button>
+
+              <div className="plw-popover-anchor" ref={planMenuRef}>
+                <button
+                  type="button"
+                  className="plw-plan-menu-trigger"
+                  aria-expanded={planMenuOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setPlanMenuOpen(!planMenuOpen)}
+                >
+                  <span>Plan</span>
+                  <ChevronDownIcon size={12} />
+                </button>
+
+                {planMenuOpen && (
+                  <div className="plw-plan-menu" role="menu" aria-label="Plan templates and actions">
+                    <div className="plw-plan-menu__section">Starter Templates</div>
+                    {WORKBENCH_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={selectedPreset === preset.id}
+                        className={`plw-plan-menu__item${selectedPreset === preset.id ? " plw-plan-menu__item--active" : ""}`}
+                        onClick={() => handleSelectPreset(preset.id)}
+                      >
+                        <span>{preset.name}</span>
+                        {selectedPreset === preset.id && <CheckmarkIcon size={13} />}
+                      </button>
+                    ))}
+
+                    <div className="plw-plan-menu__divider" role="separator" />
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plw-plan-menu__item"
+                      onClick={handleSyncProfile}
+                    >
+                      <span className="plw-plan-menu__item-lead">
+                        <SyncProfileActionIcon size={13} />
+                        <span>Sync Life Profile</span>
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plw-plan-menu__item"
+                      onClick={handleOpenExportImport}
+                    >
+                      <span className="plw-plan-menu__item-lead">
+                        <ExportDataIcon size={13} />
+                        <span>Export / Import (ZIP · JSON · PDF)</span>
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plw-plan-menu__item plw-plan-menu__item--danger"
+                      onClick={handleClear}
+                    >
+                      <span className="plw-plan-menu__item-lead">
+                        <ClearFormIcon size={13} />
+                        <span>Clear Plan (€0)</span>
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Row 2: Unified Workspace Bar (Tabs + Segmented Scenario + Levers Popover) */}
+          <div className="plw-workspace-bar">
+            <div className="plw-workspace-tabs" role="tablist" aria-label="Workbench analysis views">
               <button
                 type="button"
                 role="tab"
                 aria-selected={tab === WorkbenchTab.Overview}
-                className={`plw-tab${tab === WorkbenchTab.Overview ? " plw-tab--active" : ""}`}
+                className={`plw-workspace-tab${tab === WorkbenchTab.Overview ? " plw-workspace-tab--active" : ""}`}
                 onClick={() => {
                   activeWorkbenchTab.value = WorkbenchTab.Overview;
                 }}
@@ -222,7 +279,7 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
                 type="button"
                 role="tab"
                 aria-selected={tab === WorkbenchTab.Ledger}
-                className={`plw-tab${tab === WorkbenchTab.Ledger ? " plw-tab--active" : ""}`}
+                className={`plw-workspace-tab${tab === WorkbenchTab.Ledger ? " plw-workspace-tab--active" : ""}`}
                 onClick={() => {
                   activeWorkbenchTab.value = WorkbenchTab.Ledger;
                 }}
@@ -233,12 +290,12 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
                 type="button"
                 role="tab"
                 aria-selected={tab === WorkbenchTab.Deadlines}
-                className={`plw-tab${tab === WorkbenchTab.Deadlines ? " plw-tab--active" : ""}`}
+                className={`plw-workspace-tab${tab === WorkbenchTab.Deadlines ? " plw-workspace-tab--active" : ""}`}
                 onClick={() => {
                   activeWorkbenchTab.value = WorkbenchTab.Deadlines;
                 }}
               >
-                <span>Action Deadlines</span>
+                <span>Deadlines</span>
                 {deadlineWarningCount > 0 && (
                   <Badge tone={BadgeTone.Loss}>{deadlineWarningCount}</Badge>
                 )}
@@ -247,7 +304,7 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
                 type="button"
                 role="tab"
                 aria-selected={tab === WorkbenchTab.AnnualTax}
-                className={`plw-tab${tab === WorkbenchTab.AnnualTax ? " plw-tab--active" : ""}`}
+                className={`plw-workspace-tab${tab === WorkbenchTab.AnnualTax ? " plw-workspace-tab--active" : ""}`}
                 onClick={() => {
                   activeWorkbenchTab.value = WorkbenchTab.AnnualTax;
                 }}
@@ -258,22 +315,25 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
                 type="button"
                 role="tab"
                 aria-selected={tab === WorkbenchTab.Rules}
-                className={`plw-tab${tab === WorkbenchTab.Rules ? " plw-tab--active" : ""}`}
+                className={`plw-workspace-tab${tab === WorkbenchTab.Rules ? " plw-workspace-tab--active" : ""}`}
                 onClick={() => {
                   activeWorkbenchTab.value = WorkbenchTab.Rules;
                 }}
               >
-                Rules &amp; Parameters
+                Rules
               </button>
             </div>
 
-            <div className="plw-tab-panel" role="tabpanel">
-              {tab === WorkbenchTab.Overview && <OverviewTab />}
-              {tab === WorkbenchTab.Ledger && <LedgerTab />}
-              {tab === WorkbenchTab.Deadlines && <DeadlinesTab />}
-              {tab === WorkbenchTab.AnnualTax && <AnnualTaxTab />}
-              {tab === WorkbenchTab.Rules && <RulesAndParametersTab />}
-            </div>
+            <ScenarioSwitcherBar />
+          </div>
+
+          {/* Main Workspace Canvas (immediately above the fold!) */}
+          <section className="plw-canvas-body" role="tabpanel">
+            {tab === WorkbenchTab.Overview && <OverviewTab />}
+            {tab === WorkbenchTab.Ledger && <LedgerTab />}
+            {tab === WorkbenchTab.Deadlines && <DeadlinesTab />}
+            {tab === WorkbenchTab.AnnualTax && <AnnualTaxTab />}
+            {tab === WorkbenchTab.Rules && <RulesAndParametersTab />}
           </section>
         </div>
       ) : (

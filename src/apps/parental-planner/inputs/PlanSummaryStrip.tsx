@@ -2,14 +2,6 @@ import type {
   JSX,
 } from "preact";
 import {
-  ChildBirthMilestoneIcon,
-  ChildcareKitaIcon,
-  EmploymentCompensationIcon,
-  ParameterSlidersIcon,
-  SimulationPeriodIcon,
-  TaxClassSwitchIcon,
-} from "#components/Icons";
-import {
   AllowancePlanMode,
   SalaryInputMode,
 } from "#engine/types";
@@ -49,9 +41,8 @@ function formatShortDue(iso: string | undefined): string {
 }
 
 /**
- * Thin clickable Plan Summary Strip sitting above the full-screen analysis canvas.
- * Summarizes all 5 input domains at a glance; clicking any chip opens the slide-over
- * Plan Inputs Drawer directly to that section.
+ * Whisper-quiet inline dotted-underline plan summary breadcrumbs rendered directly inside
+ * the top command header. Clicking any item opens the slide-over Plan Inputs Drawer to that section.
  */
 export function PlanSummaryStrip(): JSX.Element {
   const s = workbenchState.value;
@@ -68,7 +59,7 @@ export function PlanSummaryStrip(): JSX.Element {
   const hasRaises = hasConfiguredRaisesOrBonuses(s);
 
   const kids = s.customPregnancies;
-  let childSummary = "No planned births";
+  let childSummary = "No births";
   if (kids.length === 1) {
     const k = kids[0];
     const modeLabel = k.motherAllowancePlanMode === AllowancePlanMode.Plus
@@ -86,104 +77,78 @@ export function PlanSummaryStrip(): JSX.Element {
       : `1 Child (${mMonths}+${k.fatherPartnerMonthsCount} ${modeLabel})`;
   }
   else if (kids.length > 1) {
-    childSummary = `${kids.length} Children planned`;
+    childSummary = `${kids.length} Children`;
   }
 
-  const switchCount = s.customTaxClassSwitches.length;
-  const taxSummary = switchCount > 0
-    ? damp.dampenTaxSwitches
-      ? `§ 2b Muted · ${s.wifePostBirthHours}h`
-      : `§ 2b Switch (${switchCount}) · ${s.wifePostBirthHours}h`
-    : `No switch · ${s.wifePostBirthHours}h`;
+  const workSummary = `${s.wifePostBirthHours} h/wk`;
 
   const kitaEnabled = Boolean(s.childcarePlan?.enabled);
   const hasExtraBenefits = hasConfiguredBenefitsOrDeductibles(s, extras);
-  const kitaLabel = kitaEnabled
+  const costsSummary = kitaEnabled
     ? damp.dampenKitaCosts
-      ? "Kita Muted"
+      ? "Kita muted"
       : "Kita On"
-    : "Kita Off";
-  const costsSummary = hasExtraBenefits
-    ? damp.dampenBenefitsAndDeductibles
-      ? `${kitaLabel} · Extras Muted`
-      : `${kitaLabel} + Extras`
-    : kitaLabel;
+    : hasExtraBenefits
+      ? damp.dampenBenefitsAndDeductibles
+        ? "Extras muted"
+        : "Extras On"
+      : "Kita Off";
 
   const zve = s.householdTaxableIncome?.[0]?.taxableIncome;
   const zveShort = zve !== undefined ? `ZvE €${Math.round(zve / 1000)}k` : "ZvE —";
-  const capOk = diagnostics.incomeCap.status === PlanCapDiagnosticStatus.Eligible
-    ? "OK"
+  const capSuffix = diagnostics.incomeCap.status === PlanCapDiagnosticStatus.OverCap
+    ? " (Over)"
     : diagnostics.incomeCap.status === PlanCapDiagnosticStatus.NearCap
-      ? "Near"
-      : diagnostics.incomeCap.status === PlanCapDiagnosticStatus.OverCap
-        ? "Over"
-        : "—";
-  const horizonSummary = `${s.simulationDurationMonths}M · ${zveShort} (${capOk})`;
+      ? " (Near)"
+      : "";
+  const horizonSummary = `${s.simulationDurationMonths}M · ${zveShort}${capSuffix}`;
 
   return (
-    <section className="plw-summary-strip" aria-label="Active plan parameters">
-      <div className="plw-summary-strip__chips">
-        <button
-          type="button"
-          className={`plw-summary-chip${hasRaises && damp.dampenRaisesAndBonuses ? " plw-summary-chip--muted" : ""}`}
-          onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Income)}
-        >
-          <EmploymentCompensationIcon size={13} />
-          <span className="plw-summary-chip__k">Income</span>
-          <strong className="plw-summary-chip__v tabular-nums">
-            {formatEur(p1Pay)} / {formatEur(p2Pay)} · {classSummary}
-          </strong>
-        </button>
-
-        <button
-          type="button"
-          className="plw-summary-chip"
-          onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Children)}
-        >
-          <ChildBirthMilestoneIcon size={13} />
-          <span className="plw-summary-chip__k">Leave</span>
-          <strong className="plw-summary-chip__v">{childSummary}</strong>
-        </button>
-
-        <button
-          type="button"
-          className={`plw-summary-chip${damp.dampenTaxSwitches ? " plw-summary-chip--muted" : ""}`}
-          onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.TaxWork)}
-        >
-          <TaxClassSwitchIcon size={13} />
-          <span className="plw-summary-chip__k">Tax</span>
-          <strong className="plw-summary-chip__v">{taxSummary}</strong>
-        </button>
-
-        <button
-          type="button"
-          className={`plw-summary-chip${damp.dampenKitaCosts || damp.dampenBenefitsAndDeductibles ? " plw-summary-chip--muted" : ""}`}
-          onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Costs)}
-        >
-          <ChildcareKitaIcon size={13} />
-          <span className="plw-summary-chip__k">Costs</span>
-          <strong className="plw-summary-chip__v">{costsSummary}</strong>
-        </button>
-
-        <button
-          type="button"
-          className={`plw-summary-chip${damp.dampenInflationIndexing ? " plw-summary-chip--muted" : ""}`}
-          onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Macro)}
-        >
-          <SimulationPeriodIcon size={13} />
-          <span className="plw-summary-chip__k">Horizon</span>
-          <strong className="plw-summary-chip__v tabular-nums">{horizonSummary}</strong>
-        </button>
-      </div>
-
+    <div className="plw-inline-summary" aria-label="Quick-edit plan summary">
       <button
         type="button"
-        className="plw-summary-strip__edit"
-        onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.All)}
+        className={`plw-inline-summary__item tabular-nums${hasRaises && damp.dampenRaisesAndBonuses ? " plw-inline-summary__item--muted" : ""}`}
+        title="Click to edit household income and tax classes"
+        onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Income)}
       >
-        <ParameterSlidersIcon size={13} />
-        <span>All Inputs</span>
+        {formatEur(p1Pay)} / {formatEur(p2Pay)} · {classSummary}
       </button>
-    </section>
+      <span className="plw-inline-summary__sep" aria-hidden="true">·</span>
+      <button
+        type="button"
+        className="plw-inline-summary__item"
+        title="Click to edit children and parental leave split"
+        onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Children)}
+      >
+        {childSummary}
+      </button>
+      <span className="plw-inline-summary__sep" aria-hidden="true">·</span>
+      <button
+        type="button"
+        className={`plw-inline-summary__item${damp.dampenTaxSwitches ? " plw-inline-summary__item--muted" : ""}`}
+        title="Click to edit tax-class switches and post-leave working hours"
+        onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.TaxWork)}
+      >
+        {workSummary}
+      </button>
+      <span className="plw-inline-summary__sep" aria-hidden="true">·</span>
+      <button
+        type="button"
+        className={`plw-inline-summary__item${damp.dampenKitaCosts || damp.dampenBenefitsAndDeductibles ? " plw-inline-summary__item--muted" : ""}`}
+        title="Click to edit Kita childcare, regional benefits, and deductibles"
+        onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Costs)}
+      >
+        {costsSummary}
+      </button>
+      <span className="plw-inline-summary__sep" aria-hidden="true">·</span>
+      <button
+        type="button"
+        className={`plw-inline-summary__item tabular-nums${damp.dampenInflationIndexing ? " plw-inline-summary__item--muted" : ""}`}
+        title="Click to edit planning horizon, ZvE cap, and CPI settings"
+        onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.Macro)}
+      >
+        {horizonSummary}
+      </button>
+    </div>
   );
 }

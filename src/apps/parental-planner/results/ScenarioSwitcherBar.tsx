@@ -2,23 +2,19 @@ import type {
   JSX,
 } from "preact";
 import {
+  useEffect,
+  useRef,
   useState,
 } from "preact/hooks";
 import {
-  Badge,
-  BadgeTone,
   Button,
   ButtonSize,
   ButtonVariant,
 } from "#/components/ui/index.ts";
 import {
-  CareerPromotionMilestoneIcon,
-  ChildcareKitaIcon,
-  FinancialInflowIcon,
-  OptimizationInsightIcon,
+  ChevronDownIcon,
+  ParameterSlidersIcon,
   ResetDefaultsIcon,
-  SimulationPeriodIcon,
-  TaxClassSwitchIcon,
 } from "#components/Icons";
 import {
   ActiveScenarioView,
@@ -45,14 +41,12 @@ import {
 } from "#/apps/parental-planner/store/workbenchDampening.ts";
 import {
   CalculationStatus,
-  displayedWorkbenchCurrentScenario,
   displayedWorkbenchMetrics,
   displayedWorkbenchScenarioA,
   displayedWorkbenchScenarioB,
   displayedWorkbenchScenarioC,
   flushWorkbenchCalculations,
   workbenchCalculationStatus,
-  workbenchLastCalcDurationMs,
   workbenchPendingChanges,
 } from "#/apps/parental-planner/store/workbenchSimulation.ts";
 import {
@@ -61,43 +55,63 @@ import {
   openWorkbenchModal,
 } from "#/apps/parental-planner/store/workbenchUiState.ts";
 
+function formatShortEuroK(amount: number): string {
+  const abs = Math.abs(amount);
+  if (abs >= 1000) {
+    return `${amount < 0 ? "-" : ""}€${Math.round(abs / 1000)}k`;
+  }
+  return formatEur(amount);
+}
+
 /**
- * Full-width Scenario Comparator & Live Dampening Switches Bar.
- * Lets users switch strategies (C / B / A / Compare) and toggle individual plan levers
- * on or off non-destructively right above the full-screen chart & ledger.
+ * Concept A Unified Workspace Right-Hand Controls:
+ * Compact segmented Scenario Switcher (C | B | A | Compare) + clean Levers ▾ popover.
  */
 export function ScenarioSwitcherBar(): JSX.Element {
-  const [auditOpen, setAuditOpen] = useState(false);
+  const [leversOpen, setLeversOpen] = useState(false);
+  const popoverWrapRef = useRef<HTMLDivElement>(null);
+
   const s = workbenchState.value;
   const extras = workbenchExtras.value;
   const damp = workbenchDampening.value;
   const status = workbenchCalculationStatus.value;
   const pending = workbenchPendingChanges.value;
-  const durationMs = workbenchLastCalcDurationMs.value;
-  const current = displayedWorkbenchCurrentScenario.value;
   const metrics = displayedWorkbenchMetrics.value;
   const aTotal = displayedWorkbenchScenarioA.value.summary.grandTotal;
   const bTotal = displayedWorkbenchScenarioB.value.summary.grandTotal;
   const cTotal = displayedWorkbenchScenarioC.value.summary.grandTotal;
 
-  const isCompare = s.activeScenario === ActiveScenarioView.Compare;
-  const dampenedCount = countActiveDampenedSwitches(damp);
+  useEffect(() => {
+    if (!leversOpen || typeof document === "undefined") {
+      return undefined;
+    }
+    const handlePointerDown = (event: Event): void => {
+      if (
+        event.target instanceof Node &&
+        popoverWrapRef.current &&
+        !popoverWrapRef.current.contains(event.target)
+      ) {
+        setLeversOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setLeversOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [leversOpen]);
 
   const selectScenario = (view: ActiveScenarioView): void => {
     if (view !== ActiveScenarioView.Compare) {
       lastSingleScenarioView.value = view;
     }
     setWorkbenchActiveScenario(view);
-  };
-
-  const toggleComparator = (): void => {
-    if (isCompare) {
-      setWorkbenchActiveScenario(lastSingleScenarioView.peek());
-    }
-    else {
-      lastSingleScenarioView.value = s.activeScenario;
-      setWorkbenchActiveScenario(ActiveScenarioView.Compare);
-    }
   };
 
   const hasTaxSwitches = s.customTaxClassSwitches.length > 0;
@@ -111,6 +125,7 @@ export function ScenarioSwitcherBar(): JSX.Element {
       applyOptimalWorkbenchTaxSwitches();
     }
     else {
+      setLeversOpen(false);
       openWorkbenchModal(WorkbenchGranularModal.TaxWork);
       return;
     }
@@ -142,6 +157,7 @@ export function ScenarioSwitcherBar(): JSX.Element {
   const raisesActive = hasRaises && !damp.dampenRaisesAndBonuses;
   const handleToggleRaises = (): void => {
     if (!hasRaises) {
+      setLeversOpen(false);
       openWorkbenchModal(WorkbenchGranularModal.Income);
       return;
     }
@@ -153,6 +169,7 @@ export function ScenarioSwitcherBar(): JSX.Element {
   const extrasActive = hasExtras && !damp.dampenBenefitsAndDeductibles;
   const handleToggleExtras = (): void => {
     if (!hasExtras) {
+      setLeversOpen(false);
       openWorkbenchModal(WorkbenchGranularModal.Costs);
       return;
     }
@@ -176,222 +193,202 @@ export function ScenarioSwitcherBar(): JSX.Element {
     flushWorkbenchCalculations();
   };
 
-  const handleResetDampening = (): void => {
-    resetWorkbenchDampening();
-    flushWorkbenchCalculations();
-  };
-
+  const dampenedCount = countActiveDampenedSwitches(damp);
+  const activeLeverCount =
+    (taxSwitchActive ? 1 : 0) +
+    (kitaActive ? 1 : 0) +
+    (raisesActive ? 1 : 0) +
+    (extrasActive ? 1 : 0) +
+    (indexingActive ? 1 : 0);
   const isStale = status === CalculationStatus.Reevaluating || status === CalculationStatus.Calculating;
-  const statusLabel = status === CalculationStatus.Calculating
-    ? "Calculating…"
-    : status === CalculationStatus.Reevaluating
-      ? `Updating (${pending}) · Audit`
-      : durationMs !== null
-        ? `All calculations complete (${durationMs} ms) · Audit ▾`
-        : "All calculations complete · Audit ▾";
-
-  const profiles = current.configuration?.taxProfiles ?? [];
-  const projectedYears = profiles.filter((p) => p.projected).map((p) => p.calendarYear);
 
   return (
-    <section className="plw-sticky-bar" aria-label="Scenario comparator and dampening controls">
-      <div className="plw-sticky-bar__row">
-        <div className="plw-sticky-bar__lead">
-          <strong>Scenario Comparator</strong>
-          <span>Compare strategies &amp; isolate levers live</span>
-        </div>
+    <div className="plw-workspace-controls">
+      {isStale && (
+        <Button
+          size={ButtonSize.Sm}
+          variant={ButtonVariant.Tint}
+          onClick={flushWorkbenchCalculations}
+        >
+          {status === CalculationStatus.Calculating ? "Calculating…" : `Apply (${pending})`}
+        </Button>
+      )}
 
-        <div className="plw-toolbar__group">
-          <Button
-            size={ButtonSize.Sm}
-            variant={isCompare ? ButtonVariant.Primary : ButtonVariant.Tint}
-            onClick={toggleComparator}
-          >
-            <OptimizationInsightIcon size={13} />
-            <span>{isCompare ? "Comparing C · B · A" : "Compare C vs B vs A"}</span>
-          </Button>
-          {isStale && (
-            <Button
-              size={ButtonSize.Sm}
-              variant={ButtonVariant.Tint}
-              onClick={flushWorkbenchCalculations}
-            >
-              Calculate now
-            </Button>
-          )}
-          <button
-            type="button"
-            className={`plw-audit-pill${isStale ? " plw-audit-pill--stale" : ""}`}
-            aria-expanded={auditOpen}
-            onClick={() => setAuditOpen(!auditOpen)}
-          >
-            {statusLabel}
-          </button>
-        </div>
-      </div>
-
-      <div className="plw-scenario-grid" role="group" aria-label="Choose calculation view">
+      <div className="plw-seg-scenarios" role="group" aria-label="Select scenario strategy">
         <button
           type="button"
-          className={`plw-scenario-card${s.activeScenario === ActiveScenarioView.StatutoryOptimized ? " plw-scenario-card--active" : ""}`}
+          className={`plw-seg-scenarios__btn${s.activeScenario === ActiveScenarioView.StatutoryOptimized ? " plw-seg-scenarios__btn--active" : ""}`}
           aria-pressed={s.activeScenario === ActiveScenarioView.StatutoryOptimized}
+          title={`Planned Switches (C): ${formatEur(cTotal)}`}
           onClick={() => selectScenario(ActiveScenarioView.StatutoryOptimized)}
         >
-          <div className="plw-scenario-card__top">
-            <span className="plw-scenario-card__name">Planned Switches (C)</span>
-            <span className="plw-scenario-card__tag">
-              {s.activeScenario === ActiveScenarioView.StatutoryOptimized ? "Active" : "Optimized"}
-            </span>
-          </div>
-          <div className="plw-scenario-card__val">{formatEur(cTotal)}</div>
+          <span>C</span>
+          <span className="plw-seg-scenarios__amt tabular-nums">{formatShortEuroK(cTotal)}</span>
         </button>
 
         <button
           type="button"
-          className={`plw-scenario-card${s.activeScenario === ActiveScenarioView.UnoptimizedBaseline ? " plw-scenario-card--active" : ""}`}
+          className={`plw-seg-scenarios__btn${s.activeScenario === ActiveScenarioView.UnoptimizedBaseline ? " plw-seg-scenarios__btn--active" : ""}`}
           aria-pressed={s.activeScenario === ActiveScenarioView.UnoptimizedBaseline}
+          title={`Original Classes (B): ${formatEur(bTotal)}`}
           onClick={() => selectScenario(ActiveScenarioView.UnoptimizedBaseline)}
         >
-          <div className="plw-scenario-card__top">
-            <span className="plw-scenario-card__name">Original Classes (B)</span>
-            <span className="plw-scenario-card__tag">Baseline</span>
-          </div>
-          <div className="plw-scenario-card__val">{formatEur(bTotal)}</div>
+          <span>B</span>
+          <span className="plw-seg-scenarios__amt tabular-nums">{formatShortEuroK(bTotal)}</span>
         </button>
 
         <button
           type="button"
-          className={`plw-scenario-card${s.activeScenario === ActiveScenarioView.StatusQuo ? " plw-scenario-card--active" : ""}`}
+          className={`plw-seg-scenarios__btn${s.activeScenario === ActiveScenarioView.StatusQuo ? " plw-seg-scenarios__btn--active" : ""}`}
           aria-pressed={s.activeScenario === ActiveScenarioView.StatusQuo}
+          title={`No Planned Births (A): ${formatEur(aTotal)}`}
           onClick={() => selectScenario(ActiveScenarioView.StatusQuo)}
         >
-          <div className="plw-scenario-card__top">
-            <span className="plw-scenario-card__name">No Planned Births (A)</span>
-            <span className="plw-scenario-card__tag">Reference</span>
-          </div>
-          <div className="plw-scenario-card__val">{formatEur(aTotal)}</div>
+          <span>A</span>
+          <span className="plw-seg-scenarios__amt tabular-nums">{formatShortEuroK(aTotal)}</span>
         </button>
 
         <button
           type="button"
-          className={`plw-scenario-card${isCompare ? " plw-scenario-card--active" : ""}`}
-          aria-pressed={isCompare}
+          className={`plw-seg-scenarios__btn${s.activeScenario === ActiveScenarioView.Compare ? " plw-seg-scenarios__btn--active" : ""}`}
+          aria-pressed={s.activeScenario === ActiveScenarioView.Compare}
+          title={`Compare C vs B vs A (C vs B: ${metrics.gainCvsB >= 0 ? "+" : ""}${formatEur(metrics.gainCvsB)})`}
           onClick={() => selectScenario(ActiveScenarioView.Compare)}
         >
-          <div className="plw-scenario-card__top">
-            <span className="plw-scenario-card__name">Compare All Three</span>
-            <span className="plw-scenario-card__tag">Overlay</span>
-          </div>
-          <div className="plw-scenario-card__sub tabular-nums">
-            C vs B: {metrics.gainCvsB >= 0 ? "+" : ""}{formatEur(metrics.gainCvsB)}
-          </div>
+          Compare
         </button>
       </div>
 
-      <div className="plw-dampening-bar" role="group" aria-label="Scenario dampening switches">
-        <span className="plw-dampening-bar__label">Scenario Levers</span>
+      <div className="plw-popover-anchor" ref={popoverWrapRef}>
+        <button
+          type="button"
+          className={`plw-levers-trigger${dampenedCount > 0 ? " plw-levers-trigger--muted" : ""}`}
+          aria-expanded={leversOpen}
+          aria-haspopup="menu"
+          onClick={() => setLeversOpen(!leversOpen)}
+        >
+          <ParameterSlidersIcon size={12} />
+          <span>
+            {dampenedCount > 0 ? `Levers (${dampenedCount} muted)` : `Levers (${activeLeverCount}/5)`}
+          </span>
+          <ChevronDownIcon size={12} />
+        </button>
 
-        <div className="plw-dampening-bar__switches">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={taxSwitchActive}
-            className={`plw-lever-pill${taxSwitchActive ? " plw-lever-pill--on" : damp.dampenTaxSwitches ? " plw-lever-pill--dampened" : ""}`}
-            onClick={handleToggleTaxSwitch}
-          >
-            <TaxClassSwitchIcon size={12} />
-            <span>§ 2b Tax Switch</span>
-            <span className="plw-lever-pill__state">
-              {taxSwitchActive ? "On" : damp.dampenTaxSwitches ? "Muted" : "Off"}
-            </span>
-          </button>
+        {leversOpen && (
+          <div className="plw-levers-popover" role="menu" aria-label="Scenario dampening switches">
+            <div className="plw-levers-popover__head">
+              <strong>Scenario Levers</strong>
+              <span>Mute or enable without losing inputs</span>
+            </div>
 
-          <button
-            type="button"
-            role="switch"
-            aria-checked={kitaActive}
-            className={`plw-lever-pill${kitaActive ? " plw-lever-pill--on" : damp.dampenKitaCosts ? " plw-lever-pill--dampened" : ""}`}
-            onClick={handleToggleKita}
-          >
-            <ChildcareKitaIcon size={12} />
-            <span>Kita Childcare</span>
-            <span className="plw-lever-pill__state">
-              {kitaActive ? "On" : damp.dampenKitaCosts ? "Muted" : "Off"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            role="switch"
-            aria-checked={raisesActive}
-            className={`plw-lever-pill${raisesActive ? " plw-lever-pill--on" : damp.dampenRaisesAndBonuses ? " plw-lever-pill--dampened" : ""}`}
-            onClick={handleToggleRaises}
-          >
-            <CareerPromotionMilestoneIcon size={12} />
-            <span>Raises &amp; Bonuses</span>
-            <span className="plw-lever-pill__state">
-              {raisesActive ? "On" : damp.dampenRaisesAndBonuses ? "Muted" : "Steady +"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            role="switch"
-            aria-checked={extrasActive}
-            className={`plw-lever-pill${extrasActive ? " plw-lever-pill--on" : damp.dampenBenefitsAndDeductibles ? " plw-lever-pill--dampened" : ""}`}
-            onClick={handleToggleExtras}
-          >
-            <FinancialInflowIcon size={12} />
-            <span>Benefits &amp; Deductibles</span>
-            <span className="plw-lever-pill__state">
-              {extrasActive ? "On" : damp.dampenBenefitsAndDeductibles ? "Muted" : "None +"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            role="switch"
-            aria-checked={indexingActive}
-            className={`plw-lever-pill${indexingActive ? " plw-lever-pill--on" : damp.dampenInflationIndexing ? " plw-lever-pill--dampened" : ""}`}
-            onClick={handleToggleIndexing}
-          >
-            <SimulationPeriodIcon size={12} />
-            <span>CPI Indexing</span>
-            <span className="plw-lever-pill__state">
-              {indexingActive ? "On" : damp.dampenInflationIndexing ? "Muted" : "Off"}
-            </span>
-          </button>
-        </div>
-
-        {dampenedCount > 0 && (
-          <div className="plw-dampening-bar__reset">
-            <Badge tone={BadgeTone.Warning}>{dampenedCount} muted</Badge>
             <button
               type="button"
-              className="plw-dampening-bar__restore"
-              onClick={handleResetDampening}
+              role="menuitemcheckbox"
+              aria-checked={taxSwitchActive}
+              className="plw-levers-popover__row"
+              onClick={handleToggleTaxSwitch}
             >
-              <ResetDefaultsIcon size={12} />
-              <span>Restore all</span>
+              <div>
+                <div className="plw-levers-popover__title">§ 2b Tax-Class Switch</div>
+                <div className="plw-levers-popover__sub">
+                  {hasTaxSwitches
+                    ? `${s.customTaxClassSwitches.length} switch(es) · ${metrics.gainCvsB >= 0 ? "+" : ""}${formatEur(metrics.gainCvsB)}`
+                    : "Synthesize optimal § 2b switch"}
+                </div>
+              </div>
+              <span className={`plw-levers-popover__pill${taxSwitchActive ? " plw-levers-popover__pill--on" : damp.dampenTaxSwitches ? " plw-levers-popover__pill--muted" : ""}`}>
+                {taxSwitchActive ? "ON" : damp.dampenTaxSwitches ? "MUTED" : "OFF"}
+              </span>
             </button>
+
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={kitaActive}
+              className="plw-levers-popover__row"
+              onClick={handleToggleKita}
+            >
+              <div>
+                <div className="plw-levers-popover__title">Kita Childcare Fees</div>
+                <div className="plw-levers-popover__sub">
+                  {hasKitaConfigured ? "Configured childcare schedule" : "Enable default Kita fee"}
+                </div>
+              </div>
+              <span className={`plw-levers-popover__pill${kitaActive ? " plw-levers-popover__pill--on" : damp.dampenKitaCosts ? " plw-levers-popover__pill--muted" : ""}`}>
+                {kitaActive ? "ON" : damp.dampenKitaCosts ? "MUTED" : "OFF"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={raisesActive}
+              className="plw-levers-popover__row"
+              onClick={handleToggleRaises}
+            >
+              <div>
+                <div className="plw-levers-popover__title">Raises &amp; Bonuses</div>
+                <div className="plw-levers-popover__sub">
+                  {hasRaises ? "Custom raises, bonus, or 13th month" : "Steady baseline · click to add"}
+                </div>
+              </div>
+              <span className={`plw-levers-popover__pill${raisesActive ? " plw-levers-popover__pill--on" : damp.dampenRaisesAndBonuses ? " plw-levers-popover__pill--muted" : ""}`}>
+                {raisesActive ? "ON" : damp.dampenRaisesAndBonuses ? "MUTED" : "ADD +"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={extrasActive}
+              className="plw-levers-popover__row"
+              onClick={handleToggleExtras}
+            >
+              <div>
+                <div className="plw-levers-popover__title">Benefits &amp; Deductibles</div>
+                <div className="plw-levers-popover__sub">
+                  {hasExtras ? "Regional grants, events, or §§ 9/10/35a" : "None configured · click to add"}
+                </div>
+              </div>
+              <span className={`plw-levers-popover__pill${extrasActive ? " plw-levers-popover__pill--on" : damp.dampenBenefitsAndDeductibles ? " plw-levers-popover__pill--muted" : ""}`}>
+                {extrasActive ? "ON" : damp.dampenBenefitsAndDeductibles ? "MUTED" : "ADD +"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={indexingActive}
+              className="plw-levers-popover__row"
+              onClick={handleToggleIndexing}
+            >
+              <div>
+                <div className="plw-levers-popover__title">Bracket / CPI Indexing</div>
+                <div className="plw-levers-popover__sub">Future tax bracket inflation adjustment</div>
+              </div>
+              <span className={`plw-levers-popover__pill${indexingActive ? " plw-levers-popover__pill--on" : damp.dampenInflationIndexing ? " plw-levers-popover__pill--muted" : ""}`}>
+                {indexingActive ? "ON" : damp.dampenInflationIndexing ? "MUTED" : "OFF"}
+              </span>
+            </button>
+
+            {dampenedCount > 0 && (
+              <div className="plw-levers-popover__footer">
+                <button
+                  type="button"
+                  className="plw-dampening-bar__restore"
+                  onClick={() => {
+                    resetWorkbenchDampening();
+                    flushWorkbenchCalculations();
+                  }}
+                >
+                  <ResetDefaultsIcon size={12} />
+                  <span>Restore all muted levers</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {auditOpen && (
-        <div className="plw-audit-panel">
-          <div className="plw-audit-panel__item">
-            <strong>Benefits:</strong> BEEG §§ 1–4b + {current.months.length}M ledger
-          </div>
-          <div className="plw-audit-panel__item">
-            <strong>Payroll:</strong> Official {profiles[0]?.sourceYear ?? s.startCalendarYear} PAP
-            {projectedYears.length > 0 ? ` (${projectedYears.join(", ")} projected)` : ""}
-          </div>
-          <div className="plw-audit-panel__item">
-            <strong>Annual Tax:</strong> EStG §§ 26b, 32b ({(current.assumptions ?? []).length} audit notes)
-          </div>
-        </div>
-      )}
-    </section>
+    </div>
   );
 }

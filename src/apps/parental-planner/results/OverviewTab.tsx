@@ -56,6 +56,12 @@ import {
 import {
   workbenchHoveredMonth,
 } from "#/apps/parental-planner/store/workbenchUiState.ts";
+import {
+  WorkbenchKpiStrip,
+} from "#/apps/parental-planner/results/WorkbenchKpiStrip.tsx";
+import {
+  PlanDiagnosticsStrip,
+} from "#/apps/parental-planner/results/PlanDiagnosticsStrip.tsx";
 
 const WORKBENCH_SERIES_BY_KEY: Readonly<
   Record<TimelineChartSeriesKey, ChartSeriesDefinition<TimelineChartSeriesKey>>
@@ -279,57 +285,63 @@ export function OverviewTab(): JSX.Element {
   };
 
   return (
-    <>
-      <div className="plw-toolbar">
-        <SegmentedControl
-          compact
-          label="Filter chart horizon"
-          value={s.timeRangeFilter}
-          options={[
-            {
-              value: TimelineTimeRangeFilter.All,
-              label: "Full Plan",
-            },
-            {
-              value: TimelineTimeRangeFilter.Child1,
-              label: "M1–M24",
-            },
-            {
-              value: TimelineTimeRangeFilter.Child2,
-              label: "M25–M48",
-            },
-            {
-              value: TimelineTimeRangeFilter.Post,
-              label: "M49+",
-            },
-          ]}
-          onChange={setWorkbenchTimeRange}
+    <div className="plw-overview-stack">
+      <WorkbenchKpiStrip />
+
+      <div className="plw-chart-card">
+        <div className="plw-toolbar">
+          <SegmentedControl
+            compact
+            label="Filter chart horizon"
+            value={s.timeRangeFilter}
+            options={[
+              {
+                value: TimelineTimeRangeFilter.All,
+                label: "Full Plan",
+              },
+              {
+                value: TimelineTimeRangeFilter.Child1,
+                label: "M1–M24",
+              },
+              {
+                value: TimelineTimeRangeFilter.Child2,
+                label: "M25–M48",
+              },
+              {
+                value: TimelineTimeRangeFilter.Post,
+                label: "M49+",
+              },
+            ]}
+            onChange={setWorkbenchTimeRange}
+          />
+        </div>
+
+        <TimeSeriesChart<TimelineChartSeriesKey, TimelineMonth>
+          title="Monthly Net Household Cashflow"
+          subtitle={isCompare
+            ? "Comparing Scenario C (Optimized), Scenario B (Baseline), and Scenario A (Status Quo)."
+            : `${currentData.months.length}-month steady-salary projection with statutory Elterngeld, Mutterschutz, and annual tax reconciliation.`}
+          points={chartPoints}
+          series={seriesDefs}
+          mode={abstractMode}
+          modeOptions={isCompare ? undefined : MODE_OPTIONS}
+          onModeChange={(next) => setWorkbenchChartMode(mapAbstractModeToTimelineMode(next))}
+          overlaySeries={overlaySeries}
+          referenceLine={baselineMonthlySalary !== undefined
+            ? {
+              value: baselineMonthlySalary,
+              label: `Baseline Salary ${formatEur(baselineMonthlySalary)}/mo`,
+            }
+            : undefined}
+          formatValue={(v: number) => formatEur(v)}
+          renderTooltip={renderTooltip}
+          onHoverIndexChange={(_index, point) => {
+            workbenchHoveredMonth.value = point?.meta?.month ?? null;
+          }}
         />
       </div>
 
-      <TimeSeriesChart<TimelineChartSeriesKey, TimelineMonth>
-        title="Monthly Net Household Cashflow"
-        subtitle={isCompare
-          ? "Comparing Scenario C (Optimized), Scenario B (Baseline), and Scenario A (Status Quo)."
-          : `${currentData.months.length}-month steady-salary projection with statutory Elterngeld, Mutterschutz, and annual tax reconciliation.`}
-        points={chartPoints}
-        series={seriesDefs}
-        mode={abstractMode}
-        modeOptions={isCompare ? undefined : MODE_OPTIONS}
-        onModeChange={(next) => setWorkbenchChartMode(mapAbstractModeToTimelineMode(next))}
-        overlaySeries={overlaySeries}
-        referenceLine={baselineMonthlySalary !== undefined
-          ? {
-            value: baselineMonthlySalary,
-            label: `Baseline Salary ${formatEur(baselineMonthlySalary)}/mo`,
-          }
-          : undefined}
-        formatValue={(v: number) => formatEur(v)}
-        renderTooltip={renderTooltip}
-        onHoverIndexChange={(_index, point) => {
-          workbenchHoveredMonth.value = point?.meta?.month ?? null;
-        }}
-      />
+      <PlanDiagnosticsStrip />
 
       <div className="plw-prose">
         <p>
@@ -448,6 +460,6 @@ export function OverviewTab(): JSX.Element {
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }
