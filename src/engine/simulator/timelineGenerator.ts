@@ -75,6 +75,8 @@ import {
   type SalaryBonusSlot,
   AllowancePlanMode,
   ElterngeldVariant,
+  FederalStateKitaPresetId,
+  FinancialEventCategory,
   TargetPerson,
   SalaryInputMode,
   TaxClass,
@@ -1289,6 +1291,11 @@ function generateScenario(
     }
 
     // Batch 4: Custom Financial Events (One-Off Costs, Expenses, Grants & Extra Income)
+    const deliveredUnder14 = orderedPregnancies.filter(
+      (preg) =>
+        preg.calculatedDeliverySimulationMonth <= m &&
+        m - preg.calculatedDeliverySimulationMonth < 168,
+    );
     financialEvents.forEach((fe) => {
       const effM = fe.effectiveSimulationMonth;
       if (effM === m) {
@@ -1298,6 +1305,29 @@ function generateScenario(
         ) {
           const amt = fe.amount;
           const isCost = amt < 0;
+          const isDeductibleChildcareEvent =
+            isCost &&
+            fe.category === FinancialEventCategory.ChildcareFees &&
+            (deliveredUnder14.length > 0 || preexisting.existingChildrenCount > 0);
+
+          if (isDeductibleChildcareEvent) {
+            const targetChild = deliveredUnder14[deliveredUnder14.length - 1];
+            const childKey = targetChild ? targetChild.pregnancyId : "PREEXISTING-CHILD-1";
+            const ageMonths = targetChild
+              ? m - targetChild.calculatedDeliverySimulationMonth
+              : 0;
+            const daycareYearBucket =
+              childcareFeesAccumulator.get(rm.calendarYearNum) ?? new Map();
+            const prev = daycareYearBucket.get(childKey) ?? {
+              totalFee: 0,
+              maxAgeMonths: 0,
+            };
+            daycareYearBucket.set(childKey, {
+              totalFee: prev.totalFee + Math.abs(amt),
+              maxAgeMonths: Math.max(prev.maxAgeMonths, ageMonths),
+            });
+            childcareFeesAccumulator.set(rm.calendarYearNum, daycareYearBucket);
+          }
 
           specialEvents.push({
             eventId: toEventId(fe.eventId),
@@ -1315,7 +1345,11 @@ function generateScenario(
             title: fe.title,
             category: toSpecialEventCategory(fe.category),
             statutory: toStatutoryCitation(
-              isCost ? "Out-of-Pocket Expense" : "Special Financial Inflow",
+              isDeductibleChildcareEvent
+                ? "§ 10 Abs. 1 Nr. 5 EStG (Kinderbetreuungskosten)"
+                : isCost
+                  ? "Out-of-Pocket Expense"
+                  : "Special Financial Inflow",
             ),
             taxClassLabel: rm.taxClassLabel,
             amount: fe.amount,
@@ -1339,9 +1373,11 @@ function generateScenario(
                 ? TransactionDirection.Outflow
                 : TransactionDirection.Inflow,
               amount: toEuroAmount(Math.abs(amt)),
-              statutoryCitation: isCost
-                ? "One-off Household Cost"
-                : "Special Inflow",
+              statutoryCitation: isDeductibleChildcareEvent
+                ? "§ 10 Abs. 1 Nr. 5 EStG (Kinderbetreuungskosten)"
+                : isCost
+                  ? "One-off Household Cost"
+                  : "Special Inflow",
               taxClassLabel: rm.taxClassLabel,
               description: `${fe.title} (${rm.calendarLabel})`,
               auditTrail: fe.description || `Financial Event ${fe.eventId}`,
@@ -1369,22 +1405,40 @@ function generateScenario(
       );
       if (daycareResult.totalMonthlyFee > 0) {
         monthChildcareFee = daycareResult.totalMonthlyFee;
-        const paidChildrenCount = daycareResult.perChildFees.filter(
+        const paidCareChildrenCount = daycareResult.perChildFees.filter(
           (item) => item.netMonthlyFee > 0,
         ).length;
-        const daycareYearBucket =
-          childcareFeesAccumulator.get(rm.calendarYearNum) ?? new Map();
-        for (const item of daycareResult.perChildFees) {
-          const prev = daycareYearBucket.get(item.childKey) ?? {
-            totalFee: 0,
-            maxAgeMonths: 0,
-          };
-          daycareYearBucket.set(item.childKey, {
-            totalFee: prev.totalFee + item.netMonthlyFee,
-            maxAgeMonths: Math.max(prev.maxAgeMonths, item.ageMonths),
-          });
+        const activeChildrenCount = daycareResult.perChildFees.length;
+        // Only core care fees (netMonthlyFee) qualify under § 10 Abs. 1 Nr. 5 EStG;
+        // meal contributions (Verpflegungsgeld) are statutorily non-deductible.
+        if (daycareResult.totalMonthlyCareFee > 0) {
+          const daycareYearBucket =
+            childcareFeesAccumulator.get(rm.calendarYearNum) ?? new Map();
+          for (const item of daycareResult.perChildFees) {
+            if (item.netMonthlyFee > 0) {
+              const prev = daycareYearBucket.get(item.childKey) ?? {
+                totalFee: 0,
+                maxAgeMonths: 0,
+              };
+              daycareYearBucket.set(item.childKey, {
+                totalFee: prev.totalFee + item.netMonthlyFee,
+                maxAgeMonths: Math.max(prev.maxAgeMonths, item.ageMonths),
+              });
+            }
+          }
+          childcareFeesAccumulator.set(rm.calendarYearNum, daycareYearBucket);
         }
-        childcareFeesAccumulator.set(rm.calendarYearNum, daycareYearBucket);
+
+        const feeBreakdownText = daycareResult.perChildFees
+          .map((item) =>
+            item.monthlyMealFee > 0
+              ? `rank #${item.siblingCareRank}: ${item.netMonthlyFee} € care + ${item.monthlyMealFee} € meals`
+              : `rank #${item.siblingCareRank}: ${item.netMonthlyFee} €`)
+          .join(", ");
+        const eventTitle =
+          paidCareChildrenCount > 0
+            ? `Daycare / Kita Fees (${paidCareChildrenCount} ${paidCareChildrenCount === 1 ? "child" : "children"}${daycareResult.totalMonthlyMealFee > 0 ? " + Meals" : ""})`
+            : `Daycare / Kita Meal Fees (${activeChildrenCount} ${activeChildrenCount === 1 ? "child" : "children"} · Verpflegungsgeld)`;
 
         specialEvents.push({
           eventId: toEventId(`EVENT-${rm.monthId}-CHILDCARE-FEES`),
@@ -1397,16 +1451,16 @@ function generateScenario(
           relativeBirthLabel: rm.relativeBirthLabel,
           relativeMonthLabel: rm.relativeMonthLabel,
           type: SpecialEventType.CustomCost,
-          title: `Daycare / Kita Fees (${paidChildrenCount} ${paidChildrenCount === 1 ? "child" : "children"})`,
+          title: eventTitle,
           category: SpecialEventCategory.ChildcareFees,
           statutory: toStatutoryCitation(
-            "§ 10 Abs. 1 Nr. 5 EStG & Municipal Kita Reference",
+            daycareResult.totalMonthlyCareFee > 0
+              ? "§ 10 Abs. 1 Nr. 5 EStG & Municipal Kita Schedule"
+              : "Municipal Verpflegungsgeld (non-deductible under § 10 Abs. 1 Nr. 5 EStG)",
           ),
           taxClassLabel: rm.taxClassLabel,
           amount: toEuroAmount(-monthChildcareFee),
-          description: `Monthly municipal daycare contribution (${daycareResult.perChildFees
-            .map((item) => `rank #${item.siblingCareRank}: ${item.netMonthlyFee} €`)
-            .join(", ")})`,
+          description: `Monthly municipal daycare contribution (${feeBreakdownText})`,
         });
 
         txs.push(
@@ -1418,10 +1472,13 @@ function generateScenario(
             type: TransactionType.ExpenseOutflow,
             direction: TransactionDirection.Outflow,
             amount: monthChildcareFee,
-            statutoryCitation: "Municipal Kita Contribution / § 10 Abs. 1 Nr. 5 EStG",
+            statutoryCitation:
+              daycareResult.totalMonthlyCareFee > 0
+                ? "Municipal Kita Contribution / § 10 Abs. 1 Nr. 5 EStG"
+                : "Municipal Verpflegungsgeld (non-deductible)",
             taxClassLabel: rm.taxClassLabel,
-            description: `Daycare / Kita Fees (${rm.calendarLabel})`,
-            auditTrail: `Outflow for ${paidChildrenCount} child(ren) in qualifying daycare window`,
+            description: `${eventTitle} (${rm.calendarLabel})`,
+            auditTrail: `Outflow for ${activeChildrenCount} child(ren) in qualifying daycare window (${daycareResult.totalMonthlyCareFee} € deductible care + ${daycareResult.totalMonthlyMealFee} € non-deductible meals)`,
           }),
         );
       }
@@ -1838,7 +1895,9 @@ function generateScenario(
       ...Object.values(benefitRules).filter((rule) => rule.overridden).map((rule) =>
         `Overridden benefit rule assumption: ${rule.label} = ${rule.value}. Official reference: ${rule.source}`),
       ...(childcarePlan?.enabled ? [
-        `Municipal daycare (${childcarePlan.presetId}) modeled as an illustrative reference schedule for ages ${childcarePlan.startAgeMonths}–${childcarePlan.endAgeMonths} months with § 10 Abs. 1 Nr. 5 EStG Sonderausgaben deduction.`,
+        childcarePlan.presetId === FederalStateKitaPresetId.BavariaMunich
+          ? `Municipal daycare modeled via Landeshauptstadt München Kita-Gebührensatzung (S580) for ages ${childcarePlan.startAgeMonths}–${childcarePlan.endAgeMonths} months; core care fees qualify for § 10 Abs. 1 Nr. 5 EStG Sonderausgaben deduction${childcarePlan.includeMealFees ? " (Verpflegungsgeld meals are cash outflow only, non-deductible)" : ""}.`
+          : `Municipal daycare (${childcarePlan.presetId}) modeled as an illustrative reference schedule for ages ${childcarePlan.startAgeMonths}–${childcarePlan.endAgeMonths} months with § 10 Abs. 1 Nr. 5 EStG Sonderausgaben deduction.`,
         ...(preexisting.existingChildrenCount > 0 ? [
           "Municipal daycare costs are computed for children born in the timeline; preexisting older children without modeled birth dates are excluded.",
         ] : []),

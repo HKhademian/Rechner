@@ -9,7 +9,9 @@ import {
 import {
   type PregnancyAction,
   type ScenarioActionBatches,
+  DaycareBookingHoursTier,
   FederalStateKitaPresetId,
+  FinancialEventCategory,
   SalaryInputMode,
   ScenarioId,
   SpecialEventCategory,
@@ -19,6 +21,7 @@ import {
   toChildIndex,
   toChildrenCount,
   toEuroAmount,
+  toFinancialEventId,
   toFullCalendarYear,
   toGrossSalary,
   toMonthDuration,
@@ -273,5 +276,143 @@ describe("Track 4 Blueprints: Multi-Child (>2), Municipal Daycare (§ 10(1)5), a
       (rec2028Indexed.assessment?.totalLiability ?? Number.POSITIVE_INFINITY) <
       (rec2028Omitted.assessment?.totalLiability ?? 0),
     );
+  });
+
+  it("models Munich S580 Krippe/Kindergarten brackets, sibling step-down, and excludes non-deductible €105 Verpflegungsgeld from § 10(1)5 tax refunds", () => {
+    const baseBatches: ScenarioActionBatches = {
+      scenarioKey: ScenarioId.C,
+      preexisting: {
+        ...standardPreexistingConditions,
+        householdTaxableIncome: undefined,
+        startCalendarYear: toFullCalendarYear(2026),
+        startCalendarMonth: toCalendarMonth(1),
+        simulationDurationMonths: toMonthDuration(72),
+        salaryInputMode: SalaryInputMode.Gross,
+        husbandGross: toGrossSalary(6500),
+        wifeGross: toGrossSalary(4500),
+        husbandInitialTaxClass: TaxClass.III,
+        wifeInitialTaxClass: TaxClass.V,
+        enable13thSalary: false,
+      },
+      pregnancies: [makePregnancy(1, 13, 2026), makePregnancy(2, 37, 2026)],
+      taxClassSwitches: [],
+      salaryRaises: [],
+    };
+
+    const munichCareOnly = runScenarioBatches({
+      ...baseBatches,
+      preexisting: {
+        ...baseBatches.preexisting,
+        childcarePlan: {
+          enabled: true,
+          presetId: FederalStateKitaPresetId.BavariaMunich,
+          bookingHoursTier: DaycareBookingHoursTier.H8_9,
+          includeMealFees: false,
+          customMonthlyFeePerChild: toEuroAmount(0),
+          startAgeMonths: 12,
+          endAgeMonths: 72,
+        },
+      },
+    });
+
+    const munichWithMeals = runScenarioBatches({
+      ...baseBatches,
+      preexisting: {
+        ...baseBatches.preexisting,
+        childcarePlan: {
+          enabled: true,
+          presetId: FederalStateKitaPresetId.BavariaMunich,
+          bookingHoursTier: DaycareBookingHoursTier.H8_9,
+          includeMealFees: true,
+          customMonthlyFeePerChild: toEuroAmount(0),
+          startAgeMonths: 12,
+          endAgeMonths: 72,
+        },
+      },
+    });
+
+    // Child 1 born M13 -> enters Krippe M25 (age 12mo, >80k household gross -> €230/mo)
+    assert.equal(munichCareOnly.months[24].childcareFee, 230);
+    // Child 1 enters Kindergarten M49 (age 36mo -> €0 care fee) while Child 2 enters Krippe M49 (age 12mo, rank 2 -> drops 1 bracket: €230 -> €215!)
+    assert.equal(munichCareOnly.months[48].childcareFee, 215);
+
+    // With €105/mo Verpflegungsgeld enabled: M49 has 2 active children (Kindergarten €0 + Krippe €215 + 2 × €105 meals = €425)
+    assert.equal(munichWithMeals.months[48].childcareFee, 425);
+
+    // Non-deductible Verpflegungsgeld increases cash outflow but MUST NOT increase § 10(1)5 tax deduction or tax refunds
+    assert.ok((munichWithMeals.summary.totalChildcareFees ?? 0) > (munichCareOnly.summary.totalChildcareFees ?? 0));
+    assert.equal(
+      munichWithMeals.summary.childcareTaxDeductionTotal,
+      munichCareOnly.summary.childcareTaxDeductionTotal,
+    );
+    assert.equal(
+      munichWithMeals.summary.totalTaxRefunds,
+      munichCareOnly.summary.totalTaxRefunds,
+    );
+    assert.ok((munichCareOnly.summary.childcareTaxDeductionTotal ?? 0) > 0);
+  });
+
+  it("includes custom Batch 4 ChildcareFees costs in § 10(1)5 tax refunds while keeping BabyEquipment non-deductible", () => {
+    const baseBatches: ScenarioActionBatches = {
+      scenarioKey: ScenarioId.C,
+      preexisting: {
+        ...standardPreexistingConditions,
+        householdTaxableIncome: undefined,
+        startCalendarYear: toFullCalendarYear(2026),
+        startCalendarMonth: toCalendarMonth(1),
+        simulationDurationMonths: toMonthDuration(48),
+        salaryInputMode: SalaryInputMode.Gross,
+        husbandGross: toGrossSalary(6500),
+        wifeGross: toGrossSalary(4500),
+        husbandInitialTaxClass: TaxClass.III,
+        wifeInitialTaxClass: TaxClass.V,
+        enable13thSalary: false,
+      },
+      pregnancies: [makePregnancy(1, 15, 2026)],
+      taxClassSwitches: [],
+      salaryRaises: [],
+    };
+
+    const baseline = runScenarioBatches(baseBatches);
+
+    // BabyEquipment (stroller/crib) is NOT deductible under German § 10 Abs. 1 Nr. 5 EStG
+    const withBabyEquipment = runScenarioBatches({
+      ...baseBatches,
+      financialEvents: [
+        {
+          eventId: toFinancialEventId("FIN-EQUIP-1"),
+          effectiveSimulationMonth: toSimulationMonth(18),
+          effectiveCalendarMonth: toCalendarMonth(6),
+          effectiveCalendarYear: toFullCalendarYear(2027),
+          title: "Stroller & Nursery Equipment",
+          amount: toEuroAmount(-2000),
+          category: FinancialEventCategory.BabyEquipment,
+          description: "Initial baby equipment",
+        },
+      ],
+    });
+    assert.equal(withBabyEquipment.summary.childcareTaxDeductionTotal, 0);
+    assert.equal(withBabyEquipment.summary.totalTaxRefunds, baseline.summary.totalTaxRefunds);
+
+    // Custom ChildcareFees (e.g. Tagesmutter / babysitter) IS deductible at 80% up to €4,800/child (2025+)
+    const withCustomChildcare = runScenarioBatches({
+      ...baseBatches,
+      financialEvents: [
+        {
+          eventId: toFinancialEventId("FIN-TAGESMUTTER-1"),
+          effectiveSimulationMonth: toSimulationMonth(18),
+          effectiveCalendarMonth: toCalendarMonth(6),
+          effectiveCalendarYear: toFullCalendarYear(2027),
+          title: "Private Tagesmutter Childcare",
+          amount: toEuroAmount(-1500),
+          category: FinancialEventCategory.ChildcareFees,
+          description: "Private baby care fees",
+        },
+      ],
+    });
+    const rec2027 = withCustomChildcare.annualTaxRecords?.find((r) => r.calendarYear === 2027);
+    assert.equal(rec2027?.childcareDeduction, 1200); // 80% of €1,500
+    assert.equal(withCustomChildcare.summary.childcareTaxDeductionTotal, 1200);
+    assert.ok(withCustomChildcare.summary.totalTaxRefunds > baseline.summary.totalTaxRefunds);
   });
 });

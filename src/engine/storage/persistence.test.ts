@@ -32,6 +32,7 @@ import {
 } from "#engine/storage/persistence";
 import {
   AllowancePlanMode,
+  DaycareBookingHoursTier,
   ElterngeldVariant,
   TargetPerson,
   SalaryInputMode,
@@ -540,10 +541,28 @@ it("persists, validates, and sanitizes existingChildrenCount, childcarePlan, and
     { childcarePlan: { startAgeMonths: 40,
       endAgeMonths: 20 } },
     { childcarePlan: { startAgeMonths: "12" } },
+    { childcarePlan: { bookingHoursTier: "invalid_tier" } },
+    { childcarePlan: { includeMealFees: "yes" } },
+    { childcarePlan: { monthlyMealFeePerChild: -10 } },
   ]) {
     assert.throws(() => parseRawScenarioData({ ...base,
       ...invalidPatch }), TypeError);
   }
+
+  // Munich S580 optional booking-hours and Verpflegungsgeld fields roundtrip cleanly
+  const munichChildcare = {
+    enabled: true,
+    presetId: FederalStateKitaPresetId.BavariaMunich,
+    customMonthlyFeePerChild: toEuroAmount(250),
+    startAgeMonths: 12,
+    endAgeMonths: 72,
+    bookingHoursTier: DaycareBookingHoursTier.Over9,
+    includeMealFees: true,
+    monthlyMealFeePerChild: toEuroAmount(105),
+  };
+  const munichParsed = deserializeState(serializeState({ ...base,
+    childcarePlan: munichChildcare }));
+  assert.deepEqual(munichParsed.childcarePlan, munichChildcare);
 
   // Non-strict validator clamps and sanitizes cleanly
   const sanitized = validateAndSanitizePersistedState({
@@ -556,6 +575,9 @@ it("persists, validates, and sanitizes existingChildrenCount, childcarePlan, and
       customMonthlyFeePerChild: -100,
       startAgeMonths: 48,
       endAgeMonths: 24,
+      bookingHoursTier: "INVALID",
+      includeMealFees: "nope",
+      monthlyMealFeePerChild: -50,
     },
   }, base);
   assert.equal(sanitized.existingChildrenCount, 10);
@@ -565,6 +587,9 @@ it("persists, validates, and sanitizes existingChildrenCount, childcarePlan, and
   assert.equal(sanitized.childcarePlan?.customMonthlyFeePerChild, 0);
   assert.equal(sanitized.childcarePlan?.startAgeMonths, 48);
   assert.equal(sanitized.childcarePlan?.endAgeMonths, 48);
+  assert.equal(sanitized.childcarePlan?.bookingHoursTier, undefined);
+  assert.equal(sanitized.childcarePlan?.includeMealFees, undefined);
+  assert.equal(sanitized.childcarePlan?.monthlyMealFeePerChild, 0);
 });
 
 it("persists and sanitizes pregnancy Basiselterngeld, ElterngeldPlus, and Auto plan-mode settings across round-trips", () => {

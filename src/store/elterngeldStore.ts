@@ -738,6 +738,17 @@ export function updateChildcarePlan(updates: Partial<ChildcarePlanConfig>): void
     startAgeMonths,
     Math.min(168, Math.trunc(updates.endAgeMonths ?? cur.endAgeMonths)),
   );
+  const bookingHoursTier =
+    "bookingHoursTier" in updates ? updates.bookingHoursTier : cur.bookingHoursTier;
+  const includeMealFees =
+    "includeMealFees" in updates ? updates.includeMealFees : cur.includeMealFees;
+  const monthlyMealFeePerChild =
+    "monthlyMealFeePerChild" in updates
+      ? updates.monthlyMealFeePerChild !== undefined
+        ? toEuroAmount(Math.max(0, Number(updates.monthlyMealFeePerChild) || 0))
+        : undefined
+      : cur.monthlyMealFeePerChild;
+
   childcarePlan.value = Object.freeze({
     enabled: updates.enabled ?? cur.enabled,
     presetId: updates.presetId ?? cur.presetId,
@@ -746,6 +757,9 @@ export function updateChildcarePlan(updates: Partial<ChildcarePlanConfig>): void
       : cur.customMonthlyFeePerChild,
     startAgeMonths,
     endAgeMonths,
+    ...(bookingHoursTier !== undefined ? { bookingHoursTier } : {}),
+    ...(includeMealFees !== undefined ? { includeMealFees } : {}),
+    ...(monthlyMealFeePerChild !== undefined ? { monthlyMealFeePerChild } : {}),
   });
 }
 

@@ -31,6 +31,7 @@ import {
 import {
   type HouseholdTaxableIncomeInput,
   type ChildcarePlanConfig,
+  type DaycareBookingHoursTier,
   type ChildrenCount,
   type GrossSalary,
   type NetSalary,
@@ -69,6 +70,7 @@ import {
   toElterngeldVariant,
   toFinancialEventCategory,
   toFederalStateKitaPresetId,
+  toDaycareBookingHoursTier,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -215,12 +217,64 @@ function parseChildcarePlanConfig(
     endAgeMonths = startAgeMonths;
   }
 
+  let bookingHoursTier: DaycareBookingHoursTier | undefined = fallback.bookingHoursTier;
+  if (obj.bookingHoursTier !== undefined) {
+    if (typeof obj.bookingHoursTier !== "string") {
+      if (strict) {
+        throw new TypeError("childcarePlan.bookingHoursTier must be a valid booking-hours tier string.");
+      }
+    }
+    else if (strict) {
+      bookingHoursTier = toDaycareBookingHoursTier(obj.bookingHoursTier);
+    }
+    else {
+      try {
+        bookingHoursTier = toDaycareBookingHoursTier(obj.bookingHoursTier);
+      }
+      catch {
+        bookingHoursTier = fallback.bookingHoursTier;
+      }
+    }
+  }
+
+  let includeMealFees: boolean | undefined = fallback.includeMealFees;
+  if (obj.includeMealFees !== undefined) {
+    if (typeof obj.includeMealFees !== "boolean") {
+      if (strict) {
+        throw new TypeError("childcarePlan.includeMealFees must be a boolean.");
+      }
+    }
+    else {
+      includeMealFees = obj.includeMealFees;
+    }
+  }
+
+  let monthlyMealFeePerChild: EuroAmount | undefined = fallback.monthlyMealFeePerChild;
+  if (obj.monthlyMealFeePerChild !== undefined) {
+    if (strict && typeof obj.monthlyMealFeePerChild !== "number") {
+      throw new TypeError("childcarePlan.monthlyMealFeePerChild must be a non-negative number.");
+    }
+    const rawMealFee = Number(obj.monthlyMealFeePerChild);
+    if (strict) {
+      if (!Number.isFinite(rawMealFee) || rawMealFee < 0) {
+        throw new TypeError("childcarePlan.monthlyMealFeePerChild must be a non-negative number.");
+      }
+      monthlyMealFeePerChild = toEuroAmount(rawMealFee);
+    }
+    else if (typeof obj.monthlyMealFeePerChild === "number" && Number.isFinite(rawMealFee)) {
+      monthlyMealFeePerChild = toEuroAmount(Math.max(0, Math.min(2000, rawMealFee)));
+    }
+  }
+
   return Object.freeze({
     enabled,
     presetId,
     customMonthlyFeePerChild,
     startAgeMonths,
     endAgeMonths,
+    ...(bookingHoursTier !== undefined ? { bookingHoursTier } : {}),
+    ...(includeMealFees !== undefined ? { includeMealFees } : {}),
+    ...(monthlyMealFeePerChild !== undefined ? { monthlyMealFeePerChild } : {}),
   });
 }
 
