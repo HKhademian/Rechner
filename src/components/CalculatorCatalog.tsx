@@ -14,6 +14,7 @@ import {
   type CalculatorAppDefinition,
   type CalculatorCategory,
   AppId,
+  CalculatorReleaseBadge,
   CalculatorReleaseStatus,
   calculatorPath,
   toCalculatorCategory,
@@ -80,6 +81,7 @@ const catalogStorage = browserAppStorage(AppId.Catalog);
 function renderAppIcon(appId: CalculatorAppDefinition["id"]): JSX.Element {
   switch (appId) {
     case AppId.ParentalLeave:
+    case AppId.ParentalPlanner:
     case AppId.FamilyMilestones:
     case AppId.Mutterschutz:
     case AppId.KindergeldComparison:
@@ -318,6 +320,15 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
                 <span className="calculator-catalog__card-badges">
                   {app.releaseStatus === CalculatorReleaseStatus.Draft && (
                     <Badge tone={BadgeTone.Warning} className="calculator-catalog__demo-badge">Demo</Badge>
+                  )}
+                  {app.releaseBadge === CalculatorReleaseBadge.Beta && (
+                    <Badge tone={BadgeTone.Brand} className="calculator-catalog__demo-badge">Beta</Badge>
+                  )}
+                  {app.releaseBadge === CalculatorReleaseBadge.New && (
+                    <Badge tone={BadgeTone.Gain} className="calculator-catalog__demo-badge">New</Badge>
+                  )}
+                  {app.releaseBadge === CalculatorReleaseBadge.Deprecated && (
+                    <Badge tone={BadgeTone.Warning} className="calculator-catalog__demo-badge">Deprecated</Badge>
                   )}
                   <span className="calculator-catalog__category">{app.category}</span>
                   <span className="calculator-catalog__arrow" aria-hidden="true">

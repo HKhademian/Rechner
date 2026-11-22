@@ -189,6 +189,7 @@ export interface CalculatorNavigationItem {
   readonly category: CalculatorCategory;
   readonly href: string;
   readonly isDraft: boolean;
+  readonly releaseBadge?: CalculatorAppDefinition["releaseBadge"];
   readonly isCurrent: boolean;
 }
 
@@ -206,6 +207,7 @@ export function calculatorNavigationItems(
       category: app.category,
       href,
       isDraft: app.releaseStatus === CalculatorReleaseStatus.Draft,
+      releaseBadge: app.releaseBadge,
       isCurrent: isActiveRoute(currentPath, href),
     };
   });

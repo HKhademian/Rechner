@@ -6,6 +6,7 @@ import {
 export const AppId = { Catalog: "catalog",
   NetPay: "net-pay",
   ParentalLeave: "parental-leave",
+  ParentalPlanner: "parental-planner",
   MunichMap: "munich-map",
   GiroCode: "girocode",
   Visa: "visa",
@@ -65,12 +66,26 @@ export function toCalculatorReleaseStatus(value: string): CalculatorReleaseStatu
   return value as CalculatorReleaseStatus;
 }
 
+export const CalculatorReleaseBadge = {
+  Beta: "beta",
+  New: "new",
+  Deprecated: "deprecated",
+} as const;
+export type CalculatorReleaseBadge = (typeof CalculatorReleaseBadge)[keyof typeof CalculatorReleaseBadge];
+export function toCalculatorReleaseBadge(value: string): CalculatorReleaseBadge {
+  if (!Object.values(CalculatorReleaseBadge).includes(value as CalculatorReleaseBadge)) {
+    throw new TypeError(`Unknown calculator release badge: ${value}`);
+  }
+  return value as CalculatorReleaseBadge;
+}
+
 export interface CalculatorAppDefinition {
   readonly id: Exclude<AppId, typeof AppId.Catalog>;
   readonly title: string;
   readonly description: string;
   readonly category: CalculatorCategory;
   readonly releaseStatus: CalculatorReleaseStatus;
+  readonly releaseBadge?: CalculatorReleaseBadge;
   readonly features: readonly string[];
   readonly keywords: readonly string[];
 }

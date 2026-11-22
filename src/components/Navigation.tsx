@@ -23,6 +23,7 @@ import {
 } from "#components/ui/PopoverMenu";
 import {
   AppId,
+  CalculatorReleaseBadge,
   CalculatorReleaseStatus,
   lawCatalogPath,
   lawDetailPath,
@@ -90,7 +91,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
     : toolItems;
 
   let defaultLawId: LawId = LawId.EStG_32a;
-  if (app?.id === AppId.ParentalLeave) {
+  if (app?.id === AppId.ParentalLeave || app?.id === AppId.ParentalPlanner) {
     defaultLawId = LawId.BEEG_1;
   }
   else if (app?.id === AppId.Visa) {
@@ -183,6 +184,9 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
                     {app?.releaseStatus === CalculatorReleaseStatus.Draft && (
                       <Badge tone={BadgeTone.Warning} className="calculator-navigation__tool-badge">Demo</Badge>
                     )}
+                    {app?.releaseBadge === CalculatorReleaseBadge.Deprecated && (
+                      <Badge tone={BadgeTone.Warning} className="calculator-navigation__tool-badge">Deprecated</Badge>
+                    )}
                     <ChevronDownIcon size={13} className="calculator-navigation__tools-chevron" />
                   </>
                 )}
@@ -219,6 +223,15 @@ export default function Navigation({ currentPath = "/" }: NavigationProps): JSX.
                         <span className="calculator-navigation__tool-title">{item.title}</span>
                         {item.isDraft && (
                           <Badge tone={BadgeTone.Warning} className="calculator-navigation__tool-badge">Demo</Badge>
+                        )}
+                        {item.releaseBadge === CalculatorReleaseBadge.New && (
+                          <Badge tone={BadgeTone.Gain} className="calculator-navigation__tool-badge">New</Badge>
+                        )}
+                        {item.releaseBadge === CalculatorReleaseBadge.Beta && (
+                          <Badge tone={BadgeTone.Brand} className="calculator-navigation__tool-badge">Beta</Badge>
+                        )}
+                        {item.releaseBadge === CalculatorReleaseBadge.Deprecated && (
+                          <Badge tone={BadgeTone.Warning} className="calculator-navigation__tool-badge">Deprecated</Badge>
                         )}
                       </span>
                       <span className="calculator-navigation__tool-meta">{item.category}</span>

@@ -223,6 +223,7 @@ export function getProjectionProfileForApp(
     case AppId.NetPay:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.NetPayFocus];
     case AppId.ParentalLeave:
+    case AppId.ParentalPlanner:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.ParentalLeaveFocus];
     case AppId.GiroCode:
       return FORM_PROJECTION_PROFILES[FormProjectionProfileId.GiroCodeFocus];

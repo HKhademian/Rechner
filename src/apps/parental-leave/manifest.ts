@@ -2,6 +2,7 @@ import {
   type CalculatorAppDefinition,
   AppId,
   CalculatorCategory,
+  CalculatorReleaseBadge,
   CalculatorReleaseStatus,
 } from "#/apps/appDefinition.ts";
 
@@ -11,6 +12,7 @@ export const parentalLeaveApp = {
   description: "Plan parental leave, benefits, work hours and household income over time.",
   category: CalculatorCategory.Family,
   releaseStatus: CalculatorReleaseStatus.Published,
+  releaseBadge: CalculatorReleaseBadge.Deprecated,
   features: ["Maternity and parental benefits", "Work and salary changes", "Monthly income comparison"],
   keywords: ["Elterngeld", "Elternzeit", "Rechner", "pregnancy", "birth", "family", "benefits", "parental"],
 } satisfies CalculatorAppDefinition;
