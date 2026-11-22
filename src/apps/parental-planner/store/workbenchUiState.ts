@@ -3,6 +3,7 @@ import {
 } from "@preact/signals";
 import {
   type PregnancyId,
+  ActiveScenarioView,
 } from "#engine/types";
 
 export const WorkbenchTab = {
@@ -40,6 +41,24 @@ export function toWorkbenchGranularModal(value: string): WorkbenchGranularModal 
   return value as WorkbenchGranularModal;
 }
 
+export const WorkbenchDrawerSection = {
+  All: "all",
+  Income: "income",
+  Children: "children",
+  TaxWork: "tax-work",
+  Costs: "costs",
+  Macro: "macro",
+} as const;
+export type WorkbenchDrawerSection =
+  (typeof WorkbenchDrawerSection)[keyof typeof WorkbenchDrawerSection];
+
+export function toWorkbenchDrawerSection(value: string): WorkbenchDrawerSection {
+  if (!Object.values(WorkbenchDrawerSection).includes(value as WorkbenchDrawerSection)) {
+    throw new TypeError(`Unknown workbench drawer section: ${value}`);
+  }
+  return value as WorkbenchDrawerSection;
+}
+
 export const ExportImportMode = {
   Export: "export",
   Import: "import",
@@ -52,6 +71,22 @@ export const activeWorkbenchModal = signal<WorkbenchGranularModal>(WorkbenchGran
 export const activeWorkbenchModalChildId = signal<PregnancyId | null>(null);
 export const workbenchHoveredMonth = signal<number | null>(null);
 export const workbenchExportImportMode = signal<ExportImportMode>(ExportImportMode.Export);
+export const isPlanInputsDrawerOpen = signal<boolean>(false);
+export const activeDrawerSection = signal<WorkbenchDrawerSection>(WorkbenchDrawerSection.All);
+export const lastSingleScenarioView = signal<ActiveScenarioView>(
+  ActiveScenarioView.StatutoryOptimized,
+);
+
+export function openPlanInputsDrawer(
+  section: WorkbenchDrawerSection = WorkbenchDrawerSection.All,
+): void {
+  activeDrawerSection.value = section;
+  isPlanInputsDrawerOpen.value = true;
+}
+
+export function closePlanInputsDrawer(): void {
+  isPlanInputsDrawerOpen.value = false;
+}
 
 export function openWorkbenchModal(
   modal: WorkbenchGranularModal,

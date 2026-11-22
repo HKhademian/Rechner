@@ -77,6 +77,9 @@ import {
   WorkbenchPresetId as PresetId,
   buildWorkbenchPresetState,
 } from "#engine/simulator/workbenchPresets";
+import {
+  resetWorkbenchDampening,
+} from "#/apps/parental-planner/store/workbenchDampening.ts";
 
 export interface WorkbenchExtrasState {
   /** Annual work-related expenses (§ 9 EStG) across the household. */
@@ -358,6 +361,7 @@ export function updateWorkbenchExtras(
 
 export function applyWorkbenchPreset(presetId: WorkbenchPresetId): void {
   batch(() => {
+    resetWorkbenchDampening();
     const next = deriveWithGrossSync(buildWorkbenchPresetState(presetId));
     workbenchState.value = next;
     persistState(next);
@@ -373,9 +377,12 @@ export function clearWorkbenchPlan(): void {
 }
 
 export function importWorkbenchState(next: ElterngeldPersistedState): void {
-  const synced = deriveWithGrossSync(next);
-  workbenchState.value = synced;
-  persistState(synced);
+  batch(() => {
+    resetWorkbenchDampening();
+    const synced = deriveWithGrossSync(next);
+    workbenchState.value = synced;
+    persistState(synced);
+  });
 }
 
 /** One-way non-destructive read of the user's saved Classic Parental Leave Planner state. */

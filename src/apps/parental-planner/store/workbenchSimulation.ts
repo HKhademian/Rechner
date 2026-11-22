@@ -51,6 +51,10 @@ import {
   workbenchState,
 } from "#/apps/parental-planner/store/workbenchState.ts";
 import {
+  applyWorkbenchDampening,
+  workbenchDampening,
+} from "#/apps/parental-planner/store/workbenchDampening.ts";
+import {
   type ElterngeldPersistedState,
 } from "#engine/storage/persistence";
 import {
@@ -201,8 +205,12 @@ interface WorkbenchSnapshot {
 }
 
 function evaluateSnapshot(): WorkbenchSnapshot {
-  const state = workbenchState.peek();
-  const extras = workbenchExtras.peek();
+  const rawState = workbenchState.peek();
+  const rawExtras = workbenchExtras.peek();
+  const {
+    effectiveState: state,
+    effectiveExtras: extras,
+  } = applyWorkbenchDampening(rawState, rawExtras, workbenchDampening.peek());
   const scenarioA = computeWorkbenchScenario(SimulationStrategy.StatusQuo, state, extras);
   const scenarioB = computeWorkbenchScenario(SimulationStrategy.UnoptimizedBaseline, state, extras);
   const scenarioC = computeWorkbenchScenario(SimulationStrategy.StatutoryOptimized, state, extras);
@@ -254,9 +262,10 @@ const scheduler = createCalculationScheduler({
 
 let isFirstEffectRun = true;
 effect(() => {
-  // Subscribe to state, extras, and statutory parameter context changes.
+  // Subscribe to state, extras, dampening switches, and statutory parameter context changes.
   void workbenchState.value;
   void workbenchExtras.value;
+  void workbenchDampening.value;
   void activeStatutoryContext.value;
   if (isFirstEffectRun) {
     isFirstEffectRun = false;

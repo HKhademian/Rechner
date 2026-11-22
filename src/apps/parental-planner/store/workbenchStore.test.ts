@@ -52,14 +52,24 @@ import {
   flushWorkbenchCalculations,
 } from "#/apps/parental-planner/store/workbenchSimulation.ts";
 import {
+  WorkbenchDampeningKey,
+  countActiveDampenedSwitches,
+  resetWorkbenchDampening,
+  toggleWorkbenchDampening,
+  toWorkbenchDampeningKey,
+  workbenchDampening,
+} from "#/apps/parental-planner/store/workbenchDampening.ts";
+import {
+  WorkbenchDrawerSection,
   WorkbenchGranularModal,
   WorkbenchTab,
+  toWorkbenchDrawerSection,
   toWorkbenchGranularModal,
   toWorkbenchTab,
 } from "#/apps/parental-planner/store/workbenchUiState.ts";
 
 describe("parental-planner store", () => {
-  it("validates UI enums strictly", () => {
+  it("validates UI and dampening enums strictly", () => {
     assert.equal(toWorkbenchTab("overview"), WorkbenchTab.Overview);
     assert.equal(toWorkbenchTab("deadlines"), WorkbenchTab.Deadlines);
     assert.throws(() => toWorkbenchTab("unknown"), TypeError);
@@ -67,6 +77,12 @@ describe("parental-planner store", () => {
     assert.equal(toWorkbenchGranularModal("income"), WorkbenchGranularModal.Income);
     assert.equal(toWorkbenchGranularModal("costs"), WorkbenchGranularModal.Costs);
     assert.throws(() => toWorkbenchGranularModal("invalid"), TypeError);
+
+    assert.equal(toWorkbenchDrawerSection("children"), WorkbenchDrawerSection.Children);
+    assert.throws(() => toWorkbenchDrawerSection("nope"), TypeError);
+
+    assert.equal(toWorkbenchDampeningKey("tax-switches"), WorkbenchDampeningKey.TaxSwitches);
+    assert.throws(() => toWorkbenchDampeningKey("bogus"), TypeError);
   });
 
   it("matches direct runScenarioBatches bit-for-bit across all steady-salary presets", () => {
@@ -180,5 +196,40 @@ describe("parental-planner store", () => {
     assert.equal(s.customTaxClassSwitches.length, 0);
     assert.equal(s.childcarePlan?.enabled, false);
     assert.equal(displayedWorkbenchScenarioC.value.summary.grandTotal, 0);
+  });
+
+  it("dampens tax switches and extras non-destructively without erasing persisted user inputs", () => {
+    applyWorkbenchPreset(WorkbenchPresetId.ClassicOneChild);
+    updateWorkbenchExtras({
+      regionalBenefitMonthly: toEuroAmount(250),
+    });
+    flushWorkbenchCalculations();
+
+    const persistedSwitchesBefore = workbenchState.peek().customTaxClassSwitches.length;
+    const totalBefore = displayedWorkbenchScenarioC.value.summary.grandTotal;
+    const gainBefore = displayedWorkbenchMetrics.value.gainCvsB;
+    assert.ok(persistedSwitchesBefore > 0);
+    assert.ok(gainBefore > 0);
+
+    toggleWorkbenchDampening(WorkbenchDampeningKey.TaxSwitches);
+    toggleWorkbenchDampening(WorkbenchDampeningKey.BenefitsAndDeductibles);
+    flushWorkbenchCalculations();
+
+    assert.equal(countActiveDampenedSwitches(workbenchDampening.peek()), 2);
+    // Persisted inputs remain intact
+    assert.equal(workbenchState.peek().customTaxClassSwitches.length, persistedSwitchesBefore);
+    assert.equal(workbenchExtras.peek().regionalBenefitMonthly, 250);
+    // Effective simulation suppresses tax switch advantage & regional benefit
+    assert.equal(displayedWorkbenchMetrics.value.gainCvsB, 0);
+    assert.ok(displayedWorkbenchScenarioC.value.summary.grandTotal < totalBefore);
+
+    resetWorkbenchDampening();
+    flushWorkbenchCalculations();
+    assert.equal(countActiveDampenedSwitches(workbenchDampening.peek()), 0);
+    assert.equal(displayedWorkbenchMetrics.value.gainCvsB, gainBefore);
+    assert.equal(displayedWorkbenchScenarioC.value.summary.grandTotal, totalBefore);
+
+    applyWorkbenchPreset(WorkbenchPresetId.ClassicOneChild);
+    flushWorkbenchCalculations();
   });
 });
