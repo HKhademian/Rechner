@@ -52,6 +52,11 @@ import {
 } from "#components/topics/TopicHelp";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
+  DismissIcon,
+  ParameterSlidersIcon,
+  ResetDefaultsIcon,
+} from "#components/Icons";
+import {
   AppShell,
   Badge,
   BadgeTone,
@@ -59,10 +64,10 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  LinkButton,
   MetricCard,
   MetricTone,
   NumberField,
-  PageHeader,
   SegmentedControl,
   StatusBanner,
 } from "#/components/ui/index.ts";
@@ -74,6 +79,7 @@ import {
   toPercentageRate,
 } from "#engine/types";
 import {
+  formatEur as formatEurWhole,
   formatEurCents as formatEur,
 } from "#utils/currencyFormat";
 
@@ -105,16 +111,13 @@ const MortgageResultsTab = {
 } as const;
 type MortgageResultsTab = (typeof MortgageResultsTab)[keyof typeof MortgageResultsTab];
 
-const RESULTS_TAB_OPTIONS = [
-  { value: MortgageResultsTab.Overview,
-    label: "Overview & Charts" },
-  { value: MortgageResultsTab.Ledger,
-    label: "Repayment Ledger" },
-  { value: MortgageResultsTab.Affordability,
-    label: "Affordability" },
-  { value: MortgageResultsTab.KfwGuide,
-    label: "KfW 300 Guide" },
-] as const;
+const DrawerSection = {
+  All: "all",
+  Bank: "bank",
+  Kfw: "kfw",
+  Budget: "budget",
+} as const;
+type DrawerSection = (typeof DrawerSection)[keyof typeof DrawerSection];
 
 const KFW_QUICK_AMOUNTS = [
   { amount: 0,
@@ -160,6 +163,8 @@ export default function MortgageCalculator(): JSX.Element {
   const [expenses, setExpenses] = useState<number | undefined>(DEFAULT_EXPENSES);
   const [housingCosts, setHousingCosts] = useState<number | undefined>(DEFAULT_HOUSING_COSTS);
   const [activeTab, setActiveTab] = useState<MortgageResultsTab>(MortgageResultsTab.Overview);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerSection, setDrawerSection] = useState<DrawerSection>(DrawerSection.All);
   const [transferred, setTransferred] = useState(false);
   const [ready, setReady] = useState(false);
   const [invalidFields, setInvalidFields] = useState<Readonly<Record<string, boolean>>>({});
@@ -175,7 +180,28 @@ export default function MortgageCalculator(): JSX.Element {
   };
   const hasInvalidFields = Object.values(invalidFields).some(Boolean);
 
+  const openDrawer = (section: DrawerSection): void => {
+    setDrawerSection(section);
+    setDrawerOpen(true);
+  };
+
+  useEffect(() => {
+    if (!drawerOpen || typeof document === "undefined") {
+      return undefined;
+    }
+    const handleKey = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") {
+        setDrawerOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [drawerOpen]);
+
   const applyKfwPreset = (preset: Kfw300Preset): void => {
+    if (kfwPrincipal === 0) {
+      setKfwPrincipal(DEFAULT_KFW_PRINCIPAL);
+    }
     setKfwInterest(preset.illustrativeRatePercent);
     setKfwTerm(preset.termYears);
     setKfwGrace(preset.graceYears);
@@ -210,7 +236,11 @@ export default function MortgageCalculator(): JSX.Element {
     setSavings(DEFAULT_SAVINGS);
     setClosingCosts(DEFAULT_CLOSING_COSTS);
     setKfwPrincipal(DEFAULT_KFW_PRINCIPAL);
-    applyKfwPreset(DEFAULT_KFW_300_PRESET);
+    setKfwInterest(DEFAULT_KFW_300_PRESET.illustrativeRatePercent);
+    setKfwTerm(DEFAULT_KFW_300_PRESET.termYears);
+    setKfwGrace(DEFAULT_KFW_300_PRESET.graceYears);
+    setMethod(DEFAULT_KFW_300_PRESET.method);
+    setKfwUsingIllustrativeRate(true);
     setYears(DEFAULT_HORIZON_YEARS);
     setIncome(DEFAULT_INCOME);
     setExpenses(DEFAULT_EXPENSES);
@@ -230,7 +260,11 @@ export default function MortgageCalculator(): JSX.Element {
         setSavings(input.savings);
         setClosingCosts(input.closingCosts);
         if (input.kfwPrincipal > 0) {
-          applyKfwPreset(DEFAULT_KFW_300_PRESET);
+          setKfwInterest(DEFAULT_KFW_300_PRESET.illustrativeRatePercent);
+          setKfwTerm(DEFAULT_KFW_300_PRESET.termYears);
+          setKfwGrace(DEFAULT_KFW_300_PRESET.graceYears);
+          setMethod(DEFAULT_KFW_300_PRESET.method);
+          setKfwUsingIllustrativeRate(true);
         }
         setTransferred(true);
       }
@@ -316,8 +350,7 @@ export default function MortgageCalculator(): JSX.Element {
 
   if (!ready) {
     return (
-      <AppShell currentPath={calculatorPath(AppId.Mortgage)}>
-        <PageHeader eyebrow="Home financing" title="Mortgage Simulator & Affordability" />
+      <AppShell currentPath={calculatorPath(AppId.Mortgage)} wide>
         <p role="status">Loading financing details…</p>
       </AppShell>
     );
@@ -351,299 +384,255 @@ export default function MortgageCalculator(): JSX.Element {
   const laterAffordability = afterGrace !== null && income !== undefined && expenses !== undefined && housingCosts !== undefined
     ? estimateAffordability(toEuroAmount(income), toEuroAmount(expenses), toEuroAmount(housingCosts), toEuroAmount(afterGrace))
     : null;
+  const combinedInterest = bank.interestPaid + (kfw?.interestPaid ?? 0);
 
-  const activePresetId = KFW_300_PRESETS.find(
-    (p) => p.termYears === kfwTerm && p.graceYears === (kfwGrace ?? 0) && p.method === method,
-  )?.id;
+  const activePresetId = kfwPrincipal > 0
+    ? KFW_300_PRESETS.find((p) => p.termYears === kfwTerm && p.graceYears === (kfwGrace ?? 0) && p.method === method)?.id
+    : undefined;
 
   return (
-    <AppShell currentPath={calculatorPath(AppId.Mortgage)}>
-      <PageHeader
-        eyebrow="Home financing"
-        title="Mortgage Simulator & Affordability"
-        subtitle="Simulate your commercial bank loan and KfW 300 family loan side-by-side with interactive charts, monthly/annual ledger, and household affordability."
-        actions={(
-          <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={resetDefaults}>
-            Reset defaults
-          </Button>
-        )}
-      />
-
-      {transferred && (
-        <StatusBanner
-          tone={BannerTone.Info}
-          title="Loaded financing figures from the Home Purchase Planner"
-          actions={<a href={calculatorPath(AppId.Housing)}>Edit in Home Purchase Planner</a>}
-        >
-          {kfwPrincipal > 0
-            ? `Bank loan (${formatEur(principal)}) and KfW 300 loan (${formatEur(kfwPrincipal)}) transferred. Editable illustrative KfW 300 terms are pre-filled below—replace the rate with your actual KfW offer.`
-            : `Bank loan (${formatEur(principal)}) and purchase costs transferred from your Home Purchase Planner.`}
-        </StatusBanner>
-      )}
-
-      <div className="domain-calc-layout">
-        <div className="mortgage-inputs">
-          <section className="ui-card" aria-labelledby="mortgage-property">
-            <h2 id="mortgage-property">Property &amp; bank loan</h2>
-            <div className="domain-calc-fields">
-              <OptionalNumberInput id="mortgage-value" topicId="loan-to-value" onValidityChange={trackValidity("mortgage-value")} label="Property purchase price / value" unit="€" min={0} max={20000000} placeholder="Enter value" value={propertyPrice} onChange={setPropertyPrice} />
-              <OptionalNumberInput id="mortgage-savings" onValidityChange={trackValidity("mortgage-savings")} label="Savings available for purchase" unit="€" min={0} max={20000000} placeholder="Enter savings" value={savings} onChange={setSavings} />
-              <OptionalNumberInput id="mortgage-closing-costs" topicId="purchase-costs" onValidityChange={trackValidity("mortgage-closing-costs")} label="Purchase costs beyond the property price" unit="€" min={0} max={20000000} placeholder="Enter costs" value={closingCosts} onChange={setClosingCosts} />
-              <NumberField id="mortgage-principal" topicId="bank-loan-amount" onValidityChange={trackValidity("mortgage-principal")} label="Bank loan amount (excluding KfW)" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
-              <NumberField id="mortgage-interest" onValidityChange={trackValidity("mortgage-interest")} label="Bank annual interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
-              <div>
-                <p className="mortgage-preset-label">Bank repayment setup</p>
-                <SegmentedControl label="Bank repayment setup" value={bankMode} options={BANK_MODES} onChange={setBankMode} />
-              </div>
-              {bankMode === BankPaymentMode.InitialRepayment
-                ? <NumberField id="mortgage-repayment" onValidityChange={trackValidity("mortgage-repayment")} label="Bank initial annual repayment" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} />
-                : <NumberField id="mortgage-bank-term" topicId="mortgage-payoff-term" onValidityChange={trackValidity("mortgage-bank-term")} label="Target bank payoff term" unit="years" min={1} max={50} step={1} value={bankTerm} construct={toMortgageYears} onChange={setBankTerm} />}
-              <NumberField id="mortgage-extra" topicId="extra-bank-payment" onValidityChange={trackValidity("mortgage-extra")} label="Extra bank principal payment" unit="€/month" min={0} max={1000000} step={50} value={extraPayment} onChange={setExtraPayment} />
-              <NumberField id="mortgage-years" onValidityChange={trackValidity("mortgage-years")} label="Show projection for" unit="years" min={1} max={50} step={1} value={years} construct={toMortgageYears} onChange={setYears} />
+    <AppShell currentPath={calculatorPath(AppId.Mortgage)} wide>
+      <div className="mw-layout">
+        {/* Row 1: Quiet Command Header + Clickable Summary Strip Pills */}
+        <header className="mw-command-header">
+          <div className="mw-command-header__lead">
+            <div className="mw-command-header__title-group">
+              <h1 className="mw-command-header__title">Mortgage Simulator</h1>
+              {kfwPrincipal > 0 && <Badge tone={BadgeTone.Brand}>KfW 300</Badge>}
             </div>
-          </section>
 
-          <section className="ui-card" aria-labelledby="mortgage-kfw">
-            <div className="mortgage-heading">
-              <h2 id="mortgage-kfw">KfW 300 loan</h2>
-              {kfwPrincipal > 0 && kfwUsingIllustrativeRate && (
-                <Badge tone={BadgeTone.Warning}>Illustrative default</Badge>
-              )}
+            <div className="mw-summary-strip" role="group" aria-label="Active financing parameters">
+              <button type="button" className="mw-summary-pill" onClick={() => openDrawer(DrawerSection.Bank)}>
+                <span>Bank</span>
+                <strong>{formatEurWhole(principal)} · {interest.toFixed(2)}%</strong>
+              </button>
+              <button type="button" className="mw-summary-pill" onClick={() => openDrawer(DrawerSection.Kfw)}>
+                <span>KfW 300</span>
+                <strong>
+                  {kfwPrincipal > 0
+                    ? `${formatEurWhole(kfwPrincipal)} · ${kfwInterest?.toFixed(2) ?? "—"}% (${kfwTerm ?? "—"}y${method === LoanMethod.Balloon ? " balloon" : `/${kfwGrace ?? 0}y`})`
+                    : "Off"}
+                </strong>
+              </button>
+              <button type="button" className="mw-summary-pill" onClick={() => openDrawer(DrawerSection.Bank)}>
+                <span>Horizon</span>
+                <strong>{years} yrs</strong>
+              </button>
+              <button type="button" className="mw-summary-pill" onClick={() => openDrawer(DrawerSection.Budget)}>
+                <span>Net Income</span>
+                <strong>{income !== undefined ? `${formatEurWhole(income)}/mo` : "Not set"}</strong>
+              </button>
             </div>
-            <p className="mortgage-muted">
-              KfW 300 is a subsidized loan (not a grant). Pick a typical KfW 300 structure below, then enter the nominal rate from your bank offer.
-            </p>
-            <LawRefLink lawId={LawId.KfW_300} label="KfW 300 program & official terms" />
+          </div>
 
-            <div className="domain-calc-fields">
-              <div className="mortgage-preset-group">
-                <span className="mortgage-preset-label">Quick KfW 300 loan cap</span>
-                <div className="mortgage-chip-row" role="group" aria-label="Quick KfW 300 loan amounts">
-                  {KFW_QUICK_AMOUNTS.map((item) => (
-                    <button
-                      key={item.amount}
-                      type="button"
-                      className={`mortgage-chip${kfwPrincipal === item.amount ? " mortgage-chip--active" : ""}`}
-                      onClick={() => handleKfwPrincipalChange(item.amount)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <div className="mw-command-header__actions">
+            <Button
+              size={ButtonSize.Sm}
+              variant={ButtonVariant.Primary}
+              onClick={() => openDrawer(DrawerSection.All)}
+            >
+              <ParameterSlidersIcon size={13} />
+              <span>Edit Loans &amp; Budget</span>
+            </Button>
+            <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={resetDefaults}>
+              <ResetDefaultsIcon size={13} />
+              <span>Reset</span>
+            </Button>
+            <LinkButton
+              href={calculatorPath(AppId.Housing)}
+              size={ButtonSize.Sm}
+              variant={ButtonVariant.Secondary}
+            >
+              Home Purchase Planner
+            </LinkButton>
+          </div>
+        </header>
 
-              <NumberField id="mortgage-kfw-amount" onValidityChange={trackValidity("mortgage-kfw-amount")} label="KfW loan amount" unit="€" min={0} max={20000000} step={5000} value={kfwPrincipal} onChange={handleKfwPrincipalChange} />
+        {/* Row 2: Hairline Workspace Bar + One-Click KfW 300 Preset Switcher */}
+        <div className="mw-workspace-bar">
+          <div className="mw-workspace-tabs" role="tablist" aria-label="Mortgage simulator views">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === MortgageResultsTab.Overview}
+              className={`mw-workspace-tab${activeTab === MortgageResultsTab.Overview ? " mw-workspace-tab--active" : ""}`}
+              onClick={() => setActiveTab(MortgageResultsTab.Overview)}
+            >
+              Overview &amp; Charts
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === MortgageResultsTab.Ledger}
+              className={`mw-workspace-tab${activeTab === MortgageResultsTab.Ledger ? " mw-workspace-tab--active" : ""}`}
+              onClick={() => setActiveTab(MortgageResultsTab.Ledger)}
+            >
+              Repayment Ledger ({years}y)
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === MortgageResultsTab.Affordability}
+              className={`mw-workspace-tab${activeTab === MortgageResultsTab.Affordability ? " mw-workspace-tab--active" : ""}`}
+              onClick={() => setActiveTab(MortgageResultsTab.Affordability)}
+            >
+              Affordability
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === MortgageResultsTab.KfwGuide}
+              className={`mw-workspace-tab${activeTab === MortgageResultsTab.KfwGuide ? " mw-workspace-tab--active" : ""}`}
+              onClick={() => setActiveTab(MortgageResultsTab.KfwGuide)}
+            >
+              KfW 300 Guide &amp; Formulas
+            </button>
+          </div>
 
-              {kfwPrincipal > 0 && (
-                <>
-                  <div className="mortgage-preset-group">
-                    <span className="mortgage-preset-label">Standard KfW 300 repayment presets</span>
-                    <div className="mortgage-chip-row" role="group" aria-label="KfW 300 repayment presets">
-                      {KFW_300_PRESETS.map((preset) => (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          title={preset.description}
-                          className={`mortgage-chip${activePresetId === preset.id ? " mortgage-chip--active" : ""}`}
-                          onClick={() => applyKfwPreset(preset)}
-                        >
-                          {preset.shortLabel}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <OptionalNumberInput
-                    id="mortgage-kfw-rate"
-                    topicId="kfw-repayment-options"
-                    onValidityChange={trackValidity("mortgage-kfw-rate")}
-                    label="KfW nominal annual interest rate"
-                    unit="%"
-                    min={0}
-                    max={15}
-                    step={0.01}
-                    placeholder="e.g. 1.50"
-                    value={kfwInterest}
-                    onChange={(value) => {
-                      setKfwInterest(value);
-                      setKfwUsingIllustrativeRate(false);
-                    }}
-                  />
-                  <OptionalNumberInput
-                    id="mortgage-kfw-term"
-                    topicId="kfw-repayment-options"
-                    onValidityChange={trackValidity("mortgage-kfw-term")}
-                    label="KfW total loan term"
-                    unit="years"
-                    min={1}
-                    max={50}
-                    step={1}
-                    placeholder="e.g. 35"
-                    value={kfwTerm}
-                    onChange={(value) => {
-                      if (value !== undefined) {
-                        toMortgageYears(value);
-                      }
-                      setKfwTerm(value);
-                    }}
-                  />
-                  <div>
-                    <p className="mortgage-preset-label">Repayment type</p>
-                    <SegmentedControl topicId="kfw-repayment-options" label="KfW repayment type" value={method} options={METHODS} onChange={setMethod} />
-                  </div>
-                  {method === LoanMethod.Annuity && (
-                    <OptionalNumberInput
-                      id="mortgage-kfw-grace"
-                      topicId="kfw-repayment-options"
-                      onValidityChange={trackValidity("mortgage-kfw-grace")}
-                      label="Interest-only period (Tilgungsfreie Anlaufjahre)"
-                      unit="years"
-                      min={0}
-                      max={49}
-                      step={1}
-                      placeholder="1–5 years"
-                      value={kfwGrace}
-                      onChange={(value) => {
-                        if (value !== undefined) {
-                          toGraceYears(value);
-                        }
-                        setKfwGrace(value);
-                      }}
-                    />
-                  )}
-                  {!validGrace && validTerm && kfwGrace !== undefined && (
-                    <p role="alert">The interest-only period must be shorter than the KfW term.</p>
-                  )}
-                </>
-              )}
-            </div>
-          </section>
-
-          <section className="ui-card" aria-labelledby="mortgage-budget">
-            <div className="mortgage-heading">
-              <h2 id="mortgage-budget">Monthly affordability</h2>
-              <TopicHelp id="mortgage-affordability" />
-            </div>
-            <p className="mortgage-muted">
-              Enter your household monthly cash flow. Exclude the loans modeled here from other spending to avoid double counting.
-            </p>
-            <div className="domain-calc-fields">
-              <OptionalNumberInput id="mortgage-income" onValidityChange={trackValidity("mortgage-income")} label="Household income after tax" unit="€/month" min={0} max={10000000} placeholder="Enter income" value={income} onChange={setIncome} />
-              <OptionalNumberInput id="mortgage-expenses" onValidityChange={trackValidity("mortgage-expenses")} label="Other spending and existing debts" unit="€/month" min={0} max={10000000} placeholder="Enter spending" value={expenses} onChange={setExpenses} />
-              <OptionalNumberInput id="mortgage-running-costs" onValidityChange={trackValidity("mortgage-running-costs")} label="Home running costs and maintenance reserve" unit="€/month" min={0} max={10000000} placeholder="Enter costs" value={housingCosts} onChange={setHousingCosts} />
-            </div>
-          </section>
+          <div className="mw-quick-presets" role="group" aria-label="Quick KfW 300 presets">
+            <span className="mw-quick-presets__label">KfW 300:</span>
+            {KFW_300_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                title={preset.description}
+                className={`mortgage-chip${activePresetId === preset.id ? " mortgage-chip--active" : ""}`}
+                onClick={() => applyKfwPreset(preset)}
+              >
+                {preset.shortLabel}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`mortgage-chip${kfwPrincipal === 0 ? " mortgage-chip--active" : ""}`}
+              onClick={() => handleKfwPrincipalChange(0)}
+            >
+              No KfW
+            </button>
+          </div>
         </div>
 
-        <div className="domain-calc-results">
-          {hasInvalidFields && <p role="alert">Correct the highlighted inputs. Results below use the last valid values.</p>}
+        {/* Status Banners */}
+        {hasInvalidFields && (
+          <StatusBanner tone={BannerTone.Warning} title="Some inputs need attention">
+            Open Edit Loans &amp; Budget to correct highlighted fields. Results below use the last valid values.
+          </StatusBanner>
+        )}
 
-          <div className="mortgage-results-nav">
-            <SegmentedControl
-              label="Mortgage simulator sections"
-              value={activeTab}
-              options={RESULTS_TAB_OPTIONS}
-              onChange={setActiveTab}
-            />
-            <a href={calculatorPath(AppId.Housing)}>Back to Home Purchase Planner</a>
-          </div>
+        {transferred && (
+          <StatusBanner
+            tone={BannerTone.Info}
+            title="Loaded financing figures from the Home Purchase Planner"
+            actions={(
+              <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={() => openDrawer(DrawerSection.Kfw)}>
+                Adjust KfW Offer Rate
+              </Button>
+            )}
+          >
+            {kfwPrincipal > 0
+              ? `Bank loan (${formatEur(principal)}) and KfW 300 loan (${formatEur(kfwPrincipal)}) transferred with editable illustrative KfW 300 defaults.`
+              : `Bank loan (${formatEur(principal)}) and purchase costs transferred from your Home Purchase Planner.`}
+          </StatusBanner>
+        )}
 
-          <div className="domain-calc-kpis">
+        {kfwPrincipal > 0 && kfwUsingIllustrativeRate && (
+          <StatusBanner
+            tone={BannerTone.Warning}
+            title={`Using illustrative KfW 300 rate (${kfwInterest?.toFixed(2)}% nominal, ${kfwTerm}y term, ${method === LoanMethod.Balloon ? "balloon" : `${kfwGrace}y grace`})`}
+            actions={(
+              <>
+                <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={() => openDrawer(DrawerSection.Kfw)}>
+                  Enter Your KfW Rate
+                </Button>
+                <LawRefLink lawId={LawId.KfW_300} label="Official KfW 300" />
+              </>
+            )}
+          >
+            KfW 300 interest rates change periodically and are typically fixed for 10 years. Replace the nominal rate with your actual bank offer.
+          </StatusBanner>
+        )}
+
+        {/* Full-Width 4-Card KPI Strip */}
+        <div className="mw-kpi-grid">
+          <MetricCard
+            label="Total Borrowed"
+            value={formatEurWhole(totalDebt)}
+            subtitle={`Bank ${formatEurWhole(principal)} + KfW ${formatEurWhole(kfwPrincipal)}`}
+            tone={MetricTone.Primary}
+          />
+          <MetricCard
+            label="Starting Monthly Payment"
+            value={monthly === null ? "Enter KfW terms" : `${formatEur(monthly)}/mo`}
+            subtitle={monthly === null
+              ? "Complete KfW rate, term & grace years"
+              : `Bank ${formatEur(bank.monthlyPayment)} + KfW ${formatEur(kfw?.initialMonthlyPayment ?? 0)}`}
+          />
+          {afterGrace !== null ? (
             <MetricCard
-              label="Total borrowed"
-              value={formatEur(totalDebt)}
-              subtitle={`Bank ${formatEur(principal)} + KfW ${formatEur(kfwPrincipal)}`}
-              tone={MetricTone.Primary}
+              label={`After Year ${kfwGrace} (Post-Grace)`}
+              value={`${formatEur(afterGrace)}/mo`}
+              subtitle={`Bank ${formatEur(bankAtGraceEnd.paidOff ? 0 : bank.monthlyPayment)} + KfW ${formatEur(kfw?.laterMonthlyPayment ?? 0)}`}
+              tone={laterAffordability && laterAffordability.remainingAfterLoans < 0 ? MetricTone.Loss : MetricTone.Neutral}
             />
+          ) : (
             <MetricCard
-              label="Starting monthly payments"
-              value={monthly === null ? "Enter KfW terms" : `${formatEur(monthly)}/mo`}
-              subtitle={monthly === null
-                ? "Complete KfW rate, term & grace years"
-                : `Bank ${formatEur(bank.monthlyPayment)} + KfW ${formatEur(kfw?.initialMonthlyPayment ?? 0)}`}
+              label="Loan-to-Value (LTV)"
+              value={ltv === null ? "Set property price" : `${(ltv * 100).toFixed(1)}%`}
+              subtitle="Both loans ÷ purchase price"
+              footer={<TopicHelp id="loan-to-value" />}
             />
-            {afterGrace !== null ? (
-              <MetricCard
-                label={`After year ${kfwGrace} (post-grace)`}
-                value={`${formatEur(afterGrace)}/mo`}
-                subtitle={`Bank ${formatEur(bankAtGraceEnd.paidOff ? 0 : bank.monthlyPayment)} + KfW ${formatEur(kfw?.laterMonthlyPayment ?? 0)}`}
-                tone={laterAffordability && laterAffordability.remainingAfterLoans < 0 ? MetricTone.Loss : MetricTone.Neutral}
-              />
-            ) : (
-              <MetricCard
-                label="Loan-to-value (LTV)"
-                value={ltv === null ? "Enter property value" : `${(ltv * 100).toFixed(1)}%`}
-                subtitle="Both loans ÷ purchase price"
-                footer={<TopicHelp id="loan-to-value" />}
+          )}
+          <MetricCard
+            label={`Total Interest (${years} yrs)`}
+            value={formatEurWhole(combinedInterest)}
+            subtitle={kfwInterestDifference !== null && kfwInterestDifference > 0
+              ? `Saves ~${formatEurWhole(kfwInterestDifference)} vs. bank rate`
+              : ltv !== null ? `LTV ${(ltv * 100).toFixed(1)}%` : "Over selected horizon"}
+            tone={kfwInterestDifference !== null && kfwInterestDifference > 0 ? MetricTone.Gain : MetricTone.Neutral}
+          />
+        </div>
+
+        {/* Tab 1: Overview & Charts */}
+        {activeTab === MortgageResultsTab.Overview && (
+          <>
+            {schedule && (
+              <MortgageChartsPanel
+                schedule={schedule}
+                termSensitivity={termSensitivity}
+                hasKfw={kfwPrincipal > 0}
               />
             )}
-          </div>
 
-          {kfwPrincipal > 0 && kfwUsingIllustrativeRate && (
-            <StatusBanner
-              tone={BannerTone.Warning}
-              title={`Using illustrative KfW 300 rate (${kfwInterest?.toFixed(2)}% nominal, ${kfwTerm}y term, ${method === LoanMethod.Balloon ? "balloon" : `${kfwGrace}y grace`})`}
-              actions={<LawRefLink lawId={LawId.KfW_300} label="Check official KfW 300 rates" />}
-            >
-              KfW 300 interest rates change periodically and are typically fixed for 10 years. Replace the nominal rate in the KfW 300 card with your actual bank offer.
-            </StatusBanner>
-          )}
-
-          {activeTab === MortgageResultsTab.Overview && (
-            <>
-              {schedule && (
-                <MortgageChartsPanel
-                  schedule={schedule}
-                  termSensitivity={termSensitivity}
-                  hasKfw={kfwPrincipal > 0}
-                />
-              )}
-
+            <div className="mw-two-col">
               <section className="ui-card mortgage-results">
-                <h2>What you repay over {years} years</h2>
-                <p>
-                  Your total debt includes both loans. Loan-to-value ({ltv === null ? "enter property price" : `${(ltv * 100).toFixed(1)}%`}) uses the entered purchase price, not the bank's valuation; closing costs can push it above 100%.
-                </p>
+                <h2>Repayment Summary ({years} Years)</h2>
                 {kfwPrincipal > 0 && !complete && (
                   <p role="status">
-                    Enter the KfW interest rate, term and, for monthly repayment, interest-only period to see combined payments, interest, balance, charts and ledger.
+                    Open <strong>Edit Loans &amp; Budget</strong> to enter the KfW interest rate, term, and grace period.
                   </p>
                 )}
                 {kfw && (
                   <>
                     <p>
-                      KfW starts at <strong>{formatEur(kfw.initialMonthlyPayment)}/month</strong>
+                      KfW starts at <strong>{formatEur(kfw.initialMonthlyPayment)}/mo</strong>
                       {afterGrace !== null && (
                         <>
                           ; after {kfwGrace} interest-only {kfwGrace === 1 ? "year" : "years"}, its regular payment rises to{" "}
-                          <strong>{formatEur(kfw.laterMonthlyPayment)}/month</strong> and both loans together are estimated at{" "}
-                          <strong>{formatEur(afterGrace)}/month</strong>
+                          <strong>{formatEur(kfw.laterMonthlyPayment)}/mo</strong> (combined{" "}
+                          <strong>{formatEur(afterGrace)}/mo</strong>)
                         </>
                       )}.
                     </p>
                     {method === LoanMethod.Balloon && (
                       <p role="status">
-                        The KfW payment above covers interest only. The entire <strong>{formatEur(kfwPrincipal)}</strong> principal is due as a lump sum at the end of year {kfwTerm}.
+                        Monthly KfW payment covers interest only. The full <strong>{formatEur(kfwPrincipal)}</strong> principal is due at the end of year {kfwTerm}.
                       </p>
                     )}
                     <p>
-                      Over the selected {years} years: estimated combined interest{" "}
-                      <strong>{formatEur(bank.interestPaid + kfw.interestPaid)}</strong>; combined payments{" "}
-                      <strong>{formatEur(principal - bank.balance + bank.interestPaid + kfw.totalPaid)}</strong>; remaining debt{" "}
+                      Combined payments over {years} years:{" "}
+                      <strong>{formatEur(principal - bank.balance + bank.interestPaid + kfw.totalPaid)}</strong> · Remaining debt:{" "}
                       <strong>{formatEur(bank.balance + kfw.balance)}</strong> (Bank {formatEur(bank.balance)} + KfW {formatEur(kfw.balance)}).
                     </p>
-                    {kfwInterestDifference !== null && (
-                      <p>
-                        Compared with borrowing the same KfW amount at your bank rate ({interest.toFixed(2)}%), with the{" "}
-                        <em>same term and repayment structure</em>, estimated KfW interest is{" "}
-                        <strong>
-                          {kfwInterestDifference >= 0
-                            ? `${formatEur(kfwInterestDifference)} lower`
-                            : `${formatEur(-kfwInterestDifference)} higher`}
-                        </strong>{" "}
-                        over this period.
-                      </p>
-                    )}
                   </>
                 )}
                 {kfwPrincipal === 0 && (
@@ -654,66 +643,85 @@ export default function MortgageCalculator(): JSX.Element {
                 )}
                 {principal > 0 && (
                   <p>
-                    Bank base payment: <strong>{formatEur(bank.baseMonthlyPayment)}/month</strong>
-                    {extraPayment > 0 && (
-                      <> plus <strong>{formatEur(extraPayment)}/month</strong> extra principal</>
-                    )}. {bankFull.paidOff ? `Estimated bank payoff after ${bankFull.elapsedMonths} months (${(bankFull.elapsedMonths / 12).toFixed(1)} years)` : "Bank debt remains after 50 years"}, assuming rates and payments stay unchanged.
+                    Bank base payment: <strong>{formatEur(bank.baseMonthlyPayment)}/mo</strong>
+                    {extraPayment > 0 && <> plus <strong>{formatEur(extraPayment)}/mo</strong> extra principal</>}.{" "}
+                    {bankFull.paidOff
+                      ? `Estimated bank payoff in ${bankFull.elapsedMonths} months (${(bankFull.elapsedMonths / 12).toFixed(1)} years).`
+                      : "Bank debt remains after 50 years."}
                   </p>
+                )}
+              </section>
+
+              <section className="ui-card mortgage-results">
+                <h2>KfW 300 &amp; Extra Payment Impact</h2>
+                {kfwInterestDifference !== null ? (
+                  <p>
+                    Compared with borrowing the same {formatEurWhole(kfwPrincipal)} KfW amount at your commercial bank rate ({interest.toFixed(2)}%) with the same term and repayment structure, KfW 300 interest is{" "}
+                    <strong>
+                      {kfwInterestDifference >= 0
+                        ? `${formatEur(kfwInterestDifference)} lower`
+                        : `${formatEur(-kfwInterestDifference)} higher`}
+                    </strong>{" "}
+                    over {years} years.
+                  </p>
+                ) : (
+                  <p>Enable a KfW 300 loan amount using the presets above or in Edit Loans &amp; Budget to compare subsidized interest savings.</p>
                 )}
                 {bankWithoutExtra?.paidOff && bankFull.paidOff && (
                   <p>
-                    Compared with no extra bank payment, this scenario repays the bank loan{" "}
-                    <strong>{bankWithoutExtra.elapsedMonths - bankFull.elapsedMonths} months sooner</strong> and saves approximately{" "}
-                    <strong>{formatEur(bankWithoutExtra.interestPaid - bankFull.interestPaid)}</strong> in bank interest.
-                  </p>
-                )}
-                {bankWithoutExtra && !bankWithoutExtra.paidOff && bankFull.paidOff && (
-                  <p>
-                    Without extra payments, the bank loan still has an estimated balance of {formatEur(bankWithoutExtra.balance)} after 50 years.
+                    Your {formatEur(extraPayment)}/mo extra bank payment pays off the bank loan{" "}
+                    <strong>{bankWithoutExtra.elapsedMonths - bankFull.elapsedMonths} months sooner</strong> and saves{" "}
+                    <strong>{formatEur(bankWithoutExtra.interestPaid - bankFull.interestPaid)}</strong> in interest.
                   </p>
                 )}
                 {bank.balanceIncreasing && <p role="status">The bank payment does not cover interest, so its balance grows.</p>}
-                {!bank.paidOff && !bank.balanceIncreasing && principal > 0 && bankMode === BankPaymentMode.InitialRepayment && repayment === 0 && extraPayment === 0 && (
-                  <p role="status">The bank loan has no initial principal repayment, so the balance may remain outstanding.</p>
-                )}
                 <p className="mortgage-muted">
-                  Figures assume both loans are fully disbursed at the start and use fixed nominal rates across the projection. KfW extra payments, fees, disbursement timing, and post-Zinsbindung refinancing are excluded.
+                  Figures assume full disbursement at start and fixed nominal rates across the projection. Post-Zinsbindung refinancing, fees, and unscheduled KfW prepayments are excluded.
                 </p>
               </section>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          {activeTab === MortgageResultsTab.Ledger && (
-            schedule ? (
-              <MortgageLedgerPanel schedule={schedule} hasKfw={kfwPrincipal > 0} />
-            ) : (
-              <section className="ui-card mortgage-results">
-                <h2>Repayment Ledger</h2>
-                <p role="status">Enter the KfW interest rate, term and grace period to generate the monthly and annual repayment ledger.</p>
-              </section>
-            )
-          )}
+        {/* Tab 2: Full-Width Expandable Repayment Ledger */}
+        {activeTab === MortgageResultsTab.Ledger && (
+          schedule ? (
+            <MortgageLedgerPanel schedule={schedule} hasKfw={kfwPrincipal > 0} />
+          ) : (
+            <section className="ui-card mortgage-results">
+              <h2>Repayment Ledger</h2>
+              <p role="status">Enter the KfW interest rate, term, and grace period in Edit Loans &amp; Budget to generate the ledger.</p>
+            </section>
+          )
+        )}
 
-          {activeTab === MortgageResultsTab.Affordability && (
+        {/* Tab 3: Affordability */}
+        {activeTab === MortgageResultsTab.Affordability && (
+          <div className="mw-two-col">
             <section className="ui-card mortgage-results" aria-labelledby="affordability-results">
-              <h2 id="affordability-results">Monthly Household Affordability</h2>
+              <div className="mortgage-section-header">
+                <h2 id="affordability-results">Monthly Cash-Flow Check</h2>
+                <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={() => openDrawer(DrawerSection.Budget)}>
+                  Edit Budget
+                </Button>
+              </div>
               {affordability ? (
                 <>
                   <p>
-                    Available after your spending and home running costs, before these loans:{" "}
-                    <strong>{formatEur(affordability.availableBeforeLoans)}/month</strong>.
+                    Available before loans (after spending &amp; home running costs):{" "}
+                    <strong>{formatEur(affordability.availableBeforeLoans)}/mo</strong>.
                   </p>
                   <p>
                     Left after starting loan payments ({formatEur(monthly ?? 0)}/mo):{" "}
-                    <strong>{formatEur(affordability.remainingAfterLoans)}/month</strong>
+                    <strong>{formatEur(affordability.remainingAfterLoans)}/mo</strong>
                     {affordability.loanPaymentShare !== null && (
-                      <> · loan payments are {(affordability.loanPaymentShare * 100).toFixed(1)}% of net income</>
+                      <> · {(affordability.loanPaymentShare * 100).toFixed(1)}% of net income</>
                     )}.
                   </p>
                   {laterAffordability && afterGrace !== null && (
                     <p>
-                      After the KfW interest-only period (total {formatEur(afterGrace)}/mo), estimated amount left:{" "}
-                      <strong>{formatEur(laterAffordability.remainingAfterLoans)}/month</strong>
+                      After KfW grace period (total {formatEur(afterGrace)}/mo):{" "}
+                      <strong>{formatEur(laterAffordability.remainingAfterLoans)}/mo</strong> left
                       {laterAffordability.loanPaymentShare !== null && (
                         <> · {(laterAffordability.loanPaymentShare * 100).toFixed(1)}% of net income</>
                       )}.
@@ -723,47 +731,265 @@ export default function MortgageCalculator(): JSX.Element {
                     <p role="status">The entered budget has a monthly shortfall at the starting payment.</p>
                   )}
                   {laterAffordability && laterAffordability.remainingAfterLoans < 0 && (
-                    <p role="status">Warning: Once the KfW interest-only period ends, the combined payment exceeds your remaining monthly budget.</p>
+                    <p role="status">Warning: Once the KfW interest-only period ends, combined payments exceed your monthly budget.</p>
                   )}
-                  {affordableBank !== null && (
-                    <p>
-                      Using all income remaining after your entered expenses, home costs, extra bank payment, and the larger regular KfW payment, the estimated bank loan supported is{" "}
-                      <strong>{formatEur(affordableBank)}</strong>.{" "}
-                      {affordablePrice !== null ? (
-                        <>
-                          With the entered savings, fixed purchase costs, and KfW loan, that gives an estimated purchase budget of{" "}
-                          <strong>{formatEur(affordablePrice)}</strong>.
-                        </>
-                      ) : "Enter savings and purchase costs to estimate a purchase budget."}
-                    </p>
-                  )}
-                  {affordableBank === null && availableForBank !== null && (
-                    <p>
-                      {availableForBank < 0
-                        ? "The KfW payment and extra bank payment exceed the available monthly budget."
-                        : "Enter a positive bank interest or repayment rate to estimate a maximum loan."}
-                    </p>
-                  )}
-                  {method === LoanMethod.Balloon && kfwPrincipal > 0 && (
-                    <p>The monthly budget and maximum loan do not include saving for the KfW lump sum.</p>
-                  )}
-                  <p className="mortgage-muted">
-                    This is a cash-flow estimate, not a bank lending decision. Include all recurring costs and buffers that matter to your household.
+                </>
+              ) : (
+                <p>Open Edit Budget to enter household net income, other spending, and home running costs.</p>
+              )}
+            </section>
+
+            <section className="ui-card mortgage-results">
+              <h2>Maximum Supported Purchase Budget</h2>
+              {affordableBank !== null ? (
+                <>
+                  <p>
+                    Maximum commercial bank loan supported by your remaining budget (after expenses, home costs, extra payment, and post-grace KfW payment):{" "}
+                    <strong>{formatEur(affordableBank)}</strong>.
                   </p>
+                  {affordablePrice !== null ? (
+                    <p>
+                      Combined with your savings ({formatEurWhole(savings ?? 0)}), closing costs ({formatEurWhole(closingCosts ?? 0)}), and KfW 300 loan ({formatEurWhole(kfwPrincipal)}), your estimated maximum property price is{" "}
+                      <strong>{formatEur(affordablePrice)}</strong>.
+                    </p>
+                  ) : (
+                    <p>Enter savings and closing costs in Edit Loans &amp; Budget to estimate a maximum property price.</p>
+                  )}
                 </>
               ) : (
                 <p>
-                  Enter net income, other spending, and home running costs{!complete ? ", plus the KfW terms," : ""} to calculate the amount left each month.
+                  {availableForBank !== null && availableForBank < 0
+                    ? "The KfW payment and extra bank payment exceed your available monthly budget."
+                    : "Enter household budget and a positive bank rate to calculate your maximum supported loan."}
                 </p>
               )}
+              {method === LoanMethod.Balloon && kfwPrincipal > 0 && (
+                <p>Note: Monthly budget does not include saving separately for the KfW balloon lump sum.</p>
+              )}
+              <p className="mortgage-muted">Cash-flow estimate only, not a formal bank lending decision.</p>
             </section>
-          )}
+          </div>
+        )}
 
-          {activeTab === MortgageResultsTab.KfwGuide && (
-            <Kfw300GuidePanel context="mortgage" />
-          )}
-        </div>
+        {/* Tab 4: KfW 300 Guide & Formulas */}
+        {activeTab === MortgageResultsTab.KfwGuide && (
+          <Kfw300GuidePanel context="mortgage" />
+        )}
       </div>
+
+      {/* Slide-Over Inputs Drawer (Concept A — mirrors LifePlanInputsDrawer) */}
+      {drawerOpen && (
+        <div
+          className="mw-drawer-backdrop"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setDrawerOpen(false);
+            }
+          }}
+        >
+          <aside className="mw-drawer" role="dialog" aria-modal="true" aria-label="Edit loans and budget">
+            <div className="mw-drawer__header">
+              <h2 className="mw-drawer__title">Edit Loans &amp; Budget</h2>
+              <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={() => setDrawerOpen(false)}>
+                <DismissIcon size={13} />
+                <span>Done</span>
+              </Button>
+            </div>
+
+            <div className="mw-drawer__tabs" role="tablist" aria-label="Input sections">
+              {(
+                [
+                  { id: DrawerSection.All,
+                    label: "All" },
+                  { id: DrawerSection.Bank,
+                    label: "Property & Bank" },
+                  { id: DrawerSection.Kfw,
+                    label: "KfW 300" },
+                  { id: DrawerSection.Budget,
+                    label: "Budget" },
+                ] as const
+              ).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={drawerSection === item.id}
+                  className={`mortgage-chip${drawerSection === item.id ? " mortgage-chip--active" : ""}`}
+                  onClick={() => setDrawerSection(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mw-drawer__body">
+              {(drawerSection === DrawerSection.All || drawerSection === DrawerSection.Bank) && (
+                <section className="mw-drawer__section">
+                  <div className="mw-drawer__section-head">
+                    <h3>Property &amp; Commercial Bank Loan</h3>
+                  </div>
+                  <div className="mw-drawer__grid">
+                    <OptionalNumberInput id="mortgage-value" topicId="loan-to-value" onValidityChange={trackValidity("mortgage-value")} label="Property price / value" unit="€" min={0} max={20000000} placeholder="Enter value" value={propertyPrice} onChange={setPropertyPrice} />
+                    <OptionalNumberInput id="mortgage-savings" onValidityChange={trackValidity("mortgage-savings")} label="Available savings" unit="€" min={0} max={20000000} placeholder="Enter savings" value={savings} onChange={setSavings} />
+                    <OptionalNumberInput id="mortgage-closing-costs" topicId="purchase-costs" onValidityChange={trackValidity("mortgage-closing-costs")} label="Closing costs" unit="€" min={0} max={20000000} placeholder="Enter costs" value={closingCosts} onChange={setClosingCosts} />
+                    <NumberField id="mortgage-principal" topicId="bank-loan-amount" onValidityChange={trackValidity("mortgage-principal")} label="Bank loan (excl. KfW)" unit="€" min={0} max={20000000} step={5000} value={principal} onChange={setPrincipal} />
+                    <NumberField id="mortgage-interest" onValidityChange={trackValidity("mortgage-interest")} label="Bank interest rate" topicId="mortgage-repayment" unit="%" min={0} max={15} step={0.1} value={interest} onChange={setInterest} />
+                    {bankMode === BankPaymentMode.InitialRepayment
+                      ? <NumberField id="mortgage-repayment" onValidityChange={trackValidity("mortgage-repayment")} label="Initial repayment" topicId="mortgage-repayment" unit="%" min={0} max={20} step={0.25} value={repayment} onChange={setRepayment} />
+                      : <NumberField id="mortgage-bank-term" topicId="mortgage-payoff-term" onValidityChange={trackValidity("mortgage-bank-term")} label="Target payoff term" unit="years" min={1} max={50} step={1} value={bankTerm} construct={toMortgageYears} onChange={setBankTerm} />}
+                    <NumberField id="mortgage-extra" topicId="extra-bank-payment" onValidityChange={trackValidity("mortgage-extra")} label="Extra principal / mo" unit="€" min={0} max={1000000} step={50} value={extraPayment} onChange={setExtraPayment} />
+                    <NumberField id="mortgage-years" onValidityChange={trackValidity("mortgage-years")} label="Projection horizon" unit="years" min={1} max={50} step={1} value={years} construct={toMortgageYears} onChange={setYears} />
+                  </div>
+                  <div>
+                    <p className="mortgage-preset-label">Bank repayment mode</p>
+                    <SegmentedControl compact label="Bank repayment setup" value={bankMode} options={BANK_MODES} onChange={setBankMode} />
+                  </div>
+                </section>
+              )}
+
+              {(drawerSection === DrawerSection.All || drawerSection === DrawerSection.Kfw) && (
+                <section className="mw-drawer__section">
+                  <div className="mw-drawer__section-head">
+                    <h3>KfW 300 Family Loan</h3>
+                    {kfwPrincipal > 0 && kfwUsingIllustrativeRate && (
+                      <Badge tone={BadgeTone.Warning}>Illustrative rate</Badge>
+                    )}
+                  </div>
+                  <div className="mortgage-preset-group">
+                    <span className="mortgage-preset-label">Quick KfW 300 loan cap</span>
+                    <div className="mortgage-chip-row">
+                      {KFW_QUICK_AMOUNTS.map((item) => (
+                        <button
+                          key={item.amount}
+                          type="button"
+                          className={`mortgage-chip${kfwPrincipal === item.amount ? " mortgage-chip--active" : ""}`}
+                          onClick={() => handleKfwPrincipalChange(item.amount)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mw-drawer__grid">
+                    <NumberField id="mortgage-kfw-amount" onValidityChange={trackValidity("mortgage-kfw-amount")} label="KfW loan amount" unit="€" min={0} max={20000000} step={5000} value={kfwPrincipal} onChange={handleKfwPrincipalChange} />
+                    {kfwPrincipal > 0 && (
+                      <OptionalNumberInput
+                        id="mortgage-kfw-rate"
+                        topicId="kfw-repayment-options"
+                        onValidityChange={trackValidity("mortgage-kfw-rate")}
+                        label="KfW nominal rate"
+                        unit="%"
+                        min={0}
+                        max={15}
+                        step={0.01}
+                        placeholder="e.g. 1.50"
+                        value={kfwInterest}
+                        onChange={(value) => {
+                          setKfwInterest(value);
+                          setKfwUsingIllustrativeRate(false);
+                        }}
+                      />
+                    )}
+                    {kfwPrincipal > 0 && (
+                      <OptionalNumberInput
+                        id="mortgage-kfw-term"
+                        topicId="kfw-repayment-options"
+                        onValidityChange={trackValidity("mortgage-kfw-term")}
+                        label="KfW total term"
+                        unit="years"
+                        min={1}
+                        max={50}
+                        step={1}
+                        placeholder="e.g. 35"
+                        value={kfwTerm}
+                        onChange={(value) => {
+                          if (value !== undefined) {
+                            toMortgageYears(value);
+                          }
+                          setKfwTerm(value);
+                        }}
+                      />
+                    )}
+                    {kfwPrincipal > 0 && method === LoanMethod.Annuity && (
+                      <OptionalNumberInput
+                        id="mortgage-kfw-grace"
+                        topicId="kfw-repayment-options"
+                        onValidityChange={trackValidity("mortgage-kfw-grace")}
+                        label="Interest-only years"
+                        unit="years"
+                        min={0}
+                        max={49}
+                        step={1}
+                        placeholder="1–5"
+                        value={kfwGrace}
+                        onChange={(value) => {
+                          if (value !== undefined) {
+                            toGraceYears(value);
+                          }
+                          setKfwGrace(value);
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {kfwPrincipal > 0 && (
+                    <>
+                      <div className="mortgage-preset-group">
+                        <span className="mortgage-preset-label">Standard KfW 300 presets</span>
+                        <div className="mortgage-chip-row">
+                          {KFW_300_PRESETS.map((preset) => (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              className={`mortgage-chip${activePresetId === preset.id ? " mortgage-chip--active" : ""}`}
+                              onClick={() => applyKfwPreset(preset)}
+                            >
+                              {preset.shortLabel}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="mortgage-preset-label">Repayment type</p>
+                        <SegmentedControl compact topicId="kfw-repayment-options" label="KfW repayment type" value={method} options={METHODS} onChange={setMethod} />
+                      </div>
+                      {!validGrace && validTerm && kfwGrace !== undefined && (
+                        <p role="alert">The interest-only period must be shorter than the KfW term.</p>
+                      )}
+                    </>
+                  )}
+                </section>
+              )}
+
+              {(drawerSection === DrawerSection.All || drawerSection === DrawerSection.Budget) && (
+                <section className="mw-drawer__section">
+                  <div className="mw-drawer__section-head">
+                    <h3>Monthly Household Budget</h3>
+                    <TopicHelp id="mortgage-affordability" />
+                  </div>
+                  <div className="mw-drawer__grid">
+                    <OptionalNumberInput id="mortgage-income" onValidityChange={trackValidity("mortgage-income")} label="Net income / mo" unit="€" min={0} max={10000000} placeholder="Enter income" value={income} onChange={setIncome} />
+                    <OptionalNumberInput id="mortgage-expenses" onValidityChange={trackValidity("mortgage-expenses")} label="Other spending / mo" unit="€" min={0} max={10000000} placeholder="Enter spending" value={expenses} onChange={setExpenses} />
+                    <OptionalNumberInput id="mortgage-running-costs" onValidityChange={trackValidity("mortgage-running-costs")} label="Home running costs / mo" unit="€" min={0} max={10000000} placeholder="Enter costs" value={housingCosts} onChange={setHousingCosts} />
+                  </div>
+                </section>
+              )}
+            </div>
+
+            <div className="mw-drawer__footer">
+              <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={resetDefaults}>
+                <ResetDefaultsIcon size={13} />
+                <span>Reset defaults</span>
+              </Button>
+              <Button size={ButtonSize.Sm} variant={ButtonVariant.Primary} onClick={() => setDrawerOpen(false)}>
+                Apply &amp; Close
+              </Button>
+            </div>
+          </aside>
+        </div>
+      )}
     </AppShell>
   );
 }

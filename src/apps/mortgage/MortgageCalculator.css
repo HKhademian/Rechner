@@ -1,16 +1,194 @@
-.mortgage-inputs {
-  display: grid;
-  align-content: start;
-  gap: 16px;
+/* =========================================================================
+   Mortgage & KfW 300 Workbench — Concept A Full-Width Analysis Canvas
+   100% design-system tokenized across swiss / editorial / utility x light/dark.
+   ========================================================================= */
+
+.mw-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.mortgage-inputs h2,
+.mw-layout > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ── Row 1: Quiet Command Header ─────────────────────────────────────────── */
+
+.mw-command-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.mw-command-header__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.mw-command-header__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mw-command-header__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.mw-command-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ── Summary Strip Pills ─────────────────────────────────────────────────── */
+
+.mw-summary-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.mw-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.mw-summary-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--text-primary);
+}
+
+.mw-summary-pill strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ── Row 2: Hairline Workspace Bar ───────────────────────────────────────── */
+
+.mw-workspace-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.mw-workspace-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+.mw-workspace-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mw-workspace-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mw-workspace-tab:hover {
+  color: var(--text-primary);
+}
+
+.mw-workspace-tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.mw-quick-presets {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+.mw-quick-presets__label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-right: var(--space-1);
+}
+
+/* ── Full-Width KPI & Summary Grids ──────────────────────────────────────── */
+
+.mw-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.mw-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* ── Shared Section & Results Styles ─────────────────────────────────────── */
+
 .mortgage-results h2 {
   margin: 0 0 8px;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
 }
 
-.mortgage-inputs p,
 .mortgage-results p {
   color: var(--text-secondary);
   line-height: 1.5;
@@ -18,20 +196,8 @@
 
 .mortgage-muted {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
-}
-
-.mortgage-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.mortgage-heading h2 {
-  margin: 0;
 }
 
 .mortgage-section-header {
@@ -39,49 +205,42 @@
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .mortgage-section-header h2 {
   margin: 0 0 4px;
 }
 
-.mortgage-results-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .mortgage-preset-group {
   display: grid;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .mortgage-preset-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
 }
 
 .mortgage-chip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .mortgage-chip {
-  padding: 5px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-control);
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   color: var(--text-secondary);
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
 .mortgage-chip:hover {
@@ -97,8 +256,11 @@
 
 .mortgage-term-charts {
   display: grid;
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
 }
+
+/* ── Repayment Ledger Table ──────────────────────────────────────────────── */
 
 .mortgage-table-wrap {
   overflow-x: auto;
@@ -107,7 +269,7 @@
 .mortgage-ledger-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .mortgage-ledger-table th,
@@ -117,7 +279,7 @@
 
 .mortgage-year-row {
   cursor: pointer;
-  transition: background-color 0.12s ease;
+  transition: background-color 120ms ease;
 }
 
 .mortgage-year-row:hover {
@@ -135,7 +297,7 @@
 }
 
 .mortgage-chevron {
-  transition: transform 0.15s ease;
+  transition: transform 150ms ease;
 }
 
 .mortgage-chevron--open {
@@ -151,7 +313,7 @@
 .mortgage-milestone-row td {
   background: var(--bg-surface-tertiary);
   color: var(--text-primary);
-  font-size: 0.82rem;
+  font-size: var(--font-size-xs);
   padding: 6px 10px;
 }
 
@@ -168,7 +330,7 @@
 .mortgage-months-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
 }
 
 .mortgage-months-table th,
@@ -184,20 +346,22 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── KfW 300 Guide Panel ─────────────────────────────────────────────────── */
+
 .kfw-guide-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
 }
 
 .kfw-guide-block h3 {
   margin: 0 0 8px;
-  font-size: 0.92rem;
+  font-size: var(--font-size-sm);
 }
 
 .kfw-guide-table {
   margin-top: 10px;
-  font-size: 0.84rem;
+  font-size: var(--font-size-xs);
 }
 
 .kfw-guide-list {
@@ -206,10 +370,127 @@
   display: grid;
   gap: 8px;
   color: var(--text-secondary);
-  font-size: 0.86rem;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
 }
 
 .kfw-guide-list strong {
   color: var(--text-primary);
+}
+
+/* ── Slide-Over Inputs Drawer ────────────────────────────────────────────── */
+
+.mw-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-backdrop);
+  z-index: var(--z-modal);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mw-drawer {
+  width: min(500px, 100vw);
+  height: 100vh;
+  background: var(--bg-app);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mw-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mw-drawer__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.mw-drawer__tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mw-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.mw-drawer__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+}
+
+.mw-drawer__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.mw-drawer__section-head h3 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.mw-drawer__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.mw-drawer__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── Responsive Breakpoints (Canonical: 900px, 640px) ────────────────────── */
+
+@media (max-width: 900px) {
+  .mw-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mw-two-col,
+  .mortgage-term-charts,
+  .kfw-guide-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .mw-kpi-grid,
+  .mw-drawer__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
