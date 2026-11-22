@@ -50,6 +50,9 @@ import {
   kitaApp,
 } from "#/apps/kita/manifest.ts";
 import {
+  lifePlannerApp,
+} from "#/apps/life-planner/manifest.ts";
+import {
   minijobMidijobApp,
 } from "#/apps/minijob-midijob/manifest.ts";
 import {
@@ -103,6 +106,7 @@ export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.free
   netPayApp,
   parentalPlannerApp,
   parentalLeaveApp,
+  lifePlannerApp,
   giroCodeApp,
   munichMapApp,
   visaApp,

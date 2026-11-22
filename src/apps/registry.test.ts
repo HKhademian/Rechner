@@ -21,7 +21,7 @@ import {
 it("limits default release catalog to published calculators while retaining draft definitions", () => {
   assert.deepEqual(
     calculatorApps.map((app) => app.id),
-    [AppId.NetPay, AppId.ParentalPlanner, AppId.ParentalLeave, AppId.GiroCode, AppId.MunichMap],
+    [AppId.NetPay, AppId.ParentalPlanner, AppId.ParentalLeave, AppId.LifePlanner, AppId.GiroCode, AppId.MunichMap],
   );
   assert.equal(
     calculatorApps.every((app) => app.releaseStatus === CalculatorReleaseStatus.Published),
@@ -128,5 +128,9 @@ it("validates calculator release badges strictly and marks legacy parental-leave
   assert.equal(
     calculatorApps.find((app) => app.id === AppId.ParentalPlanner)?.releaseBadge,
     CalculatorReleaseBadge.New,
+  );
+  assert.equal(
+    calculatorApps.find((app) => app.id === AppId.LifePlanner)?.releaseBadge,
+    CalculatorReleaseBadge.Beta,
   );
 });

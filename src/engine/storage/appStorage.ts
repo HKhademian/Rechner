@@ -194,6 +194,7 @@ const legacyKeys: Readonly<Record<AppId, Readonly<Record<string, string>>>> = {
   [Apps.ParentalLeave]: { state: "elterngeld_simulator_state_v1",
     theme: "german_calc_theme_mode" },
   [Apps.ParentalPlanner]: {},
+  [Apps.LifePlanner]: {},
   [Apps.GiroCode]: {},
   [Apps.MunichMap]: {},
   [Apps.Visa]: {},
