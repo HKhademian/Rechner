@@ -12,19 +12,21 @@
 
 # KfW interest-only periods and lump sums
 
-The nominal annual interest rate (*Sollzinssatz*) is used to calculate monthly interest. KfW 300 loans are commonly offered in two structures:
+The nominal annual interest rate (*Sollzinssatz*) determines monthly interest. Official KfW 300 loan tiers (10-year fixed-rate period; reference rates as of Nov 2026):
 
-- **Annuity with interest-only startup (*Annuitätendarlehen* + *Tilgungsfreie Anlaufjahre*)**: Typically 10, 20, 25, or 35 years total term with **1 to 5 interest-only years** at the start. During grace years you pay only monthly interest (`Principal × Rate / 12`); afterward, the full principal is amortized over the remaining `(Term − Grace) × 12` months.
-- **Lump-sum / Balloon (*Endfälliges Darlehen*)**: Typically up to 10 years. Monthly payments cover interest only, and 100% of the principal is due at maturity.
+- **Annuity 4–10 years**: 1–2 interest-only startup years (*Tilgungsfreie Anlaufjahre*), 0.01% p.a.
+- **Annuity 11–25 years**: 1–3 interest-only years, 0.51% p.a.
+- **Annuity 26–35 years**: 1–5 interest-only years, 0.78% p.a.
+- **Lump-sum / Balloon (*Endfälliges Darlehen*, 4–10 years)**: Interest-only for the entire term with 100% of principal due at maturity, 0.93% p.a.
 
 ## Potential benefit
 
-An interest-only period lowers your combined Bank + KfW monthly payment during the initial years after moving in, while deferring principal repayment.
+Interest-only startup years reduce your combined Bank + KfW monthly payment right after moving in, and pairing a low-rate KfW 300 tranche with a commercial mortgage lowers your blended interest rate substantially.
 
 ## Conditions and limitations
 
-Because principal is not reduced during interest-only years, the monthly payment steps up once repayment begins. KfW typically fixes the nominal rate for **10 years** (*Zinsbindung*), after which a new follow-up rate applies.
+Principal is not reduced during interest-only years, so monthly payments step up once repayment starts. Subsidized KfW rates apply only for the first **10-year fixed-rate period** (*Zinsbindung*), after which any remaining balance is refinanced at market rates. Partial unscheduled prepayments (*Sondertilgung*) are not permitted, and a 0.15%/month commitment fee (*Bereitstellungsprovision*) applies from month 13 on undrawn funds.
 
 ## In the calculators
 
-The [Mortgage Simulator](rechner://app/mortgage) provides editable KfW 300 presets (such as 35y / 5y grace, 25y / 3y grace, 20y / 2y grace, 10y / 1y grace, and 10y balloon) with an illustrative nominal rate so the charts and monthly/annual repayment ledger work immediately. Replace the illustrative rate with your actual KfW offer from your bank.
+The [Mortgage Simulator](rechner://app/mortgage) pre-loads editable KfW 300 term/grace presets with Nov 2026 reference rates and flags both the grace-period end and the Year 10 *Zinsbindung* end in the repayment ledger. Always replace the reference rate with your actual bank offer.
