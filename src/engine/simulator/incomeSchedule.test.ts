@@ -209,3 +209,29 @@ it("replaces contract gross, then compounds later raises and prorates hours once
     salaryRaises: [{ ...replacement,
       targetPerson: TargetPerson.Both }] }, at(2)), /every selected person/);
 });
+
+it("handles 0h baseline contractual hours without throwing and prorates later return-to-work hours against 40h FTE", () => {
+  const batches: ScenarioActionBatches = { ...base,
+    preexisting: { ...base.preexisting,
+      salaryInputMode: SalaryInputMode.Gross,
+      husbandGross: toGrossSalary(4000),
+      wifeGross: toGrossSalary(3000),
+      husbandWeeklyHours: toWorkingHours(0),
+      wifeWeeklyHours: toWorkingHours(0) },
+    workingHoursChanges: [{ changeId: toHoursChangeId("HUSBAND-RETURN-24H"),
+      effectiveSimulationMonth: toSimulationMonth(3),
+      effectiveCalendarMonth: toCalendarMonth(3),
+      effectiveCalendarYear: toFullCalendarYear(2026),
+      targetPerson: TargetPerson.Husband,
+      weeklyHours: toWorkingHours(24),
+      reason: "Return from initial leave" }] };
+  const month1 = evaluateIncomeMonth(batches, at(1));
+  assert.equal(month1.husbandPayroll?.monthlyGross, 0);
+  assert.equal(month1.husbandSalary, 0);
+  assert.equal(month1.wifePayroll?.monthlyGross, 0);
+  assert.equal(month1.wifeSalary, 0);
+
+  const month3 = evaluateIncomeMonth(batches, at(3));
+  assert.equal(month3.husbandPayroll?.monthlyGross, 2400);
+  assert.ok(month3.husbandSalary > 0);
+});

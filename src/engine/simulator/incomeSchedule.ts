@@ -228,10 +228,11 @@ export function evaluateIncomeMonth(
     }
   }
   const forHours = (gross: GrossSalary, hours: WorkingHours, baseline: WorkingHours): GrossSalary => {
-    if (baseline === 0 && gross > 0) {
-      throw new TypeError("A positive baseline salary requires positive contractual hours.");
+    if (hours <= 0) {
+      return toGrossSalary(0);
     }
-    return toGrossSalary(baseline === 0 ? 0 : gross * hours / baseline);
+    const denominator = baseline > 0 ? baseline : 40;
+    return toGrossSalary(gross * hours / denominator);
   };
   const rules = grossMode ? createTaxRules(year, p.taxRuleOverrides) : undefined;
   const hGross = husbandGross === undefined ? undefined : forHours(husbandGross, husbandHours, p.husbandWeeklyHours);
