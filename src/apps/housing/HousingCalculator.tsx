@@ -1,4 +1,5 @@
 import "#/components/DomainCalculator.css";
+import "#/apps/mortgage/MortgageCalculator.css";
 import {
   useState,
 } from "preact/hooks";
@@ -17,8 +18,15 @@ import {
   updateHousingField,
 } from "#/apps/housing/housingStore.ts";
 import {
+  Kfw300GuidePanel,
+} from "#/apps/mortgage/Kfw300GuidePanel.tsx";
+import {
   writeMortgageHandoff,
 } from "#/apps/mortgage/mortgageHandoff.ts";
+import {
+  DEFAULT_KFW_300_PRESET,
+  estimateIllustrativeKfw300Monthly,
+} from "#/apps/mortgage/mortgageSchedule.ts";
 import {
   isPlainPrimaryClick,
 } from "#store/lawReferenceStore";
@@ -132,6 +140,7 @@ export default function HousingCalculator(): JSX.Element {
   const evalResult = housingEvaluation.value.value;
   const repairLawSource = getLawEntry(LawId.EStG_35a).externalSources[ExternalSourceId.GesetzeImInternet];
   const savingsUsed = Math.min(s.availableEquityEur, evalResult.totalCapitalRequirementEur);
+  const kfwPreview = estimateIllustrativeKfw300Monthly(evalResult.kfw300MaxSubsidizedLoanEur);
 
   const breakdownRows: readonly BreakdownRow[] = [
     {
@@ -272,7 +281,8 @@ export default function HousingCalculator(): JSX.Element {
 
               <Disclosure
                 title="KfW 300 & Renovation Relief"
-                meta={evalResult.kfw300Eligible ? "Eligible" : "Optional"}
+                meta={evalResult.kfw300Eligible ? `Eligible · up to ${formatEur(evalResult.kfw300MaxSubsidizedLoanEur)}` : "Not eligible"}
+                defaultOpen
                 subtle
               >
                 <FieldGroup>
@@ -302,6 +312,7 @@ export default function HousingCalculator(): JSX.Element {
                     id="housing-newbuild"
                     topicId="eh40"
                     label="Owner-occupied EH 40 new build"
+                    hint="Required for KfW 300 (€170k–€220k base loan cap by children)"
                     checked={s.isOwnerOccupiedNewBuildOrKfw300Standard}
                     onChange={(checked) => updateHousingField("isOwnerOccupiedNewBuildOrKfw300Standard", checked)}
                   />
@@ -309,6 +320,7 @@ export default function HousingCalculator(): JSX.Element {
                     id="housing-qng"
                     topicId="qng"
                     label="QNG sustainability certification"
+                    hint="Adds +€50,000 to your maximum KfW 300 loan cap"
                     checked={s.isQngPlusCertified}
                     onChange={(checked) => updateHousingField("isQngPlusCertified", checked)}
                   />
@@ -371,7 +383,7 @@ export default function HousingCalculator(): JSX.Element {
               actions={<LawRefLink lawId={LawId.KfW_300} label="KfW 300" />}
             >
               {evalResult.kfw300IncomeCeilingEur > 0
-                ? `KfW 300 household income ceiling for ${s.dependentChildrenCount} child(ren): ${formatEur(evalResult.kfw300IncomeCeilingEur)}.`
+                ? `KfW 300 household income ceiling for ${s.dependentChildrenCount} child(ren): ${formatEur(evalResult.kfw300IncomeCeilingEur)} (2-year prior average zvE).${evalResult.kfw300Eligible ? ` Illustrative KfW payment (${DEFAULT_KFW_300_PRESET.illustrativeRatePercent.toFixed(2)}%, ${DEFAULT_KFW_300_PRESET.termYears}y / ${DEFAULT_KFW_300_PRESET.graceYears}y grace): ~${formatEur(kfwPreview.initialMonthly)}/mo initially, rising to ~${formatEur(kfwPreview.laterMonthly)}/mo after grace.` : ""}`
                 : "KfW 300 family loans require at least 1 minor child in the household."}
             </StatusBanner>
 
@@ -385,7 +397,11 @@ export default function HousingCalculator(): JSX.Element {
               <MetricCard
                 label="Bank loan still needed"
                 value={formatEur(evalResult.remainingBankLoanEur)}
-                subtitle={`Est. payment: ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/mo${evalResult.kfw300MaxSubsidizedLoanEur > 0 ? " · KfW separate" : ""}`}
+                subtitle={
+                  evalResult.kfw300MaxSubsidizedLoanEur > 0
+                    ? `Bank ~${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/mo + KfW ~${formatEur(kfwPreview.initialMonthly)}→${formatEur(kfwPreview.laterMonthly)}/mo`
+                    : `Est. payment: ${formatEur(evalResult.estimatedMonthlyBankPaymentEur)}/mo`
+                }
                 footer={(
                   <>
                     <LinkButton
@@ -394,7 +410,7 @@ export default function HousingCalculator(): JSX.Element {
                       size={ButtonSize.Sm}
                       onClick={handleMortgageHandoff}
                     >
-                      Simulate loan payments
+                      Simulate Bank + KfW payments
                     </LinkButton>
                     {transferNotice && (
                       <p role="status">
@@ -431,7 +447,7 @@ export default function HousingCalculator(): JSX.Element {
                 isTotalRow={(row) => Boolean(row.total)}
               />
               <p>
-                Your savings and the estimated KfW loan reduce the amount you need to borrow from a bank.
+                Your savings and the estimated KfW 300 loan reduce the amount you need to borrow from a commercial bank.
                 {s.availableEquityEur > savingsUsed ? " Not all of your available savings are needed." : ""}
               </p>
               <LawReferenceBar>
@@ -440,6 +456,8 @@ export default function HousingCalculator(): JSX.Element {
                 <LawRefLink lawId={LawId.EStG_35a} label="EStG § 35a" />
               </LawReferenceBar>
             </Card>
+
+            <Kfw300GuidePanel context="housing" />
 
             <ParameterObserverSection embedded projectionProfile={FormProjectionProfileId.HousingFocus} />
           </>
