@@ -12,14 +12,16 @@ import {
 import {
   AppId,
   CalculatorCategory,
+  CalculatorReleaseBadge,
   CalculatorReleaseStatus,
   calculatorPath,
+  toCalculatorReleaseBadge,
 } from "#/apps/appDefinition.ts";
 
 it("limits default release catalog to published calculators while retaining draft definitions", () => {
   assert.deepEqual(
     calculatorApps.map((app) => app.id),
-    [AppId.NetPay, AppId.ParentalLeave, AppId.GiroCode, AppId.MunichMap],
+    [AppId.NetPay, AppId.ParentalPlanner, AppId.ParentalLeave, AppId.GiroCode, AppId.MunichMap],
   );
   assert.equal(
     calculatorApps.every((app) => app.releaseStatus === CalculatorReleaseStatus.Published),
@@ -78,7 +80,7 @@ it("registers unique routes and resolves exact app paths without accidental pref
 
 it("filters German search terms, categories and empty results and clamps paginated results", () => {
   assert.equal(catalogPage(calculatorApps, "  NETTO  ", undefined, 1).items[0].id, AppId.NetPay);
-  assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Family, 1).items[0].id, AppId.ParentalLeave);
+  assert.equal(catalogPage(calculatorApps, "", CalculatorCategory.Family, 1).items[0].id, AppId.ParentalPlanner);
   assert.equal(catalogPage(calculatorApps, "girocode", undefined, 1).items[0].id, AppId.GiroCode);
   assert.equal(catalogPage(allCalculatorApps, "blue card", undefined, 1).items[0].id, AppId.Visa);
   assert.equal(catalogPage(allCalculatorApps, "dienstwagen", undefined, 1).items[0].id, AppId.CompanyCar);
@@ -112,4 +114,19 @@ it("filters German search terms, categories and empty results and clamps paginat
   assert.equal(catalogPage(many, "", undefined, 99, 3).page, 3);
   assert.equal(catalogPage(many, "", undefined, -1, 3).page, 1);
   assert.throws(() => catalogPage(many, "", undefined, 1, 0), TypeError);
+});
+
+it("validates calculator release badges strictly and marks legacy parental-leave as deprecated", () => {
+  assert.equal(toCalculatorReleaseBadge("beta"), CalculatorReleaseBadge.Beta);
+  assert.equal(toCalculatorReleaseBadge("new"), CalculatorReleaseBadge.New);
+  assert.equal(toCalculatorReleaseBadge("deprecated"), CalculatorReleaseBadge.Deprecated);
+  assert.throws(() => toCalculatorReleaseBadge("alpha"), TypeError);
+  assert.equal(
+    calculatorApps.find((app) => app.id === AppId.ParentalLeave)?.releaseBadge,
+    CalculatorReleaseBadge.Deprecated,
+  );
+  assert.equal(
+    calculatorApps.find((app) => app.id === AppId.ParentalPlanner)?.releaseBadge,
+    CalculatorReleaseBadge.New,
+  );
 });

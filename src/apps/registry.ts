@@ -68,6 +68,9 @@ import {
   parentalLeaveApp,
 } from "#/apps/parental-leave/manifest.ts";
 import {
+  parentalPlannerApp,
+} from "#/apps/parental-planner/manifest.ts";
+import {
   permanentResidencyApp,
 } from "#/apps/permanent-residency/manifest.ts";
 import {
@@ -98,6 +101,7 @@ import {
 /** Metadata only: the catalog must never initialize a calculator's financial store. */
 export const allCalculatorApps: readonly CalculatorAppDefinition[] = Object.freeze([
   netPayApp,
+  parentalPlannerApp,
   parentalLeaveApp,
   giroCodeApp,
   munichMapApp,
