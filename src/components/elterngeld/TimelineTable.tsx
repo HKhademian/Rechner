@@ -770,6 +770,13 @@ export default function TimelineTable(): JSX.Element {
                     ) : (
                       <span className="eg-ledger__phase-text">{m.phaseLabel}</span>
                     )}
+                    {m.daySplit && (
+                      <div>
+                        <span className="eg-ledger__day-split tabular-nums">
+                          {m.daySplit.summaryLabel}
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td
                     className="eg-ledger__cell eg-ledger__cell--left"

@@ -271,6 +271,19 @@
   color: var(--text-secondary);
 }
 
+.eg-ledger__day-split {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
 .eg-ledger__tax-class {
   color: var(--text-muted);
   font-weight: var(--font-weight-medium);
