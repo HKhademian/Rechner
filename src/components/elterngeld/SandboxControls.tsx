@@ -129,6 +129,8 @@ import {
 } from "#engine/formulas/context/statutoryEvaluators";
 import {
   addCalendarMonthsClamped,
+  buildIsoDate,
+  daysInCalendarMonth,
   parseIsoDateParts,
 } from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
@@ -850,142 +852,178 @@ export default function SandboxControls(): JSX.Element {
                           )}
 
                           {/* Day-Exact Expected Due Date, Mutterschutz & Vacation Inputs */}
-                          <div className="sandbox-mt-2">
-                            <div className="sandbox-grid-2">
-                              <div>
-                                <label
-                                  htmlFor={`preg-due-date-${preg.pregnancyId}`}
-                                  className="sandbox-field-label"
-                                >
-                                  Exact due date (optional)
-                                </label>
-                                <input
-                                  id={`preg-due-date-${preg.pregnancyId}`}
-                                  type="date"
-                                  value={preg.expectedDueDate ?? ""}
-                                  onChange={(e) => {
-                                    const raw = (e.target as HTMLInputElement).value;
-                                    if (!raw) {
-                                      updatePregnancyAction(preg.pregnancyId, {
-                                        expectedDueDate: undefined,
-                                      });
-                                      return;
-                                    }
-                                    if (!isIsoCalendarDate(raw)) {
-                                      return;
-                                    }
-                                    const dueIso = toIsoCalendarDate(raw);
-                                    const dueParts = parseIsoDateParts(dueIso);
-                                    const posIso = addCalendarMonthsClamped(dueIso, -8);
-                                    const posParts = parseIsoDateParts(posIso);
-                                    if (isFirst) {
-                                      setPregnancy1PositiveDate(posParts.year, posParts.month);
-                                      updatePregnancyAction(preg.pregnancyId, {
-                                        expectedDueDate: dueIso,
-                                      });
-                                    }
-                                    else {
-                                      const newDSim = Math.max(
-                                        1,
-                                        (dueParts.year - startCalendarYear.value) * 12 +
-                                          (dueParts.month - startCalendarMonth.value) +
-                                          1,
-                                      );
-                                      const newPSim = Math.max(1, newDSim - 8);
-                                      updatePregnancyAction(preg.pregnancyId, {
-                                        expectedDueDate: dueIso,
-                                        positiveTestCalendarMonth: posParts.month,
-                                        positiveTestCalendarYear: posParts.year,
-                                        positiveTestSimulationMonth: toSimulationMonth(newPSim),
-                                        calculatedDeliverySimulationMonth: toSimulationMonth(newDSim),
-                                      });
-                                    }
-                                  }}
-                                  className="sandbox-input sandbox-input--regular"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  htmlFor={`preg-vac-days-${preg.pregnancyId}`}
-                                  className="sandbox-field-label"
-                                >
-                                  Annual vacation (days)
-                                </label>
-                                <input
-                                  id={`preg-vac-days-${preg.pregnancyId}`}
-                                  type="number"
-                                  min={0}
-                                  max={60}
-                                  step={1}
-                                  value={preg.motherAnnualVacationDays ?? 30}
-                                  onInput={(e) => {
-                                    const v = Math.max(
-                                      0,
-                                      Math.min(60, Number((e.target as HTMLInputElement).value) || 0),
-                                    );
-                                    updatePregnancyAction(preg.pregnancyId, {
-                                      motherAnnualVacationDays: v,
-                                    });
-                                  }}
-                                  className="sandbox-input sandbox-input--regular"
-                                />
-                              </div>
-                            </div>
+                          {(() => {
+                            const estElapsed = startCalendarMonth.value - 1 + (dSimMonth - 1);
+                            const estYear = startCalendarYear.value + Math.floor(estElapsed / 12);
+                            const estMonth = ((estElapsed % 12) + 12) % 12 + 1;
+                            const estimatedDueIso = buildIsoDate(estYear, estMonth, 15);
+                            return (
+                              <div className="sandbox-mt-2">
+                                <div className="sandbox-grid-2">
+                                  <div>
+                                    <label
+                                      htmlFor={`preg-due-date-${preg.pregnancyId}`}
+                                      className="sandbox-field-label"
+                                    >
+                                      Exact due date (optional)
+                                    </label>
+                                    <input
+                                      id={`preg-due-date-${preg.pregnancyId}`}
+                                      type="date"
+                                      value={preg.expectedDueDate ?? ""}
+                                      onChange={(e) => {
+                                        const raw = (e.target as HTMLInputElement).value;
+                                        if (!raw) {
+                                          updatePregnancyAction(preg.pregnancyId, {
+                                            expectedDueDate: undefined,
+                                          });
+                                          return;
+                                        }
+                                        if (!isIsoCalendarDate(raw)) {
+                                          return;
+                                        }
+                                        const dueIso = toIsoCalendarDate(raw);
+                                        const dueParts = parseIsoDateParts(dueIso);
+                                        const posIso = addCalendarMonthsClamped(dueIso, -8);
+                                        const posParts = parseIsoDateParts(posIso);
+                                        if (isFirst) {
+                                          setPregnancy1PositiveDate(posParts.year, posParts.month);
+                                          updatePregnancyAction(preg.pregnancyId, {
+                                            expectedDueDate: dueIso,
+                                          });
+                                        }
+                                        else {
+                                          const newDSim = Math.max(
+                                            1,
+                                            (dueParts.year - startCalendarYear.value) * 12 +
+                                              (dueParts.month - startCalendarMonth.value) +
+                                              1,
+                                          );
+                                          const newPSim = Math.max(1, newDSim - 8);
+                                          updatePregnancyAction(preg.pregnancyId, {
+                                            expectedDueDate: dueIso,
+                                            positiveTestCalendarMonth: posParts.month,
+                                            positiveTestCalendarYear: posParts.year,
+                                            positiveTestSimulationMonth: toSimulationMonth(newPSim),
+                                            calculatedDeliverySimulationMonth: toSimulationMonth(newDSim),
+                                          });
+                                        }
+                                      }}
+                                      className="sandbox-input sandbox-input--regular"
+                                    />
+                                    <div className="sandbox-chip-wrap sandbox-mt-1">
+                                      <button
+                                        type="button"
+                                        id={`preg-due-date-estimate-${preg.pregnancyId}`}
+                                        className={`sandbox-chip-btn ${preg.expectedDueDate === estimatedDueIso ? "sandbox-chip-btn--active-primary" : ""}`}
+                                        title="Populate estimated mid-month due date (+8 months from positive test)"
+                                        onClick={() =>
+                                          updatePregnancyAction(preg.pregnancyId, {
+                                            expectedDueDate: estimatedDueIso,
+                                          })
+                                        }
+                                      >
+                                        Estimate ({formatGermanDate(estimatedDueIso)})
+                                      </button>
+                                      {preg.expectedDueDate && (
+                                        <button
+                                          type="button"
+                                          className="sandbox-chip-btn"
+                                          onClick={() =>
+                                            updatePregnancyAction(preg.pregnancyId, {
+                                              expectedDueDate: undefined,
+                                            })
+                                          }
+                                        >
+                                          Clear
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor={`preg-vac-days-${preg.pregnancyId}`}
+                                      className="sandbox-field-label"
+                                    >
+                                      Annual vacation (days)
+                                    </label>
+                                    <input
+                                      id={`preg-vac-days-${preg.pregnancyId}`}
+                                      type="number"
+                                      min={0}
+                                      max={60}
+                                      step={1}
+                                      value={preg.motherAnnualVacationDays ?? 30}
+                                      onInput={(e) => {
+                                        const v = Math.max(
+                                          0,
+                                          Math.min(60, Number((e.target as HTMLInputElement).value) || 0),
+                                        );
+                                        updatePregnancyAction(preg.pregnancyId, {
+                                          motherAnnualVacationDays: v,
+                                        });
+                                      }}
+                                      className="sandbox-input sandbox-input--regular"
+                                    />
+                                  </div>
+                                </div>
 
-                            <div className="sandbox-grid-2 sandbox-mt-2">
-                              <div>
-                                <label
-                                  htmlFor={`preg-vac-taken-${preg.pregnancyId}`}
-                                  className="sandbox-field-label"
-                                >
-                                  Vacation taken pre-leave (days)
-                                </label>
-                                <input
-                                  id={`preg-vac-taken-${preg.pregnancyId}`}
-                                  type="number"
-                                  min={0}
-                                  max={60}
-                                  step={0.5}
-                                  value={preg.motherVacationDaysTakenPreLeave ?? 0}
-                                  onInput={(e) => {
-                                    const v = Math.max(
-                                      0,
-                                      Math.min(60, Number((e.target as HTMLInputElement).value) || 0),
-                                    );
-                                    updatePregnancyAction(preg.pregnancyId, {
-                                      motherVacationDaysTakenPreLeave: v,
-                                    });
-                                  }}
-                                  className="sandbox-input sandbox-input--regular"
-                                />
-                              </div>
-                              <div className="sandbox-row--between-sm">
-                                <label className="sandbox-check-label">
-                                  <input
-                                    id={`preg-twins-${preg.pregnancyId}`}
-                                    type="checkbox"
-                                    checked={Boolean(preg.isMultipleOrPrematureBirth)}
-                                    onChange={(e) =>
-                                      updatePregnancyAction(preg.pregnancyId, {
-                                        isMultipleOrPrematureBirth: (
-                                          e.target as HTMLInputElement
-                                        ).checked,
-                                      })
-                                    }
-                                  />
-                                  <span>Twins / premature (+4 wks MuSchG)</span>
-                                </label>
-                              </div>
-                            </div>
+                                <div className="sandbox-grid-2 sandbox-mt-2">
+                                  <div>
+                                    <label
+                                      htmlFor={`preg-vac-taken-${preg.pregnancyId}`}
+                                      className="sandbox-field-label"
+                                    >
+                                      Vacation taken pre-leave (days)
+                                    </label>
+                                    <input
+                                      id={`preg-vac-taken-${preg.pregnancyId}`}
+                                      type="number"
+                                      min={0}
+                                      max={60}
+                                      step={0.5}
+                                      value={preg.motherVacationDaysTakenPreLeave ?? 0}
+                                      onInput={(e) => {
+                                        const v = Math.max(
+                                          0,
+                                          Math.min(60, Number((e.target as HTMLInputElement).value) || 0),
+                                        );
+                                        updatePregnancyAction(preg.pregnancyId, {
+                                          motherVacationDaysTakenPreLeave: v,
+                                        });
+                                      }}
+                                      className="sandbox-input sandbox-input--regular"
+                                    />
+                                  </div>
+                                  <div className="sandbox-row--between-sm">
+                                    <label className="sandbox-check-label">
+                                      <input
+                                        id={`preg-twins-${preg.pregnancyId}`}
+                                        type="checkbox"
+                                        checked={Boolean(preg.isMultipleOrPrematureBirth)}
+                                        onChange={(e) =>
+                                          updatePregnancyAction(preg.pregnancyId, {
+                                            isMultipleOrPrematureBirth: (
+                                              e.target as HTMLInputElement
+                                            ).checked,
+                                          })
+                                        }
+                                      />
+                                      <span>Twins / premature (+4 wks MuSchG)</span>
+                                    </label>
+                                  </div>
+                                </div>
 
-                            {preg.expectedDueDate && (
-                              <div className="sandbox-note sandbox-note--sm">
-                                ↳ Exact due date {formatGermanDate(preg.expectedDueDate)} active:
-                                enables day-exact Mutterschutz proration, BEEG Life Months, and
-                                statutory deadline calendar below.
+                                {preg.expectedDueDate && (
+                                  <div className="sandbox-note sandbox-note--sm">
+                                    ↳ Exact due date {formatGermanDate(preg.expectedDueDate)} active:
+                                    enables day-exact Mutterschutz proration, BEEG Life Months, and
+                                    statutory deadline calendar below.
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Parental Allowance Variant & Duration (§§ 4, 4a BEEG) */}
@@ -2655,46 +2693,119 @@ export default function SandboxControls(): JSX.Element {
                         </div>
 
                         {/* Optional Day-Exact Effective Date (e.g. 28.12.2027 return from Elternzeit) */}
-                        <div className="sandbox-mb-2">
-                          <label
-                            htmlFor={`whc-exact-date-${whc.changeId}`}
-                            className="sandbox-field-label sandbox-field-label--xs"
-                          >
-                            Exact Effective Day (optional · day-prorated salary &amp; Life-Month check):
-                          </label>
-                          <input
-                            id={`whc-exact-date-${whc.changeId}`}
-                            type="date"
-                            value={whc.effectiveDate ?? ""}
-                            onChange={(e) => {
-                              const raw = (e.target as HTMLInputElement).value;
-                              if (!raw) {
-                                updateWorkingHoursChangeAction(whc.changeId, {
-                                  effectiveDate: undefined,
-                                });
-                                return;
-                              }
-                              if (!isIsoCalendarDate(raw)) {
-                                return;
-                              }
-                              const iso = toIsoCalendarDate(raw);
-                              const parts = parseIsoDateParts(iso);
-                              const simMonth = Math.max(
-                                1,
-                                (parts.year - startCalendarYear.value) * 12 +
-                                  (parts.month - startCalendarMonth.value) +
-                                  1,
-                              );
-                              updateWorkingHoursChangeAction(whc.changeId, {
-                                effectiveDate: iso,
-                                effectiveSimulationMonth: toSimulationMonth(simMonth),
-                                effectiveCalendarYear: parts.year,
-                                effectiveCalendarMonth: parts.month,
-                              });
-                            }}
-                            className="sandbox-input sandbox-input--regular"
-                          />
-                        </div>
+                        {(() => {
+                          const firstOfMonthIso = buildIsoDate(
+                            whc.effectiveCalendarYear,
+                            whc.effectiveCalendarMonth,
+                            1,
+                          );
+                          const datedPreg = [...customPregnancies.value]
+                            .filter(
+                              (p) =>
+                                p.expectedDueDate !== undefined &&
+                                p.calculatedDeliverySimulationMonth <= whc.effectiveSimulationMonth,
+                            )
+                            .sort(
+                              (a, b) =>
+                                b.calculatedDeliverySimulationMonth -
+                                a.calculatedDeliverySimulationMonth,
+                            )[0];
+                          const lifeMonthStartIso = datedPreg?.expectedDueDate
+                            ? buildIsoDate(
+                              whc.effectiveCalendarYear,
+                              whc.effectiveCalendarMonth,
+                              Math.min(
+                                parseIsoDateParts(datedPreg.expectedDueDate).day,
+                                daysInCalendarMonth(
+                                  whc.effectiveCalendarYear,
+                                  whc.effectiveCalendarMonth,
+                                ),
+                              ),
+                            )
+                            : undefined;
+                          return (
+                            <div className="sandbox-mb-2">
+                              <label
+                                htmlFor={`whc-exact-date-${whc.changeId}`}
+                                className="sandbox-field-label sandbox-field-label--xs"
+                              >
+                                Exact Effective Day (optional · day-prorated salary &amp; Life-Month check):
+                              </label>
+                              <input
+                                id={`whc-exact-date-${whc.changeId}`}
+                                type="date"
+                                value={whc.effectiveDate ?? ""}
+                                onChange={(e) => {
+                                  const raw = (e.target as HTMLInputElement).value;
+                                  if (!raw) {
+                                    updateWorkingHoursChangeAction(whc.changeId, {
+                                      effectiveDate: undefined,
+                                    });
+                                    return;
+                                  }
+                                  if (!isIsoCalendarDate(raw)) {
+                                    return;
+                                  }
+                                  const iso = toIsoCalendarDate(raw);
+                                  const parts = parseIsoDateParts(iso);
+                                  const simMonth = Math.max(
+                                    1,
+                                    (parts.year - startCalendarYear.value) * 12 +
+                                      (parts.month - startCalendarMonth.value) +
+                                      1,
+                                  );
+                                  updateWorkingHoursChangeAction(whc.changeId, {
+                                    effectiveDate: iso,
+                                    effectiveSimulationMonth: toSimulationMonth(simMonth),
+                                    effectiveCalendarYear: parts.year,
+                                    effectiveCalendarMonth: parts.month,
+                                  });
+                                }}
+                                className="sandbox-input sandbox-input--regular"
+                              />
+                              <div className="sandbox-chip-wrap sandbox-mt-1">
+                                {lifeMonthStartIso && lifeMonthStartIso !== firstOfMonthIso && (
+                                  <button
+                                    type="button"
+                                    className={`sandbox-chip-btn ${whc.effectiveDate === lifeMonthStartIso ? "sandbox-chip-btn--active-primary" : ""}`}
+                                    title="Snap to exact BEEG Life-Month start day to avoid Elterngeld income overlap"
+                                    onClick={() =>
+                                      updateWorkingHoursChangeAction(whc.changeId, {
+                                        effectiveDate: lifeMonthStartIso,
+                                      })
+                                    }
+                                  >
+                                    Life-Month Start ({formatGermanDate(lifeMonthStartIso)})
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className={`sandbox-chip-btn ${whc.effectiveDate === firstOfMonthIso ? "sandbox-chip-btn--active-primary" : ""}`}
+                                  onClick={() =>
+                                    updateWorkingHoursChangeAction(whc.changeId, {
+                                      effectiveDate: firstOfMonthIso,
+                                    })
+                                  }
+                                >
+                                  1st ({formatGermanDate(firstOfMonthIso)})
+                                </button>
+                                {whc.effectiveDate && (
+                                  <button
+                                    type="button"
+                                    className="sandbox-chip-btn"
+                                    onClick={() =>
+                                      updateWorkingHoursChangeAction(whc.changeId, {
+                                        effectiveDate: undefined,
+                                      })
+                                    }
+                                  >
+                                    Clear
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Working Hours Exact Input & Slider */}
                         <div className="sandbox-mb-2">
