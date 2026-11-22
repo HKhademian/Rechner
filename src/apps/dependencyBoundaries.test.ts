@@ -62,6 +62,8 @@ function runtimeDependencies(entry: string): Set<string> {
 const NET_PAY_STORE = resolve("src/store/calculatorStore.ts");
 const TAX_STORE = resolve("src/store/taxConfigStore.ts");
 const PARENTAL_STORE = resolve("src/store/elterngeldStore.ts");
+const PARENTAL_WORKBENCH_STATE_STORE = resolve("src/apps/parental-planner/store/workbenchState.ts");
+const PARENTAL_WORKBENCH_SIM_STORE = resolve("src/apps/parental-planner/store/workbenchSimulation.ts");
 const GIROCODE_STORE = resolve("src/apps/girocode/girocodeStore.ts");
 const VISA_STORE = resolve("src/apps/visa/visaStore.ts");
 const COMPANY_CAR_STORE = resolve("src/apps/company-car/companyCarStore.ts");
@@ -93,6 +95,8 @@ const ALL_CALCULATOR_STORES = [
   NET_PAY_STORE,
   TAX_STORE,
   PARENTAL_STORE,
+  PARENTAL_WORKBENCH_STATE_STORE,
+  PARENTAL_WORKBENCH_SIM_STORE,
   GIROCODE_STORE,
   VISA_STORE,
   COMPANY_CAR_STORE,
@@ -132,6 +136,7 @@ it("catalog and app entries cannot initialize another calculator's financial sto
   const entryOwnStores: readonly [string, readonly string[]][] = [
     ["src/apps/net-pay/App.tsx", [NET_PAY_STORE, TAX_STORE]],
     ["src/apps/parental-leave/App.tsx", [PARENTAL_STORE]],
+    ["src/apps/parental-planner/App.tsx", [PARENTAL_WORKBENCH_STATE_STORE, PARENTAL_WORKBENCH_SIM_STORE]],
     ["src/apps/girocode/App.tsx", [GIROCODE_STORE]],
     ["src/apps/visa/App.tsx", [VISA_STORE]],
     ["src/apps/company-car/App.tsx", [COMPANY_CAR_STORE]],

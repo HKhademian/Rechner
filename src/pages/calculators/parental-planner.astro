@@ -1,0 +1,13 @@
+---
+import ParentalLeaveWorkbenchApp from "#/apps/parental-planner/App.tsx";
+import {
+  parentalPlannerApp,
+} from "#/apps/parental-planner/manifest.ts";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+---
+<BaseDocument
+  title={`${parentalPlannerApp.title} | Rechner`}
+  description={parentalPlannerApp.description}
+>
+  <ParentalLeaveWorkbenchApp client:load />
+</BaseDocument>

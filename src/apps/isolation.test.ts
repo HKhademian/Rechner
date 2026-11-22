@@ -227,3 +227,31 @@ it("track 3 Sync Life Profile only persists under the target app and shared para
   }
 });
 
+it("parental-planner isolates storage and reads classic planner state non-destructively", () => {
+  const script = `
+    import assert from "node:assert/strict";
+    const classicPlan = JSON.stringify({ husbandGross: 7777, wifeGross: 4444, customPregnancies: [], customSalaryRaises: [], customTaxClassSwitches: [] });
+    const values = new Map([
+      ["rechner:privacy:storage-mode:v1", "persistent"],
+    ]);
+    globalThis.window = globalThis;
+    globalThis.location = new URL("http://example.test/calculators/parental-planner/");
+    globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+    const { browserAppStorage, getStorageMode, StorageMode } = await import("#engine/storage/appStorage");
+    const { AppId } = await import("#/apps/appDefinition.ts");
+    assert.equal(getStorageMode(), StorageMode.Persistent);
+    browserAppStorage(AppId.ParentalLeave).setItem("state", classicPlan);
+    const classicRawBefore = values.get("rechner:parental-leave:v1:state");
+    const store = await import("./src/apps/parental-planner/store/workbenchState.ts");
+    assert.equal(store.loadClassicPlannerIntoWorkbench(), true);
+    assert.equal(store.workbenchState.peek().husbandGross, 7777);
+    assert.equal(values.get("rechner:parental-leave:v1:state"), classicRawBefore);
+    assert.ok([...values.keys()].some(key => key.startsWith("rechner:parental-planner:v1:")));
+    assert.ok(![...values.keys()].some(key => key.startsWith("rechner:net-pay:")));
+  `;
+  assert.doesNotThrow(() => execFileSync(process.execPath, ["--input-type=module", "-e", script], { cwd: process.cwd(),
+    stdio: "pipe" }));
+});
+
+

@@ -21,6 +21,7 @@ const ROUTE_COMPONENTS: readonly string[] = [
   "src/components/CalculatorCatalog.tsx",
   "src/components/Calculator.tsx",
   "src/components/elterngeld/ElterngeldDashboard.tsx",
+  "src/apps/parental-planner/ParentalLeaveWorkbench.tsx",
   "src/components/LifeProfileSummaryPage.tsx",
   "src/components/laws/LawReferencePage.tsx",
   "src/apps/company-car/CompanyCarCalculator.tsx",
