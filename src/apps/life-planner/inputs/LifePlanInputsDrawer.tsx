@@ -10,6 +10,7 @@ import {
   ButtonVariant,
 } from "#/components/ui/index.ts";
 import {
+  AddActionIcon,
   DismissIcon,
   RemoveItemIcon,
 } from "#components/Icons";
@@ -19,11 +20,21 @@ import {
   toEuroAmount,
   toGrossSalary,
   toPercentageRate,
+  toSimulationMonth,
   toTaxClass,
   toWorkingHours,
 } from "#engine/types";
 import {
+  GERMAN_FEDERAL_STATE_LABELS,
+  GermanFederalState,
+  toGermanFederalState,
+} from "#engine/formulas/pure/housingFormulas";
+import {
+  HealthInsuranceKind,
   LifePersonKey,
+  ResidencyPermitBaseline,
+  toHealthInsuranceKind,
+  toResidencyPermitBaseline,
 } from "#engine/lifeSimulator/types";
 import {
   lifeWorkbenchPlan,
@@ -33,6 +44,7 @@ import {
 import {
   closeLifeInputsDrawer,
   lifeDrawerOpen,
+  openLifeEventComposer,
 } from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
 function parseNonNegative(raw: string): number {
@@ -40,14 +52,27 @@ function parseNonNegative(raw: string): number {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
+function churchTaxRateForState(state: GermanFederalState): number {
+  return state === GermanFederalState.Bayern || state === GermanFederalState.BadenWuerttemberg
+    ? 0.08
+    : 0.09;
+}
+
 /**
- * Slide-over Plan Inputs Drawer (Phase 2 baseline editor + active event list).
- * Keeps the main analysis canvas 100% uncluttered while allowing live edits.
+ * Slide-over Plan Inputs Drawer — Complete Household Baseline Profile for the new Life Planner.
+ * Covers Payroll & Tax Precision (State, Church Tax, GKV/PKV, 12x-14x cadence), Opening Balance
+ * Sheet (Cash, Investments & Return, Existing Debt), Housing/Inflation Macro, Employment Terms
+ * (Notice, Tenure/Severance, ALG I), Residency & Permit Clock, and Scheduled Events.
  */
 export function LifePlanInputsDrawer(): JSX.Element | null {
   const open = lifeDrawerOpen.value;
   const plan = lifeWorkbenchPlan.value;
   const { baseline, events } = plan;
+
+  const activeState = baseline.federalState ?? GermanFederalState.NordrheinWestfalen;
+  const hasChurchTax = baseline.primary.churchTaxRate > 0;
+  const primaryHealthKind = baseline.primary.healthInsuranceKind ?? HealthInsuranceKind.PublicGkv;
+  const activePermit = baseline.residencyPermit ?? ResidencyPermitBaseline.CitizenOrEu;
 
   useEffect(() => {
     if (!open || typeof document === "undefined") {
@@ -71,7 +96,7 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
       className="lpw-drawer-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="Edit Life Plan Inputs"
+      aria-label="Edit Life Plan Baseline Profile"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           closeLifeInputsDrawer();
@@ -80,7 +105,7 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
     >
       <aside className="lpw-drawer">
         <div className="lpw-drawer__header">
-          <h2 className="lpw-drawer__title">Edit Life Plan</h2>
+          <h2 className="lpw-drawer__title">Life Plan Profile &amp; Baseline</h2>
           <Button
             size={ButtonSize.Sm}
             variant={ButtonVariant.Ghost}
@@ -92,10 +117,10 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
         </div>
 
         <div className="lpw-drawer__body">
-          {/* Card 1: Household & Salaries */}
+          {/* Card 1: Household, Payroll & Tax Precision */}
           <section className="lpw-card">
             <div className="lpw-card__header">
-              <h3 className="lpw-card__title">Household &amp; Salaries</h3>
+              <h3 className="lpw-card__title">Household, Payroll &amp; Tax</h3>
               <label className="lpw-hint">
                 <input
                   type="checkbox"
@@ -112,18 +137,78 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
                           monthlyGross: toGrossSalary(4500),
                           weeklyHours: toWorkingHours(40),
                           taxClass: TaxClass.IV,
-                          churchTaxRate: toPercentageRate(0),
+                          churchTaxRate: prev.primary.churchTaxRate,
                         }
                         : undefined,
                     }));
                   }}
                 />
                 {" "}
-                Include Partner
+                Partner
               </label>
             </div>
 
             <div className="lpw-field-grid">
+              <div className="lpw-field">
+                <label htmlFor="lpw-state">Federal State</label>
+                <select
+                  id="lpw-state"
+                  value={activeState}
+                  onChange={(e) => {
+                    const nextState = toGermanFederalState(e.currentTarget.value);
+                    const nextRate = hasChurchTax ? toPercentageRate(churchTaxRateForState(nextState)) : toPercentageRate(0);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      federalState: nextState,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        churchTaxRate: nextRate,
+                      }),
+                      partner: prev.partner
+                        ? Object.freeze({
+                          ...prev.partner,
+                          churchTaxRate: nextRate,
+                        })
+                        : undefined,
+                    }));
+                  }}
+                >
+                  {Object.values(GermanFederalState).map((st) => (
+                    <option key={st} value={st}>{GERMAN_FEDERAL_STATE_LABELS[st]}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-church">Church Tax ({Math.round(churchTaxRateForState(activeState) * 100)}%)</label>
+                <select
+                  id="lpw-church"
+                  value={hasChurchTax ? "yes" : "no"}
+                  onChange={(e) => {
+                    const enabled = e.currentTarget.value === "yes";
+                    const nextRate = enabled
+                      ? toPercentageRate(churchTaxRateForState(activeState))
+                      : toPercentageRate(0);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        churchTaxRate: nextRate,
+                      }),
+                      partner: prev.partner
+                        ? Object.freeze({
+                          ...prev.partner,
+                          churchTaxRate: nextRate,
+                        })
+                        : undefined,
+                    }));
+                  }}
+                >
+                  <option value="no">None (0%)</option>
+                  <option value="yes">Active ({Math.round(churchTaxRateForState(activeState) * 100)}%)</option>
+                </select>
+              </div>
+
               <div className="lpw-field">
                 <label htmlFor="lpw-primary-gross">Primary Gross (€/mo)</label>
                 <input
@@ -166,6 +251,95 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
                   ))}
                 </select>
               </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-primary-cadence">Salary Cadence</label>
+                <select
+                  id="lpw-primary-cadence"
+                  value={baseline.primary.annualSalariesCount ?? 12}
+                  onChange={(e) => {
+                    const count = Number(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        annualSalariesCount: count,
+                      }),
+                    }));
+                  }}
+                >
+                  <option value={12}>12× Monthly</option>
+                  <option value={13}>13× (+Nov Christmas)</option>
+                  <option value={14}>14× (+Jun &amp; Nov)</option>
+                </select>
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-health-kind">Health Insurance</label>
+                <select
+                  id="lpw-health-kind"
+                  value={primaryHealthKind}
+                  onChange={(e) => {
+                    const nextKind = toHealthInsuranceKind(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        healthInsuranceKind: nextKind,
+                        privateHealthMonthlyEur: prev.primary.privateHealthMonthlyEur ?? toEuroAmount(420),
+                      }),
+                    }));
+                  }}
+                >
+                  <option value={HealthInsuranceKind.PublicGkv}>Public (GKV)</option>
+                  <option value={HealthInsuranceKind.PrivatePkv}>Private (PKV)</option>
+                </select>
+              </div>
+
+              {primaryHealthKind === HealthInsuranceKind.PrivatePkv ? (
+                <div className="lpw-field">
+                  <label htmlFor="lpw-pkv-eur">PKV Employee Share (€/mo)</label>
+                  <input
+                    id="lpw-pkv-eur"
+                    type="number"
+                    min={0}
+                    step={20}
+                    value={baseline.primary.privateHealthMonthlyEur ?? 420}
+                    onInput={(e) => {
+                      const val = parseNonNegative(e.currentTarget.value);
+                      updateLifeBaseline((prev) => ({
+                        ...prev,
+                        primary: Object.freeze({
+                          ...prev.primary,
+                          privateHealthMonthlyEur: toEuroAmount(val),
+                        }),
+                      }));
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="lpw-field">
+                  <label htmlFor="lpw-gkv-supp">GKV Zusatzbeitrag (%)</label>
+                  <input
+                    id="lpw-gkv-supp"
+                    type="number"
+                    min={0}
+                    max={6}
+                    step={0.1}
+                    value={Math.round((baseline.primary.healthSupplementRate ?? 0.025) * 1000) / 10}
+                    onInput={(e) => {
+                      const pct = parseNonNegative(e.currentTarget.value);
+                      updateLifeBaseline((prev) => ({
+                        ...prev,
+                        primary: Object.freeze({
+                          ...prev.primary,
+                          healthSupplementRate: toPercentageRate(pct / 100),
+                        }),
+                      }));
+                    }}
+                  />
+                </div>
+              )}
 
               {baseline.partner && (
                 <>
@@ -220,12 +394,12 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
             </div>
           </section>
 
-          {/* Card 2: Opening Cash, Housing & Living Costs */}
+          {/* Card 2: Opening Balance Sheet (Cash, Investments, Existing Debt) */}
           <section className="lpw-card">
-            <h3 className="lpw-card__title">Cash, Housing &amp; Monthly Budget</h3>
+            <h3 className="lpw-card__title">Opening Balance Sheet</h3>
             <div className="lpw-field-grid">
               <div className="lpw-field">
-                <label htmlFor="lpw-open-cash">Opening Liquid Cash (€)</label>
+                <label htmlFor="lpw-open-cash">Liquid Cash (€)</label>
                 <input
                   id="lpw-open-cash"
                   type="number"
@@ -262,6 +436,85 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
               </div>
 
               <div className="lpw-field">
+                <label htmlFor="lpw-open-invest">Existing Investments / ETFs (€)</label>
+                <input
+                  id="lpw-open-invest"
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={baseline.openingInvestmentsValue ?? 0}
+                  onInput={(e) => {
+                    const val = parseNonNegative(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      openingInvestmentsValue: toEuroAmount(val),
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-invest-return">Expected Return (%/yr)</label>
+                <input
+                  id="lpw-invest-return"
+                  type="number"
+                  min={0}
+                  max={15}
+                  step={0.5}
+                  value={Math.round((baseline.annualInvestmentReturnRate ?? 0.05) * 1000) / 10}
+                  onInput={(e) => {
+                    const pct = parseNonNegative(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      annualInvestmentReturnRate: toPercentageRate(pct / 100),
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-open-debt">Existing Debt Balance (€)</label>
+                <input
+                  id="lpw-open-debt"
+                  type="number"
+                  min={0}
+                  step={500}
+                  value={baseline.openingDebtBalance}
+                  onInput={(e) => {
+                    const val = parseNonNegative(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      openingDebtBalance: toEuroAmount(val),
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-debt-pmt">Debt Payment (€/mo)</label>
+                <input
+                  id="lpw-debt-pmt"
+                  type="number"
+                  min={0}
+                  step={50}
+                  value={baseline.openingDebtMonthlyPayment ?? 0}
+                  onInput={(e) => {
+                    const val = parseNonNegative(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      openingDebtMonthlyPayment: toEuroAmount(val),
+                    }));
+                  }}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Card 3: Housing, Living Budget & Macro Inflation */}
+          <section className="lpw-card">
+            <h3 className="lpw-card__title">Housing, Budget &amp; Inflation</h3>
+            <div className="lpw-field-grid">
+              <div className="lpw-field">
                 <label htmlFor="lpw-rent">Monthly Rent (€/mo)</label>
                 <input
                   id="lpw-rent"
@@ -274,6 +527,25 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
                     updateLifeBaseline((prev) => ({
                       ...prev,
                       monthlyRent: toEuroAmount(val),
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-rent-idx">Rent Indexation (%/yr)</label>
+                <input
+                  id="lpw-rent-idx"
+                  type="number"
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  value={Math.round(baseline.annualRentIndexationRate * 1000) / 10}
+                  onInput={(e) => {
+                    const pct = parseNonNegative(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      annualRentIndexationRate: toPercentageRate(pct / 100),
                     }));
                   }}
                 />
@@ -296,15 +568,177 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
                   }}
                 />
               </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-cpi">Living Inflation CPI (%/yr)</label>
+                <input
+                  id="lpw-cpi"
+                  type="number"
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  value={Math.round(baseline.annualInflationRate * 1000) / 10}
+                  onInput={(e) => {
+                    const pct = parseNonNegative(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      annualInflationRate: toPercentageRate(pct / 100),
+                    }));
+                  }}
+                />
+              </div>
             </div>
           </section>
 
-          {/* Card 3: Horizon & Tax Return Month */}
+          {/* Card 4: Employment Terms (Disaster Baseline) */}
           <section className="lpw-card">
-            <h3 className="lpw-card__title">Horizon &amp; Tax Settings</h3>
+            <h3 className="lpw-card__title">Employment Terms (Disaster Baseline)</h3>
             <div className="lpw-field-grid">
               <div className="lpw-field">
-                <label htmlFor="lpw-horizon">Horizon (Months)</label>
+                <label htmlFor="lpw-tenure">Employer Tenure (Years)</label>
+                <input
+                  id="lpw-tenure"
+                  type="number"
+                  min={0}
+                  max={45}
+                  step={1}
+                  value={baseline.primary.tenureYears ?? 0}
+                  onInput={(e) => {
+                    const yrs = Math.trunc(parseNonNegative(e.currentTarget.value));
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        tenureYears: yrs,
+                      }),
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-notice">Notice Period (Months)</label>
+                <input
+                  id="lpw-notice"
+                  type="number"
+                  min={1}
+                  max={12}
+                  step={1}
+                  value={baseline.primary.contractNoticeMonths ?? 3}
+                  onInput={(e) => {
+                    const mo = Math.max(1, Math.min(12, Math.trunc(parseNonNegative(e.currentTarget.value))));
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        contractNoticeMonths: mo,
+                      }),
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="lpw-field">
+                <label htmlFor="lpw-alg1">ALG I Insured</label>
+                <select
+                  id="lpw-alg1"
+                  value={baseline.primary.alg1Insured === false ? "no" : "yes"}
+                  onChange={(e) => {
+                    const insured = e.currentTarget.value === "yes";
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      primary: Object.freeze({
+                        ...prev.primary,
+                        alg1Insured: insured,
+                      }),
+                    }));
+                  }}
+                >
+                  <option value="yes">Yes (Employee — 60%/67% ALG I)</option>
+                  <option value="no">No (Self-employed — €0 ALG I)</option>
+                </select>
+              </div>
+            </div>
+            <p className="lpw-hint">
+              Employer tenure auto-estimates § 1a KSchG severance (0.5× gross × years) during layoff stress tests.
+            </p>
+          </section>
+
+          {/* Card 5: Residency & Permit Clock */}
+          <section className="lpw-card">
+            <h3 className="lpw-card__title">Residency &amp; Permit Clock</h3>
+            <div className="lpw-field-grid">
+              <div className="lpw-field">
+                <label htmlFor="lpw-permit">Current Status</label>
+                <select
+                  id="lpw-permit"
+                  value={activePermit}
+                  onChange={(e) => {
+                    const nextPermit = toResidencyPermitBaseline(e.currentTarget.value);
+                    updateLifeBaseline((prev) => ({
+                      ...prev,
+                      residencyPermit: nextPermit,
+                    }));
+                  }}
+                >
+                  <option value={ResidencyPermitBaseline.CitizenOrEu}>German / EU Citizen</option>
+                  <option value={ResidencyPermitBaseline.PermanentResidency}>Permanent Residency (§ 18c)</option>
+                  <option value={ResidencyPermitBaseline.EuBlueCard}>EU Blue Card (§ 18g)</option>
+                  <option value={ResidencyPermitBaseline.SkilledWorker18b}>Skilled Worker (§ 18b)</option>
+                  <option value={ResidencyPermitBaseline.OtherPermit}>Other Residence Permit</option>
+                </select>
+              </div>
+
+              {activePermit !== ResidencyPermitBaseline.CitizenOrEu && (
+                <>
+                  <div className="lpw-field">
+                    <label htmlFor="lpw-yrs-de">Years in Germany</label>
+                    <input
+                      id="lpw-yrs-de"
+                      type="number"
+                      min={0}
+                      max={30}
+                      step={0.5}
+                      value={baseline.yearsInGermany ?? 1}
+                      onInput={(e) => {
+                        const val = parseNonNegative(e.currentTarget.value);
+                        updateLifeBaseline((prev) => ({
+                          ...prev,
+                          yearsInGermany: val,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="lpw-field">
+                    <label htmlFor="lpw-permit-exp">Permit Expiry Month (optional)</label>
+                    <input
+                      id="lpw-permit-exp"
+                      type="number"
+                      min={0}
+                      max={baseline.horizonMonths}
+                      step={1}
+                      value={baseline.permitExpiryMonth ?? 0}
+                      onInput={(e) => {
+                        const val = Math.trunc(parseNonNegative(e.currentTarget.value));
+                        updateLifeBaseline((prev) => ({
+                          ...prev,
+                          permitExpiryMonth: val > 0 ? toSimulationMonth(val) : undefined,
+                        }));
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+
+          {/* Card 6: Horizon, Tax Return & Scheduled Events */}
+          <section className="lpw-card">
+            <h3 className="lpw-card__title">Horizon &amp; Tax Return Month</h3>
+            <div className="lpw-field-grid">
+              <div className="lpw-field">
+                <label htmlFor="lpw-horizon">Horizon</label>
                 <select
                   id="lpw-horizon"
                   value={baseline.horizonMonths}
@@ -344,13 +778,23 @@ export function LifePlanInputsDrawer(): JSX.Element | null {
             </div>
           </section>
 
-          {/* Card 4: Active Life Events */}
           <section className="lpw-card">
             <div className="lpw-card__header">
               <h3 className="lpw-card__title">Scheduled Events ({events.length})</h3>
+              <Button
+                size={ButtonSize.Sm}
+                variant={ButtonVariant.Secondary}
+                onClick={() => {
+                  closeLifeInputsDrawer();
+                  openLifeEventComposer();
+                }}
+              >
+                <AddActionIcon size={12} />
+                <span>Add Event</span>
+              </Button>
             </div>
             {events.length === 0 ? (
-              <p className="lpw-hint">No scheduled events yet. Pick a starter template from the Plan menu to explore.</p>
+              <p className="lpw-hint">No scheduled events yet. Click + Add Event or pick a template from the Plan menu.</p>
             ) : (
               <div className="lpw-event-list">
                 {events.map((ev) => (

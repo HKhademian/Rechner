@@ -48,6 +48,7 @@ import {
   type LifeSimulationSummary,
   type LifeTaxTransaction,
   CompanyCarPowertrain,
+  HealthInsuranceKind,
   JobEndCause,
   LifeDeadlineSeverity,
   LifeEventDomain,
@@ -55,6 +56,7 @@ import {
   LifePersonKey,
   ParentalLeavePlanMode,
   ResidencyMilestoneKind,
+  ResidencyPermitBaseline,
   TaxBucket,
 } from "#engine/lifeSimulator/types";
 
@@ -80,6 +82,11 @@ interface MutableAdultState {
   taxClass: TaxClass;
   readonly churchTaxRate: PercentageRate;
   readonly payrollOptions: LifeAdultBaseline["payrollOptions"];
+  readonly annualSalariesCount: number;
+  readonly healthInsuranceKind: HealthInsuranceKind;
+  readonly healthSupplementRate?: PercentageRate;
+  readonly privateHealthMonthlyEur: EuroAmount;
+  readonly alg1Insured: boolean;
   companyCar?: CompanyCarEvent;
   annualCommuterWerbungskosten: number;
   unemploymentRemainingMonths: number;
@@ -198,6 +205,11 @@ function createAdultState(baseline: LifeAdultBaseline): MutableAdultState {
     taxClass: baseline.taxClass,
     churchTaxRate: baseline.churchTaxRate,
     payrollOptions: baseline.payrollOptions,
+    annualSalariesCount: Math.max(12, Math.min(14, Math.trunc(baseline.annualSalariesCount ?? 12))),
+    healthInsuranceKind: baseline.healthInsuranceKind ?? HealthInsuranceKind.PublicGkv,
+    healthSupplementRate: baseline.healthSupplementRate,
+    privateHealthMonthlyEur: baseline.privateHealthMonthlyEur ?? toEuroAmount(0),
+    alg1Insured: baseline.alg1Insured ?? true,
     annualCommuterWerbungskosten: 0,
     unemploymentRemainingMonths: 0,
     sperrzeitRemainingMonths: 0,
@@ -243,13 +255,94 @@ export function simulateLifePlan(
 
   let currentMonthlyRent = Number(baseline.monthlyRent);
   let currentMonthlyLiving = Number(baseline.monthlyLivingExpenses);
+  let currentInvestmentsValue = Number(baseline.openingInvestmentsValue ?? 0);
+  const annualInvestmentReturnRate = Number(baseline.annualInvestmentReturnRate ?? 0);
+
   const properties: MutablePropertyAsset[] = [];
   const loans: MutableMortgageOrLoan[] = [];
+  const amortizesOpeningDebt =
+    baseline.openingDebtBalance > 0 && (baseline.openingDebtMonthlyPayment ?? 0) > 0;
+  if (amortizesOpeningDebt) {
+    loans.push({
+      id: "OPENING-DEBT",
+      label: "Existing Debt",
+      remainingPrincipal: baseline.openingDebtBalance,
+      annualInterestRate: Number(baseline.openingDebtInterestRate ?? 0.045),
+      monthlyAnnuity: Number(baseline.openingDebtMonthlyPayment ?? 0),
+      monthlyMaintenance: 0,
+    });
+  }
+  const staticOpeningDebt = amortizesOpeningDebt ? 0 : baseline.openingDebtBalance;
+
   const vehicles: MutableVehicleAsset[] = [];
   const solars: MutableSolarAsset[] = [];
   const recurringWindows: MutableRecurringWindow[] = [];
 
   const deadlines: LifeDeadlineItem[] = [];
+
+  // Auto-generate Residency & Citizenship deadlines from baseline permit clock.
+  if (
+    baseline.residencyPermit &&
+    baseline.residencyPermit !== ResidencyPermitBaseline.CitizenOrEu
+  ) {
+    const priorMonthsInGermany = Math.max(0, Math.round((baseline.yearsInGermany ?? 0) * 12));
+    if (baseline.residencyPermit !== ResidencyPermitBaseline.PermanentResidency) {
+      const prRequiredMonths = baseline.residencyPermit === ResidencyPermitBaseline.EuBlueCard ? 27 : 36;
+      const prRemainingMonths = prRequiredMonths - priorMonthsInGermany;
+      if (prRemainingMonths >= 1 && prRemainingMonths <= horizonMonths) {
+        const prMonth = toSimulationMonth(prRemainingMonths);
+        const prCal = simMonthToCalendarDate(prMonth, startYear, startMonth);
+        deadlines.push(Object.freeze({
+          id: "DL-BASELINE-PR-18C",
+          month: prMonth,
+          calendarYear: prCal.calendarYear,
+          calendarMonth: prCal.calendarMonth,
+          domain: LifeEventDomain.Residency,
+          severity: LifeDeadlineSeverity.Info,
+          title: "Permanent Residency Eligibility (§ 18c AufenthG)",
+          description: `Reached ${prRequiredMonths} months in Germany (${baseline.residencyPermit}).`,
+          statutoryCitation: toStatutoryCitation("§ 18c AufenthG"),
+        }));
+      }
+    }
+
+    const citizenRemainingMonths = 60 - priorMonthsInGermany;
+    if (citizenRemainingMonths >= 1 && citizenRemainingMonths <= horizonMonths) {
+      const citMonth = toSimulationMonth(citizenRemainingMonths);
+      const citCal = simMonthToCalendarDate(citMonth, startYear, startMonth);
+      deadlines.push(Object.freeze({
+        id: "DL-BASELINE-CITIZEN-10STAG",
+        month: citMonth,
+        calendarYear: citCal.calendarYear,
+        calendarMonth: citCal.calendarMonth,
+        domain: LifeEventDomain.Residency,
+        severity: LifeDeadlineSeverity.Info,
+        title: "German Citizenship Eligibility (§ 10 StAG)",
+        description: "Reached 5-year standard residence period for naturalization.",
+        statutoryCitation: toStatutoryCitation("§ 10 StAG"),
+      }));
+    }
+
+    if (
+      baseline.permitExpiryMonth !== undefined &&
+      baseline.permitExpiryMonth >= 1 &&
+      baseline.permitExpiryMonth <= horizonMonths
+    ) {
+      const expMonth = toSimulationMonth(baseline.permitExpiryMonth);
+      const expCal = simMonthToCalendarDate(expMonth, startYear, startMonth);
+      deadlines.push(Object.freeze({
+        id: "DL-BASELINE-PERMIT-EXPIRY",
+        month: expMonth,
+        calendarYear: expCal.calendarYear,
+        calendarMonth: expCal.calendarMonth,
+        domain: LifeEventDomain.Residency,
+        severity: LifeDeadlineSeverity.Critical,
+        title: "Residence Permit Expiry / Renewal",
+        description: "Submit permit renewal or PR transition application 3–4 months prior to expiry.",
+        statutoryCitation: toStatutoryCitation("§ 81 Abs. 4 AufenthG"),
+      }));
+    }
+  }
   const taxRulesCache = new Map<number, TaxRules>();
   const getTaxRules = (year: FullCalendarYear): TaxRules => {
     const existing = taxRulesCache.get(year);
@@ -462,12 +555,14 @@ export function simulateLifePlan(
               target.unemploymentRemainingMonths = Math.max(0, ev.unemploymentMonths);
               const defaultSperrzeit = ev.cause === JobEndCause.VoluntaryResignation ? 3 : 0;
               target.sperrzeitRemainingMonths = ev.sperrzeitMonths ?? defaultSperrzeit;
-              target.alg1MonthlyBenefit = computeAlg1Monthly(
-                target.monthlyGross,
-                target.taxClass,
-                hasKids,
-                rules,
-              );
+              target.alg1MonthlyBenefit = target.alg1Insured
+                ? computeAlg1Monthly(
+                  target.monthlyGross,
+                  target.taxClass,
+                  hasKids,
+                  rules,
+                )
+                : 0;
               deadlines.push(Object.freeze({
                 id: `DL-${ev.id}-ALG1`,
                 month: toSimulationMonth(Math.max(1, m - 3)),
@@ -875,7 +970,19 @@ export function simulateLifePlan(
       const benefitInKind = adult.companyCar ? computeCompanyCarMonthlyBenefit(adult.companyCar) : 0;
       const payrollGross = toGrossSalary(roundToCents(baseGross + benefitInKind));
 
-      if (payrollGross <= 0 && bonusGross <= 0) {
+      // Automatic 13th (Nov) and 14th (Jun + Nov) salary cadence for active working months.
+      let cadenceBonus = 0;
+      if (baseGross > 0) {
+        if (adult.annualSalariesCount >= 13 && calMonth === 11) {
+          cadenceBonus += baseGross;
+        }
+        if (adult.annualSalariesCount >= 14 && calMonth === 6) {
+          cadenceBonus += baseGross;
+        }
+      }
+      const effectiveBonusGross = roundToCents(bonusGross + cadenceBonus);
+
+      if (payrollGross <= 0 && effectiveBonusGross <= 0) {
         return 0;
       }
 
@@ -883,24 +990,30 @@ export function simulateLifePlan(
         payrollGross,
         adult.taxClass,
         children.length,
-        bonusGross > 0 ? toEuroAmount(bonusGross) : undefined,
+        effectiveBonusGross > 0 ? toEuroAmount(effectiveBonusGross) : undefined,
         undefined,
         rules,
         {
           ...adult.payrollOptions,
+          healthSupplementTotalRate: adult.healthInsuranceKind === HealthInsuranceKind.PublicGkv
+            ? adult.healthSupplementRate
+            : undefined,
           churchTaxRate: adult.churchTaxRate > 0 ? adult.churchTaxRate : undefined,
         },
       );
 
-      // Benefit-in-kind is non-cash; cash net take-home excludes the imputed car value.
-      const cashNet = Math.max(0, roundToCents(breakdown.monthlyNetTakeHome - benefitInKind));
+      // Benefit-in-kind is non-cash; PKV replaces employee GKV/PV share with privateHealthMonthlyEur.
+      const pkvDelta = adult.healthInsuranceKind === HealthInsuranceKind.PrivatePkv
+        ? (breakdown.healthInsurance + breakdown.careInsurance) - adult.privateHealthMonthlyEur
+        : 0;
+      const cashNet = Math.max(0, roundToCents(breakdown.monthlyNetTakeHome - benefitInKind + pkvDelta));
 
       pushTx(
         LifeEventDomain.Career,
         TaxBucket.TaxableWage,
         cashNet,
-        baseGross + bonusGross,
-        `${adult.name} Net Salary${bonusGross > 0 ? " + Bonus" : ""}`,
+        baseGross + effectiveBonusGross,
+        `${adult.name} Net Salary${effectiveBonusGross > 0 ? " + Bonus" : ""}`,
         "§ 38b EStG",
       );
       if (benefitInKind > 0) {
@@ -1063,15 +1176,21 @@ export function simulateLifePlan(
       }
     }
 
-    // 7. Snapshot end-of-month non-cash assets and debts.
+    // 7. Snapshot end-of-month non-cash assets (incl. compounding investments) and debts.
+    if (currentInvestmentsValue > 0 && annualInvestmentReturnRate !== 0) {
+      currentInvestmentsValue = roundToCents(
+        currentInvestmentsValue * (1 + annualInvestmentReturnRate / 12),
+      );
+    }
     const totalAssetsValue = roundToCents(
       baseline.openingAssetsValue +
+      currentInvestmentsValue +
       properties.reduce((sum, p) => sum + p.currentValue, 0) +
       vehicles.reduce((sum, v) => sum + v.currentValue, 0) +
       solars.reduce((sum, s) => sum + s.currentValue, 0),
     );
     const totalDebtBalance = roundToCents(
-      baseline.openingDebtBalance +
+      staticOpeningDebt +
       loans.reduce((sum, l) => sum + l.remainingPrincipal, 0),
     );
 

@@ -89,4 +89,44 @@ describe("lifeSimulator/disasterSimulator", () => {
     const higherRentStressed = simulateLifePlan(applyDisasterShocks(plan, illnessShocks, toEuroAmount(400)), LifeScenarioKey.StressTest);
     assert.ok(higherRentStressed.summary.endingLiquidCash < baseStressed.summary.endingLiquidCash);
   });
+
+  it("respects alg1Insured=false and auto-estimates § 1a KSchG severance from tenureYears on layoff", () => {
+    const basePlan = buildLifePlannerPreset(LifePlannerPresetId.YoungProfessional);
+    const trigger = toSimulationMonth(10);
+    const firedShocks = DISASTER_PRESETS.find((p) => p.id === DisasterPresetId.Fired6m)!.buildShocks(trigger);
+
+    const uninsuredPlan = Object.freeze({
+      ...basePlan,
+      baseline: Object.freeze({
+        ...basePlan.baseline,
+        primary: Object.freeze({
+          ...basePlan.baseline.primary,
+          alg1Insured: false,
+        }),
+      }),
+    });
+    const tenuredPlan = Object.freeze({
+      ...basePlan,
+      baseline: Object.freeze({
+        ...basePlan.baseline,
+        primary: Object.freeze({
+          ...basePlan.baseline.primary,
+          tenureYears: 6,
+        }),
+      }),
+    });
+
+    const baseFired = simulateLifePlan(applyDisasterShocks(basePlan, firedShocks), LifeScenarioKey.StressTest);
+    const uninsuredFired = simulateLifePlan(applyDisasterShocks(uninsuredPlan, firedShocks), LifeScenarioKey.StressTest);
+    const tenuredFired = simulateLifePlan(applyDisasterShocks(tenuredPlan, firedShocks), LifeScenarioKey.StressTest);
+
+    // Self-employed (alg1Insured=false) receives €0 ALG I during layoff.
+    assert.equal(uninsuredFired.months[9].statutoryBenefits, 0);
+
+    // 6-year tenure triggers automatic § 1a KSchG severance (~3x monthly gross), improving cash balance at M10+.
+    assert.ok(
+      tenuredFired.months[9].liquidCashBalance > baseFired.months[9].liquidCashBalance + 5000,
+      "Automatic severance from tenureYears must increase liquid cash on employer termination",
+    );
+  });
 });

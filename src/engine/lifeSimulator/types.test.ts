@@ -6,6 +6,7 @@ import {
 import {
   CompanyCarPowertrain,
   DisasterKind,
+  HealthInsuranceKind,
   JobEndCause,
   LifeDeadlineSeverity,
   LifeEventDomain,
@@ -14,10 +15,12 @@ import {
   LifeScenarioKey,
   ParentalLeavePlanMode,
   ResidencyMilestoneKind,
+  ResidencyPermitBaseline,
   SolvencyVerdict,
   TaxBucket,
   toCompanyCarPowertrain,
   toDisasterKind,
+  toHealthInsuranceKind,
   toJobEndCause,
   toLifeDeadlineSeverity,
   toLifeEventDomain,
@@ -27,6 +30,7 @@ import {
   toLifeScenarioKey,
   toParentalLeavePlanMode,
   toResidencyMilestoneKind,
+  toResidencyPermitBaseline,
   toSolvencyVerdict,
   toTaxBucket,
 } from "#engine/lifeSimulator/types";
@@ -73,5 +77,11 @@ describe("lifeSimulator/types validators", () => {
 
     assert.equal(toCompanyCarPowertrain("ELECTRIC"), CompanyCarPowertrain.Electric);
     assert.throws(() => toCompanyCarPowertrain("INVALID"), TypeError);
+
+    assert.equal(toHealthInsuranceKind("PRIVATE_PKV"), HealthInsuranceKind.PrivatePkv);
+    assert.throws(() => toHealthInsuranceKind("INVALID"), TypeError);
+
+    assert.equal(toResidencyPermitBaseline("EU_BLUE_CARD"), ResidencyPermitBaseline.EuBlueCard);
+    assert.throws(() => toResidencyPermitBaseline("INVALID"), TypeError);
   });
 });

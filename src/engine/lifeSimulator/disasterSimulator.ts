@@ -191,7 +191,13 @@ export function applyDisasterShocks(
     const ratio = shock.reemploymentSalaryRatio ?? 1;
 
     switch (shock.kind) {
-      case DisasterKind.EmployerTermination:
+      case DisasterKind.EmployerTermination: {
+        const targetAdult = shock.personKey === LifePersonKey.Primary
+          ? plan.baseline.primary
+          : plan.baseline.partner;
+        const autoSeverance = shock.severanceGross === undefined && targetAdult && (targetAdult.tenureYears ?? 0) > 0
+          ? toEuroAmount(Math.round(targetAdult.monthlyGross * 0.5 * (targetAdult.tenureYears ?? 0)))
+          : shock.severanceGross;
         extraEvents.push({
           id: toLifeEventId(`DISASTER-${shock.id}`),
           domain: LifeEventDomain.Career,
@@ -201,11 +207,12 @@ export function applyDisasterShocks(
           personKey: shock.personKey,
           cause: JobEndCause.EmployerTermination,
           unemploymentMonths: Math.max(1, shock.durationMonths),
-          severanceGross: shock.severanceGross,
+          severanceGross: autoSeverance,
           sperrzeitMonths: 0,
           reemploymentMonthlyGross: resolveReemploymentGross(plan, shock.personKey, ratio),
         });
         break;
+      }
       case DisasterKind.VoluntaryResignation:
         extraEvents.push({
           id: toLifeEventId(`DISASTER-${shock.id}`),

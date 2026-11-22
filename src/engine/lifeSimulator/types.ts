@@ -14,6 +14,9 @@ import {
 import {
   type PayrollOptions,
 } from "#engine/tax/payroll";
+import {
+  type GermanFederalState,
+} from "#engine/formulas/pure/housingFormulas";
 
 export type LifeEventId = Brand<string, "LifeEventId">;
 
@@ -237,6 +240,37 @@ export function toCompanyCarPowertrain(value: string): CompanyCarPowertrain {
   return value as CompanyCarPowertrain;
 }
 
+export const HealthInsuranceKind = {
+  PublicGkv: "PUBLIC_GKV",
+  PrivatePkv: "PRIVATE_PKV",
+} as const;
+export type HealthInsuranceKind =
+  (typeof HealthInsuranceKind)[keyof typeof HealthInsuranceKind];
+
+export function toHealthInsuranceKind(value: string): HealthInsuranceKind {
+  if (!Object.values(HealthInsuranceKind).includes(value as HealthInsuranceKind)) {
+    throw new TypeError(`Invalid HealthInsuranceKind: ${value}`);
+  }
+  return value as HealthInsuranceKind;
+}
+
+export const ResidencyPermitBaseline = {
+  CitizenOrEu: "CITIZEN_OR_EU",
+  PermanentResidency: "PERMANENT_RESIDENCY",
+  EuBlueCard: "EU_BLUE_CARD",
+  SkilledWorker18b: "SKILLED_WORKER_18B",
+  OtherPermit: "OTHER_PERMIT",
+} as const;
+export type ResidencyPermitBaseline =
+  (typeof ResidencyPermitBaseline)[keyof typeof ResidencyPermitBaseline];
+
+export function toResidencyPermitBaseline(value: string): ResidencyPermitBaseline {
+  if (!Object.values(ResidencyPermitBaseline).includes(value as ResidencyPermitBaseline)) {
+    throw new TypeError(`Invalid ResidencyPermitBaseline: ${value}`);
+  }
+  return value as ResidencyPermitBaseline;
+}
+
 export interface LifeAdultBaseline {
   readonly personKey: LifePersonKey;
   readonly name: string;
@@ -245,6 +279,19 @@ export interface LifeAdultBaseline {
   readonly taxClass: TaxClass;
   readonly churchTaxRate: PercentageRate;
   readonly payrollOptions?: PayrollOptions;
+  /** Annual salary payments cadence (12, 13, or 14; defaults to 12). */
+  readonly annualSalariesCount?: number;
+  readonly healthInsuranceKind?: HealthInsuranceKind;
+  /** Total GKV Zusatzbeitrag rate (e.g. 0.025 for 2.5%). */
+  readonly healthSupplementRate?: PercentageRate;
+  /** Employee monthly PKV premium in EUR when healthInsuranceKind is PrivatePkv. */
+  readonly privateHealthMonthlyEur?: EuroAmount;
+  /** Employment contract notice period in months (used for disaster planning). */
+  readonly contractNoticeMonths?: number;
+  /** Years with current employer (auto-estimates § 1a KSchG severance on layoff). */
+  readonly tenureYears?: number;
+  /** True for regular ALG I-insured employees; false for self-employed / Geschäftsführer. */
+  readonly alg1Insured?: boolean;
 }
 
 export interface LifeHouseholdBaseline {
@@ -252,17 +299,25 @@ export interface LifeHouseholdBaseline {
   readonly startCalendarMonth: CalendarMonth;
   readonly horizonMonths: number;
   readonly taxReturnMonth: CalendarMonth;
+  readonly federalState?: GermanFederalState;
   readonly isMarriedJointAssessment: boolean;
   readonly priorChildrenCount: number;
   readonly openingLiquidCash: EuroAmount;
   readonly emergencyBufferMonths: number;
   readonly openingAssetsValue: EuroAmount;
+  readonly openingInvestmentsValue?: EuroAmount;
+  readonly annualInvestmentReturnRate?: PercentageRate;
   readonly openingDebtBalance: EuroAmount;
+  readonly openingDebtMonthlyPayment?: EuroAmount;
+  readonly openingDebtInterestRate?: PercentageRate;
   readonly monthlyRent: EuroAmount;
   readonly annualRentIndexationRate: PercentageRate;
   readonly monthlyLivingExpenses: EuroAmount;
   readonly annualInflationRate: PercentageRate;
   readonly indexFutureTaxBrackets: boolean;
+  readonly residencyPermit?: ResidencyPermitBaseline;
+  readonly yearsInGermany?: number;
+  readonly permitExpiryMonth?: SimulationMonth;
   readonly primary: LifeAdultBaseline;
   readonly partner?: LifeAdultBaseline;
 }
