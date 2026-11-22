@@ -38,7 +38,7 @@ import {
 import {
   type LegalRuleKeyType,
   LegalRuleKey,
-} from "#store/elterngeldStore";
+} from "#engine/laws/legalRuleKeys";
 
 function formatCurrency(amount: number): string {
   return formatEur(amount || 0);
