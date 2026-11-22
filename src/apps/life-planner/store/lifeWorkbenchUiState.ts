@@ -57,6 +57,8 @@ export const activeLifeScenarioView = signal<LifeScenarioView>(LifeScenarioView.
 export const activeLifeChartMode = signal<LifeChartMode>(LifeChartMode.LiquidCash);
 export const lifeDrawerOpen = signal<boolean>(false);
 export const lifeDrawerSection = signal<LifeDrawerSection>(LifeDrawerSection.All);
+export const lifeEventComposerOpen = signal<boolean>(false);
+export const lifeExportImportOpen = signal<boolean>(false);
 
 export function openLifeInputsDrawer(section: LifeDrawerSection = LifeDrawerSection.All): void {
   lifeDrawerSection.value = section;
@@ -65,4 +67,20 @@ export function openLifeInputsDrawer(section: LifeDrawerSection = LifeDrawerSect
 
 export function closeLifeInputsDrawer(): void {
   lifeDrawerOpen.value = false;
+}
+
+export function openLifeEventComposer(): void {
+  lifeEventComposerOpen.value = true;
+}
+
+export function closeLifeEventComposer(): void {
+  lifeEventComposerOpen.value = false;
+}
+
+export function openLifeExportImport(): void {
+  lifeExportImportOpen.value = true;
+}
+
+export function closeLifeExportImport(): void {
+  lifeExportImportOpen.value = false;
 }

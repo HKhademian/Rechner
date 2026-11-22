@@ -570,6 +570,69 @@
   font-size: var(--font-size-xs);
 }
 
+/* ── Centered Modals (Event Composer & Export/Import) ────────────────────── */
+
+.lpw-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--text-primary) 40%, transparent);
+  z-index: var(--z-modal, 60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.lpw-modal {
+  width: min(620px, 100%);
+  max-height: 88vh;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lpw-modal__body {
+  padding: var(--space-4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lpw-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+}
+
+.lpw-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: var(--space-2);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-control);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-xs);
+  resize: vertical;
+}
+
+.lpw-actions-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 /* ── Responsive Breakpoints (1180px, 900px, 640px) ───────────────────────── */
 
 @media (max-width: 1180px) {

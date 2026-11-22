@@ -191,7 +191,7 @@ export function LifeScenarioSwitcherBar(): JSX.Element {
       </div>
 
       <span className="lpw-status-pill" aria-live="polite">
-        {status === CalculationStatus.Pending
+        {status === CalculationStatus.Reevaluating
           ? `Updating (${pending})…`
           : status === CalculationStatus.Calculating
             ? "Simulating…"

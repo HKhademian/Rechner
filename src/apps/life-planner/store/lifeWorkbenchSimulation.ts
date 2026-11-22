@@ -76,7 +76,7 @@ effect(() => {
     isFirstEffectRun = false;
     return;
   }
-  scheduler.schedule();
+  scheduler.notifyInputChange();
 });
 
 export function flushLifeWorkbenchCalculations(): void {

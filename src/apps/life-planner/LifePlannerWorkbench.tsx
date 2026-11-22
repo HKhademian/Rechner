@@ -19,9 +19,11 @@ import {
   useHydrated,
 } from "#/components/ui/index.ts";
 import {
+  AddActionIcon,
   CheckmarkIcon,
   ChevronDownIcon,
   ClearFormIcon,
+  ExportDataIcon,
   ParameterSlidersIcon,
   SyncProfileActionIcon,
 } from "#components/Icons";
@@ -39,6 +41,7 @@ import {
 import {
   applyLifePreset,
   clearLifePlan,
+  importFromParentalPlanner,
   selectedLifePresetId,
   syncLifeWorkbenchFromProfile,
 } from "#/apps/life-planner/store/lifeWorkbenchState.ts";
@@ -52,6 +55,8 @@ import {
   LifeWorkbenchTab,
   activeLifeScenarioView,
   activeLifeTab,
+  openLifeEventComposer,
+  openLifeExportImport,
   openLifeInputsDrawer,
 } from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 import {
@@ -60,6 +65,12 @@ import {
 import {
   LifePlanInputsDrawer,
 } from "#/apps/life-planner/inputs/LifePlanInputsDrawer.tsx";
+import {
+  LifeEventComposerModal,
+} from "#/apps/life-planner/modals/LifeEventComposerModal.tsx";
+import {
+  LifeExportImportModal,
+} from "#/apps/life-planner/modals/LifeExportImportModal.tsx";
 import {
   LifeScenarioSwitcherBar,
 } from "#/apps/life-planner/results/LifeScenarioSwitcherBar.tsx";
@@ -165,6 +176,15 @@ export default function LifePlannerWorkbench(): JSX.Element {
             <div className="lpw-command-header__actions">
               <Button
                 size={ButtonSize.Sm}
+                variant={ButtonVariant.Secondary}
+                onClick={openLifeEventComposer}
+              >
+                <AddActionIcon size={13} />
+                <span>Add Event</span>
+              </Button>
+
+              <Button
+                size={ButtonSize.Sm}
                 variant={ButtonVariant.Primary}
                 onClick={() => openLifeInputsDrawer(LifeDrawerSection.All)}
               >
@@ -212,6 +232,38 @@ export default function LifePlannerWorkbench(): JSX.Element {
                       <span className="lpw-plan-menu__item-lead">
                         <SyncProfileActionIcon size={13} />
                         <span>Sync Life Profile</span>
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="lpw-plan-menu__item"
+                      onClick={() => {
+                        setPlanMenuOpen(false);
+                        if (importFromParentalPlanner()) {
+                          flushLifeWorkbenchCalculations();
+                        }
+                      }}
+                    >
+                      <span className="lpw-plan-menu__item-lead">
+                        <SyncProfileActionIcon size={13} />
+                        <span>Import from Parental Planner</span>
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="lpw-plan-menu__item"
+                      onClick={() => {
+                        setPlanMenuOpen(false);
+                        openLifeExportImport();
+                      }}
+                    >
+                      <span className="lpw-plan-menu__item-lead">
+                        <ExportDataIcon size={13} />
+                        <span>Export / Import (JSON · CSV)</span>
                       </span>
                     </button>
 
@@ -329,6 +381,8 @@ export default function LifePlannerWorkbench(): JSX.Element {
       )}
 
       <LifePlanInputsDrawer />
+      <LifeEventComposerModal />
+      <LifeExportImportModal />
     </AppShell>
   );
 }

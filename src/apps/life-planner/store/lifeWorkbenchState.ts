@@ -164,3 +164,85 @@ export function syncLifeWorkbenchFromProfile(): void {
       : undefined,
   }));
 }
+
+/** Validates and loads a serialized LifePlanInput JSON payload. */
+export function importLifePlanFromJson(rawJson: string): {
+  readonly ok: boolean;
+  readonly error?: string;
+} {
+  try {
+    const parsed = JSON.parse(rawJson) as Partial<LifePlanInput>;
+    if (!parsed || !parsed.baseline || !parsed.baseline.primary || !Array.isArray(parsed.events)) {
+      return {
+        ok: false,
+        error: "Invalid Life Planner JSON: missing baseline or events array.",
+      };
+    }
+    const next = Object.freeze({
+      baseline: Object.freeze(parsed.baseline),
+      events: Object.freeze(parsed.events),
+    }) as LifePlanInput;
+    batch(() => {
+      lifeWorkbenchPlan.value = next;
+      commitmentStressDeltaEur.value = toEuroAmount(0);
+      resetLifeDampening();
+    });
+    persistPlan(next);
+    return { ok: true };
+  }
+  catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Could not parse JSON.",
+    };
+  }
+}
+
+/**
+ * 1-click bridge: imports salaries & tax classes from saved Parental Planner storage
+ * without mutating the Parental Planner's own stored state.
+ */
+export function importFromParentalPlanner(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  try {
+    const ppStorage = browserAppStorage(AppId.ParentalPlanner);
+    const raw = ppStorage.getItem("state") ?? browserAppStorage(AppId.ParentalLeave).getItem("state");
+    if (!raw) {
+      return false;
+    }
+    const parsed = JSON.parse(raw) as {
+      readonly husbandGross?: number;
+      readonly wifeGross?: number;
+      readonly startCalendarYear?: number;
+      readonly simulationDurationMonths?: number;
+    };
+    if (typeof parsed.husbandGross !== "number") {
+      return false;
+    }
+    updateLifeBaseline((prev) => ({
+      ...prev,
+      isMarriedJointAssessment: true,
+      horizonMonths: typeof parsed.simulationDurationMonths === "number"
+        ? Math.max(12, Math.min(360, parsed.simulationDurationMonths))
+        : prev.horizonMonths,
+      primary: Object.freeze({
+        ...prev.primary,
+        monthlyGross: toGrossSalary(Math.max(0, parsed.husbandGross ?? 0)),
+      }),
+      partner: Object.freeze({
+        personKey: LifePersonKey.Partner,
+        name: prev.partner?.name ?? "Partner",
+        monthlyGross: toGrossSalary(Math.max(0, parsed.wifeGross ?? 0)),
+        weeklyHours: prev.partner?.weeklyHours ?? toWorkingHours(40),
+        taxClass: prev.partner?.taxClass ?? TaxClass.IV,
+        churchTaxRate: prev.partner?.churchTaxRate ?? toPercentageRate(0),
+      }),
+    }));
+    return true;
+  }
+  catch {
+    return false;
+  }
+}

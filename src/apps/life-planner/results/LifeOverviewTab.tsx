@@ -126,7 +126,6 @@ export function LifeOverviewTab(): JSX.Element {
         id: row.monthId,
         order: row.month,
         xLabel: row.monthId,
-        tooltipTitle: `${row.monthId} (Month ${row.month})`,
         values: {
           [NetWorthSeriesKey.NetWorth]: row.netWorth,
           [NetWorthSeriesKey.TotalAssets]: row.totalAssetsValue,
@@ -136,17 +135,17 @@ export function LifeOverviewTab(): JSX.Element {
       const overlays: ChartOverlaySeries[] = isCompare
         ? [
           {
-            id: "baseline-nw",
+            key: "baseline-nw",
             label: "Baseline Net Worth",
             color: "var(--text-muted)",
-            dashed: true,
+            strokeDasharray: "5 4",
             values: bundle.baseline.months.map((m) => m.netWorth),
           },
           {
-            id: "stress-nw",
+            key: "stress-nw",
             label: "Stress Test Net Worth",
             color: "var(--color-warning)",
-            dashed: true,
+            strokeDasharray: "5 4",
             values: bundle.stressTest.months.map((m) => m.netWorth),
           },
         ]
@@ -156,8 +155,8 @@ export function LifeOverviewTab(): JSX.Element {
           title="Net Worth, Assets & Debt Trajectory"
           points={points}
           series={NET_WORTH_SERIES}
-          overlays={overlays}
-          mode={TimeSeriesChartMode.MultiLine}
+          overlaySeries={overlays}
+          mode={TimeSeriesChartMode.Lines}
           formatValue={formatEur}
         />
       );
@@ -168,7 +167,6 @@ export function LifeOverviewTab(): JSX.Element {
         id: row.monthId,
         order: row.month,
         xLabel: row.monthId,
-        tooltipTitle: `${row.monthId} (Month ${row.month})`,
         values: {
           [FlowSeriesKey.IncomeAndBenefits]: row.primaryNetSalary + row.partnerNetSalary + row.statutoryBenefits,
           [FlowSeriesKey.TaxSettlement]: row.taxRefundOrRepayment,
@@ -180,7 +178,7 @@ export function LifeOverviewTab(): JSX.Element {
           title="Monthly Cashflow Streams"
           points={points}
           series={FLOW_SERIES}
-          mode={TimeSeriesChartMode.StackedBars}
+          mode={TimeSeriesChartMode.StackedBar}
           formatValue={formatEur}
         />
       );
@@ -190,7 +188,7 @@ export function LifeOverviewTab(): JSX.Element {
       id: row.monthId,
       order: row.month,
       xLabel: row.monthId,
-      tooltipTitle: `${row.monthId} · Runway ${row.emergencyRunwayMonths}m`,
+      xSubLabel: `${row.emergencyRunwayMonths}m`,
       values: {
         [CashSeriesKey.LiquidCash]: row.liquidCashBalance,
       },
@@ -198,17 +196,17 @@ export function LifeOverviewTab(): JSX.Element {
     const overlays: ChartOverlaySeries[] = isCompare
       ? [
         {
-          id: "baseline-cash",
+          key: "baseline-cash",
           label: "Baseline Cash",
           color: "var(--text-muted)",
-          dashed: true,
+          strokeDasharray: "5 4",
           values: bundle.baseline.months.map((m) => m.liquidCashBalance),
         },
         {
-          id: "stress-cash",
+          key: "stress-cash",
           label: "Stress Test Cash",
           color: "var(--color-loss)",
-          dashed: true,
+          strokeDasharray: "5 4",
           values: bundle.stressTest.months.map((m) => m.liquidCashBalance),
         },
       ]
@@ -219,16 +217,12 @@ export function LifeOverviewTab(): JSX.Element {
         title="Liquid Cash & Emergency Runway"
         points={points}
         series={CASH_SERIES}
-        overlays={overlays}
-        referenceLines={[
-          {
-            id: "emergency-floor",
-            label: `Emergency Floor (${formatEur(affordability.emergencyFloorEur)})`,
-            value: affordability.emergencyFloorEur,
-            color: "var(--color-warning)",
-          },
-        ]}
-        mode={TimeSeriesChartMode.MultiLine}
+        overlaySeries={overlays}
+        referenceLine={{
+          label: `Emergency Floor (${formatEur(affordability.emergencyFloorEur)})`,
+          value: affordability.emergencyFloorEur,
+        }}
+        mode={TimeSeriesChartMode.Lines}
         formatValue={formatEur}
       />
     );
@@ -240,25 +234,25 @@ export function LifeOverviewTab(): JSX.Element {
         <MetricCard
           label="Ending Liquid Cash"
           value={formatEur(summary.endingLiquidCash)}
-          detail={`Lowest: ${formatEur(summary.minLiquidCash)} (M${summary.minLiquidCashMonth}) · Min runway ${summary.minRunwayMonths}m`}
+          subtitle={`Lowest: ${formatEur(summary.minLiquidCash)} (M${summary.minLiquidCashMonth}) · Min runway ${summary.minRunwayMonths}m`}
           tone={summary.minLiquidCash < 0 ? MetricTone.Loss : MetricTone.Gain}
         />
         <MetricCard
           label="Ending Net Worth"
           value={formatEur(summary.endingNetWorth)}
-          detail={`vs. Baseline: ${plannedVsBaseline.endingNetWorthDiff >= 0 ? "+" : ""}${formatEur(plannedVsBaseline.endingNetWorthDiff)}`}
-          tone={summary.endingNetWorth >= 0 ? MetricTone.Brand : MetricTone.Loss}
+          subtitle={`vs. Baseline: ${plannedVsBaseline.endingNetWorthDiff >= 0 ? "+" : ""}${formatEur(plannedVsBaseline.endingNetWorthDiff)}`}
+          tone={summary.endingNetWorth >= 0 ? MetricTone.Primary : MetricTone.Loss}
         />
         <MetricCard
           label="Cumulative Net Cashflow"
           value={formatEur(summary.cumulativeNetCashflow)}
-          detail={`Assets ${formatEur(summary.endingAssetsValue)} · Debt ${formatEur(summary.endingDebtBalance)}`}
+          subtitle={`Assets ${formatEur(summary.endingAssetsValue)} · Debt ${formatEur(summary.endingDebtBalance)}`}
           tone={summary.cumulativeNetCashflow >= 0 ? MetricTone.Neutral : MetricTone.Loss}
         />
         <MetricCard
           label="Total Net Tax Paid"
           value={formatEur(summary.totalNetTaxPaid)}
-          detail={`Annual settlements: ${summary.totalAnnualTaxSettlements >= 0 ? "+" : ""}${formatEur(summary.totalAnnualTaxSettlements)}`}
+          subtitle={`Annual settlements: ${summary.totalAnnualTaxSettlements >= 0 ? "+" : ""}${formatEur(summary.totalAnnualTaxSettlements)}`}
           tone={MetricTone.Neutral}
         />
       </div>

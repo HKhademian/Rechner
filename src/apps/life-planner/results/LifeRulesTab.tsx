@@ -22,34 +22,55 @@ export function LifeRulesTab(): JSX.Element {
           <span>
             <strong>Monthly Payroll &amp; Joint Annual Assessment:</strong>
             {" "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.EStG_32a} label="EStG § 32a (Tariff & Splitting)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.EStG_32a }}>
+              EStG § 32a (Tariff &amp; Splitting)
+            </WikiRefLink>
             {" · "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.EStG_26b} label="EStG § 26b (Joint Assessment)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.EStG_26b }}>
+              EStG § 26b (Joint Assessment)
+            </WikiRefLink>
           </span>
         </div>
         <div className="lpw-event-row">
           <span>
             <strong>Wage Replacement Progression (Elterngeld, Mutterschutz, ALG I, Krankengeld):</strong>
             {" "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.EStG_32b} label="EStG § 32b (Progressionsvorbehalt)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.EStG_32b }}>
+              EStG § 32b (Progressionsvorbehalt)
+            </WikiRefLink>
           </span>
         </div>
         <div className="lpw-event-row">
           <span>
             <strong>Family Benefits &amp; Child Allowance Comparison:</strong>
             {" "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.BEEG_2} label="BEEG § 2 (Elterngeld)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.BEEG_2 }}>
+              BEEG § 2 (Elterngeld)
+            </WikiRefLink>
             {" · "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.EStG_31} label="EStG § 31 (Günstigerprüfung)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.EStG_31 }}>
+              EStG § 31 (Günstigerprüfung)
+            </WikiRefLink>
           </span>
         </div>
         <div className="lpw-event-row">
           <span>
             <strong>Deductions, Kita &amp; Direct Tax Credits:</strong>
             {" "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.EStG_9_1_4} label="EStG § 9 (Commuter & Werbungskosten)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.EStG_9_1_4 }}>
+              EStG § 9 (Commuter &amp; Werbungskosten)
+            </WikiRefLink>
             {" · "}
-            <WikiRefLink kind={WikiRefKind.Law} id={LawId.EStG_10_1_5} label="EStG § 10(1)5 (Kita Deductions)" />
+            <WikiRefLink target={{ kind: WikiRefKind.Law,
+              id: LawId.EStG_10_1_5 }}>
+              EStG § 10(1)5 (Kita Deductions)
+            </WikiRefLink>
           </span>
         </div>
       </div>

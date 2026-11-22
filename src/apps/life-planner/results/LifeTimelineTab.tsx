@@ -9,7 +9,7 @@ import {
   ButtonVariant,
 } from "#/components/ui/index.ts";
 import {
-  ParameterSlidersIcon,
+  AddActionIcon,
   RemoveItemIcon,
 } from "#components/Icons";
 import {
@@ -17,8 +17,7 @@ import {
   removeLifeEvent,
 } from "#/apps/life-planner/store/lifeWorkbenchState.ts";
 import {
-  LifeDrawerSection,
-  openLifeInputsDrawer,
+  openLifeEventComposer,
 } from "#/apps/life-planner/store/lifeWorkbenchUiState.ts";
 
 /** Chronological multi-domain Life Event Timeline tab. */
@@ -36,11 +35,11 @@ export function LifeTimelineTab(): JSX.Element {
         </div>
         <Button
           size={ButtonSize.Sm}
-          variant={ButtonVariant.Secondary}
-          onClick={() => openLifeInputsDrawer(LifeDrawerSection.Career)}
+          variant={ButtonVariant.Primary}
+          onClick={openLifeEventComposer}
         >
-          <ParameterSlidersIcon size={13} />
-          <span>Manage Events</span>
+          <AddActionIcon size={13} />
+          <span>Add Event</span>
         </Button>
       </div>
 
