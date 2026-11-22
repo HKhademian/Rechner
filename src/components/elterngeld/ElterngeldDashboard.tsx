@@ -55,6 +55,9 @@ import {
   PageHeader,
 } from "#components/ui/PageHeader";
 import {
+  useHydrated,
+} from "#/components/ui/useHydrated.ts";
+import {
   FormProjectionProfileId,
 } from "#engine/parameters/projections";
 
@@ -87,7 +90,8 @@ function syncParentalLeaveFromLifeProfile(): void {
 }
 
 export default function ElterngeldDashboard(): JSX.Element {
-  const months = currentScenarioData.value.months;
+  const hydrated = useHydrated();
+  const months = hydrated ? currentScenarioData.value.months : [];
   return (
     <AppShell
       currentPath={calculatorPath(AppId.ParentalLeave)}
@@ -110,46 +114,54 @@ export default function ElterngeldDashboard(): JSX.Element {
           </Button>
         )}
         metaLabel="Planning period"
-        meta={[
-          {
-            label: "Forecast period",
-            value: `${months[0]?.calendarLabel ?? ""} – ${months.at(-1)?.calendarLabel ?? ""}`,
-          },
-          {
-            label: "Duration",
-            value: `${months.length} months`,
-          },
-        ]}
+        meta={
+          hydrated
+            ? [
+              {
+                label: "Forecast period",
+                value: `${months[0]?.calendarLabel ?? ""} – ${months.at(-1)?.calendarLabel ?? ""}`,
+              },
+              {
+                label: "Duration",
+                value: `${months.length} months`,
+              },
+            ]
+            : undefined
+        }
       />
       <p>Explore parental allowance <TopicHelp id="parental-allowance" /> and its <a href={sitePath("/formulas/formula.parentalAllowance.entitlement/")}>calculation</a>.</p>
 
-      {/* Set up the plan before choosing which calculated results to review. */}
-      <SandboxControls />
+      {hydrated && (
+        <>
+          {/* Set up the plan before choosing which calculated results to review. */}
+          <SandboxControls />
 
-      <ScenarioSelector />
+          <ScenarioSelector />
 
-      {/* Dynamic KPI Scorecard */}
-      <KpiScorecard />
+          {/* Dynamic KPI Scorecard */}
+          <KpiScorecard />
 
-      <AnnualTaxableIncome result={currentScenarioData.value} />
+          <AnnualTaxableIncome result={currentScenarioData.value} />
 
-      {/* Full 60-Month Cash Flow Table & Audit */}
-      <TimelineTable />
+          {/* Full 60-Month Cash Flow Table & Audit */}
+          <TimelineTable />
 
-      {/* Interactive 60-Month Stacked Timeline Chart */}
-      <TimelineChart />
+          {/* Interactive 60-Month Stacked Timeline Chart */}
+          <TimelineChart />
 
-      {/* Unified Law-Linked Parameter Value Storage Observer & Editor */}
-      <ParameterObserverSection
-        embedded
-        projectionProfile={FormProjectionProfileId.ParentalLeaveFocus}
-      />
+          {/* Unified Law-Linked Parameter Value Storage Observer & Editor */}
+          <ParameterObserverSection
+            embedded
+            projectionProfile={FormProjectionProfileId.ParentalLeaveFocus}
+          />
 
-      {/* German Law Rules, Statutory Framework & Legal Precedents */}
-      <RulesExplainer />
+          {/* German Law Rules, Statutory Framework & Legal Precedents */}
+          <RulesExplainer />
 
-      {/* Data Export / Import Modal Dialog */}
-      <DataExportImportModal />
+          {/* Data Export / Import Modal Dialog */}
+          <DataExportImportModal />
+        </>
+      )}
     </AppShell>
   );
 }
