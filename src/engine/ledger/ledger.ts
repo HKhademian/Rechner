@@ -15,6 +15,7 @@ import {
   type FullCalendarYear,
   type CalendarLabel,
   type EuroAmount,
+  type MonthlyDaySplit,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
   type SpecialEventItem,
@@ -102,6 +103,8 @@ export interface LedgerMonthInput {
   readonly hasSiblingBonus: boolean;
   /** Optional monthly municipal daycare / Kita fee outflow in EUR. */
   readonly childcareFee?: EuroAmount;
+  /** Optional day-exact boundary split breakdown when exact dates straddle this calendar month. */
+  readonly daySplit?: MonthlyDaySplit;
   /** Detailed list of double-entry accounting ledger transactions for this month. */
   readonly transactions: readonly AccountingTransaction[];
 }
@@ -222,6 +225,7 @@ export function buildMonthlyLedgerEntry(
     isPartnerschaftsbonus: input.isPartnerschaftsbonus,
     hasSiblingBonus: input.hasSiblingBonus,
     ...(input.childcareFee !== undefined ? { childcareFee: input.childcareFee } : {}),
+    ...(input.daySplit !== undefined ? { daySplit: input.daySplit } : {}),
     transactions: input.transactions,
   };
 

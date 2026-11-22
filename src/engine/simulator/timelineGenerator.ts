@@ -55,6 +55,7 @@ import {
   type StrategyId,
   type AnnualSalariesCount,
   type SimulationResult,
+  type MonthlyDaySplit,
   type MonthlyLedgerEntry,
   type AccountingTransaction,
   type SpecialEventItem,
@@ -87,6 +88,7 @@ import {
   SpecialEventCategory,
   ActionCategory,
   ActionType,
+  formatGermanDate,
   toSimulationMonth,
   toCalendarYear,
   toFullCalendarYear,
@@ -370,6 +372,7 @@ function generateScenario(
     readonly wifeBaselineNet: EuroAmount;
     readonly husbandPayroll?: GrossToNetBreakdown;
     readonly wifePayroll?: GrossToNetBreakdown;
+    readonly daySplit?: MonthlyDaySplit;
     readonly transactions: AccountingTransaction[];
   }
 
@@ -569,6 +572,7 @@ function generateScenario(
       hasSiblingBonus,
       husbandPayroll,
       wifePayroll,
+      daySplit: income.daySplit,
       husbandBaselineNet: toEuroAmount(curH3Net),
       wifeBaselineNet: toEuroAmount(curW5FT),
       transactions,
@@ -1640,6 +1644,7 @@ function generateScenario(
     workingHoursChanges.forEach((whc) => {
       const eff = whc.effectiveSimulationMonth;
       if (m === eff) {
+        const dateTag = whc.effectiveDate ? ` · from ${formatGermanDate(whc.effectiveDate)}` : "";
         startingActions.push({
           actionId: toActionId(`${whc.changeId}-${rm.monthId}-EFFECTIVE`),
           monthId: rm.monthId,
@@ -1647,10 +1652,10 @@ function generateScenario(
           calendarLabel: rm.calendarLabel,
           relativeBirthLabel: rm.relativeBirthLabel,
           relativeMonthLabel: rm.relativeMonthLabel,
-          title: `ACTION: Working Hours Adjustment (${whc.targetPerson.toUpperCase()}: ${whc.weeklyHours} h/wk)`,
+          title: `ACTION: Working Hours Adjustment (${whc.targetPerson.toUpperCase()}: ${whc.weeklyHours} h/wk${dateTag})`,
           description:
             whc.reason ||
-            `Working hours adjusted to ${whc.weeklyHours} hours/week for ${whc.targetPerson}.`,
+            `Working hours adjusted to ${whc.weeklyHours} hours/week for ${whc.targetPerson}${dateTag}.`,
           category: ActionCategory.WorkingHours,
           type: ActionType.WorkingHoursChangeEffective,
           taxClassLabel: rm.taxClassLabel,
@@ -1703,6 +1708,7 @@ function generateScenario(
         isPartnerschaftsbonus: rm.isPartnerschaftsbonus,
         hasSiblingBonus: rm.hasSiblingBonus,
         childcareFee: monthChildcareFee,
+        daySplit: rm.daySplit,
         transactions: txs,
       },
       runSalaries,

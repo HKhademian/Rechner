@@ -58,6 +58,7 @@ import {
   AnnualSalariesCount,
   isAllowancePlanMode,
   isElterngeldVariant,
+  isIsoCalendarDate,
   toSalaryInputMode,
   toSalaryPeriod,
   toAnnualSalariesCount,
@@ -71,6 +72,7 @@ import {
   toFinancialEventCategory,
   toFederalStateKitaPresetId,
   toDaycareBookingHoursTier,
+  toIsoCalendarDate,
   toPregnancyId,
   toSwitchId,
   toRaiseId,
@@ -712,6 +714,35 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
         ...(pObj.motherAllowanceMonthsCount !== undefined
           ? { motherAllowanceMonthsCount: toMonthDuration(Number(pObj.motherAllowanceMonthsCount) || 0) }
           : {}),
+        ...(pObj.expectedDueDate !== undefined
+          ? { expectedDueDate: toIsoCalendarDate(String(pObj.expectedDueDate)) }
+          : {}),
+        ...(pObj.isMultipleOrPrematureBirth !== undefined
+          ? (() => {
+            if (typeof pObj.isMultipleOrPrematureBirth !== "boolean") {
+              throw new TypeError("Pregnancy isMultipleOrPrematureBirth must be a boolean.");
+            }
+            return { isMultipleOrPrematureBirth: pObj.isMultipleOrPrematureBirth };
+          })()
+          : {}),
+        ...(pObj.motherAnnualVacationDays !== undefined
+          ? (() => {
+            const v = Number(pObj.motherAnnualVacationDays);
+            if (typeof pObj.motherAnnualVacationDays !== "number" || !Number.isFinite(v) || v < 0 || v > 60) {
+              throw new TypeError("Pregnancy motherAnnualVacationDays must be a number between 0 and 60.");
+            }
+            return { motherAnnualVacationDays: v };
+          })()
+          : {}),
+        ...(pObj.motherVacationDaysTakenPreLeave !== undefined
+          ? (() => {
+            const v = Number(pObj.motherVacationDaysTakenPreLeave);
+            if (typeof pObj.motherVacationDaysTakenPreLeave !== "number" || !Number.isFinite(v) || v < 0 || v > 60) {
+              throw new TypeError("Pregnancy motherVacationDaysTakenPreLeave must be a number between 0 and 60.");
+            }
+            return { motherVacationDaysTakenPreLeave: v };
+          })()
+          : {}),
       };
     })
     : [];
@@ -848,6 +879,9 @@ export function parseRawScenarioData(raw: unknown): ElterngeldPersistedState {
             Number(hObj.weeklyHours) || wifePostBirthHours,
           ),
           reason: typeof hObj.reason === "string" ? hObj.reason : "",
+          ...(hObj.effectiveDate !== undefined
+            ? { effectiveDate: toIsoCalendarDate(String(hObj.effectiveDate)) }
+            : {}),
         };
       })
       : [];
@@ -1346,6 +1380,26 @@ export function validateAndSanitizePersistedState(
           : defP?.motherAllowanceMonthsCount !== undefined
             ? { motherAllowanceMonthsCount: defP.motherAllowanceMonthsCount }
             : {}),
+        ...(typeof pObj.expectedDueDate === "string" && isIsoCalendarDate(pObj.expectedDueDate)
+          ? { expectedDueDate: toIsoCalendarDate(pObj.expectedDueDate) }
+          : defP?.expectedDueDate !== undefined
+            ? { expectedDueDate: defP.expectedDueDate }
+            : {}),
+        ...(typeof pObj.isMultipleOrPrematureBirth === "boolean"
+          ? { isMultipleOrPrematureBirth: pObj.isMultipleOrPrematureBirth }
+          : defP?.isMultipleOrPrematureBirth !== undefined
+            ? { isMultipleOrPrematureBirth: defP.isMultipleOrPrematureBirth }
+            : {}),
+        ...(typeof pObj.motherAnnualVacationDays === "number" && Number.isFinite(pObj.motherAnnualVacationDays)
+          ? { motherAnnualVacationDays: num(pObj.motherAnnualVacationDays, 30, 0, 60) }
+          : defP?.motherAnnualVacationDays !== undefined
+            ? { motherAnnualVacationDays: defP.motherAnnualVacationDays }
+            : {}),
+        ...(typeof pObj.motherVacationDaysTakenPreLeave === "number" && Number.isFinite(pObj.motherVacationDaysTakenPreLeave)
+          ? { motherVacationDaysTakenPreLeave: num(pObj.motherVacationDaysTakenPreLeave, 0, 0, 60) }
+          : defP?.motherVacationDaysTakenPreLeave !== undefined
+            ? { motherVacationDaysTakenPreLeave: defP.motherVacationDaysTakenPreLeave }
+            : {}),
       };
     })
     : defaults.customPregnancies;
@@ -1596,6 +1650,11 @@ export function validateAndSanitizePersistedState(
             ),
           ),
           reason: str(hObj.reason, defH?.reason || "Schedule adjustment"),
+          ...(typeof hObj.effectiveDate === "string" && isIsoCalendarDate(hObj.effectiveDate)
+            ? { effectiveDate: toIsoCalendarDate(hObj.effectiveDate) }
+            : defH?.effectiveDate !== undefined
+              ? { effectiveDate: defH.effectiveDate }
+              : {}),
         };
       })
       : defaults.customWorkingHoursChanges || [];

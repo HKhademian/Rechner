@@ -36,6 +36,11 @@ import {
   evaluateOverlapCreditedPaymentFormula,
 } from "#engine/formulas/pure/parentalBenefitFormulas";
 import {
+  diffCalendarDays,
+  evaluateElterngeldLifeMonthFormula,
+  evaluateMutterschutzWindowFormula,
+} from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
+import {
   type AllowanceBudgetSummary,
   resolveMotherAllowancePlanMode,
   resolveFatherAllowancePlanMode,
@@ -287,9 +292,29 @@ export function projectAllowanceSchedule(
     };
     const h = prepare(true);
     const w = prepare(false);
-    const first = birth.ordinal + conventions.maternityPostBirthMonths.value;
-    const maternityMonths = income.filter((month) => month.ordinal >= birth.ordinal &&
-      month.maternityPregnancyId === pregnancy.pregnancyId && month.mutterschutz > 0).length;
+    let maternityMonths: number;
+    if (pregnancy.expectedDueDate !== undefined) {
+      const matWin = evaluateMutterschutzWindowFormula({
+        expectedDueDate: pregnancy.expectedDueDate,
+        isMultipleOrPrematureBirth: pregnancy.isMultipleOrPrematureBirth,
+      });
+      let lmOverlapCount = 0;
+      for (let lm = 1; lm <= 6; lm++) {
+        const interval = evaluateElterngeldLifeMonthFormula(pregnancy.expectedDueDate, lm);
+        if (diffCalendarDays(interval.startDate, matWin.postBirthEnd) >= 0) {
+          lmOverlapCount += 1;
+        }
+        else {
+          break;
+        }
+      }
+      maternityMonths = Math.max(1, lmOverlapCount);
+    }
+    else {
+      maternityMonths = income.filter((month) => month.ordinal >= birth.ordinal &&
+        month.maternityPregnancyId === pregnancy.pregnancyId && month.mutterschutz > 0).length;
+    }
+    const first = birth.ordinal + (pregnancy.expectedDueDate !== undefined ? maternityMonths : conventions.maternityPostBirthMonths.value);
     const mother = new Map<AssessmentMonthOrdinal, ElterngeldVariant>();
     const father = new Map<AssessmentMonthOrdinal, ElterngeldVariant>();
     const moved = new Map<AssessmentMonthOrdinal, ElterngeldVariant>();
@@ -595,7 +620,10 @@ export function projectAllowanceSchedule(
       const planned = [...new Set([...ordinary.keys(), ...bonus])].sort((a, b) => a - b);
       const notes = prepared.notes;
       const classNet = (month: IncomeMonth) => (husband ? month.husbandNets : month.wifeNets)[prepared.characteristics.taxClass];
-      const gross = (month: IncomeMonth) => (husband ? month.husbandPayroll : month.wifePayroll)?.monthlyGross;
+      const gross = (month: IncomeMonth) =>
+        month.daySplit !== undefined
+          ? (husband ? month.husbandFullMonthGross : month.wifeFullMonthGross)
+          : (husband ? month.husbandPayroll : month.wifePayroll)?.monthlyGross;
       let after: NetSalary | undefined;
       let reason = prepared.reason;
       try {

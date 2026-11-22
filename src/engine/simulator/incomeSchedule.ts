@@ -8,6 +8,8 @@ import {
   type TaxClass,
   type GrossToNetBreakdown,
   type PregnancyId,
+  type MonthlyDaySplit,
+  type IsoCalendarDate,
   ElterngeldVariant,
   TaxClass as Classes,
   TargetPerson,
@@ -22,6 +24,14 @@ import {
   toCalendarMonth,
   toTaxFactor,
 } from "#engine/types";
+import {
+  buildIsoDate,
+  daysInCalendarMonth,
+  diffCalendarDays,
+  evaluateMutterschutzMonthlyPayFormula,
+  evaluateMutterschutzWindowFormula,
+  overlapDaysInCalendarMonth,
+} from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
   resolveMotherAllowanceVariant,
   resolveMotherOrdinaryMonthsCount,
@@ -57,6 +67,44 @@ import {
 
 type NetClassMap = Partial<Record<TaxClass, NetSalary>>;
 
+const DayPhase = {
+  Work: "work",
+  Mutterschutz: "mutterschutz",
+  Elternzeit: "elternzeit",
+} as const;
+type DayPhase = (typeof DayPhase)[keyof typeof DayPhase];
+
+function buildDaySplitSummaryLabel(split: {
+  readonly motherWorkDays: number;
+  readonly motherMutterschutzDays: number;
+  readonly motherElternzeitDays: number;
+  readonly husbandWorkDays: number;
+  readonly husbandElternzeitDays: number;
+  readonly totalCalendarDays: number;
+  readonly motherPhaseOrder: readonly DayPhase[];
+}): string {
+  const parts: string[] = [];
+  for (const phase of split.motherPhaseOrder) {
+    if (phase === DayPhase.Work && split.motherWorkDays > 0 && split.motherWorkDays < split.totalCalendarDays) {
+      parts.push(`${split.motherWorkDays}d Salary`);
+    }
+    else if (phase === DayPhase.Mutterschutz && split.motherMutterschutzDays > 0 && split.motherMutterschutzDays < split.totalCalendarDays) {
+      parts.push(`${split.motherMutterschutzDays}d Mutterschutz`);
+    }
+    else if (phase === DayPhase.Elternzeit && split.motherElternzeitDays > 0 && split.motherElternzeitDays < split.totalCalendarDays) {
+      parts.push(`${split.motherElternzeitDays}d Elternzeit`);
+    }
+  }
+  if (
+    parts.length === 0 &&
+    split.husbandWorkDays > 0 &&
+    split.husbandElternzeitDays > 0
+  ) {
+    parts.push(`${split.husbandWorkDays}d Father Work`, `${split.husbandElternzeitDays}d Father Leave`);
+  }
+  return parts.join(" · ");
+}
+
 /** Pure income evaluation can extend beyond the visible ledger to finish a planned benefit averaging period. */
 export function evaluateIncomeMonth(
   batches: ScenarioActionBatches,
@@ -68,12 +116,18 @@ export function evaluateIncomeMonth(
   const index = ordinal - start + 1;
   const year = toFullCalendarYear(Math.floor(ordinal / 12));
   const calendarMonth = toCalendarMonth(ordinal % 12 + 1);
+  const totalCalendarDays = daysInCalendarMonth(year, calendarMonth);
   const grossMode = p.salaryInputMode === SalaryInputMode.Gross;
   const benefits = p.benefitRules ?? DEFAULT_BENEFIT_RULES;
   let husbandHours = p.husbandWeeklyHours;
   let wifeHours = p.wifeWeeklyHours;
   let explicitWifeHours = false;
-  for (const action of [...workingHoursChanges].sort((a, b) => a.effectiveSimulationMonth - b.effectiveSimulationMonth)) {
+  const sortedWorkingHoursChanges = [...workingHoursChanges].sort(
+    (a, b) =>
+      a.effectiveSimulationMonth - b.effectiveSimulationMonth ||
+      (a.effectiveDate ?? "").localeCompare(b.effectiveDate ?? ""),
+  );
+  for (const action of sortedWorkingHoursChanges) {
     if (action.effectiveSimulationMonth <= index) {
       if (action.targetPerson === TargetPerson.Husband || action.targetPerson === TargetPerson.Both) {
         husbandHours = action.weeklyHours;
@@ -108,11 +162,179 @@ export function evaluateIncomeMonth(
     }
   }
   const orderedPregnancies = [...pregnancies].sort((a, b) => a.calculatedDeliverySimulationMonth - b.calculatedDeliverySimulationMonth);
-  const maternity = orderedPregnancies.filter((pregnancy) => index >= pregnancy.calculatedDeliverySimulationMonth - conventions.maternityPreBirthMonths.value &&
-    index < pregnancy.calculatedDeliverySimulationMonth + conventions.maternityPostBirthMonths.value).at(-1);
+
+  // Check whether day-exact Mutterschutz or mid-month WorkingHoursChange dates apply in this calendar month
+  const exactMutterschutzWindows = orderedPregnancies
+    .filter((preg) => preg.expectedDueDate !== undefined)
+    .map((preg) => ({
+      pregnancy: preg,
+      window: evaluateMutterschutzWindowFormula({
+        expectedDueDate: preg.expectedDueDate!,
+        isMultipleOrPrematureBirth: preg.isMultipleOrPrematureBirth,
+      }),
+    }));
+  const hasMidMonthHoursDate = sortedWorkingHoursChanges.some(
+    (action) =>
+      action.effectiveDate !== undefined &&
+      action.effectiveCalendarYear === year &&
+      action.effectiveCalendarMonth === calendarMonth,
+  );
+  const exactMaternityHit = exactMutterschutzWindows
+    .map((entry) => ({
+      ...entry,
+      overlapDays: overlapDaysInCalendarMonth(
+        entry.window.preBirthStart,
+        entry.window.postBirthEnd,
+        year,
+        calendarMonth,
+      ),
+    }))
+    .filter((entry) => entry.overlapDays > 0)
+    .at(-1);
+
+  const coarseMaternity = orderedPregnancies
+    .filter(
+      (pregnancy) =>
+        pregnancy.expectedDueDate === undefined &&
+        index >= pregnancy.calculatedDeliverySimulationMonth - conventions.maternityPreBirthMonths.value &&
+        index < pregnancy.calculatedDeliverySimulationMonth + conventions.maternityPostBirthMonths.value,
+    )
+    .at(-1);
+
+  const maternity = exactMaternityHit?.pregnancy ?? coarseMaternity;
+  const mutterschutzDays = exactMaternityHit
+    ? exactMaternityHit.overlapDays
+    : coarseMaternity
+      ? totalCalendarDays
+      : 0;
   const delivered = orderedPregnancies.filter((pregnancy) => index >= pregnancy.calculatedDeliverySimulationMonth).at(-1);
-  const paidWifeHours = maternity ? toWorkingHours(0) : explicitWifeHours ? wifeHours
+
+  let paidWifeHours = maternity ? toWorkingHours(0) : explicitWifeHours ? wifeHours
     : delivered?.motherPostBirthPartTimeHours ?? wifeHours;
+  let effectiveWifeHoursForPayroll: number = paidWifeHours;
+  let effectiveHusbandHoursForPayroll: number = husbandHours;
+  let daySplit: MonthlyDaySplit | undefined;
+
+  const needsDayProration =
+    (exactMaternityHit !== undefined && exactMaternityHit.overlapDays < totalCalendarDays) ||
+    hasMidMonthHoursDate;
+
+  if (needsDayProration) {
+    let motherWorkDays = 0;
+    let motherMutterschutzDays = 0;
+    let motherElternzeitDays = 0;
+    const motherPhaseOrder: DayPhase[] = [];
+    const recordMotherPhase = (phase: DayPhase): void => {
+      if (!motherPhaseOrder.includes(phase)) {
+        motherPhaseOrder.push(phase);
+      }
+    };
+    let husbandWorkDays = 0;
+    let husbandElternzeitDays = 0;
+    let sumWifePaidHours = 0;
+    let sumHusbandPaidHours = 0;
+    let lastDayWifeHours: WorkingHours = paidWifeHours;
+    let lastDayHusbandHours: WorkingHours = husbandHours;
+
+    const actionsWithDates = sortedWorkingHoursChanges.map((action) => ({
+      action,
+      date:
+        action.effectiveDate ??
+        buildIsoDate(action.effectiveCalendarYear, action.effectiveCalendarMonth, 1),
+    }));
+
+    for (let day = 1; day <= totalCalendarDays; day++) {
+      const iso: IsoCalendarDate = buildIsoDate(year, calendarMonth, day);
+      const isMatDay = exactMutterschutzWindows.some(
+        (entry) =>
+          diffCalendarDays(entry.window.preBirthStart, iso) >= 0 &&
+          diffCalendarDays(iso, entry.window.postBirthEnd) >= 0,
+      );
+      let dayH = p.husbandWeeklyHours;
+      let dayW = p.wifeWeeklyHours;
+      let explicitWOnDay = false;
+      for (const item of actionsWithDates) {
+        if (diffCalendarDays(item.date, iso) >= 0) {
+          if (item.action.targetPerson === TargetPerson.Husband || item.action.targetPerson === TargetPerson.Both) {
+            dayH = item.action.weeklyHours;
+          }
+          if (item.action.targetPerson === TargetPerson.Wife || item.action.targetPerson === TargetPerson.Both) {
+            dayW = item.action.weeklyHours;
+            explicitWOnDay = true;
+          }
+        }
+      }
+      if (!explicitWOnDay) {
+        const dayDelivered = orderedPregnancies
+          .filter((preg) => {
+            if (preg.expectedDueDate) {
+              return diffCalendarDays(preg.expectedDueDate, iso) >= 0;
+            }
+            return index >= preg.calculatedDeliverySimulationMonth;
+          })
+          .at(-1);
+        if (dayDelivered) {
+          dayW = dayDelivered.motherPostBirthPartTimeHours;
+        }
+      }
+
+      if (isMatDay) {
+        motherMutterschutzDays += 1;
+        recordMotherPhase(DayPhase.Mutterschutz);
+      }
+      else if (dayW <= 0) {
+        motherElternzeitDays += 1;
+        recordMotherPhase(DayPhase.Elternzeit);
+      }
+      else {
+        motherWorkDays += 1;
+        sumWifePaidHours += dayW;
+        recordMotherPhase(DayPhase.Work);
+      }
+
+      if (dayH <= 0) {
+        husbandElternzeitDays += 1;
+      }
+      else {
+        husbandWorkDays += 1;
+        sumHusbandPaidHours += dayH;
+      }
+
+      lastDayWifeHours = isMatDay ? toWorkingHours(0) : dayW;
+      lastDayHusbandHours = dayH;
+    }
+
+    effectiveWifeHoursForPayroll = sumWifePaidHours / totalCalendarDays;
+    effectiveHusbandHoursForPayroll = sumHusbandPaidHours / totalCalendarDays;
+    paidWifeHours = lastDayWifeHours;
+    husbandHours = lastDayHusbandHours;
+
+    const isSplitMonth =
+      (motherWorkDays > 0 && motherWorkDays < totalCalendarDays) ||
+      (motherMutterschutzDays > 0 && motherMutterschutzDays < totalCalendarDays) ||
+      (motherElternzeitDays > 0 && motherElternzeitDays < totalCalendarDays) ||
+      (husbandWorkDays > 0 && husbandElternzeitDays > 0);
+
+    if (isSplitMonth) {
+      daySplit = Object.freeze({
+        totalCalendarDays,
+        motherWorkDays,
+        motherMutterschutzDays,
+        motherElternzeitDays,
+        husbandWorkDays,
+        husbandElternzeitDays,
+        summaryLabel: buildDaySplitSummaryLabel({
+          motherWorkDays,
+          motherMutterschutzDays,
+          motherElternzeitDays,
+          husbandWorkDays,
+          husbandElternzeitDays,
+          totalCalendarDays,
+          motherPhaseOrder,
+        }),
+      });
+    }
+  }
   const children = toChildrenCount(p.existingChildrenCount + pregnancies.filter((pregnancy) => index >= pregnancy.calculatedDeliverySimulationMonth).length);
   const newborns = children - p.existingChildrenCount;
   const personal = (options: PayrollOptions = {}): PayrollOptions => ({ ...options,
@@ -227,7 +449,7 @@ export function evaluateIncomeMonth(
       }
     }
   }
-  const forHours = (gross: GrossSalary, hours: WorkingHours, baseline: WorkingHours): GrossSalary => {
+  const forHours = (gross: GrossSalary, hours: number, baseline: WorkingHours): GrossSalary => {
     if (hours <= 0) {
       return toGrossSalary(0);
     }
@@ -235,8 +457,10 @@ export function evaluateIncomeMonth(
     return toGrossSalary(gross * hours / denominator);
   };
   const rules = grossMode ? createTaxRules(year, p.taxRuleOverrides) : undefined;
-  const hGross = husbandGross === undefined ? undefined : forHours(husbandGross, husbandHours, p.husbandWeeklyHours);
-  const wGross = wifeGross === undefined ? undefined : forHours(wifeGross, paidWifeHours, p.wifeWeeklyHours);
+  const husbandFullMonthGross = husbandGross === undefined ? undefined : forHours(husbandGross, husbandHours, p.husbandWeeklyHours);
+  const wifeFullMonthGross = wifeGross === undefined ? undefined : forHours(wifeGross, paidWifeHours, p.wifeWeeklyHours);
+  const hGross = husbandGross === undefined ? undefined : forHours(husbandGross, effectiveHusbandHoursForPayroll, p.husbandWeeklyHours);
+  const wGross = wifeGross === undefined ? undefined : forHours(wifeGross, effectiveWifeHoursForPayroll, p.wifeWeeklyHours);
   let husbandPayroll: GrossToNetBreakdown | undefined;
   let wifePayroll: GrossToNetBreakdown | undefined;
   const wifeNets: NetClassMap = {};
@@ -247,6 +471,16 @@ export function evaluateIncomeMonth(
       const extras = slots?.length ? slots.reduce((sum, slot) => sum + slot.payoutFraction, 0) : count - 12;
       return toGrossSalary(gross * (1 + extras / 12) + (husband ? p.annualBonusGross ?? 0 : 0) / 12);
     };
+    const expectedHusbandContractualGross =
+      husbandFullMonthGross !== undefined && husbandFullMonthGross > 0
+        ? husbandFullMonthGross
+        : hGross ?? toGrossSalary(0);
+    const expectedWifeContractualGross =
+      wifeFullMonthGross !== undefined && wifeFullMonthGross > 0
+        ? wifeFullMonthGross
+        : wifeGross !== undefined && wGross !== undefined && wGross > 0
+          ? wifeGross
+          : wGross ?? toGrossSalary(0);
     const hPay = (taxClass: TaxClass) => computeGrossToNetBreakdown(
       hGross ?? toGrossSalary(0),
       taxClass,
@@ -255,9 +489,12 @@ export function evaluateIncomeMonth(
       taxClass === Classes.IV && useFactor ? factor : undefined,
       rules,
       { ...husbandPersonal,
-        expectedMonthlyEmploymentGross: employmentAverage(hGross ?? toGrossSalary(0), true) },
+        expectedMonthlyEmploymentGross: employmentAverage(
+          expectedHusbandContractualGross,
+          true,
+        ) },
     );
-    const wPay = (gross: GrossSalary, taxClass: TaxClass) => computeGrossToNetBreakdown(
+    const wPay = (gross: GrossSalary, taxClass: TaxClass, expectedContractualGross?: GrossSalary) => computeGrossToNetBreakdown(
       gross,
       taxClass,
       children,
@@ -265,11 +502,11 @@ export function evaluateIncomeMonth(
       taxClass === Classes.IV && useFactor ? factor : undefined,
       rules,
       { ...wifePersonal,
-        expectedMonthlyEmploymentGross: employmentAverage(gross, false) },
+        expectedMonthlyEmploymentGross: employmentAverage(expectedContractualGross ?? gross, false) },
     );
     for (const taxClass of [Classes.III, Classes.V, Classes.IV]) {
       const husband = hPay(taxClass);
-      const wife = wPay(wGross ?? toGrossSalary(0), taxClass);
+      const wife = wPay(wGross ?? toGrossSalary(0), taxClass, expectedWifeContractualGross);
       husbandNets[taxClass] = husband.regularNetTakeHome;
       wifeNets[taxClass] = wife.regularNetTakeHome;
       wifeFullNets[taxClass] = wPay(wifeGross ?? toGrossSalary(0), taxClass).regularNetTakeHome;
@@ -281,7 +518,7 @@ export function evaluateIncomeMonth(
       }
     }
     husbandPayroll ??= hPay(husbandClass);
-    wifePayroll ??= wPay(wGross ?? toGrossSalary(0), wifeClass);
+    wifePayroll ??= wPay(wGross ?? toGrossSalary(0), wifeClass, expectedWifeContractualGross);
     husbandNets[husbandClass] = husbandPayroll.regularNetTakeHome;
     wifeNets[wifeClass] = wifePayroll.regularNetTakeHome;
   }
@@ -290,9 +527,14 @@ export function evaluateIncomeMonth(
     for (const taxClass of Object.values(Classes)) {
       const full = wifeFullNets[taxClass];
       const part = wifePartNets[taxClass];
-      wifeNets[taxClass] = paidWifeHours === 0 ? toNetSalary(0) : paidWifeHours === p.wifeWeeklyHours ? full
-        : part !== undefined && defaultPartHours !== undefined && defaultPartHours > 0 ? toNetSalary(part * paidWifeHours / defaultPartHours)
-          : full !== undefined && p.wifeWeeklyHours > 0 ? toNetSalary(full * paidWifeHours / p.wifeWeeklyHours) : undefined;
+      wifeNets[taxClass] = effectiveWifeHoursForPayroll <= 0 ? toNetSalary(0) : effectiveWifeHoursForPayroll === p.wifeWeeklyHours ? full
+        : part !== undefined && defaultPartHours !== undefined && defaultPartHours > 0 ? toNetSalary(part * effectiveWifeHoursForPayroll / defaultPartHours)
+          : full !== undefined && p.wifeWeeklyHours > 0 ? toNetSalary(full * effectiveWifeHoursForPayroll / p.wifeWeeklyHours) : undefined;
+      if (needsDayProration && p.husbandWeeklyHours > 0 && husbandNets[taxClass] !== undefined) {
+        husbandNets[taxClass] = toNetSalary(
+          husbandNets[taxClass]! * effectiveHusbandHoursForPayroll / p.husbandWeeklyHours,
+        );
+      }
     }
     if (husbandClass === Classes.IV && husbandGross !== undefined && (useFactor || husbandNets[Classes.IV] === undefined)) {
       husbandNets[Classes.IV] = computeGrossToNetBreakdown(
@@ -349,8 +591,13 @@ export function evaluateIncomeMonth(
   return Object.freeze({ ordinal,
     calendarYearNum: year,
     calendarMonthNum: calendarMonth,
+    totalCalendarDays,
+    mutterschutzDays,
+    daySplit,
     husbandHours,
     wifeHours: paidWifeHours,
+    husbandFullMonthGross,
+    wifeFullMonthGross,
     husbandClass,
     wifeClass,
     useFactor,
@@ -432,7 +679,13 @@ export function buildIncomeSchedule(
         rate = toEuroAmount((prior.reduce((sum, month) => sum + month.wifeSalary, 0) + missing * (baseline ?? 0)) / referenceCount);
         maternityRates.set(income.maternityPregnancyId, rate);
       }
-      mutterschutz = rate;
+      mutterschutz = income.mutterschutzDays < income.totalCalendarDays
+        ? evaluateMutterschutzMonthlyPayFormula({
+          referenceMonthlyNet: rate,
+          mutterschutzDaysInMonth: income.mutterschutzDays,
+          totalDaysInMonth: income.totalCalendarDays,
+        }).totalMonthlyBenefit
+        : rate;
     }
     months.push(Object.freeze({ ...income,
       mutterschutz,
