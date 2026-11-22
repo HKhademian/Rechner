@@ -130,8 +130,8 @@ import {
 import {
   addCalendarMonthsClamped,
   buildIsoDate,
-  daysInCalendarMonth,
   parseIsoDateParts,
+  resolveOptimalWorkingHoursEffectiveDateFormula,
 } from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
   buildWorkingHoursSchedulePreview,
@@ -1979,19 +1979,30 @@ export default function SandboxControls(): JSX.Element {
                         startCalendarYear.value + Math.floor(totalElapsed / 12);
 
                       const defs = getDefaultPersistedState();
+                      const initialHours = toWorkingHours(
+                        target === TargetPerson.Husband
+                          ? (husbandHours.value ?? defs.husbandHours)
+                          : (wifePostBirthHours.value ??
+                              defs.wifePostBirthHours),
+                      );
+                      const autoOpt = resolveOptimalWorkingHoursEffectiveDateFormula({
+                        calendarYear: toFullCalendarYear(sYear),
+                        calendarMonth: sMonth,
+                        targetPerson: target,
+                        weeklyHours: initialHours,
+                        pregnancies: customPregnancies.value,
+                      });
                       addWorkingHoursChangeAction({
                         changeId: toHoursChangeId(`HOURS-${Date.now()}`),
                         effectiveSimulationMonth:
                           toSimulationMonth(defaultMonth),
                         effectiveCalendarMonth: sMonth,
                         effectiveCalendarYear: toFullCalendarYear(sYear),
+                        ...(autoOpt.isDayOptimized
+                          ? { effectiveDate: autoOpt.optimalDate }
+                          : {}),
                         targetPerson: target,
-                        weeklyHours: toWorkingHours(
-                          target === TargetPerson.Husband
-                            ? (husbandHours.value ?? defs.husbandHours)
-                            : (wifePostBirthHours.value ??
-                                defs.wifePostBirthHours),
-                        ),
+                        weeklyHours: initialHours,
                         reason:
                           target === TargetPerson.Husband
                             ? "Husband Parental Leave Hours (§ 4b BEEG)"
@@ -2662,15 +2673,32 @@ export default function SandboxControls(): JSX.Element {
                                 const calM = toCalendarMonth(
                                   (totalElapsed % 12) + 1,
                                 );
-                                const calY =
+                                const calY = toFullCalendarYear(
                                   startCalendarYear.value +
-                                  Math.floor(totalElapsed / 12);
+                                    Math.floor(totalElapsed / 12),
+                                );
+                                const nextOpt =
+                                  whc.effectiveDate !== undefined
+                                    ? resolveOptimalWorkingHoursEffectiveDateFormula({
+                                      calendarYear: calY,
+                                      calendarMonth: calM,
+                                      targetPerson: whc.targetPerson,
+                                      weeklyHours: whc.weeklyHours,
+                                      pregnancies: customPregnancies.value,
+                                    })
+                                    : undefined;
                                 updateWorkingHoursChangeAction(whc.changeId, {
                                   effectiveSimulationMonth:
                                     toSimulationMonth(newMonth),
                                   effectiveCalendarMonth: calM,
-                                  effectiveCalendarYear:
-                                    toFullCalendarYear(calY),
+                                  effectiveCalendarYear: calY,
+                                  ...(nextOpt !== undefined
+                                    ? {
+                                      effectiveDate: nextOpt.isDayOptimized
+                                        ? nextOpt.optimalDate
+                                        : undefined,
+                                    }
+                                    : {}),
                                 });
                               }}
                               className="sandbox-input sandbox-input--regular"
@@ -2692,44 +2720,27 @@ export default function SandboxControls(): JSX.Element {
                           </div>
                         </div>
 
-                        {/* Optional Day-Exact Effective Date (e.g. 28.12.2027 return from Elternzeit) */}
+                        {/* Optional Day-Exact Effective Date (auto-optimizes when left empty!) */}
                         {(() => {
                           const firstOfMonthIso = buildIsoDate(
                             whc.effectiveCalendarYear,
                             whc.effectiveCalendarMonth,
                             1,
                           );
-                          const datedPreg = [...customPregnancies.value]
-                            .filter(
-                              (p) =>
-                                p.expectedDueDate !== undefined &&
-                                p.calculatedDeliverySimulationMonth <= whc.effectiveSimulationMonth,
-                            )
-                            .sort(
-                              (a, b) =>
-                                b.calculatedDeliverySimulationMonth -
-                                a.calculatedDeliverySimulationMonth,
-                            )[0];
-                          const lifeMonthStartIso = datedPreg?.expectedDueDate
-                            ? buildIsoDate(
-                              whc.effectiveCalendarYear,
-                              whc.effectiveCalendarMonth,
-                              Math.min(
-                                parseIsoDateParts(datedPreg.expectedDueDate).day,
-                                daysInCalendarMonth(
-                                  whc.effectiveCalendarYear,
-                                  whc.effectiveCalendarMonth,
-                                ),
-                              ),
-                            )
-                            : undefined;
+                          const autoOpt = resolveOptimalWorkingHoursEffectiveDateFormula({
+                            calendarYear: whc.effectiveCalendarYear,
+                            calendarMonth: whc.effectiveCalendarMonth,
+                            targetPerson: whc.targetPerson,
+                            weeklyHours: whc.weeklyHours,
+                            pregnancies: customPregnancies.value,
+                          });
                           return (
                             <div className="sandbox-mb-2">
                               <label
                                 htmlFor={`whc-exact-date-${whc.changeId}`}
                                 className="sandbox-field-label sandbox-field-label--xs"
                               >
-                                Exact Effective Day (optional · day-prorated salary &amp; Life-Month check):
+                                Exact Effective Day (auto-optimized if left empty):
                               </label>
                               <input
                                 id={`whc-exact-date-${whc.changeId}`}
@@ -2764,45 +2775,53 @@ export default function SandboxControls(): JSX.Element {
                                 className="sandbox-input sandbox-input--regular"
                               />
                               <div className="sandbox-chip-wrap sandbox-mt-1">
-                                {lifeMonthStartIso && lifeMonthStartIso !== firstOfMonthIso && (
-                                  <button
-                                    type="button"
-                                    className={`sandbox-chip-btn ${whc.effectiveDate === lifeMonthStartIso ? "sandbox-chip-btn--active-primary" : ""}`}
-                                    title="Snap to exact BEEG Life-Month start day to avoid Elterngeld income overlap"
-                                    onClick={() =>
-                                      updateWorkingHoursChangeAction(whc.changeId, {
-                                        effectiveDate: lifeMonthStartIso,
-                                      })
-                                    }
-                                  >
-                                    Life-Month Start ({formatGermanDate(lifeMonthStartIso)})
-                                  </button>
-                                )}
                                 <button
                                   type="button"
-                                  className={`sandbox-chip-btn ${whc.effectiveDate === firstOfMonthIso ? "sandbox-chip-btn--active-primary" : ""}`}
+                                  className={`sandbox-chip-btn ${whc.effectiveDate === autoOpt.optimalDate || (whc.effectiveDate === undefined && autoOpt.isDayOptimized) ? "sandbox-chip-btn--active-primary" : ""}`}
+                                  title={autoOpt.rationale}
                                   onClick={() =>
                                     updateWorkingHoursChangeAction(whc.changeId, {
-                                      effectiveDate: firstOfMonthIso,
+                                      effectiveDate: autoOpt.optimalDate,
                                     })
                                   }
                                 >
-                                  1st ({formatGermanDate(firstOfMonthIso)})
+                                  Estimate ({formatGermanDate(autoOpt.optimalDate)})
                                 </button>
+                                {autoOpt.optimalDate !== firstOfMonthIso && (
+                                  <button
+                                    type="button"
+                                    className={`sandbox-chip-btn ${whc.effectiveDate === firstOfMonthIso ? "sandbox-chip-btn--active-primary" : ""}`}
+                                    onClick={() =>
+                                      updateWorkingHoursChangeAction(whc.changeId, {
+                                        effectiveDate: firstOfMonthIso,
+                                      })
+                                    }
+                                  >
+                                    1st ({formatGermanDate(firstOfMonthIso)})
+                                  </button>
+                                )}
                                 {whc.effectiveDate && (
                                   <button
                                     type="button"
                                     className="sandbox-chip-btn"
+                                    title="Clear manual override so the engine auto-optimizes the day whenever due dates change"
                                     onClick={() =>
                                       updateWorkingHoursChangeAction(whc.changeId, {
                                         effectiveDate: undefined,
                                       })
                                     }
                                   >
-                                    Clear
+                                    Auto (Empty)
                                   </button>
                                 )}
                               </div>
+                              {!whc.effectiveDate && autoOpt.isDayOptimized && (
+                                <div className="sandbox-note sandbox-note--sm">
+                                  ↳ Auto-optimized day:{" "}
+                                  <strong>{formatGermanDate(autoOpt.optimalDate)}</strong> —{" "}
+                                  {autoOpt.rationale}
+                                </div>
+                              )}
                             </div>
                           );
                         })()}

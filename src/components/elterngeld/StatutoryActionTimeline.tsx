@@ -22,6 +22,7 @@ import {
   buildIsoDate,
   diffCalendarDays,
   parseIsoDateParts,
+  resolveOptimalWorkingHoursEffectiveDateFormula,
 } from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
   type StatutoryDeadlineItem,
@@ -158,7 +159,14 @@ export default function StatutoryActionTimeline(): JSX.Element | null {
 
     const motherReturnToWorkDate = returnChange
       ? returnChange.effectiveDate ??
-        buildIsoDate(returnChange.effectiveCalendarYear, returnChange.effectiveCalendarMonth, 1)
+        resolveOptimalWorkingHoursEffectiveDateFormula({
+          calendarYear: returnChange.effectiveCalendarYear,
+          calendarMonth: returnChange.effectiveCalendarMonth,
+          targetPerson: returnChange.targetPerson,
+          weeklyHours: returnChange.weeklyHours,
+          pregnancies: [{ expectedDueDate: dueDate,
+            isMultipleOrPrematureBirth: preg.isMultipleOrPrematureBirth }],
+        }).optimalDate
       : undefined;
 
     const nextPreg = sortedPregs[idx + 1];
