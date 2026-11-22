@@ -461,31 +461,50 @@ export function setInitialTaxClasses(
 export function syncGrossToNet() {
   if (salaryInputMode.value === SalaryInputMode.Gross) {
     const defaults = getDefaultPersistedState();
+    const resolvedHusbandHours = toWorkingHours(
+      husbandHours.value ?? defaults.husbandHours,
+    );
+    const resolvedWifeInitialHours = toWorkingHours(
+      wifeInitialHours.value ?? defaults.wifeInitialHours,
+    );
+    const effectiveHusbandGross = resolvedHusbandHours > 0
+      ? Math.max(0, husbandGross.value ?? 0)
+      : 0;
+    const effectiveWifeGross = resolvedWifeInitialHours > 0
+      ? Math.max(0, wifeGross.value ?? 0)
+      : 0;
     const spousal = deriveSpousalNetSalaries(
-      toGrossSalary(Math.max(0, husbandGross.value ?? 0)),
-      toGrossSalary(Math.max(0, wifeGross.value ?? 0)),
+      toGrossSalary(effectiveHusbandGross),
+      toGrossSalary(effectiveWifeGross),
       toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
-      toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
+      resolvedWifeInitialHours,
       0,
       createTaxRulesFromContext(activeStatutoryContext.peek(), startCalendarYear.value),
       husbandPayrollOptions.value,
       wifePayrollOptions.value,
+      resolvedHusbandHours,
     );
-    husbandClass3Net.value = spousal.husbandClass3Net;
-    husbandClass5Net.value = spousal.husbandClass5Net;
-    wifeClass5FullTimeNet.value = spousal.wifeClass5FullTimeNet;
-    wifeClass3FullTimeNet.value = spousal.wifeClass3FullTimeNet;
+    batch(() => {
+      husbandClass3Net.value = spousal.husbandClass3Net;
+      husbandClass5Net.value = spousal.husbandClass5Net;
+      wifeClass5FullTimeNet.value = spousal.wifeClass5FullTimeNet;
+      wifeClass3FullTimeNet.value = spousal.wifeClass3FullTimeNet;
+    });
   }
 }
 
 export function setHusbandGross(gross: number | GrossSalary) {
-  husbandGross.value = toGrossSalary(Math.max(0, Number(gross) || 0));
-  syncGrossToNet();
+  batch(() => {
+    husbandGross.value = toGrossSalary(Math.max(0, Number(gross) || 0));
+    syncGrossToNet();
+  });
 }
 
 export function setWifeGross(gross: number | GrossSalary) {
-  wifeGross.value = toGrossSalary(Math.max(0, Number(gross) || 0));
-  syncGrossToNet();
+  batch(() => {
+    wifeGross.value = toGrossSalary(Math.max(0, Number(gross) || 0));
+    syncGrossToNet();
+  });
 }
 
 export function setHusbandSalariesCount(
@@ -493,7 +512,6 @@ export function setHusbandSalariesCount(
   preset?: BonusDistributionPreset,
 ) {
   const c = toAnnualSalariesCount(count);
-  husbandSalariesCount.value = c;
   const p =
     preset ??
     (c === AnnualSalariesCount.Thirteen
@@ -503,25 +521,35 @@ export function setHusbandSalariesCount(
         : c === AnnualSalariesCount.Fifteen
           ? BonusDistributionPreset.Triple100_100_100
           : BonusDistributionPreset.Ratio40_60);
-  husbandBonusPreset.value = p;
-  husbandBonusDistribution.value = createBonusDistributionSlots(c, p);
-  enable13thSalary.value = c > 12;
+  const slots = createBonusDistributionSlots(c, p);
+  batch(() => {
+    husbandSalariesCount.value = c;
+    husbandBonusPreset.value = p;
+    husbandBonusDistribution.value = slots;
+    enable13thSalary.value = c > 12;
+  });
 }
 
 export function setHusbandBonusPreset(preset: BonusDistributionPreset) {
-  husbandBonusPreset.value = preset;
-  husbandBonusDistribution.value = createBonusDistributionSlots(
+  const slots = createBonusDistributionSlots(
     husbandSalariesCount.value,
     preset,
   );
+  batch(() => {
+    husbandBonusPreset.value = preset;
+    husbandBonusDistribution.value = slots;
+  });
 }
 
 export function setHusbandBonusDistribution(slots: readonly SalaryBonusSlot[]) {
-  husbandBonusDistribution.value = slots;
-  husbandBonusPreset.value = inferBonusPreset(
+  const inferred = inferBonusPreset(
     husbandSalariesCount.value,
     slots,
   );
+  batch(() => {
+    husbandBonusDistribution.value = slots;
+    husbandBonusPreset.value = inferred;
+  });
 }
 
 export function setWifeSalariesCount(
@@ -529,7 +557,6 @@ export function setWifeSalariesCount(
   preset?: BonusDistributionPreset,
 ) {
   const c = toAnnualSalariesCount(count);
-  wifeSalariesCount.value = c;
   const p =
     preset ??
     (c === AnnualSalariesCount.Thirteen
@@ -539,21 +566,31 @@ export function setWifeSalariesCount(
         : c === AnnualSalariesCount.Fifteen
           ? BonusDistributionPreset.Triple100_100_100
           : BonusDistributionPreset.Ratio40_60);
-  wifeBonusPreset.value = p;
-  wifeBonusDistribution.value = createBonusDistributionSlots(c, p);
+  const slots = createBonusDistributionSlots(c, p);
+  batch(() => {
+    wifeSalariesCount.value = c;
+    wifeBonusPreset.value = p;
+    wifeBonusDistribution.value = slots;
+  });
 }
 
 export function setWifeBonusPreset(preset: BonusDistributionPreset) {
-  wifeBonusPreset.value = preset;
-  wifeBonusDistribution.value = createBonusDistributionSlots(
+  const slots = createBonusDistributionSlots(
     wifeSalariesCount.value,
     preset,
   );
+  batch(() => {
+    wifeBonusPreset.value = preset;
+    wifeBonusDistribution.value = slots;
+  });
 }
 
 export function setWifeBonusDistribution(slots: readonly SalaryBonusSlot[]) {
-  wifeBonusDistribution.value = slots;
-  wifeBonusPreset.value = inferBonusPreset(wifeSalariesCount.value, slots);
+  const inferred = inferBonusPreset(wifeSalariesCount.value, slots);
+  batch(() => {
+    wifeBonusDistribution.value = slots;
+    wifeBonusPreset.value = inferred;
+  });
 }
 
 export function setHusbandGrossYearly(yearly: number) {
@@ -567,24 +604,30 @@ export function setWifeGrossYearly(yearly: number) {
 }
 
 export function setHusbandHours(hours: number | WorkingHours) {
-  husbandHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, Number(hours) || 0)),
-  );
-  syncGrossToNet();
+  batch(() => {
+    husbandHours.value = toWorkingHours(
+      Math.max(0, Math.min(60, Number(hours) || 0)),
+    );
+    syncGrossToNet();
+  });
 }
 
 export function setWifeInitialHours(hours: number | WorkingHours) {
-  wifeInitialHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, Number(hours) || 0)),
-  );
-  syncGrossToNet();
+  batch(() => {
+    wifeInitialHours.value = toWorkingHours(
+      Math.max(0, Math.min(60, Number(hours) || 0)),
+    );
+    syncGrossToNet();
+  });
 }
 
 export function setWifePostBirthHours(hours: number | WorkingHours) {
-  wifePostBirthHours.value = toWorkingHours(
-    Math.max(0, Math.min(60, Number(hours) || 0)),
-  );
-  syncGrossToNet();
+  batch(() => {
+    wifePostBirthHours.value = toWorkingHours(
+      Math.max(0, Math.min(60, Number(hours) || 0)),
+    );
+    syncGrossToNet();
+  });
 }
 
 export function setAnnualBonusGross(amount: number | GrossSalary) {
@@ -612,15 +655,28 @@ export function setSalaryInputMode(mode: SalaryInputMode) {
 
 export const derivedSpousalSet = computed<SpousalGrossToNetSet>(() => {
   const defaults = getDefaultPersistedState();
+  const resolvedHusbandHours = toWorkingHours(
+    husbandHours.value ?? defaults.husbandHours,
+  );
+  const resolvedWifeInitialHours = toWorkingHours(
+    wifeInitialHours.value ?? defaults.wifeInitialHours,
+  );
+  const effectiveHusbandGross = resolvedHusbandHours > 0
+    ? Math.max(0, husbandGross.value ?? 0)
+    : 0;
+  const effectiveWifeGross = resolvedWifeInitialHours > 0
+    ? Math.max(0, wifeGross.value ?? 0)
+    : 0;
   return deriveSpousalNetSalaries(
-    toGrossSalary(Math.max(0, husbandGross.value ?? 0)),
-    toGrossSalary(Math.max(0, wifeGross.value ?? 0)),
+    toGrossSalary(effectiveHusbandGross),
+    toGrossSalary(effectiveWifeGross),
     toWorkingHours(wifePostBirthHours.value ?? defaults.wifePostBirthHours),
-    toWorkingHours(wifeInitialHours.value ?? defaults.wifeInitialHours),
+    resolvedWifeInitialHours,
     0,
     createTaxRulesFromContext(activeStatutoryContext.value, startCalendarYear.value),
     husbandPayrollOptions.value,
     wifePayrollOptions.value,
+    resolvedHusbandHours,
   );
 });
 

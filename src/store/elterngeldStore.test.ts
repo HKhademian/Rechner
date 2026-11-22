@@ -18,6 +18,14 @@ import {
   derivedSpousalSet,
   salaryInputMode,
   husbandGross,
+  husbandGrossYearly,
+  husbandHours,
+  setHusbandHours,
+  husbandSalariesCount,
+  setHusbandSalariesCount,
+  husbandBonusPreset,
+  setHusbandBonusPreset,
+  enable13thSalary,
   wifeGross,
   existingChildrenCount,
   setExistingChildrenCount,
@@ -47,6 +55,8 @@ import {
   getLawGroupEntry,
 } from "#engine/laws/registry";
 import {
+  AnnualSalariesCount,
+  BonusDistributionPreset,
   SalaryInputMode,
   FederalStateKitaPresetId,
   toPregnancyId,
@@ -208,6 +218,60 @@ it("wires existingChildrenCount, childcarePlan, and inflation planning assumptio
   }
   finally {
     resetAllParameterOverrides();
+    resetToDefaults();
+  }
+});
+
+it("handles repeated husband working hours switches including 0h leave and 12x–15x annual salary counts cleanly", () => {
+  resetToDefaults();
+  try {
+    salaryInputMode.value = SalaryInputMode.Gross;
+    husbandGross.value = toGrossSalary(4000);
+
+    // Repeated working hours transitions including 0h (Leave) must never throw
+    for (const targetHours of [40, 32, 24, 0, 40, 0, 32]) {
+      setHusbandHours(targetHours);
+      assert.equal(husbandHours.peek(), targetHours);
+      assert.equal(derivedSpousalSet.peek().husbandWeeklyHours, targetHours);
+
+      const timeline = statutoryOptimizedData.peek();
+      if (targetHours === 0) {
+        assert.equal(derivedSpousalSet.peek().husbandClass3Net, 0);
+        assert.equal(derivedSpousalSet.peek().husbandClass5Net, 0);
+        assert.equal(timeline.months[0].husbandSalary, 0);
+      }
+      else {
+        assert.ok(derivedSpousalSet.peek().husbandClass3Net > 0);
+        assert.ok(timeline.months[0].husbandSalary > 0);
+      }
+    }
+
+    // Annual salary counts 12x..15x update yearly gross, bonus presets, and enable13thSalary atomically
+    setHusbandSalariesCount(AnnualSalariesCount.Thirteen);
+    assert.equal(husbandSalariesCount.peek(), AnnualSalariesCount.Thirteen);
+    assert.equal(husbandGrossYearly.peek(), 52000);
+    assert.equal(enable13thSalary.peek(), true);
+    assert.equal(husbandBonusPreset.peek(), BonusDistributionPreset.Ratio40_60);
+
+    setHusbandBonusPreset(BonusDistributionPreset.Ratio50_50);
+    assert.equal(husbandBonusPreset.peek(), BonusDistributionPreset.Ratio50_50);
+
+    setHusbandSalariesCount(AnnualSalariesCount.Fourteen);
+    assert.equal(husbandSalariesCount.peek(), AnnualSalariesCount.Fourteen);
+    assert.equal(husbandGrossYearly.peek(), 56000);
+    assert.equal(husbandBonusPreset.peek(), BonusDistributionPreset.Double100_100);
+
+    setHusbandSalariesCount(AnnualSalariesCount.Fifteen);
+    assert.equal(husbandSalariesCount.peek(), AnnualSalariesCount.Fifteen);
+    assert.equal(husbandGrossYearly.peek(), 60000);
+    assert.equal(husbandBonusPreset.peek(), BonusDistributionPreset.Triple100_100_100);
+
+    setHusbandSalariesCount(AnnualSalariesCount.Twelve);
+    assert.equal(husbandSalariesCount.peek(), AnnualSalariesCount.Twelve);
+    assert.equal(husbandGrossYearly.peek(), 48000);
+    assert.equal(enable13thSalary.peek(), false);
+  }
+  finally {
     resetToDefaults();
   }
 });

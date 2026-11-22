@@ -441,6 +441,7 @@ export function deriveSpousalNetSalaries(
   rules: TaxRules = DEFAULT_TAX_RULES,
   husbandOptions: PayrollOptions = {},
   wifeOptions: PayrollOptions = {},
+  husbandWeeklyHours: WorkingHours = toWorkingHours(32),
 ): SpousalGrossToNetSet {
   const hGross = husbandGross;
   const wGrossFT = wifeGrossFullTime;
@@ -580,7 +581,7 @@ export function deriveSpousalNetSalaries(
       wBreakdownClass4WithFactorPT.monthlyNetTakeHome,
     taxFactor: factor,
     wifePartTimeWeeklyHours: wifePtHours,
-    husbandWeeklyHours: toWorkingHours(32),
+    husbandWeeklyHours,
     husbandBreakdownClass3: hBreakdownClass3,
     husbandBreakdownClass5: hBreakdownClass5,
     wifeBreakdownClass5FT: wBreakdownClass5FT,
