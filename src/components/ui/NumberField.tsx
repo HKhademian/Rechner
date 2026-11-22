@@ -92,7 +92,7 @@ export function NumberField<T extends number = number>({
     reportError("");
   }, [formattedText]);
 
-  const commitNumber = (rawNumber: number): void => {
+  const commitNumber = (rawNumber: number, syncDraft = false): void => {
     try {
       if (rawNumber < min) {
         throw new RangeError(`Enter at least ${min}.`);
@@ -102,6 +102,9 @@ export function NumberField<T extends number = number>({
       }
       const next = construct(rawNumber);
       onChange(next);
+      if (syncDraft) {
+        setDraft(String(Math.round(rawNumber * 1000) / 1000));
+      }
       reportError("");
     }
     catch (problem) {
@@ -154,7 +157,7 @@ export function NumberField<T extends number = number>({
                 reportError("Enter a value.");
                 return;
               }
-              commitNumber(parsed);
+              commitNumber(parsed, false);
             }
             catch (problem) {
               reportError(problem instanceof Error ? problem.message : "Invalid input.");
@@ -175,7 +178,7 @@ export function NumberField<T extends number = number>({
             value={Math.min(slider.max, Math.max(slider.min, sliderValue))}
             aria-label={`${label} slider`}
             style={accentColor ? { accentColor } : undefined}
-            onInput={(event) => commitNumber(Number(event.currentTarget.value))}
+            onInput={(event) => commitNumber(Number(event.currentTarget.value), true)}
           />
         </div>
       )}
@@ -188,7 +191,7 @@ export function NumberField<T extends number = number>({
               type="button"
               className="ui-presets__btn"
               aria-pressed={value === preset.value}
-              onClick={() => commitNumber(preset.value)}
+              onClick={() => commitNumber(preset.value, true)}
             >
               {preset.label}
             </button>
