@@ -71,14 +71,28 @@ Every simulated month (`SimulationMonth` 1..360, default 60 or 120 months) produ
    - `Solidaritätszuschlag` (`SolzG`) & optional `Kirchensteuer`
    - **Signed Settlement**: `(Credited Withholding) − (Final Annual Liability)` → posted once in `taxReturnMonth` of `year + 1`, rebuilding running `liquidCashBalance`, `emergencyRunwayMonths`, and `netWorth` with zero double-counting.
 
-### 2.3 Three Structured Scenarios + Non-Destructive Event Levers
+### 2.3 Three Structured Scenarios, Life Disaster Simulator & Non-Destructive Levers
 
 Mirroring `parental-planner`'s `C / B / A / Compare` model, the Life Planner computes three synchronized scenarios on every debounced edit (250ms coalesced scheduler):
 
 1. **`Planned` (Primary)**: User's complete life plan with all configured events, strategies, and tax optimizations active.
 2. **`Baseline` (Status Quo)**: Steady-state trajectory using only current household baseline (existing salaries, current rent/living budget, statutory defaults) with planned discretionary/major life events and tax switches suppressed — answering *"What is the net financial & tax impact of my life plan vs. doing nothing?"*.
-3. **`StressTest` (Downside Resilience)**: Deterministic stress overlay applied to `Planned` (configurable in Horizon/Macro modal, defaults: 3-month primary income gap + `Sperrzeit`, +1.5% extra inflation on expenses, +10% housing/maintenance shock) — answering *"Does my liquid cash runway stay positive if something goes wrong?"*.
-4. **`Compare` Overlay**: Side-by-side comparison (`Planned vs. Baseline` and `StressTest vs. Planned`) across cumulative cashflow, ending net worth, minimum cash runway, and lifetime tax paid.
+3. **`StressTest` (Life Disaster & Resilience Simulator)**: Composable German life-shock engine (`disasterSimulator.ts`) applied non-destructively on top of `Planned` at any chosen trigger month, so users can test whether they can safely **expand or must limit fixed commitments** (e.g., upgrading to a better rental house, taking on a mortgage, or adding a car lease):
+   - **Fired / Employer Termination (`Kündigung`)**: Statutory notice period (`§ 622 BGB`), optional severance (`Abfindung` with `§ 34 EStG` Fünftelregelung), immediate **`ALG I`** (60% / 67% with child, `§ 149 SGB III`, BBG-capped, routed into `§ 32b EStG` progression tax), configurable unemployment duration (3 / 6 / 12 months), and optional re-employment salary haircut.
+   - **Voluntary Resignation (`Eigenkündigung`)**: **12-week `Sperrzeit` (`§ 159 SGB III`)** with €0 `ALG I` during the waiting period + reduced entitlement, followed by `ALG I` until re-employment, with full `§ 32b` tax progression impact.
+   - **Long-Term Illness (`Krankengeld`)**: 6 weeks employer continuation (`§ 3 EFZG`), then **`Krankengeld`** (~70% gross / max 90% net, `§ 47 SGB V`, `§ 32b` progression) for configurable duration.
+   - **Partner Income Loss / Single-Earner Fallback**: Primary or partner loses 100% of employment income (or drops to part-time / `ALG I`) while the other continues working, including joint-assessment tax shift.
+   - **Unexpected Lump-Sum Emergency**: Configurable one-off shock (e.g., €10,000–€25,000 for car replacement, home repair, family emergency, or tax `Nachzahlung`).
+   - **Housing / Interest-Rate / Inflation Shock**: Rent indexation jump (`Indexmiete`), mortgage rate reset after `Zinsbindung` (+2–3% p.a.), or +2% living-cost inflation.
+   - **Compound Disasters**: Multiple shocks can be combined (e.g., *Fired 6 months after signing a new mortgage or higher rent*).
+4. **Commitment Affordability & Safe Ceiling Solver (`commitmentAffordability.ts`)**:
+   - Evaluates the `StressTest` trajectory against the user's target emergency floor (e.g., `€5,000` or `3 months` of essential expenses) and reports:
+     - **Solvency Verdict**: `Resilient` (stays above emergency floor), `Tight` (dips into buffer but stays > €0), or `Insolvent` (cash deficit of €X in Month Y).
+     - **Minimum Liquid Cash & Trough Month** + **Survival Runway** (months until €0 cash).
+     - **Max Safe Monthly Commitment Headroom (`+€X / mo` or required cut `−€X / mo`)**: Computed via pure binary search over the disaster trajectory and translated into concrete guidance:
+       - **Safe Rental Ceiling**: Maximum affordable warm rent while surviving the selected disaster(s).
+       - **Safe Mortgage Ceiling**: Maximum monthly annuity (and implied loan size at current interest + `Tilgung`) that preserves solvency under shock.
+5. **`Compare` Overlay**: Side-by-side comparison (`Planned vs. Baseline` and `StressTest vs. Planned`) across cumulative cashflow, ending net worth, minimum cash runway, and lifetime tax paid.
 
 **Non-Destructive Scenario Levers (`lifePlannerDampening.ts`)**:
 Users can toggle entire event groups off/on live from the workspace bar without deleting any configured events:
@@ -107,6 +121,8 @@ Built with shared `src/components/ui/` primitives, tokenized CSS (`swiss`, `edit
 - **Row 2 — Unified Workspace Bar**:
   - Left: 6 horizontal workspace tabs (`Overview & Charts`, `Event Timeline`, `Monthly Ledger`, `Annual Tax`, `Deadlines` + warning badge, `Rules`).
   - Right: Segmented `ScenarioSwitcherBar` (`Planned` | `Baseline` | `Stress Test` | `Compare`) + `Levers` popover button (with active-dampened count badge) + Coalesced Calculation Status Pill.
+- **Contextual Disaster Bar (visible only in `Stress Test` / `Compare` mode)**:
+  - Compact 1-click disaster chips (`Fired 6m`, `Resigned + 12w Sperrzeit`, `Illness / Krankengeld`, `Partner Job Loss`, `€15k Emergency`, `Custom…`), a live non-destructive **Rent / Mortgage Commitment Delta Slider** (`−€500` to `+€1,500/mo`), and a live **Max Safe Commitment & Solvency Badge** (`Resilient · Max safe +€420/mo`).
 
 ### 3.2 Slide-Over `LifePlanInputsDrawer` (6 Calm Cards + Granular Modals)
 
@@ -146,14 +162,14 @@ Each card displays only calm, essential baseline values plus compact removable c
   - Finalize ideation blueprint (`.agents/ideation/life-planner-workbench-plan.md`).
   - Register `AppId.LifePlanner` (`life-planner`) with `CalculatorReleaseBadge.Beta` and route `/calculators/life-planner/` (keeping legacy `PlanningDashboard` and `/profile/` intact).
   - Define strongly-typed `src/engine/lifeSimulator/types.ts` (all `const` enums, branded types, `LifeSimulatorEvent` discriminated union, `TaxBucket`, `LifeMonthlyLedgerEntry`, `AnnualLifeTaxRecord`, `LifeSimulationResult`).
-- **Phase 1 (10% → 30%) — Pure Life Simulator & Unified Tax Collector Engine**:
+- **Phase 1 (10% → 30%) — Pure Life Simulator, Unified Tax Collector & Disaster Engine**:
   - Implement modular pure event evaluators (`careerEvaluator`, `familyEvaluator`, `housingAssetEvaluator`, `expenseTravelEvaluator`, `residencyEvaluator`).
   - Implement `annualTaxCollector.ts` aggregating all 12 months of tax buckets into exact German annual tax settlements (`EStG §§ 26b, 32a, 32b, 35a, 36; SolzG; Günstigerprüfung`) and posting signed settlements into `year + 1`.
-  - Implement `lifeSimulator.ts` (monthly replay, balance-sheet tracking: Cash, Runway, Assets, Debt, Net Worth) and `scenarioBuilder.ts` (`Planned`, `Baseline`, `StressTest`) + `lifePlannerPresets.ts`.
+  - Implement `lifeSimulator.ts` (monthly replay, balance-sheet tracking: Cash, Runway, Assets, Debt, Net Worth), `disasterSimulator.ts` (Fired/`ALG I`, Resigned/`Sperrzeit`, Illness/`Krankengeld`, Partner Loss, Lump-Sum Emergency, Rent/Rate Shock, Compound Disasters), `commitmentAffordability.ts` (Safe Rent & Mortgage Ceiling binary-search solver), `scenarioBuilder.ts` (`Planned`, `Baseline`, `StressTest`), and `lifePlannerPresets.ts`.
   - 100% unit + multi-year scenario test coverage (`src/engine/lifeSimulator/*.test.ts`).
 - **Phase 2 (30% → 48%) — Workbench Store, Persistence & Concept A Shell**:
   - Build modular Preact Signals store in `src/apps/life-planner/store/` (`lifeWorkbenchState.ts`, `lifeWorkbenchSimulation.ts`, `lifeWorkbenchDampening.ts`, `lifeWorkbenchUiState.ts`) with 250ms coalesced calculation scheduler and browser persistence (`AppId.LifePlanner`).
-  - Build Concept A Quiet Command Header, `LifePlanSummaryStrip`, Unified Workspace Bar, `ScenarioSwitcherBar` + `Levers` popover, and `OverviewTab` (4 KPI cards + Diagnostics strip + Multi-series Chart).
+  - Build Concept A Quiet Command Header, `LifePlanSummaryStrip`, Unified Workspace Bar, `ScenarioSwitcherBar` + `Levers` popover, **Contextual Disaster Bar** (1-click disaster chips + live Rent/Mortgage commitment slider + Max Safe Commitment badge), and `OverviewTab` (4 KPI cards + Diagnostics strip + Multi-series Chart).
 - **Phase 3 (48% → 68%) — Slide-Over Plan Inputs Drawer & 6 Granular Modals**:
   - Implement `LifePlanInputsDrawer` and all 6 calm cards + granular drill-down modals (`HouseholdBaselineModal`, `CareerEventModal`, `FamilyEventModal`, `HousingAssetModal`, `ExpensesTaxModal`, `HorizonMacroModal`).
   - Add 1-click **Sync from Life Profile** and **Import from Parental Planner** bridges.
