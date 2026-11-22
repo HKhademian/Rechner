@@ -283,12 +283,15 @@ export default function SandboxControls(): JSX.Element {
     if (customPregnancies.value.length === 0) {
       return toMonthRef(simMonth);
     }
+    const ordered = [...customPregnancies.value].sort(
+      (a, b) => a.calculatedDeliverySimulationMonth - b.calculatedDeliverySimulationMonth,
+    );
+    const first = ordered[0];
     const p1 =
-      customPregnancies.value[0]?.positiveTestSimulationMonth ??
+      first?.positiveTestSimulationMonth ??
       Math.max(
         1,
-        (customPregnancies.value[0]?.calculatedDeliverySimulationMonth ?? 12) -
-          8,
+        (first?.calculatedDeliverySimulationMonth ?? 12) - 8,
       );
     if (simMonth < p1) {
       return toMonthRef(simMonth - p1);
@@ -1471,9 +1474,10 @@ export default function SandboxControls(): JSX.Element {
                               className="sandbox-field-label sandbox-field-label--xs"
                             >
                               Effective ({getShortMonthLabel(sMonth)} ·{" "}
-                              {getMonthId(sMonth)} · {getMonthSimRef(sMonth)}):
+                              {getCalDate(sMonth)}):
                             </label>
                             <select
+                              aria-label={`Switch ${idx + 1}: effective month`}
                               value={sMonth}
                               onChange={(e) => {
                                 const newM = parseInt(
@@ -1509,46 +1513,14 @@ export default function SandboxControls(): JSX.Element {
                                   key={`sw-eff-opt-${sw.switchId}-${m}`}
                                   value={m}
                                 >
-                                  {getMonthSimRef(m)} · {getCalDate(m)} (
-                                  {getRelativeMonthLabel(m)}) · {getMonthId(m)}
+                                  {getRelativeMonthLabel(m)} · {getCalDate(m)}
                                 </option>
                               ))}
                             </select>
-                            <input
-                              type="range"
-                              min="1"
-                              max={Math.max(
-                                120,
-                                simulationDurationMonths.value,
-                              )}
-                              value={sMonth}
-                              onChange={(e) => {
-                                const newM = parseInt(
-                                  (e.target as HTMLInputElement).value,
-                                  10,
-                                );
-                                const totalElapsed =
-                                  startCalendarMonth.value - 1 + (newM - 1);
-                                updateTaxClassSwitchAction(sw.switchId, {
-                                  effectiveSimulationMonth:
-                                    toSimulationMonth(newM),
-                                  effectiveCalendarMonth: toCalendarMonth(
-                                    (totalElapsed % 12) + 1,
-                                  ),
-                                  effectiveCalendarYear: toFullCalendarYear(
-                                    startCalendarYear.value +
-                                      Math.floor(totalElapsed / 12),
-                                  ),
-                                });
-                              }}
-                              className="sandbox-range sandbox-range--gain"
-                            />
                             <div
                               className="sandbox-text-gain-xs"
                             >
-                              {getMonthSimRef(sMonth)} · {getCalDate(sMonth)} (
-                              {getRelativeMonthLabel(sMonth)}) ·{" "}
-                              {getMonthId(sMonth)}
+                              {getRelativeMonthLabel(sMonth)} · {getCalDate(sMonth)}
                             </div>
                           </div>
                           <div>
@@ -1556,9 +1528,10 @@ export default function SandboxControls(): JSX.Element {
                               className="sandbox-field-label sandbox-field-label--xs"
                             >
                               Revert ({getShortMonthLabel(rMonth)} ·{" "}
-                              {getMonthId(rMonth)} · {getMonthSimRef(rMonth)}):
+                              {getCalDate(rMonth)}):
                             </label>
                             <select
+                              aria-label={`Switch ${idx + 1}: revert month`}
                               value={rMonth}
                               onChange={(e) => {
                                 const newM = parseInt(
@@ -1585,37 +1558,14 @@ export default function SandboxControls(): JSX.Element {
                                   key={`sw-rev-opt-${sw.switchId}-${m}`}
                                   value={m}
                                 >
-                                  {getMonthSimRef(m)} · {getCalDate(m)} (
-                                  {getRelativeMonthLabel(m)}) · {getMonthId(m)}
+                                  {getRelativeMonthLabel(m)} · {getCalDate(m)}
                                 </option>
                               ))}
                             </select>
-                            <input
-                              type="range"
-                              min="1"
-                              max={Math.max(
-                                120,
-                                simulationDurationMonths.value,
-                              )}
-                              value={rMonth}
-                              onChange={(e) => {
-                                const newM = parseInt(
-                                  (e.target as HTMLInputElement).value,
-                                  10,
-                                );
-                                updateTaxClassSwitchAction(sw.switchId, {
-                                  revertSimulationMonth:
-                                    toSimulationMonth(newM),
-                                });
-                              }}
-                              className="sandbox-range sandbox-range--warning"
-                            />
                             <div
                               className="sandbox-text-warning-xs"
                             >
-                              {getMonthSimRef(rMonth)} · {getCalDate(rMonth)} (
-                              {getRelativeMonthLabel(rMonth)}) ·{" "}
-                              {getMonthId(rMonth)}
+                              {getRelativeMonthLabel(rMonth)} · {getCalDate(rMonth)}
                             </div>
                           </div>
                         </div>
@@ -2571,8 +2521,7 @@ export default function SandboxControls(): JSX.Element {
                                 (_, i) => i + 1,
                               ).map((m) => (
                                 <option key={`whc-m-${m}`} value={m}>
-                                  {getMonthSimRef(m)} · {getCalDate(m)} (
-                                  {getRelativeMonthLabel(m)}) · {getMonthId(m)}
+                                  {getRelativeMonthLabel(m)} · {getCalDate(m)}
                                 </option>
                               ))}
                             </select>
