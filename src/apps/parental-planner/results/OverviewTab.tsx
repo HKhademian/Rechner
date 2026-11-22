@@ -362,57 +362,89 @@ export function OverviewTab(): JSX.Element {
               <th>Metric</th>
               <th className="plw-table__num">Scenario C (Optimized)</th>
               <th className="plw-table__num">Scenario B (Baseline)</th>
-              <th className="plw-table__num">Scenario A (No Children)</th>
-              <th className="plw-table__num">Gain (C vs B)</th>
+              <th className="plw-table__num">Scenario A (No Births)</th>
+              <th className="plw-table__num">Δ C vs B</th>
+              <th className="plw-table__num">Δ C vs A</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>Total Household Cashflow</strong></td>
-              <td className="plw-table__num"><strong>{formatEur(cData.summary.grandTotal)}</strong></td>
-              <td className="plw-table__num">{formatEur(bData.summary.grandTotal)}</td>
-              <td className="plw-table__num">{formatEur(aData.summary.grandTotal)}</td>
-              <td className={`plw-table__num${metrics.gainCvsB >= 0 ? " plw-table__gain" : " plw-table__loss"}`}>
-                {metrics.gainCvsB >= 0 ? "+" : ""}{formatEur(metrics.gainCvsB)}
-              </td>
-            </tr>
-            <tr>
-              <td>Elterngeld (Mother + Partner)</td>
-              <td className="plw-table__num">{formatEur(cData.summary.totalWifeElterngeld + cData.summary.totalHusbandElterngeld)}</td>
-              <td className="plw-table__num">{formatEur(bData.summary.totalWifeElterngeld + bData.summary.totalHusbandElterngeld)}</td>
-              <td className="plw-table__num">{formatEur(0)}</td>
-              <td className="plw-table__num plw-table__gain">
-                +{formatEur((cData.summary.totalWifeElterngeld + cData.summary.totalHusbandElterngeld) - (bData.summary.totalWifeElterngeld + bData.summary.totalHusbandElterngeld))}
-              </td>
-            </tr>
-            <tr>
-              <td>Mutterschutz Pay</td>
-              <td className="plw-table__num">{formatEur(cData.summary.totalMutterschutz)}</td>
-              <td className="plw-table__num">{formatEur(bData.summary.totalMutterschutz)}</td>
-              <td className="plw-table__num">{formatEur(0)}</td>
-              <td className="plw-table__num">{formatEur(cData.summary.totalMutterschutz - bData.summary.totalMutterschutz)}</td>
-            </tr>
-            <tr>
-              <td>Kindergeld (§ 66 EStG)</td>
-              <td className="plw-table__num">{formatEur(cData.summary.totalKindergeld)}</td>
-              <td className="plw-table__num">{formatEur(bData.summary.totalKindergeld)}</td>
-              <td className="plw-table__num">{formatEur(aData.summary.totalKindergeld)}</td>
-              <td className="plw-table__num">{formatEur(0)}</td>
-            </tr>
-            <tr>
-              <td>Annual Tax Settlements (§ 36 EStG)</td>
-              <td className="plw-table__num">{formatEur(cData.summary.totalTaxRefunds)}</td>
-              <td className="plw-table__num">{formatEur(bData.summary.totalTaxRefunds)}</td>
-              <td className="plw-table__num">{formatEur(aData.summary.totalTaxRefunds)}</td>
-              <td className="plw-table__num">{formatEur(cData.summary.totalTaxRefunds - bData.summary.totalTaxRefunds)}</td>
-            </tr>
-            <tr>
-              <td>Daycare / Kita Outflows</td>
-              <td className="plw-table__num">-{formatEur(cData.summary.totalChildcareFees ?? 0)}</td>
-              <td className="plw-table__num">-{formatEur(bData.summary.totalChildcareFees ?? 0)}</td>
-              <td className="plw-table__num">{formatEur(0)}</td>
-              <td className="plw-table__num">{formatEur(0)}</td>
-            </tr>
+            {(() => {
+              const cEg = cData.summary.totalWifeElterngeld + cData.summary.totalHusbandElterngeld;
+              const bEg = bData.summary.totalWifeElterngeld + bData.summary.totalHusbandElterngeld;
+              const egDeltaCB = cEg - bEg;
+              const mutterDeltaCB = cData.summary.totalMutterschutz - bData.summary.totalMutterschutz;
+              const kgDeltaCA = cData.summary.totalKindergeld - aData.summary.totalKindergeld;
+              const taxDeltaCB = cData.summary.totalTaxRefunds - bData.summary.totalTaxRefunds;
+              const taxDeltaCA = cData.summary.totalTaxRefunds - aData.summary.totalTaxRefunds;
+              const kitaC = cData.summary.totalChildcareFees ?? 0;
+              const kitaB = bData.summary.totalChildcareFees ?? 0;
+              const signed = (v: number): string => `${v > 0 ? "+" : ""}${formatEur(v)}`;
+
+              return (
+                <>
+                  <tr>
+                    <td><strong>Total Household Cashflow</strong></td>
+                    <td className="plw-table__num"><strong>{formatEur(cData.summary.grandTotal)}</strong></td>
+                    <td className="plw-table__num">{formatEur(bData.summary.grandTotal)}</td>
+                    <td className="plw-table__num">{formatEur(aData.summary.grandTotal)}</td>
+                    <td className={`plw-table__num${metrics.gainCvsB >= 0 ? " plw-table__gain" : " plw-table__loss"}`}>
+                      {signed(metrics.gainCvsB)}
+                    </td>
+                    <td className={`plw-table__num${metrics.diffCvsA >= 0 ? " plw-table__gain" : " plw-table__loss"}`}>
+                      {signed(metrics.diffCvsA)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Elterngeld (Mother + Partner)</td>
+                    <td className="plw-table__num">{formatEur(cEg)}</td>
+                    <td className="plw-table__num">{formatEur(bEg)}</td>
+                    <td className="plw-table__num">{formatEur(0)}</td>
+                    <td className={`plw-table__num${egDeltaCB > 0 ? " plw-table__gain" : egDeltaCB < 0 ? " plw-table__loss" : ""}`}>
+                      {signed(egDeltaCB)}
+                    </td>
+                    <td className={`plw-table__num${cEg > 0 ? " plw-table__gain" : ""}`}>
+                      {signed(cEg)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Mutterschutz Pay</td>
+                    <td className="plw-table__num">{formatEur(cData.summary.totalMutterschutz)}</td>
+                    <td className="plw-table__num">{formatEur(bData.summary.totalMutterschutz)}</td>
+                    <td className="plw-table__num">{formatEur(0)}</td>
+                    <td className="plw-table__num">{signed(mutterDeltaCB)}</td>
+                    <td className="plw-table__num">{signed(cData.summary.totalMutterschutz)}</td>
+                  </tr>
+                  <tr>
+                    <td>Kindergeld (§ 66 EStG)</td>
+                    <td className="plw-table__num">{formatEur(cData.summary.totalKindergeld)}</td>
+                    <td className="plw-table__num">{formatEur(bData.summary.totalKindergeld)}</td>
+                    <td className="plw-table__num">{formatEur(aData.summary.totalKindergeld)}</td>
+                    <td className="plw-table__num">{formatEur(0)}</td>
+                    <td className={`plw-table__num${kgDeltaCA > 0 ? " plw-table__gain" : ""}`}>
+                      {signed(kgDeltaCA)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Annual Tax Settlements (§ 36 EStG)</td>
+                    <td className="plw-table__num">{formatEur(cData.summary.totalTaxRefunds)}</td>
+                    <td className="plw-table__num">{formatEur(bData.summary.totalTaxRefunds)}</td>
+                    <td className="plw-table__num">{formatEur(aData.summary.totalTaxRefunds)}</td>
+                    <td className="plw-table__num">{signed(taxDeltaCB)}</td>
+                    <td className="plw-table__num">{signed(taxDeltaCA)}</td>
+                  </tr>
+                  <tr>
+                    <td>Daycare / Kita Outflows</td>
+                    <td className="plw-table__num">{kitaC > 0 ? `-${formatEur(kitaC)}` : formatEur(0)}</td>
+                    <td className="plw-table__num">{kitaB > 0 ? `-${formatEur(kitaB)}` : formatEur(0)}</td>
+                    <td className="plw-table__num">{formatEur(0)}</td>
+                    <td className="plw-table__num">{formatEur(0)}</td>
+                    <td className={`plw-table__num${kitaC > 0 ? " plw-table__loss" : ""}`}>
+                      {kitaC > 0 ? `-${formatEur(kitaC)}` : formatEur(0)}
+                    </td>
+                  </tr>
+                </>
+              );
+            })()}
           </tbody>
         </table>
       </div>

@@ -20,6 +20,7 @@ import {
 import {
   ClearFormIcon,
   ExportDataIcon,
+  ParameterSlidersIcon,
   SamplePresetIcon,
 } from "#components/Icons";
 import {
@@ -49,25 +50,18 @@ import {
 } from "#/apps/parental-planner/store/workbenchSimulation.ts";
 import {
   ExportImportMode,
+  WorkbenchDrawerSection,
   WorkbenchTab,
   activeWorkbenchTab,
+  openPlanInputsDrawer,
   openWorkbenchExportImport,
 } from "#/apps/parental-planner/store/workbenchUiState.ts";
 import {
-  HouseholdIncomeCard,
-} from "#/apps/parental-planner/inputs/HouseholdIncomeCard.tsx";
+  PlanSummaryStrip,
+} from "#/apps/parental-planner/inputs/PlanSummaryStrip.tsx";
 import {
-  ChildrenLeaveCard,
-} from "#/apps/parental-planner/inputs/ChildrenLeaveCard.tsx";
-import {
-  TaxAndWorkCard,
-} from "#/apps/parental-planner/inputs/TaxAndWorkCard.tsx";
-import {
-  CostsBenefitsCard,
-} from "#/apps/parental-planner/inputs/CostsBenefitsCard.tsx";
-import {
-  HorizonMacroCard,
-} from "#/apps/parental-planner/inputs/HorizonMacroCard.tsx";
+  PlanInputsDrawer,
+} from "#/apps/parental-planner/inputs/PlanInputsDrawer.tsx";
 import {
   IncomeAdjustmentsModal,
 } from "#/apps/parental-planner/inputs/IncomeAdjustmentsModal.tsx";
@@ -115,8 +109,8 @@ import {
 const CURRENT_PATH = calculatorPath(AppId.ParentalPlanner);
 
 /**
- * Parental Leave Workbench (Beta) — Progressive Two-Zone Elterngeld & Family Cashflow Planner.
- * Steady-salary baseline by default, per-section granular drill-down modals, and inline wiki cross-links.
+ * Parental Planner — Full-Screen Analysis Canvas with Slide-Over Plan Inputs Drawer,
+ * Live Scenario Comparator & Non-Destructive Dampening Switches, and Inline Wiki Cross-Links.
  */
 export default function ParentalLeaveWorkbench(): JSX.Element {
   const hydrated = useHydrated();
@@ -160,9 +154,17 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
       <PageHeader
         eyebrow={horizonEyebrow}
         title="Parental Planner"
-        subtitle="Salaries stay steady by default so parental-leave & tax-class trade-offs stay crystal clear. Expand any section with its granular button whenever you need raises, bonuses, benefits, or deductible expenses."
+        subtitle="Full-screen overview, chart, and monthly ledger with live scenario comparison and lever dampening. Open Plan Inputs whenever you want to adjust household figures."
         actions={(
           <div className="plw-header-controls">
+            <Button
+              size={ButtonSize.Sm}
+              variant={ButtonVariant.Primary}
+              onClick={() => openPlanInputsDrawer(WorkbenchDrawerSection.All)}
+            >
+              <ParameterSlidersIcon size={13} />
+              <span>Edit Plan</span>
+            </Button>
             <label htmlFor="plw-preset-picker" className="plw-inline-control__label">
               <SamplePresetIcon size={13} />
             </label>
@@ -197,104 +199,98 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
       />
 
       {hydrated ? (
-        <div className="plw-layout">
-          <aside className="plw-rail" aria-label="Plan configuration inputs">
-            <HouseholdIncomeCard />
-            <ChildrenLeaveCard />
-            <TaxAndWorkCard />
-            <CostsBenefitsCard />
-            <HorizonMacroCard />
-          </aside>
+        <div className="plw-layout plw-layout--fullscreen">
+          <PlanSummaryStrip />
+          <ScenarioSwitcherBar />
+          <WorkbenchKpiStrip />
+          <PlanDiagnosticsStrip />
 
-          <div className="plw-canvas">
-            <ScenarioSwitcherBar />
-            <WorkbenchKpiStrip />
-            <PlanDiagnosticsStrip />
+          <section className="plw-workspace-card" aria-label="Analysis workspace">
+            <div className="plw-tabs" role="tablist" aria-label="Workbench analysis views">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === WorkbenchTab.Overview}
+                className={`plw-tab${tab === WorkbenchTab.Overview ? " plw-tab--active" : ""}`}
+                onClick={() => {
+                  activeWorkbenchTab.value = WorkbenchTab.Overview;
+                }}
+              >
+                Overview &amp; Chart
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === WorkbenchTab.Ledger}
+                className={`plw-tab${tab === WorkbenchTab.Ledger ? " plw-tab--active" : ""}`}
+                onClick={() => {
+                  activeWorkbenchTab.value = WorkbenchTab.Ledger;
+                }}
+              >
+                Monthly Ledger
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === WorkbenchTab.Deadlines}
+                className={`plw-tab${tab === WorkbenchTab.Deadlines ? " plw-tab--active" : ""}`}
+                onClick={() => {
+                  activeWorkbenchTab.value = WorkbenchTab.Deadlines;
+                }}
+              >
+                <span>Action Deadlines</span>
+                {deadlineWarningCount > 0 && (
+                  <Badge tone={BadgeTone.Loss}>{deadlineWarningCount}</Badge>
+                )}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === WorkbenchTab.AnnualTax}
+                className={`plw-tab${tab === WorkbenchTab.AnnualTax ? " plw-tab--active" : ""}`}
+                onClick={() => {
+                  activeWorkbenchTab.value = WorkbenchTab.AnnualTax;
+                }}
+              >
+                Annual Tax
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === WorkbenchTab.Rules}
+                className={`plw-tab${tab === WorkbenchTab.Rules ? " plw-tab--active" : ""}`}
+                onClick={() => {
+                  activeWorkbenchTab.value = WorkbenchTab.Rules;
+                }}
+              >
+                Rules &amp; Parameters
+              </button>
+            </div>
 
-            <section className="plw-workspace-card" aria-label="Analysis workspace">
-              <div className="plw-tabs" role="tablist" aria-label="Workbench analysis views">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === WorkbenchTab.Overview}
-                  className={`plw-tab${tab === WorkbenchTab.Overview ? " plw-tab--active" : ""}`}
-                  onClick={() => {
-                    activeWorkbenchTab.value = WorkbenchTab.Overview;
-                  }}
-                >
-                  Overview &amp; Chart
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === WorkbenchTab.Ledger}
-                  className={`plw-tab${tab === WorkbenchTab.Ledger ? " plw-tab--active" : ""}`}
-                  onClick={() => {
-                    activeWorkbenchTab.value = WorkbenchTab.Ledger;
-                  }}
-                >
-                  Monthly Ledger
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === WorkbenchTab.Deadlines}
-                  className={`plw-tab${tab === WorkbenchTab.Deadlines ? " plw-tab--active" : ""}`}
-                  onClick={() => {
-                    activeWorkbenchTab.value = WorkbenchTab.Deadlines;
-                  }}
-                >
-                  <span>Action Deadlines</span>
-                  {deadlineWarningCount > 0 && (
-                    <Badge tone={BadgeTone.Loss}>{deadlineWarningCount}</Badge>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === WorkbenchTab.AnnualTax}
-                  className={`plw-tab${tab === WorkbenchTab.AnnualTax ? " plw-tab--active" : ""}`}
-                  onClick={() => {
-                    activeWorkbenchTab.value = WorkbenchTab.AnnualTax;
-                  }}
-                >
-                  Annual Tax
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === WorkbenchTab.Rules}
-                  className={`plw-tab${tab === WorkbenchTab.Rules ? " plw-tab--active" : ""}`}
-                  onClick={() => {
-                    activeWorkbenchTab.value = WorkbenchTab.Rules;
-                  }}
-                >
-                  Rules &amp; Parameters
-                </button>
-              </div>
-
-              <div className="plw-tab-panel" role="tabpanel">
-                {tab === WorkbenchTab.Overview && <OverviewTab />}
-                {tab === WorkbenchTab.Ledger && <LedgerTab />}
-                {tab === WorkbenchTab.Deadlines && <DeadlinesTab />}
-                {tab === WorkbenchTab.AnnualTax && <AnnualTaxTab />}
-                {tab === WorkbenchTab.Rules && <RulesAndParametersTab />}
-              </div>
-            </section>
-          </div>
-
-          <IncomeAdjustmentsModal />
-          <ChildDetailModal />
-          <TaxAndScheduleModal />
-          <CostsBenefitsModal />
-          <HorizonMacroModal />
-          <WorkbenchExportImportModal />
+            <div className="plw-tab-panel" role="tabpanel">
+              {tab === WorkbenchTab.Overview && <OverviewTab />}
+              {tab === WorkbenchTab.Ledger && <LedgerTab />}
+              {tab === WorkbenchTab.Deadlines && <DeadlinesTab />}
+              {tab === WorkbenchTab.AnnualTax && <AnnualTaxTab />}
+              {tab === WorkbenchTab.Rules && <RulesAndParametersTab />}
+            </div>
+          </section>
         </div>
       ) : (
-        <div className="plw-card">
-          <p className="plw-card__hint">Loading Parental Leave Workbench…</p>
-        </div>
+        <section className="plw-card" aria-busy="true">
+          <div className="plw-card__body">
+            <p className="plw-hint">Loading Parental Planner…</p>
+          </div>
+        </section>
       )}
+
+      <PlanInputsDrawer />
+      <IncomeAdjustmentsModal />
+      <ChildDetailModal />
+      <TaxAndScheduleModal />
+      <CostsBenefitsModal />
+      <HorizonMacroModal />
+      <WorkbenchExportImportModal />
     </AppShell>
   );
 }
