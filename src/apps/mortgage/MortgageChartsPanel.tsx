@@ -187,6 +187,7 @@ export function MortgageChartsPanel({
       }));
       return (
         <TimeSeriesChart
+          key={view}
           title="Monthly Loan Payments by Year (Bank + KfW)"
           points={points}
           series={MONTHLY_SERIES}
@@ -210,6 +211,7 @@ export function MortgageChartsPanel({
       }));
       return (
         <TimeSeriesChart
+          key={view}
           title="Annual Principal Repaid vs. Interest Paid"
           points={points}
           series={ANNUAL_SPLIT_SERIES}
@@ -243,6 +245,7 @@ export function MortgageChartsPanel({
       return (
         <div className="mortgage-term-charts">
           <TimeSeriesChart
+            key="term-payment"
             title="Bank Monthly Payment by Payoff Term"
             points={paymentPoints}
             series={TERM_PAYMENT_SERIES}
@@ -250,6 +253,7 @@ export function MortgageChartsPanel({
             formatValue={formatEur}
           />
           <TimeSeriesChart
+            key="term-interest"
             title="Total Bank Interest by Payoff Term"
             points={interestPoints}
             series={TERM_INTEREST_SERIES}
@@ -274,6 +278,7 @@ export function MortgageChartsPanel({
 
     return (
       <TimeSeriesChart
+        key={view}
         title={hasKfw ? "Remaining Debt (Bank & KfW) & Cumulative Payments" : "Remaining Bank Debt & Cumulative Payments"}
         points={debtPoints}
         series={DEBT_SERIES}
