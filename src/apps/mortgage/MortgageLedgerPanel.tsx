@@ -25,6 +25,8 @@ import {
 
 export interface MortgageLedgerPanelProps {
   readonly schedule: CombinedMortgageSchedule;
+  readonly initialBankPrincipal: number;
+  readonly initialKfwPrincipal: number;
   readonly hasKfw: boolean;
 }
 
@@ -56,6 +58,8 @@ function phaseBadge(phase: KfwLoanPhase): { readonly label: string;
  */
 export function MortgageLedgerPanel({
   schedule,
+  initialBankPrincipal,
+  initialKfwPrincipal,
   hasKfw,
 }: MortgageLedgerPanelProps): JSX.Element {
   const [expandedYears, setExpandedYears] = useState<Readonly<Record<number, boolean>>>({});
@@ -96,7 +100,7 @@ export function MortgageLedgerPanel({
             Year-by-year &amp; Monthly Repayment Ledger ({visibleYears.length} / {schedule.years.length} Years)
           </h2>
           <p className="mortgage-muted">
-            Monthly columns show the recurring Bank, KfW, and combined monthly payments for each year. Click any year row to expand all 12 months.
+            Starts with Y0 (opening loan balances at disbursement). Monthly columns show recurring Bank, KfW, and combined payments; click any year row to expand all 12 months.
           </p>
         </div>
         <div className="mortgage-ledger-actions">
@@ -133,6 +137,22 @@ export function MortgageLedgerPanel({
             </tr>
           </thead>
           <tbody>
+            <tr className="mortgage-milestone-row">
+              <th scope="row">
+                <span className="mortgage-year-cell">
+                  <span>Y0</span>
+                  <Badge tone={BadgeTone.Neutral}>Start</Badge>
+                </span>
+              </th>
+              <td className="num">—</td>
+              {hasKfw && <td className="num">—</td>}
+              <td className="num">—</td>
+              <td className="num">—</td>
+              {hasKfw && <td className="num">—</td>}
+              <td className="num">{formatEur(initialBankPrincipal)}</td>
+              {hasKfw && <td className="num">{formatEur(initialKfwPrincipal)}</td>}
+              <td className="num"><strong>{formatEur(initialBankPrincipal + initialKfwPrincipal)}</strong></td>
+            </tr>
             {visibleYears.map((row) => {
               const isExpanded = Boolean(expandedYears[row.year]);
               const badge = hasKfw ? phaseBadge(row.kfwPhase) : null;

@@ -638,6 +638,8 @@ export default function MortgageCalculator(): JSX.Element {
               <MortgageChartsPanel
                 schedule={schedule}
                 termSensitivity={termSensitivity}
+                initialBankPrincipal={principal}
+                initialKfwPrincipal={kfwPrincipal}
                 hasKfw={kfwPrincipal > 0}
               />
             )}
@@ -725,7 +727,12 @@ export default function MortgageCalculator(): JSX.Element {
         {/* Tab 2: Full-Width Expandable Repayment Ledger */}
         {activeTab === MortgageResultsTab.Ledger && (
           schedule ? (
-            <MortgageLedgerPanel schedule={schedule} hasKfw={kfwPrincipal > 0} />
+            <MortgageLedgerPanel
+              schedule={schedule}
+              initialBankPrincipal={principal}
+              initialKfwPrincipal={kfwPrincipal}
+              hasKfw={kfwPrincipal > 0}
+            />
           ) : (
             <section className="ui-card mortgage-results">
               <h2>Repayment Ledger</h2>

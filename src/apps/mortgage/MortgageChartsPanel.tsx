@@ -160,6 +160,8 @@ const TERM_INTEREST_SERIES: readonly ChartSeriesDefinition<TermInterestSeriesKey
 export interface MortgageChartsPanelProps {
   readonly schedule: CombinedMortgageSchedule;
   readonly termSensitivity: readonly TermSensitivityPoint[];
+  readonly initialBankPrincipal: number;
+  readonly initialKfwPrincipal: number;
   readonly hasKfw: boolean;
 }
 
@@ -170,6 +172,8 @@ export interface MortgageChartsPanelProps {
 export function MortgageChartsPanel({
   schedule,
   termSensitivity,
+  initialBankPrincipal,
+  initialKfwPrincipal,
   hasKfw,
 }: MortgageChartsPanelProps): JSX.Element {
   const [view, setView] = useState<MortgageChartView>(MortgageChartView.DebtTrajectory);
@@ -264,17 +268,31 @@ export function MortgageChartsPanel({
       );
     }
 
-    const debtPoints: TimeSeriesChartPoint<DebtSeriesKey>[] = schedule.years.map((row) => ({
-      id: `y-${row.year}`,
-      order: row.year,
-      xLabel: `Y${row.year}`,
-      values: {
-        [DebtSeriesKey.BankBalance]: row.bankEndBalance,
-        [DebtSeriesKey.KfwBalance]: row.kfwEndBalance,
-        [DebtSeriesKey.CumulativePrincipal]: row.cumulativePrincipal,
-        [DebtSeriesKey.CumulativeInterest]: row.cumulativeInterest,
+    const debtPoints: TimeSeriesChartPoint<DebtSeriesKey>[] = [
+      {
+        id: "y-0",
+        order: 0,
+        xLabel: "Y0",
+        xSubLabel: "Start",
+        values: {
+          [DebtSeriesKey.BankBalance]: initialBankPrincipal,
+          [DebtSeriesKey.KfwBalance]: initialKfwPrincipal,
+          [DebtSeriesKey.CumulativePrincipal]: 0,
+          [DebtSeriesKey.CumulativeInterest]: 0,
+        },
       },
-    }));
+      ...schedule.years.map((row) => ({
+        id: `y-${row.year}`,
+        order: row.year,
+        xLabel: `Y${row.year}`,
+        values: {
+          [DebtSeriesKey.BankBalance]: row.bankEndBalance,
+          [DebtSeriesKey.KfwBalance]: row.kfwEndBalance,
+          [DebtSeriesKey.CumulativePrincipal]: row.cumulativePrincipal,
+          [DebtSeriesKey.CumulativeInterest]: row.cumulativeInterest,
+        },
+      })),
+    ];
 
     return (
       <TimeSeriesChart
