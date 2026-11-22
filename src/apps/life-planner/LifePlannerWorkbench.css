@@ -6,14 +6,19 @@
 .lpw-layout {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-3);
   width: 100%;
+  max-width: 100%;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .lpw-layout > * {
   width: 100%;
+  max-width: 100%;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ── Row 1: Quiet Command Header ─────────────────────────────────────────── */
@@ -23,9 +28,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--border-subtle);
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .lpw-command-header__lead {
@@ -186,8 +194,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
   border-bottom: 1px solid var(--border-subtle);
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .lpw-workspace-tabs {
@@ -196,6 +208,7 @@
   gap: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
+  min-width: 0;
 }
 
 .lpw-workspace-tabs::-webkit-scrollbar {
@@ -224,7 +237,6 @@
 .lpw-workspace-tab--active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
 }
 
 .lpw-scenario-controls {
@@ -233,6 +245,7 @@
   gap: var(--space-2);
   padding-bottom: var(--space-1);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .lpw-segmented {
@@ -260,14 +273,17 @@
 .lpw-segmented__btn--active {
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-weight: var(--font-weight-semibold);
   box-shadow: var(--shadow-xs);
 }
 
 .lpw-status-pill {
+  display: inline-block;
+  min-width: 68px;
+  text-align: right;
   font-size: var(--font-size-2xs, 0.72rem);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* ── Contextual Disaster Control Bar ─────────────────────────────────────── */
@@ -348,18 +364,28 @@
 .lpw-canvas-body {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-4);
   width: 100%;
+  max-width: 100%;
   min-width: 0;
+  min-height: 62vh;
+  box-sizing: border-box;
 }
 
 .lpw-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
 }
 
 .lpw-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-card);
@@ -396,6 +422,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
 }
 
 .lpw-diag-card {
@@ -406,6 +434,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  min-width: 0;
 }
 
 .lpw-diag-card__head {
@@ -428,8 +457,12 @@
 /* ── Institutional Data Tables ───────────────────────────────────────────── */
 
 .lpw-table-wrap {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  box-sizing: border-box;
 }
 
 .lpw-table {

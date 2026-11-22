@@ -479,12 +479,15 @@
 }
 
 html {
+  overflow-y: scroll;
   scrollbar-gutter: stable;
 }
 
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  overflow-x: clip;
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-family);
