@@ -41,6 +41,8 @@ export interface MunicipalDaycareFeeFormulaInputs {
   readonly feeFreeFromAgeMonths: number | null;
   readonly siblingDiscountRateSecondChild: PercentageRate;
   readonly siblingDiscountRateThirdPlusChild: PercentageRate;
+  /** Optional bracket-index step-down for 2nd child (e.g. Munich S580 § 7 Abs. 3 Nr. 2: 1 income bracket lower). */
+  readonly siblingStepDownBrackets?: number;
   readonly incomeBrackets: readonly MunicipalDaycareIncomeBracket[];
 }
 
@@ -107,8 +109,8 @@ export function evaluateChildcareTaxDeductionFormula(
 
 /**
  * Evaluates the monthly parental fee contribution (Elternbeitrag) for one child
- * in an illustrative municipal income-tiered daycare schedule with sibling discounts
- * and statutory fee-free age thresholds.
+ * in an illustrative or official municipal income-tiered daycare schedule with
+ * sibling discounts / bracket step-downs and statutory fee-free age thresholds.
  */
 export function evaluateMunicipalDaycareFeeFormula(
   inputs: Readonly<MunicipalDaycareFeeFormulaInputs>,
@@ -126,12 +128,13 @@ export function evaluateMunicipalDaycareFeeFormula(
     throw new TypeError("Municipal daycare table requires at least one income bracket.");
   }
 
-  const matchedBracket =
-    inputs.incomeBrackets.find(
-      (bracket) =>
-        bracket.maxAnnualGrossIncome === null ||
-        inputs.householdAnnualGrossIncome <= bracket.maxAnnualGrossIncome,
-    ) ?? inputs.incomeBrackets[inputs.incomeBrackets.length - 1];
+  const foundIndex = inputs.incomeBrackets.findIndex(
+    (bracket) =>
+      bracket.maxAnnualGrossIncome === null ||
+      inputs.householdAnnualGrossIncome <= bracket.maxAnnualGrossIncome,
+  );
+  const matchedIndex = foundIndex >= 0 ? foundIndex : inputs.incomeBrackets.length - 1;
+  const matchedBracket = inputs.incomeBrackets[matchedIndex];
 
   const baseBracketFee = toEuroAmount(matchedBracket.monthlyFee);
   if (
@@ -143,6 +146,24 @@ export function evaluateMunicipalDaycareFeeFormula(
       discountRateApplied: 0,
       netMonthlyFee: toEuroAmount(0),
       isFeeFreeByAge: true,
+    });
+  }
+
+  if (
+    inputs.siblingCareRank === 2 &&
+    inputs.siblingStepDownBrackets !== undefined &&
+    inputs.siblingStepDownBrackets > 0
+  ) {
+    const steppedIndex = Math.max(0, matchedIndex - inputs.siblingStepDownBrackets);
+    const steppedFee = toEuroAmount(inputs.incomeBrackets[steppedIndex].monthlyFee);
+    const effectiveDiscount = baseBracketFee > 0
+      ? Math.max(0, Math.min(1, roundToCent((baseBracketFee - steppedFee) / baseBracketFee)))
+      : 0;
+    return Object.freeze({
+      baseBracketFee,
+      discountRateApplied: effectiveDiscount as PercentageRate | 0,
+      netMonthlyFee: steppedFee,
+      isFeeFreeByAge: false,
     });
   }
 

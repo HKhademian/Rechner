@@ -652,19 +652,61 @@ export function toFederalStateKitaPresetId(
 }
 
 /**
+ * Daily childcare booking-hours tiers aligned to Munich Kita-Gebührensatzung (S580 Anlage 1 & 2, Rule 11).
+ */
+export const DaycareBookingHoursTier = {
+  H3_4: "h3_4",
+  H4_5: "h4_5",
+  H5_6: "h5_6",
+  H6_7: "h6_7",
+  H7_8: "h7_8",
+  H8_9: "h8_9",
+  Over9: "over_9",
+} as const;
+export type DaycareBookingHoursTier =
+  (typeof DaycareBookingHoursTier)[keyof typeof DaycareBookingHoursTier];
+
+const DAYCARE_BOOKING_HOURS_TIER_SET: ReadonlySet<string> = new Set<string>(
+  Object.values(DaycareBookingHoursTier),
+);
+
+/** Runtime type guard validating a `DaycareBookingHoursTier`. */
+export function isDaycareBookingHoursTier(
+  value: string,
+): value is DaycareBookingHoursTier {
+  return DAYCARE_BOOKING_HOURS_TIER_SET.has(value);
+}
+
+/** Validated runtime constructor for `DaycareBookingHoursTier` (Rule 11). */
+export function toDaycareBookingHoursTier(
+  value: string,
+): DaycareBookingHoursTier {
+  if (!isDaycareBookingHoursTier(value)) {
+    throw new TypeError(`Invalid DaycareBookingHoursTier: "${value}".`);
+  }
+  return value;
+}
+
+/**
  * Household municipal daycare (Kita / Kindertagesbetreuung) cost and § 10 Abs. 1 Nr. 5 EStG tax deduction config.
  */
 export interface ChildcarePlanConfig {
   /** Enables monthly Kita fee outflows and § 10 Abs. 1 Nr. 5 EStG Sonderausgaben deduction modeling. */
   readonly enabled: boolean;
-  /** Selected illustrative federal-state / municipal fee table or custom per-child monthly fee. */
+  /** Selected federal-state / municipal fee table or custom per-child monthly fee. */
   readonly presetId: FederalStateKitaPresetId;
   /** Fixed monthly fee per child in EUR when `presetId` is `FederalStateKitaPresetId.Custom`. */
   readonly customMonthlyFeePerChild: EuroAmount;
-  /** Child age in months at which daycare fees begin (e.g. 12 months). */
+  /** Child age in months at which daycare fees begin (e.g. 12 months for Krippe). */
   readonly startAgeMonths: number;
   /** Child age in months at which daycare fees end / school enrollment begins (e.g. 72 months). */
   readonly endAgeMonths: number;
+  /** Optional daily booking-hours tier for municipal schedules supporting hour tiers (e.g. Munich S580, default 8–9h). */
+  readonly bookingHoursTier?: DaycareBookingHoursTier;
+  /** Optional toggle to include non-deductible monthly meal fees (Verpflegungsgeld, e.g. €105/mo in Munich S580 § 3). */
+  readonly includeMealFees?: boolean;
+  /** Optional custom monthly meal fee per child (defaults to preset's Verpflegungsgeld when `includeMealFees` is true). */
+  readonly monthlyMealFeePerChild?: EuroAmount;
 }
 
 /**

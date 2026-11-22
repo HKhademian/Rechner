@@ -111,4 +111,61 @@ describe("Tier 1 Pure Childcare & Daycare Formulas", () => {
     assert.equal(freeOlderChild.isFeeFreeByAge, true);
     assert.equal(freeOlderChild.netMonthlyFee, 0);
   });
+
+  it("applies siblingStepDownBrackets for 2nd child (Munich § 7 Abs. 3 S580)", () => {
+    const munichH89Brackets = [
+      { maxAnnualGrossIncome: 50000,
+        monthlyFee: 0 },
+      { maxAnnualGrossIncome: 60000,
+        monthlyFee: 100 },
+      { maxAnnualGrossIncome: 70000,
+        monthlyFee: 190 },
+      { maxAnnualGrossIncome: 80000,
+        monthlyFee: 215 },
+      { maxAnnualGrossIncome: null,
+        monthlyFee: 230 },
+    ] as const;
+
+    // >80k bracket (€230) steps down 1 bracket to €215 for 2nd child
+    const rank2Top = evaluateMunicipalDaycareFeeFormula({
+      householdAnnualGrossIncome: toEuroAmount(110000),
+      childAgeMonths: 18,
+      siblingCareRank: 2,
+      feeFreeFromAgeMonths: 36,
+      siblingDiscountRateSecondChild: toPercentageRate(0),
+      siblingStepDownBrackets: 1,
+      siblingDiscountRateThirdPlusChild: toPercentageRate(1),
+      incomeBrackets: munichH89Brackets,
+    });
+    assert.equal(rank2Top.baseBracketFee, 230);
+    assert.equal(rank2Top.netMonthlyFee, 215);
+
+    // ≤70k bracket (€190) steps down 1 bracket to €100 for 2nd child
+    const rank2Mid = evaluateMunicipalDaycareFeeFormula({
+      householdAnnualGrossIncome: toEuroAmount(68000),
+      childAgeMonths: 18,
+      siblingCareRank: 2,
+      feeFreeFromAgeMonths: 36,
+      siblingDiscountRateSecondChild: toPercentageRate(0),
+      siblingStepDownBrackets: 1,
+      siblingDiscountRateThirdPlusChild: toPercentageRate(1),
+      incomeBrackets: munichH89Brackets,
+    });
+    assert.equal(rank2Mid.baseBracketFee, 190);
+    assert.equal(rank2Mid.netMonthlyFee, 100);
+
+    // ≤60k bracket (€100) steps down 1 bracket to €0 for 2nd child
+    const rank2Low = evaluateMunicipalDaycareFeeFormula({
+      householdAnnualGrossIncome: toEuroAmount(55000),
+      childAgeMonths: 18,
+      siblingCareRank: 2,
+      feeFreeFromAgeMonths: 36,
+      siblingDiscountRateSecondChild: toPercentageRate(0),
+      siblingStepDownBrackets: 1,
+      siblingDiscountRateThirdPlusChild: toPercentageRate(1),
+      incomeBrackets: munichH89Brackets,
+    });
+    assert.equal(rank2Low.baseBracketFee, 100);
+    assert.equal(rank2Low.netMonthlyFee, 0);
+  });
 });

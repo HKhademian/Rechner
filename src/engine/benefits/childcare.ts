@@ -10,7 +10,9 @@ import {
   type EuroAmount,
   type FullCalendarYear,
   type PercentageRate,
+  DaycareBookingHoursTier,
   FederalStateKitaPresetId,
+  toDaycareBookingHoursTier,
   toEuroAmount,
   toFederalStateKitaPresetId,
   toFullCalendarYear,
@@ -27,9 +29,14 @@ export interface MunicipalDaycarePreset {
   readonly description: string;
   readonly source: string;
   readonly siblingDiscountRateSecondChild: PercentageRate;
+  readonly siblingStepDownBrackets: number;
   readonly siblingDiscountRateThirdPlusChild: PercentageRate;
   readonly feeFreeFromAgeMonths: number | null;
+  readonly defaultMonthlyMealFee: EuroAmount;
   readonly incomeBrackets: readonly MunicipalDaycareIncomeBracket[];
+  readonly bookingHourTiers?: Readonly<
+    Partial<Record<DaycareBookingHoursTier, readonly MunicipalDaycareIncomeBracket[]>>
+  >;
 }
 
 export interface ActiveDaycareChild {
@@ -42,12 +49,20 @@ export interface MonthlyChildcareCostBreakdownItem {
   readonly ageMonths: number;
   readonly siblingCareRank: number;
   readonly baseBracketFee: EuroAmount;
+  /** Deductible monthly core care fee (§ 10 Abs. 1 Nr. 5 EStG). */
   readonly netMonthlyFee: EuroAmount;
+  /** Non-deductible monthly meal fee (Verpflegungsgeld, § 10 Abs. 1 Nr. 5 Satz 1 Halbsatz 2 EStG). */
+  readonly monthlyMealFee: EuroAmount;
   readonly isFeeFreeByAge: boolean;
 }
 
 export interface MonthlyChildcarePlanResult {
+  /** Total monthly household outflow (core care fee + optional non-deductible meal fee). */
   readonly totalMonthlyFee: EuroAmount;
+  /** Total monthly deductible core care fee (§ 10 Abs. 1 Nr. 5 EStG). */
+  readonly totalMonthlyCareFee: EuroAmount;
+  /** Total monthly non-deductible meal contribution (Verpflegungsgeld). */
+  readonly totalMonthlyMealFee: EuroAmount;
   readonly perChildFees: readonly MonthlyChildcareCostBreakdownItem[];
 }
 
@@ -61,9 +76,43 @@ export interface ChildcareTaxRulesSnapshot {
   readonly maxChildAgeYears: number;
 }
 
+function freezeIncomeBrackets(
+  brackets: readonly { readonly maxAnnualGrossIncome: number | null;
+    readonly monthlyFee: number }[],
+): readonly MunicipalDaycareIncomeBracket[] {
+  return Object.freeze(
+    brackets.map((bracket) =>
+      Object.freeze({
+        maxAnnualGrossIncome: bracket.maxAnnualGrossIncome,
+        monthlyFee: bracket.monthlyFee,
+      })),
+  );
+}
+
 const MUNICIPAL_PRESET_MAP: ReadonlyMap<FederalStateKitaPresetId, MunicipalDaycarePreset> = new Map(
   Object.values(municipalDaycareTablesJson).map((entry) => {
     const id = toFederalStateKitaPresetId(entry.id);
+    const siblingStepDownBrackets =
+      "siblingStepDownBrackets" in entry && typeof entry.siblingStepDownBrackets === "number"
+        ? entry.siblingStepDownBrackets
+        : 0;
+    const defaultMonthlyMealFee = toEuroAmount(
+      "defaultMonthlyMealFee" in entry && typeof entry.defaultMonthlyMealFee === "number"
+        ? entry.defaultMonthlyMealFee
+        : 0,
+    );
+    let bookingHourTiers:
+      | Readonly<Partial<Record<DaycareBookingHoursTier, readonly MunicipalDaycareIncomeBracket[]>>>
+      | undefined;
+    if ("bookingHourTiers" in entry && entry.bookingHourTiers && typeof entry.bookingHourTiers === "object") {
+      const tiersMap: Partial<Record<DaycareBookingHoursTier, readonly MunicipalDaycareIncomeBracket[]>> = {};
+      for (const [tierKey, rawBrackets] of Object.entries(entry.bookingHourTiers)) {
+        const validTier = toDaycareBookingHoursTier(tierKey);
+        tiersMap[validTier] = freezeIncomeBrackets(rawBrackets);
+      }
+      bookingHourTiers = Object.freeze(tiersMap);
+    }
+
     const preset: MunicipalDaycarePreset = Object.freeze({
       id,
       label: entry.label,
@@ -72,15 +121,12 @@ const MUNICIPAL_PRESET_MAP: ReadonlyMap<FederalStateKitaPresetId, MunicipalDayca
       description: entry.description,
       source: entry.source,
       siblingDiscountRateSecondChild: toPercentageRate(entry.siblingDiscountRateSecondChild),
+      siblingStepDownBrackets,
       siblingDiscountRateThirdPlusChild: toPercentageRate(entry.siblingDiscountRateThirdPlusChild),
       feeFreeFromAgeMonths: entry.feeFreeFromAgeMonths,
-      incomeBrackets: Object.freeze(
-        entry.incomeBrackets.map((bracket) =>
-          Object.freeze({
-            maxAnnualGrossIncome: bracket.maxAnnualGrossIncome,
-            monthlyFee: bracket.monthlyFee,
-          })),
-      ),
+      defaultMonthlyMealFee,
+      incomeBrackets: freezeIncomeBrackets(entry.incomeBrackets),
+      ...(bookingHourTiers ? { bookingHourTiers } : {}),
     });
     return [id, preset];
   }),
@@ -89,23 +135,24 @@ const MUNICIPAL_PRESET_MAP: ReadonlyMap<FederalStateKitaPresetId, MunicipalDayca
 /**
  * Default household municipal daycare (Kita) configuration (disabled by default
  * so baseline simulations preserve bit-for-bit statutory parity until opted in).
+ * Defaults to Landeshauptstadt München official S580 Krippe/Kindergarten brackets.
  */
 export function createDefaultChildcarePlanConfig(): ChildcarePlanConfig {
   return Object.freeze({
     enabled: false,
-    presetId: FederalStateKitaPresetId.NrwDuesseldorf,
+    presetId: FederalStateKitaPresetId.BavariaMunich,
     customMonthlyFeePerChild: toEuroAmount(250),
     startAgeMonths: 12,
     endAgeMonths: 72,
   });
 }
 
-/** Returns all illustrative federal-state / municipal daycare fee reference tables. */
+/** Returns all federal-state / municipal daycare fee reference tables. */
 export function getAllMunicipalDaycarePresets(): readonly MunicipalDaycarePreset[] {
   return Object.freeze([...MUNICIPAL_PRESET_MAP.values()]);
 }
 
-/** Looks up one illustrative federal-state / municipal daycare fee reference table. */
+/** Looks up one federal-state / municipal daycare fee reference table. */
 export function getMunicipalDaycarePreset(presetId: FederalStateKitaPresetId): MunicipalDaycarePreset {
   if (presetId === FederalStateKitaPresetId.Custom) {
     throw new TypeError("Custom daycare preset does not map to a municipal reference table.");
@@ -120,21 +167,38 @@ export function getMunicipalDaycarePreset(presetId: FederalStateKitaPresetId): M
 /**
  * Computes monthly parental daycare fees across all active children inside
  * `[startAgeMonths, endAgeMonths)` using either a fixed custom monthly rate
- * or an illustrative municipal income-tiered table with sibling rank discounts.
+ * or a municipal income-tiered schedule (e.g. Munich S580 booking-hour tiers,
+ * sibling bracket step-downs, Kindergarten fee exemption, and separate non-deductible
+ * Verpflegungsgeld meal contributions).
  */
 export function computeMonthlyChildcarePlanCosts(
   config: ChildcarePlanConfig,
   householdAnnualGrossIncome: EuroAmount,
   children: readonly ActiveDaycareChild[],
+  existingSimultaneousCareSiblings = 0,
 ): MonthlyChildcarePlanResult {
   if (!config.enabled) {
     return Object.freeze({
       totalMonthlyFee: toEuroAmount(0),
+      totalMonthlyCareFee: toEuroAmount(0),
+      totalMonthlyMealFee: toEuroAmount(0),
       perChildFees: Object.freeze([]),
     });
   }
   if (!Number.isFinite(config.customMonthlyFeePerChild) || config.customMonthlyFeePerChild < 0) {
     throw new TypeError("Custom monthly childcare fee must be non-negative.");
+  }
+  if (
+    !Number.isInteger(existingSimultaneousCareSiblings) ||
+    existingSimultaneousCareSiblings < 0
+  ) {
+    throw new TypeError("Existing simultaneous daycare siblings count must be a non-negative integer.");
+  }
+  if (
+    config.monthlyMealFeePerChild !== undefined &&
+    (!Number.isFinite(config.monthlyMealFeePerChild) || config.monthlyMealFeePerChild < 0)
+  ) {
+    throw new TypeError("Monthly meal fee per child must be non-negative.");
   }
   if (!Number.isFinite(config.startAgeMonths) || !Number.isFinite(config.endAgeMonths) ||
     config.startAgeMonths < 0 || config.endAgeMonths < config.startAgeMonths) {
@@ -148,53 +212,75 @@ export function computeMonthlyChildcarePlanCosts(
   if (qualifying.length === 0) {
     return Object.freeze({
       totalMonthlyFee: toEuroAmount(0),
+      totalMonthlyCareFee: toEuroAmount(0),
+      totalMonthlyMealFee: toEuroAmount(0),
       perChildFees: Object.freeze([]),
     });
   }
 
   if (config.presetId === FederalStateKitaPresetId.Custom) {
     const flatFee = toEuroAmount(config.customMonthlyFeePerChild);
+    const mealFee = config.includeMealFees
+      ? toEuroAmount(config.monthlyMealFeePerChild ?? 0)
+      : toEuroAmount(0);
     const items = qualifying.map((child, idx): MonthlyChildcareCostBreakdownItem =>
       Object.freeze({
         childKey: child.childKey,
         ageMonths: child.ageMonths,
-        siblingCareRank: idx + 1,
+        siblingCareRank: existingSimultaneousCareSiblings + idx + 1,
         baseBracketFee: flatFee,
         netMonthlyFee: flatFee,
+        monthlyMealFee: mealFee,
         isFeeFreeByAge: false,
       }));
+    const totalCare = toEuroAmount(flatFee * items.length);
+    const totalMeal = toEuroAmount(mealFee * items.length);
     return Object.freeze({
-      totalMonthlyFee: toEuroAmount(flatFee * items.length),
+      totalMonthlyFee: toEuroAmount(totalCare + totalMeal),
+      totalMonthlyCareFee: totalCare,
+      totalMonthlyMealFee: totalMeal,
       perChildFees: Object.freeze(items),
     });
   }
 
   const preset = getMunicipalDaycarePreset(config.presetId);
-  let totalMonthly = 0;
+  const bookingTier = config.bookingHoursTier ?? DaycareBookingHoursTier.H8_9;
+  const activeBrackets = preset.bookingHourTiers?.[bookingTier] ?? preset.incomeBrackets;
+  const mealFeePerChild = config.includeMealFees
+    ? toEuroAmount(config.monthlyMealFeePerChild ?? preset.defaultMonthlyMealFee)
+    : toEuroAmount(0);
+
+  let totalMonthlyCare = 0;
+  let totalMonthlyMeal = 0;
   const items = qualifying.map((child, idx): MonthlyChildcareCostBreakdownItem => {
-    const siblingCareRank = idx + 1;
+    const siblingCareRank = existingSimultaneousCareSiblings + idx + 1;
     const result = evaluateMunicipalDaycareFeeFormula({
       householdAnnualGrossIncome,
       childAgeMonths: child.ageMonths,
       siblingCareRank,
       feeFreeFromAgeMonths: preset.feeFreeFromAgeMonths,
       siblingDiscountRateSecondChild: preset.siblingDiscountRateSecondChild,
+      siblingStepDownBrackets: preset.siblingStepDownBrackets,
       siblingDiscountRateThirdPlusChild: preset.siblingDiscountRateThirdPlusChild,
-      incomeBrackets: preset.incomeBrackets,
+      incomeBrackets: activeBrackets,
     });
-    totalMonthly += result.netMonthlyFee;
+    totalMonthlyCare += result.netMonthlyFee;
+    totalMonthlyMeal += mealFeePerChild;
     return Object.freeze({
       childKey: child.childKey,
       ageMonths: child.ageMonths,
       siblingCareRank,
       baseBracketFee: result.baseBracketFee,
       netMonthlyFee: result.netMonthlyFee,
+      monthlyMealFee: mealFeePerChild,
       isFeeFreeByAge: result.isFeeFreeByAge,
     });
   });
 
   return Object.freeze({
-    totalMonthlyFee: toEuroAmount(totalMonthly),
+    totalMonthlyFee: toEuroAmount(totalMonthlyCare + totalMonthlyMeal),
+    totalMonthlyCareFee: toEuroAmount(totalMonthlyCare),
+    totalMonthlyMealFee: toEuroAmount(totalMonthlyMeal),
     perChildFees: Object.freeze(items),
   });
 }

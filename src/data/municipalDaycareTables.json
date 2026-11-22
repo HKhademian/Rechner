@@ -34,21 +34,74 @@
   },
   "bavaria_munich": {
     "id": "bavaria_munich",
-    "label": "Bavaria / Munich Reference (Graduated Bracket Model)",
+    "label": "Munich (Official S580 Krippe 0–3 & Kindergarten 3–6)",
     "federalState": "Bayern",
     "isIllustrativeReferenceModel": true,
-    "description": "Illustrative reference model based on Munich/Bavaria income-tiered municipal daycare tariffs with 50% second-child discount and 100% third+ child exemption.",
-    "source": "https://stadt.muenchen.de/infos/kitagebuehren.html",
-    "siblingDiscountRateSecondChild": 0.5,
+    "description": "Official Landeshauptstadt München Kita-Gebührensatzung (S580, effective 31.08.2024): Krippe (0–3 yrs) income-tiered brackets by daily booking hours (≤50k €0, ≤60k €100, ≤70k €190, ≤80k €215, >80k €230 at 8–9h), Kindergarten (3–6 yrs) €0 net care fee after Bavarian €100 BayKiBiG subsidy, § 7 S580 sibling step-down (2nd child -1 income bracket, 3rd+ child €0), and €105/mo non-deductible Verpflegungsgeld (§ 3 S580).",
+    "source": "https://stadt.muenchen.de/rathaus/stadtrecht/vorschrift/580.html",
+    "siblingDiscountRateSecondChild": 0,
+    "siblingStepDownBrackets": 1,
     "siblingDiscountRateThirdPlusChild": 1.0,
     "feeFreeFromAgeMonths": 36,
+    "defaultMonthlyMealFee": 105,
     "incomeBrackets": [
       { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
-      { "maxAnnualGrossIncome": 70000, "monthlyFee": 140 },
-      { "maxAnnualGrossIncome": 90000, "monthlyFee": 220 },
-      { "maxAnnualGrossIncome": 120000, "monthlyFee": 300 },
-      { "maxAnnualGrossIncome": null, "monthlyFee": 380 }
-    ]
+      { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+      { "maxAnnualGrossIncome": 70000, "monthlyFee": 190 },
+      { "maxAnnualGrossIncome": 80000, "monthlyFee": 215 },
+      { "maxAnnualGrossIncome": null, "monthlyFee": 230 }
+    ],
+    "bookingHourTiers": {
+      "h3_4": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 115 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 130 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 145 }
+      ],
+      "h4_5": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 130 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 147 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 162 }
+      ],
+      "h5_6": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 145 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 164 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 179 }
+      ],
+      "h6_7": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 160 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 181 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 196 }
+      ],
+      "h7_8": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 175 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 198 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 213 }
+      ],
+      "h8_9": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 190 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 215 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 230 }
+      ],
+      "over_9": [
+        { "maxAnnualGrossIncome": 50000, "monthlyFee": 0 },
+        { "maxAnnualGrossIncome": 60000, "monthlyFee": 100 },
+        { "maxAnnualGrossIncome": 70000, "monthlyFee": 205 },
+        { "maxAnnualGrossIncome": 80000, "monthlyFee": 232 },
+        { "maxAnnualGrossIncome": null, "monthlyFee": 250 }
+      ]
+    }
   },
   "bw_stuttgart": {
     "id": "bw_stuttgart",

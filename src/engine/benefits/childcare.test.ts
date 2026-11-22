@@ -12,24 +12,119 @@ import {
   resolveChildcareTaxRulesForYear,
 } from "#engine/benefits/childcare";
 import {
+  DaycareBookingHoursTier,
   FederalStateKitaPresetId,
   toEuroAmount,
   toFullCalendarYear,
 } from "#engine/types";
 
 describe("Municipal Daycare & § 10 Abs. 1 Nr. 5 EStG Childcare Module", () => {
-  it("exposes illustrative presets and returns 0 when childcare plan is disabled", () => {
+  it("exposes presets (defaulting to Munich S580) and returns 0 when childcare plan is disabled", () => {
     const presets = getAllMunicipalDaycarePresets();
     assert.equal(presets.length, 5);
     assert.equal(presets.every((preset) => preset.isIllustrativeReferenceModel), true);
 
     const disabled = createDefaultChildcarePlanConfig();
+    assert.equal(disabled.presetId, FederalStateKitaPresetId.BavariaMunich);
     const res = computeMonthlyChildcarePlanCosts(disabled, toEuroAmount(95000), [
       { childKey: "child-1",
         ageMonths: 24 },
     ]);
     assert.equal(res.totalMonthlyFee, 0);
+    assert.equal(res.totalMonthlyCareFee, 0);
+    assert.equal(res.totalMonthlyMealFee, 0);
     assert.equal(res.perChildFees.length, 0);
+  });
+
+  it("evaluates official Munich S580 Krippe (0–3) income brackets, booking-hour tiers, Kindergarten (3–6) fee exemption, sibling step-down, and €105 Verpflegungsgeld", () => {
+    const munich = getMunicipalDaycarePreset(FederalStateKitaPresetId.BavariaMunich);
+    assert.equal(munich.federalState, "Bayern");
+    assert.equal(munich.siblingStepDownBrackets, 1);
+    assert.equal(munich.feeFreeFromAgeMonths, 36);
+    assert.equal(munich.defaultMonthlyMealFee, 105);
+    assert.ok(munich.bookingHourTiers);
+
+    const basePlan = {
+      ...createDefaultChildcarePlanConfig(),
+      enabled: true,
+      presetId: FederalStateKitaPresetId.BavariaMunich,
+    };
+
+    // Official Anlage 1 S580 Krippe brackets at default 8–9h tier
+    const krippeChild = [{ childKey: "child-1",
+      ageMonths: 18 }];
+    assert.equal(computeMonthlyChildcarePlanCosts(basePlan, toEuroAmount(50000), krippeChild).totalMonthlyCareFee, 0);
+    assert.equal(computeMonthlyChildcarePlanCosts(basePlan, toEuroAmount(60000), krippeChild).totalMonthlyCareFee, 100);
+    assert.equal(computeMonthlyChildcarePlanCosts(basePlan, toEuroAmount(70000), krippeChild).totalMonthlyCareFee, 190);
+    assert.equal(computeMonthlyChildcarePlanCosts(basePlan, toEuroAmount(80000), krippeChild).totalMonthlyCareFee, 215);
+    assert.equal(computeMonthlyChildcarePlanCosts(basePlan, toEuroAmount(120000), krippeChild).totalMonthlyCareFee, 230);
+
+    // Booking-hour tiers: 3–4h (>80k -> €145) and >9h (>80k -> €250)
+    const shortTier = computeMonthlyChildcarePlanCosts(
+      { ...basePlan,
+        bookingHoursTier: DaycareBookingHoursTier.H3_4 },
+      toEuroAmount(120000),
+      krippeChild,
+    );
+    assert.equal(shortTier.totalMonthlyCareFee, 145);
+
+    const longTier = computeMonthlyChildcarePlanCosts(
+      { ...basePlan,
+        bookingHoursTier: DaycareBookingHoursTier.Over9 },
+      toEuroAmount(120000),
+      krippeChild,
+    );
+    assert.equal(longTier.totalMonthlyCareFee, 250);
+
+    // Kindergarten (age >= 36mo): €0 net core care fee after €100 BayKiBiG subsidy,
+    // while optional €105 Verpflegungsgeld still applies as non-deductible meal outflow
+    const kitaWithMeals = computeMonthlyChildcarePlanCosts(
+      { ...basePlan,
+        includeMealFees: true },
+      toEuroAmount(120000),
+      [{ childKey: "child-1",
+        ageMonths: 40 }],
+    );
+    assert.equal(kitaWithMeals.perChildFees[0].isFeeFreeByAge, true);
+    assert.equal(kitaWithMeals.totalMonthlyCareFee, 0);
+    assert.equal(kitaWithMeals.totalMonthlyMealFee, 105);
+    assert.equal(kitaWithMeals.totalMonthlyFee, 105);
+
+    // § 7 Abs. 3 S580 Geschwisterermäßigung:
+    // Child 1 (age 40mo, Kindergarten -> €0), Child 2 (age 18mo, Krippe rank 2 -> drops 1 bracket: €230 -> €215),
+    // Child 3 (age 12mo, Krippe rank 3 -> €0) + €105/mo meal fee per child when enabled
+    const threeSiblings = computeMonthlyChildcarePlanCosts(
+      { ...basePlan,
+        includeMealFees: true },
+      toEuroAmount(120000),
+      [
+        { childKey: "child-1",
+          ageMonths: 40 },
+        { childKey: "child-2",
+          ageMonths: 18 },
+        { childKey: "child-3",
+          ageMonths: 12 },
+      ],
+    );
+    assert.equal(threeSiblings.perChildFees[0].netMonthlyFee, 0);
+    assert.equal(threeSiblings.perChildFees[1].siblingCareRank, 2);
+    assert.equal(threeSiblings.perChildFees[1].netMonthlyFee, 215);
+    assert.equal(threeSiblings.perChildFees[2].siblingCareRank, 3);
+    assert.equal(threeSiblings.perChildFees[2].netMonthlyFee, 0);
+    assert.equal(threeSiblings.totalMonthlyCareFee, 215);
+    assert.equal(threeSiblings.totalMonthlyMealFee, 315);
+    assert.equal(threeSiblings.totalMonthlyFee, 530);
+
+    // Existing simultaneous sibling count shifts rank cleanly (1 existing sibling -> new child is rank 2)
+    const withExistingSibling = computeMonthlyChildcarePlanCosts(
+      basePlan,
+      toEuroAmount(70000),
+      [{ childKey: "child-2",
+        ageMonths: 18 }],
+      1,
+    );
+    assert.equal(withExistingSibling.perChildFees[0].siblingCareRank, 2);
+    assert.equal(withExistingSibling.totalMonthlyCareFee, 100);
   });
 
   it("applies municipal brackets, sibling care discounts, and fee-free age ceiling", () => {
