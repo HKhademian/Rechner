@@ -1,6 +1,7 @@
 import "./WikiRefLink.css";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "preact/hooks";
@@ -15,8 +16,12 @@ import {
   Badge,
 } from "#components/ui/Badge";
 import {
+  type WikiPeekPlacement,
   type WikiRefTarget,
+  WikiPeekHorizontalAlign,
+  WikiPeekVerticalAlign,
   WikiRefKind,
+  computeWikiPeekPlacement,
   resolveWikiRef,
 } from "#/components/ui/wikiRefResolver.ts";
 import {
@@ -38,9 +43,13 @@ import {
 
 export {
   type WikiEntryView,
+  type WikiPeekPlacement,
   type WikiRefTarget,
   type WikiRelatedLink,
+  WikiPeekHorizontalAlign,
+  WikiPeekVerticalAlign,
   WikiRefKind,
+  computeWikiPeekPlacement,
   resolveWikiRef,
   toWikiRefKind,
 } from "#/components/ui/wikiRefResolver.ts";
@@ -71,6 +80,10 @@ export function WikiRefLink({
   const [pinned, setPinned] = useState(false);
   const [history, setHistory] = useState<readonly WikiRefTarget[]>([]);
   const [currentTarget, setCurrentTarget] = useState<WikiRefTarget>(target);
+  const [placement, setPlacement] = useState<WikiPeekPlacement>(() => Object.freeze({
+    horizontal: alignEnd ? WikiPeekHorizontalAlign.End : WikiPeekHorizontalAlign.Start,
+    vertical: WikiPeekVerticalAlign.Below,
+  }));
   const wrapRef = useRef<HTMLSpanElement>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,6 +92,22 @@ export function WikiRefLink({
   const overrides = hydrated ? customParameterOverrides.value : {};
   const rootEntry = resolveWikiRef(target, year, overrides);
   const activeEntry = open ? resolveWikiRef(currentTarget, year, overrides) : rootEntry;
+
+  const measurePlacement = (): void => {
+    if (typeof window === "undefined" || !wrapRef.current) {
+      return;
+    }
+    const rect = wrapRef.current.getBoundingClientRect();
+    setPlacement(computeWikiPeekPlacement({
+      triggerLeft: rect.left,
+      triggerRight: rect.right,
+      triggerTop: rect.top,
+      triggerBottom: rect.bottom,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      preferEnd: alignEnd,
+    }));
+  };
 
   const clearTimers = (): void => {
     if (openTimerRef.current !== null) {
@@ -103,6 +132,17 @@ export function WikiRefLink({
     setCurrentTarget(target);
     setHistory([]);
   }, [target.kind, target.id]);
+
+  useLayoutEffect(() => {
+    if (!open || typeof window === "undefined") {
+      return;
+    }
+    measurePlacement();
+    window.addEventListener("resize", measurePlacement);
+    return () => {
+      window.removeEventListener("resize", measurePlacement);
+    };
+  }, [open, alignEnd]);
 
   useEffect(() => {
     if (!open) {
@@ -141,6 +181,7 @@ export function WikiRefLink({
     }
     clearTimers();
     openTimerRef.current = setTimeout(() => {
+      measurePlacement();
       setCurrentTarget(target);
       setHistory([]);
       setOpen(true);
@@ -167,6 +208,7 @@ export function WikiRefLink({
       closeCard();
       return;
     }
+    measurePlacement();
     setCurrentTarget(target);
     setHistory([]);
     setPinned(true);
@@ -192,9 +234,20 @@ export function WikiRefLink({
   };
 
   const triggerClasses = ["ui-wiki-ref", className.trim()].filter(Boolean).join(" ");
+  const horizontalClass = placement.horizontal === WikiPeekHorizontalAlign.End
+    ? "ui-wiki-peek--align-end"
+    : placement.horizontal === WikiPeekHorizontalAlign.Center
+      ? "ui-wiki-peek--align-center"
+      : placement.horizontal === WikiPeekHorizontalAlign.ViewportDock
+        ? "ui-wiki-peek--viewport-dock"
+        : "";
+  const verticalClass = placement.vertical === WikiPeekVerticalAlign.Above
+    ? "ui-wiki-peek--above"
+    : "";
   const peekClasses = [
     "ui-wiki-peek",
-    alignEnd ? "ui-wiki-peek--align-end" : "",
+    horizontalClass,
+    verticalClass,
   ].filter(Boolean).join(" ");
 
   return (

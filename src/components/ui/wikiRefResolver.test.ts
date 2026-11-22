@@ -16,7 +16,10 @@ import {
   toFullCalendarYear,
 } from "#engine/types";
 import {
+  WikiPeekHorizontalAlign,
+  WikiPeekVerticalAlign,
   WikiRefKind,
+  computeWikiPeekPlacement,
   resolveWikiRef,
   toWikiRefKind,
 } from "#/components/ui/wikiRefResolver.ts";
@@ -79,5 +82,52 @@ describe("wikiRefResolver", () => {
     assert.ok(formula);
     assert.equal(formula.kind, WikiRefKind.Formula);
     assert.ok(formula.related.length > 0);
+  });
+
+  it("flips popover alignment away from viewport edges to prevent horizontal overflow", () => {
+    // Trigger near right edge (like card 3 in diagnostics strip) flips to End
+    const rightEdge = computeWikiPeekPlacement({
+      triggerLeft: 1080,
+      triggerRight: 1220,
+      triggerTop: 220,
+      triggerBottom: 240,
+      viewportWidth: 1280,
+      viewportHeight: 800,
+    });
+    assert.equal(rightEdge.horizontal, WikiPeekHorizontalAlign.End);
+    assert.equal(rightEdge.vertical, WikiPeekVerticalAlign.Below);
+
+    // Trigger near left edge stays Start
+    const leftEdge = computeWikiPeekPlacement({
+      triggerLeft: 48,
+      triggerRight: 180,
+      triggerTop: 220,
+      triggerBottom: 240,
+      viewportWidth: 1280,
+      viewportHeight: 800,
+    });
+    assert.equal(leftEdge.horizontal, WikiPeekHorizontalAlign.Start);
+
+    // Trigger near bottom fold flips Above
+    const bottomEdge = computeWikiPeekPlacement({
+      triggerLeft: 120,
+      triggerRight: 260,
+      triggerTop: 680,
+      triggerBottom: 700,
+      viewportWidth: 1280,
+      viewportHeight: 760,
+    });
+    assert.equal(bottomEdge.vertical, WikiPeekVerticalAlign.Above);
+
+    // Narrow mobile viewport docks cleanly inside viewport
+    const mobile = computeWikiPeekPlacement({
+      triggerLeft: 200,
+      triggerRight: 340,
+      triggerTop: 200,
+      triggerBottom: 220,
+      viewportWidth: 420,
+      viewportHeight: 800,
+    });
+    assert.equal(mobile.horizontal, WikiPeekHorizontalAlign.ViewportDock);
   });
 });

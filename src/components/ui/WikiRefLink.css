@@ -54,6 +54,29 @@
   right: 0;
 }
 
+.ui-wiki-peek--align-center {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+.ui-wiki-peek--above {
+  top: auto;
+  bottom: calc(100% + var(--space-2));
+}
+
+.ui-wiki-peek--viewport-dock {
+  position: fixed;
+  top: auto;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+  width: auto;
+  transform: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
 .ui-wiki-peek__top {
   display: flex;
   align-items: center;

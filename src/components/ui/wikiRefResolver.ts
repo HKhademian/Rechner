@@ -269,3 +269,95 @@ export function resolveWikiRef(
     }
   }
 }
+
+export const WikiPeekHorizontalAlign = {
+  Start: "start",
+  End: "end",
+  Center: "center",
+  ViewportDock: "viewport-dock",
+} as const;
+export type WikiPeekHorizontalAlign =
+  (typeof WikiPeekHorizontalAlign)[keyof typeof WikiPeekHorizontalAlign];
+
+export const WikiPeekVerticalAlign = {
+  Below: "below",
+  Above: "above",
+} as const;
+export type WikiPeekVerticalAlign =
+  (typeof WikiPeekVerticalAlign)[keyof typeof WikiPeekVerticalAlign];
+
+export interface WikiPeekPlacement {
+  readonly horizontal: WikiPeekHorizontalAlign;
+  readonly vertical: WikiPeekVerticalAlign;
+}
+
+export interface WikiPeekViewportGeometry {
+  readonly triggerLeft: number;
+  readonly triggerRight: number;
+  readonly triggerTop: number;
+  readonly triggerBottom: number;
+  readonly viewportWidth: number;
+  readonly viewportHeight: number;
+  readonly preferEnd?: boolean;
+  readonly peekWidthPx?: number;
+  readonly estimatedPeekHeightPx?: number;
+  readonly marginPx?: number;
+}
+
+/**
+ * Pure viewport collision calculator for `WikiRefLink` peek cards.
+ * Guarantees the floating card never overflows horizontally (which would trigger
+ * unwanted page-level horizontal scrollbars) and flips above the trigger near the bottom fold.
+ */
+export function computeWikiPeekPlacement(
+  geometry: WikiPeekViewportGeometry,
+): WikiPeekPlacement {
+  const margin = geometry.marginPx ?? 16;
+  const peekWidth = Math.min(geometry.peekWidthPx ?? 340, geometry.viewportWidth * 0.86);
+  const estimatedHeight = geometry.estimatedPeekHeightPx ?? 280;
+
+  const fitsStart =
+    geometry.triggerLeft >= margin &&
+    geometry.triggerLeft + peekWidth <= geometry.viewportWidth - margin;
+  const fitsEnd =
+    geometry.triggerRight <= geometry.viewportWidth - margin &&
+    geometry.triggerRight - peekWidth >= margin;
+  const triggerCenter = (geometry.triggerLeft + geometry.triggerRight) / 2;
+  const fitsCenter =
+    triggerCenter - peekWidth / 2 >= margin &&
+    triggerCenter + peekWidth / 2 <= geometry.viewportWidth - margin;
+
+  let horizontal: WikiPeekHorizontalAlign;
+  if (geometry.viewportWidth <= 640) {
+    horizontal = WikiPeekHorizontalAlign.ViewportDock;
+  }
+  else if (geometry.preferEnd && fitsEnd) {
+    horizontal = WikiPeekHorizontalAlign.End;
+  }
+  else if (!geometry.preferEnd && fitsStart) {
+    horizontal = WikiPeekHorizontalAlign.Start;
+  }
+  else if (fitsEnd) {
+    horizontal = WikiPeekHorizontalAlign.End;
+  }
+  else if (fitsStart) {
+    horizontal = WikiPeekHorizontalAlign.Start;
+  }
+  else if (fitsCenter) {
+    horizontal = WikiPeekHorizontalAlign.Center;
+  }
+  else {
+    horizontal = WikiPeekHorizontalAlign.ViewportDock;
+  }
+
+  const spaceBelow = geometry.viewportHeight - geometry.triggerBottom;
+  const spaceAbove = geometry.triggerTop;
+  const vertical = spaceBelow < estimatedHeight && spaceAbove > spaceBelow
+    ? WikiPeekVerticalAlign.Above
+    : WikiPeekVerticalAlign.Below;
+
+  return Object.freeze({
+    horizontal,
+    vertical,
+  });
+}
