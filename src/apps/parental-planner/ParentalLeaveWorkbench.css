@@ -1,0 +1,1124 @@
+/* =========================================================================
+   Parental Planner — Scoped Tokenized Stylesheet
+   Faithful to the approved two-zone calm workbench sketch; 100% design-system
+   tokenized (zero hardcoded colors, canonical breakpoints, --z-* tokens only)
+   ========================================================================= */
+
+.plw-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.plw-preset-select {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-control);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.plw-layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 388px) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.plw-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.plw-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ── Calm Left-Rail Cards (matching approved sketch) ───────────────────── */
+
+.plw-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.plw-card--compact {
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-2);
+}
+
+.plw-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plw-card__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.plw-card__title {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  line-height: var(--line-height-snug);
+}
+
+.plw-card__subtitle,
+.plw-card__hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.plw-link-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.plw-link-btn:hover {
+  text-decoration: underline;
+}
+
+.plw-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.plw-inline-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.plw-inline-control__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.plw-input-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-select,
+.plw-date-input {
+  width: 100%;
+  height: var(--control-height-sm);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-control);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Sliders & 3-Segment Stacked Leave Bar (CSS Grid, Zero Inline Style) ── */
+
+.plw-slider-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.plw-slider-field__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.plw-slider-field__top label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.plw-slider-field__val {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-range {
+  width: 100%;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.plw-leave-bar {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 2px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--bg-surface-secondary);
+}
+
+.plw-leave-bar__seg {
+  height: 100%;
+  border-radius: 1px;
+}
+
+.plw-leave-bar__seg--muschg {
+  background: var(--series-mutterschutz);
+}
+
+.plw-leave-bar__seg--mother {
+  background: var(--series-elterngeld-mother);
+}
+
+.plw-leave-bar__seg--father {
+  background: var(--series-elterngeld-father);
+}
+
+.plw-leave-bar__seg--empty {
+  background: var(--bg-surface-tertiary);
+}
+
+.plw-leave-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Recessed Sub-Panels (Card 3 Tax Switch & Working Hours) ───────────── */
+
+.plw-subpanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+}
+
+.plw-subpanel--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plw-subpanel__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plw-subpanel__title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.plw-subpanel__delta {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gain);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Card Footers & Per-Section Granular Buttons ───────────────────────── */
+
+.plw-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.plw-granular-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-control);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.plw-granular-btn:hover {
+  background: var(--bg-surface-secondary);
+}
+
+.plw-granular-btn--primary {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.plw-granular-btn--primary:hover {
+  border-color: var(--color-primary);
+}
+
+.plw-compact-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-compact-strip__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+}
+
+.plw-compact-strip__ok {
+  color: var(--color-gain);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-compact-strip__warn {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-compact-strip__danger {
+  color: var(--color-loss);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ── Active Customization Chips ────────────────────────────────────────── */
+
+.plw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.plw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.plw-chip--gain {
+  background: var(--color-gain-bg);
+  border-color: var(--color-gain-border);
+  color: var(--color-gain);
+}
+
+.plw-chip--warning {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.plw-chip__action,
+.plw-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.plw-chip__remove:hover {
+  color: var(--color-loss);
+}
+
+/* ── Sticky Strategy Cards Switcher (matching approved sketch) ─────────── */
+
+.plw-sticky-bar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.plw-sticky-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plw-sticky-bar__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.plw-sticky-bar__lead strong {
+  color: var(--text-primary);
+}
+
+.plw-sticky-bar__lead span {
+  color: var(--text-muted);
+}
+
+.plw-audit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  border: 1px solid var(--color-gain-border);
+  background: var(--color-gain-bg);
+  color: var(--color-gain);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.plw-audit-pill--stale {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.plw-scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.plw-scenario-card {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plw-scenario-card:hover {
+  background: var(--bg-surface-secondary);
+}
+
+.plw-scenario-card--active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+}
+
+.plw-scenario-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.plw-scenario-card__name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-scenario-card--active .plw-scenario-card__name {
+  color: var(--color-primary);
+}
+
+.plw-scenario-card__tag {
+  color: var(--text-muted);
+  font-size: var(--font-size-2xs);
+}
+
+.plw-scenario-card__val {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-scenario-card__sub {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.plw-audit-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-size-xs);
+}
+
+.plw-audit-panel__item {
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface-secondary);
+  color: var(--text-secondary);
+}
+
+.plw-audit-panel__item strong {
+  color: var(--text-primary);
+}
+
+/* ── 4-KPI Scorecard & Soft-Tinted Plan Diagnostics Strip ──────────────── */
+
+.plw-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.plw-kpi-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plw-kpi-card--gain {
+  background: var(--color-gain-bg);
+  border-color: var(--color-gain-border);
+}
+
+.plw-kpi-card__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+}
+
+.plw-kpi-card__value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-kpi-card__value--primary {
+  color: var(--color-primary);
+}
+
+.plw-kpi-card__value--gain {
+  color: var(--color-gain);
+}
+
+.plw-kpi-card__sub {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-diag-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.plw-diag-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  font-size: var(--font-size-xs);
+}
+
+.plw-diag-card--ok {
+  background: var(--color-gain-bg);
+  border-color: var(--color-gain-border);
+}
+
+.plw-diag-card--warn {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.plw-diag-card--danger {
+  background: var(--color-loss-bg);
+  border-color: var(--color-loss-border);
+}
+
+.plw-diag-card__icon {
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.plw-diag-card--ok .plw-diag-card__icon {
+  color: var(--color-gain);
+}
+
+.plw-diag-card--warn .plw-diag-card__icon {
+  color: var(--color-warning);
+}
+
+.plw-diag-card--danger .plw-diag-card__icon {
+  color: var(--color-loss);
+}
+
+.plw-diag-card__icon--brand {
+  color: var(--color-primary);
+}
+
+.plw-diag-card__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.plw-diag-card__detail {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+/* ── 5-Tab Workspace (Clean Underline Tabs matching approved sketch) ───── */
+
+.plw-workspace-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.plw-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+.plw-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.plw-tab:hover {
+  color: var(--text-primary);
+}
+
+.plw-tab--active {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-tab-panel {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Overview Prose, Tables & Toolbars ─────────────────────────────────── */
+
+.plw-prose {
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.plw-prose p {
+  margin: 0 0 var(--space-2);
+}
+
+.plw-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.plw-prose strong {
+  color: var(--text-primary);
+}
+
+.plw-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+}
+
+.plw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.plw-table th,
+.plw-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.plw-table th {
+  background: var(--bg-surface-secondary);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-table__gain {
+  color: var(--color-gain);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-table__loss {
+  color: var(--color-loss);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plw-row--action {
+  background: var(--color-primary-bg);
+}
+
+.plw-row--event {
+  background: var(--color-warning-bg);
+}
+
+.plw-row--hovered {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.plw-cell-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted var(--border-strong);
+  text-underline-offset: 2px;
+}
+
+.plw-cell-btn:hover {
+  color: var(--color-primary);
+}
+
+.plw-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plw-toolbar__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.plw-deadline-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.plw-deadline-card {
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.plw-deadline-card__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plw-deadline-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.plw-deadline-card__desc {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.plw-vacation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+/* ── Granular Modals, Life-Month Grid & Rich Export/Import Dialog ──────── */
+
+.plw-modal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.plw-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--bg-app);
+}
+
+.plw-modal-section__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.plw-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.plw-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.plw-modal-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  font-size: var(--font-size-xs);
+}
+
+.plw-modal-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-gain-bg);
+  border: 1px solid var(--color-gain-border);
+  font-size: var(--font-size-sm);
+}
+
+.plw-lm-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.plw-lm-cell {
+  padding: var(--space-1);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  text-align: center;
+  font-size: var(--font-size-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-lm-cell--muschg {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.plw-lm-cell--mother {
+  background: var(--color-gain-bg);
+  border-color: var(--color-gain-border);
+  color: var(--color-gain);
+}
+
+.plw-lm-cell--father {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.plw-export-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.plw-export-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.plw-export-card--featured {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+}
+
+.plw-export-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plw-export-card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.plw-export-card__desc {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.plw-export-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.plw-csv-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-secondary);
+}
+
+.plw-csv-box__head {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.plw-csv-box__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.plw-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  border: 2px dashed var(--border-medium);
+  border-radius: var(--radius-card);
+  background: var(--bg-app);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.plw-dropzone--drag {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.plw-dropzone__file-input {
+  display: none;
+}
+
+.plw-import-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-gain-border);
+  background: var(--color-gain-bg);
+}
+
+.plw-import-preview__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.plw-import-stat {
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--font-size-xs);
+}
+
+.plw-import-stat__label {
+  color: var(--text-muted);
+  font-size: var(--font-size-2xs);
+}
+
+.plw-import-stat__value {
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.plw-import-stat__sub {
+  color: var(--text-muted);
+  font-size: var(--font-size-2xs);
+}
+
+.plw-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-3);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-control);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.plw-modal-footer-meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* ── Canonical Responsive Breakpoints (1180px, 900px, 640px) ───────────── */
+
+@media (max-width: 1180px) {
+  .plw-kpi-grid,
+  .plw-scenario-grid,
+  .plw-import-preview__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .plw-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .plw-diag-grid,
+  .plw-vacation-grid,
+  .plw-audit-panel,
+  .plw-export-grid,
+  .plw-csv-box__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .plw-kpi-grid,
+  .plw-scenario-grid,
+  .plw-field-grid,
+  .plw-modal-grid,
+  .plw-import-preview__grid {
+    grid-template-columns: 1fr;
+  }
+}
