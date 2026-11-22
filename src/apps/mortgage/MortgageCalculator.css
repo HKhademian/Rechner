@@ -6,7 +6,7 @@
 
 .mortgage-inputs h2,
 .mortgage-results h2 {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   font-size: 1rem;
 }
 
@@ -16,17 +16,200 @@
   line-height: 1.5;
 }
 
-.mortgage-table-wrap {
-  overflow-x: auto;
+.mortgage-muted {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .mortgage-heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .mortgage-heading h2 {
   margin: 0;
+}
+
+.mortgage-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mortgage-section-header h2 {
+  margin: 0 0 4px;
+}
+
+.mortgage-results-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mortgage-preset-group {
+  display: grid;
+  gap: 6px;
+}
+
+.mortgage-preset-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.mortgage-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mortgage-chip {
+  padding: 5px 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.mortgage-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--text-primary);
+}
+
+.mortgage-chip--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.mortgage-term-charts {
+  display: grid;
+  gap: 16px;
+}
+
+.mortgage-table-wrap {
+  overflow-x: auto;
+}
+
+.mortgage-ledger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mortgage-ledger-table th,
+.mortgage-ledger-table td {
+  white-space: nowrap;
+}
+
+.mortgage-year-row {
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.mortgage-year-row:hover {
+  background: var(--bg-surface-secondary);
+}
+
+.mortgage-year-row--expanded {
+  background: var(--bg-surface-secondary);
+}
+
+.mortgage-year-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mortgage-chevron {
+  transition: transform 0.15s ease;
+}
+
+.mortgage-chevron--open {
+  transform: rotate(180deg);
+}
+
+.mortgage-cell-sub {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.mortgage-milestone-row td {
+  background: var(--bg-surface-tertiary);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  padding: 6px 10px;
+}
+
+.mortgage-months-detail-row td {
+  padding: 0;
+  background: var(--bg-app);
+}
+
+.mortgage-months-wrap {
+  padding: 10px 12px 14px;
+  overflow-x: auto;
+}
+
+.mortgage-months-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.mortgage-months-table th,
+.mortgage-months-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.mortgage-months-table th.num,
+.mortgage-months-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.kfw-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.kfw-guide-block h3 {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+}
+
+.kfw-guide-table {
+  margin-top: 10px;
+  font-size: 0.84rem;
+}
+
+.kfw-guide-list {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.kfw-guide-list strong {
+  color: var(--text-primary);
 }
