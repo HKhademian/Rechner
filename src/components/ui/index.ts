@@ -131,3 +131,13 @@ export {
 export {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
+export {
+  type WikiEntryView,
+  type WikiRefLinkProps,
+  type WikiRefTarget,
+  type WikiRelatedLink,
+  WikiRefKind,
+  WikiRefLink,
+  resolveWikiRef,
+  toWikiRefKind,
+} from "#components/ui/WikiRefLink";
