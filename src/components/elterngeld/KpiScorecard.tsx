@@ -13,9 +13,9 @@ import {
   MetricTone,
 } from "#components/ui/MetricCard";
 import {
-  currentScenarioData,
-  comparisonMetrics,
-  scenarioBData,
+  displayedCurrentScenarioData,
+  displayedComparisonMetrics,
+  displayedScenarioBData,
   LEGAL_RULE_LAW_MAP,
   LegalRuleKey,
   activeLegalRuleKey,
@@ -28,9 +28,9 @@ import {
  * High-level KPI overview for Parental Leave net salaries, benefits, cash flow, and tax-switch impact.
  */
 export default function KpiScorecard(): JSX.Element {
-  const current = currentScenarioData.value;
-  const metrics = comparisonMetrics.value;
-  const bSummary = scenarioBData.value.summary;
+  const current = displayedCurrentScenarioData.value;
+  const metrics = displayedComparisonMetrics.value;
+  const bSummary = displayedScenarioBData.value.summary;
 
   const totalHusbandSalary = current.months.reduce((acc, m) => acc + m.husbandSalary, 0);
   const totalWifeSalary = current.months.reduce((acc, m) => acc + m.wifeSalary, 0);

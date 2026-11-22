@@ -41,10 +41,10 @@ import {
 import {
   chartMode,
   timeRangeFilter,
-  scenarioAData,
-  scenarioBData,
-  scenarioCData,
-  currentScenarioData,
+  displayedScenarioAData,
+  displayedScenarioBData,
+  displayedScenarioCData,
+  displayedCurrentScenarioData,
   hoveredMonth,
 } from "#store/elterngeldStore";
 import LawRefLink from "#components/laws/LawRefLink";
@@ -188,10 +188,10 @@ export default function TimelineChart(): JSX.Element {
   const abstractMode = mapTimelineModeToAbstractMode(activeTimelineMode);
   const filter = hydrated ? timeRangeFilter.value : TimelineTimeRangeFilter.All;
 
-  const currentData = currentScenarioData.value;
-  const aData = scenarioAData.value;
-  const bData = scenarioBData.value;
-  const cData = scenarioCData.value;
+  const currentData = displayedCurrentScenarioData.value;
+  const aData = displayedScenarioAData.value;
+  const bData = displayedScenarioBData.value;
+  const cData = displayedScenarioCData.value;
 
   const filteredMonths = hydrated
     ? filter === TimelineTimeRangeFilter.Child1

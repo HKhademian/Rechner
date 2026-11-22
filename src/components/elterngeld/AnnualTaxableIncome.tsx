@@ -18,11 +18,13 @@ import {
   LawId,
 } from "#engine/laws/types";
 import LawRefLink from "#components/laws/LawRefLink";
-
-
+import {
+  displayedCurrentScenarioData,
+} from "#store/elterngeldStore";
 
 /** Partner contributions reconcile to the joint record without allocating shared deductions. */
-export default function AnnualTaxableIncome({ result }: { result: SimulationResult }): JSX.Element {
+export default function AnnualTaxableIncome({ result: suppliedResult }: { result?: SimulationResult }): JSX.Element {
+  const result = suppliedResult ?? displayedCurrentScenarioData.value;
   const [selectedYear, setSelectedYear] = useState<FullCalendarYear | null>(null);
   const records = result.annualTaxRecords ?? [];
   const record = records.find((item) => item.calendarYear === selectedYear) ?? records[0];

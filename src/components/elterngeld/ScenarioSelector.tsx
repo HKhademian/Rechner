@@ -14,9 +14,9 @@ import type {
 } from "preact";
 import {
   activeScenario,
-  scenarioAData,
-  scenarioBData,
-  scenarioCData,
+  displayedScenarioAData,
+  displayedScenarioBData,
+  displayedScenarioCData,
   openExportImportModal,
 } from "#store/elterngeldStore";
 import {
@@ -69,21 +69,21 @@ export default function ScenarioSelector(): JSX.Element {
       title: plannerCalculationLabels[ScenarioId.C],
       badge: "Your plan",
       description: "Use your planned tax-class switches alongside births, leave and working-hour changes.",
-      highlights: resultHighlights(scenarioCData.value),
+      highlights: resultHighlights(displayedScenarioCData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.UnoptimizedBaseline,
       title: plannerCalculationLabels[ScenarioId.B],
       badge: "Your plan",
       description: "Keep the initial tax classes with the same planned births, leave and working-hour changes.",
-      highlights: resultHighlights(scenarioBData.value),
+      highlights: resultHighlights(displayedScenarioBData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.StatusQuo,
       title: plannerCalculationLabels[ScenarioId.A],
       badge: "Reference",
       description: "Exclude planned births and tax switches; retain existing children, hours, raises and financial events.",
-      highlights: resultHighlights(scenarioAData.value),
+      highlights: resultHighlights(displayedScenarioAData.value),
     },
     {
       scenarioViewId: ActiveScenarioView.Compare,

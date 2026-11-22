@@ -104,7 +104,7 @@ import {
   resetToEmptyScenario,
   importSimulationState,
   openExportImportModal,
-  currentScenarioData,
+  displayedCurrentScenarioData,
   LEGAL_RULE_LAW_MAP,
   LegalRuleKey,
   activeLegalRuleKey,
@@ -903,7 +903,7 @@ export default function SandboxControls(): JSX.Element {
                             let mPlus = 0;
                             let fBasis = 0;
                             let fPlus = 0;
-                            for (const monthEntry of currentScenarioData.value.months) {
+                            for (const monthEntry of displayedCurrentScenarioData.value.months) {
                               for (const payment of monthEntry.benefitPayments ?? []) {
                                 if (payment.pregnancyId !== preg.pregnancyId || payment.partnershipBonus || payment.payment <= 0) {
                                   continue;
@@ -2416,7 +2416,7 @@ export default function SandboxControls(): JSX.Element {
                   const hours = whc.weeklyHours;
                   const preview = buildWorkingHoursSchedulePreview(
                     whc,
-                    currentScenarioData.value.months,
+                    displayedCurrentScenarioData.value.months,
                     salaryPeriod.value,
                   );
 

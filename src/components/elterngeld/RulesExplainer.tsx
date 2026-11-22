@@ -18,7 +18,7 @@ import {
   type LegalRuleKeyType,
   LEGAL_RULE_LAW_MAP,
   activeLegalRuleKey,
-  currentScenarioData,
+  displayedCurrentScenarioData,
   LegalRuleKey,
 } from "#store/elterngeldStore";
 import {
@@ -73,7 +73,7 @@ interface RuleItem {
 }
 
 export default function RulesExplainer(): JSX.Element {
-  const current = currentScenarioData.value;
+  const current = displayedCurrentScenarioData.value;
   const benefits = current.configuration?.benefitRules ?? DEFAULT_BENEFIT_RULES;
   const conventions = current.configuration?.timelineConventions ?? DEFAULT_TIMELINE_CONVENTIONS;
   const money = (value: number | undefined) => formatEurOrUnavailable(value, 2);

@@ -1,0 +1,111 @@
+/* =========================================================================
+   Calculation Status Indicator — Coalesced Recalculation Feedback Pill
+   Lifecycle: Calculated -> Reevaluating -> Calculating -> Calculated
+   ========================================================================= */
+
+.calc-status {
+  position: sticky;
+  top: var(--space-3);
+  z-index: var(--z-sticky);
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 var(--space-3);
+  pointer-events: none;
+}
+
+.calc-status__pill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  transition:
+    background-color var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.calc-status__pill--calculated {
+  background: var(--color-gain-bg);
+  border-color: var(--color-gain-border);
+  color: var(--color-gain);
+}
+
+.calc-status__pill--reevaluating {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.calc-status__pill--calculating {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.calc-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.calc-status__pill--reevaluating .calc-status__dot,
+.calc-status__pill--calculating .calc-status__dot {
+  animation: calc-status-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes calc-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+.calc-status__meta {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.calc-status__flush-btn {
+  margin-left: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+  background: var(--bg-surface);
+  color: currentColor;
+  font: inherit;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.calc-status__flush-btn:hover {
+  background: var(--bg-surface-secondary);
+}
+
+.calc-status__flush-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calc-status__pill--reevaluating .calc-status__dot,
+  .calc-status__pill--calculating .calc-status__dot {
+    animation: none;
+  }
+}

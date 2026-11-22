@@ -15,9 +15,9 @@ import {
 } from "preact/hooks";
 import LawRefLink from "#components/laws/LawRefLink";
 import {
-  currentScenarioData,
+  displayedCurrentScenarioData,
   activeScenario,
-  scenarioBData,
+  displayedScenarioBData,
   hoveredMonth,
   showSpecialEventRows,
   LEGAL_RULE_LAW_MAP,
@@ -103,8 +103,8 @@ export default function TimelineTable(): JSX.Element {
     activeScenario.value === ActiveStrategyView.Compare
       ? SimulationStrategy.StatutoryOptimized
       : (activeScenario.value as StrategyId);
-  const current = currentScenarioData.value;
-  const bData = scenarioBData.value;
+  const current = displayedCurrentScenarioData.value;
+  const bData = displayedScenarioBData.value;
   const isSpecialRowsActive = showSpecialEventRows.value;
 
   const years = [...new Set(current.months.map((month) => month.year))];

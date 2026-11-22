@@ -10,10 +10,11 @@ import {
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
-  currentScenarioData,
   setExistingChildrenCount,
   setHusbandGrossYearly,
   setWifeGrossYearly,
+  simulationDurationMonths,
+  startCalendarMonth,
   startCalendarYear,
   updateChildcarePlan,
 } from "#store/elterngeldStore";
@@ -22,6 +23,7 @@ import {
 } from "#store/lifeProfileStore";
 import {
   FederalStateKitaPresetId,
+  toCalendarLabel,
 } from "#engine/types";
 import {
   GermanFederalState,
@@ -33,6 +35,7 @@ import {
   SyncProfileActionIcon,
 } from "#components/Icons";
 import AnnualTaxableIncome from "#components/elterngeld/AnnualTaxableIncome";
+import CalculationStatusBanner from "#components/elterngeld/CalculationStatusBanner";
 import KpiScorecard from "#components/elterngeld/KpiScorecard";
 import ScenarioSelector from "#components/elterngeld/ScenarioSelector";
 import TimelineChart from "#components/elterngeld/TimelineChart";
@@ -89,9 +92,25 @@ function syncParentalLeaveFromLifeProfile(): void {
   });
 }
 
+function formatForecastPeriodSummary(): {
+  readonly periodLabel: string;
+  readonly durationLabel: string;
+} {
+  const startYear = startCalendarYear.value;
+  const startMonth = startCalendarMonth.value;
+  const duration = Math.max(1, simulationDurationMonths.value);
+  const endOffset = startMonth - 1 + (duration - 1);
+  const endMonth = (endOffset % 12) + 1;
+  const endYear = startYear + Math.floor(endOffset / 12);
+  return {
+    periodLabel: `${toCalendarLabel(startMonth, startYear)} – ${toCalendarLabel(endMonth, endYear)}`,
+    durationLabel: `${duration} months`,
+  };
+}
+
 export default function ElterngeldDashboard(): JSX.Element {
   const hydrated = useHydrated();
-  const months = hydrated ? currentScenarioData.value.months : [];
+  const forecastMeta = hydrated ? formatForecastPeriodSummary() : null;
   return (
     <AppShell
       currentPath={calculatorPath(AppId.ParentalLeave)}
@@ -115,15 +134,15 @@ export default function ElterngeldDashboard(): JSX.Element {
         )}
         metaLabel="Planning period"
         meta={
-          hydrated
+          forecastMeta
             ? [
               {
                 label: "Forecast period",
-                value: `${months[0]?.calendarLabel ?? ""} – ${months.at(-1)?.calendarLabel ?? ""}`,
+                value: forecastMeta.periodLabel,
               },
               {
                 label: "Duration",
-                value: `${months.length} months`,
+                value: forecastMeta.durationLabel,
               },
             ]
             : undefined
@@ -133,6 +152,8 @@ export default function ElterngeldDashboard(): JSX.Element {
 
       {hydrated && (
         <>
+          <CalculationStatusBanner />
+
           {/* Set up the plan before choosing which calculated results to review. */}
           <SandboxControls />
 
@@ -141,7 +162,7 @@ export default function ElterngeldDashboard(): JSX.Element {
           {/* Dynamic KPI Scorecard */}
           <KpiScorecard />
 
-          <AnnualTaxableIncome result={currentScenarioData.value} />
+          <AnnualTaxableIncome />
 
           {/* Full 60-Month Cash Flow Table & Audit */}
           <TimelineTable />
