@@ -93,6 +93,9 @@ export type MonthSimRef = SubBrand<EntityId, "MonthSimRef">;
 /** Formatted Gregorian calendar date label formatted as 'MM.YYYY' (e.g. '01.2026', '09.2027'). */
 export type CalendarLabel = SubBrand<EntityId, "CalendarLabel">;
 
+/** Exact Gregorian ISO-8601 calendar date formatted as 'YYYY-MM-DD' (e.g. '2027-06-28'). */
+export type IsoCalendarDate = Brand<string, "IsoCalendarDate">;
+
 /** Weekly contractual or actual employment working hours (0..60 hours/week). */
 export type WorkingHours = Brand<number, "WorkingHours">;
 
@@ -707,6 +710,118 @@ export interface ChildcarePlanConfig {
   readonly includeMealFees?: boolean;
   /** Optional custom monthly meal fee per child (defaults to preset's Verpflegungsgeld when `includeMealFees` is true). */
   readonly monthlyMealFeePerChild?: EuroAmount;
+}
+
+const ISO_CALENDAR_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Runtime type guard validating a real Gregorian `YYYY-MM-DD` calendar date (rejects e.g. 2027-02-29). */
+export function isIsoCalendarDate(value: string): value is IsoCalendarDate {
+  const match = ISO_CALENDAR_DATE_REGEX.exec(value);
+  if (!match) {
+    return false;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+    return false;
+  }
+  const utc = new Date(Date.UTC(year, month - 1, day));
+  return (
+    utc.getUTCFullYear() === year &&
+    utc.getUTCMonth() === month - 1 &&
+    utc.getUTCDate() === day
+  );
+}
+
+/** Validated runtime constructor for `IsoCalendarDate` (`YYYY-MM-DD`). */
+export function toIsoCalendarDate(value: string): IsoCalendarDate {
+  if (typeof value !== "string" || !isIsoCalendarDate(value)) {
+    throw new TypeError(`Invalid IsoCalendarDate: "${value}". Expected real YYYY-MM-DD date.`);
+  }
+  return value;
+}
+
+/** Formats a validated `IsoCalendarDate` (`YYYY-MM-DD`) in German `DD.MM.YYYY` notation. */
+export function formatGermanDate(date: IsoCalendarDate): string {
+  const [year, month, day] = date.split("-");
+  return `${day}.${month}.${year}`;
+}
+
+/** Statutory action notification categories for German parental leave, tax switches, and vacation planning (Rule 11). */
+export const StatutoryDeadlineCategory = {
+  TaxClassSwitch: "tax_class_switch",
+  Mutterschutz: "mutterschutz",
+  Elternzeit: "elternzeit",
+  WorkingHours: "working_hours",
+  Elterngeld: "elterngeld",
+  Kindergeld: "kindergeld",
+  Vacation: "vacation",
+} as const;
+export type StatutoryDeadlineCategory =
+  (typeof StatutoryDeadlineCategory)[keyof typeof StatutoryDeadlineCategory];
+
+const STATUTORY_DEADLINE_CATEGORY_SET: ReadonlySet<string> = new Set<string>(
+  Object.values(StatutoryDeadlineCategory),
+);
+
+/** Runtime type guard for `StatutoryDeadlineCategory`. */
+export function isStatutoryDeadlineCategory(
+  value: string,
+): value is StatutoryDeadlineCategory {
+  return STATUTORY_DEADLINE_CATEGORY_SET.has(value);
+}
+
+/** Validated runtime constructor for `StatutoryDeadlineCategory`. */
+export function toStatutoryDeadlineCategory(
+  value: string,
+): StatutoryDeadlineCategory {
+  if (!isStatutoryDeadlineCategory(value)) {
+    throw new TypeError(`Invalid StatutoryDeadlineCategory: "${value}".`);
+  }
+  return value;
+}
+
+/** Priority / diagnostic severity of a statutory deadline or optimization notification (Rule 11). */
+export const StatutoryDeadlineSeverity = {
+  Optimal: "optimal",
+  ActionNeeded: "action_needed",
+  Warning: "warning",
+  Info: "info",
+} as const;
+export type StatutoryDeadlineSeverity =
+  (typeof StatutoryDeadlineSeverity)[keyof typeof StatutoryDeadlineSeverity];
+
+const STATUTORY_DEADLINE_SEVERITY_SET: ReadonlySet<string> = new Set<string>(
+  Object.values(StatutoryDeadlineSeverity),
+);
+
+/** Runtime type guard for `StatutoryDeadlineSeverity`. */
+export function isStatutoryDeadlineSeverity(
+  value: string,
+): value is StatutoryDeadlineSeverity {
+  return STATUTORY_DEADLINE_SEVERITY_SET.has(value);
+}
+
+/** Validated runtime constructor for `StatutoryDeadlineSeverity`. */
+export function toStatutoryDeadlineSeverity(
+  value: string,
+): StatutoryDeadlineSeverity {
+  if (!isStatutoryDeadlineSeverity(value)) {
+    throw new TypeError(`Invalid StatutoryDeadlineSeverity: "${value}".`);
+  }
+  return value;
+}
+
+/** Day-exact split metadata inside a calendar month when exact dates straddle a statutory boundary. */
+export interface MonthlyDaySplit {
+  readonly totalCalendarDays: number;
+  readonly motherWorkDays: number;
+  readonly motherMutterschutzDays: number;
+  readonly motherElternzeitDays: number;
+  readonly husbandWorkDays: number;
+  readonly husbandElternzeitDays: number;
+  readonly summaryLabel: string;
 }
 
 /**
@@ -1932,6 +2047,8 @@ export interface MonthlyLedgerEntry {
   readonly realMonthlyTotal?: EuroAmount;
   /** Inflation-adjusted Month-1 real EUR cumulative net household cash flow through this month. */
   readonly realCumulatedTotal?: EuroAmount;
+  /** Optional day-exact boundary split breakdown when exact statutory dates straddle this calendar month. */
+  readonly daySplit?: MonthlyDaySplit;
   /** Detailed list of itemized double-entry accounting ledger transactions for this month. */
   readonly transactions: readonly AccountingTransaction[];
 }
@@ -2359,6 +2476,14 @@ export interface PregnancyAction {
   readonly fatherAllowancePlanMode?: AllowancePlanMode;
   /** Optional explicit mother ordinary allowance duration in months of the selected variant (defaults to timeline convention). */
   readonly motherAllowanceMonthsCount?: MonthDuration;
+  /** Optional exact expected due date / birth date (`YYYY-MM-DD`) enabling day-exact MuSchG, BEEG Life Months, and vacation math. */
+  readonly expectedDueDate?: IsoCalendarDate;
+  /** Optional flag for multiples/twins or premature birth (extends post-birth Mutterschutz from 56 to 84 days under § 3 Abs. 2 MuSchG). */
+  readonly isMultipleOrPrematureBirth?: boolean;
+  /** Optional mother's contractual annual vacation entitlement in working days (e.g. 28–30; defaults to 30 when omitted). */
+  readonly motherAnnualVacationDays?: number;
+  /** Optional vacation days mother plans to consume before Mutterschutz in the birth year (checked under § 17 Abs. 4 BEEG). */
+  readonly motherVacationDaysTakenPreLeave?: number;
 }
 
 /**
@@ -2450,6 +2575,8 @@ export interface WorkingHoursChangeAction {
   readonly weeklyHours: WorkingHours;
   /** Rationale explaining the schedule adjustment (e.g. returning from parental leave). */
   readonly reason: string;
+  /** Optional exact effective date (`YYYY-MM-DD`) for day-exact boundary proration and Life-Month checks. */
+  readonly effectiveDate?: IsoCalendarDate;
 }
 
 /**
