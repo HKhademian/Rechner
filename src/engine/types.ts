@@ -858,8 +858,11 @@ export function toWorkingHours(val: number): WorkingHours {
  * @throws {TypeError} if value is not a finite number.
  */
 export function toEuroAmount(val: number): EuroAmount {
-  if (typeof val !== "number" || Number.isNaN(val) || !Number.isFinite(val)) {
+  if (typeof val !== "number" || !Number.isFinite(val)) {
     throw new TypeError(`Invalid EuroAmount: ${val}. Must be a valid number.`);
+  }
+  if (Number.isInteger(val) && val >= -90071992547409 && val <= 90071992547409) {
+    return (val === 0 ? 0 : val) as EuroAmount;
   }
   const [coefficient, exponent = "0"] = Math.abs(val).toString().split("e");
   const cents = Math.round(Number(`${coefficient}e${Number(exponent) + 2}`));

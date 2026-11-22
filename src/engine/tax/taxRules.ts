@@ -125,24 +125,55 @@ export const VERIFIED_TAX_YEARS: readonly FullCalendarYear[] = Object.freeze(
 
 export const DEFAULT_TAX_YEAR = toFullCalendarYear(Math.max(...VERIFIED_TAX_YEARS));
 
+const DEFAULT_TAX_RULES_BY_YEAR = new Map<FullCalendarYear, TaxRules>();
+const CUSTOM_TAX_RULES_CACHE = new Map<string, TaxRules>();
+const MAX_CUSTOM_TAX_RULES_CACHE = 256;
+
 /** Explicit latest-known-rules projection, never an invented future statutory profile. */
 export function createTaxRules(
   calendarYear: FullCalendarYear = DEFAULT_TAX_YEAR,
   overrides: unknown = {},
 ): TaxRules {
   const requested = toFullCalendarYear(calendarYear);
-  const year = Object.keys(profiles).map(Number).filter((value) => value <= requested).sort((a, b) => b - a)[0];
-  if (year === undefined) {
-    throw new TypeError(`No verified tax rules available for ${requested}.`);
-  }
   if (typeof overrides !== "object" || overrides === null || Array.isArray(overrides)) {
     throw new TypeError("Tax parameter overrides must be an object.");
   }
   const input = overrides as Record<string, unknown>;
-  for (const key of Object.keys(input)) {
+  const overrideKeys = Object.keys(input);
+  let hasDefinedOverride = false;
+  for (const key of overrideKeys) {
     if (!Object.hasOwn(constructors, key)) {
       throw new TypeError(`Unknown tax parameter: ${key}`);
     }
+    if (input[key] !== undefined) {
+      if (typeof input[key] !== "number") {
+        throw new TypeError(`Tax parameter ${key} must be a number.`);
+      }
+      hasDefinedOverride = true;
+    }
+  }
+  let customCacheKey = "";
+  if (!hasDefinedOverride) {
+    const cachedDefault = DEFAULT_TAX_RULES_BY_YEAR.get(requested);
+    if (cachedDefault) {
+      return cachedDefault;
+    }
+  }
+  else {
+    customCacheKey = `${requested}|${overrideKeys
+      .filter((k) => input[k] !== undefined)
+      .sort()
+      .map((k) => `${k}=${String(input[k])}`)
+      .join("|")}`;
+    const cachedCustom = CUSTOM_TAX_RULES_CACHE.get(customCacheKey);
+    if (cachedCustom) {
+      return cachedCustom;
+    }
+  }
+
+  const year = Object.keys(profiles).map(Number).filter((value) => value <= requested).sort((a, b) => b - a)[0];
+  if (year === undefined) {
+    throw new TypeError(`No verified tax rules available for ${requested}.`);
   }
   const profile = profiles[String(year) as keyof typeof profiles];
   const entries = Object.entries(constructors).map(([key, construct]) => {
@@ -171,7 +202,7 @@ export function createTaxRules(
   ) {
     throw new TypeError("Tax parameter thresholds or contribution limits are inconsistent.");
   }
-  return Object.freeze({
+  const built = Object.freeze({
     calendarYear: requested,
     sourceYear: toFullCalendarYear(year),
     effectiveFrom: profile.effectiveFrom,
@@ -180,6 +211,19 @@ export function createTaxRules(
     projected: requested !== year,
     parameters: Object.freeze(parameters),
   });
+  if (!hasDefinedOverride) {
+    DEFAULT_TAX_RULES_BY_YEAR.set(requested, built);
+  }
+  else {
+    if (CUSTOM_TAX_RULES_CACHE.size >= MAX_CUSTOM_TAX_RULES_CACHE) {
+      const oldestKey = CUSTOM_TAX_RULES_CACHE.keys().next().value;
+      if (oldestKey !== undefined) {
+        CUSTOM_TAX_RULES_CACHE.delete(oldestKey);
+      }
+    }
+    CUSTOM_TAX_RULES_CACHE.set(customCacheKey, built);
+  }
+  return built;
 }
 
 export const DEFAULT_TAX_RULES = createTaxRules();

@@ -147,6 +147,64 @@ export function payrollInputs(
   };
 }
 
+const SUPPORTED_PAP_OVERRIDES: ReadonlySet<string> = new Set([
+  "healthSupplementTotalRate",
+  "churchRateBavariaBadenWuerttemberg",
+  "churchRateOther",
+]);
+const PAP_OVERRIDE_VALIDATION_CACHE = new WeakMap<TaxRules, string | null>();
+const PAP_OUTPUT_CACHE = new Map<string, LohnsteuerOutputs>();
+const MAX_PAP_OUTPUT_CACHE = 4096;
+
+const STANDARD_PAP_KEYS: ReadonlySet<string> = new Set([
+  "LZZ",
+  "RE4",
+  "STKL",
+  "KRV",
+  "ALV",
+  "PKV",
+  "KVZ",
+  "PVZ",
+  "PVA",
+  "PVS",
+  "ZKF",
+  "R",
+  "af",
+  "f",
+  "ALTER1",
+  "AJAHR",
+  "JRE4",
+  "SONSTB",
+  "LZZHINZU",
+]);
+
+function buildPapCacheKey(
+  sourceYear: number,
+  inputs: LohnsteuerInputs,
+): string {
+  const rec = inputs as Record<string, unknown>;
+  let key = `${sourceYear}|${rec.LZZ ?? ""}|${rec.RE4 ?? ""}|${rec.STKL ?? ""}|${rec.KRV ?? ""}|${rec.ALV ?? ""}|${rec.PKV ?? ""}|${rec.KVZ ?? ""}|${rec.PVZ ?? ""}|${rec.PVA ?? ""}|${rec.PVS ?? ""}|${rec.ZKF ?? ""}|${rec.R ?? ""}|${rec.af ?? ""}|${rec.f ?? ""}|${rec.ALTER1 ?? ""}|${rec.AJAHR ?? ""}|${rec.JRE4 ?? ""}|${rec.SONSTB ?? ""}|${rec.LZZHINZU ?? ""}`;
+  let extraKeys: string[] | undefined;
+  for (const k in rec) {
+    if (rec[k] !== undefined && !STANDARD_PAP_KEYS.has(k)) {
+      if (extraKeys === undefined) {
+        extraKeys = [k];
+      }
+      else {
+        extraKeys.push(k);
+      }
+    }
+  }
+  if (extraKeys !== undefined) {
+    extraKeys.sort();
+    for (let i = 0; i < extraKeys.length; i++) {
+      const k = extraKeys[i];
+      key += `|${k}=${String(rec[k])}`;
+    }
+  }
+  return key;
+}
+
 /** Pure offline PAP evaluation. Exact-year constants are owned by the pinned, source-traceable PAP. */
 export function calculatePayrollWithholding(
   inputs: LohnsteuerInputs,
@@ -154,12 +212,35 @@ export function calculatePayrollWithholding(
 ): LohnsteuerOutputs {
   // PAP owns the published year's tariff and insurance deduction algorithm.
   // Do not silently promise arbitrary tariff overrides that its API cannot apply.
-  const supported = new Set(["healthSupplementTotalRate", "churchRateBavariaBadenWuerttemberg", "churchRateOther"]);
-  const unsupported = Object.entries(rules.parameters).filter(([key, parameter]) => parameter.overridden && !supported.has(key));
-  if (unsupported.length > 0) {
-    throw new TypeError(`Published PAP withholding cannot apply these custom annual parameters: ${unsupported.map(([key]) => key).join(", ")}.`);
+  let validationError = PAP_OVERRIDE_VALIDATION_CACHE.get(rules);
+  if (validationError === undefined) {
+    const unsupported = Object.entries(rules.parameters).filter(
+      ([key, parameter]) => parameter.overridden && !SUPPORTED_PAP_OVERRIDES.has(key),
+    );
+    validationError = unsupported.length > 0
+      ? `Published PAP withholding cannot apply these custom annual parameters: ${unsupported.map(([key]) => key).join(", ")}.`
+      : null;
+    PAP_OVERRIDE_VALIDATION_CACHE.set(rules, validationError);
   }
-  return calculate(rules.sourceYear, inputs);
+  if (validationError !== null) {
+    throw new TypeError(validationError);
+  }
+
+  const cacheKey = buildPapCacheKey(rules.sourceYear, inputs);
+  const cached = PAP_OUTPUT_CACHE.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const output = Object.freeze(calculate(rules.sourceYear, inputs));
+  if (PAP_OUTPUT_CACHE.size >= MAX_PAP_OUTPUT_CACHE) {
+    const oldestKey = PAP_OUTPUT_CACHE.keys().next().value;
+    if (oldestKey !== undefined) {
+      PAP_OUTPUT_CACHE.delete(oldestKey);
+    }
+  }
+  PAP_OUTPUT_CACHE.set(cacheKey, output);
+  return output;
 }
 
 /**

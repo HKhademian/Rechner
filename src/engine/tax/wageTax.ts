@@ -305,6 +305,20 @@ export function computeBonusSocialInsurance(
     totalSocialSecurity: toEuroAmount(healthInsurance + careInsurance + pensionInsurance + unemploymentInsurance) };
 }
 
+const GROSS_TO_NET_CACHE = new WeakMap<TaxRules, Map<string, GrossToNetBreakdown>>();
+const MAX_GROSS_TO_NET_CACHE_PER_RULES = 2048;
+
+function buildGrossToNetCacheKey(
+  monthlyGross: GrossSalary,
+  taxClass: TaxClass,
+  children: number,
+  bonus: EuroAmount,
+  taxFactor: TaxFactor | undefined,
+  options: PayrollOptions,
+): string {
+  return `${monthlyGross}|${taxClass}|${children}|${bonus}|${taxFactor ?? ""}|${options.healthSupplementTotalRate ?? ""}|${options.ageAtYearStart ?? ""}|${options.childrenUnder25 ?? ""}|${options.isParent === undefined ? "" : options.isParent ? "1" : "0"}|${options.saxony === undefined ? "" : options.saxony ? "1" : "0"}|${options.churchTaxRate ?? ""}|${options.childAllowanceFactor ?? ""}|${options.contributionMonthsYearToDate ?? ""}|${options.priorBonusGrossYearToDate ?? ""}|${options.regularGrossYearToDate ?? ""}|${options.expectedRegularAnnualGross ?? ""}|${options.expectedMonthlyEmploymentGross ?? ""}|${options.regularHealthAssessmentYearToDate ?? ""}|${options.regularPensionAssessmentYearToDate ?? ""}|${options.bonusHealthAssessmentYearToDate ?? ""}|${options.bonusPensionAssessmentYearToDate ?? ""}`;
+}
+
 /** Standard public-insurance employee payroll with source-year PAP withholding. */
 export function computeGrossToNetBreakdown(
   monthlyGross: GrossSalary,
@@ -320,6 +334,27 @@ export function computeGrossToNetBreakdown(
   if (bonus < 0) {
     throw new TypeError("A payroll bonus cannot be negative.");
   }
+
+  let rulesCache = GROSS_TO_NET_CACHE.get(rules);
+  const cacheKey = buildGrossToNetCacheKey(
+    monthlyGross,
+    taxClass,
+    children,
+    bonus,
+    taxFactor,
+    options,
+  );
+  if (rulesCache !== undefined) {
+    const cached = rulesCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+  }
+  else {
+    rulesCache = new Map();
+    GROSS_TO_NET_CACHE.set(rules, rulesCache);
+  }
+
   const inputs = payrollInputs(monthlyGross, taxClass, children, rules, options, taxFactor);
   const annualGross = options.expectedRegularAnnualGross ?? toGrossSalary(monthlyGross * 12);
   const output = calculatePayrollWithholding({ ...inputs,
@@ -370,7 +405,7 @@ export function computeGrossToNetBreakdown(
   if (rules.projected) {
     assumptions.push(`Published ${rules.sourceYear} payroll rules are projected to ${rules.calendarYear}.`);
   }
-  return {
+  const breakdown: GrossToNetBreakdown = Object.freeze({
     payrollLimitations: Object.freeze(payrollLimitations),
     expectedMonthlyEmploymentGross,
     monthlyGross,
@@ -404,9 +439,17 @@ export function computeGrossToNetBreakdown(
     elterngeldSyntheticNet: regularNetTakeHome,
     effectiveTaxRatePercent: toPercentageRate(totalGross > 0 ? totalTaxWithholding / totalGross : 0),
     effectiveTotalDeductionRatePercent: toPercentageRate(totalGross > 0 ? (totalTaxWithholding + social.totalSocialSecurity + bonusSocialSecurity) / totalGross : 0),
-    assumptions,
+    assumptions: Object.freeze(assumptions),
     statutoryCitation: toStatutoryCitation("EStG § 39b (BMF PAP), § 39f & SGB V/VI/III/XI"),
-  };
+  });
+  if (rulesCache.size >= MAX_GROSS_TO_NET_CACHE_PER_RULES) {
+    const oldestKey = rulesCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      rulesCache.delete(oldestKey);
+    }
+  }
+  rulesCache.set(cacheKey, breakdown);
+  return breakdown;
 }
 
 export function computeMonthlyNetSalary(
