@@ -1,0 +1,592 @@
+/* =========================================================================
+   Life Planner Workbench — Scoped Tokenized Stylesheet (Concept A)
+   100% design-system tokenized across swiss / editorial / utility x light/dark.
+   ========================================================================= */
+
+.lpw-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.lpw-layout > * {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Row 1: Quiet Command Header ─────────────────────────────────────────── */
+
+.lpw-command-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.lpw-command-header__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.lpw-command-header__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lpw-command-header__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.lpw-command-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ── Summary Strip Pills ─────────────────────────────────────────────────── */
+
+.lpw-summary-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.lpw-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.lpw-summary-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--text-primary);
+}
+
+.lpw-summary-pill strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ── Plan Menu Popover ───────────────────────────────────────────────────── */
+
+.lpw-popover-anchor {
+  position: relative;
+}
+
+.lpw-plan-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.lpw-plan-menu-trigger:hover {
+  border-color: var(--color-primary);
+}
+
+.lpw-plan-menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  min-width: 268px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  z-index: var(--z-popover, 40);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lpw-plan-menu__section {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-2xs, 0.7rem);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.lpw-plan-menu__divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: var(--space-1) 0;
+}
+
+.lpw-plan-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lpw-plan-menu__item:hover,
+.lpw-plan-menu__item--active {
+  background: var(--bg-subtle);
+}
+
+.lpw-plan-menu__item--danger {
+  color: var(--color-loss);
+}
+
+.lpw-plan-menu__item-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Row 2: Unified Workspace Bar ────────────────────────────────────────── */
+
+.lpw-workspace-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.lpw-workspace-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.lpw-workspace-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.lpw-workspace-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lpw-workspace-tab:hover {
+  color: var(--text-primary);
+}
+
+.lpw-workspace-tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lpw-scenario-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.lpw-segmented {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  padding: 2px;
+  gap: 2px;
+}
+
+.lpw-segmented__btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 4px var(--space-2);
+  border-radius: calc(var(--radius-control) - 2px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lpw-segmented__btn--active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-xs);
+}
+
+.lpw-status-pill {
+  font-size: var(--font-size-2xs, 0.72rem);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Contextual Disaster Control Bar ─────────────────────────────────────── */
+
+.lpw-disaster-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--color-warning);
+  border-radius: var(--radius-card);
+}
+
+.lpw-disaster-bar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.lpw-disaster-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.lpw-chip {
+  padding: 4px var(--space-2);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--bg-app);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.lpw-chip--active {
+  border-color: var(--color-primary);
+  background: var(--bg-subtle);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lpw-slider-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.lpw-slider-group input[type="range"] {
+  width: 150px;
+  accent-color: var(--color-primary);
+}
+
+.lpw-affordability-readout {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.lpw-affordability-readout strong {
+  color: var(--text-primary);
+}
+
+/* ── Main Canvas, KPI Grid & Cards ───────────────────────────────────────── */
+
+.lpw-canvas-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.lpw-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.lpw-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lpw-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.lpw-card__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.lpw-hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* ── Diagnostics Strip ───────────────────────────────────────────────────── */
+
+.lpw-diagnostics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.lpw-diag-card {
+  padding: var(--space-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.lpw-diag-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.lpw-diag-card__body {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Institutional Data Tables ───────────────────────────────────────────── */
+
+.lpw-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.lpw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.lpw-table th,
+.lpw-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.lpw-table th {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+}
+
+.lpw-table th.lpw-num,
+.lpw-table td.lpw-num {
+  text-align: right;
+}
+
+.lpw-gain {
+  color: var(--color-gain);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lpw-loss {
+  color: var(--color-loss);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lpw-milestone-row td {
+  background: var(--bg-subtle);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-2xs, 0.72rem);
+}
+
+/* ── Slide-Over Plan Inputs Drawer ───────────────────────────────────────── */
+
+.lpw-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--text-primary) 35%, transparent);
+  z-index: var(--z-modal, 60);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lpw-drawer {
+  width: min(460px, 100vw);
+  height: 100vh;
+  background: var(--bg-app);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lpw-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.lpw-drawer__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.lpw-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lpw-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.lpw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lpw-field label {
+  font-size: var(--font-size-2xs, 0.72rem);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.lpw-field input,
+.lpw-field select {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-control);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.lpw-event-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lpw-event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--bg-app);
+  font-size: var(--font-size-xs);
+}
+
+/* ── Responsive Breakpoints (1180px, 900px, 640px) ───────────────────────── */
+
+@media (max-width: 1180px) {
+  .lpw-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .lpw-diagnostics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .lpw-kpi-grid,
+  .lpw-field-grid {
+    grid-template-columns: 1fr;
+  }
+}
