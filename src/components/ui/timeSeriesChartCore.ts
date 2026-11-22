@@ -376,6 +376,7 @@ export function TimeSeriesChartCore<TKey extends string = string, TMeta = undefi
                   "ui-chart__overlay-swatch",
                   overlay.swatchClass ?? "",
                 ].filter(Boolean).join(" "),
+                style: overlay.swatchClass ? undefined : { "--series-color": overlay.color },
               }),
               h("span", null, overlay.label),
             ],
@@ -395,6 +396,7 @@ export function TimeSeriesChartCore<TKey extends string = string, TMeta = undefi
               "data-series-key": item.key,
               "aria-pressed": isVisible,
               onClick: () => toggleSeries(item.key),
+              style: item.seriesClass ? undefined : { "--series-color": item.color },
               className: [
                 "ui-chart__series-btn",
                 item.seriesClass ?? "",
@@ -818,6 +820,7 @@ export function TimeSeriesChartCore<TKey extends string = string, TMeta = undefi
                       "ui-chart__overlay-swatch",
                       overlay.swatchClass ?? "",
                     ].filter(Boolean).join(" "),
+                    style: overlay.swatchClass ? undefined : { "--series-color": overlay.color },
                   }),
                   `${overlay.label}:`,
                 ]),
@@ -849,6 +852,7 @@ export function TimeSeriesChartCore<TKey extends string = string, TMeta = undefi
                 "div",
                 {
                   key: item.key,
+                  style: item.seriesClass ? undefined : { "--series-color": item.color },
                   className: [
                     "ui-chart__tooltip-row",
                     item.seriesClass ?? "",
