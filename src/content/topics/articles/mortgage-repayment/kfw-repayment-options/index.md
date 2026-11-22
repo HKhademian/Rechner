@@ -12,16 +12,19 @@
 
 # KfW interest-only periods and lump sums
 
-The nominal annual interest rate is the rate used to calculate interest; the effective rate can also reflect certain costs. The loan term is how long the loan runs. During an interest-only period you pay interest but do not reduce the loan balance. With a lump-sum loan, the borrowed principal is due at the end of its term.
+The nominal annual interest rate (*Sollzinssatz*) is used to calculate monthly interest. KfW 300 loans are commonly offered in two structures:
+
+- **Annuity with interest-only startup (*Annuitätendarlehen* + *Tilgungsfreie Anlaufjahre*)**: Typically 10, 20, 25, or 35 years total term with **1 to 5 interest-only years** at the start. During grace years you pay only monthly interest (`Principal × Rate / 12`); afterward, the full principal is amortized over the remaining `(Term − Grace) × 12` months.
+- **Lump-sum / Balloon (*Endfälliges Darlehen*)**: Typically up to 10 years. Monthly payments cover interest only, and 100% of the principal is due at maturity.
 
 ## Potential benefit
 
-An interest-only period can reduce the initial monthly payment, while repayment of the principal is postponed.
+An interest-only period lowers your combined Bank + KfW monthly payment during the initial years after moving in, while deferring principal repayment.
 
 ## Conditions and limitations
 
-The debt remains outstanding during that period, and later payments or the final lump sum must still be paid. Available KfW terms depend on the offer and program.
+Because principal is not reduced during interest-only years, the monthly payment steps up once repayment begins. KfW typically fixes the nominal rate for **10 years** (*Zinsbindung*), after which a new follow-up rate applies.
 
 ## In the calculators
 
-Enter the terms from your offer. The simulator models either an initial interest-only period followed by monthly repayment, or interest-only payments followed by a lump sum; it does not check whether the chosen terms are offered.
+The [Mortgage Simulator](rechner://app/mortgage) provides editable KfW 300 presets (such as 35y / 5y grace, 25y / 3y grace, 20y / 2y grace, 10y / 1y grace, and 10y balloon) with an illustrative nominal rate so the charts and monthly/annual repayment ledger work immediately. Replace the illustrative rate with your actual KfW offer from your bank.
