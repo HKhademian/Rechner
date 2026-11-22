@@ -40,6 +40,7 @@ import KpiScorecard from "#components/elterngeld/KpiScorecard";
 import ScenarioSelector from "#components/elterngeld/ScenarioSelector";
 import TimelineChart from "#components/elterngeld/TimelineChart";
 import SandboxControls from "#components/elterngeld/SandboxControls";
+import StatutoryActionTimeline from "#components/elterngeld/StatutoryActionTimeline";
 import RulesExplainer from "#components/elterngeld/RulesExplainer";
 import TimelineTable from "#components/elterngeld/TimelineTable";
 import {
@@ -163,6 +164,9 @@ export default function ElterngeldDashboard(): JSX.Element {
           <KpiScorecard />
 
           <AnnualTaxableIncome />
+
+          {/* Prioritized Statutory Deadlines, Tax-Switch Guards & Vacation Optimizer */}
+          <StatutoryActionTimeline />
 
           {/* Full 60-Month Cash Flow Table & Audit */}
           <TimelineTable />

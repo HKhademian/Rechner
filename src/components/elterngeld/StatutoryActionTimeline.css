@@ -1,0 +1,285 @@
+/* =========================================================================
+   Statutory Action Timeline, Deadlines & Vacation Optimization Panel
+   Uses strictly institutional design tokens (Rule 19 & 22).
+   ========================================================================= */
+
+.sat-section {
+  margin: var(--space-5) 0;
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.sat-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.sat-header__eyebrow {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  margin-bottom: var(--space-1);
+}
+
+.sat-header__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.sat-header__subtitle {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.sat-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sat-filter-btn {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-secondary);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.sat-filter-btn:hover {
+  border-color: var(--color-primary-border);
+  color: var(--text-primary);
+}
+
+.sat-filter-btn.is-active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.sat-filter-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.sat-hint-banner {
+  margin-bottom: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-bg);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.sat-vacation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.sat-vacation-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-secondary);
+}
+
+.sat-vacation-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.sat-vacation-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.sat-vacation-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.sat-stat {
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.sat-stat__label {
+  font-size: var(--font-size-2xs);
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.sat-stat__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.sat-vacation-callout {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+}
+
+.sat-vacation-callout--optimal {
+  background: var(--color-gain-bg);
+  border: 1px solid var(--color-gain-border);
+  color: var(--color-gain);
+}
+
+.sat-vacation-callout--warning {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.sat-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sat-item {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.sat-item--warning {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+}
+
+.sat-item--optimal {
+  border-color: var(--color-gain-border);
+}
+
+.sat-item__date-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sat-item__date {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.sat-item__window {
+  font-size: var(--font-size-2xs);
+  color: var(--text-secondary);
+}
+
+.sat-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sat-item__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sat-item__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.sat-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-2xs);
+  color: var(--text-secondary);
+}
+
+.sat-item__summary {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.sat-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.sat-pill--optimal {
+  background: var(--color-gain-bg);
+  border: 1px solid var(--color-gain-border);
+  color: var(--color-gain);
+}
+
+.sat-pill--warning {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.sat-pill--action {
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.sat-pill--info {
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .sat-item {
+    grid-template-columns: 1fr;
+  }
+
+  .sat-vacation-stats {
+    grid-template-columns: 1fr;
+  }
+}
