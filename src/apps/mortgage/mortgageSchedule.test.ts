@@ -99,7 +99,11 @@ describe("mortgageSchedule combined Bank + KfW monthly/annual ledger engine", ()
     assert.equal(schedule.years[1].months[11].kfwPayment, 100100);
   });
 
-  it("generates monotonic term sensitivity curves and illustrative KfW 300 monthly estimates", () => {
+  it("generates monotonic term sensitivity curves, blended rates, and Munich regional presets", async () => {
+    const {
+      MUNICH_SCENARIO_PRESETS,
+      calculateBlendedAnnualRate,
+    } = await import("#/apps/mortgage/mortgageSchedule.ts");
     const points = buildTermSensitivityPoints(toEuroAmount(300000), toPercentageRate(0.036), 10, 35, 5);
     assert.equal(points.length, 6);
     assert.ok(points[0].monthlyPayment > points[5].monthlyPayment);
@@ -109,5 +113,15 @@ describe("mortgageSchedule combined Bank + KfW monthly/annual ledger engine", ()
     assert.ok(preview.initialMonthly > 0);
     assert.ok(preview.laterMonthly > preview.initialMonthly);
     assert.equal(KFW_300_PRESETS.length, 5);
+    assert.equal(MUNICH_SCENARIO_PRESETS.length, 4);
+
+    // Munich worked example: €430k @ 3.60% + €170k @ 0.01% => ~2.58% blended
+    const blended = calculateBlendedAnnualRate(
+      toEuroAmount(430000),
+      toPercentageRate(0.036),
+      toEuroAmount(170000),
+      toPercentageRate(0.0001),
+    );
+    assert.ok(blended !== null && Math.abs(blended - 0.025828) < 0.0002);
   });
 });

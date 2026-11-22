@@ -16,7 +16,10 @@ import {
   toMortgageYears,
 } from "#/apps/mortgage/mortgageCalculation.ts";
 
-/** Standard KfW 300 repayment presets matching common program structures (Rule 11). */
+/** Reference date of the official KfW 300 nominal/effective rate tiers shown as editable defaults. */
+export const KFW_300_RATES_AS_OF = "2026-11-17";
+
+/** Standard KfW 300 repayment presets matching official KfW term & grace tiers (Rule 11). */
 export const Kfw300PresetId = {
   Standard35Grace5: "standard-35-grace-5",
   Standard25Grace3: "standard-25-grace-3",
@@ -31,71 +34,189 @@ export interface Kfw300Preset {
   readonly label: string;
   readonly shortLabel: string;
   readonly description: string;
+  readonly termTierLabel: string;
+  readonly allowedGraceRange: string;
   readonly termYears: number;
   readonly graceYears: number;
   readonly method: LoanRepaymentMethod;
-  /** Illustrative nominal annual interest rate in percent (e.g. 1.5 for 1.50%). */
+  /** Reference KfW 300 nominal annual interest rate in percent (as of KFW_300_RATES_AS_OF). */
   readonly illustrativeRatePercent: number;
 }
 
 /**
- * Editable illustrative KfW 300 presets so the simulator produces immediate,
- * realistic projections before the user replaces the rate with their bank offer.
+ * Editable KfW 300 presets reflecting official KfW term tiers, allowed grace periods
+ * (Tilgungsfreie Anlaufjahre), 10-year fixed-rate period, and Nov 2026 reference rates.
  */
 export const KFW_300_PRESETS: readonly Kfw300Preset[] = Object.freeze([
   Object.freeze({
     id: Kfw300PresetId.Standard35Grace5,
-    label: "35 yr · 5 yr interest-only (Annuity)",
-    shortLabel: "35y / 5y grace",
-    description: "Longest KfW 300 repayment horizon with maximum 5 interest-only startup years.",
+    label: "35 yr · 5 yr interest-only (0.78% ref)",
+    shortLabel: "35y / 5y (0.78%)",
+    description: "26–35 yr tier · 1–5 interest-only years · 10 yr fixed rate (0.78% p.a. ref).",
+    termTierLabel: "26–35 years",
+    allowedGraceRange: "1–5 years",
     termYears: 35,
     graceYears: 5,
     method: LoanRepaymentMethod.Annuity,
-    illustrativeRatePercent: 1.5,
+    illustrativeRatePercent: 0.78,
   }),
   Object.freeze({
     id: Kfw300PresetId.Standard25Grace3,
-    label: "25 yr · 3 yr interest-only (Annuity)",
-    shortLabel: "25y / 3y grace",
-    description: "Balanced 25-year amortization with 3 interest-only startup years.",
+    label: "25 yr · 3 yr interest-only (0.51% ref)",
+    shortLabel: "25y / 3y (0.51%)",
+    description: "11–25 yr tier · 1–3 interest-only years · 10 yr fixed rate (0.51% p.a. ref).",
+    termTierLabel: "11–25 years",
+    allowedGraceRange: "1–3 years",
     termYears: 25,
     graceYears: 3,
     method: LoanRepaymentMethod.Annuity,
-    illustrativeRatePercent: 1.4,
+    illustrativeRatePercent: 0.51,
   }),
   Object.freeze({
     id: Kfw300PresetId.Standard20Grace2,
-    label: "20 yr · 2 yr interest-only (Annuity)",
-    shortLabel: "20y / 2y grace",
-    description: "Faster 20-year payoff with 2 interest-only startup years.",
+    label: "20 yr · 2 yr interest-only (0.51% ref)",
+    shortLabel: "20y / 2y (0.51%)",
+    description: "11–25 yr tier · 1–3 interest-only years · 10 yr fixed rate (0.51% p.a. ref).",
+    termTierLabel: "11–25 years",
+    allowedGraceRange: "1–3 years",
     termYears: 20,
     graceYears: 2,
     method: LoanRepaymentMethod.Annuity,
-    illustrativeRatePercent: 1.3,
+    illustrativeRatePercent: 0.51,
   }),
   Object.freeze({
     id: Kfw300PresetId.Standard10Grace1,
-    label: "10 yr · 1 yr interest-only (Annuity)",
-    shortLabel: "10y / 1y grace",
-    description: "Short 10-year full amortization matching the 10-year fixed-rate period.",
+    label: "10 yr · 1 yr interest-only (0.01% ref)",
+    shortLabel: "10y / 1y (0.01%)",
+    description: "4–10 yr tier · 1–2 interest-only years · 10 yr fixed rate (0.01% p.a. ref).",
+    termTierLabel: "4–10 years",
+    allowedGraceRange: "1–2 years",
     termYears: 10,
     graceYears: 1,
     method: LoanRepaymentMethod.Annuity,
-    illustrativeRatePercent: 1.1,
+    illustrativeRatePercent: 0.01,
   }),
   Object.freeze({
     id: Kfw300PresetId.Balloon10,
-    label: "10 yr · Lump sum at end (Endfällig)",
-    shortLabel: "10y Balloon",
-    description: "Interest-only monthly payments for 10 years, full principal due at maturity.",
+    label: "10 yr Balloon / Endfällig (0.93% ref)",
+    shortLabel: "10y Balloon (0.93%)",
+    description: "4–10 yr endfälliges Darlehen · interest-only for 10 yr, full lump sum at end (0.93% p.a. ref).",
+    termTierLabel: "4–10 years",
+    allowedGraceRange: "Entire term",
     termYears: 10,
     graceYears: 0,
     method: LoanRepaymentMethod.Balloon,
-    illustrativeRatePercent: 1.1,
+    illustrativeRatePercent: 0.93,
   }),
 ]);
 
 export const DEFAULT_KFW_300_PRESET: Kfw300Preset = KFW_300_PRESETS[0];
+
+/** Regional target comparison presets anchored to Munich & surrounding towns (Bavaria 3.5% GrESt). */
+export const RegionalScenarioId = {
+  MunichUmlandEh40: "munich-umland-eh40",
+  MunichCityEh40: "munich-city-eh40",
+  MunichCityQng: "munich-city-qng",
+  MunichCity10yUltraLow: "munich-city-10y-001",
+} as const;
+export type RegionalScenarioId = (typeof RegionalScenarioId)[keyof typeof RegionalScenarioId];
+
+export interface RegionalMortgageScenario {
+  readonly id: RegionalScenarioId;
+  readonly label: string;
+  readonly shortLabel: string;
+  readonly description: string;
+  readonly propertyPrice: number;
+  readonly savings: number;
+  /** Bavaria 3.5% GrESt + ~2.0% notary/land registry (new build direct from developer, 0% broker). */
+  readonly closingCosts: number;
+  readonly bankPrincipal: number;
+  readonly bankInterest: number;
+  readonly bankRepayment: number;
+  readonly kfwPrincipal: number;
+  readonly kfwPresetId: Kfw300PresetId;
+  readonly horizonYears: number;
+  readonly netIncome: number;
+  readonly expenses: number;
+  readonly housingCosts: number;
+}
+
+export const MUNICH_SCENARIO_PRESETS: readonly RegionalMortgageScenario[] = Object.freeze([
+  Object.freeze({
+    id: RegionalScenarioId.MunichUmlandEh40,
+    label: "Munich Umland (Dachau / FFB / Freising) · EH 40 · 2 Kids",
+    shortLabel: "Munich Umland (EH 40)",
+    description: "€620k new build in surrounding Munich towns, €130k equity, Bavaria 3.5% GrESt + 2% notary, €170k KfW 300 (35y/5y @ 0.78%).",
+    propertyPrice: 620000,
+    savings: 130000,
+    closingCosts: 34100,
+    bankPrincipal: 354100,
+    bankInterest: 3.6,
+    bankRepayment: 2,
+    kfwPrincipal: 170000,
+    kfwPresetId: Kfw300PresetId.Standard35Grace5,
+    horizonYears: 15,
+    netIncome: 6200,
+    expenses: 2400,
+    housingCosts: 480,
+  }),
+  Object.freeze({
+    id: RegionalScenarioId.MunichCityEh40,
+    label: "Munich City · EH 40 Terraced House / 4-Room Flat · 2 Kids",
+    shortLabel: "Munich City (EH 40)",
+    description: "€750k new build in Munich, €150k equity, Bavaria 3.5% GrESt + 2% notary, €170k KfW 300 (25y/3y @ 0.51%).",
+    propertyPrice: 750000,
+    savings: 150000,
+    closingCosts: 41250,
+    bankPrincipal: 471250,
+    bankInterest: 3.6,
+    bankRepayment: 2,
+    kfwPrincipal: 170000,
+    kfwPresetId: Kfw300PresetId.Standard25Grace3,
+    horizonYears: 15,
+    netIncome: 7200,
+    expenses: 2700,
+    housingCosts: 550,
+  }),
+  Object.freeze({
+    id: RegionalScenarioId.MunichCityQng,
+    label: "Munich City · EH 40 + QNG Certificate · 2 Kids",
+    shortLabel: "Munich City (+QNG €220k)",
+    description: "€750k QNG-certified new build in Munich, €150k equity, €220k KfW 300 (25y/3y @ 0.51%) replacing expensive bank debt.",
+    propertyPrice: 750000,
+    savings: 150000,
+    closingCosts: 41250,
+    bankPrincipal: 421250,
+    bankInterest: 3.6,
+    bankRepayment: 2,
+    kfwPrincipal: 220000,
+    kfwPresetId: Kfw300PresetId.Standard25Grace3,
+    horizonYears: 15,
+    netIncome: 7200,
+    expenses: 2700,
+    housingCosts: 550,
+  }),
+  Object.freeze({
+    id: RegionalScenarioId.MunichCity10yUltraLow,
+    label: "Munich City · 10y Fast Payoff KfW (0.01% Rate)",
+    shortLabel: "Munich 10y (0.01%)",
+    description: "€750k new build, €170k KfW 300 at 0.01% over 10 yrs (1 yr grace) — highest monthly cash flow but near-zero KfW interest.",
+    propertyPrice: 750000,
+    savings: 150000,
+    closingCosts: 41250,
+    bankPrincipal: 471250,
+    bankInterest: 3.6,
+    bankRepayment: 2,
+    kfwPrincipal: 170000,
+    kfwPresetId: Kfw300PresetId.Standard10Grace1,
+    horizonYears: 15,
+    netIncome: 7800,
+    expenses: 2700,
+    housingCosts: 550,
+  }),
+]);
+
+export const DEFAULT_REGIONAL_SCENARIO: RegionalMortgageScenario = MUNICH_SCENARIO_PRESETS[0];
 
 /** Current repayment phase of the KfW loan in a given month or year (Rule 11). */
 export const KfwLoanPhase = {
@@ -178,6 +299,25 @@ export interface TermSensitivityPoint {
 }
 
 const toCents = (amount: number): number => Math.round((amount + Number.EPSILON) * 100);
+
+/**
+ * Computes the weighted blended annual interest rate across the commercial bank loan
+ * and the subsidized KfW 300 loan (e.g. 3.60% bank + 0.51% KfW -> ~2.6% blended).
+ */
+export function calculateBlendedAnnualRate(
+  bankPrincipal: EuroAmount,
+  bankRate: PercentageRate,
+  kfwPrincipal: EuroAmount,
+  kfwRate: PercentageRate | null,
+): PercentageRate | null {
+  const effectiveKfw = kfwRate !== null && kfwPrincipal > 0 ? kfwPrincipal : 0;
+  const total = bankPrincipal + effectiveKfw;
+  if (total <= 0) {
+    return null;
+  }
+  const weighted = bankPrincipal * bankRate + effectiveKfw * (kfwRate ?? 0);
+  return toPercentageRate(weighted / total);
+}
 
 /**
  * Builds a cent-exact combined monthly and annual repayment schedule for both
@@ -340,6 +480,9 @@ export function buildCombinedMortgageSchedule(
     const milestones: string[] = [];
     if (kfwGraceEndedThisYear && hasKfw) {
       milestones.push("KfW interest-only period ends — full repayment starts next year");
+    }
+    if (hasKfw && year === 10 && kfwBalanceCents > 0) {
+      milestones.push("KfW 10-year fixed-rate period (Zinsbindung) ends — follow-up market rate applies");
     }
     if (kfwBalloonDueThisYear && hasKfw) {
       milestones.push("KfW balloon lump sum due at maturity");
