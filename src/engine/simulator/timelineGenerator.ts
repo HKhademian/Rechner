@@ -37,6 +37,9 @@ import {
   evaluatePurchasingPowerDiscountFormula,
 } from "#engine/formulas/pure/inflationFormulas";
 import {
+  resolveOptimalWorkingHoursEffectiveDateFormula,
+} from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
+import {
   resolveEffectiveTaxRulesForYear,
 } from "#engine/tax/inflationIndexing";
 import {
@@ -1644,7 +1647,21 @@ function generateScenario(
     workingHoursChanges.forEach((whc) => {
       const eff = whc.effectiveSimulationMonth;
       if (m === eff) {
-        const dateTag = whc.effectiveDate ? ` · from ${formatGermanDate(whc.effectiveDate)}` : "";
+        const autoOpt =
+          whc.effectiveDate === undefined
+            ? resolveOptimalWorkingHoursEffectiveDateFormula({
+              calendarYear: whc.effectiveCalendarYear,
+              calendarMonth: whc.effectiveCalendarMonth,
+              targetPerson: whc.targetPerson,
+              weeklyHours: whc.weeklyHours,
+              pregnancies: orderedPregnancies,
+            })
+            : undefined;
+        const dateTag = whc.effectiveDate
+          ? ` · from ${formatGermanDate(whc.effectiveDate)}`
+          : autoOpt?.isDayOptimized
+            ? ` · auto ${formatGermanDate(autoOpt.optimalDate)}`
+            : "";
         startingActions.push({
           actionId: toActionId(`${whc.changeId}-${rm.monthId}-EFFECTIVE`),
           monthId: rm.monthId,

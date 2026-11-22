@@ -31,6 +31,7 @@ import {
   evaluateMutterschutzMonthlyPayFormula,
   evaluateMutterschutzWindowFormula,
   overlapDaysInCalendarMonth,
+  resolveOptimalWorkingHoursEffectiveDateFormula,
 } from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
   resolveMotherAllowanceVariant,
@@ -173,11 +174,42 @@ export function evaluateIncomeMonth(
         isMultipleOrPrematureBirth: preg.isMultipleOrPrematureBirth,
       }),
     }));
-  const hasMidMonthHoursDate = sortedWorkingHoursChanges.some(
-    (action) =>
-      action.effectiveDate !== undefined &&
-      action.effectiveCalendarYear === year &&
-      action.effectiveCalendarMonth === calendarMonth,
+  const resolvedWorkingHoursChanges = sortedWorkingHoursChanges.map((action) => {
+    if (action.effectiveDate !== undefined) {
+      return {
+        action,
+        date: action.effectiveDate,
+        isExactDay: true,
+      };
+    }
+    if (exactMutterschutzWindows.length > 0) {
+      const autoOpt = resolveOptimalWorkingHoursEffectiveDateFormula({
+        calendarYear: action.effectiveCalendarYear,
+        calendarMonth: action.effectiveCalendarMonth,
+        targetPerson: action.targetPerson,
+        weeklyHours: action.weeklyHours,
+        pregnancies: orderedPregnancies,
+      });
+      if (autoOpt.isDayOptimized) {
+        return {
+          action,
+          date: autoOpt.optimalDate,
+          isExactDay: true,
+        };
+      }
+    }
+    return {
+      action,
+      date: buildIsoDate(action.effectiveCalendarYear, action.effectiveCalendarMonth, 1),
+      isExactDay: false,
+    };
+  });
+
+  const hasMidMonthHoursDate = resolvedWorkingHoursChanges.some(
+    (entry) =>
+      entry.isExactDay &&
+      entry.action.effectiveCalendarYear === year &&
+      entry.action.effectiveCalendarMonth === calendarMonth,
   );
   const exactMaternityHit = exactMutterschutzWindows
     .map((entry) => ({
@@ -236,12 +268,7 @@ export function evaluateIncomeMonth(
     let lastDayWifeHours: WorkingHours = paidWifeHours;
     let lastDayHusbandHours: WorkingHours = husbandHours;
 
-    const actionsWithDates = sortedWorkingHoursChanges.map((action) => ({
-      action,
-      date:
-        action.effectiveDate ??
-        buildIsoDate(action.effectiveCalendarYear, action.effectiveCalendarMonth, 1),
-    }));
+    const actionsWithDates = resolvedWorkingHoursChanges;
 
     for (let day = 1; day <= totalCalendarDays; day++) {
       const iso: IsoCalendarDate = buildIsoDate(year, calendarMonth, day);

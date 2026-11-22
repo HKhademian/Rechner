@@ -4,6 +4,8 @@ import {
   type FullCalendarYear,
   type IsoCalendarDate,
   type MonthId,
+  type WorkingHours,
+  TargetPerson,
   toCalendarMonth,
   toEuroAmount,
   toFullCalendarYear,
@@ -470,5 +472,115 @@ export function checkReturnDateLifeMonthOverlapFormula(
     overlapsActiveBasisLifeMonth: false,
     overlapDaysInLifeMonth: 0,
     suggestedSafeReturnDate: validReturn,
+  });
+}
+
+export interface OptimalWorkingHoursDateInputs {
+  readonly calendarYear: FullCalendarYear;
+  readonly calendarMonth: CalendarMonth;
+  readonly targetPerson: TargetPerson;
+  readonly weeklyHours: WorkingHours;
+  readonly pregnancies: readonly {
+    readonly expectedDueDate?: IsoCalendarDate;
+    readonly isMultipleOrPrematureBirth?: boolean;
+  }[];
+}
+
+export interface OptimalWorkingHoursDateResult {
+  readonly optimalDate: IsoCalendarDate;
+  readonly isDayOptimized: boolean;
+  readonly rationale: string;
+}
+
+/**
+ * Resolves the statutorily optimal day within `(calendarYear, calendarMonth)` to begin
+ * a working-hours transition (e.g. entering 0h Elternzeit or returning to work / part-time):
+ * - Mother entering 0h Elternzeit in the month Mutterschutz ends → first day after Mutterschutz (`postBirthEnd + 1`, § 3 Abs. 2 MuSchG).
+ * - Mother returning (>0h) or Father starting/ending leave after birth → BEEG Life-Month boundary day (`birthDay`, clamped to month length),
+ *   preventing § 2 Abs. 3 BEEG Elterngeld income overlap AND breaking the § 17 Abs. 1 BEEG full-calendar-month vacation cut!
+ * - Pre-birth months or scenarios without an exact `expectedDueDate` → 1st of month (`isDayOptimized: false`) for full backward compatibility.
+ */
+export function resolveOptimalWorkingHoursEffectiveDateFormula(
+  inputs: Readonly<OptimalWorkingHoursDateInputs>,
+): OptimalWorkingHoursDateResult {
+  const targetYear = toFullCalendarYear(inputs.calendarYear);
+  const targetMonth = toCalendarMonth(inputs.calendarMonth);
+  const monthDays = daysInCalendarMonth(targetYear, targetMonth);
+  const monthStart = buildIsoDate(targetYear, targetMonth, 1);
+  const monthEnd = buildIsoDate(targetYear, targetMonth, monthDays);
+
+  const datedPregnancies = inputs.pregnancies
+    .filter((preg): preg is { readonly expectedDueDate: IsoCalendarDate;
+      readonly isMultipleOrPrematureBirth?: boolean } =>
+      preg.expectedDueDate !== undefined)
+    .sort((a, b) => diffCalendarDays(b.expectedDueDate, a.expectedDueDate));
+
+  const latestRelevant = datedPregnancies
+    .filter((preg) => diffCalendarDays(preg.expectedDueDate, monthEnd) >= 0)
+    .at(-1);
+
+  if (!latestRelevant) {
+    return Object.freeze({
+      optimalDate: monthStart,
+      isDayOptimized: false,
+      rationale: "1st of month (no exact post-birth due date in or before this month).",
+    });
+  }
+
+  const matWin = evaluateMutterschutzWindowFormula({
+    expectedDueDate: latestRelevant.expectedDueDate,
+    isMultipleOrPrematureBirth: latestRelevant.isMultipleOrPrematureBirth,
+  });
+  const birthDay = parseIsoDateParts(latestRelevant.expectedDueDate).day;
+  const lifeMonthStartIso = buildIsoDate(targetYear, targetMonth, Math.min(birthDay, monthDays));
+  const firstEzInMonth =
+    diffCalendarDays(monthStart, matWin.firstElternzeitDay) >= 0 &&
+    diffCalendarDays(matWin.firstElternzeitDay, monthEnd) >= 0;
+
+  const affectsMother =
+    inputs.targetPerson === TargetPerson.Wife || inputs.targetPerson === TargetPerson.Both;
+
+  if (affectsMother && inputs.weeklyHours <= 0) {
+    if (firstEzInMonth) {
+      return Object.freeze({
+        optimalDate: matWin.firstElternzeitDay,
+        isDayOptimized: true,
+        rationale: "First legal day after Mutterschutz ends (§ 3 Abs. 2 MuSchG; protects boundary month under § 17 Abs. 1 BEEG).",
+      });
+    }
+    return Object.freeze({
+      optimalDate: lifeMonthStartIso,
+      isDayOptimized: true,
+      rationale: "BEEG Life-Month start (aligns Basiselterngeld & avoids extra § 17 Abs. 1 BEEG vacation cut).",
+    });
+  }
+
+  if (affectsMother && inputs.weeklyHours > 0) {
+    if (diffCalendarDays(matWin.firstElternzeitDay, lifeMonthStartIso) >= 0) {
+      return Object.freeze({
+        optimalDate: lifeMonthStartIso,
+        isDayOptimized: true,
+        rationale: "BEEG Life-Month start (zero § 2 Abs. 3 BEEG Elterngeld income overlap & saves § 17 Abs. 1 BEEG vacation).",
+      });
+    }
+    if (firstEzInMonth) {
+      return Object.freeze({
+        optimalDate: matWin.firstElternzeitDay,
+        isDayOptimized: true,
+        rationale: "Earliest legal return day after post-birth Mutterschutz ends (§ 3 Abs. 2 MuSchG).",
+      });
+    }
+    return Object.freeze({
+      optimalDate: lifeMonthStartIso,
+      isDayOptimized: true,
+      rationale: "BEEG Life-Month start (aligns with post-birth Life Months).",
+    });
+  }
+
+  // Father (Husband): always align with BEEG Life-Month boundary
+  return Object.freeze({
+    optimalDate: lifeMonthStartIso,
+    isDayOptimized: true,
+    rationale: "BEEG Life-Month start (aligns father's partner months under § 4 BEEG & avoids extra § 17 Abs. 1 BEEG vacation cut).",
   });
 }

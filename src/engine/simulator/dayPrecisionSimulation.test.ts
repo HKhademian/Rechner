@@ -254,4 +254,58 @@ describe("Phase 2: Day-Exact Mutterschutz, Boundary Proration, Life Months & § 
       TypeError,
     );
   });
+
+  it("auto-optimizes WorkingHoursChangeAction effective day when effectiveDate is left empty in a dated pregnancy scenario", () => {
+    const autoResult = runScenarioBatches({
+      scenarioKey: ScenarioId.C,
+      preexisting: {
+        ...standardPreexistingConditions,
+        householdTaxableIncome: undefined,
+        startCalendarYear: toFullCalendarYear(2026),
+        startCalendarMonth: toCalendarMonth(1),
+        simulationDurationMonths: toMonthDuration(36),
+        salaryInputMode: SalaryInputMode.Gross,
+        husbandGross: toGrossSalary(6500),
+        wifeGross: toGrossSalary(4500),
+        wifeWeeklyHours: toWorkingHours(40),
+        enable13thSalary: false,
+      },
+      pregnancies: [
+        {
+          pregnancyId: toPregnancyId("PREG-AUTO-DAY"),
+          childIndex: toChildIndex(1),
+          positiveTestCalendarMonth: toCalendarMonth(10),
+          positiveTestCalendarYear: toFullCalendarYear(2026),
+          positiveTestSimulationMonth: toSimulationMonth(10),
+          calculatedDeliverySimulationMonth: toSimulationMonth(18),
+          expectedDueDate: toIsoCalendarDate("2027-06-28"),
+          motherPostBirthPartTimeHours: toWorkingHours(0),
+          motherPostBirthPartTimeClass5Net: toNetSalary(0),
+          motherPostBirthPartTimeClass3Net: toNetSalary(0),
+          fatherPartnerMonthsCount: toMonthDuration(2),
+          motherAllowancePlanMode: AllowancePlanMode.Auto,
+        },
+      ],
+      taxClassSwitches: [],
+      salaryRaises: [],
+      workingHoursChanges: [
+        {
+          changeId: toHoursChangeId("HOURS-EMPTY-DAY"),
+          effectiveSimulationMonth: toSimulationMonth(24), // 12.2027
+          effectiveCalendarMonth: toCalendarMonth(12),
+          effectiveCalendarYear: toFullCalendarYear(2027),
+          // effectiveDate intentionally omitted -> engine must auto-optimize to 28.12.2027!
+          targetPerson: TargetPerson.Wife,
+          weeklyHours: toWorkingHours(30),
+          reason: "Return to 30h part-time (auto-optimized day)",
+        },
+      ],
+    });
+
+    const dec27 = autoResult.months.find((m) => m.monthId === toMonthId("M12.2027"))!;
+    assert.equal(dec27.daySplit?.motherElternzeitDays, 27);
+    assert.equal(dec27.daySplit?.motherWorkDays, 4);
+    assert.equal(dec27.daySplit?.summaryLabel, "27d Elternzeit · 4d Salary");
+    assert.ok(dec27.startingActions?.some((a) => a.title.includes("auto 28.12.2027")));
+  });
 });

@@ -13,12 +13,17 @@ import {
   evaluateMutterschutzMonthlyPayFormula,
   evaluateMutterschutzWindowFormula,
   listFullCalendarMonthsInsideInterval,
+  resolveOptimalWorkingHoursEffectiveDateFormula,
 } from "#engine/formulas/pure/maternityAndLifeMonthFormulas";
 import {
+  TargetPerson,
   formatGermanDate,
   isIsoCalendarDate,
+  toCalendarMonth,
   toEuroAmount,
+  toFullCalendarYear,
   toIsoCalendarDate,
+  toWorkingHours,
 } from "#engine/types";
 
 describe("Tier 1 Pure Date, Mutterschutz & BEEG Life-Month Formulas", () => {
@@ -147,5 +152,53 @@ describe("Tier 1 Pure Date, Mutterschutz & BEEG Life-Month Formulas", () => {
       fullMonths.map((m) => m.monthId),
       ["M09.2027", "M10.2027", "M11.2027"],
     );
+  });
+
+  it("auto-calculates statutorily optimal working-hours effective days for return, 0h Elternzeit, and father partner months", () => {
+    const pregnancies = [{ expectedDueDate: toIsoCalendarDate("2027-06-28") }];
+
+    // Mother returning 30h in Dec 2027 -> Life Month 7 start (28.12.2027)
+    const motherReturn = resolveOptimalWorkingHoursEffectiveDateFormula({
+      calendarYear: toFullCalendarYear(2027),
+      calendarMonth: toCalendarMonth(12),
+      targetPerson: TargetPerson.Wife,
+      weeklyHours: toWorkingHours(30),
+      pregnancies,
+    });
+    assert.equal(motherReturn.isDayOptimized, true);
+    assert.equal(motherReturn.optimalDate, "2027-12-28");
+
+    // Mother entering 0h Elternzeit in Aug 2027 -> first day after Mutterschutz ends (24.08.2027)
+    const motherLeaveStart = resolveOptimalWorkingHoursEffectiveDateFormula({
+      calendarYear: toFullCalendarYear(2027),
+      calendarMonth: toCalendarMonth(8),
+      targetPerson: TargetPerson.Wife,
+      weeklyHours: toWorkingHours(0),
+      pregnancies,
+    });
+    assert.equal(motherLeaveStart.isDayOptimized, true);
+    assert.equal(motherLeaveStart.optimalDate, "2027-08-24");
+
+    // Father entering 0h Partnermonat in Jul 2027 -> Life Month 2 start (28.07.2027)
+    const fatherLeave = resolveOptimalWorkingHoursEffectiveDateFormula({
+      calendarYear: toFullCalendarYear(2027),
+      calendarMonth: toCalendarMonth(7),
+      targetPerson: TargetPerson.Husband,
+      weeklyHours: toWorkingHours(0),
+      pregnancies,
+    });
+    assert.equal(fatherLeave.isDayOptimized, true);
+    assert.equal(fatherLeave.optimalDate, "2027-07-28");
+
+    // Pre-birth or month-only scenario (no exact due date) -> 1st of month, isDayOptimized = false
+    const preBirth = resolveOptimalWorkingHoursEffectiveDateFormula({
+      calendarYear: toFullCalendarYear(2027),
+      calendarMonth: toCalendarMonth(4),
+      targetPerson: TargetPerson.Wife,
+      weeklyHours: toWorkingHours(32),
+      pregnancies,
+    });
+    assert.equal(preBirth.isDayOptimized, false);
+    assert.equal(preBirth.optimalDate, "2027-04-01");
   });
 });
