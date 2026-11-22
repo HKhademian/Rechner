@@ -23,6 +23,7 @@ import {
 import {
   type ScenarioId as ScenarioIdType,
   type ActiveScenarioView,
+  type SimulationResult,
   type TimelineChartMode,
   type TimelineTimeRangeFilter,
   type ChildcarePlanConfig,
@@ -100,6 +101,14 @@ import {
 import {
   openLawReference,
 } from "#store/lawReferenceStore";
+import {
+  CalculationStatus,
+  createCalculationScheduler,
+} from "#utils/calculationScheduler";
+
+export {
+  CalculationStatus,
+};
 
 // Initial state comes from the selected browser storage mode or statutory defaults.
 const initialPersisted = loadFromStorage();
@@ -1550,6 +1559,192 @@ export const comparisonMetrics = computed(() => {
   const a = scenarioAData.value.summary;
   const b = scenarioBData.value.summary;
   const c = scenarioCData.value.summary;
+
+  return {
+    gainCvsB: c.grandTotal - b.grandTotal,
+    benefitsGainCvsB: c.totalBenefits - b.totalBenefits,
+    taxRefundC: c.totalTaxRefunds,
+    gainCvsA: c.grandTotal - a.grandTotal,
+    wifeEgGainCvsB: c.totalWifeElterngeld - b.totalWifeElterngeld,
+    mutterschutzGainCvsB: c.totalMutterschutz - b.totalMutterschutz,
+  };
+});
+
+// ============================================================================
+// Coalesced Interactive Calculation Scheduler (Browser UI Responsiveness)
+// ============================================================================
+
+/** Quiet window (ms) to accumulate rapid typing/slider changes before re-running scenarios. */
+export const SIMULATION_DEBOUNCE_MS = 250;
+
+/** Live status of the debounced UI presentation layer (`calculated -> reevaluating -> calculating -> calculated`). */
+export const simulationCalculationStatus = signal<CalculationStatus>(
+  CalculationStatus.Calculated,
+);
+
+/** Count of user input mutations accumulated during the active debounce window. */
+export const simulationPendingChanges = signal<number>(0);
+
+/** Wall-clock duration (ms) of the most recent completed 3-scenario recalculation. */
+export const lastCalculationDurationMs = signal<number | null>(null);
+
+interface DisplayedScenarioSnapshots {
+  readonly a: SimulationResult;
+  readonly b: SimulationResult;
+  readonly c: SimulationResult;
+}
+
+const displayedSnapshots = signal<DisplayedScenarioSnapshots | null>(null);
+
+/** Lightweight dependency tracker covering simulation inputs only (excludes view-only filters). */
+const simulationInputRevision = computed<number>(() => {
+  void startCalendarYear.value;
+  void startCalendarMonth.value;
+  void simulationDurationMonths.value;
+  void activeStatutoryContext.value;
+  void husbandPayrollOptions.value;
+  void wifePayrollOptions.value;
+  void assumeManualNetIsAssessmentNet.value;
+  void householdTaxableIncome.value;
+  void salaryInputMode.value;
+  void salaryPeriod.value;
+  void husbandGross.value;
+  void wifeGross.value;
+  void husbandInitialTaxClass.value;
+  void husbandClass3Net.value;
+  void husbandClass5Net.value;
+  void husbandHours.value;
+  void husbandSalariesCount.value;
+  void husbandBonusDistribution.value;
+  void wifeInitialTaxClass.value;
+  void wifeClass5FullTimeNet.value;
+  void wifeClass3FullTimeNet.value;
+  void wifeInitialHours.value;
+  void wifePostBirthHours.value;
+  void wifeSalariesCount.value;
+  void wifeBonusDistribution.value;
+  void useInitialTaxFactor.value;
+  void annualBonusGross.value;
+  void annualBonusMonth.value;
+  void investmentReturnMonthly.value;
+  void existingChildrenCount.value;
+  void childcarePlan.value;
+  void indexFutureTaxBrackets.value;
+  void kindergeldPerChild.value;
+  void enable13thSalary.value;
+  void bonus40Month.value;
+  void bonus60Month.value;
+  void taxReturnMonth.value;
+  void customPregnancies.value;
+  void customTaxClassSwitches.value;
+  void customSalaryRaises.value;
+  void customWorkingHoursChanges.value;
+  void customFinancialEvents.value;
+  return Date.now() + Math.random();
+});
+
+function recomputeDisplayedSnapshots(): void {
+  const startedAt = typeof performance !== "undefined" ? performance.now() : 0;
+  const a = scenarioAData.peek();
+  const b = scenarioBData.peek();
+  const c = scenarioCData.peek();
+  const durationMs = typeof performance !== "undefined"
+    ? Math.max(1, Math.round(performance.now() - startedAt))
+    : null;
+  batch(() => {
+    displayedSnapshots.value = Object.freeze({ a,
+      b,
+      c });
+    lastCalculationDurationMs.value = durationMs;
+  });
+}
+
+const simulationScheduler = createCalculationScheduler({
+  debounceMs: SIMULATION_DEBOUNCE_MS,
+  onStatusChange: (status, pending) => {
+    batch(() => {
+      simulationCalculationStatus.value = status;
+      simulationPendingChanges.value = pending;
+    });
+  },
+  onCalculate: recomputeDisplayedSnapshots,
+});
+
+let hasObservedInitialInputs = false;
+if (typeof document !== "undefined") {
+  effect(() => {
+    void simulationInputRevision.value;
+    if (!hasObservedInitialInputs) {
+      hasObservedInitialInputs = true;
+      return;
+    }
+    simulationScheduler.notifyInputChange();
+  });
+}
+
+/** Immediately flushes any pending debounced recalculation so UI results reflect latest inputs. */
+export function flushPendingCalculations(): void {
+  simulationScheduler.flush();
+}
+
+let initialSnapshotsCache: DisplayedScenarioSnapshots | null = null;
+
+function getOrInitDisplayedSnapshots(): DisplayedScenarioSnapshots {
+  if (typeof document === "undefined") {
+    return {
+      a: scenarioAData.value,
+      b: scenarioBData.value,
+      c: scenarioCData.value,
+    };
+  }
+  const existing = displayedSnapshots.value;
+  if (existing !== null) {
+    return existing;
+  }
+  if (initialSnapshotsCache === null) {
+    initialSnapshotsCache = Object.freeze({
+      a: scenarioAData.peek(),
+      b: scenarioBData.peek(),
+      c: scenarioCData.peek(),
+    });
+  }
+  return initialSnapshotsCache;
+}
+
+/** Debounced Scenario A snapshot for responsive browser UI rendering. */
+export const displayedScenarioAData = computed<SimulationResult>(
+  () => getOrInitDisplayedSnapshots().a,
+);
+
+/** Debounced Scenario B snapshot for responsive browser UI rendering. */
+export const displayedScenarioBData = computed<SimulationResult>(
+  () => getOrInitDisplayedSnapshots().b,
+);
+
+/** Debounced Scenario C snapshot for responsive browser UI rendering. */
+export const displayedScenarioCData = computed<SimulationResult>(
+  () => getOrInitDisplayedSnapshots().c,
+);
+
+/** Debounced active scenario snapshot (switches between A/B/C instantaneously with zero debounce). */
+export const displayedCurrentScenarioData = computed<SimulationResult>(() => {
+  const snaps = getOrInitDisplayedSnapshots();
+  const key = activeScenario.value;
+  if (key === SimulationStrategy.StatusQuo) {
+    return snaps.a;
+  }
+  if (key === SimulationStrategy.UnoptimizedBaseline) {
+    return snaps.b;
+  }
+  return snaps.c;
+});
+
+/** Debounced comparison KPI metrics for responsive browser UI rendering. */
+export const displayedComparisonMetrics = computed(() => {
+  const snaps = getOrInitDisplayedSnapshots();
+  const a = snaps.a.summary;
+  const b = snaps.b.summary;
+  const c = snaps.c.summary;
 
   return {
     gainCvsB: c.grandTotal - b.grandTotal,
