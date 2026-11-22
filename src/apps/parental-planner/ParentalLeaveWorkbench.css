@@ -1271,7 +1271,7 @@
 /* Row 2: Unified Workspace Bar (Tabs + Segmented Scenario + Levers Popover) */
 .plw-workspace-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
@@ -1280,9 +1280,9 @@
 
 .plw-workspace-tabs {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  overflow-x: auto;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
 }
 
 .plw-workspace-tab {
@@ -1290,13 +1290,13 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-2) 0;
-  margin-bottom: -1px;
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--text-muted);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
   white-space: nowrap;
   cursor: pointer;
 }
