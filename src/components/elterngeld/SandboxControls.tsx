@@ -137,6 +137,7 @@ import {
   type MonthSimRef,
   type CalendarLabel,
   AllowancePlanMode,
+  DaycareBookingHoursTier,
   ElterngeldVariant,
   FederalStateKitaPresetId,
   TaxClass,
@@ -145,6 +146,7 @@ import {
   SalaryPeriod,
   AnnualSalariesCount,
   BonusDistributionPreset,
+  toDaycareBookingHoursTier,
   toFederalStateKitaPresetId,
   toWorkingHours,
   toSimulationMonth,
@@ -3583,13 +3585,73 @@ export default function SandboxControls(): JSX.Element {
                         >
                           {presets.map((preset) => (
                             <option key={preset.id} value={preset.id}>
-                              {preset.label} (Illustrative Municipal Table)
+                              {preset.label}
                             </option>
                           ))}
                           <option value={FederalStateKitaPresetId.Custom}>
                             Custom Monthly Fee Per Child
                           </option>
                         </select>
+
+                        {selectedPreset?.bookingHourTiers && (
+                          <select
+                            id="kita-booking-hours-select"
+                            aria-label="Daily Booking Hours"
+                            value={kita.bookingHoursTier ?? DaycareBookingHoursTier.H8_9}
+                            disabled={!kita.enabled}
+                            onChange={(e) =>
+                              updateChildcarePlan({
+                                bookingHoursTier: toDaycareBookingHoursTier(
+                                  (e.target as HTMLSelectElement).value,
+                                ),
+                              })
+                            }
+                            className="sandbox-select sandbox-select--regular sandbox-select--spaced-md"
+                          >
+                            <option value={DaycareBookingHoursTier.H3_4}>
+                              3–4 hrs/day (Krippe €0–€145/mo)
+                            </option>
+                            <option value={DaycareBookingHoursTier.H4_5}>
+                              4–5 hrs/day (Krippe €0–€162/mo)
+                            </option>
+                            <option value={DaycareBookingHoursTier.H5_6}>
+                              5–6 hrs/day (Krippe €0–€179/mo)
+                            </option>
+                            <option value={DaycareBookingHoursTier.H6_7}>
+                              6–7 hrs/day (Krippe €0–€196/mo)
+                            </option>
+                            <option value={DaycareBookingHoursTier.H7_8}>
+                              7–8 hrs/day (Krippe €0–€213/mo)
+                            </option>
+                            <option value={DaycareBookingHoursTier.H8_9}>
+                              8–9 hrs/day (Krippe €0–€230/mo · Standard)
+                            </option>
+                            <option value={DaycareBookingHoursTier.Over9}>
+                              &gt; 9 hrs/day (Krippe €0–€250/mo)
+                            </option>
+                          </select>
+                        )}
+
+                        {selectedPreset && selectedPreset.defaultMonthlyMealFee > 0 && (
+                          <div className="sandbox-row--between-sm">
+                            <label className="sandbox-check-label">
+                              <input
+                                id="kita-meal-fees-toggle"
+                                type="checkbox"
+                                disabled={!kita.enabled}
+                                checked={Boolean(kita.includeMealFees)}
+                                onChange={(e) =>
+                                  updateChildcarePlan({
+                                    includeMealFees: (e.target as HTMLInputElement).checked,
+                                  })
+                                }
+                              />
+                              <span>
+                                Include Verpflegungsgeld (€{selectedPreset.defaultMonthlyMealFee}/mo · non-deductible)
+                              </span>
+                            </label>
+                          </div>
+                        )}
 
                         {kita.presetId === FederalStateKitaPresetId.Custom && (
                           <div
@@ -3668,11 +3730,18 @@ export default function SandboxControls(): JSX.Element {
                       <div
                         className="sandbox-note sandbox-note--md"
                       >
-                        ↳ Illustrative municipal reference schedule (not statutory federal rates).{" "}
-                        {selectedPreset
-                          ? `${selectedPreset.federalState}: sibling discount ${Math.round(selectedPreset.siblingDiscountRateSecondChild * 100)}% (2nd)${selectedPreset.feeFreeFromAgeMonths !== null ? `, fee-free from age ${selectedPreset.feeFreeFromAgeMonths}mo` : ""}.`
-                          : "Flat monthly rate per active child."}{" "}
-                        Deductible up to 80% / max €4,800/child from 2025.
+                        {selectedPreset?.id === FederalStateKitaPresetId.BavariaMunich ? (
+                          <>
+                            ↳ Official Munich Kita-Gebührensatzung (S580, effective 31.08.2024): Krippe (0–3 yrs) income-tiered (≤50k €0, ≤60k €100, ≤70k..&gt;80k by hours); Kindergarten (3–6 yrs) €0 net care fee after €100 BayKiBiG subsidy; 2nd child drops 1 bracket, 3rd+ child €0. Core care fees &amp; Batch 4 Childcare events flow into annual § 10(1)5 EStG tax refunds (80%, max €4,800/child from 2025); meal fees &amp; Baby Equipment are non-deductible.
+                          </>
+                        ) : (
+                          <>
+                            ↳ {selectedPreset
+                              ? `${selectedPreset.federalState}: sibling discount ${Math.round(selectedPreset.siblingDiscountRateSecondChild * 100)}% (2nd)${selectedPreset.feeFreeFromAgeMonths !== null ? `, fee-free from age ${selectedPreset.feeFreeFromAgeMonths}mo` : ""}.`
+                              : "Flat monthly rate per active child."}{" "}
+                            Core care fees &amp; Batch 4 Childcare events flow into annual § 10(1)5 EStG tax refunds (80%, max €4,800/child from 2025); meal fees &amp; Baby Equipment are non-deductible.
+                          </>
+                        )}
                       </div>
                     </div>
                   );
