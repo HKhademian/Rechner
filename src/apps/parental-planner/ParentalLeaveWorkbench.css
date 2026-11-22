@@ -712,6 +712,7 @@
   overflow-x: auto;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-control);
+  background: var(--bg-surface);
 }
 
 .plw-table {
@@ -1094,6 +1095,7 @@
 .plw-layout--fullscreen {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-3);
   width: 100%;
   min-width: 0;
@@ -1106,6 +1108,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-3);
+  width: 100%;
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -1275,6 +1278,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
+  width: 100%;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -1508,6 +1512,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
   min-width: 0;
 }
 
@@ -1515,6 +1520,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
   min-width: 0;
 }
 
