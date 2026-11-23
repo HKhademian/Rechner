@@ -29,6 +29,8 @@ import {
 } from "#engine/topics/registry";
 import {
   LAW_TAG_LABELS,
+  isLawGroupId,
+  isLawId,
 } from "#engine/laws/types";
 import {
   getParametersByLaw,
@@ -39,6 +41,8 @@ import {
   isPlainPrimaryClick,
   navigateLawHistoryBack,
   navigateToRelatedLaw,
+  openLawGroupReference,
+  openLawReference,
 } from "#store/lawReferenceStore";
 import type {
   JSX,
@@ -59,6 +63,39 @@ import {
 export default function LawReferenceModal(): JSX.Element | null {
   const modalState = activeLawModalState.value;
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent): void => {
+      if (event.defaultPrevented || !isPlainPrimaryClick(event)) {
+        return;
+      }
+      const target = event.target instanceof Element
+        ? event.target.closest<HTMLAnchorElement>("a[data-law-ref-id], a[data-law-ref-group]")
+        : null;
+      if (!target) {
+        return;
+      }
+      const rawLawId = target.dataset.lawRefId;
+      const rawGroupId = target.dataset.lawRefGroup;
+      const resolvedLawId = rawLawId && isLawId(rawLawId) ? rawLawId : undefined;
+      const resolvedGroupId = rawGroupId && isLawGroupId(rawGroupId) ? rawGroupId : undefined;
+      if (!resolvedLawId && !resolvedGroupId) {
+        return;
+      }
+      event.preventDefault();
+      if (resolvedLawId) {
+        openLawReference(resolvedLawId, resolvedGroupId);
+      }
+      else if (resolvedGroupId) {
+        openLawGroupReference(resolvedGroupId);
+      }
+    };
+
+    document.addEventListener("click", handleDocumentClick);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;

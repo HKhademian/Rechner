@@ -102,6 +102,8 @@ export default function LawRefLink({
       style={style}
       title={resolvedTitle}
       aria-label={resolvedTitle}
+      data-law-ref-id={lawId}
+      data-law-ref-group={groupId}
       onClick={handleClick}
     >
       {children ?? (
