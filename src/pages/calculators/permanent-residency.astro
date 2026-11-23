@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import PermanentResidencyApp from "#/apps/permanent-residency/App.tsx";
 import {
   permanentResidencyApp,
 } from "#/apps/permanent-residency/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${permanentResidencyApp.title} | Rechner`}
   description={permanentResidencyApp.description}
+  currentPath={calculatorPath(permanentResidencyApp.id)}
 >
   <PermanentResidencyApp client:load />
-</BaseDocument>
+</AppShell>

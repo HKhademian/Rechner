@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import FamilyMilestonesApp from "#/apps/family-milestones/App.tsx";
 import {
   familyMilestonesApp,
 } from "#/apps/family-milestones/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${familyMilestonesApp.title} | Rechner`}
   description={familyMilestonesApp.description}
+  currentPath={calculatorPath(familyMilestonesApp.id)}
 >
   <FamilyMilestonesApp client:load />
-</BaseDocument>
+</AppShell>

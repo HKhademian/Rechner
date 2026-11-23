@@ -2,10 +2,8 @@ import "#/components/DomainCalculator.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   blueCardEvaluation,
   opportunityCardEvaluation,
@@ -17,9 +15,8 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import LawRefLink from "#components/laws/LawRefLink";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   CalculatorWorkspace,
   FieldGroup,
@@ -191,10 +188,7 @@ export default function VisaCalculator(): JSX.Element {
   ];
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.Visa)}
-      footerNote="Blue Card and Opportunity Card thresholds automatically adjust by planning year."
-    >
+    <>
       <PageHeader
         eyebrow="Visa &amp; Residence"
         title="EU Blue Card &amp; Visa Planner"
@@ -415,6 +409,6 @@ export default function VisaCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   progressionTaxStore,
 } from "#/apps/progression-tax/progressionTaxStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -128,7 +125,7 @@ export default function ProgressionTaxCalculator(): JSX.Element {
     ],
   };
 
-  return <AppShell currentPath={calculatorPath(AppId.ProgressionTax)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Annual Tax Return · Demo"
@@ -209,5 +206,5 @@ export default function ProgressionTaxCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={explanation} summary="Explain § 32b EStG Progressionsvorbehalt formula and assumptions" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

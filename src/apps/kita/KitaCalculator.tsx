@@ -2,10 +2,8 @@ import "#/components/DomainCalculator.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   DEFAULT_KITA_EVALUATION,
   DEFAULT_KITA_STATE,
@@ -21,9 +19,8 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import LawRefLink from "#components/laws/LawRefLink";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   CalculatorWorkspace,
   FieldGroup,
@@ -181,10 +178,7 @@ export default function KitaCalculator(): JSX.Element {
   ];
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.Kita)}
-      footerNote="Demo tool: municipal fee tables are illustrative reference models; meals (Verpflegungsgeld) are always excluded under § 10 Abs. 1 Nr. 5 EStG."
-    >
+    <>
       <PageHeader
         eyebrow="Childcare &amp; Tax"
         title="Kita Fee &amp; Tax Offset"
@@ -405,6 +399,6 @@ export default function KitaCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

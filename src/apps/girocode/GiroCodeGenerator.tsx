@@ -8,10 +8,8 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   EMPTY_GIROCODE_BUILD,
   EMPTY_GIROCODE_DRAFT,
@@ -34,9 +32,8 @@ import {
   SamplePresetIcon,
   StatutoryLimitationWarningIcon,
 } from "#components/Icons";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   ModalDialog,
   ModalDialogSize,
@@ -299,10 +296,7 @@ export default function GiroCodeGenerator(): JSX.Element {
   };
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.GiroCode)}
-      mainClassName="girocode-page"
-    >
+    <>
       <PageHeader
         eyebrow="SEPA Payment Code"
         title="GiroCode Generator"
@@ -732,6 +726,6 @@ export default function GiroCodeGenerator(): JSX.Element {
           {toast.text}
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

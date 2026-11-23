@@ -12,7 +12,6 @@ import {
 import {
   AppId,
   calculatorPath,
-  lifeProfilePath,
 } from "#/apps/appDefinition.ts";
 import {
   CalculatorNavigationIcon,
@@ -25,9 +24,6 @@ import {
 import LifeProfilePanel from "#components/LifeProfilePanel";
 import LifePeople from "#components/LifePeople";
 import LifeTimeline from "#components/LifeTimeline";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
 import {
   MetricCard,
   MetricTone,
@@ -120,10 +116,7 @@ export default function LifeProfileSummaryPage(): JSX.Element {
   const stateLabel = GERMAN_FEDERAL_STATE_LABELS[profile.federalState];
 
   return (
-    <AppShell
-      currentPath={lifeProfilePath()}
-      footerNote="Shared profile estimates stay strictly in your browser under your selected storage mode."
-    >
+    <>
       <PageHeader
         eyebrow="My Life Profile"
         title="Household Life Overview"
@@ -528,6 +521,6 @@ export default function LifeProfileSummaryPage(): JSX.Element {
           })}
         </div>
       </section>
-    </AppShell>
+    </>
   );
 }

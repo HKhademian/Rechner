@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import AgeReliefApp from "#/apps/age-relief/App.tsx";
 import {
   ageReliefApp,
 } from "#/apps/age-relief/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${ageReliefApp.title} | Rechner`}
   description={ageReliefApp.description}
+  currentPath={calculatorPath(ageReliefApp.id)}
 >
   <AgeReliefApp client:load />
-</BaseDocument>
+</AppShell>

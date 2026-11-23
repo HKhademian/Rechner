@@ -6,19 +6,16 @@ import {
 import {
   useState,
 } from "preact/hooks";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   cashReconciliationStore,
 } from "#/apps/cash-reconciliation/cashReconciliationStore.ts";
 import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -164,7 +161,7 @@ export default function CashReconciliationCalculator(): JSX.Element {
     }));
   }
 
-  return <AppShell currentPath={calculatorPath(AppId.CashReconciliation)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Budget vs. Actuals · Demo"
@@ -310,5 +307,5 @@ export default function CashReconciliationCalculator(): JSX.Element {
         </div>
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

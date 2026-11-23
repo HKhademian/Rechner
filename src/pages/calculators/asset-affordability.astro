@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import AssetAffordabilityApp from "#/apps/asset-affordability/App.tsx";
 import {
   assetAffordabilityApp,
 } from "#/apps/asset-affordability/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${assetAffordabilityApp.title} | Rechner`}
   description={assetAffordabilityApp.description}
+  currentPath={calculatorPath(assetAffordabilityApp.id)}
 >
   <AssetAffordabilityApp client:load />
-</BaseDocument>
+</AppShell>

@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import TaxClassSwitchApp from "#/apps/tax-class-switch/App.tsx";
 import {
   taxClassSwitchApp,
 } from "#/apps/tax-class-switch/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${taxClassSwitchApp.title} | Rechner`}
   description={taxClassSwitchApp.description}
+  currentPath={calculatorPath(taxClassSwitchApp.id)}
 >
   <TaxClassSwitchApp client:load />
-</BaseDocument>
+</AppShell>

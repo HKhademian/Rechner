@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import CompanyCarApp from "#/apps/company-car/App.tsx";
 import {
   companyCarApp,
 } from "#/apps/company-car/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${companyCarApp.title} | Rechner`}
   description={companyCarApp.description}
+  currentPath={calculatorPath(companyCarApp.id)}
+  footerNote="EV list price cap adjusts automatically between 2024 (€70,000) and 2025/2026 (€100,000)."
 >
   <CompanyCarApp client:load />
-</BaseDocument>
+</AppShell>

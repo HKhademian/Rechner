@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ElterngeldQuickApp from "#/apps/elterngeld-quick/App.tsx";
 import {
   elterngeldQuickApp,
 } from "#/apps/elterngeld-quick/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${elterngeldQuickApp.title} | Rechner`}
   description={elterngeldQuickApp.description}
+  currentPath={calculatorPath(elterngeldQuickApp.id)}
 >
   <ElterngeldQuickApp client:load />
-</BaseDocument>
+</AppShell>

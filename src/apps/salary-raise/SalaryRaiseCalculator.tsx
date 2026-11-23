@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   salaryRaiseStore,
 } from "#/apps/salary-raise/salaryRaiseStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -130,7 +127,7 @@ export default function SalaryRaiseCalculator(): JSX.Element {
     ],
   };
 
-  return <AppShell currentPath={calculatorPath(AppId.SalaryRaise)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Salary Negotiation · Demo"
@@ -248,5 +245,5 @@ export default function SalaryRaiseCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={explanation} summary="Explain marginal payroll calculation and statutory assumptions" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

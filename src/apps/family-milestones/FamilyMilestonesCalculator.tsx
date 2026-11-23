@@ -6,19 +6,16 @@ import {
 import {
   useState,
 } from "preact/hooks";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   familyMilestonesStore,
 } from "#/apps/family-milestones/familyMilestonesStore.ts";
 import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -208,7 +205,7 @@ export default function FamilyMilestonesCalculator(): JSX.Element {
 
   const nextBirthday = birthdays[0];
 
-  return <AppShell currentPath={calculatorPath(AppId.FamilyMilestones)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Family & Births · Demo"
@@ -416,5 +413,5 @@ export default function FamilyMilestonesCalculator(): JSX.Element {
         </div>
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import GiroCodeApp from "#/apps/girocode/App.tsx";
 import {
   giroCodeApp,
 } from "#/apps/girocode/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${giroCodeApp.title} | Rechner`}
   description={giroCodeApp.description}
+  currentPath={calculatorPath(giroCodeApp.id)}
+  mainClassName="girocode-page"
 >
   <GiroCodeApp client:load />
-</BaseDocument>
+</AppShell>

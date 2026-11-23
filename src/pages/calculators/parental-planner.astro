@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ParentalLeaveWorkbenchApp from "#/apps/parental-planner/App.tsx";
 import {
   parentalPlannerApp,
 } from "#/apps/parental-planner/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${parentalPlannerApp.title} | Rechner`}
   description={parentalPlannerApp.description}
+  currentPath={calculatorPath(parentalPlannerApp.id)}
+  wide
 >
   <ParentalLeaveWorkbenchApp client:load />
-</BaseDocument>
+</AppShell>

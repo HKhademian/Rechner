@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import TravelPlannerApp from "#/apps/travel-planner/App.tsx";
 import {
   travelPlannerApp,
 } from "#/apps/travel-planner/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${travelPlannerApp.title} | Rechner`}
   description={travelPlannerApp.description}
+  currentPath={calculatorPath(travelPlannerApp.id)}
 >
   <TravelPlannerApp client:load />
-</BaseDocument>
+</AppShell>

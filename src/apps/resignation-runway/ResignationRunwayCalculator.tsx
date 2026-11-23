@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   resignationRunwayStore,
 } from "#/apps/resignation-runway/resignationRunwayStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -85,7 +82,7 @@ export default function ResignationRunwayCalculator(): JSX.Element {
   ]);
   const primary = scenarios[0];
 
-  return <AppShell currentPath={calculatorPath(AppId.ResignationRunway)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Career Transition · Demo"
@@ -189,5 +186,5 @@ export default function ResignationRunwayCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={primary.explanation} summary="Explain transition runway formula and assumptions" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import SolarEnergyApp from "#/apps/solar-energy/App.tsx";
 import {
   solarEnergyApp,
 } from "#/apps/solar-energy/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${solarEnergyApp.title} | Rechner`}
   description={solarEnergyApp.description}
+  currentPath={calculatorPath(solarEnergyApp.id)}
+  footerNote="Adjust your assumed grid electricity price in Statutory Assumptions below."
 >
   <SolarEnergyApp client:load />
-</BaseDocument>
+</AppShell>

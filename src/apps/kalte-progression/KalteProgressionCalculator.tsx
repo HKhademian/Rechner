@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   kalteProgressionStore,
 } from "#/apps/kalte-progression/kalteProgressionStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -174,7 +171,7 @@ export default function KalteProgressionCalculator(): JSX.Element {
     ],
   };
 
-  return <AppShell currentPath={calculatorPath(AppId.KalteProgression)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Inflation & Fiscal Drag · Demo"
@@ -273,5 +270,5 @@ export default function KalteProgressionCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={explanation} summary="Explain Inflationsausgleich, CPI discounting and projection boundaries" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

@@ -14,9 +14,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -128,7 +127,7 @@ export default function ElterngeldQuickCalculator(): JSX.Element {
     ],
   };
 
-  return <AppShell currentPath={calculatorPath(AppId.ElterngeldQuick)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Parental Allowance · Demo"
@@ -229,5 +228,5 @@ export default function ElterngeldQuickCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={explanation} summary="Explain BEEG income cap, replacement rate and sibling bonus" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

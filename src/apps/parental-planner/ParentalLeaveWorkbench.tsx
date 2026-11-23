@@ -7,9 +7,8 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   Badge,
   BadgeTone,
@@ -26,10 +25,8 @@ import {
   ParameterSlidersIcon,
   SyncProfileActionIcon,
 } from "#components/Icons";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   WORKBENCH_PRESETS,
   WorkbenchPresetId,
@@ -96,8 +93,6 @@ import {
 import {
   WorkbenchExportImportModal,
 } from "#/apps/parental-planner/modals/WorkbenchExportImportModal.tsx";
-
-const CURRENT_PATH = calculatorPath(AppId.ParentalPlanner);
 
 /**
  * Parental Planner — Concept A Quiet Command Header + Full-Screen Analysis Canvas.
@@ -169,7 +164,7 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
   };
 
   return (
-    <AppShell currentPath={CURRENT_PATH} wide>
+    <>
       {hydrated ? (
         <div className="plw-layout plw-layout--fullscreen">
           {/* Row 1: Quiet Command Header */}
@@ -351,6 +346,6 @@ export default function ParentalLeaveWorkbench(): JSX.Element {
       <CostsBenefitsModal />
       <HorizonMacroModal />
       <WorkbenchExportImportModal />
-    </AppShell>
+    </>
   );
 }

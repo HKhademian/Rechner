@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import MinijobMidijobApp from "#/apps/minijob-midijob/App.tsx";
 import {
   minijobMidijobApp,
 } from "#/apps/minijob-midijob/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${minijobMidijobApp.title} | Rechner`}
   description={minijobMidijobApp.description}
+  currentPath={calculatorPath(minijobMidijobApp.id)}
+  footerNote="Demo tool: Minijob cap and Midijob Übergangsbereich factor follow your selected year's SGB IV rules."
 >
   <MinijobMidijobApp client:load />
-</BaseDocument>
+</AppShell>

@@ -7,9 +7,8 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   Badge,
   BadgeTone,
@@ -27,10 +26,8 @@ import {
   ParameterSlidersIcon,
   SyncProfileActionIcon,
 } from "#components/Icons";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   type LifePlannerPresetId,
   LIFE_PLANNER_PRESETS,
@@ -99,8 +96,6 @@ import {
   LifeRulesTab,
 } from "#/apps/life-planner/results/LifeRulesTab.tsx";
 
-const CURRENT_PATH = calculatorPath(AppId.LifePlanner);
-
 /**
  * Life Planner Workbench — Concept A Quiet Command Header + Full-Screen Analysis Canvas.
  * Mirrors Parental Planner's two-row hairline chrome, slide-over Plan Inputs drawer,
@@ -163,7 +158,7 @@ export default function LifePlannerWorkbench(): JSX.Element {
   };
 
   return (
-    <AppShell currentPath={CURRENT_PATH} wide>
+    <>
       {hydrated ? (
         <div className="lpw-layout">
           {/* Row 1: Quiet Command Header */}
@@ -387,6 +382,6 @@ export default function LifePlannerWorkbench(): JSX.Element {
       <LifeEventComposerModal />
       <LifeExportImportModal />
       <CustomDisasterModal />
-    </AppShell>
+    </>
   );
 }

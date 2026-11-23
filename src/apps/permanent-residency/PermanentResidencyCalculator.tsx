@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   permanentResidencyStore,
 } from "#/apps/permanent-residency/permanentResidencyStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -134,7 +131,7 @@ export default function PermanentResidencyCalculator(): JSX.Element {
 
   const readyCount = result.evidenceChecklist.filter((item) => item.status === EvidenceStatus.Recorded).length;
 
-  return <AppShell currentPath={calculatorPath(AppId.PermanentResidency)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Residence & Immigration · Demo"
@@ -318,5 +315,5 @@ export default function PermanentResidencyCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={result.explanation} summary="Explain § 18c AufenthG rule, dates and sources" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

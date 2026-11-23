@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import HousingApp from "#/apps/housing/App.tsx";
 import {
   housingApp,
 } from "#/apps/housing/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${housingApp.title} | Rechner`}
   description={housingApp.description}
+  currentPath={calculatorPath(housingApp.id)}
+  footerNote="Default notary and agent percentages can be adjusted in Rates & Assumptions below."
 >
   <HousingApp client:load />
-</BaseDocument>
+</AppShell>

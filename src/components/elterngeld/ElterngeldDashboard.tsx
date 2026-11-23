@@ -5,8 +5,6 @@ import {
   batch,
 } from "@preact/signals";
 import {
-  AppId,
-  calculatorPath,
   sitePath,
 } from "#/apps/appDefinition.ts";
 import {
@@ -47,9 +45,8 @@ import {
   DataExportImportModal,
 } from "#components/elterngeld/DataExportImportModal";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   Button,
   ButtonSize,
@@ -113,11 +110,7 @@ export default function ElterngeldDashboard(): JSX.Element {
   const hydrated = useHydrated();
   const forecastMeta = hydrated ? formatForecastPeriodSummary() : null;
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.ParentalLeave)}
-      wide
-      footerNote="Calculated locally in your browser · No data transmitted"
-    >
+    <>
       <PageHeader
         eyebrow="Parental Leave · BEEG & EStG"
         title="Parental Leave Planner"
@@ -187,6 +180,6 @@ export default function ElterngeldDashboard(): JSX.Element {
           <DataExportImportModal />
         </>
       )}
-    </AppShell>
+    </>
   );
 }

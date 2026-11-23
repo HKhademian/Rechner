@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import SalaryRaiseApp from "#/apps/salary-raise/App.tsx";
 import {
   salaryRaiseApp,
 } from "#/apps/salary-raise/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${salaryRaiseApp.title} | Rechner`}
   description={salaryRaiseApp.description}
+  currentPath={calculatorPath(salaryRaiseApp.id)}
 >
   <SalaryRaiseApp client:load />
-</BaseDocument>
+</AppShell>

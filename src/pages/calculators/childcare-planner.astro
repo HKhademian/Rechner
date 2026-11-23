@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ChildcarePlannerApp from "#/apps/childcare-planner/App.tsx";
 import {
   childcarePlannerApp,
 } from "#/apps/childcare-planner/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${childcarePlannerApp.title} | Rechner`}
   description={childcarePlannerApp.description}
+  currentPath={calculatorPath(childcarePlannerApp.id)}
 >
   <ChildcarePlannerApp client:load />
-</BaseDocument>
+</AppShell>

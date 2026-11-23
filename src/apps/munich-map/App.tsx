@@ -9,13 +9,6 @@ import {
   useState,
 } from "preact/hooks";
 import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
-import {
   PageHeader,
 } from "#components/ui/PageHeader";
 import {
@@ -313,9 +306,19 @@ export default function MunichMap() {
     ? formatPlaceDate(activePlace.place)
     : undefined;
 
+  useEffect(() => {
+    const shell = document.querySelector(".munich-map-shell");
+    if (!shell) {
+      return;
+    }
+    shell.classList.toggle("is-map-only", mapOnly);
+    return () => {
+      shell.classList.remove("is-map-only");
+    };
+  }, [mapOnly]);
+
   return (
-    <AppShell currentPath={calculatorPath(AppId.MunichMap)} wide mainClassName="munich-map-page"
-      shellClassName={mapOnly ? "munich-map-shell is-map-only" : "munich-map-shell"}>
+    <>
       <PageHeader title="Munich Map" />
       <div class="munich-map-layout">
         <section class="munich-map-main" aria-label="Map and layers">
@@ -581,6 +584,6 @@ export default function MunichMap() {
           </p>
         </aside>
       </div>
-    </AppShell>
+    </>
   );
 }

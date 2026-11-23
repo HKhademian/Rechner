@@ -1,10 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import MortgageCalculator from "#/apps/mortgage/MortgageCalculator.tsx";
 import {
   mortgageApp,
 } from "#/apps/mortgage/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument title={`${mortgageApp.title} | Rechner`} description={mortgageApp.description}>
+<AppShell
+  title={`${mortgageApp.title} | Rechner`}
+  description={mortgageApp.description}
+  currentPath={calculatorPath(mortgageApp.id)}
+  wide
+>
   <MortgageCalculator client:load />
-</BaseDocument>
+</AppShell>

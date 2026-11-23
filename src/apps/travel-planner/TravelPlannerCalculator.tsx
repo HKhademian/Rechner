@@ -6,19 +6,16 @@ import {
 import {
   useState,
 } from "preact/hooks";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   travelPlannerStore,
 } from "#/apps/travel-planner/travelPlannerStore.ts";
 import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -167,7 +164,7 @@ export default function TravelPlannerCalculator(): JSX.Element {
     }));
   }
 
-  return <AppShell currentPath={calculatorPath(AppId.TravelPlanner)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Travel & Mobility · Demo"
@@ -345,5 +342,5 @@ export default function TravelPlannerCalculator(): JSX.Element {
         </div>
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

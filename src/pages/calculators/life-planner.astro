@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import LifePlannerApp from "#/apps/life-planner/App.tsx";
 import {
   lifePlannerApp,
 } from "#/apps/life-planner/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${lifePlannerApp.title} | Rechner`}
   description={lifePlannerApp.description}
+  currentPath={calculatorPath(lifePlannerApp.id)}
+  wide
 >
   <LifePlannerApp client:load />
-</BaseDocument>
+</AppShell>

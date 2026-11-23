@@ -6,10 +6,8 @@ import {
 import {
   useState,
 } from "preact/hooks";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   assetAffordabilityStore,
 } from "#/apps/asset-affordability/assetAffordabilityStore.ts";
@@ -17,9 +15,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -156,7 +153,7 @@ export default function AssetAffordabilityCalculator(): JSX.Element {
       ? MetricTone.Neutral
       : MetricTone.Loss;
 
-  return <AppShell currentPath={calculatorPath(AppId.AssetAffordability)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Major Purchases & Assets · Demo"
@@ -296,5 +293,5 @@ export default function AssetAffordabilityCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={result.explanation} summary="Explain asset affordability formula and single-counting rule" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

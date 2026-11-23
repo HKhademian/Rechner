@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ResignationRunwayApp from "#/apps/resignation-runway/App.tsx";
 import {
   resignationRunwayApp,
 } from "#/apps/resignation-runway/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${resignationRunwayApp.title} | Rechner`}
   description={resignationRunwayApp.description}
+  currentPath={calculatorPath(resignationRunwayApp.id)}
 >
   <ResignationRunwayApp client:load />
-</BaseDocument>
+</AppShell>

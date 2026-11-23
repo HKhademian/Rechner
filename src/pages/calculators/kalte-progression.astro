@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import KalteProgressionApp from "#/apps/kalte-progression/App.tsx";
 import {
   kalteProgressionApp,
 } from "#/apps/kalte-progression/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${kalteProgressionApp.title} | Rechner`}
   description={kalteProgressionApp.description}
+  currentPath={calculatorPath(kalteProgressionApp.id)}
 >
   <KalteProgressionApp client:load />
-</BaseDocument>
+</AppShell>

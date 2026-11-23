@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import VisaApp from "#/apps/visa/App.tsx";
 import {
   visaApp,
 } from "#/apps/visa/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${visaApp.title} | Rechner`}
   description={visaApp.description}
+  currentPath={calculatorPath(visaApp.id)}
+  footerNote="Blue Card and Opportunity Card thresholds automatically adjust by planning year."
 >
   <VisaApp client:load />
-</BaseDocument>
+</AppShell>

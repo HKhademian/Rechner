@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import PlanningDashboardApp from "#/apps/planning-dashboard/App.tsx";
 import {
   planningDashboardApp,
 } from "#/apps/planning-dashboard/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${planningDashboardApp.title} | Rechner`}
   description={planningDashboardApp.description}
+  currentPath={calculatorPath(planningDashboardApp.id)}
 >
   <PlanningDashboardApp client:load />
-</BaseDocument>
+</AppShell>

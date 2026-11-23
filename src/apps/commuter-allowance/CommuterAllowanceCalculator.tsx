@@ -2,10 +2,8 @@ import "#/components/DomainCalculator.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   DEFAULT_COMMUTER_ALLOWANCE_EVALUATION,
   DEFAULT_COMMUTER_ALLOWANCE_STATE,
@@ -21,9 +19,8 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import LawRefLink from "#components/laws/LawRefLink";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   CalculatorWorkspace,
   FieldGroup,
@@ -209,10 +206,7 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
   ];
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.CommuterAllowance)}
-      footerNote="Demo tool: § 3 Nr. 15 JobTicket subsidies must be paid on top of contractual salary (zusätzlich zum ohnehin geschuldeten Arbeitslohn)."
-    >
+    <>
       <PageHeader
         eyebrow="Work Expenses"
         title="Commuter &amp; JobTicket Calculator"
@@ -439,6 +433,6 @@ export default function CommuterAllowanceCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

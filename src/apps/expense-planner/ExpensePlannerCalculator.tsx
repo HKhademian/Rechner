@@ -6,10 +6,8 @@ import {
 import {
   useState,
 } from "preact/hooks";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   ExpenseCadence,
   ExpenseCategory,
@@ -36,9 +34,8 @@ import {
 import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -153,7 +150,7 @@ export default function ExpensePlannerCalculator(): JSX.Element {
       || item.title.toLowerCase().includes(normalizedFilter))
     : state.items;
 
-  return <AppShell currentPath={calculatorPath(AppId.ExpensePlanner)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Standalone Utility · Demo"
@@ -442,5 +439,5 @@ export default function ExpensePlannerCalculator(): JSX.Element {
         </label>
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

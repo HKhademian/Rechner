@@ -8,7 +8,7 @@ html:has(.munich-map-shell.is-map-only) {
   min-height: 0;
 }
 
-.munich-map-shell.is-map-only > .calculator-navigation {
+.munich-map-shell.is-map-only .calculator-navigation {
   flex-shrink: 0;
 }
 
@@ -60,7 +60,7 @@ main.munich-map-page {
   padding: 0.75rem 1rem 1.25rem;
 }
 
-.munich-map-page > .ui-page-header {
+.munich-map-page .ui-page-header {
   margin-bottom: 0.6rem;
   padding-bottom: 0;
   border: 0;

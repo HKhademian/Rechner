@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   taxClassSwitchStore,
 } from "#/apps/tax-class-switch/taxClassSwitchStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -81,7 +78,7 @@ export default function TaxClassSwitchCalculator(): JSX.Element {
     ? toEuroCents(after.combinedMonthlyNetCents - before.combinedMonthlyNetCents)
     : toEuroCents(0);
 
-  return <AppShell currentPath={calculatorPath(AppId.TaxClassSwitch)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Payroll vs. Final Tax · Demo"
@@ -292,5 +289,5 @@ export default function TaxClassSwitchCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={result.explanation} summary="Explain § 38b / § 39f / § 26b EStG formula and assumptions" />
       </section>}
     </main>
-  </AppShell>;
+  </>;
 }

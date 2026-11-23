@@ -62,7 +62,6 @@ import {
   ResetDefaultsIcon,
 } from "#components/Icons";
 import {
-  AppShell,
   Badge,
   BadgeTone,
   BannerTone,
@@ -358,11 +357,7 @@ export default function MortgageCalculator(): JSX.Element {
   );
 
   if (!ready) {
-    return (
-      <AppShell currentPath={calculatorPath(AppId.Mortgage)} wide>
-        <p role="status">Loading financing details…</p>
-      </AppShell>
-    );
+    return <p role="status">Loading financing details…</p>;
   }
 
   const monthly = complete ? bank.monthlyPayment + (kfw?.initialMonthlyPayment ?? 0) : null;
@@ -412,7 +407,7 @@ export default function MortgageCalculator(): JSX.Element {
   )?.id;
 
   return (
-    <AppShell currentPath={calculatorPath(AppId.Mortgage)} wide>
+    <>
       <div className="mw-layout">
         {/* Row 1: Quiet Command Header + Clickable Summary Strip Pills */}
         <header className="mw-command-header">
@@ -1036,6 +1031,6 @@ export default function MortgageCalculator(): JSX.Element {
           </aside>
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

@@ -1,13 +1,19 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ParentalLeaveApp from "#/apps/parental-leave/App.tsx";
 import {
   parentalLeaveApp,
 } from "#/apps/parental-leave/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${parentalLeaveApp.title} | Rechner`}
   description={parentalLeaveApp.description}
+  currentPath={calculatorPath(parentalLeaveApp.id)}
+  wide
+  footerNote="Calculated locally in your browser · No data transmitted"
 >
   <ParentalLeaveApp client:load />
-</BaseDocument>
+</AppShell>

@@ -2,10 +2,8 @@ import "#/components/DomainCalculator.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   companyCarEvaluation,
   companyCarState,
@@ -14,9 +12,8 @@ import {
   updateCompanyCarField,
 } from "#/apps/company-car/companyCarStore.ts";
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   CalculatorWorkspace,
   FieldGroup,
@@ -178,10 +175,7 @@ export default function CompanyCarCalculator(): JSX.Element {
   ];
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.CompanyCar)}
-      footerNote="EV list price cap adjusts automatically between 2024 (€70,000) and 2025/2026 (€100,000)."
-    >
+    <>
       <PageHeader
         eyebrow="Company Car"
         title="Company Car Calculator"
@@ -352,6 +346,6 @@ export default function CompanyCarCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

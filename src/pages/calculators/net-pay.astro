@@ -1,13 +1,19 @@
 ---
+import {
+  AppId,
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import NetPayApp from "#/apps/net-pay/App.tsx";
 import {
   netPayApp,
 } from "#/apps/net-pay/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${netPayApp.title} | Rechner`}
   description={netPayApp.description}
+  currentPath={calculatorPath(AppId.NetPay)}
+  wide
 >
   <NetPayApp client:load />
-</BaseDocument>
+</AppShell>

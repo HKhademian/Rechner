@@ -31,9 +31,8 @@ import {
   isPlainPrimaryClick,
 } from "#store/lawReferenceStore";
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   ButtonSize,
   ButtonVariant,
@@ -211,10 +210,7 @@ export default function HousingCalculator(): JSX.Element {
   };
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.Housing)}
-      footerNote="Default notary and agent percentages can be adjusted in Rates & Assumptions below."
-    >
+    <>
       <PageHeader
         eyebrow="Home Buying"
         title="Home Purchase Planner"
@@ -463,6 +459,6 @@ export default function HousingCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

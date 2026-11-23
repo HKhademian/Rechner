@@ -44,9 +44,6 @@ import {
   VisaResidenceIcon,
 } from "#components/Icons";
 import {
-  AppShell,
-} from "#components/ui/AppShell";
-import {
   Badge,
   BadgeTone,
 } from "#components/ui/Badge";
@@ -57,9 +54,6 @@ import {
 import {
   EmptyState,
 } from "#components/ui/EmptyState";
-import {
-  PageHeader,
-} from "#components/ui/PageHeader";
 import {
   Pagination,
 } from "#components/ui/Pagination";
@@ -241,12 +235,7 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
   };
 
   return (
-    <AppShell currentPath="/" mainClassName="calculator-catalog">
-      <PageHeader
-        title="Life in Germany, calculated."
-        subtitle="Private, local-first calculators grounded in German statutory formulas."
-      />
-
+    <>
       <form className="calculator-catalog__filters" role="search" onSubmit={(event) => event.preventDefault()}>
         <div className="calculator-catalog__category-filter">
           <SegmentedControl
@@ -370,6 +359,6 @@ export default function CalculatorCatalog({ apps = allCalculatorApps, pageSize =
           onChange={changePage}
         />
       </section>
-    </AppShell>
+    </>
   );
 }

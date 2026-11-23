@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   kindergeldComparisonStore,
 } from "#/apps/kindergeld-comparison/kindergeldComparisonStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -141,7 +138,7 @@ export default function KindergeldComparisonCalculator(): JSX.Element {
     ],
   };
 
-  return <AppShell currentPath={calculatorPath(AppId.KindergeldComparison)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Family Tax Benefit · Demo"
@@ -247,5 +244,5 @@ export default function KindergeldComparisonCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={explanation} summary="Explain §§ 31, 32, 66 EStG Günstigerprüfung" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

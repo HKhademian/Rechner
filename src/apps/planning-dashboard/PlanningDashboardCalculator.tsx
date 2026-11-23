@@ -13,9 +13,8 @@ import {
 import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -265,7 +264,7 @@ export default function PlanningDashboardCalculator(): JSX.Element {
     state.hasUpcomingTravel,
   ].filter(Boolean).length;
 
-  return <AppShell currentPath={calculatorPath(AppId.PlanningDashboard)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Planning Hub · Demo"
@@ -430,5 +429,5 @@ export default function PlanningDashboardCalculator(): JSX.Element {
         </div>
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

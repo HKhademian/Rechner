@@ -1,10 +1,15 @@
 ---
+import {
+  lifeProfilePath,
+} from "#/apps/appDefinition.ts";
+import AppShell from "#/layouts/AppShell.astro";
 import LifeProfileSummaryPage from "#components/LifeProfileSummaryPage";
-import BaseDocument from "#/layouts/BaseDocument.astro";
 ---
-<BaseDocument
+<AppShell
   title="Life Profile Summary | Rechner"
   description="Compare German Net Pay, Parental Leave, Blue Card, Company Car, Solar, and Home Purchase estimates side by side from one shared profile."
+  currentPath={lifeProfilePath()}
+  footerNote="Shared profile estimates stay strictly in your browser under your selected storage mode."
 >
   <LifeProfileSummaryPage client:load />
-</BaseDocument>
+</AppShell>

@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import CashReconciliationApp from "#/apps/cash-reconciliation/App.tsx";
 import {
   cashReconciliationApp,
 } from "#/apps/cash-reconciliation/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${cashReconciliationApp.title} | Rechner`}
   description={cashReconciliationApp.description}
+  currentPath={calculatorPath(cashReconciliationApp.id)}
 >
   <CashReconciliationApp client:load />
-</BaseDocument>
+</AppShell>

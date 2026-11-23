@@ -14,9 +14,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -111,7 +110,7 @@ export default function MutterschutzCalculator(): JSX.Element {
     ],
   };
 
-  return <AppShell currentPath={calculatorPath(AppId.Mutterschutz)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Maternity Protection · Demo"
@@ -219,5 +218,5 @@ export default function MutterschutzCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={explanation} summary="Explain §§ 3, 19, 20 MuSchG calculation and assumptions" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

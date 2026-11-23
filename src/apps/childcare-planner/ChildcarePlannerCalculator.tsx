@@ -16,9 +16,8 @@ import {
 import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -179,7 +178,7 @@ export default function ChildcarePlannerCalculator(): JSX.Element {
 
   const nextDeadline = summary.deadlines[0];
 
-  return <AppShell currentPath={calculatorPath(AppId.ChildcarePlanner)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Childcare & School · Demo"
@@ -344,5 +343,5 @@ export default function ChildcarePlannerCalculator(): JSX.Element {
         </div>}
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

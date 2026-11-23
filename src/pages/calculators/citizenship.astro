@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import CitizenshipApp from "#/apps/citizenship/App.tsx";
 import {
   citizenshipApp,
 } from "#/apps/citizenship/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${citizenshipApp.title} | Rechner`}
   description={citizenshipApp.description}
+  currentPath={calculatorPath(citizenshipApp.id)}
 >
   <CitizenshipApp client:load />
-</BaseDocument>
+</AppShell>

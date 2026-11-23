@@ -2,10 +2,8 @@ import "#/components/DomainCalculator.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   resetSolarEnergyCalculator,
   solarEnergyEvaluation,
@@ -16,9 +14,8 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import LawRefLink from "#components/laws/LawRefLink";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   CalculatorWorkspace,
   FieldGroup,
@@ -154,10 +151,7 @@ export default function SolarEnergyCalculator(): JSX.Element {
   ];
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.SolarEnergy)}
-      footerNote="Adjust your assumed grid electricity price in Statutory Assumptions below."
-    >
+    <>
       <PageHeader
         eyebrow="Rooftop Solar"
         title="Solar Savings Calculator"
@@ -343,6 +337,6 @@ export default function SolarEnergyCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import KindergeldComparisonApp from "#/apps/kindergeld-comparison/App.tsx";
 import {
   kindergeldComparisonApp,
 } from "#/apps/kindergeld-comparison/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${kindergeldComparisonApp.title} | Rechner`}
   description={kindergeldComparisonApp.description}
+  currentPath={calculatorPath(kindergeldComparisonApp.id)}
 >
   <KindergeldComparisonApp client:load />
-</BaseDocument>
+</AppShell>

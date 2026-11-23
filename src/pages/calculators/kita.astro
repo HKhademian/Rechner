@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import KitaApp from "#/apps/kita/App.tsx";
 import {
   kitaApp,
 } from "#/apps/kita/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${kitaApp.title} | Rechner`}
   description={kitaApp.description}
+  currentPath={calculatorPath(kitaApp.id)}
+  footerNote="Demo tool: municipal fee tables are illustrative reference models; meals (Verpflegungsgeld) are always excluded under § 10 Abs. 1 Nr. 5 EStG."
 >
   <KitaApp client:load />
-</BaseDocument>
+</AppShell>

@@ -2,10 +2,8 @@ import "#/components/DomainCalculator.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   DEFAULT_MINIJOB_MIDIJOB_EVALUATION,
   DEFAULT_MINIJOB_MIDIJOB_STATE,
@@ -21,9 +19,8 @@ import {
 import DomainCalculatorHeaderActions from "#components/DomainCalculatorHeaderActions";
 import LawRefLink from "#components/laws/LawRefLink";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   CalculatorWorkspace,
   FieldGroup,
@@ -263,10 +260,7 @@ export default function MinijobMidijobCalculator(): JSX.Element {
   }));
 
   return (
-    <AppShell
-      currentPath={calculatorPath(AppId.MinijobMidijob)}
-      footerNote="Demo tool: Minijob cap and Midijob Übergangsbereich factor follow your selected year's SGB IV rules."
-    >
+    <>
       <PageHeader
         eyebrow="Earnings Transition"
         title="Minijob &amp; Midijob Calculator"
@@ -453,6 +447,6 @@ export default function MinijobMidijobCalculator(): JSX.Element {
           </>
         )}
       />
-    </AppShell>
+    </>
   );
 }

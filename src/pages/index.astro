@@ -1,10 +1,22 @@
 ---
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
+import AppShell from "#/layouts/AppShell.astro";
 import CalculatorCatalog from "#components/CalculatorCatalog";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
 ---
-<BaseDocument
+<AppShell
   title="Rechner | Life in Germany, calculated"
   description="Practical tools to plan life in Germany, with clear assumptions and source links."
+  currentPath={sitePath("/")}
+  mainClassName="calculator-catalog"
 >
+  <PageHeader
+    title="Life in Germany, calculated."
+    subtitle="Private, local-first calculators grounded in German statutory formulas."
+  />
   <CalculatorCatalog client:load />
-</BaseDocument>
+</AppShell>

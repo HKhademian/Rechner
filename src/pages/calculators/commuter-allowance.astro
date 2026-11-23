@@ -1,13 +1,18 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import CommuterAllowanceApp from "#/apps/commuter-allowance/App.tsx";
 import {
   commuterAllowanceApp,
 } from "#/apps/commuter-allowance/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${commuterAllowanceApp.title} | Rechner`}
   description={commuterAllowanceApp.description}
+  currentPath={calculatorPath(commuterAllowanceApp.id)}
+  footerNote="Demo tool: § 3 Nr. 15 JobTicket subsidies must be paid on top of contractual salary (zusätzlich zum ohnehin geschuldeten Arbeitslohn)."
 >
   <CommuterAllowanceApp client:load />
-</BaseDocument>
+</AppShell>

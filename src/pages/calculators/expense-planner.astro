@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ExpensePlannerApp from "#/apps/expense-planner/App.tsx";
 import {
   expensePlannerApp,
 } from "#/apps/expense-planner/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${expensePlannerApp.title} | Rechner`}
   description={expensePlannerApp.description}
+  currentPath={calculatorPath(expensePlannerApp.id)}
 >
   <ExpensePlannerApp client:load />
-</BaseDocument>
+</AppShell>

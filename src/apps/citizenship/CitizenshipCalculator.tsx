@@ -3,10 +3,8 @@ import "#/components/LifeMonthlyView.css";
 import {
   type JSX,
 } from "preact";
-import {
-  AppId,
-  calculatorPath,
-} from "#/apps/appDefinition.ts";
+
+
 import {
   citizenshipStore,
 } from "#/apps/citizenship/citizenshipStore.ts";
@@ -14,9 +12,8 @@ import {
   useHydrated,
 } from "#/components/ui/useHydrated.ts";
 import CalculationExplanationPanel from "#components/CalculationExplanationPanel";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
+
+
 import {
   MetricCard,
   MetricTone,
@@ -134,7 +131,7 @@ export default function CitizenshipCalculator(): JSX.Element {
 
   const readyCount = result.checklist.filter((item) => item.status === EvidenceStatus.Recorded).length;
 
-  return <AppShell currentPath={calculatorPath(AppId.Citizenship)}>
+  return <>
     <main className="domain-calc-page">
       <PageHeader
         eyebrow="Naturalization · Demo"
@@ -303,5 +300,5 @@ export default function CitizenshipCalculator(): JSX.Element {
         <CalculationExplanationPanel explanation={result.explanation} summary="Explain StAG § 10 / § 9 rule and statutory sources" />
       </section>
     </main>
-  </AppShell>;
+  </>;
 }

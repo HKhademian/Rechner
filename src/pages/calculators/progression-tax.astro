@@ -1,13 +1,17 @@
 ---
+import {
+  calculatorPath,
+} from "#/apps/appDefinition.ts";
 import ProgressionTaxApp from "#/apps/progression-tax/App.tsx";
 import {
   progressionTaxApp,
 } from "#/apps/progression-tax/manifest.ts";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 ---
-<BaseDocument
+<AppShell
   title={`${progressionTaxApp.title} | Rechner`}
   description={progressionTaxApp.description}
+  currentPath={calculatorPath(progressionTaxApp.id)}
 >
   <ProgressionTaxApp client:load />
-</BaseDocument>
+</AppShell>
