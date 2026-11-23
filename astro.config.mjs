@@ -15,7 +15,8 @@ process.env.PUBLIC_SOURCE_COMMIT ??= process.env.GITHUB_SHA ?? execFileSync("git
 
 // https://astro.build/config
 export default defineConfig({
+  output: "static",
   site: "https://hkhademian.github.io",
   base: process.env.GITHUB_PAGES === "true" ? "/Rechner" : "/",
-  integrations: [preact()]
+  integrations: [preact()],
 });
