@@ -70,7 +70,28 @@ function walkFiles(
 }
 
 describe("design system and layout architecture compliance", () => {
-  it("all non-redirect Astro pages wrap their document in BaseDocument.astro", () => {
+  it("configures explicit build-time static output and wraps all non-redirect Astro pages in AppShell.astro", () => {
+    const astroConfig = readFileSync("astro.config.mjs", "utf8");
+    assert.equal(
+      /output:\s*"static"/.test(astroConfig),
+      true,
+      "astro.config.mjs must explicitly set output: \"static\"",
+    );
+
+    const appShellLayout = readFileSync("src/layouts/AppShell.astro", "utf8");
+    assert.equal(
+      appShellLayout.includes("BaseDocument") && /<BaseDocument[\s>]/.test(appShellLayout),
+      true,
+      "src/layouts/AppShell.astro must wrap its document in <BaseDocument>",
+    );
+
+    const lawPageLayout = readFileSync("src/layouts/LawPageLayout.astro", "utf8");
+    assert.equal(
+      lawPageLayout.includes("AppShell") && /<AppShell[\s>]/.test(lawPageLayout),
+      true,
+      "src/layouts/LawPageLayout.astro must wrap its document in <AppShell>",
+    );
+
     const astroPages = walkFiles("src/pages", [".astro"]).filter(
       (file) => file !== "src/pages/elterngeld.astro",
     );
@@ -78,20 +99,32 @@ describe("design system and layout architecture compliance", () => {
 
     for (const page of astroPages) {
       const content = readFileSync(page, "utf8");
+      const usesAppShell = content.includes("AppShell") && /<AppShell[\s>]/.test(content);
+      const usesLawLayout = content.includes("LawPageLayout") && /<LawPageLayout[\s>]/.test(content);
       assert.equal(
-        content.includes("BaseDocument"),
+        usesAppShell || usesLawLayout,
         true,
-        `${page} must import BaseDocument.astro`,
+        `${page} must render <AppShell> or <LawPageLayout>`,
       );
+    }
+
+    const pureStaticPages: readonly string[] = [
+      "src/pages/formulas/index.astro",
+      "src/pages/formulas/[formulaId].astro",
+      "src/pages/topics/[topicId].astro",
+      "src/pages/topics/[topicId]/[subtopicId].astro",
+    ];
+    for (const page of pureStaticPages) {
+      const content = readFileSync(page, "utf8");
       assert.equal(
-        /<BaseDocument[\s>]/.test(content),
-        true,
-        `${page} must render <BaseDocument>`,
+        /\bclient:/.test(content),
+        false,
+        `${page} must render purely at build time without client:* directives`,
       );
     }
   });
 
-  it("all 10 route components import and render the shared AppShell layout", () => {
+  it("keeps route TSX islands free of duplicate AppShell wrappers so shell chrome stays build-time static", () => {
     for (const routeFile of ROUTE_COMPONENTS) {
       const sourceText = readFileSync(routeFile, "utf8");
       const sourceFile = ts.createSourceFile(
@@ -102,18 +135,9 @@ describe("design system and layout architecture compliance", () => {
         ts.ScriptKind.TSX,
       );
 
-      let importsAppShell = false;
       let rendersAppShell = false;
 
       const visit = (node: ts.Node): void => {
-        if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-          if (node.moduleSpecifier.text === "#components/ui/AppShell") {
-            const named = node.importClause?.namedBindings;
-            if (named && ts.isNamedImports(named)) {
-              importsAppShell = named.elements.some((el) => el.name.text === "AppShell");
-            }
-          }
-        }
         if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
           const tag = ts.isIdentifier(node.tagName) ? node.tagName.text : "";
           if (tag === "AppShell") {
@@ -124,8 +148,11 @@ describe("design system and layout architecture compliance", () => {
       };
 
       visit(sourceFile);
-      assert.equal(importsAppShell, true, `${routeFile} must import AppShell`);
-      assert.equal(rendersAppShell, true, `${routeFile} must render <AppShell>`);
+      assert.equal(
+        rendersAppShell,
+        false,
+        `${routeFile} must not wrap its island in <AppShell> (use src/layouts/AppShell.astro instead)`,
+      );
     }
   });
 
@@ -259,10 +286,12 @@ describe("design system and layout architecture compliance", () => {
     assert.deepEqual(violations, [], `Unauthorized color literals: ${violations.join("\n")}`);
   });
 
-  it("guards persisted island signals with useHydrated in ThemeToggle, ParameterObserverSection, GiroCodeGenerator, ElterngeldDashboard, and TimelineChart", () => {
+  it("guards persisted island signals with useHydrated in ThemeToggle, ParameterObserverSection, ParameterValue, LawReferencePage, GiroCodeGenerator, ElterngeldDashboard, and TimelineChart", () => {
     const guardedComponents: readonly string[] = [
       "src/components/ThemeToggle.tsx",
       "src/components/parameters/ParameterObserverSection.tsx",
+      "src/components/reference/ParameterValue.tsx",
+      "src/components/laws/LawReferencePage.tsx",
       "src/apps/girocode/GiroCodeGenerator.tsx",
       "src/components/elterngeld/ElterngeldDashboard.tsx",
       "src/components/elterngeld/TimelineChart.tsx",

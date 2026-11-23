@@ -58,24 +58,28 @@ describe("Unified Net Pay Comparison Layout", () => {
     assert.equal(existsSync(join(repoRoot, "src/components/NetPayWorkspace.tsx")), false);
     assert.equal(existsSync(join(repoRoot, "src/components/NetPayWorkspace.css")), false);
 
+    const netPayPage = readFileSync(join(repoRoot, "src/pages/calculators/net-pay.astro"), "utf8");
+    assert.equal(
+      /<AppShell[\s>]/.test(netPayPage) && netPayPage.includes("wide"),
+      true,
+      "src/pages/calculators/net-pay.astro must wrap NetPayApp in wide <AppShell>",
+    );
+
     const { sourceText, sourceFile } = parseTsx("src/components/Calculator.tsx");
     assert.equal(sourceText.includes("NetPayWorkspace"), false);
 
-    let appShellElement: ts.JsxElement | undefined;
-    const findAppShell = (node: ts.Node): void => {
-      if (
-        ts.isJsxElement(node) &&
-        getJsxTagName(node.openingElement) === "AppShell"
-      ) {
-        appShellElement = node;
+    let rootFragment: ts.JsxFragment | undefined;
+    const findFragment = (node: ts.Node): void => {
+      if (ts.isJsxFragment(node)) {
+        rootFragment = node;
         return;
       }
-      ts.forEachChild(node, findAppShell);
+      ts.forEachChild(node, findFragment);
     };
-    findAppShell(sourceFile);
+    findFragment(sourceFile);
 
-    assert.ok(appShellElement, "Calculator.tsx must render an <AppShell> container");
-    const mainChildTags = appShellElement.children
+    assert.ok(rootFragment, "Calculator.tsx must render a root fragment inside AppShell.astro");
+    const mainChildTags = rootFragment.children
       .map((child) => {
         if (ts.isJsxElement(child)) {
           return getJsxTagName(child.openingElement);
@@ -89,7 +93,7 @@ describe("Unified Net Pay Comparison Layout", () => {
 
     const headerIndex = mainChildTags.indexOf("PageHeader");
     const comparisonIndex = mainChildTags.indexOf("ComparisonTable");
-    assert.notEqual(headerIndex, -1, "Calculator.tsx must render PageHeader inside <AppShell>");
+    assert.notEqual(headerIndex, -1, "Calculator.tsx must render PageHeader");
     assert.equal(
       comparisonIndex,
       headerIndex + 1,
