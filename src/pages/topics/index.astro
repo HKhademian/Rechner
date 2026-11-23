@@ -1,9 +1,16 @@
 ---
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 import {
   TopicDirectory,
 } from "#components/topics/TopicPages";
+import {
+  topicPath,
+} from "#utils/topicPath";
 ---
-<BaseDocument title="Benefits, Programs & Concepts | Rechner" description="Plain-language explanations of benefits, programs and calculator concepts.">
+<AppShell
+  title="Benefits, Programs & Concepts | Rechner"
+  description="Plain-language explanations of benefits, programs and calculator concepts."
+  currentPath={topicPath()}
+>
   <TopicDirectory client:load />
-</BaseDocument>
+</AppShell>

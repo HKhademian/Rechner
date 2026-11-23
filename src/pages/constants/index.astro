@@ -1,9 +1,20 @@
 ---
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
+import AppShell from "#/layouts/AppShell.astro";
 import {
   ConstantDirectory,
 } from "#components/reference/ReferencePages";
 ---
-<BaseDocument title="Rates and assumptions | Rechner" description="Inspect rates and adjust eligible assumptions.">
-  <ConstantDirectory client:load />
-</BaseDocument>
+<AppShell
+  title="Rates and assumptions | Rechner"
+  description="Inspect rates and adjust eligible assumptions."
+  currentPath={sitePath("/constants/")}
+>
+  <div class="reference-page">
+    <h1>Rates and assumptions</h1>
+    <p>Inspect values by year and adjust eligible assumptions.</p>
+    <ConstantDirectory client:load />
+  </div>
+</AppShell>

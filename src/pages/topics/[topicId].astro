@@ -1,5 +1,5 @@
 ---
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import AppShell from "#/layouts/AppShell.astro";
 import {
   plainContentText,
 } from "#utils/contentLinks";
@@ -25,6 +25,10 @@ if (topic.parentId) {
   return Astro.redirect(topicPath(topic.id), 301);
 }
 ---
-<BaseDocument title={`${topic.title} | Rechner`} description={plainContentText(topic.description)}>
-  <TopicPage topic={topic} client:load />
-</BaseDocument>
+<AppShell
+  title={`${topic.title} | Rechner`}
+  description={plainContentText(topic.description)}
+  currentPath={topicPath(topic.id)}
+>
+  <TopicPage topic={topic} />
+</AppShell>

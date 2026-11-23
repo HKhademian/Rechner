@@ -8,9 +8,6 @@ import type {
 import {
   sitePath,
 } from "#/apps/appDefinition.ts";
-import {
-  AppShell,
-} from "#components/ui/AppShell";
 import LawRefLink from "#components/laws/LawRefLink";
 import ParameterObserverSection from "#components/parameters/ParameterObserverSection";
 import {
@@ -38,16 +35,16 @@ import {
 export const REFERENCE_FORMULAS = [FormulaId.AnnualIncomeTaxTariff, FormulaId.SpousalSplittingIncomeTax, FormulaId.ParentalAllowanceEntitlement, FormulaId.ParentalWageReplacementRate] as const;
 
 export function FormulaDirectory(): JSX.Element {
-  return <AppShell currentPath={sitePath("/formulas/")}><div className="reference-page">
+  return <div className="reference-page">
     <h1>Formulas</h1>
     <p>How selected calculations work.</p>
     <ul>{REFERENCE_FORMULAS.map((id) => <li key={id}><a href={sitePath(`/formulas/${id}/`)}>{STATUTORY_FORMULA_DESCRIPTORS[id].label}</a></li>)}</ul>
-  </div></AppShell>;
+  </div>;
 }
 
 export function FormulaPage({ id }: { readonly id: typeof REFERENCE_FORMULAS[number] }): JSX.Element {
   const formula = STATUTORY_FORMULA_DESCRIPTORS[id];
-  return <AppShell currentPath={sitePath("/formulas/")}><div className="reference-page">
+  return <div className="reference-page">
     <a href={sitePath("/formulas/")}>All formulas</a>
     <h1>{formula.label}</h1>
     <p>{formula.description}</p>
@@ -78,7 +75,7 @@ export function FormulaPage({ id }: { readonly id: typeof REFERENCE_FORMULAS[num
     <section><h2>Rates and thresholds</h2><ul>{formula.consumedParameterIds.map((parameterId) => <li key={parameterId}><a href={sitePath(`/constants/${parameterId}/`)}>{getParameterDefinition(parameterId).label}</a></li>)}</ul></section>
     <section><h2>Related topics</h2><ul>{(id === FormulaId.ParentalAllowanceEntitlement || id === FormulaId.ParentalWageReplacementRate) ? <li><a href={sitePath("/topics/parental-allowance/")}>Parental allowance</a></li> : <li><a href={sitePath("/topics/taxable-income/")}>Taxable income</a></li>}{id === FormulaId.SpousalSplittingIncomeTax && <li><a href={sitePath("/topics/joint-assessment/")}>Joint assessment</a></li>}</ul></section>
     <section><h2>Law</h2><ul>{formula.governingLawIds.map((lawId) => <li key={lawId}><LawRefLink lawId={lawId} /></li>)}</ul></section>
-  </div></AppShell>;
+  </div>;
 }
 
 export function ConstantDirectory(): JSX.Element {
@@ -88,22 +85,32 @@ export function ConstantDirectory(): JSX.Element {
     setParameterMutabilityFilter(undefined);
     setParameterSearchQuery(query);
   }, []);
-  return <AppShell currentPath={sitePath("/constants/")}><div className="reference-page">
-    <h1>Rates and assumptions</h1>
-    <p>Inspect values by year and adjust eligible assumptions.</p>
-    <ParameterObserverSection defaultExpanded embedded />
-  </div></AppShell>;
+  return <ParameterObserverSection defaultExpanded embedded />;
+}
+
+export function ConstantPageIntro({ id }: { readonly id: ParameterId }): JSX.Element {
+  const parameter = getParameterDefinition(id);
+  return <>
+    <a href={sitePath("/constants/")}>All rates and assumptions</a>
+    <h1>{parameter.label}</h1>
+    <p>{parameter.description}</p>
+    <p>{PARAMETER_MUTABILITY_LABELS[parameter.mutability]}</p>
+  </>;
+}
+
+export function ConstantPageLinks({ id }: { readonly id: ParameterId }): JSX.Element {
+  const parameter = getParameterDefinition(id);
+  const formulas = REFERENCE_FORMULAS.filter((formulaId) => STATUTORY_FORMULA_DESCRIPTORS[formulaId].consumedParameterIds.includes(id));
+  return <>
+    {parameter.lawIds.length > 0 && <section><h2>Law</h2><ul>{parameter.lawIds.map((lawId) => <li key={lawId}><LawRefLink lawId={lawId} /></li>)}</ul></section>}
+    {formulas.length > 0 && <section><h2>Formulas</h2><ul>{formulas.map((formulaId) => <li key={formulaId}><a href={sitePath(`/formulas/${formulaId}/`)}>{STATUTORY_FORMULA_DESCRIPTORS[formulaId].label}</a></li>)}</ul></section>}
+  </>;
 }
 
 export function ConstantPage({ id }: { readonly id: ParameterId }): JSX.Element {
-  const parameter = getParameterDefinition(id);
-  const formulas = REFERENCE_FORMULAS.filter((formulaId) => STATUTORY_FORMULA_DESCRIPTORS[formulaId].consumedParameterIds.includes(id));
-  return <AppShell currentPath={sitePath("/constants/")}><div className="reference-page">
-    <a href={sitePath("/constants/")}>All rates and assumptions</a>
-    <h1>{parameter.label}</h1><p>{parameter.description}</p>
-    <p>{PARAMETER_MUTABILITY_LABELS[parameter.mutability]}</p>
+  return <div className="reference-page">
+    <ConstantPageIntro id={id} />
     <ParameterValue id={id} />
-    {parameter.lawIds.length > 0 && <section><h2>Law</h2><ul>{parameter.lawIds.map((lawId) => <li key={lawId}><LawRefLink lawId={lawId} /></li>)}</ul></section>}
-    {formulas.length > 0 && <section><h2>Formulas</h2><ul>{formulas.map((formulaId) => <li key={formulaId}><a href={sitePath(`/formulas/${formulaId}/`)}>{STATUTORY_FORMULA_DESCRIPTORS[formulaId].label}</a></li>)}</ul></section>}
-  </div></AppShell>;
+    <ConstantPageLinks id={id} />
+  </div>;
 }

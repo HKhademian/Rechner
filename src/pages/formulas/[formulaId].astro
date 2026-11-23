@@ -1,5 +1,8 @@
 ---
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
+import AppShell from "#/layouts/AppShell.astro";
 import {
   FormulaPage,
   REFERENCE_FORMULAS,
@@ -7,12 +10,17 @@ import {
 import {
   STATUTORY_FORMULA_DESCRIPTORS,
 } from "#engine/formulas/context/statutoryEvaluators";
+
 export function getStaticPaths() {
   return REFERENCE_FORMULAS.map((id) => ({ params: { formulaId: id }, props: { id } }));
 }
 const { id } = Astro.props;
 const formula = STATUTORY_FORMULA_DESCRIPTORS[id];
 ---
-<BaseDocument title={`${formula.label} | Rechner`} description={formula.description}>
-  <FormulaPage client:load id={id} />
-</BaseDocument>
+<AppShell
+  title={`${formula.label} | Rechner`}
+  description={formula.description}
+  currentPath={sitePath("/formulas/")}
+>
+  <FormulaPage id={id} />
+</AppShell>

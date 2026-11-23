@@ -1,9 +1,16 @@
 ---
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import {
+  sitePath,
+} from "#/apps/appDefinition.ts";
+import AppShell from "#/layouts/AppShell.astro";
 import {
   FormulaDirectory,
 } from "#components/reference/ReferencePages";
 ---
-<BaseDocument title="Formulas | Rechner" description="Explore selected calculations.">
-  <FormulaDirectory client:load />
-</BaseDocument>
+<AppShell
+  title="Formulas | Rechner"
+  description="Explore selected calculations."
+  currentPath={sitePath("/formulas/")}
+>
+  <FormulaDirectory />
+</AppShell>
