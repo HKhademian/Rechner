@@ -1,0 +1,75 @@
+---
+import "#components/ui/UnifiedControls.css";
+import BaseDocument from "#/layouts/BaseDocument.astro";
+import Navigation from "#components/Navigation";
+import SourceRevision from "#components/SourceRevision";
+import {
+  calculatorAtPath,
+} from "#/apps/registry.ts";
+import {
+  topics,
+} from "#engine/topics/registry";
+import {
+  topicPath,
+} from "#utils/topicPath";
+import {
+  appShellMainClassName,
+} from "#utils/uiHelpers";
+
+interface Props {
+  readonly title: string;
+  readonly description: string;
+  readonly currentPath: string;
+  readonly wide?: boolean;
+  readonly mainClassName?: string;
+  readonly shellClassName?: string;
+  readonly footerNote?: string;
+  readonly openStreetMapTiles?: boolean;
+}
+
+const {
+  title,
+  description,
+  currentPath,
+  wide = false,
+  mainClassName = "",
+  shellClassName = "",
+  footerNote,
+  openStreetMapTiles = false,
+} = Astro.props;
+
+const app = calculatorAtPath(currentPath);
+const relatedTopics = app
+  ? topics.filter((topic) => !topic.parentId && topic.apps.includes(app.id))
+  : [];
+const shellClasses = ["ui-app-shell", shellClassName.trim()].filter(Boolean).join(" ");
+---
+<BaseDocument
+  title={title}
+  description={description}
+  openStreetMapTiles={openStreetMapTiles}
+>
+  <div class={shellClasses}>
+    <Navigation client:idle currentPath={currentPath} />
+    <main
+      id="main-content"
+      class={appShellMainClassName(wide, mainClassName)}
+      tabindex="-1"
+    >
+      <slot />
+      {relatedTopics.length > 0 && (
+        <section class="ui-related-topics" aria-label="Related explanations">
+          <h2>Related explanations</h2>
+          <ul>
+            {relatedTopics.map((topic) => (
+              <li><a href={topicPath(topic.id)}>{topic.title}</a></li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
+    <footer class="ui-app-footer source-revision-footer">
+      <SourceRevision note={footerNote} />
+    </footer>
+  </div>
+</BaseDocument>
