@@ -1,10 +1,12 @@
 ---
-import LawReferencePage from "#components/laws/LawReferencePage";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import LawPageLayout from "#/layouts/LawPageLayout.astro";
+import {
+  DEFAULT_FALLBACK_LAW_ID,
+} from "#components/laws/LawReferencePage";
 ---
-<BaseDocument
+<LawPageLayout
   title="Laws & Statutory Rules | Rechner"
   description="Searchable German statutory law directory linking tax, parental leave, maternity, and social contribution rules to governed parameters and formulas."
->
-  <LawReferencePage client:load />
-</BaseDocument>
+  lawId={DEFAULT_FALLBACK_LAW_ID}
+  redirectQueryLaw
+/>

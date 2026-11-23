@@ -1,6 +1,5 @@
 ---
-import LawReferencePage from "#components/laws/LawReferencePage";
-import BaseDocument from "#/layouts/BaseDocument.astro";
+import LawPageLayout from "#/layouts/LawPageLayout.astro";
 import {
   getAllLawEntries,
   getLawEntry,
@@ -18,9 +17,8 @@ export function getStaticPaths() {
 const lawId = Astro.params.lawId as LawId;
 const entry = getLawEntry(lawId);
 ---
-<BaseDocument
+<LawPageLayout
   title={`${entry.citation} — ${entry.title} | Rechner`}
   description={entry.summary}
->
-  <LawReferencePage client:load initialLawId={entry.id} />
-</BaseDocument>
+  lawId={entry.id}
+/>

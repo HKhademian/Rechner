@@ -1,0 +1,62 @@
+---
+import {
+  lawCatalogPath,
+} from "#/apps/appDefinition.ts";
+import AppShell from "#/layouts/AppShell.astro";
+import {
+  LawArticleOverview,
+  LawArticleReferences,
+  LawDirectorySidebar,
+  LawGovernedParameters,
+  hasLawInteractiveSections,
+} from "#components/laws/LawReferencePage";
+import {
+  PageHeader,
+} from "#components/ui/PageHeader";
+import {
+  type LawId,
+} from "#engine/laws/types";
+
+interface Props {
+  readonly title: string;
+  readonly description: string;
+  readonly lawId: LawId;
+  readonly redirectQueryLaw?: boolean;
+}
+
+const {
+  title,
+  description,
+  lawId,
+  redirectQueryLaw = false,
+} = Astro.props;
+
+const hasInteractiveParameters = hasLawInteractiveSections(lawId);
+---
+<AppShell
+  title={title}
+  description={description}
+  currentPath={lawCatalogPath()}
+  wide
+  shellClassName="law-page-shell"
+>
+  <PageHeader
+    eyebrow="Laws & Rules"
+    title="Laws & Rules Directory"
+    subtitle="German tax, parental leave, housing, solar, and visa laws linked to the calculators."
+  />
+  <div class="law-page-layout">
+    <LawDirectorySidebar
+      client:idle
+      currentLawId={lawId}
+      redirectQueryLaw={redirectQueryLaw}
+    />
+    <article class="law-page-article" aria-labelledby="law-page-title">
+      <LawArticleOverview lawId={lawId} />
+      {hasInteractiveParameters && (
+        <LawGovernedParameters client:load lawId={lawId} />
+      )}
+      <LawArticleReferences lawId={lawId} />
+    </article>
+  </div>
+</AppShell>
